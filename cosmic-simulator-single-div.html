@@ -1,0 +1,779 @@
+<div id="cosmic-button-simulator">
+    <style>
+        #cosmic-button-simulator {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            font-family: 'Arial', sans-serif;
+            overflow: visible;
+            background: linear-gradient(135deg, #0c0c2e, #1a1a3e) !important;
+            color: white !important;
+            user-select: none;
+            color-scheme: dark;
+            margin-bottom: 80px;
+        }
+
+        #cosmic-button-simulator * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #cosmic-button-simulator #cosmos {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            cursor: crosshair;
+            transition: background 2s ease;
+            overflow: hidden;
+        }
+
+        #cosmic-button-simulator .stars {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white !important;
+            border-radius: 50%;
+            animation: cosmic-twinkle 3s infinite;
+        }
+
+        @keyframes cosmic-twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        #cosmic-button-simulator .celestial-body {
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        #cosmic-button-simulator .celestial-body:hover {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        #cosmic-button-simulator .planet {
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #4ecdc4);
+        }
+
+        #cosmic-button-simulator .blackhole {
+            background: radial-gradient(circle, #000 30%, #333 70%, #666 100%);
+            box-shadow: 0 0 30px #9b59b6, 0 0 60px #3498db;
+            animation: cosmic-blackhole-spin 2s linear infinite;
+        }
+
+        @keyframes cosmic-blackhole-spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        #cosmic-button-simulator .merge-effect {
+            animation: cosmic-merge 0.5s ease-out;
+        }
+
+        @keyframes cosmic-merge {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #cosmic-button-simulator #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        #cosmic-button-simulator #reset-container {
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        #cosmic-button-simulator #reset-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        #cosmic-button-simulator #reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        #cosmic-button-simulator #stats {
+            display: inline-block;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            vertical-align: middle;
+        }
+
+        #cosmic-button-simulator .stat-item {
+            display: inline-block;
+            margin-right: 20px;
+            padding: 0 10px;
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #cosmic-button-simulator .stat-item:last-child {
+            border-right: none;
+            margin-right: 0;
+        }
+
+        #cosmic-button-simulator .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        #cosmic-button-simulator .stat-value {
+            color: #667eea;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        #cosmic-button-simulator #message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-align: center;
+            border: 1px solid #667eea;
+            color: #ffffff !important;
+            backdrop-filter: blur(5px);
+        }
+
+        #cosmic-button-simulator #status-log {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9) !important;
+            overflow-y: auto;
+            z-index: 1500;
+            backdrop-filter: blur(10px);
+        }
+
+        #cosmic-button-simulator #status-log::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #cosmic-button-simulator #status-log::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        #cosmic-button-simulator #status-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        #cosmic-button-simulator .log-entry {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: inherit !important;
+        }
+
+        #cosmic-button-simulator .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        #cosmic-button-simulator .cosmic-stage-1 {
+            background: linear-gradient(135deg, #0c0c2e, #1a1a3e);
+        }
+
+        #cosmic-button-simulator .cosmic-stage-2 {
+            background: linear-gradient(135deg, #2c1810, #1a0f0f);
+        }
+
+        #cosmic-button-simulator .cosmic-stage-3 {
+            background: linear-gradient(135deg, #0f0f0f, #000000);
+        }
+
+        #cosmic-button-simulator .trail {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.5;
+            animation: cosmic-trail-fade 1s ease-out forwards;
+        }
+
+        @keyframes cosmic-trail-fade {
+            0% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
+    </style>
+
+    <div id="cosmos" class="cosmic-stage-1">
+        <div id="ui">
+            <div id="stats">
+                <span class="stat-item">
+                    <span class="stat-label">생성</span>
+                    <span class="stat-value" id="click-count">0</span>
+                </span>
+                <span class="stat-item">
+                    <span class="stat-label">천체</span>
+                    <span class="stat-value" id="body-count">0</span>
+                </span>
+                <span class="stat-item">
+                    <span class="stat-label">블랙홀</span>
+                    <span class="stat-value" id="blackhole-count">0</span>
+                </span>
+                <span class="stat-item">
+                    <span class="stat-label">단계</span>
+                    <span class="stat-value" id="cosmic-stage">원시 우주</span>
+                </span>
+            </div>
+        </div>
+        <div id="status-log"></div>
+    </div>
+    
+    <div id="reset-container">
+        <button id="reset-button">🔄 우주 초기화</button>
+    </div>
+
+    <script>
+        (function() {
+            var container = document.getElementById('cosmic-button-simulator');
+            var cosmos = container.querySelector('#cosmos');
+            
+            function CosmicSimulator() {
+                var self = this;
+                this.canvas = cosmos;
+                this.bodies = [];
+                this.clickCount = 0;
+                this.animationId = null;
+                
+                // 파라미터
+                this.maxPlanets = 100;
+                this.gravityConst = 0.05;
+                this.planetSizeRange = [8, 25];
+                this.massFactor = 1.0;
+                this.collisionMergeThreshold = 0.9;
+                this.blackholeMassThreshold = 400;
+                
+                this.backgroundStages = [
+                    { threshold: 0, cssClass: 'cosmic-stage-1', name: '원시 우주' },
+                    { threshold: 25, cssClass: 'cosmic-stage-2', name: '성숙한 우주' },
+                    { threshold: 50, cssClass: 'cosmic-stage-3', name: '어둠의 우주' }
+                ];
+
+                this.initialize = function() {
+                    self.createStars();
+                    self.bindEvents();
+                    self.animate();
+                };
+
+                this.createStars = function() {
+                    for (var i = 0; i < 100; i++) {
+                        var star = document.createElement('div');
+                        star.className = 'stars';
+                        star.style.left = Math.random() * self.canvas.offsetWidth + 'px';
+                        star.style.top = Math.random() * self.canvas.offsetHeight + 'px';
+                        star.style.animationDelay = Math.random() * 3 + 's';
+                        self.canvas.appendChild(star);
+                    }
+                };
+
+                this.bindEvents = function() {
+                    container.querySelector('#reset-button').addEventListener('click', function() {
+                        self.resetUniverse();
+                    });
+
+                    self.canvas.addEventListener('click', function(e) {
+                        var rect = self.canvas.getBoundingClientRect();
+                        var x = e.clientX - rect.left;
+                        var y = e.clientY - rect.top;
+                        
+                        if (e.target === self.canvas) {
+                            self.createCelestialBody(x, y);
+                        } else if (e.target.classList.contains('celestial-body')) {
+                            self.splitCelestialBody(e.target, x, y);
+                        }
+                    });
+                };
+
+                this.createCelestialBody = function(x, y) {
+                    if (self.bodies.length >= self.maxPlanets) return;
+
+                    var centerX = self.canvas.offsetWidth / 2;
+                    var centerY = self.canvas.offsetHeight / 2;
+                    var spreadFactor = Math.min(self.clickCount * 3, 200);
+                    
+                    x = x || centerX + (Math.random() - 0.5) * spreadFactor;
+                    y = y || centerY + (Math.random() - 0.5) * spreadFactor;
+
+                    var size = self.planetSizeRange[0] + Math.random() * 
+                        (self.planetSizeRange[1] - self.planetSizeRange[0]);
+                    var mass = size * size * self.massFactor;
+
+                    var body = {
+                        id: Date.now() + Math.random(),
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        mass: mass,
+                        size: size,
+                        type: 'planet',
+                        element: self.createElement(x, y, size, 'planet'),
+                        mergeProtected: false,
+                        mergeProtectionEnd: 0
+                    };
+
+                    self.bodies.push(body);
+                    self.clickCount++;
+                    self.updateStats();
+                    self.checkStageTransition();
+                    self.showMessage();
+                };
+
+                this.createElement = function(x, y, size, type) {
+                    var element = document.createElement('div');
+                    element.className = 'celestial-body ' + type;
+                    element.style.left = (x - size) + 'px';
+                    element.style.top = (y - size) + 'px';
+                    element.style.width = (size * 2) + 'px';
+                    element.style.height = (size * 2) + 'px';
+                    
+                    if (type === 'planet') {
+                        var hue = Math.random() * 360;
+                        element.style.background = 'radial-gradient(circle at 30% 30%, hsl(' + hue + ', 70%, 60%), hsl(' + (hue + 60) + ', 70%, 50%))';
+                    }
+                    
+                    self.canvas.appendChild(element);
+                    return element;
+                };
+
+                this.animate = function() {
+                    self.updatePhysics();
+                    self.updatePositions();
+                    self.checkCollisions();
+                    self.animationId = requestAnimationFrame(self.animate);
+                };
+
+                this.updatePhysics = function() {
+                    for (var i = 0; i < self.bodies.length; i++) {
+                        var bodyA = self.bodies[i];
+                        
+                        for (var j = i + 1; j < self.bodies.length; j++) {
+                            var bodyB = self.bodies[j];
+                            
+                            var dx = bodyB.x - bodyA.x;
+                            var dy = bodyB.y - bodyA.y;
+                            var distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance > 0) {
+                                var force = self.gravityConst * bodyA.mass * bodyB.mass / (distance * distance);
+                                var fx = force * dx / distance;
+                                var fy = force * dy / distance;
+                                
+                                bodyA.vx += fx / bodyA.mass;
+                                bodyA.vy += fy / bodyA.mass;
+                                bodyB.vx -= fx / bodyB.mass;
+                                bodyB.vy -= fy / bodyB.mass;
+                            }
+                        }
+                    }
+                };
+
+                this.updatePositions = function() {
+                    var currentTime = Date.now();
+                    
+                    self.bodies.forEach(function(body) {
+                        body.x += body.vx;
+                        body.y += body.vy;
+                        
+                        // 융합 보호 해제 체크
+                        if (body.mergeProtected && currentTime >= body.mergeProtectionEnd) {
+                            body.mergeProtected = false;
+                            body.element.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.3)'; // 원래 빛으로 복원
+                        }
+                        
+                        // 융합 보호 중이면 특별한 빛 효과
+                        if (body.mergeProtected) {
+                            body.element.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.4)'; // 골드 글로우
+                        }
+                        
+                        var canvasWidth = self.canvas.offsetWidth;
+                        var canvasHeight = self.canvas.offsetHeight;
+                        
+                        if (body.x - body.size <= 0) {
+                            body.x = body.size;
+                            body.vx = Math.abs(body.vx) * 0.8;
+                        } else if (body.x + body.size >= canvasWidth) {
+                            body.x = canvasWidth - body.size;
+                            body.vx = -Math.abs(body.vx) * 0.8;
+                        }
+                        
+                        if (body.y - body.size <= 0) {
+                            body.y = body.size;
+                            body.vy = Math.abs(body.vy) * 0.8;
+                        } else if (body.y + body.size >= canvasHeight) {
+                            body.y = canvasHeight - body.size;
+                            body.vy = -Math.abs(body.vy) * 0.8;
+                        }
+                        
+                        body.element.style.left = (body.x - body.size) + 'px';
+                        body.element.style.top = (body.y - body.size) + 'px';
+                        
+                        if (Math.random() < 0.1) {
+                            self.createTrail(body.x, body.y, body.size / 4);
+                        }
+                    });
+                };
+
+                this.createTrail = function(x, y, size) {
+                    var trail = document.createElement('div');
+                    trail.className = 'trail';
+                    trail.style.left = (x - size) + 'px';
+                    trail.style.top = (y - size) + 'px';
+                    trail.style.width = (size * 2) + 'px';
+                    trail.style.height = (size * 2) + 'px';
+                    trail.style.background = 'rgba(255, 255, 255, 0.3)';
+                    self.canvas.appendChild(trail);
+                    
+                    setTimeout(function() {
+                        if (trail.parentNode) {
+                            trail.parentNode.removeChild(trail);
+                        }
+                    }, 1000);
+                };
+
+                this.checkCollisions = function() {
+                    var currentTime = Date.now();
+                    
+                    for (var i = self.bodies.length - 1; i >= 0; i--) {
+                        for (var j = i - 1; j >= 0; j--) {
+                            var bodyA = self.bodies[i];
+                            var bodyB = self.bodies[j];
+                            
+                            // 융합 보호 상태 확인
+                            if (bodyA.mergeProtected && currentTime < bodyA.mergeProtectionEnd) continue;
+                            if (bodyB.mergeProtected && currentTime < bodyB.mergeProtectionEnd) continue;
+                            
+                            var dx = bodyB.x - bodyA.x;
+                            var dy = bodyB.y - bodyA.y;
+                            var distance = Math.sqrt(dx * dx + dy * dy);
+                            var minDistance = (bodyA.size + bodyB.size) * self.collisionMergeThreshold;
+                            
+                            if (distance < minDistance) {
+                                self.mergeBodies(bodyA, bodyB, i, j);
+                                break;
+                            }
+                        }
+                    }
+                };
+
+                this.mergeBodies = function(bodyA, bodyB, indexA, indexB) {
+                    var larger = bodyA.mass > bodyB.mass ? bodyA : bodyB;
+                    var smaller = bodyA.mass > bodyB.mass ? bodyB : bodyA;
+                    var largerIndex = bodyA.mass > bodyB.mass ? indexA : indexB;
+                    var smallerIndex = bodyA.mass > bodyB.mass ? indexB : indexA;
+                    
+                    var totalMass = larger.mass + smaller.mass;
+                    larger.vx = (larger.vx * larger.mass + smaller.vx * smaller.mass) / totalMass;
+                    larger.vy = (larger.vy * larger.mass + smaller.vy * smaller.mass) / totalMass;
+                    larger.mass = totalMass;
+                    larger.size = Math.sqrt(larger.mass / self.massFactor);
+                    
+                    if (larger.mass >= self.blackholeMassThreshold && larger.type !== 'blackhole') {
+                        self.transformToBlackhole(larger);
+                    }
+                    
+                    larger.element.classList.add('merge-effect');
+                    setTimeout(function() {
+                        larger.element.classList.remove('merge-effect');
+                    }, 500);
+                    
+                    larger.element.style.width = (larger.size * 2) + 'px';
+                    larger.element.style.height = (larger.size * 2) + 'px';
+                    
+                    self.canvas.removeChild(smaller.element);
+                    self.bodies.splice(Math.max(smallerIndex, largerIndex), 1);
+                    self.bodies.splice(Math.min(smallerIndex, largerIndex), 1);
+                    self.bodies.push(larger);
+                    
+                    self.updateStats();
+                };
+
+                this.transformToBlackhole = function(body) {
+                    body.type = 'blackhole';
+                    body.element.className = 'celestial-body blackhole';
+                    body.size *= 0.7;
+                    body.element.style.width = (body.size * 2) + 'px';
+                    body.element.style.height = (body.size * 2) + 'px';
+                    
+                    self.showMessage('🌑 블랙홀이 탄생했습니다!');
+                };
+
+                this.splitCelestialBody = function(element, clickX, clickY) {
+                    var bodyIndex = self.bodies.findIndex(function(body) { 
+                        return body.element === element; 
+                    });
+                    if (bodyIndex === -1) return;
+                    
+                    var originalBody = self.bodies[bodyIndex];
+                    
+                    if (originalBody.size < 15) {
+                        self.showMessage('🔸 너무 작아서 쪼갤 수 없습니다!');
+                        return;
+                    }
+                    
+                    var fragments;
+                    var messageText;
+                    
+                    if (originalBody.type === 'blackhole') {
+                        fragments = 4 + Math.floor(Math.random() * 4);
+                        messageText = '🌑💥 블랙홀이 폭발하여 ' + fragments + '개의 천체로 분산되었습니다!';
+                    } else {
+                        fragments = 2 + Math.floor(Math.random() * 3);
+                        messageText = '💥 천체가 ' + fragments + '개로 분할되었습니다!';
+                    }
+                    
+                    self.canvas.removeChild(originalBody.element);
+                    self.bodies.splice(bodyIndex, 1);
+                    
+                    var fragmentMass = originalBody.mass / fragments;
+                    var fragmentSize = Math.sqrt(fragmentMass / self.massFactor);
+                    
+                    for (var i = 0; i < fragments; i++) {
+                        var angle = (Math.PI * 2 * i) / fragments + Math.random() * 0.5;
+                        var distance = originalBody.size * 0.8;
+                        var speed = originalBody.type === 'blackhole' ? 
+                            4 + Math.random() * 6 : 
+                            2 + Math.random() * 3;
+                        
+                        var fragment = {
+                            id: Date.now() + Math.random() + i,
+                            x: originalBody.x + Math.cos(angle) * distance,
+                            y: originalBody.y + Math.sin(angle) * distance,
+                            vx: originalBody.vx + Math.cos(angle) * speed,
+                            vy: originalBody.vy + Math.sin(angle) * speed,
+                            mass: fragmentMass,
+                            size: fragmentSize,
+                            type: 'planet',
+                            element: self.createElement(
+                                originalBody.x + Math.cos(angle) * distance,
+                                originalBody.y + Math.sin(angle) * distance,
+                                fragmentSize,
+                                'planet'
+                            ),
+                            mergeProtected: true,
+                            mergeProtectionEnd: Date.now() + 1000 // 1초 보호
+                        };
+                        
+                        self.bodies.push(fragment);
+                    }
+                    
+                    if (originalBody.type === 'blackhole') {
+                        self.createBlackholeExplosion(originalBody.x, originalBody.y);
+                    } else {
+                        self.createSplitEffect(originalBody.x, originalBody.y);
+                    }
+                    
+                    self.updateStats();
+                    self.showMessage(messageText);
+                };
+
+                this.createBlackholeExplosion = function(x, y) {
+                    for (var i = 0; i < 16; i++) {
+                        var particle = document.createElement('div');
+                        particle.className = 'trail';
+                        particle.style.left = (x - 5) + 'px';
+                        particle.style.top = (y - 5) + 'px';
+                        particle.style.width = '10px';
+                        particle.style.height = '10px';
+                        
+                        var colors = [
+                            'rgba(155, 89, 182, 0.9)',
+                            'rgba(52, 152, 219, 0.9)',
+                            'rgba(142, 68, 173, 0.9)',
+                            'rgba(41, 128, 185, 0.9)'
+                        ];
+                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        particle.style.borderRadius = '50%';
+                        particle.style.boxShadow = '0 0 10px ' + particle.style.background;
+                        
+                        var angle = (Math.PI * 2 * i) / 16;
+                        var distance = 50 + Math.random() * 40;
+                        
+                        particle.style.animation = 'none';
+                        particle.style.transition = 'all 1.2s ease-out';
+                        
+                        self.canvas.appendChild(particle);
+                        
+                        setTimeout(function(p, a, d) {
+                            return function() {
+                                p.style.transform = 'translate(' + Math.cos(a) * d + 'px, ' + Math.sin(a) * d + 'px) scale(0.5)';
+                                p.style.opacity = '0';
+                            };
+                        }(particle, angle, distance), 10);
+                        
+                        setTimeout(function(p) {
+                            return function() {
+                                if (p.parentNode) {
+                                    p.parentNode.removeChild(p);
+                                }
+                            };
+                        }(particle), 1200);
+                    }
+                };
+
+                this.createSplitEffect = function(x, y) {
+                    for (var i = 0; i < 8; i++) {
+                        var particle = document.createElement('div');
+                        particle.className = 'trail';
+                        particle.style.left = (x - 3) + 'px';
+                        particle.style.top = (y - 3) + 'px';
+                        particle.style.width = '6px';
+                        particle.style.height = '6px';
+                        particle.style.background = 'rgba(255, 255, 100, 0.8)';
+                        particle.style.borderRadius = '50%';
+                        
+                        var angle = (Math.PI * 2 * i) / 8;
+                        var distance = 30 + Math.random() * 20;
+                        
+                        particle.style.animation = 'none';
+                        particle.style.transition = 'all 0.8s ease-out';
+                        
+                        self.canvas.appendChild(particle);
+                        
+                        setTimeout(function(p, a, d) {
+                            return function() {
+                                p.style.transform = 'translate(' + Math.cos(a) * d + 'px, ' + Math.sin(a) * d + 'px)';
+                                p.style.opacity = '0';
+                            };
+                        }(particle, angle, distance), 10);
+                        
+                        setTimeout(function(p) {
+                            return function() {
+                                if (p.parentNode) {
+                                    p.parentNode.removeChild(p);
+                                }
+                            };
+                        }(particle), 800);
+                    }
+                };
+
+                this.checkStageTransition = function() {
+                    var currentStage = self.getCurrentStage();
+                    var stageElement = container.querySelector('#cosmic-stage');
+                    
+                    if (stageElement.textContent !== currentStage.name) {
+                        self.canvas.className = currentStage.cssClass;
+                        stageElement.textContent = currentStage.name;
+                        
+                        if (currentStage.threshold > 0) {
+                            self.showMessage('🌌 ' + currentStage.name + '로 진화했습니다!');
+                        }
+                    }
+                };
+
+                this.getCurrentStage = function() {
+                    for (var i = self.backgroundStages.length - 1; i >= 0; i--) {
+                        if (self.clickCount >= self.backgroundStages[i].threshold) {
+                            return self.backgroundStages[i];
+                        }
+                    }
+                    return self.backgroundStages[0];
+                };
+
+                this.showMessage = function(text) {
+                    // 로그에만 추가, 팝업 메시지는 제거
+                    if (!text) {
+                        var messages = [
+                            '새로운 천체가 탄생했습니다! ✨',
+                            '우주가 확장되고 있습니다! 🌌',
+                            '중력이 천체들을 이끌고 있습니다! 🪐',
+                            '작은 클릭이 거대한 변화를 만듭니다! 🌟'
+                        ];
+                        
+                        if (self.clickCount % 10 === 0 && self.clickCount > 0) {
+                            text = self.clickCount + '번째 천체 생성! 🎉';
+                        } else {
+                            text = messages[Math.floor(Math.random() * messages.length)];
+                        }
+                    }
+                    
+                    // 우하단 로그에만 추가
+                    self.addToStatusLog(text);
+                };
+
+                this.addToStatusLog = function(text) {
+                    var logContainer = container.querySelector('#status-log');
+                    var logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.textContent = text;
+                    
+                    logContainer.appendChild(logEntry);
+                    
+                    // 최대 5개 항목만 유지
+                    var entries = logContainer.querySelectorAll('.log-entry');
+                    if (entries.length > 5) {
+                        logContainer.removeChild(entries[0]);
+                    }
+                    
+                    // 자동 스크롤
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                };
+
+                this.updateStats = function() {
+                    container.querySelector('#click-count').textContent = self.clickCount;
+                    container.querySelector('#body-count').textContent = self.bodies.length;
+                    container.querySelector('#blackhole-count').textContent = 
+                        self.bodies.filter(function(body) { return body.type === 'blackhole'; }).length;
+                };
+
+                this.resetUniverse = function() {
+                    self.bodies.forEach(function(body) {
+                        if (body.element.parentNode) {
+                            self.canvas.removeChild(body.element);
+                        }
+                    });
+                    
+                    self.bodies = [];
+                    self.clickCount = 0;
+                    self.canvas.className = 'cosmic-stage-1';
+                    
+                    self.updateStats();
+                    container.querySelector('#cosmic-stage').textContent = '원시 우주';
+                    self.showMessage('🔄 우주가 초기화되었습니다!');
+                };
+
+                this.initialize();
+            }
+
+            new CosmicSimulator();
+        })();
+    </script>
+</div>

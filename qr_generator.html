@@ -1,0 +1,973 @@
+        addEvent(textArea, 'focus', function() {
+            this.style.borderColor = '#667eea';
+        });
+        
+        addEvent(textArea, 'blur', function() {
+            this.style.borderColor = '#e1e5e9';
+        });
+        
+        addEvent($('qr-size'), 'focus', function() {
+            this.style.borderColor = '#667eea';
+        });
+        
+        addEvent($('qr-size'), 'blur', function() {
+            this.style.borderColor = '#e1e5e9';
+        });
+        
+        addEvent($('error-correction'), 'focus', function() {
+            this.style.borderColor = '#667eea';
+        });
+        
+        addEvent($('error-correction'), 'blur', function() {
+            this.style.borderColor = '#e1e5e9';
+        });
+        
+        addEvent($('download-btn'), 'mouseover', function() {
+            this.style.backgroundColor = '#218838';
+        });
+        
+        addEvent($('download-btn'), 'mouseout', function() {
+            this.style.backgroundColor = '#28a745';
+        });
+        
+        addEvent(document.querySelectorAll('.modal-btn.cancel')[0], 'mouseover', function() {
+            this.style.backgroundColor = '#5a6268';
+        });
+        
+        addEvent(document.querySelectorAll('.modal-btn.cancel')[0], 'mouseout', function() {
+            this.style.backgroundColor = '#6c757d';
+        });
+        
+        addEvent(document.querySelectorAll('.modal-btn.confirm')[0], 'mouseover', function() {
+            this.style.backgroundColor = '#c82333';
+        });
+        
+        addEvent(document.querySelectorAll('.modal-btn.confirm')[0], 'mouseout', function() {
+            this.style.backgroundColor = '#dc3545';
+        });<div id="qr-code-generator-app" style="font-family: Arial, sans-serif; background: white; border-radius: 20px; padding: 20px 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); width: 100%; max-width: 500px; text-align: center; margin: 0 auto; position: relative; box-sizing: border-box;">
+<style>
+#qr-code-generator-app {
+    font-family: Arial, sans-serif;
+    background: white;
+    border-radius: 20px;
+    padding: 20px 15px;
+    -webkit-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    margin: 0 auto;
+    position: relative;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#qr-code-generator-app .qr-display {
+    margin: 20px 0 30px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    min-height: 260px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#qr-code-generator-app .qr-display canvas {
+    border-radius: 10px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+#qr-code-generator-app .placeholder {
+    color: #999;
+    font-style: italic;
+    padding: 50px 20px;
+}
+
+#qr-code-generator-app .progress-container {
+    margin: 20px 0;
+    background: #f0f0f0;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    display: none;
+}
+
+#qr-code-generator-app .progress-bar {
+    height: 100%;
+    background: #667eea;
+    border-radius: 10px;
+    width: 0%;
+    -webkit-transition: width 0.3s ease;
+    -moz-transition: width 0.3s ease;
+    transition: width 0.3s ease;
+}
+
+#qr-code-generator-app .loading {
+    color: #667eea;
+    font-style: italic;
+    padding: 30px;
+}
+
+#qr-code-generator-app .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    -webkit-animation: qr-spin 1s linear infinite;
+    -moz-animation: qr-spin 1s linear infinite;
+    animation: qr-spin 1s linear infinite;
+}
+
+@-webkit-keyframes qr-spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@-moz-keyframes qr-spin {
+    0% { -moz-transform: rotate(0deg); }
+    100% { -moz-transform: rotate(360deg); }
+}
+
+@keyframes qr-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#qr-code-generator-app .loading-text {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#qr-code-generator-app .loading-progress {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 15px;
+}
+
+#qr-code-generator-app .progress-steps {
+    text-align: center;
+}
+
+#qr-code-generator-app .progress-step {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    margin: 0 5px;
+    -webkit-animation: qr-step-pulse 1.5s ease-in-out infinite;
+    -moz-animation: qr-step-pulse 1.5s ease-in-out infinite;
+    animation: qr-step-pulse 1.5s ease-in-out infinite;
+}
+
+#qr-code-generator-app .progress-step:nth-child(1) { 
+    -webkit-animation-delay: 0s;
+    -moz-animation-delay: 0s;
+    animation-delay: 0s; 
+}
+#qr-code-generator-app .progress-step:nth-child(2) { 
+    -webkit-animation-delay: 0.3s;
+    -moz-animation-delay: 0.3s;
+    animation-delay: 0.3s; 
+}
+#qr-code-generator-app .progress-step:nth-child(3) { 
+    -webkit-animation-delay: 0.6s;
+    -moz-animation-delay: 0.6s;
+    animation-delay: 0.6s; 
+}
+#qr-code-generator-app .progress-step:nth-child(4) { 
+    -webkit-animation-delay: 0.9s;
+    -moz-animation-delay: 0.9s;
+    animation-delay: 0.9s; 
+}
+
+@-webkit-keyframes qr-step-pulse {
+    0%, 80%, 100% { 
+        background: #ddd; 
+        -webkit-transform: scale(1);
+    }
+    40% { 
+        background: #667eea;
+        -webkit-transform: scale(1.3);
+    }
+}
+
+@-moz-keyframes qr-step-pulse {
+    0%, 80%, 100% { 
+        background: #ddd; 
+        -moz-transform: scale(1);
+    }
+    40% { 
+        background: #667eea;
+        -moz-transform: scale(1.3);
+    }
+}
+
+@keyframes qr-step-pulse {
+    0%, 80%, 100% { 
+        background: #ddd; 
+        transform: scale(1);
+    }
+    40% { 
+        background: #667eea;
+        transform: scale(1.3);
+    }
+}
+
+#qr-code-generator-app .download-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-bottom: 25px;
+    display: none;
+    -webkit-transition: background-color 0.3s ease;
+    -moz-transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
+}
+
+#qr-code-generator-app .download-btn:hover {
+    background: #218838;
+}
+
+#qr-code-generator-app .input-section {
+    margin-bottom: 30px;
+}
+
+#qr-code-generator-app .input-group {
+    margin-bottom: 20px;
+    text-align: left;
+    position: relative;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#qr-code-generator-app .input-header {
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+#qr-code-generator-app .input-header label {
+    float: left;
+    color: #555;
+    font-weight: bold;
+}
+
+#qr-code-generator-app .char-counter {
+    float: right;
+    font-size: 12px;
+    color: #666;
+    font-weight: normal;
+}
+
+#qr-code-generator-app .char-counter.warning {
+    color: #ff6b35;
+}
+
+#qr-code-generator-app .char-counter.danger {
+    color: #dc3545;
+}
+
+#qr-code-generator-app input[type="text"], 
+#qr-code-generator-app textarea, 
+#qr-code-generator-app select {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-transition: border-color 0.3s ease;
+    -moz-transition: border-color 0.3s ease;
+    transition: border-color 0.3s ease;
+}
+
+#qr-code-generator-app input[type="text"]:focus, 
+#qr-code-generator-app textarea:focus, 
+#qr-code-generator-app select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#qr-code-generator-app textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+#qr-code-generator-app .options-grid {
+    overflow: hidden;
+    margin-bottom: 20px;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#qr-code-generator-app .options-grid .input-group {
+    float: left;
+    width: calc(50% - 10px);
+    margin-right: 10px;
+    margin-bottom: 15px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#qr-code-generator-app .options-grid .input-group:nth-child(2n) {
+    margin-right: 0;
+}
+
+#qr-code-generator-app .color-input {
+    overflow: hidden;
+}
+
+#qr-code-generator-app .color-input input[type="color"] {
+    float: left;
+    width: 45px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 2px;
+}
+
+#qr-code-generator-app .color-input span {
+    line-height: 40px;
+    color: #555;
+    font-size: 13px;
+}
+
+/* 모달 스타일 */
+#qr-code-generator-app .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#qr-code-generator-app .modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    position: relative;
+}
+
+#qr-code-generator-app .modal h3 {
+    color: #dc3545;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+#qr-code-generator-app .modal p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+#qr-code-generator-app .modal-buttons {
+    text-align: center;
+}
+
+#qr-code-generator-app .modal-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 0 7px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+#qr-code-generator-app .modal-btn.confirm {
+    background: #dc3545;
+    color: white;
+}
+
+#qr-code-generator-app .modal-btn.confirm:hover {
+    background: #c82333;
+}
+
+#qr-code-generator-app .modal-btn.cancel {
+    background: #6c757d;
+    color: white;
+}
+
+#qr-code-generator-app .modal-btn.cancel:hover {
+    background: #5a6268;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 600px) {
+    #qr-code-generator-app {
+        padding: 20px 15px;
+    }
+    
+    #qr-code-generator-app .options-grid .input-group {
+        float: none;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    #qr-code-generator-app input[type="text"], 
+    #qr-code-generator-app textarea, 
+    #qr-code-generator-app select {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    #qr-code-generator-app .input-header label {
+        font-size: 14px;
+    }
+    
+    #qr-code-generator-app .char-counter {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 400px) {
+    #qr-code-generator-app {
+        padding: 15px 10px;
+    }
+    
+    #qr-code-generator-app .qr-display {
+        min-height: 200px;
+        padding: 15px;
+        margin: 20px 0 30px 0;
+    }
+    
+    #qr-code-generator-app input[type="text"], 
+    #qr-code-generator-app textarea, 
+    #qr-code-generator-app select {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    #qr-code-generator-app .download-btn {
+        margin-bottom: 30px;
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+}
+</style>
+
+<div class="qr-display" id="qr-display">
+    <div class="placeholder">QR 코드를 생성하고 있습니다...</div>
+</div>
+
+<div class="progress-container" id="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+</div>
+
+<button class="download-btn" id="download-btn" onclick="QRGen.downloadQRCode()" style="background: #28a745; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 25px; cursor: pointer; margin-bottom: 25px; display: none; transition: background-color 0.3s ease; font-family: Arial, sans-serif; outline: none;">
+    PNG로 다운로드
+</button>
+
+<div class="input-section">
+    <div class="input-group">
+        <div class="input-header">
+            <label for="qr-text">텍스트 또는 URL 입력</label>
+            <span class="char-counter" id="char-counter">0 / 800자</span>
+        </div>
+        <textarea id="qr-text" placeholder="예: https://www.example.com 또는 원하는 텍스트를 입력하세요" maxlength="800">prozac0401.tistory.com</textarea>
+    </div>
+    
+    <div class="options-grid" style="overflow: hidden; margin-bottom: 20px; width: 100%; box-sizing: border-box;">
+        <div class="input-group" style="float: left; width: calc(50% - 10px); margin-right: 10px; margin-bottom: 15px; box-sizing: border-box; text-align: left;">
+            <label for="qr-size" style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-family: Arial, sans-serif;">크기</label>
+            <select id="qr-size" style="width: 100%; max-width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 10px; font-size: 14px; font-family: Arial, sans-serif; box-sizing: border-box; transition: border-color 0.3s ease; outline: none; background: white;">
+                <option value="256">작음 (256px)</option>
+                <option value="300" selected>보통 (300px)</option>
+                <option value="350">큼 (350px)</option>
+                <option value="400">매우 큼 (400px)</option>
+            </select>
+        </div>
+        
+        <div class="input-group" style="float: left; width: calc(50% - 10px); margin-right: 0; margin-bottom: 15px; box-sizing: border-box; text-align: left;">
+            <label for="error-correction" style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-family: Arial, sans-serif;">오류 보정 수준</label>
+            <select id="error-correction" style="width: 100%; max-width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 10px; font-size: 14px; font-family: Arial, sans-serif; box-sizing: border-box; transition: border-color 0.3s ease; outline: none; background: white;">
+                <option value="L">낮음 (L)</option>
+                <option value="M" selected>보통 (M)</option>
+                <option value="Q">높음 (Q)</option>
+                <option value="H">최고 (H)</option>
+            </select>
+        </div>
+        
+        <div class="input-group" style="float: left; width: calc(50% - 10px); margin-right: 10px; margin-bottom: 15px; box-sizing: border-box; text-align: left;">
+            <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-family: Arial, sans-serif;">전경색 (QR 코드)</label>
+            <div class="color-input" style="overflow: hidden; min-height: 40px;">
+                <input type="color" id="fg-color" value="#000000" style="float: left; width: 45px; height: 40px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; margin-right: 10px; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding: 2px; box-sizing: border-box;">
+                <span style="line-height: 40px; color: #555; font-size: 13px; font-family: Arial, sans-serif;">검정</span>
+            </div>
+        </div>
+        
+        <div class="input-group" style="float: left; width: calc(50% - 10px); margin-right: 0; margin-bottom: 15px; box-sizing: border-box; text-align: left;">
+            <label style="display: block; margin-bottom: 8px; color: #555; font-weight: bold; font-family: Arial, sans-serif;">배경색</label>
+            <div class="color-input" style="overflow: hidden; min-height: 40px;">
+                <input type="color" id="bg-color" value="#ffffff" style="float: left; width: 45px; height: 40px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; margin-right: 10px; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding: 2px; box-sizing: border-box;">
+                <span style="line-height: 40px; color: #555; font-size: 13px; font-family: Arial, sans-serif;">흰색</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 경고 모달 -->
+<div id="warningModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+    <div class="modal-content" style="background-color: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 450px; text-align: center; position: relative; font-family: Arial, sans-serif; box-sizing: border-box;">
+        <h3 style="color: #dc3545; margin-bottom: 20px; font-size: 1.5em; font-family: Arial, sans-serif;">⚠️ 텍스트 길이 초과</h3>
+        <p id="modal-message" style="color: #666; line-height: 1.6; margin-bottom: 25px; font-family: Arial, sans-serif;"></p>
+        <div class="modal-buttons" style="text-align: center;">
+            <button class="modal-btn cancel" onclick="QRGen.closeModal(false)" style="padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 0 7px; transition: all 0.3s ease; background: #6c757d; color: white; font-family: Arial, sans-serif; outline: none;">취소</button>
+            <button class="modal-btn confirm" onclick="QRGen.closeModal(true)" style="padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 0 7px; transition: all 0.3s ease; background: #dc3545; color: white; font-family: Arial, sans-serif; outline: none;">계속하기</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous"></script>
+<script>
+// QR 코드 생성기 전용 네임스페이스 - IE8+ 호환
+window.QRGen = (function() {
+    'use strict';
+    
+    var qrCodeInstance = null;
+    var currentErrorLevel = 'M';
+    var pendingCallback = null;
+    var isGenerating = false;
+    var generateTimeout = null;
+    var progressInterval = null;
+
+    // 보수적인 QR 코드 용량 한계
+    var QR_LIMITS = {
+        'L': 600,   // 낮음 (보수적)
+        'M': 450,   // 보통 (보수적)
+        'Q': 300,   // 높음 (보수적)
+        'H': 200    // 최고 (보수적)
+    };
+
+    var ERROR_LEVEL_NAMES = {
+        'L': '낮음',
+        'M': '보통',
+        'Q': '높음', 
+        'H': '최고'
+    };
+
+    // IE8+ 호환 이벤트 리스너
+    function addEvent(element, event, handler) {
+        if (element.addEventListener) {
+            element.addEventListener(event, handler, false);
+        } else if (element.attachEvent) {
+            element.attachEvent('on' + event, handler);
+        }
+    }
+
+    // IE8+ 호환 getElementById
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function showModal(message) {
+        $('modal-message').innerHTML = message;
+        $('warningModal').style.display = 'block';
+    }
+
+    function closeModal(confirmed) {
+        $('warningModal').style.display = 'none';
+        
+        if (pendingCallback) {
+            pendingCallback(confirmed);
+            pendingCallback = null;
+        }
+    }
+
+    function showLoading(stage) {
+        stage = stage || 1;
+        var qrDisplay = $('qr-display');
+        
+        var stageText = '';
+        switch(stage) {
+            case 1: stageText = '텍스트 분석 중...'; break;
+            case 2: stageText = 'QR 코드 생성 중...'; break;
+            case 3: stageText = '이미지 렌더링 중...'; break;
+            case 4: stageText = '최종 처리 중...'; break;
+            default: stageText = '계산 중...'; break;
+        }
+        
+        qrDisplay.innerHTML = 
+            '<div class="loading">' +
+                '<div class="loading-spinner"></div>' +
+                '<div class="loading-text">' + stageText + '</div>' +
+                '<div class="loading-progress">잠시만 기다려주세요...</div>' +
+                '<div class="progress-steps">' +
+                    '<div class="progress-step"></div>' +
+                    '<div class="progress-step"></div>' +
+                    '<div class="progress-step"></div>' +
+                    '<div class="progress-step"></div>' +
+                '</div>' +
+            '</div>';
+        $('download-btn').style.display = 'none';
+        
+        showProgressBar();
+    }
+
+    function showProgressBar() {
+        var progressContainer = $('progress-container');
+        var progressBar = $('progress-bar');
+        
+        progressContainer.style.display = 'block';
+        
+        var progress = 0;
+        progressInterval = setInterval(function() {
+            progress += Math.random() * 15 + 5;
+            if (progress >= 90) progress = 90;
+            
+            progressBar.style.width = progress + '%';
+        }, 200);
+    }
+
+    function hideProgressBar() {
+        var progressContainer = $('progress-container');
+        var progressBar = $('progress-bar');
+        
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+        
+        progressBar.style.width = '100%';
+        setTimeout(function() {
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+        }, 300);
+    }
+
+    function limitTextLength(text, maxLength) {
+        maxLength = maxLength || 800;
+        if (text.length > maxLength) {
+            showModal(
+                '붙여넣기한 텍스트가 너무 깁니다.<br><br>' +
+                '<strong>' + text.length + '자</strong>에서 <strong>' + maxLength + '자</strong>로 자동으로 잘렸습니다.<br><br>' +
+                '안정적인 QR 코드 생성을 위한 보수적 제한입니다.'
+            );
+            return text.substring(0, maxLength);
+        }
+        return text;
+    }
+
+    function updateCharCounter() {
+        var textArea = $('qr-text');
+        var counter = $('char-counter');
+        var currentLength = textArea.value.length;
+        var maxLength = 800;
+        
+        counter.innerHTML = currentLength + ' / ' + maxLength + '자';
+        
+        counter.className = 'char-counter';
+        if (currentLength > maxLength * 0.9) {
+            counter.className += ' danger';
+        } else if (currentLength > maxLength * 0.7) {
+            counter.className += ' warning';
+        }
+    }
+
+    function checkTextLimit(newErrorLevel, callback) {
+        var text = $('qr-text').value;
+        var textLength = text.length;
+        var currentLevel = currentErrorLevel;
+        var newLimit = QR_LIMITS[newErrorLevel];
+        var currentLimit = QR_LIMITS[currentLevel];
+        
+        if (newLimit < currentLimit && textLength > newLimit && text.replace(/\s/g, '') !== '') {
+            pendingCallback = callback;
+            
+            var message = 
+                '현재 입력된 텍스트는 <strong>' + textLength + '자</strong>입니다.<br><br>' +
+                '선택한 오류 보정 수준 "<strong>' + ERROR_LEVEL_NAMES[newErrorLevel] + ' (' + newErrorLevel + ')</strong>"의 권장 한계는 약 <strong>' + newLimit + '자</strong>입니다.<br><br>' +
+                'QR 코드 생성이 실패할 수 있습니다.<br>' +
+                '텍스트를 <strong>' + newLimit + '자 이하로 줄이거나</strong> 더 낮은 오류 보정 수준을 선택해주세요.<br><br>' +
+                '그래도 계속하시겠습니까?';
+            
+            showModal(message);
+            return false;
+        }
+        
+        callback(true);
+        return true;
+    }
+
+    function generateQRCodeDelayed() {
+        if (generateTimeout) {
+            clearTimeout(generateTimeout);
+        }
+        
+        var textLength = $('qr-text').value.length;
+        
+        var delay = 50;
+        if (textLength > 300) delay = 200;
+        if (textLength > 500) delay = 400;
+        if (textLength > 700) delay = 600;
+        
+        generateTimeout = setTimeout(function() {
+            generateQRCode();
+        }, delay);
+    }
+
+    function generateQRCode() {
+        if (isGenerating) return;
+        
+        var text = $('qr-text').value;
+        var requestedSize = parseInt($('qr-size').value);
+        var errorCorrectionLevel = $('error-correction').value;
+        var fgColor = $('fg-color').value;
+        var bgColor = $('bg-color').value;
+        
+        var qrDisplay = $('qr-display');
+        
+        // 컨테이너 폭에 맞게 실제 크기 조정
+        var containerWidth = qrDisplay.offsetWidth - 40; // 패딩 20px * 2
+        var actualSize = Math.min(requestedSize, containerWidth);
+        
+        if (!text || text.replace(/\s/g, '') === '') {
+            qrDisplay.innerHTML = '<div class="placeholder">텍스트를 입력하면 QR 코드가 표시됩니다</div>';
+            $('download-btn').style.display = 'none';
+            qrCodeInstance = null;
+            hideProgressBar();
+            return;
+        }
+        
+        if (text.length > 200) {
+            showLoading(1);
+        }
+        
+        isGenerating = true;
+        
+        setTimeout(function() {
+            if (text.length > 200) showLoading(2);
+            
+            setTimeout(function() {
+                try {
+                    if (text.length > 200) showLoading(3);
+                    
+                    qrDisplay.innerHTML = '';
+                    
+                    var attempts = ['H', 'Q', 'M', 'L'];
+                    var currentLevel = errorCorrectionLevel;
+                    var startIndex = -1;
+                    
+                    for (var j = 0; j < attempts.length; j++) {
+                        if (attempts[j] === currentLevel) {
+                            startIndex = j;
+                            break;
+                        }
+                    }
+                    
+                    for (var i = startIndex; i < attempts.length; i++) {
+                        try {
+                            if (text.length > 200) showLoading(4);
+                            
+                            qrCodeInstance = new QRCode(qrDisplay, {
+                                text: text,
+                                width: actualSize,
+                                height: actualSize,
+                                colorDark: fgColor,
+                                colorLight: bgColor,
+                                correctLevel: QRCode.CorrectLevel[attempts[i]]
+                            });
+                            
+                            $('download-btn').style.display = 'inline-block';
+                            hideProgressBar();
+                            
+                            if (attempts[i] !== errorCorrectionLevel) {
+                                console.log('텍스트가 길어서 오류 보정 수준을 ' + attempts[i] + '로 자동 조정했습니다.');
+                            }
+                            
+                            isGenerating = false;
+                            return;
+                            
+                        } catch (levelError) {
+                            qrDisplay.innerHTML = '';
+                            continue;
+                        }
+                    }
+                    
+                    throw new Error('텍스트가 너무 길어서 QR 코드를 생성할 수 없습니다.');
+                    
+                } catch (error) {
+                    console.error('QR 코드 생성 오류:', error);
+                    qrDisplay.innerHTML = '<div class="placeholder" style="color: #dc3545;">⚠️ 텍스트가 너무 길어서 QR 코드를 생성할 수 없습니다.<br>더 짧은 텍스트를 입력해주세요.</div>';
+                    $('download-btn').style.display = 'none';
+                    hideProgressBar();
+                }
+                
+                isGenerating = false;
+            }, 50);
+        }, 10);
+    }
+
+    function downloadQRCode() {
+        if (!qrCodeInstance) {
+            alert('먼저 QR 코드를 생성해주세요!');
+            return;
+        }
+        
+        var canvas = document.querySelector('#qr-code-generator-app #qr-display canvas');
+        if (canvas) {
+            var link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    }
+
+    function init() {
+        var textArea = $('qr-text');
+        var errorSelect = $('error-correction');
+        
+        updateCharCounter();
+        currentErrorLevel = errorSelect.value;
+        
+        // 기본값으로 QR 코드 생성
+        setTimeout(function() {
+            generateQRCode();
+        }, 500);
+        
+        addEvent(textArea, 'input', function() {
+            updateCharCounter();
+            generateQRCodeDelayed();
+        });
+        
+        addEvent(textArea, 'keyup', function() {
+            updateCharCounter();
+            generateQRCodeDelayed();
+        });
+        
+        addEvent(textArea, 'paste', function(e) {
+            e = e || window.event;
+            if (e.preventDefault) e.preventDefault();
+            else e.returnValue = false;
+            
+            var paste = '';
+            if (e.clipboardData && e.clipboardData.getData) {
+                paste = e.clipboardData.getData('text');
+            } else if (window.clipboardData && window.clipboardData.getData) {
+                paste = window.clipboardData.getData('Text');
+            }
+            
+            var limitedText = limitTextLength(paste, 800);
+            
+            var start = textArea.selectionStart || 0;
+            var end = textArea.selectionEnd || 0;
+            var currentText = textArea.value;
+            
+            var newText = currentText.substring(0, start) + limitedText + currentText.substring(end);
+            
+            if (newText.length > 800) {
+                newText = newText.substring(0, 800);
+            }
+            
+            textArea.value = newText;
+            
+            if (textArea.setSelectionRange) {
+                var newCursorPos = start + limitedText.length;
+                textArea.setSelectionRange(newCursorPos, newCursorPos);
+            }
+            
+            updateCharCounter();
+            generateQRCodeDelayed();
+        });
+        
+        addEvent(errorSelect, 'change', function() {
+            var newLevel = this.value;
+            
+            checkTextLimit(newLevel, function(confirmed) {
+                if (confirmed) {
+                    currentErrorLevel = newLevel;
+                    generateQRCode();
+                } else {
+                    errorSelect.value = currentErrorLevel;
+                }
+            });
+        });
+        
+        addEvent($('qr-size'), 'change', generateQRCode);
+        addEvent($('fg-color'), 'input', generateQRCode);
+        addEvent($('bg-color'), 'input', generateQRCode);
+        
+        addEvent($('fg-color'), 'change', function() {
+            var colorName = this.value === '#000000' ? '검정' : this.value;
+            var span = this.parentNode.getElementsByTagName('span')[0];
+            if (span) span.innerHTML = colorName;
+        });
+
+        addEvent($('bg-color'), 'change', function() {
+            var colorName = this.value === '#ffffff' ? '흰색' : this.value;
+            var span = this.parentNode.getElementsByTagName('span')[0];
+            if (span) span.innerHTML = colorName;
+        });
+
+        addEvent(window, 'click', function(e) {
+            var modal = $('warningModal');
+            if (e.target === modal) {
+                closeModal(false);
+            }
+        });
+    }
+
+    // DOM 로드 완료 후 초기화 (IE8+ 호환)
+    if (document.readyState === 'complete') {
+        init();
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', init);
+    } else if (document.attachEvent) {
+        document.attachEvent('onreadystatechange', function() {
+            if (document.readyState === 'complete') {
+                init();
+            }
+        });
+    }
+
+    // 공개 메서드
+    return {
+        closeModal: closeModal,
+        downloadQRCode: downloadQRCode
+    };
+})();
+</script>
+</div>

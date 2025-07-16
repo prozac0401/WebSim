@@ -1,0 +1,577 @@
+        // 패턴 로드
+        function loadPattern(patternName) {
+            initGrid();
+            generation = 0;
+            
+            const centerRow = Math.floor(ROWS / 2);
+            const centerCol = Math.floor(COLS / 2);
+            
+            switch(patternName) {
+                case 'glider':
+                    grid[centerRow-1][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow+1][centerCol-1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+1][centerCol+1] = true;
+                    break;
+                
+                case 'blinker':
+                    grid[centerRow][centerCol-1] = true;
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    break;
+                
+                case 'toad':
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow][centerCol+2] = true;
+                    grid[centerRow+1][centerCol-1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+1][centerCol+1] = true;
+                    break;
+                
+                case 'beacon':
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+2][centerCol+3] = true;
+                    grid[centerRow+3][centerCol+2] = true;
+                    grid[centerRow+3][centerCol+3] = true;
+                    break;
+                
+                case 'gosper':
+                    // 고스퍼 글라이더 건 (간단한 버전)
+                    const gosperPattern = [
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    ];
+                    
+                    for (let i = 0; i < gosperPattern.length && centerRow + i < ROWS; i++) {
+                        for (let j = 0; j < gosperPattern[i].length && centerCol + j < COLS; j++) {
+                            if (centerRow + i >= 0 && centerCol + j >= 0) {
+                                grid[centerRow + i][centerCol + j] = gosperPattern[i][j] === 1;
+                            }
+                        }
+                    }
+                    break;
+            }
+            updateDisplay();
+        }<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life</title>
+    <style>
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ffd93d, #ff9800);
+            color: white;
+        }
+
+        .step-btn {
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            background-color: #ddd;
+            margin: 0 auto;
+            overflow: hidden; /* 내용이 넘치지 않도록 */
+            touch-action: none; /* 터치 스크롤 방지 */
+        }
+
+        .cell {
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            user-select: none; /* 텍스트 선택 방지 */
+            touch-action: none; /* 터치 동작 방지 */
+        }
+
+        .cell.alive {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 2px;
+            box-shadow: 0 0 3px rgba(102, 126, 234, 0.5);
+        }
+
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+
+        .cell.alive:hover {
+            transform: scale(1.1);
+        }
+
+        .info {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .generation {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .speed-control label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .speed-control input {
+            width: 100px;
+        }
+
+        .patterns {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .pattern-btn {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+            margin: 5px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Conway's Game of Life</h1>
+        
+        <div class="info">
+            클릭해서 셀을 활성화/비활성화하세요
+        </div>
+        
+        <div class="generation">
+            세대: <span id="generation">0</span>
+        </div>
+
+        <div class="speed-control">
+            <label for="speed">속도:</label>
+            <input type="range" id="speed" min="1" max="20" value="5">
+            <span id="speed-value">5</span>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn" class="play-btn">▶️ 시작</button>
+            <button id="pauseBtn" class="pause-btn">⏸️ 정지</button>
+            <button id="stepBtn" class="step-btn">⏭️ 단계</button>
+            <button id="resetBtn" class="reset-btn">🔄 초기화</button>
+        </div>
+
+        <div class="grid-container">
+            <div id="grid" class="grid"></div>
+        </div>
+
+
+
+
+    </div>
+
+    <script>
+        const ROWS = 40;
+        const COLS = 50;
+        let grid = [];
+        let running = false;
+        let generation = 0;
+        let intervalId = null;
+        let isMouseDown = false;
+        let drawMode = null; // true for drawing, false for erasing
+
+        // 그리드 초기화
+        function initGrid() {
+            grid = [];
+            for (let i = 0; i < ROWS; i++) {
+                grid[i] = [];
+                for (let j = 0; j < COLS; j++) {
+                    grid[i][j] = false;
+                }
+            }
+        }
+
+        // DOM 그리드 생성
+        function createGridDOM() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+            
+            // 실제 사용 가능한 공간 계산
+            const container = document.querySelector('.container');
+            const controls = document.querySelector('.controls');
+            const speedControl = document.querySelector('.speed-control');
+            const info = document.querySelector('.info');
+            
+            // 컨테이너의 전체 크기
+            const containerWidth = container.clientWidth;
+            const containerHeight = window.innerHeight;
+            
+            // 다른 요소들이 차지하는 높이 계산
+            const controlsHeight = controls ? controls.offsetHeight + 40 : 80; // 여백 포함
+            const speedControlHeight = speedControl ? speedControl.offsetHeight + 40 : 60;
+            const infoHeight = info ? info.offsetHeight + 30 : 50;
+            const titleHeight = 120; // 제목 영역 추정
+            
+            const usedHeight = controlsHeight + speedControlHeight + infoHeight + titleHeight;
+            const availableHeight = containerHeight - usedHeight - 40; // 추가 여백
+            
+            // 실제 그리드에 사용할 수 있는 공간 (패딩 제외)
+            const availableWidth = containerWidth - 40; // 좌우 패딩
+            
+            // 셀 크기 계산 - 가로/세로 중 더 제한적인 것을 기준으로
+            const maxCellSizeByWidth = Math.floor(availableWidth / COLS);
+            const maxCellSizeByHeight = Math.floor(availableHeight / ROWS);
+            const cellSize = Math.max(3, Math.min(maxCellSizeByWidth, maxCellSizeByHeight, 25));
+            
+            // 실제 그리드 크기 계산 (gap 포함)
+            const gridWidth = COLS * cellSize + (COLS - 1); // 셀 + 간격
+            const gridHeight = ROWS * cellSize + (ROWS - 1); // 셀 + 간격
+            
+            // 그리드 스타일 설정
+            gridElement.style.display = 'grid';
+            gridElement.style.gridTemplateColumns = `repeat(${COLS}, ${cellSize}px)`;
+            gridElement.style.gridTemplateRows = `repeat(${ROWS}, ${cellSize}px)`;
+            gridElement.style.gap = '1px';
+            gridElement.style.width = `${gridWidth}px`; // 패딩 제거
+            gridElement.style.height = `${gridHeight}px`; // 패딩 제거
+            
+            for (let i = 0; i < ROWS; i++) {
+                for (let j = 0; j < COLS; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.style.width = `${cellSize}px`;
+                    cell.style.height = `${cellSize}px`;
+                    
+                    // 마우스 및 터치 이벤트 리스너 추가
+                    cell.addEventListener('mousedown', (e) => handleMouseDown(i, j, e));
+                    cell.addEventListener('mouseenter', () => handleMouseEnter(i, j));
+                    cell.addEventListener('mouseup', handleMouseUp);
+                    
+                    // 터치 이벤트 추가 (모바일 지원)
+                    cell.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        handleMouseDown(i, j, e);
+                    });
+                    cell.addEventListener('touchmove', (e) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (element && element.classList.contains('cell')) {
+                            const cellId = element.id;
+                            const [, row, col] = cellId.split('-');
+                            handleMouseEnter(parseInt(row), parseInt(col));
+                        }
+                    });
+                    cell.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        handleMouseUp();
+                    });
+                    
+                    // 드래그 방지
+                    cell.addEventListener('dragstart', (e) => e.preventDefault());
+                    
+                    cell.id = `cell-${i}-${j}`;
+                    gridElement.appendChild(cell);
+                }
+            }
+            
+            // 전역 마우스 업 이벤트 (그리드 밖에서 마우스를 떼는 경우)
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        // 셀 토글
+        function toggleCell(row, col) {
+            grid[row][col] = !grid[row][col];
+            updateDisplay();
+        }
+
+        // 셀 설정 (드래그용)
+        function setCell(row, col, state) {
+            if (grid[row][col] !== state) {
+                grid[row][col] = state;
+                updateDisplay();
+            }
+        }
+
+        // 마우스 이벤트 핸들러
+        function handleMouseDown(row, col, event) {
+            event.preventDefault();
+            isMouseDown = true;
+            drawMode = !grid[row][col]; // 현재 상태의 반대로 설정
+            setCell(row, col, drawMode);
+        }
+
+        function handleMouseEnter(row, col) {
+            if (isMouseDown) {
+                setCell(row, col, drawMode);
+            }
+        }
+
+        function handleMouseUp() {
+            isMouseDown = false;
+            drawMode = null;
+        }
+
+        // 화면 업데이트
+        function updateDisplay() {
+            for (let i = 0; i < ROWS; i++) {
+                for (let j = 0; j < COLS; j++) {
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    if (grid[i][j]) {
+                        cell.classList.add('alive');
+                    } else {
+                        cell.classList.remove('alive');
+                    }
+                }
+            }
+            document.getElementById('generation').textContent = generation;
+        }
+
+        // 이웃 카운트
+        function countNeighbors(row, col) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (i === 0 && j === 0) continue;
+                    const newRow = row + i;
+                    const newCol = col + j;
+                    if (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS) {
+                        if (grid[newRow][newCol]) count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        // 다음 세대 계산
+        function nextGeneration() {
+            const newGrid = [];
+            for (let i = 0; i < ROWS; i++) {
+                newGrid[i] = [];
+                for (let j = 0; j < COLS; j++) {
+                    const neighbors = countNeighbors(i, j);
+                    const currentCell = grid[i][j];
+                    
+                    if (currentCell) {
+                        // 살아있는 셀
+                        newGrid[i][j] = neighbors === 2 || neighbors === 3;
+                    } else {
+                        // 죽은 셀
+                        newGrid[i][j] = neighbors === 3;
+                    }
+                }
+            }
+            grid = newGrid;
+            generation++;
+            updateDisplay();
+        }
+
+        // 패턴 로드
+        function loadPattern(patternName) {
+            initGrid();
+            generation = 0;
+            
+            const centerRow = Math.floor(ROWS / 2);
+            const centerCol = Math.floor(COLS / 2);
+            
+            switch(patternName) {
+                case 'glider':
+                    grid[centerRow-1][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow+1][centerCol-1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+1][centerCol+1] = true;
+                    break;
+                
+                case 'blinker':
+                    grid[centerRow][centerCol-1] = true;
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    break;
+                
+                case 'toad':
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow][centerCol+2] = true;
+                    grid[centerRow+1][centerCol-1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+1][centerCol+1] = true;
+                    break;
+                
+                case 'beacon':
+                    grid[centerRow][centerCol] = true;
+                    grid[centerRow][centerCol+1] = true;
+                    grid[centerRow+1][centerCol] = true;
+                    grid[centerRow+2][centerCol+3] = true;
+                    grid[centerRow+3][centerCol+2] = true;
+                    grid[centerRow+3][centerCol+3] = true;
+                    break;
+                
+                case 'gosper':
+                    // 고스퍼 글라이더 건 (간단한 버전)
+                    const gosperPattern = [
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    ];
+                    
+                    for (let i = 0; i < gosperPattern.length && centerRow + i < ROWS; i++) {
+                        for (let j = 0; j < gosperPattern[i].length && centerCol + j < COLS; j++) {
+                            if (centerRow + i >= 0 && centerCol + j >= 0) {
+                                grid[centerRow + i][centerCol + j] = gosperPattern[i][j] === 1;
+                            }
+                        }
+                    }
+                    break;
+            }
+            updateDisplay();
+        }
+
+        // 이벤트 리스너
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (!running) {
+                running = true;
+                const speed = parseInt(document.getElementById('speed').value);
+                intervalId = setInterval(nextGeneration, 1000 / speed);
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            running = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        });
+
+        document.getElementById('stepBtn').addEventListener('click', () => {
+            if (!running) {
+                nextGeneration();
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            running = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            initGrid();
+            generation = 0;
+            updateDisplay();
+        });
+
+        document.getElementById('speed').addEventListener('input', (e) => {
+            document.getElementById('speed-value').textContent = e.target.value;
+            if (running) {
+                clearInterval(intervalId);
+                const speed = parseInt(e.target.value);
+                intervalId = setInterval(nextGeneration, 1000 / speed);
+            }
+        });
+
+        // 초기화
+        initGrid();
+        createGridDOM();
+        updateDisplay();
+
+        // 윈도우 리사이즈 이벤트 리스너
+        window.addEventListener('resize', () => {
+            createGridDOM();
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>

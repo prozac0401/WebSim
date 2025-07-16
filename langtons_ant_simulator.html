@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>랭턴의 개미 시뮬레이터</title>
+</head>
+<body>
+    <div class="app-container">
+        <style>
+            .app-container {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: white;
+                color: black;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: 1200px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .controls {
+                background: #f5f5f5;
+                padding: 20px;
+                border-radius: 15px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+                border: 1px solid #ddd;
+            }
+            
+            .button-row {
+                display: flex;
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .slider-row {
+                display: flex;
+                gap: 30px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+            }
+            
+            button {
+                background: white;
+                border: 1px solid #ddd;
+                padding: 12px 24px;
+                border-radius: 25px;
+                color: black;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            button:hover {
+                background: #f0f0f0;
+            }
+            
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            
+            .slider-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            input[type="range"] {
+                width: 120px;
+            }
+            
+            .canvas-container {
+                background: #f5f5f5;
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid #ddd;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            canvas {
+                background: white;
+                cursor: pointer;
+            }
+            
+            .stats {
+                background: #f5f5f5;
+                padding: 15px;
+                border-radius: 15px;
+                border: 1px solid #ddd;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 30px;
+                flex-wrap: wrap;
+                width: 100%;
+                max-width: 600px;
+            }
+            
+            .stat-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .stat-value {
+                font-size: 1.2em;
+                font-weight: bold;
+                color: black;
+            }
+            
+            .info {
+                background: #f5f5f5;
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid #ddd;
+                text-align: left;
+                max-width: 600px;
+            }
+        </style>
+        
+        <div class="container">
+            <div class="controls">
+                <div class="button-row">
+                    <button id="startBtn">시작</button>
+                    <button id="pauseBtn" disabled>일시정지</button>
+                    <button id="resetBtn">리셋</button>
+                </div>
+                
+                <div class="button-row">
+                    <button id="stepBtn">한 스텝</button>
+                </div>
+                
+                <div class="slider-row">
+                    <div class="slider-container">
+                        <label>속도:</label>
+                        <input type="range" id="speedSlider" min="1" max="100" value="20">
+                        <span id="speedValue">20</span>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>격자 크기:</label>
+                        <input type="range" id="gridSizeSlider" min="80" max="200" value="80">
+                        <span id="gridSizeValue">80</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="canvas" width="600" height="600"></canvas>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="stepCount">0</div>
+                    <span>Step</span>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="blackCells">0</div>
+                    <span>Black</span>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="antPosition">(0, 0)</div>
+                    <span>Position</span>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="antDirection">▲</div>
+                    <span>Direction</span>
+                </div>
+            </div>
+            
+            <div class="info">
+                <h3>🔍 랭턴의 개미란?</h3>
+                <p><strong>규칙:</strong></p>
+                <ul>
+                    <li>흰 칸에서는 시계방향으로 90도 회전 후 전진하고 해당 칸을 검게 칠함</li>
+                    <li>검은 칸에서는 반시계방향으로 90도 회전 후 전진하고 해당 칸을 흰색으로 칠함</li>
+                </ul>
+                <p>이 간단한 규칙만으로도 약 10,000 스텝 후 "고속도로" 패턴을 만들어내는 놀라운 복잡성을 보여줍니다!</p>
+            </div>
+        </div>
+
+        <script>
+            class LangtonsAnt {
+                constructor(canvas, gridSize = 80) {
+                    this.canvas = canvas;
+                    this.ctx = canvas.getContext('2d');
+                    this.gridSize = gridSize;
+                    this.cellSize = canvas.width / gridSize;
+                    
+                    this.reset();
+                    this.setupEventListeners();
+                    this.draw();
+                }
+                
+                reset() {
+                    this.grid = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(false));
+                    this.antX = 0; // center x coordinate
+                    this.antY = 0; // center y coordinate
+                    this.antDirection = 0; // 0=북, 1=동, 2=남, 3=서
+                    this.stepCount = 0;
+                    this.isRunning = false;
+                    this.animationId = null;
+                    this.speed = 20;
+                    
+                    this.updateStats();
+                    this.draw();
+                }
+                
+                setupEventListeners() {
+                    document.getElementById('startBtn').addEventListener('click', () => this.start());
+                    document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                    document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+                    document.getElementById('stepBtn').addEventListener('click', () => this.step());
+                    
+                    const speedSlider = document.getElementById('speedSlider');
+                    speedSlider.addEventListener('input', (e) => {
+                        this.speed = parseInt(e.target.value);
+                        document.getElementById('speedValue').textContent = this.speed;
+                    });
+                    
+                    const gridSizeSlider = document.getElementById('gridSizeSlider');
+                    gridSizeSlider.addEventListener('input', (e) => {
+                        const newSize = parseInt(e.target.value);
+                        document.getElementById('gridSizeValue').textContent = newSize;
+                        this.gridSize = newSize;
+                        this.cellSize = this.canvas.width / newSize;
+                        this.reset();
+                    });
+                    
+                    // 캔버스 클릭 이벤트 추가
+                    this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+                }
+                
+                handleCanvasClick(event) {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const canvasX = event.clientX - rect.left;
+                    const canvasY = event.clientY - rect.top;
+                    
+                    // 캔버스 좌표를 격자 좌표로 변환
+                    const gridCoord = this.canvasToGrid(canvasX, canvasY);
+                    const { gridX, gridY } = this.coordToIndex(gridCoord.x, gridCoord.y);
+                    
+                    // 경계 체크
+                    if (gridX >= 0 && gridX < this.gridSize && gridY >= 0 && gridY < this.gridSize) {
+                        // 개미 위치 이동 (방향은 유지)
+                        this.antX = gridCoord.x;
+                        this.antY = gridCoord.y;
+                        
+                        this.updateStats();
+                        this.draw();
+                    }
+                }
+                
+                start() {
+                    if (!this.isRunning) {
+                        this.isRunning = true;
+                        document.getElementById('startBtn').disabled = true;
+                        document.getElementById('pauseBtn').disabled = false;
+                        this.animate();
+                    }
+                }
+                
+                pause() {
+                    this.isRunning = false;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('pauseBtn').disabled = true;
+                    if (this.animationId) {
+                        cancelAnimationFrame(this.animationId);
+                    }
+                }
+                
+                animate() {
+                    if (!this.isRunning) return;
+                    
+                    for (let i = 0; i < this.speed; i++) {
+                        this.step();
+                    }
+                    
+                    this.draw();
+                    this.animationId = requestAnimationFrame(() => this.animate());
+                }
+                
+                // 좌표 변환 함수 (중앙을 (0,0)으로)
+                gridToCanvas(x, y) {
+                    return {
+                        x: (x + Math.floor(this.gridSize / 2)) * this.cellSize,
+                        y: (-y + Math.floor(this.gridSize / 2)) * this.cellSize
+                    };
+                }
+                
+                canvasToGrid(canvasX, canvasY) {
+                    return {
+                        x: Math.floor(canvasX / this.cellSize) - Math.floor(this.gridSize / 2),
+                        y: -(Math.floor(canvasY / this.cellSize) - Math.floor(this.gridSize / 2))
+                    };
+                }
+                
+                // 격자 배열 인덱스 변환
+                coordToIndex(x, y) {
+                    const gridX = x + Math.floor(this.gridSize / 2);
+                    const gridY = -y + Math.floor(this.gridSize / 2);
+                    return { gridX, gridY };
+                }
+                
+                step() {
+                    const { gridX, gridY } = this.coordToIndex(this.antX, this.antY);
+                    
+                    // 경계 체크
+                    if (gridX < 0 || gridX >= this.gridSize || gridY < 0 || gridY >= this.gridSize) {
+                        return;
+                    }
+                    
+                    // 현재 셀의 색상 확인
+                    const currentCell = this.grid[gridY][gridX];
+                    
+                    if (currentCell) {
+                        // 검은 셀: 반시계방향 회전
+                        this.antDirection = (this.antDirection + 3) % 4;
+                        this.grid[gridY][gridX] = false; // 흰색으로
+                    } else {
+                        // 흰 셀: 시계방향 회전
+                        this.antDirection = (this.antDirection + 1) % 4;
+                        this.grid[gridY][gridX] = true; // 검은색으로
+                    }
+                    
+                    // 앞으로 이동 (좌표계 반영)
+                    switch (this.antDirection) {
+                        case 0: this.antY++; break; // 북 (y 증가)
+                        case 1: this.antX++; break; // 동 (x 증가)
+                        case 2: this.antY--; break; // 남 (y 감소)
+                        case 3: this.antX--; break; // 서 (x 감소)
+                    }
+                    
+                    this.stepCount++;
+                    this.updateStats();
+                }
+                
+                updateStats() {
+                    document.getElementById('stepCount').textContent = this.stepCount.toLocaleString();
+                    
+                    let blackCells = 0;
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            if (this.grid[y][x]) blackCells++;
+                        }
+                    }
+                    document.getElementById('blackCells').textContent = blackCells.toLocaleString();
+                    document.getElementById('antPosition').textContent = `(${this.antX}, ${this.antY})`;
+                    
+                    const directions = ['▲', '▶', '▼', '◀'];
+                    document.getElementById('antDirection').textContent = directions[this.antDirection];
+                }
+                
+                draw() {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // 개미 현재 위치 계산
+                    const { gridX: antGridX, gridY: antGridY } = this.coordToIndex(this.antX, this.antY);
+                    
+                    // 격자 그리기
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            // 개미가 현재 위치한 셀인지 확인
+                            const isAntPosition = (x === antGridX && y === antGridY);
+                            
+                            if (isAntPosition) {
+                                // 개미 위치는 빨간색으로
+                                this.ctx.fillStyle = '#e74c3c';
+                                this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+                            } else if (this.grid[y][x]) {
+                                // 검은 셀
+                                this.ctx.fillStyle = '#2c3e50';
+                                this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+                            }
+                        }
+                    }
+                    
+                    // 개미 그리기 (흰색 삼각형으로 변경하여 빨간 배경에서 보이도록)
+                    const antCanvas = this.gridToCanvas(this.antX, this.antY);
+                    this.ctx.fillStyle = 'white';
+                    const antCenterX = antCanvas.x + this.cellSize / 2;
+                    const antCenterY = antCanvas.y + this.cellSize / 2;
+                    
+                    this.ctx.save();
+                    this.ctx.translate(antCenterX, antCenterY);
+                    this.ctx.rotate(this.antDirection * Math.PI / 2);
+                    
+                    // 개미 모양 (삼각형)
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, -this.cellSize * 0.3);
+                    this.ctx.lineTo(-this.cellSize * 0.2, this.cellSize * 0.2);
+                    this.ctx.lineTo(this.cellSize * 0.2, this.cellSize * 0.2);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                    
+                    // 격자선 (작은 셀 크기일 때는 생략)
+                    if (this.cellSize > 4) {
+                        this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                        this.ctx.lineWidth = 0.5;
+                        
+                        for (let i = 0; i <= this.gridSize; i++) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(i * this.cellSize, 0);
+                            this.ctx.lineTo(i * this.cellSize, this.canvas.height);
+                            this.ctx.stroke();
+                            
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(0, i * this.cellSize);
+                            this.ctx.lineTo(this.canvas.width, i * this.cellSize);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            // 시뮬레이터 초기화
+            const canvas = document.getElementById('canvas');
+            const ant = new LangtonsAnt(canvas, 80);
+            
+            // 반응형 캔버스 크기 조정
+            function resizeCanvas() {
+                const container = document.querySelector('.canvas-container');
+                const availableWidth = Math.min(window.innerWidth - 80, 800);
+                const availableHeight = Math.min(window.innerHeight - 300, 600);
+                const size = Math.min(availableWidth, availableHeight);
+                
+                canvas.width = size;
+                canvas.height = size;
+                ant.cellSize = size / ant.gridSize;
+                ant.draw();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+        </script>
+    </div>
+</body>
+</html>

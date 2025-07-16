@@ -1,0 +1,1011 @@
+<div class="aco-simulator">
+    <style>
+        .aco-simulator {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            color: #333;
+            box-sizing: border-box;
+        }
+        
+        .aco-simulator * {
+            box-sizing: border-box;
+        }
+        
+        .aco-simulator .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 10px;
+        }
+        
+        .aco-simulator .main-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .aco-simulator .canvas-container {
+            flex: 2;
+            min-width: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0;
+        }
+        
+        .aco-simulator .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .aco-simulator canvas {
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+            background-color: #fffef7;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .aco-simulator canvas {
+                /* 모바일에서 캔버스 안정성 확보 */
+                max-width: calc(100vw - 40px);
+                max-height: 300px;
+            }
+        }
+        
+        .aco-simulator .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .aco-simulator .control-group h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .aco-simulator .param-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+            max-width: 100%;
+        }
+        
+        .aco-simulator .param-control label {
+            font-weight: 600;
+            min-width: 80px;
+            color: #34495e;
+            flex-shrink: 0;
+        }
+        
+        .aco-simulator .param-control input[type="range"] {
+            flex: 1;
+            margin: 0 10px;
+            min-width: 0;
+        }
+        
+        .aco-simulator .param-control span {
+            min-width: 60px;
+            width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: #e74c3c;
+            flex-shrink: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .aco-simulator button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .aco-simulator button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .aco-simulator .info-panel {
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border: 1px solid #bee5eb;
+            width: 100%;
+        }
+        
+        .aco-simulator .stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            font-size: 14px;
+        }
+        
+        .aco-simulator .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .aco-simulator .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .aco-simulator .param-description {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            text-align: left;
+        }
+        
+        .aco-simulator .param-description p {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .aco-simulator {
+                padding: 5px;
+            }
+            
+            .aco-simulator .container {
+                padding: 5px;
+            }
+            
+            .aco-simulator .main-content {
+                flex-direction: column;
+            }
+            
+            .aco-simulator .canvas-container {
+                min-width: auto;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .aco-simulator .controls {
+                width: 100%;
+                min-width: auto;
+                padding: 0 5px;
+            }
+            
+            .aco-simulator .param-control {
+                gap: 8px;
+            }
+            
+            .aco-simulator .param-control label {
+                min-width: 70px;
+                font-size: 14px;
+            }
+            
+            .aco-simulator .param-control span {
+                min-width: 55px;
+                width: 55px;
+                font-size: 14px;
+            }
+            
+            .aco-simulator .stats {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .aco-simulator .stat-item {
+                min-width: calc(50% - 7.5px);
+            }
+        }
+    </style>
+
+    <div class="container">
+        <div class="info-panel">
+            <div class="stats">
+                <div class="stat-item">
+                    <div>세대</div>
+                    <div class="stat-value" id="aco-generation">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>최단거리</div>
+                    <div class="stat-value" id="aco-bestDistance">-</div>
+                </div>
+                <div class="stat-item">
+                    <div>도시수</div>
+                    <div class="stat-value" id="aco-cityCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>활성도로</div>
+                    <div class="stat-value" id="aco-roadCount">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="aco-canvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3>시뮬레이션 제어</h3>
+                    <button id="aco-start-btn">시뮬레이션 시작</button>
+                    <button id="aco-stop-btn">정지</button>
+                    <button id="aco-reset-btn">리셋</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>파라미터</h3>
+                    <div class="param-control">
+                        <label>도시 수:</label>
+                        <input type="range" id="aco-cityNumber" min="10" max="50" step="1" value="25">
+                        <span id="aco-cityNumberValue">25</span>
+                    </div>
+                    
+                    <div class="param-control">
+                        <label>Alpha (α):</label>
+                        <input type="range" id="aco-alpha" min="0.1" max="3" step="0.1" value="1">
+                        <span id="aco-alphaValue">1.0</span>
+                    </div>
+                    
+                    <div class="param-control">
+                        <label>Beta (β):</label>
+                        <input type="range" id="aco-beta" min="0.1" max="5" step="0.1" value="2">
+                        <span id="aco-betaValue">2.0</span>
+                    </div>
+                    
+                    <div class="param-control">
+                        <label>Rho (ρ):</label>
+                        <input type="range" id="aco-rho" min="0.01" max="0.5" step="0.01" value="0.1">
+                        <span id="aco-rhoValue">0.10</span>
+                    </div>
+                    
+                    <div class="param-control">
+                        <label>개미 수:</label>
+                        <input type="range" id="aco-antCount" min="20" max="100" step="5" value="40">
+                        <span id="aco-antCountValue">40</span>
+                    </div>
+                    
+                    <div class="param-control">
+                        <label>속도:</label>
+                        <input type="range" id="aco-speed" min="5" max="50" step="5" value="20">
+                        <span id="aco-speedValue">20ms</span>
+                    </div>
+                    
+                    <div class="param-description">
+                        <p><strong>Alpha (α):</strong> 페로몬 중요도 (과거 경험)</p>
+                        <p><strong>Beta (β):</strong> 거리 중요도 (즉각적 이익)</p>
+                        <p><strong>Rho (ρ):</strong> 페로몬 증발율 (다양성 유지)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            let acoSimulator;
+            
+            class ACOSimulator {
+                constructor() {
+                    this.canvas = document.getElementById('aco-canvas');
+                    this.ctx = this.canvas.getContext('2d');
+                    
+                    this.displayWidth = 0;
+                    this.displayHeight = 0;
+                    
+                    this.cities = [];
+                    this.pheromones = [];
+                    this.distances = [];
+                    this.bestPath = [];
+                    this.bestDistance = Infinity;
+                    this.generation = 0;
+                    this.isRunning = false;
+                    
+                    this.roads = new Map();
+                    this.roadThreshold = 2.0;
+                    this.roadDecayRate = 0.02;
+                    
+                    this.currentGenerationAnts = [];
+                    this.animationSpeed = 20;
+                    this.maxGenerations = 100;
+                    
+                    this.cityNumber = 25;
+                    this.alpha = 1.0;
+                    this.beta = 2.0;
+                    this.rho = 0.1;
+                    this.antCount = 40;
+                    this.Q = 100;
+                    
+                    this.setupCanvas();
+                    this.setupEventListeners();
+                    this.generateRandomCities();
+                }
+                
+                setupCanvas() {
+                    const dpr = window.devicePixelRatio || 1;
+                    const canvasContainer = this.canvas.parentElement;
+                    const isMobile = window.innerWidth <= 768;
+                    
+                    let displayWidth, displayHeight;
+                    
+                    if (isMobile) {
+                        displayWidth = Math.min(window.innerWidth - 60, 600);
+                        displayHeight = Math.min(Math.max(window.innerHeight * 0.4, 300), 400);
+                    } else {
+                        const containerWidth = canvasContainer.clientWidth;
+                        displayWidth = Math.max(400, Math.min(containerWidth - 20, 800));
+                        displayHeight = Math.min(Math.max(window.innerHeight * 0.6, 400), 600);
+                    }
+                    
+                    this.canvas.width = displayWidth * dpr;
+                    this.canvas.height = displayHeight * dpr;
+                    this.canvas.style.width = displayWidth + 'px';
+                    this.canvas.style.height = displayHeight + 'px';
+                    
+                    this.ctx.scale(dpr, dpr);
+                    
+                    this.displayWidth = displayWidth;
+                    this.displayHeight = displayHeight;
+                    
+                    window.addEventListener('resize', () => this.resizeCanvas());
+                }
+                
+                resizeCanvas() {
+                    const dpr = window.devicePixelRatio || 1;
+                    const isMobile = window.innerWidth <= 768;
+                    let newDisplayWidth, newDisplayHeight;
+                    
+                    if (isMobile) {
+                        newDisplayWidth = Math.min(window.innerWidth - 60, 600);
+                        newDisplayHeight = Math.min(Math.max(window.innerHeight * 0.4, 300), 400);
+                    } else {
+                        const containerWidth = this.canvas.parentElement.clientWidth;
+                        newDisplayWidth = Math.max(400, Math.min(containerWidth - 20, 800));
+                        newDisplayHeight = Math.min(Math.max(window.innerHeight * 0.6, 400), 600);
+                    }
+                    
+                    if (newDisplayWidth !== this.displayWidth || newDisplayHeight !== this.displayHeight) {
+                        const oldDisplayWidth = this.displayWidth;
+                        const oldDisplayHeight = this.displayHeight;
+                        
+                        this.canvas.width = newDisplayWidth * dpr;
+                        this.canvas.height = newDisplayHeight * dpr;
+                        this.canvas.style.width = newDisplayWidth + 'px';
+                        this.canvas.style.height = newDisplayHeight + 'px';
+                        
+                        this.ctx.scale(dpr, dpr);
+                        
+                        this.displayWidth = newDisplayWidth;
+                        this.displayHeight = newDisplayHeight;
+                        
+                        if (this.cities.length > 0 && oldDisplayWidth > 0 && oldDisplayHeight > 0) {
+                            const scaleX = newDisplayWidth / oldDisplayWidth;
+                            const scaleY = newDisplayHeight / oldDisplayHeight;
+                            
+                            this.cities.forEach(city => {
+                                city.x = Math.max(30, Math.min(newDisplayWidth - 30, city.x * scaleX));
+                                city.y = Math.max(30, Math.min(newDisplayHeight - 30, city.y * scaleY));
+                            });
+                            
+                            this.initializeMatrices();
+                        }
+                        
+                        this.updateDisplay();
+                    }
+                }
+                
+                setupEventListeners() {
+                    this.canvas.addEventListener('click', (e) => {
+                        if (!this.isRunning) {
+                            const rect = this.canvas.getBoundingClientRect();
+                            const x = (e.clientX - rect.left) * (this.displayWidth / rect.width);
+                            const y = (e.clientY - rect.top) * (this.displayHeight / rect.height);
+                            this.addCity(x, y);
+                        }
+                    });
+                    
+                    document.getElementById('aco-start-btn').addEventListener('click', () => this.startSimulation());
+                    document.getElementById('aco-stop-btn').addEventListener('click', () => this.stopSimulation());
+                    document.getElementById('aco-reset-btn').addEventListener('click', () => this.resetSimulation());
+                    
+                    ['aco-cityNumber', 'aco-alpha', 'aco-beta', 'aco-rho', 'aco-antCount', 'aco-speed'].forEach(id => {
+                        document.getElementById(id).addEventListener('input', () => this.updateParameters());
+                    });
+                }
+                
+                addCity(x, y) {
+                    const minDistance = 40;
+                    let validPosition = true;
+                    
+                    // 최대 도시 수 확인
+                    const maxCities = parseInt(document.getElementById('aco-cityNumber').max);
+                    if (this.cities.length >= maxCities) {
+                        return; // 최대 도시 수에 도달하면 추가하지 않음
+                    }
+                    
+                    for (const city of this.cities) {
+                        const distance = Math.sqrt(Math.pow(x - city.x, 2) + Math.pow(y - city.y, 2));
+                        if (distance < minDistance) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                    
+                    if (validPosition) {
+                        this.cities.push({x, y});
+                        this.updateDistanceMatrix();
+                        
+                        // 도시 수가 변경되었으므로 UI 업데이트
+                        this.cityNumber = this.cities.length;
+                        document.getElementById('aco-cityNumber').value = this.cityNumber;
+                        document.getElementById('aco-cityNumberValue').textContent = this.cityNumber;
+                        
+                        this.updateDisplay();
+                    }
+                }
+                
+                updateDistanceMatrix() {
+                    const n = this.cities.length;
+                    
+                    // 거리 행렬만 업데이트 (generation 보존)
+                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) {
+                            if (i !== j) {
+                                const dx = this.cities[i].x - this.cities[j].x;
+                                const dy = this.cities[i].y - this.cities[j].y;
+                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
+                            }
+                        }
+                    }
+                    
+                    // 페로몬 행렬 크기 조정 (기존 값 보존)
+                    const oldPheromones = this.pheromones;
+                    this.pheromones = Array(n).fill().map(() => Array(n).fill(1.0));
+                    
+                    // 기존 페로몬 값이 있다면 복사
+                    if (oldPheromones && oldPheromones.length > 0) {
+                        for (let i = 0; i < Math.min(n, oldPheromones.length); i++) {
+                            for (let j = 0; j < Math.min(n, oldPheromones[0].length); j++) {
+                                this.pheromones[i][j] = oldPheromones[i][j];
+                            }
+                        }
+                    }
+                }
+                
+                updateDistanceMatrixOnly() {
+                    const n = this.cities.length;
+                    
+                    // 거리 행렬만 업데이트 (페로몬과 generation 완전 보존)
+                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) {
+                            if (i !== j) {
+                                const dx = this.cities[i].x - this.cities[j].x;
+                                const dy = this.cities[i].y - this.cities[j].y;
+                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
+                            }
+                        }
+                    }
+                    // 페로몬 행렬은 그대로 유지
+                }
+                
+                generateRandomCities() {
+                    this.cities = [];
+                    const numCities = this.cityNumber;
+                    const margin = 30;
+                    const minDistance = Math.max(25, 150 / Math.sqrt(numCities));
+                    
+                    for (let i = 0; i < numCities; i++) {
+                        let x, y, attempts = 0;
+                        let validPosition = false;
+                        
+                        while (!validPosition && attempts < 100) {
+                            x = margin + Math.random() * (this.displayWidth - 2 * margin);
+                            y = margin + Math.random() * (this.displayHeight - 2 * margin);
+                            
+                            validPosition = true;
+                            for (const city of this.cities) {
+                                const distance = Math.sqrt(Math.pow(x - city.x, 2) + Math.pow(y - city.y, 2));
+                                if (distance < minDistance) {
+                                    validPosition = false;
+                                    break;
+                                }
+                            }
+                            attempts++;
+                        }
+                        
+                        if (validPosition) {
+                            this.cities.push({x, y});
+                        }
+                    }
+                    
+                    // 완전히 새로운 시작이므로 모든 것을 초기화
+                    this.initializeMatrices();
+                    this.updateDisplay();
+                }
+                
+                initializeMatrices() {
+                    const n = this.cities.length;
+                    
+                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) {
+                            if (i !== j) {
+                                const dx = this.cities[i].x - this.cities[j].x;
+                                const dy = this.cities[i].y - this.cities[j].y;
+                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
+                            }
+                        }
+                    }
+                    
+                    this.pheromones = Array(n).fill().map(() => Array(n).fill(1.0));
+                    this.roads.clear();
+                    this.bestDistance = Infinity;
+                    this.bestPath = [];
+                    this.generation = 0;
+                }
+                
+                startSimulation() {
+                    if (this.cities.length < 3) {
+                        alert('최소 3개의 도시가 필요합니다!');
+                        return;
+                    }
+                    
+                    this.isRunning = true;
+                    this.generation = 0;
+                    this.initializeMatrices();
+                    this.continuousSimulation();
+                }
+                
+                async continuousSimulation() {
+                    while (this.isRunning && this.generation < this.maxGenerations) {
+                        await this.runGeneration();
+                        this.generation++;
+                        this.updateStats();
+                        
+                        if (this.isRunning) {
+                            await this.delay(300);
+                        }
+                    }
+                    
+                    if (this.generation >= this.maxGenerations) {
+                        this.isRunning = false;
+                        this.currentGenerationAnts = [];
+                        this.updateDisplay();
+                        
+                        // 시뮬레이션 완료 후 지연된 리사이즈 처리
+                        setTimeout(() => {
+                            this.resizeCanvas();
+                        }, 100);
+                    }
+                }
+                
+                async runGeneration() {
+                    const antPaths = [];
+                    const antDistances = [];
+                    
+                    for (let ant = 0; ant < this.antCount; ant++) {
+                        const path = this.constructPath();
+                        const distance = this.calculatePathDistance(path);
+                        
+                        antPaths.push(path);
+                        antDistances.push(distance);
+                        
+                        if (distance < this.bestDistance) {
+                            this.bestDistance = distance;
+                            this.bestPath = [...path];
+                        }
+                    }
+                    
+                    this.currentGenerationAnts = [];
+                    for (let i = 0; i < Math.min(this.antCount, 15); i++) {
+                        this.currentGenerationAnts.push({
+                            path: antPaths[i],
+                            currentStep: 0,
+                            position: {
+                                x: this.cities[antPaths[i][0]].x,
+                                y: this.cities[antPaths[i][0]].y
+                            },
+                            color: `hsl(${(i * 360 / 15) % 360}, 70%, 50%)`,
+                            isMoving: false,
+                            visitedCities: []
+                        });
+                    }
+                    
+                    await this.animateAnts();
+                    this.updatePheromones(antPaths, antDistances);
+                }
+                
+                async animateAnts() {
+                    const maxSteps = Math.max(...this.currentGenerationAnts.map(ant => ant.path.length));
+                    
+                    for (let step = 1; step < maxSteps; step++) {
+                        for (const ant of this.currentGenerationAnts) {
+                            if (step < ant.path.length) {
+                                const targetIndex = ant.path[step];
+                                const target = this.cities[targetIndex];
+                                
+                                ant.targetPosition = {x: target.x, y: target.y};
+                                ant.isMoving = true;
+                                ant.visitedCities.push(targetIndex);
+                            }
+                        }
+                        
+                        await this.smoothMoveAnts();
+                        await this.delay(this.animationSpeed);
+                    }
+                    
+                    this.clearAntTrails();
+                }
+                
+                async smoothMoveAnts() {
+                    return new Promise((resolve) => {
+                        const duration = Math.max(this.animationSpeed, 20);
+                        const frames = Math.max(duration / 16, 2);
+                        let currentFrame = 0;
+                        
+                        this.currentGenerationAnts.forEach(ant => {
+                            if (ant.isMoving && ant.position && ant.targetPosition) {
+                                ant.startPosition = {x: ant.position.x, y: ant.position.y};
+                            }
+                        });
+                        
+                        const animate = () => {
+                            currentFrame++;
+                            const progress = Math.min(currentFrame / frames, 1);
+                            
+                            for (const ant of this.currentGenerationAnts) {
+                                if (ant.isMoving && ant.startPosition && ant.targetPosition) {
+                                    ant.position.x = ant.startPosition.x + (ant.targetPosition.x - ant.startPosition.x) * progress;
+                                    ant.position.y = ant.startPosition.y + (ant.targetPosition.y - ant.startPosition.y) * progress;
+                                }
+                            }
+                            
+                            this.updateDisplay();
+                            
+                            if (progress < 1) {
+                                requestAnimationFrame(animate);
+                            } else {
+                                for (const ant of this.currentGenerationAnts) {
+                                    if (ant.isMoving && ant.targetPosition) {
+                                        ant.position.x = ant.targetPosition.x;
+                                        ant.position.y = ant.targetPosition.y;
+                                        ant.isMoving = false;
+                                    }
+                                }
+                                resolve();
+                            }
+                        };
+                        
+                        animate();
+                    });
+                }
+                
+                clearAntTrails() {
+                    this.currentGenerationAnts.forEach(ant => {
+                        ant.visitedCities = [];
+                    });
+                }
+                
+                constructPath() {
+                    const n = this.cities.length;
+                    const visited = Array(n).fill(false);
+                    const path = [];
+                    
+                    let current = Math.floor(Math.random() * n);
+                    path.push(current);
+                    visited[current] = true;
+                    
+                    for (let step = 1; step < n; step++) {
+                        const probabilities = [];
+                        let totalProb = 0;
+                        
+                        for (let next = 0; next < n; next++) {
+                            if (!visited[next]) {
+                                const pheromone = Math.pow(this.pheromones[current][next], this.alpha);
+                                const heuristic = Math.pow(1 / this.distances[current][next], this.beta);
+                                const prob = pheromone * heuristic;
+                                probabilities.push({city: next, prob});
+                                totalProb += prob;
+                            }
+                        }
+                        
+                        const random = Math.random() * totalProb;
+                        let cumulative = 0;
+                        let nextCity = probabilities[0].city;
+                        
+                        for (const item of probabilities) {
+                            cumulative += item.prob;
+                            if (random <= cumulative) {
+                                nextCity = item.city;
+                                break;
+                            }
+                        }
+                        
+                        path.push(nextCity);
+                        visited[nextCity] = true;
+                        current = nextCity;
+                    }
+                    
+                    path.push(path[0]);
+                    return path;
+                }
+                
+                calculatePathDistance(path) {
+                    let distance = 0;
+                    for (let i = 0; i < path.length - 1; i++) {
+                        distance += this.distances[path[i]][path[i + 1]];
+                    }
+                    return distance;
+                }
+                
+                updatePheromones(antPaths, antDistances) {
+                    const n = this.cities.length;
+                    
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) {
+                            this.pheromones[i][j] *= (1 - this.rho);
+                        }
+                    }
+                    
+                    for (let ant = 0; ant < antPaths.length; ant++) {
+                        const path = antPaths[ant];
+                        const distance = antDistances[ant];
+                        const deltaPheromone = this.Q / distance;
+                        
+                        for (let i = 0; i < path.length - 1; i++) {
+                            const from = path[i];
+                            const to = path[i + 1];
+                            this.pheromones[from][to] += deltaPheromone;
+                            this.pheromones[to][from] += deltaPheromone;
+                        }
+                    }
+                    
+                    this.updateRoadNetwork();
+                }
+                
+                updateRoadNetwork() {
+                    const n = this.cities.length;
+                    
+                    for (const [roadKey, road] of this.roads) {
+                        road.age++;
+                        road.strength *= (1 - this.roadDecayRate);
+                        
+                        if (road.strength < 0.5) {
+                            this.roads.delete(roadKey);
+                        }
+                    }
+                    
+                    for (let i = 0; i < n; i++) {
+                        for (let j = i + 1; j < n; j++) {
+                            const pheromoneLevel = this.pheromones[i][j];
+                            const roadKey = `${i}-${j}`;
+                            
+                            if (pheromoneLevel > this.roadThreshold) {
+                                if (!this.roads.has(roadKey)) {
+                                    this.roads.set(roadKey, {
+                                        strength: pheromoneLevel,
+                                        age: 0,
+                                        from: i,
+                                        to: j
+                                    });
+                                } else {
+                                    const road = this.roads.get(roadKey);
+                                    road.strength = Math.max(road.strength, pheromoneLevel);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                updateDisplay() {
+                    this.ctx.fillStyle = '#fffef7';
+                    this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
+                    
+                    this.drawRoadNetwork();
+                    
+                    if (this.bestPath.length > 0) {
+                        this.drawPath(this.bestPath, '#e74c3c', 4);
+                    }
+                    
+                    this.drawMovingAnts();
+                    this.drawCities();
+                    this.updateStats();
+                }
+                
+                drawRoadNetwork() {
+                    for (const [roadKey, road] of this.roads) {
+                        const from = this.cities[road.from];
+                        const to = this.cities[road.to];
+                        
+                        const normalizedStrength = Math.min(road.strength / 10, 1);
+                        const width = 2 + normalizedStrength * 4;
+                        const alpha = 0.3 + normalizedStrength * 0.4;
+                        
+                        let hue = 200;
+                        if (road.age > 10) hue = 120;
+                        if (road.age > 20) hue = 60;
+                        if (road.age > 30) hue = 0;
+                        
+                        this.ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
+                        this.ctx.lineWidth = width;
+                        this.ctx.lineCap = 'round';
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(from.x, from.y);
+                        this.ctx.lineTo(to.x, to.y);
+                        this.ctx.stroke();
+                    }
+                }
+                
+                drawPath(path, color, width) {
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = width;
+                    this.ctx.beginPath();
+                    
+                    for (let i = 0; i < path.length - 1; i++) {
+                        const from = this.cities[path[i]];
+                        const to = this.cities[path[i + 1]];
+                        
+                        if (i === 0) {
+                            this.ctx.moveTo(from.x, from.y);
+                        }
+                        this.ctx.lineTo(to.x, to.y);
+                    }
+                    
+                    this.ctx.stroke();
+                }
+                
+                drawMovingAnts() {
+                    if (!this.currentGenerationAnts) return;
+                    
+                    this.currentGenerationAnts.forEach((ant, index) => {
+                        if (!ant.position) return;
+                        
+                        const x = ant.position.x;
+                        const y = ant.position.y;
+                        
+                        this.ctx.fillStyle = ant.color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.stroke();
+                        
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.font = 'bold 8px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText((index + 1).toString(), x, y + 2);
+                        
+                        if (ant.visitedCities && ant.visitedCities.length > 1) {
+                            this.ctx.strokeStyle = ant.color + '60';
+                            this.ctx.lineWidth = 1;
+                            this.ctx.setLineDash([2, 2]);
+                            this.ctx.beginPath();
+                            
+                            for (let i = 0; i < ant.visitedCities.length; i++) {
+                                const cityIndex = ant.visitedCities[i];
+                                const city = this.cities[cityIndex];
+                                if (i === 0) {
+                                    this.ctx.moveTo(city.x, city.y);
+                                } else {
+                                    this.ctx.lineTo(city.x, city.y);
+                                }
+                            }
+                            
+                            if (ant.isMoving) {
+                                this.ctx.lineTo(x, y);
+                            }
+                            
+                            this.ctx.stroke();
+                            this.ctx.setLineDash([]);
+                        }
+                    });
+                }
+                
+                drawCities() {
+                    this.cities.forEach((city, index) => {
+                        this.ctx.fillStyle = '#2c3e50';
+                        this.ctx.beginPath();
+                        this.ctx.arc(city.x, city.y, 8, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.font = 'bold 12px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(index.toString(), city.x, city.y + 4);
+                    });
+                }
+                
+                stopSimulation() {
+                    this.isRunning = false;
+                    this.currentGenerationAnts = [];
+                    this.updateDisplay();
+                    
+                    // 시뮬레이션 정지 후 지연된 리사이즈 처리
+                    setTimeout(() => {
+                        this.resizeCanvas();
+                    }, 100);
+                }
+                
+                resetSimulation() {
+                    this.stopSimulation();
+                    this.initializeMatrices();
+                    this.updateDisplay();
+                }
+                
+                updateStats() {
+                    document.getElementById('aco-generation').textContent = this.generation;
+                    document.getElementById('aco-bestDistance').textContent = 
+                        this.bestDistance === Infinity ? '-' : this.bestDistance.toFixed(1);
+                    document.getElementById('aco-cityCount').textContent = this.cities.length;
+                    document.getElementById('aco-roadCount').textContent = this.roads.size;
+                }
+                
+                updateParameters() {
+                    this.alpha = parseFloat(document.getElementById('aco-alpha').value);
+                    this.beta = parseFloat(document.getElementById('aco-beta').value);
+                    this.rho = parseFloat(document.getElementById('aco-rho').value);
+                    this.antCount = parseInt(document.getElementById('aco-antCount').value);
+                    this.animationSpeed = parseInt(document.getElementById('aco-speed').value);
+                    
+                    const newCityNumber = parseInt(document.getElementById('aco-cityNumber').value);
+                    
+                    document.getElementById('aco-alphaValue').textContent = this.alpha.toFixed(1);
+                    document.getElementById('aco-betaValue').textContent = this.beta.toFixed(1);
+                    document.getElementById('aco-rhoValue').textContent = this.rho.toFixed(2);
+                    document.getElementById('aco-antCountValue').textContent = this.antCount;
+                    document.getElementById('aco-speedValue').textContent = this.animationSpeed + 'ms';
+                    document.getElementById('aco-cityNumberValue').textContent = newCityNumber;
+                    
+                    if (!this.isRunning && newCityNumber !== this.cityNumber) {
+                        this.cityNumber = newCityNumber;
+                        this.generateRandomCities();
+                    }
+                }
+                
+                delay(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+            }
+            
+            // 초기화
+            window.addEventListener('load', () => {
+                // 모바일에서 viewport 고정을 위한 메타 태그 추가
+                if (window.innerWidth <= 768) {
+                    let viewport = document.querySelector('meta[name="viewport"]');
+                    if (!viewport) {
+                        viewport = document.createElement('meta');
+                        viewport.name = 'viewport';
+                        document.getElementsByTagName('head')[0].appendChild(viewport);
+                    }
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+                }
+                
+                acoSimulator = new ACOSimulator();
+                acoSimulator.updateParameters();
+            });
+        })();
+    </script>
+</div>

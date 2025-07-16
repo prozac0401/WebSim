@@ -1,0 +1,370 @@
+                // DOM 요소 초기화 함수
+                function initializeElements() {
+                    var canvas = document.getElementById('ulam');
+                    var slider = document.getElementById('slider');
+                    var label = document.getElementById('label');
+                    var loading = document.getElementById('loading');
+                    var showLines = document.getElementById('showLines');
+                    
+                    if (!canvas) return null;
+                    
+                    var ctx = canvas.getContext('2d');
+                    if (!ctx) return null;
+                    
+                    // 슬라이더 스타일 추가 (Edge 호환)
+                    try {
+                        var style = document.createElement('style');
+                        style.type = 'text/css';
+                        style.innerHTML = 
+                            '#slider::-webkit-slider-thumb { ' +
+                            '-webkit-appearance: none; ' +
+                            'appearance: none; ' +
+                            'width: 20px; ' +
+                            'height: 20px; ' +
+                            'border-radius: 50%; ' +
+                            'background: #667eea; ' +
+                            'cursor: pointer; ' +
+                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
+                            '} ' +
+                            '#slider::-moz-range-thumb { ' +
+                            'width: 20px; ' +
+                            'height: 20px; ' +
+                            'border-radius: 50%; ' +
+                            'background: #667eea; ' +
+                            'cursor: pointer; ' +
+                            'border: none; ' +
+                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
+                            '}';
+                        document.head.appendChild(style);
+                    } catch (e) {
+                        // 스타일 추가 실패 시 무시
+                    }
+                    
+                    return { canvas: canvas, ctx: ctx, slider: slider, label: label, loading: loading, showLines: showLines };
+                }<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>울람 소용돌이 (Ulam Spiral)</title>
+</head>
+<body>
+    <div style="
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    ">
+        <div style="
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            max-width: 600px;
+            width: 100%;
+        ">
+            <div style="
+                position: relative;
+                width: 100%;
+                max-width: 520px;
+                margin: 0 auto 10px;
+                border-radius: 5px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            ">
+                <canvas id="ulam" style="
+                    width: 100%;
+                    height: auto;
+                    background: #f8f9fa;
+                    display: block;
+                " width="520" height="520">
+                    브라우저가 Canvas를 지원하지 않습니다.
+                </canvas>
+            </div>
+            
+            <div style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            ">
+                <div style="
+                    width: 100%;
+                    max-width: 400px;
+                ">
+                    <input id="slider" style="
+                        width: 100%;
+                        height: 8px;
+                        border-radius: 5px;
+                        background: #e0e0e0;
+                        outline: none;
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
+                    " type="range" min="101" max="30001" step="200" value="1001">
+                </div>
+                <div id="label" style="
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    text-align: center;
+                ">N = 1001 까지 소수 표시</div>
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 5px;
+                ">
+                    <input type="checkbox" id="showLines" style="
+                        width: 18px;
+                        height: 18px;
+                        accent-color: #667eea;
+                        cursor: pointer;
+                    " checked>
+                    <label for="showLines" style="
+                        font-size: 14px;
+                        color: #555;
+                        cursor: pointer;
+                        user-select: none;
+                    ">나선 연결선 표시</label>
+                </div>
+                <div id="loading" style="
+                    text-align: center;
+                    color: #667eea;
+                    font-size: 14px;
+                    margin-top: 10px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                "><!-- 고정 영역 --></div>
+            </div>
+            
+            <script>
+                // 에라토스테네스의 체
+                function sieveOfEratosthenes(n) {
+                    var isPrime = new Array(n + 1);
+                    for (var i = 0; i <= n; i++) isPrime[i] = true;
+                    isPrime[0] = isPrime[1] = false;
+                    
+                    for (var p = 2; p * p <= n; p++) {
+                        if (isPrime[p]) {
+                            for (var k = p * p; k <= n; k += p) {
+                                isPrime[k] = false;
+                            }
+                        }
+                    }
+                    return isPrime;
+                }
+                
+                // 울람 소용돌이 그리기 (Edge 호환 버전)
+                function drawUlamSpiral(elements, maxN) {
+                    var canvas = elements.canvas;
+                    var ctx = elements.ctx;
+                    var showLines = elements.showLines;
+                    
+                    var WIDTH = canvas.width;
+                    var HEIGHT = canvas.height;
+                    var CENTER_X = WIDTH / 2;
+                    var CENTER_Y = HEIGHT / 2;
+                    
+                    try {
+                        // 캔버스 초기화
+                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                        
+                        // 현재 범위의 나선 반지름 계산
+                        var currentRadius = Math.ceil(Math.sqrt(maxN));
+                        var maxCanvasRadius = Math.min(WIDTH, HEIGHT) * 0.47;
+                        var scale = maxCanvasRadius / currentRadius;
+                        var dynamicStep = Math.max(1, scale * 1.8);
+                        var dotSize = Math.max(1, Math.floor(dynamicStep * 0.35));
+                        
+                        // 격자 그리기
+                        ctx.strokeStyle = '#f0f0f0';
+                        ctx.lineWidth = 0.3;
+                        var gridStep = dynamicStep;
+                        
+                        ctx.beginPath();
+                        for (var i = 0; i <= Math.max(WIDTH/gridStep, HEIGHT/gridStep); i++) {
+                            var xRight = CENTER_X + i * gridStep;
+                            if (xRight < WIDTH) {
+                                ctx.moveTo(xRight, 0);
+                                ctx.lineTo(xRight, HEIGHT);
+                            }
+                            
+                            var xLeft = CENTER_X - i * gridStep;
+                            if (xLeft >= 0 && i > 0) {
+                                ctx.moveTo(xLeft, 0);
+                                ctx.lineTo(xLeft, HEIGHT);
+                            }
+                            
+                            var yDown = CENTER_Y + i * gridStep;
+                            if (yDown < HEIGHT) {
+                                ctx.moveTo(0, yDown);
+                                ctx.lineTo(WIDTH, yDown);
+                            }
+                            
+                            var yUp = CENTER_Y - i * gridStep;
+                            if (yUp >= 0 && i > 0) {
+                                ctx.moveTo(0, yUp);
+                                ctx.lineTo(WIDTH, yUp);
+                            }
+                        }
+                        ctx.stroke();
+                        
+                        // 소수 배열 생성
+                        var isPrime = sieveOfEratosthenes(maxN);
+                        
+                        // 나선 좌표 계산
+                        var x = 0, y = 0;
+                        var dx = 1, dy = 0;
+                        var segmentLength = 1;
+                        var segmentPassed = 0;
+                        var turnCount = 0;
+                        
+                        var allPositions = [{x: CENTER_X, y: CENTER_Y, n: 1}];
+                        var prevCanvasX = CENTER_X;
+                        var prevCanvasY = CENTER_Y;
+                        
+                        // 연결선 그리기
+                        if (showLines.checked) {
+                            ctx.strokeStyle = '#c0c0c0';
+                            ctx.lineWidth = 0.8;
+                            ctx.beginPath();
+                        }
+                        
+                        for (var n = 2; n <= maxN; n++) {
+                            x += dx;
+                            y += dy;
+                            
+                            var canvasX = CENTER_X + x * dynamicStep;
+                            var canvasY = CENTER_Y + y * dynamicStep;
+                            
+                            allPositions.push({x: canvasX, y: canvasY, n: n});
+                            
+                            if (showLines.checked && 
+                                canvasX >= 0 && canvasX < WIDTH && canvasY >= 0 && canvasY < HEIGHT &&
+                                prevCanvasX >= 0 && prevCanvasX < WIDTH && prevCanvasY >= 0 && prevCanvasY < HEIGHT) {
+                                if (n === 2) {
+                                    ctx.moveTo(prevCanvasX, prevCanvasY);
+                                }
+                                ctx.lineTo(canvasX, canvasY);
+                            }
+                            
+                            prevCanvasX = canvasX;
+                            prevCanvasY = canvasY;
+                            segmentPassed++;
+                            
+                            if (segmentPassed === segmentLength) {
+                                segmentPassed = 0;
+                                turnCount++;
+                                var newDx = -dy;
+                                var newDy = dx;
+                                dx = newDx;
+                                dy = newDy;
+                                
+                                if (turnCount % 2 === 0) {
+                                    segmentLength++;
+                                }
+                            }
+                        }
+                        
+                        if (showLines.checked) {
+                            ctx.stroke();
+                        }
+                        
+                        // 소수 점 그리기
+                        for (var i = 0; i < allPositions.length; i++) {
+                            var pos = allPositions[i];
+                            if (isPrime[pos.n] && pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT) {
+                                var intensity = Math.min(255, Math.floor(pos.n / maxN * 120) + 100);
+                                var red = Math.floor(102 * intensity / 255);
+                                var green = Math.floor(126 * intensity / 255);
+                                var blue = Math.floor(234 * intensity / 255);
+                                
+                                ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
+                                ctx.beginPath();
+                                ctx.arc(pos.x, pos.y, dotSize, 0, 2 * Math.PI);
+                                ctx.fill();
+                            }
+                        }
+                        
+                        // 숫자 표시 (101 이하)
+                        if (maxN <= 101) {
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            for (var i = 0; i < allPositions.length; i++) {
+                                var pos = allPositions[i];
+                                if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT) {
+                                    if (isPrime[pos.n]) {
+                                        ctx.fillStyle = '#ffffff';
+                                        ctx.font = 'bold ' + Math.max(8, Math.floor(dotSize * 0.7)) + 'px sans-serif';
+                                    } else {
+                                        ctx.fillStyle = '#333333';
+                                        ctx.font = Math.max(8, Math.floor(dotSize * 0.8)) + 'px sans-serif';
+                                    }
+                                    ctx.fillText(pos.n.toString(), pos.x, pos.y);
+                                }
+                            }
+                        }
+                        
+                        // 중심점
+                        ctx.fillStyle = '#ff4757';
+                        ctx.beginPath();
+                        ctx.arc(CENTER_X, CENTER_Y, dotSize, 0, 2 * Math.PI);
+                        ctx.fill();
+                        
+                        if (maxN <= 101) {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold ' + Math.max(8, Math.floor(dotSize * 0.7)) + 'px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('1', CENTER_X, CENTER_Y);
+                        }
+                        
+                    } catch (error) {
+                        // 그리기 오류 시 무시
+                    }
+                }
+                
+                // 메인 초기화 함수
+                function initialize() {
+                    var elements = initializeElements();
+                    if (!elements) return;
+                    
+                    var drawTimeout;
+                    function updateSpiral() {
+                        var N = parseInt(elements.slider.value);
+                        elements.label.textContent = 'N = ' + N.toLocaleString() + ' 까지 소수 표시';
+                        
+                        clearTimeout(drawTimeout);
+                        elements.loading.textContent = '계산 중...';
+                        
+                        drawTimeout = setTimeout(function() {
+                            drawUlamSpiral(elements, N);
+                            elements.loading.textContent = '';
+                        }, 100);
+                    }
+                    
+                    elements.slider.addEventListener('input', updateSpiral);
+                    elements.showLines.addEventListener('change', updateSpiral);
+                    
+                    // 초기 그리기
+                    setTimeout(function() {
+                        updateSpiral();
+                    }, 200);
+                }
+                
+                // DOM 로드 완료 후 초기화
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initialize);
+                } else {
+                    initialize();
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>
