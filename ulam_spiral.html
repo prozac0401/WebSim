@@ -1,47 +1,4 @@
-                // DOM 요소 초기화 함수
-                function initializeElements() {
-                    var canvas = document.getElementById('ulam');
-                    var slider = document.getElementById('slider');
-                    var label = document.getElementById('label');
-                    var loading = document.getElementById('loading');
-                    var showLines = document.getElementById('showLines');
-                    
-                    if (!canvas) return null;
-                    
-                    var ctx = canvas.getContext('2d');
-                    if (!ctx) return null;
-                    
-                    // 슬라이더 스타일 추가 (Edge 호환)
-                    try {
-                        var style = document.createElement('style');
-                        style.type = 'text/css';
-                        style.innerHTML = 
-                            '#slider::-webkit-slider-thumb { ' +
-                            '-webkit-appearance: none; ' +
-                            'appearance: none; ' +
-                            'width: 20px; ' +
-                            'height: 20px; ' +
-                            'border-radius: 50%; ' +
-                            'background: #667eea; ' +
-                            'cursor: pointer; ' +
-                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
-                            '} ' +
-                            '#slider::-moz-range-thumb { ' +
-                            'width: 20px; ' +
-                            'height: 20px; ' +
-                            'border-radius: 50%; ' +
-                            'background: #667eea; ' +
-                            'cursor: pointer; ' +
-                            'border: none; ' +
-                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
-                            '}';
-                        document.head.appendChild(style);
-                    } catch (e) {
-                        // 스타일 추가 실패 시 무시
-                    }
-                    
-                    return { canvas: canvas, ctx: ctx, slider: slider, label: label, loading: loading, showLines: showLines };
-                }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -142,6 +99,51 @@
             </div>
             
             <script>
+                // DOM 요소 초기화 함수
+                function initializeElements() {
+                    var canvas = document.getElementById('ulam');
+                    var slider = document.getElementById('slider');
+                    var label = document.getElementById('label');
+                    var loading = document.getElementById('loading');
+                    var showLines = document.getElementById('showLines');
+
+                    if (!canvas) return null;
+
+                    var ctx = canvas.getContext('2d');
+                    if (!ctx) return null;
+
+                    // 슬라이더 스타일 추가 (Edge 호환)
+                    try {
+                        var style = document.createElement('style');
+                        style.type = 'text/css';
+                        style.innerHTML =
+                            '#slider::-webkit-slider-thumb { ' +
+                            '-webkit-appearance: none; ' +
+                            'appearance: none; ' +
+                            'width: 20px; ' +
+                            'height: 20px; ' +
+                            'border-radius: 50%; ' +
+                            'background: #667eea; ' +
+                            'cursor: pointer; ' +
+                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
+                            '} ' +
+                            '#slider::-moz-range-thumb { ' +
+                            'width: 20px; ' +
+                            'height: 20px; ' +
+                            'border-radius: 50%; ' +
+                            'background: #667eea; ' +
+                            'cursor: pointer; ' +
+                            'border: none; ' +
+                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
+                            '}';
+                        document.head.appendChild(style);
+                    } catch (e) {
+                        // 스타일 추가 실패 시 무시
+                    }
+
+                    return { canvas: canvas, ctx: ctx, slider: slider, label: label, loading: loading, showLines: showLines };
+                }
+
                 // 에라토스테네스의 체
                 function sieveOfEratosthenes(n) {
                     var isPrime = new Array(n + 1);
