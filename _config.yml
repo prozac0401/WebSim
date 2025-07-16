@@ -1,0 +1,8 @@
+title       : "내 깃허브 페이지"
+description : "GitHub Pages + Jekyll 데모"
+lang        : ko
+theme       : minima
+baseurl     : ""
+# baseurl   : "/repo-name"
+plugins:
+  - jekyll-feed
