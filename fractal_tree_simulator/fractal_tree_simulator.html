@@ -29,11 +29,17 @@
             border-color: #555;
         }
         #fractal-tree-app .controls {
-            flex: 1;
-            min-width: 200px;
+            width: 100%;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+        #fractal-tree-app .inline-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
         }
         #fractal-tree-app label {
             display: flex;
@@ -68,7 +74,7 @@
                     <option value="Fractal Tree">Fractal Tree</option>
                     <option value="Koch Snowflake">Koch Snowflake</option>
                     <option value="Sierpinski Triangle">Sierpinski Triangle</option>
-                    <option value="Heighway Dragon">Heighway Dragon</option>
+                    <option value="Dragon Curve">Dragon Curve</option>
                     <option value="Levy C-Curve">Levy C-Curve</option>
                     <option value="Hilbert Curve">Hilbert Curve</option>
                     <option value="Gosper">Gosper</option>
@@ -85,15 +91,15 @@
                 <input id="lenScale" type="range" min="0.5" max="0.8" step="0.01" value="0.67">
             </label>
             <label>💨 Wind
-                <input id="wind" type="range" min="0" max="2" step="0.1" value="0">
+                <input id="wind" type="range" min="0" max="5" step="0.1" value="0">
             </label>
-            <label>🎨 Color
-                <input id="color" type="color" value="#333333">
-            </label>
-            <label>🖌️ Background Color
-                <input id="bg-color" type="color" value="#ffffff">
-            </label>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <div class="inline-actions">
+                <label>🎨 Color
+                    <input id="color" type="color" value="#333333">
+                </label>
+                <label>🖌️ Background Color
+                    <input id="bg-color" type="color" value="#ffffff">
+                </label>
                 <button id="grow">Grow</button>
                 <button id="reset">Reset</button>
                 <button id="export">Export SVG</button>
@@ -114,7 +120,7 @@
             const lenVal = document.getElementById('len-val');
             let color = colorInput.value;
             let bgColor = bgColorInput.value;
-            let lineLimit = 100000;
+            let lineLimit = 500000;
             let angleDeg = parseFloat(angleInput.value);
             let lenScale = parseFloat(lenInput.value);
             let wind = parseFloat(windInput.value);
@@ -131,7 +137,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Koch Snowflake': {
                     axiom: 'F++F++F',
@@ -139,7 +145,7 @@
                     angle: 60,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Sierpinski Triangle': {
                     axiom: 'F-G-G',
@@ -147,15 +153,15 @@
                     angle: 120,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
-                'Heighway Dragon': {
+                'Dragon Curve': {
                     axiom: 'FX',
                     rules: [{a:'X', b:'X+YF+'}, {a:'Y', b:'-FX-Y'}],
                     angle: 90,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Levy C-Curve': {
                     axiom: 'F',
@@ -163,7 +169,7 @@
                     angle: 45,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Hilbert Curve': {
                     axiom: 'A',
@@ -171,7 +177,7 @@
                     angle: 90,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Gosper': {
                     axiom: 'A',
@@ -179,7 +185,7 @@
                     angle: 60,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Pythagoras Tree': {
                     axiom: '0',
@@ -187,7 +193,7 @@
                     angle: 45,
                     start: -90,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Classic Fractal Plant': {
                     axiom: 'X',
@@ -195,7 +201,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Barnsley Fern': {
                     axiom: 'X',
@@ -203,7 +209,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 100000
+                    maxLines: 500000
                 },
                 'Penrose Tiling': {
                     axiom: 'F++F++F',
@@ -211,7 +217,7 @@
                     angle: 36,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 100000
+                    maxLines: 500000
                 }
             };
 
@@ -230,7 +236,7 @@
                 startAngleDeg = p.start;
                 lenInput.value = p.lenScale;
                 lenScale = p.lenScale;
-                lineLimit = p.maxLines || 100000;
+                lineLimit = p.maxLines || 500000;
                 angleVal.textContent = angleDeg;
                 lenVal.textContent = lenScale;
                 draw();
@@ -239,7 +245,7 @@
             function countLines(seq){
                 let c = 0;
                 for(const ch of seq){
-                    if(ch === 'F' || ch === 'G') c++;
+                    if(ch === 'F' || ch === 'G' || ch === '0' || ch === '1') c++;
                 }
                 return c;
             }
@@ -262,7 +268,7 @@
             }
 
             function randWind(){
-                return (Math.random() - 0.5) * wind;
+                return (Math.random() - 0.5) * wind * 2;
             }
 
             function computeBoundingBox(seq, len){
@@ -273,6 +279,8 @@
                     switch(ch){
                         case 'F':
                         case 'G':
+                        case '0':
+                        case '1':
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             if(x < minX) minX = x;
@@ -328,6 +336,8 @@
                     switch(ch){
                         case 'F':
                         case 'G':
+                        case '0':
+                        case '1':
                             ctx.lineWidth = Math.max(width, 1);
                             ctx.strokeStyle = color;
                             x += Math.cos(angle) * len;
@@ -376,8 +386,17 @@
                 draw();
             });
             patternSelect.addEventListener('change', function(){
+            resizeCanvas();
                 applyPattern(patternSelect.value);
             });
+
+            function resizeCanvas(){
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                draw();
+            }
+            window.addEventListener('resize', resizeCanvas);
             const growBtn = document.getElementById('grow');
             growBtn.addEventListener('click', function(){
                 generate();
@@ -405,15 +424,20 @@
                 let x = canvas.width/2 - (box.minX + box.maxX)/2 * scale;
                 let y = canvas.height/2 - (box.minY + box.maxY)/2 * scale;
                 let angle = startAngleDeg * Math.PI/180;
+                let lw = Math.max(len * 0.2, 1);
                 const stack = [];
-                let d = `M${x} ${y}`;
+                const segs = [];
                 for(const ch of sentence){
                     switch(ch){
                         case "F":
                         case "G":
-                            x += Math.cos(angle) * len;
-                            y += Math.sin(angle) * len;
-                            d += `L${x} ${y}`;
+                        case "0":
+                        case "1":
+                            const nx = x + Math.cos(angle) * len;
+                            const ny = y + Math.sin(angle) * len;
+                            segs.push({x1:x, y1:y, x2:nx, y2:ny, w:lw});
+                            x = nx;
+                            y = ny;
                             break;
                         case "+":
                             angle += angleDeg * Math.PI/180;
@@ -422,17 +446,17 @@
                             angle -= angleDeg * Math.PI/180;
                             break;
                         case "[":
-                            stack.push({x,y,angle,len});
+                            stack.push({x,y,angle,len,lw});
                             len *= lenScale;
+                            lw = Math.max(lw * lenScale, 1);
                             break;
                         case "]":
-                            ({x,y,angle,len} = stack.pop());
-                            d += `M${x} ${y}`;
+                            ({x,y,angle,len,lw} = stack.pop());
                             break;
                     }
                 }
-                const stroke = color;
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><rect width="100%" height="100%" fill="${bgColor}"/><path d="${d}" fill="none" stroke="${stroke}"/></svg>`;
+                const lines = segs.map(s => `<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" stroke="${color}" stroke-width="${s.w}" stroke-linecap="round"/>`).join("");
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><rect width="100%" height="100%" fill="${bgColor}"/>${lines}</svg>`;
                 const blob = new Blob([svg], {type:"image/svg+xml"});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -442,6 +466,7 @@
                 URL.revokeObjectURL(url);
             }
 
+            resizeCanvas();
             applyPattern(patternSelect.value);
         })();
     </script>
