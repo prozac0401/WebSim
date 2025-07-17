@@ -1,5 +1,4 @@
 # Fractal Tree Simulator
-[블로그 글]
-https://prozac0401.tistory.com/61
+블로그 글은 준비 중입니다.
 
 간단한 L-System 규칙을 사용해 프랙탈 나무를 생성하는 시뮬레이터입니다. 각도와 가지 길이, 바람 세기를 조절하며 세대별 성장을 관찰할 수 있습니다.
