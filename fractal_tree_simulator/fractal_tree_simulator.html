@@ -84,6 +84,7 @@
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="grow">Grow</button>
                 <button id="reset">Reset</button>
+                <button id="random">Random</button>
                 <button id="export">Export SVG</button>
                 <button id="toggle-theme">Night</button>
             </div>
@@ -100,6 +101,7 @@
             const angleInput = document.getElementById('angle');
             const lenInput = document.getElementById('lenScale');
             const windInput = document.getElementById('wind');
+            const randomBtn = document.getElementById('random');
             const angleVal = document.getElementById('angle-val');
             const lenVal = document.getElementById('len-val');
             let angleDeg = parseFloat(angleInput.value);
@@ -130,9 +132,42 @@
                 return (Math.random() - 0.5) * wind;
             }
 
+            function computeBoundingBox(seq, len){
+                const stack = [];
+                let x = 0, y = 0, angle = -Math.PI/2;
+                let minX = 0, maxX = 0, minY = 0, maxY = 0;
+                for(const ch of seq){
+                    switch(ch){
+                        case 'F':
+                            x += Math.cos(angle) * len;
+                            y += Math.sin(angle) * len;
+                            if(x < minX) minX = x;
+                            if(x > maxX) maxX = x;
+                            if(y < minY) minY = y;
+                            if(y > maxY) maxY = y;
+                            break;
+                        case '+':
+                            angle += angleDeg * Math.PI/180;
+                            break;
+                        case '-':
+                            angle -= angleDeg * Math.PI/180;
+                            break;
+                        case '[':
+                            stack.push({x,y,angle,len});
+                            len *= lenScale;
+                            break;
+                        case ']':
+                            ({x,y,angle,len} = stack.pop());
+                            break;
+                    }
+                }
+                return {minX, maxX, minY, maxY};
+            }
+
             function draw(){
                 ctx.save();
-                if(document.getElementById('fractal-tree-app').classList.contains('dark')){
+                const app = document.getElementById('fractal-tree-app');
+                if(app.classList.contains('dark')){
                     ctx.fillStyle = '#111';
                     ctx.strokeStyle = '#eee';
                 }else{
@@ -140,22 +175,31 @@
                     ctx.strokeStyle = '#333';
                 }
                 ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.translate(canvas.width/2, canvas.height);
-                drawLSystem(sentence, canvas.height/4);
+                const baseLen = canvas.height/4;
+                const box = computeBoundingBox(sentence, baseLen);
+                const margin = 20;
+                const width = box.maxX - box.minX;
+                const height = box.maxY - box.minY;
+                const scale = Math.min((canvas.width - margin)/width, (canvas.height - margin)/height, 1);
+                ctx.translate(canvas.width/2 - (box.minX + box.maxX)/2 * scale,
+                              canvas.height - margin/2 - box.maxY * scale);
+                drawLSystem(sentence, baseLen * scale);
                 ctx.restore();
             }
 
             function drawLSystem(seq, len){
-                // custom stack to avoid canvas state limits
                 const stack = [];
                 let x = 0;
                 let y = 0;
-                let angle = -Math.PI/2; // start pointing up
+                let angle = -Math.PI/2;
+                let width = len * 0.2;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                for(let ch of seq){
+                ctx.lineWidth = width;
+                for(const ch of seq){
                     switch(ch){
                         case 'F':
+                            ctx.lineWidth = width;
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             ctx.lineTo(x, y);
@@ -167,12 +211,14 @@
                             angle -= (angleDeg + randWind()) * Math.PI/180;
                             break;
                         case '[':
-                            stack.push({x, y, angle, len});
+                            stack.push({x, y, angle, len, width});
                             len *= lenScale;
+                            width *= lenScale;
                             break;
                         case ']':
-                            ({x, y, angle, len} = stack.pop());
+                            ({x, y, angle, len, width} = stack.pop());
                             ctx.moveTo(x, y);
+                            ctx.lineWidth = width;
                             break;
                     }
                 }
@@ -199,6 +245,13 @@
                 sentence = axiom;
                 generation = 0;
                 draw();
+            });
+            randomBtn.addEventListener('click', function(){
+                angleInput.value = (10 + Math.random()*40).toFixed(0);
+                lenInput.value = (0.55 + Math.random()*0.2).toFixed(2);
+                windInput.value = (Math.random()*2).toFixed(1);
+                sentence = axiom;
+                update();
             });
             document.getElementById('export').addEventListener('click', exportSVG);
             function exportSVG(){
