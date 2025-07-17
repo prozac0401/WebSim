@@ -1,0 +1,195 @@
+<div id="fractal-tree-app">
+    <style>
+        #fractal-tree-app {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+        #fractal-tree-app.dark {
+            background: #111;
+            color: #eee;
+        }
+        #fractal-tree-app .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        #fractal-tree-app canvas {
+            background: #f8f8f8;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+        #fractal-tree-app.dark canvas {
+            background: #222;
+            border-color: #555;
+        }
+        #fractal-tree-app .controls {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #fractal-tree-app label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #fractal-tree-app input[type="range"] {
+            flex: 1;
+        }
+        #fractal-tree-app button {
+            padding: 6px 10px;
+            border: none;
+            background: #4676D7;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #fractal-tree-app button:hover {
+            background: #365cab;
+        }
+    </style>
+    <div class="container">
+        <canvas id="tree-canvas" width="600" height="500"></canvas>
+        <div class="controls">
+            <label>📐 Angle <span id="angle-val">25</span>
+                <input id="angle" type="range" min="0" max="90" step="1" value="25">
+            </label>
+            <label>🌿 Length <span id="len-val">0.67</span>
+                <input id="lenScale" type="range" min="0.5" max="0.8" step="0.01" value="0.67">
+            </label>
+            <label>💨 Wind
+                <input id="wind" type="range" min="0" max="2" step="0.1" value="0">
+            </label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="grow">Grow</button>
+                <button id="reset">Reset</button>
+                <button id="export">Export PNG</button>
+                <button id="toggle-theme">Night</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            const canvas = document.getElementById('tree-canvas');
+            const ctx = canvas.getContext('2d');
+            const angleInput = document.getElementById('angle');
+            const lenInput = document.getElementById('lenScale');
+            const windInput = document.getElementById('wind');
+            const angleVal = document.getElementById('angle-val');
+            const lenVal = document.getElementById('len-val');
+            let angleDeg = parseFloat(angleInput.value);
+            let lenScale = parseFloat(lenInput.value);
+            let wind = parseFloat(windInput.value);
+            let axiom = 'F';
+            let sentence = axiom;
+            let generation = 0;
+            const rules = [{a:'F', b:'FF-[-F+F+F]+[+F-F-F]'}];
+
+            function generate(){
+                let next = '';
+                for (let ch of sentence){
+                    let replaced = ch;
+                    for (let r of rules){
+                        if (ch === r.a){
+                            replaced = r.b;
+                            break;
+                        }
+                    }
+                    next += replaced;
+                }
+                sentence = next;
+                generation++;
+            }
+
+            function randWind(){
+                return (Math.random() - 0.5) * wind;
+            }
+
+            function draw(){
+                ctx.save();
+                if(document.getElementById('fractal-tree-app').classList.contains('dark')){
+                    ctx.fillStyle = '#111';
+                    ctx.strokeStyle = '#eee';
+                }else{
+                    ctx.fillStyle = '#fff';
+                    ctx.strokeStyle = '#333';
+                }
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.translate(canvas.width/2, canvas.height);
+                drawLSystem(sentence, canvas.height/4);
+                ctx.restore();
+            }
+
+            function drawLSystem(seq, len){
+                const stack = [];
+                for(let ch of seq){
+                    switch(ch){
+                        case 'F':
+                            ctx.beginPath();
+                            ctx.moveTo(0,0);
+                            ctx.lineTo(0,-len);
+                            ctx.stroke();
+                            ctx.translate(0,-len);
+                            break;
+                        case '+':
+                            ctx.rotate((angleDeg + randWind()) * Math.PI/180);
+                            break;
+                        case '-':
+                            ctx.rotate((-angleDeg + randWind()) * Math.PI/180);
+                            break;
+                        case '[':
+                            stack.push(len);
+                            ctx.save();
+                            len *= lenScale;
+                            break;
+                        case ']':
+                            len = stack.pop();
+                            ctx.restore();
+                            break;
+                    }
+                }
+            }
+
+            function update(){
+                angleDeg = parseFloat(angleInput.value);
+                lenScale = parseFloat(lenInput.value);
+                wind = parseFloat(windInput.value);
+                angleVal.textContent = angleDeg;
+                lenVal.textContent = lenScale;
+                draw();
+            }
+
+            angleInput.addEventListener('input', update);
+            lenInput.addEventListener('input', update);
+            windInput.addEventListener('input', update);
+            document.getElementById('grow').addEventListener('click', function(){
+                generate();
+                draw();
+            });
+            document.getElementById('reset').addEventListener('click', function(){
+                sentence = axiom;
+                generation = 0;
+                draw();
+            });
+            document.getElementById('export').addEventListener('click', function(){
+                const link = document.createElement('a');
+                link.download = 'tree.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+            document.getElementById('toggle-theme').addEventListener('click', function(){
+                const app = document.getElementById('fractal-tree-app');
+                app.classList.toggle('dark');
+                draw();
+            });
+
+            draw();
+        })();
+    </script>
+</div>
