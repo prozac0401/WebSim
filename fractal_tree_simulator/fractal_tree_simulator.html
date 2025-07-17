@@ -78,9 +78,7 @@
                     <option value="Levy C-Curve">Levy C-Curve</option>
                     <option value="Hilbert Curve">Hilbert Curve</option>
                     <option value="Gosper">Gosper</option>
-                    <option value="Pythagoras Tree">Pythagoras Tree</option>
                     <option value="Classic Fractal Plant">Classic Fractal Plant</option>
-                    <option value="Barnsley Fern">Barnsley Fern</option>
                     <option value="Penrose Tiling">Penrose Tiling</option>
                 </select>
             </label>
@@ -187,25 +185,9 @@
                     lenScale: 1,
                     maxLines: 500000
                 },
-                'Pythagoras Tree': {
-                    axiom: '0',
-                    rules: [{a:'1', b:'11'}, {a:'0', b:'1[0]0'}],
-                    angle: 45,
-                    start: -90,
-                    lenScale: 1,
-                    maxLines: 500000
-                },
                 'Classic Fractal Plant': {
                     axiom: 'X',
                     rules: [{a:'X', b:'F-[[X]+X]+F[+FX]-X'}, {a:'F', b:'FF'}],
-                    angle: 25,
-                    start: -90,
-                    lenScale: 0.67,
-                    maxLines: 500000
-                },
-                'Barnsley Fern': {
-                    axiom: 'X',
-                    rules: [{a:'X', b:'F+[[X]-X]-F[-FX]+X'}, {a:'F', b:'FF'}],
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
