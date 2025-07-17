@@ -18,7 +18,7 @@
             justify-content: center;
         }
         #fractal-tree-app canvas {
-            background: #f8f8f8;
+            background: #ffffff;
             border: 1px solid #ccc;
             width: 100%;
             max-width: 600px;
@@ -87,11 +87,11 @@
             <label>💨 Wind
                 <input id="wind" type="range" min="0" max="2" step="0.1" value="0">
             </label>
-            <label>🌳 Branch Color
-                <input id="branch-color" type="color" value="#333333">
+            <label>🎨 Color
+                <input id="color" type="color" value="#333333">
             </label>
-            <label>🍃 Leaf Color
-                <input id="leaf-color" type="color" value="#339933">
+            <label>🖌️ Background Color
+                <input id="bg-color" type="color" value="#ffffff">
             </label>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="grow">Grow</button>
@@ -108,13 +108,13 @@
             const lenInput = document.getElementById('lenScale');
             const windInput = document.getElementById('wind');
             const patternSelect = document.getElementById('pattern');
-            const branchColorInput = document.getElementById('branch-color');
-            const leafColorInput = document.getElementById('leaf-color');
+            const colorInput = document.getElementById('color');
+            const bgColorInput = document.getElementById('bg-color');
             const angleVal = document.getElementById('angle-val');
             const lenVal = document.getElementById('len-val');
-            let branchColor = branchColorInput.value;
-            let leafColor = leafColorInput.value;
-            let lineLimit = 10000;
+            let color = colorInput.value;
+            let bgColor = bgColorInput.value;
+            let lineLimit = 100000;
             let angleDeg = parseFloat(angleInput.value);
             let lenScale = parseFloat(lenInput.value);
             let wind = parseFloat(windInput.value);
@@ -131,7 +131,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Koch Snowflake': {
                     axiom: 'F++F++F',
@@ -139,7 +139,7 @@
                     angle: 60,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Sierpinski Triangle': {
                     axiom: 'F-G-G',
@@ -147,7 +147,7 @@
                     angle: 120,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Heighway Dragon': {
                     axiom: 'FX',
@@ -155,7 +155,7 @@
                     angle: 90,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Levy C-Curve': {
                     axiom: 'F',
@@ -163,7 +163,7 @@
                     angle: 45,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Hilbert Curve': {
                     axiom: 'A',
@@ -171,7 +171,7 @@
                     angle: 90,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Gosper': {
                     axiom: 'A',
@@ -179,7 +179,7 @@
                     angle: 60,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Pythagoras Tree': {
                     axiom: '0',
@@ -187,7 +187,7 @@
                     angle: 45,
                     start: -90,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Classic Fractal Plant': {
                     axiom: 'X',
@@ -195,7 +195,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Barnsley Fern': {
                     axiom: 'X',
@@ -203,7 +203,7 @@
                     angle: 25,
                     start: -90,
                     lenScale: 0.67,
-                    maxLines: 10000
+                    maxLines: 100000
                 },
                 'Penrose Tiling': {
                     axiom: 'F++F++F',
@@ -211,7 +211,7 @@
                     angle: 36,
                     start: 0,
                     lenScale: 1,
-                    maxLines: 10000
+                    maxLines: 100000
                 }
             };
 
@@ -230,7 +230,7 @@
                 startAngleDeg = p.start;
                 lenInput.value = p.lenScale;
                 lenScale = p.lenScale;
-                lineLimit = p.maxLines || 10000;
+                lineLimit = p.maxLines || 100000;
                 angleVal.textContent = angleDeg;
                 lenVal.textContent = lenScale;
                 draw();
@@ -300,14 +300,8 @@
 
             function draw(){
                 ctx.save();
-                const app = document.getElementById('fractal-tree-app');
-                if(app.classList.contains('dark')){
-                    ctx.fillStyle = '#111';
-                    ctx.strokeStyle = '#eee';
-                }else{
-                    ctx.fillStyle = '#fff';
-                    ctx.strokeStyle = '#333';
-                }
+                ctx.fillStyle = bgColor;
+                ctx.strokeStyle = color;
                 ctx.fillRect(0,0,canvas.width,canvas.height);
                 const baseLen = Math.min(canvas.width, canvas.height)/4;
                 const box = computeBoundingBox(sentence, baseLen);
@@ -335,7 +329,7 @@
                         case 'F':
                         case 'G':
                             ctx.lineWidth = Math.max(width, 1);
-                            ctx.strokeStyle = width <= 2 ? leafColor : branchColor;
+                            ctx.strokeStyle = color;
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             ctx.lineTo(x, y);
@@ -373,12 +367,12 @@
             angleInput.addEventListener('input', update);
             lenInput.addEventListener('input', update);
             windInput.addEventListener('input', update);
-            branchColorInput.addEventListener('input', function(){
-                branchColor = branchColorInput.value;
+            colorInput.addEventListener('input', function(){
+                color = colorInput.value;
                 draw();
             });
-            leafColorInput.addEventListener('input', function(){
-                leafColor = leafColorInput.value;
+            bgColorInput.addEventListener('input', function(){
+                bgColor = bgColorInput.value;
                 draw();
             });
             patternSelect.addEventListener('change', function(){
@@ -400,9 +394,16 @@
             });
             document.getElementById('export').addEventListener('click', exportSVG);
             function exportSVG(){
-                let len = Math.min(canvas.width, canvas.height)/4;
-                let x = canvas.width/2;
-                let y = canvas.height/2;
+                const baseLen = Math.min(canvas.width, canvas.height)/4;
+                const box = computeBoundingBox(sentence, baseLen);
+                const margin = 20;
+                const width = box.maxX - box.minX;
+                const height = box.maxY - box.minY;
+                const scale = Math.min((canvas.width - margin)/width,
+                                       (canvas.height - margin)/height, 1);
+                let len = baseLen * scale;
+                let x = canvas.width/2 - (box.minX + box.maxX)/2 * scale;
+                let y = canvas.height/2 - (box.minY + box.maxY)/2 * scale;
                 let angle = startAngleDeg * Math.PI/180;
                 const stack = [];
                 let d = `M${x} ${y}`;
@@ -430,8 +431,8 @@
                             break;
                     }
                 }
-                const stroke = document.getElementById("fractal-tree-app").classList.contains("dark") ? "#eee" : "#333";
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><path d="${d}" fill="none" stroke="${stroke}"/></svg>`;
+                const stroke = color;
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><rect width="100%" height="100%" fill="${bgColor}"/><path d="${d}" fill="none" stroke="${stroke}"/></svg>`;
                 const blob = new Blob([svg], {type:"image/svg+xml"});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
