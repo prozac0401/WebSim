@@ -1,4 +1,7 @@
-# WebSim Samples
+---
+layout: page
+title: WebSim Samples
+---
 
 - [개미 군집 최적화(ACO) 시뮬레이션](https://prozac0401.tistory.com/37) - [데모](aco_simulator/aco_simulator.html) - [설명](aco_simulator/aco_simulator.md)
 - [보이드 알고리즘 새떼 시뮬레이션](https://prozac0401.tistory.com/34) - [데모](boids_simulation/boids_simulation.html) - [설명](boids_simulation/boids_simulation.md)
