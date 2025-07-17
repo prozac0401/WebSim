@@ -2,7 +2,7 @@
     <style>
         #fractal-tree-app {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            margin: 0 auto;
             padding: 10px;
             max-width: 800px;
             box-sizing: border-box;
@@ -15,6 +15,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            justify-content: center;
         }
         #fractal-tree-app canvas {
             background: #f8f8f8;
@@ -59,16 +60,6 @@
         #fractal-tree-app .link{color:#4676D7;text-decoration:none;}
 
     </style>
-    <header class="hero">
-        <h1>가지가 갈라지는 순간</h1>
-        <p class="subtitle">갈라짐은 상처가 아니라 새로운 방향</p>
-    </header>
-    <section class="section">
-        <h2>L-System 한입 요약</h2>
-        <p>알파벳, 공리, 생산규칙을 재귀적으로 적용해 복잡한 패턴을 만들어냅니다.</p>
-        <p><code>F → FF-[-F+F+F]+[+F-F-F]</code></p>
-        <p><a class="link" href="https://thecodingtrain.com" target="_blank">The Coding Train</a></p>
-    </section>
     <div class="container">
         <canvas id="tree-canvas" width="600" height="500"></canvas>
         <div class="controls">
@@ -88,7 +79,7 @@
                 </select>
             </label>
             <label>📐 Angle <span id="angle-val">25</span>
-                <input id="angle" type="range" min="0" max="90" step="1" value="25">
+                <input id="angle" type="range" min="0" max="180" step="1" value="25">
             </label>
             <label>🌿 Length <span id="len-val">0.67</span>
                 <input id="lenScale" type="range" min="0.5" max="0.8" step="0.01" value="0.67">
@@ -96,19 +87,19 @@
             <label>💨 Wind
                 <input id="wind" type="range" min="0" max="2" step="0.1" value="0">
             </label>
+            <label>🌳 Branch Color
+                <input id="branch-color" type="color" value="#333333">
+            </label>
+            <label>🍃 Leaf Color
+                <input id="leaf-color" type="color" value="#339933">
+            </label>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="grow">Grow</button>
                 <button id="reset">Reset</button>
-                <button id="random">Random</button>
                 <button id="export">Export SVG</button>
-                <button id="toggle-theme">Night</button>
             </div>
         </div>
     </div>
-    <section class="section">
-        <h2>선택의 각도 22.5°</h2>
-        <p>작은 각도 차이가 시간이 흐르며 큰 변화를 만듭니다. 올해 나를 성장시킬 1°는 어디일까요?</p>
-    </section>
     <script>
         (function(){
             const canvas = document.getElementById('tree-canvas');
@@ -117,9 +108,13 @@
             const lenInput = document.getElementById('lenScale');
             const windInput = document.getElementById('wind');
             const patternSelect = document.getElementById('pattern');
-            const randomBtn = document.getElementById('random');
+            const branchColorInput = document.getElementById('branch-color');
+            const leafColorInput = document.getElementById('leaf-color');
             const angleVal = document.getElementById('angle-val');
             const lenVal = document.getElementById('len-val');
+            let branchColor = branchColorInput.value;
+            let leafColor = leafColorInput.value;
+            let lineLimit = 10000;
             let angleDeg = parseFloat(angleInput.value);
             let lenScale = parseFloat(lenInput.value);
             let wind = parseFloat(windInput.value);
@@ -135,77 +130,88 @@
                     rules: [{a:'F', b:'FF-[-F+F+F]+[+F-F-F]'}],
                     angle: 25,
                     start: -90,
-                    lenScale: 0.67
+                    lenScale: 0.67,
+                    maxLines: 10000
                 },
                 'Koch Snowflake': {
                     axiom: 'F++F++F',
                     rules: [{a:'F', b:'F-F++F-F'}],
                     angle: 60,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Sierpinski Triangle': {
                     axiom: 'F-G-G',
                     rules: [{a:'F', b:'F-G+F+G-F'}, {a:'G', b:'GG'}],
                     angle: 120,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Heighway Dragon': {
                     axiom: 'FX',
                     rules: [{a:'X', b:'X+YF+'}, {a:'Y', b:'-FX-Y'}],
                     angle: 90,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Levy C-Curve': {
                     axiom: 'F',
                     rules: [{a:'F', b:'+F--F+'}],
                     angle: 45,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Hilbert Curve': {
                     axiom: 'A',
                     rules: [{a:'A', b:'-BF+AFA+FB-'}, {a:'B', b:'+AF-BFB-FA+'}],
                     angle: 90,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Gosper': {
                     axiom: 'A',
                     rules: [{a:'A', b:'A+BF++BF-FA--FAFA-BF+'}, {a:'B', b:'-FA+BFBB++BF+FA--FA-B'}],
                     angle: 60,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Pythagoras Tree': {
                     axiom: '0',
                     rules: [{a:'1', b:'11'}, {a:'0', b:'1[0]0'}],
                     angle: 45,
                     start: -90,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 },
                 'Classic Fractal Plant': {
                     axiom: 'X',
                     rules: [{a:'X', b:'F-[[X]+X]+F[+FX]-X'}, {a:'F', b:'FF'}],
                     angle: 25,
                     start: -90,
-                    lenScale: 0.67
+                    lenScale: 0.67,
+                    maxLines: 10000
                 },
                 'Barnsley Fern': {
                     axiom: 'X',
                     rules: [{a:'X', b:'F+[[X]-X]-F[-FX]+X'}, {a:'F', b:'FF'}],
                     angle: 25,
                     start: -90,
-                    lenScale: 0.67
+                    lenScale: 0.67,
+                    maxLines: 10000
                 },
                 'Penrose Tiling': {
                     axiom: 'F++F++F',
                     rules: [{a:'F', b:'F++F--F'}],
                     angle: 36,
                     start: 0,
-                    lenScale: 1
+                    lenScale: 1,
+                    maxLines: 10000
                 }
             };
 
@@ -224,9 +230,18 @@
                 startAngleDeg = p.start;
                 lenInput.value = p.lenScale;
                 lenScale = p.lenScale;
+                lineLimit = p.maxLines || 10000;
                 angleVal.textContent = angleDeg;
                 lenVal.textContent = lenScale;
                 draw();
+            }
+
+            function countLines(seq){
+                let c = 0;
+                for(const ch of seq){
+                    if(ch === 'F' || ch === 'G') c++;
+                }
+                return c;
             }
 
             function generate(){
@@ -241,6 +256,7 @@
                     }
                     next += replaced;
                 }
+                if(countLines(next) > lineLimit) return;
                 sentence = next;
                 generation++;
             }
@@ -310,7 +326,7 @@
                 let x = 0;
                 let y = 0;
                 let angle = startAngleDeg * Math.PI/180;
-                let width = len * 0.2;
+                let width = Math.max(len * 0.2, 1);
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineWidth = width;
@@ -318,7 +334,8 @@
                     switch(ch){
                         case 'F':
                         case 'G':
-                            ctx.lineWidth = width;
+                            ctx.lineWidth = Math.max(width, 1);
+                            ctx.strokeStyle = width <= 2 ? leafColor : branchColor;
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             ctx.lineTo(x, y);
@@ -332,12 +349,12 @@
                         case '[':
                             stack.push({x, y, angle, len, width});
                             len *= lenScale;
-                            width *= lenScale;
+                            width = Math.max(width * lenScale, 1);
                             break;
                         case ']':
                             ({x, y, angle, len, width} = stack.pop());
                             ctx.moveTo(x, y);
-                            ctx.lineWidth = width;
+                            ctx.lineWidth = Math.max(width, 1);
                             break;
                     }
                 }
@@ -356,24 +373,30 @@
             angleInput.addEventListener('input', update);
             lenInput.addEventListener('input', update);
             windInput.addEventListener('input', update);
+            branchColorInput.addEventListener('input', function(){
+                branchColor = branchColorInput.value;
+                draw();
+            });
+            leafColorInput.addEventListener('input', function(){
+                leafColor = leafColorInput.value;
+                draw();
+            });
             patternSelect.addEventListener('change', function(){
                 applyPattern(patternSelect.value);
             });
-            document.getElementById('grow').addEventListener('click', function(){
+            const growBtn = document.getElementById('grow');
+            growBtn.addEventListener('click', function(){
                 generate();
+                if(countLines(sentence) >= lineLimit){
+                    growBtn.disabled = true;
+                }
                 draw();
             });
             document.getElementById('reset').addEventListener('click', function(){
                 sentence = axiom;
                 generation = 0;
+                growBtn.disabled = false;
                 draw();
-            });
-            randomBtn.addEventListener('click', function(){
-                angleInput.value = (10 + Math.random()*40).toFixed(0);
-                lenInput.value = (0.55 + Math.random()*0.2).toFixed(2);
-                windInput.value = (Math.random()*2).toFixed(1);
-                sentence = axiom;
-                update();
             });
             document.getElementById('export').addEventListener('click', exportSVG);
             function exportSVG(){
@@ -417,11 +440,6 @@
                 a.click();
                 URL.revokeObjectURL(url);
             }
-            document.getElementById('toggle-theme').addEventListener('click', function(){
-                const app = document.getElementById('fractal-tree-app');
-                app.classList.toggle('dark');
-                draw();
-            });
 
             applyPattern(patternSelect.value);
         })();
