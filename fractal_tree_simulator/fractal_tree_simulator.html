@@ -53,7 +53,22 @@
         #fractal-tree-app button:hover {
             background: #365cab;
         }
+        #fractal-tree-app .hero{padding:40px 20px;text-align:center;background:linear-gradient(to top,#333,#666);color:#fff;}
+        #fractal-tree-app .subtitle{font-style:italic;font-size:0.9em;}
+        #fractal-tree-app .section{margin-top:20px;line-height:1.5;}
+        #fractal-tree-app .link{color:#4676D7;text-decoration:none;}
+
     </style>
+    <header class="hero">
+        <h1>가지가 갈라지는 순간</h1>
+        <p class="subtitle">갈라짐은 상처가 아니라 새로운 방향</p>
+    </header>
+    <section class="section">
+        <h2>L-System 한입 요약</h2>
+        <p>알파벳, 공리, 생산규칙을 재귀적으로 적용해 복잡한 패턴을 만들어냅니다.</p>
+        <p><code>F → FF-[-F+F+F]+[+F-F-F]</code></p>
+        <p><a class="link" href="https://thecodingtrain.com" target="_blank">The Coding Train</a></p>
+    </section>
     <div class="container">
         <canvas id="tree-canvas" width="600" height="500"></canvas>
         <div class="controls">
@@ -69,11 +84,15 @@
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="grow">Grow</button>
                 <button id="reset">Reset</button>
-                <button id="export">Export PNG</button>
+                <button id="export">Export SVG</button>
                 <button id="toggle-theme">Night</button>
             </div>
         </div>
     </div>
+    <section class="section">
+        <h2>선택의 각도 22.5°</h2>
+        <p>작은 각도 차이가 시간이 흐르며 큰 변화를 만듭니다. 올해 나를 성장시킬 1°는 어디일까요?</p>
+    </section>
     <script>
         (function(){
             const canvas = document.getElementById('tree-canvas');
@@ -127,33 +146,37 @@
             }
 
             function drawLSystem(seq, len){
+                // custom stack to avoid canvas state limits
                 const stack = [];
+                let x = 0;
+                let y = 0;
+                let angle = -Math.PI/2; // start pointing up
+                ctx.beginPath();
+                ctx.moveTo(x, y);
                 for(let ch of seq){
                     switch(ch){
                         case 'F':
-                            ctx.beginPath();
-                            ctx.moveTo(0,0);
-                            ctx.lineTo(0,-len);
-                            ctx.stroke();
-                            ctx.translate(0,-len);
+                            x += Math.cos(angle) * len;
+                            y += Math.sin(angle) * len;
+                            ctx.lineTo(x, y);
                             break;
                         case '+':
-                            ctx.rotate((angleDeg + randWind()) * Math.PI/180);
+                            angle += (angleDeg + randWind()) * Math.PI/180;
                             break;
                         case '-':
-                            ctx.rotate((-angleDeg + randWind()) * Math.PI/180);
+                            angle -= (angleDeg + randWind()) * Math.PI/180;
                             break;
                         case '[':
-                            stack.push(len);
-                            ctx.save();
+                            stack.push({x, y, angle, len});
                             len *= lenScale;
                             break;
                         case ']':
-                            len = stack.pop();
-                            ctx.restore();
+                            ({x, y, angle, len} = stack.pop());
+                            ctx.moveTo(x, y);
                             break;
                     }
                 }
+                ctx.stroke();
             }
 
             function update(){
@@ -177,12 +200,47 @@
                 generation = 0;
                 draw();
             });
-            document.getElementById('export').addEventListener('click', function(){
-                const link = document.createElement('a');
-                link.download = 'tree.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
+            document.getElementById('export').addEventListener('click', exportSVG);
+            function exportSVG(){
+                let len = canvas.height/4;
+                let x = canvas.width/2;
+                let y = canvas.height;
+                let angle = -Math.PI/2;
+                const stack = [];
+                let d = `M${x} ${y}`;
+                for(const ch of sentence){
+                    switch(ch){
+                        case "F":
+                            x += Math.cos(angle) * len;
+                            y += Math.sin(angle) * len;
+                            d += `L${x} ${y}`;
+                            break;
+                        case "+":
+                            angle += angleDeg * Math.PI/180;
+                            break;
+                        case "-":
+                            angle -= angleDeg * Math.PI/180;
+                            break;
+                        case "[":
+                            stack.push({x,y,angle,len});
+                            len *= lenScale;
+                            break;
+                        case "]":
+                            ({x,y,angle,len} = stack.pop());
+                            d += `M${x} ${y}`;
+                            break;
+                    }
+                }
+                const stroke = document.getElementById("fractal-tree-app").classList.contains("dark") ? "#eee" : "#333";
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><path d="${d}" fill="none" stroke="${stroke}"/></svg>`;
+                const blob = new Blob([svg], {type:"image/svg+xml"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "tree.svg";
+                a.click();
+                URL.revokeObjectURL(url);
+            }
             document.getElementById('toggle-theme').addEventListener('click', function(){
                 const app = document.getElementById('fractal-tree-app');
                 app.classList.toggle('dark');
