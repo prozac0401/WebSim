@@ -72,6 +72,21 @@
     <div class="container">
         <canvas id="tree-canvas" width="600" height="500"></canvas>
         <div class="controls">
+            <label>📜 Pattern
+                <select id="pattern">
+                    <option value="Fractal Tree">Fractal Tree</option>
+                    <option value="Koch Snowflake">Koch Snowflake</option>
+                    <option value="Sierpinski Triangle">Sierpinski Triangle</option>
+                    <option value="Heighway Dragon">Heighway Dragon</option>
+                    <option value="Levy C-Curve">Levy C-Curve</option>
+                    <option value="Hilbert Curve">Hilbert Curve</option>
+                    <option value="Gosper">Gosper</option>
+                    <option value="Pythagoras Tree">Pythagoras Tree</option>
+                    <option value="Classic Fractal Plant">Classic Fractal Plant</option>
+                    <option value="Barnsley Fern">Barnsley Fern</option>
+                    <option value="Penrose Tiling">Penrose Tiling</option>
+                </select>
+            </label>
             <label>📐 Angle <span id="angle-val">25</span>
                 <input id="angle" type="range" min="0" max="90" step="1" value="25">
             </label>
@@ -101,6 +116,7 @@
             const angleInput = document.getElementById('angle');
             const lenInput = document.getElementById('lenScale');
             const windInput = document.getElementById('wind');
+            const patternSelect = document.getElementById('pattern');
             const randomBtn = document.getElementById('random');
             const angleVal = document.getElementById('angle-val');
             const lenVal = document.getElementById('len-val');
@@ -110,7 +126,108 @@
             let axiom = 'F';
             let sentence = axiom;
             let generation = 0;
+            let startAngleDeg = -90;
             const rules = [{a:'F', b:'FF-[-F+F+F]+[+F-F-F]'}];
+
+            const patterns = {
+                'Fractal Tree': {
+                    axiom: 'F',
+                    rules: [{a:'F', b:'FF-[-F+F+F]+[+F-F-F]'}],
+                    angle: 25,
+                    start: -90,
+                    lenScale: 0.67
+                },
+                'Koch Snowflake': {
+                    axiom: 'F++F++F',
+                    rules: [{a:'F', b:'F-F++F-F'}],
+                    angle: 60,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Sierpinski Triangle': {
+                    axiom: 'F-G-G',
+                    rules: [{a:'F', b:'F-G+F+G-F'}, {a:'G', b:'GG'}],
+                    angle: 120,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Heighway Dragon': {
+                    axiom: 'FX',
+                    rules: [{a:'X', b:'X+YF+'}, {a:'Y', b:'-FX-Y'}],
+                    angle: 90,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Levy C-Curve': {
+                    axiom: 'F',
+                    rules: [{a:'F', b:'+F--F+'}],
+                    angle: 45,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Hilbert Curve': {
+                    axiom: 'A',
+                    rules: [{a:'A', b:'-BF+AFA+FB-'}, {a:'B', b:'+AF-BFB-FA+'}],
+                    angle: 90,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Gosper': {
+                    axiom: 'A',
+                    rules: [{a:'A', b:'A+BF++BF-FA--FAFA-BF+'}, {a:'B', b:'-FA+BFBB++BF+FA--FA-B'}],
+                    angle: 60,
+                    start: 0,
+                    lenScale: 1
+                },
+                'Pythagoras Tree': {
+                    axiom: '0',
+                    rules: [{a:'1', b:'11'}, {a:'0', b:'1[0]0'}],
+                    angle: 45,
+                    start: -90,
+                    lenScale: 1
+                },
+                'Classic Fractal Plant': {
+                    axiom: 'X',
+                    rules: [{a:'X', b:'F-[[X]+X]+F[+FX]-X'}, {a:'F', b:'FF'}],
+                    angle: 25,
+                    start: -90,
+                    lenScale: 0.67
+                },
+                'Barnsley Fern': {
+                    axiom: 'X',
+                    rules: [{a:'X', b:'F+[[X]-X]-F[-FX]+X'}, {a:'F', b:'FF'}],
+                    angle: 25,
+                    start: -90,
+                    lenScale: 0.67
+                },
+                'Penrose Tiling': {
+                    axiom: 'F++F++F',
+                    rules: [{a:'F', b:'F++F--F'}],
+                    angle: 36,
+                    start: 0,
+                    lenScale: 1
+                }
+            };
+
+            function applyPattern(name){
+                const p = patterns[name];
+                if(!p) return;
+                axiom = p.axiom;
+                sentence = axiom;
+                generation = 0;
+                rules.length = 0;
+                for(const r of p.rules){
+                    rules.push({a:r.a, b:r.b});
+                }
+                angleInput.value = p.angle;
+                angleDeg = p.angle;
+                startAngleDeg = p.start;
+                lenInput.value = p.lenScale;
+                lenScale = p.lenScale;
+                angleVal.textContent = angleDeg;
+                lenVal.textContent = lenScale;
+                draw();
+            }
 
             function generate(){
                 let next = '';
@@ -134,11 +251,12 @@
 
             function computeBoundingBox(seq, len){
                 const stack = [];
-                let x = 0, y = 0, angle = -Math.PI/2;
+                let x = 0, y = 0, angle = startAngleDeg * Math.PI/180;
                 let minX = 0, maxX = 0, minY = 0, maxY = 0;
                 for(const ch of seq){
                     switch(ch){
                         case 'F':
+                        case 'G':
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             if(x < minX) minX = x;
@@ -175,14 +293,14 @@
                     ctx.strokeStyle = '#333';
                 }
                 ctx.fillRect(0,0,canvas.width,canvas.height);
-                const baseLen = canvas.height/4;
+                const baseLen = Math.min(canvas.width, canvas.height)/4;
                 const box = computeBoundingBox(sentence, baseLen);
                 const margin = 20;
                 const width = box.maxX - box.minX;
                 const height = box.maxY - box.minY;
                 const scale = Math.min((canvas.width - margin)/width, (canvas.height - margin)/height, 1);
                 ctx.translate(canvas.width/2 - (box.minX + box.maxX)/2 * scale,
-                              canvas.height - margin/2 - box.maxY * scale);
+                              canvas.height/2 - (box.minY + box.maxY)/2 * scale);
                 drawLSystem(sentence, baseLen * scale);
                 ctx.restore();
             }
@@ -191,7 +309,7 @@
                 const stack = [];
                 let x = 0;
                 let y = 0;
-                let angle = -Math.PI/2;
+                let angle = startAngleDeg * Math.PI/180;
                 let width = len * 0.2;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
@@ -199,6 +317,7 @@
                 for(const ch of seq){
                     switch(ch){
                         case 'F':
+                        case 'G':
                             ctx.lineWidth = width;
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
@@ -237,6 +356,9 @@
             angleInput.addEventListener('input', update);
             lenInput.addEventListener('input', update);
             windInput.addEventListener('input', update);
+            patternSelect.addEventListener('change', function(){
+                applyPattern(patternSelect.value);
+            });
             document.getElementById('grow').addEventListener('click', function(){
                 generate();
                 draw();
@@ -255,15 +377,16 @@
             });
             document.getElementById('export').addEventListener('click', exportSVG);
             function exportSVG(){
-                let len = canvas.height/4;
+                let len = Math.min(canvas.width, canvas.height)/4;
                 let x = canvas.width/2;
-                let y = canvas.height;
-                let angle = -Math.PI/2;
+                let y = canvas.height/2;
+                let angle = startAngleDeg * Math.PI/180;
                 const stack = [];
                 let d = `M${x} ${y}`;
                 for(const ch of sentence){
                     switch(ch){
                         case "F":
+                        case "G":
                             x += Math.cos(angle) * len;
                             y += Math.sin(angle) * len;
                             d += `L${x} ${y}`;
@@ -300,7 +423,7 @@
                 draw();
             });
 
-            draw();
+            applyPattern(patternSelect.value);
         })();
     </script>
 </div>
