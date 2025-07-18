@@ -16,11 +16,12 @@
   .container {
     width: 100%;
     margin: 0 auto;
+    text-align: center;
   }
   canvas { background: #f8f8f8; display: block; margin: 0 auto; }
-  #controls { margin-bottom: 10px; }
+  #controls { margin-bottom: 10px; text-align:center; }
   #controls button { margin-right: 5px; }
-  #sliders { margin: 10px 0; }
+  #sliders { margin: 10px 0; display: inline-block; text-align: left; }
   .slider-group { margin-bottom: 8px; font-size: 14px; }
   .slider-group label { display: inline-block; width: 150px; }
   .slider-group input[type="range"] { width: 200px; }
@@ -118,6 +119,7 @@
   const ctx = canvas.getContext('2d');
   function resizeCanvas() {
     canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientWidth;
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -306,6 +308,12 @@
     }
     for (let i = herbivores.length - 1; i >= 0; i--) {
       if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
+    }
+    if (herbivores.length <= 1) {
+      herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+    }
+    if (carnivores.length <= 1) {
+      carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
     }
   }
 
