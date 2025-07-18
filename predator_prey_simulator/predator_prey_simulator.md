@@ -15,8 +15,8 @@
 - `carnivoreDeath` 육식동물 자연사 확률 (기본 0.001)
 
 ## 추가 기능
-상단의 "Add Herbivore", "Add Carnivore" 버튼을 누른 뒤 캔버스를 클릭하면
-해당 위치에 원하는 개체를 추가할 수 있습니다.
+상단의 "Add Herbivore", "Add Carnivore" 버튼을 누르면
+임의의 위치에 해당 개체가 즉시 생성됩니다.
 또한 "Fullscreen" 버튼으로 캔버스를 창 전체로 확대하거나 원래 크기로 되돌릴 수 있습니다.
 
 ## 슬라이더 조정

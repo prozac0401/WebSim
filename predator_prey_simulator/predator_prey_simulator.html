@@ -149,7 +149,6 @@
   const carnivores = [];
   const herbivoreEggs = [];
   const effects = [];
-  let addMode = null;
 
   class Plant {
     constructor(x, y) {
@@ -355,8 +354,12 @@
   document.getElementById('start-btn').onclick = () => running = true;
   document.getElementById('pause-btn').onclick = () => running = false;
   document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
-  document.getElementById('add-herbivore-btn').onclick = () => { addMode = 'herbivore'; };
-  document.getElementById('add-carnivore-btn').onclick = () => { addMode = 'carnivore'; };
+  document.getElementById('add-herbivore-btn').onclick = () => {
+    herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+  };
+  document.getElementById('add-carnivore-btn').onclick = () => {
+    carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+  };
   fsBtn.addEventListener('click', () => {
     if (!document.fullscreenElement) {
       if (container.requestFullscreen) {
@@ -387,16 +390,6 @@
       canvas.style.height = '600px';
     }
     resizeCanvas();
-  });
-  canvas.addEventListener('click', e => {
-    if (addMode === 'herbivore') {
-      herbivores.push(new Herbivore(e.offsetX, e.offsetY));
-    } else if (addMode === 'carnivore') {
-      carnivores.push(new Carnivore(e.offsetX, e.offsetY));
-    } else {
-      return;
-    }
-    addMode = null;
   });
 
   spawnInitial();
