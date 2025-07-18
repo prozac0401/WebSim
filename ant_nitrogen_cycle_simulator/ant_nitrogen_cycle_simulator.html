@@ -54,8 +54,8 @@
     let CELL_SIZE;
     let WIDTH;
     let HEIGHT;
-    const NEST_X = Math.floor(GRID_SIZE/2);
-    const NEST_Y = Math.floor(HEIGHT/CELL_SIZE/2);
+    let NEST_X;
+    let NEST_Y;
     let nitrogenAmount = 50;
     let nitrogenInterval = 5 * 60; // frames
     let nextNitrogenFrame = nitrogenInterval;
@@ -202,6 +202,8 @@
     CELL_SIZE = Math.floor(Math.min(window.innerWidth, 800)/GRID_SIZE);
     WIDTH = CELL_SIZE * GRID_SIZE;
     HEIGHT = CELL_SIZE * GRID_HEIGHT;
+    NEST_X = Math.floor(GRID_SIZE/2);
+    NEST_Y = Math.floor(GRID_HEIGHT/2);
     PLANT_THRESHOLD = CELL_SIZE/2;
     let canvas = createCanvas(WIDTH, HEIGHT);
     canvas.id('canvas');
