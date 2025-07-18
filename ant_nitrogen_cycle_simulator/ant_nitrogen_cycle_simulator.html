@@ -53,6 +53,7 @@
     let soil = [];
     let ants = [];
     let foodSources = [];
+    const PLANT_THRESHOLD = CELL_SIZE/2;
 
     class SoilCell {
       constructor(x, y) {
@@ -64,15 +65,21 @@
         this.isNest = false;
       }
       update() {
-        if(this.isNest) this.plant = 0;
         let dn = this.organic * 0.02;
         this.nitrogen += dn;
         this.organic -= dn;
         let uptake = this.nitrogen * 0.01;
         this.plant += uptake*5;
         this.nitrogen -= uptake;
+        // decay old plants back to nitrogen
+        let decay = this.plant * 0.005;
+        this.plant -= decay;
+        this.nitrogen += decay;
         this.plant = constrain(this.plant, 0, CELL_SIZE-2);
         this.pheromone *= 0.95;
+        if(this.isNest && this.plant > PLANT_THRESHOLD){
+          relocateNest(this);
+        }
       }
       display() {
         let n = constrain(this.nitrogen*40, 0, 200);
@@ -220,10 +227,31 @@
       }
     }
 
-    function initAnts(n){
-      ants=[];
-      for(let i=0;i<n;i++) ants.push(new Ant());
+function initAnts(n){
+  ants=[];
+  for(let i=0;i<n;i++) ants.push(new Ant());
+}
+
+function relocateNest(cell){
+  cell.isNest = false;
+  let best = null;
+  let bestNitrogen = -1;
+  for(let i=0;i<50;i++){
+    const x = Math.floor(random(GRID_SIZE));
+    const y = Math.floor(random(HEIGHT/CELL_SIZE));
+    const c = soil[x][y];
+    if(!c.isNest && c.plant < 1){
+      if(c.nitrogen > bestNitrogen){
+        bestNitrogen = c.nitrogen;
+        best = c;
+      }
     }
+  }
+  if(!best){
+    best = soil[Math.floor(random(GRID_SIZE))][Math.floor(random(HEIGHT/CELL_SIZE))];
+  }
+  best.isNest = true;
+}
 
     function getNearestNest(pos){
       let nearest=null;
