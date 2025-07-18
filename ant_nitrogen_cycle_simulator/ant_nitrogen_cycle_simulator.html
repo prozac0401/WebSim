@@ -32,6 +32,7 @@
     <label>개미 수: <span id="antCountLabel">30</span></label>
     <input id="antCount" type="range" min="10" max="100" value="30" />
   </div>
+  <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
   <script>
     const GRID_SIZE = 20;
     const CELL_SIZE = 20;
@@ -50,6 +51,7 @@
         this.organic = 0;
         this.nitrogen = 0;
         this.plant = 0;
+        this.pheromone = 0;
       }
       update() {
         let dn = this.organic * 0.02;
@@ -59,11 +61,17 @@
         this.plant += uptake*5;
         this.nitrogen -= uptake;
         this.plant = constrain(this.plant, 0, CELL_SIZE-2);
+        this.pheromone *= 0.95;
       }
       display() {
         let n = constrain(this.nitrogen*40, 0, 200);
         fill(200-n, 255-n, 200-n);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        if(this.pheromone>0.1){
+          const alpha = constrain(this.pheromone*50,0,150);
+          fill(180,80,200,alpha);
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
         if(this.plant > 1){
           fill(50,150,50);
           rect(this.x*CELL_SIZE+CELL_SIZE/2-2, this.y*CELL_SIZE+CELL_SIZE-this.plant, 4, this.plant);
@@ -97,6 +105,7 @@
             soil[NEST_X][NEST_Y].organic += 5;
             this.carrying=false;
           }
+          soil[Math.floor(this.pos.x/CELL_SIZE)][Math.floor(this.pos.y/CELL_SIZE)].pheromone += 0.5;
         }else{
           let nearest = null;
           let dmin = 9999;
@@ -114,6 +123,7 @@
           }else{
             this.pos.add(p5.Vector.random2D());
           }
+          soil[Math.floor(this.pos.x/CELL_SIZE)][Math.floor(this.pos.y/CELL_SIZE)].pheromone += 0.2;
         }
         this.pos.x = constrain(this.pos.x,0,width-1);
         this.pos.y = constrain(this.pos.y,0,height-1);
@@ -155,6 +165,15 @@
       // nest
       fill('#b5651d');
       rect(NEST_X*CELL_SIZE,NEST_Y*CELL_SIZE,CELL_SIZE,CELL_SIZE);
+
+      if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
+        const cx = Math.floor(mouseX/CELL_SIZE);
+        const cy = Math.floor(mouseY/CELL_SIZE);
+        const cell = soil[cx][cy];
+        document.getElementById('stats').textContent =
+          `위치 (${cx},${cy}) - 페로몬: ${cell.pheromone.toFixed(1)} `+
+          `질소: ${cell.nitrogen.toFixed(1)} 식물: ${cell.plant.toFixed(1)}`;
+      }
     }
 
     function initFood(){
