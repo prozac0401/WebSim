@@ -60,6 +60,9 @@
   const plants = [];
   const herbivores = [];
   const carnivores = [];
+  const eggs = [];
+  const topCarnivores = [];
+  const effects = [];
 
   class Plant {
     constructor(x, y) {
@@ -86,6 +89,65 @@
     }
   }
 
+  class Effect {
+    constructor(x, y, color) {
+      this.x = x; this.y = y; this.color = color; this.life = 20;
+    }
+    update() { this.life--; }
+    draw() {
+      ctx.strokeStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 20 - this.life, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  class Egg {
+    constructor(x, y) {
+      this.x = x; this.y = y; this.timer = 150;
+    }
+    update() {
+      this.timer--;
+      if (this.timer <= 0) {
+        eggs.splice(eggs.indexOf(this), 1);
+        carnivores.push(new Carnivore(this.x, this.y));
+        effects.push(new Effect(this.x, this.y, 'orange'));
+      }
+    }
+    draw() {
+      ctx.fillStyle = 'orange';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  class TopCarnivore extends Creature {
+    update() {
+      this.energy -= 0.2;
+      let target = carnivores[0];
+      let minDist = Infinity;
+      for (const c of carnivores) {
+        const d = Math.hypot(this.x - c.x, this.y - c.y);
+        if (d < minDist) { minDist = d; target = c; }
+      }
+      if (target) this.moveTowards(target, 1.4 * speed);
+      for (let i = carnivores.length - 1; i >= 0; i--) {
+        const c = carnivores[i];
+        if (Math.hypot(this.x - c.x, this.y - c.y) < 7) {
+          carnivores.splice(i, 1);
+          this.energy += 60;
+        }
+      }
+    }
+    draw() {
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   class Herbivore extends Creature {
     update() {
       if (random() < herbivoreDeathProb) { this.energy = 0; return; }
@@ -107,7 +169,9 @@
       }
       if (this.energy > 180 && random() < herbivoreBirthProb) {
         this.energy /= 2;
-        herbivores.push(new Herbivore(this.x + randRange(-5, 5), this.y + randRange(-5,5)));
+        const baby = new Herbivore(this.x + randRange(-5, 5), this.y + randRange(-5,5));
+        herbivores.push(baby);
+        effects.push(new Effect(baby.x, baby.y, 'blue'));
       }
     }
     draw() {
@@ -119,6 +183,10 @@
   }
 
   class Carnivore extends Creature {
+    constructor(x, y) {
+      super(x, y);
+      this.eaten = 0;
+    }
     update() {
       if (random() < carnivoreDeathProb) { this.energy = 0; return; }
       this.energy -= 0.15;
@@ -135,11 +203,24 @@
         if (Math.hypot(this.x - h.x, this.y - h.y) < 6) {
           herbivores.splice(i, 1);
           this.energy += 40;
+          this.eaten++;
         }
       }
       if (this.energy > 200 && random() < carnivoreBirthProb) {
         this.energy /= 2;
-        carnivores.push(new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5)));
+        const baby = new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5));
+        carnivores.push(baby);
+        effects.push(new Effect(baby.x, baby.y, 'red'));
+      }
+      if (this.energy > 150 && random() < 0.01) {
+        eggs.push(new Egg(this.x, this.y));
+        effects.push(new Effect(this.x, this.y, 'orange'));
+      }
+      if (this.eaten >= 5) {
+        carnivores.splice(carnivores.indexOf(this), 1);
+        topCarnivores.push(new TopCarnivore(this.x, this.y));
+        effects.push(new Effect(this.x, this.y, 'black'));
+        return;
       }
     }
     draw() {
@@ -152,6 +233,7 @@
 
   function spawnInitial() {
     plants.length = 0; herbivores.length = 0; carnivores.length = 0;
+    eggs.length = 0; topCarnivores.length = 0; effects.length = 0;
     for (let i = 0; i < plantCount; i++)
       plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
     for (let i = 0; i < herbivoreCount; i++)
@@ -167,11 +249,20 @@
     }
     herbivores.forEach(h => h.update());
     carnivores.forEach(c => c.update());
+    eggs.forEach(e => e.update());
+    topCarnivores.forEach(t => t.update());
+    for (let i = effects.length - 1; i >= 0; i--) {
+      effects[i].update();
+      if (effects[i].life <= 0) effects.splice(i, 1);
+    }
     for (let i = herbivores.length - 1; i >= 0; i--) {
       if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
     }
     for (let i = carnivores.length - 1; i >= 0; i--) {
       if (carnivores[i].energy <= 0) carnivores.splice(i, 1);
+    }
+    for (let i = topCarnivores.length - 1; i >= 0; i--) {
+      if (topCarnivores[i].energy <= 0) topCarnivores.splice(i, 1);
     }
   }
 
@@ -180,6 +271,9 @@
     plants.forEach(p => p.draw());
     herbivores.forEach(h => h.draw());
     carnivores.forEach(c => c.draw());
+    eggs.forEach(e => e.draw());
+    topCarnivores.forEach(t => t.draw());
+    effects.forEach(f => f.draw());
   }
 
   function loop() {
