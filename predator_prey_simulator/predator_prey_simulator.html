@@ -20,6 +20,11 @@
   canvas { background: #f8f8f8; display: block; margin: 0 auto; }
   #controls { margin-bottom: 10px; }
   #controls button { margin-right: 5px; }
+  #sliders { margin: 10px 0; }
+  .slider-group { margin-bottom: 8px; font-size: 14px; }
+  .slider-group label { display: inline-block; width: 150px; }
+  .slider-group input[type="range"] { width: 200px; }
+  .slider-group span { display: inline-block; width: 40px; text-align: right; }
 </style>
 </head>
 <body>
@@ -28,6 +33,38 @@
     <button id="start-btn">Start</button>
     <button id="pause-btn">Pause</button>
     <button id="reset-btn">Reset</button>
+  </div>
+  <div id="sliders">
+    <div class="slider-group">
+      <label for="speed">속도 배율</label>
+      <input type="range" id="speed" min="0.5" max="3" step="0.1">
+      <span id="speedVal"></span>
+    </div>
+    <div class="slider-group">
+      <label for="plantSpawn">식물 생성 확률</label>
+      <input type="range" id="plantSpawn" min="0" max="0.2" step="0.005">
+      <span id="plantSpawnVal"></span>
+    </div>
+    <div class="slider-group">
+      <label for="herbivoreBirth">초식동물 번식 확률</label>
+      <input type="range" id="herbivoreBirth" min="0" max="1" step="0.05">
+      <span id="herbivoreBirthVal"></span>
+    </div>
+    <div class="slider-group">
+      <label for="carnivoreBirth">육식동물 번식 확률</label>
+      <input type="range" id="carnivoreBirth" min="0" max="1" step="0.05">
+      <span id="carnivoreBirthVal"></span>
+    </div>
+    <div class="slider-group">
+      <label for="herbivoreDeath">초식동물 자연사 확률</label>
+      <input type="range" id="herbivoreDeath" min="0" max="0.01" step="0.0005">
+      <span id="herbivoreDeathVal"></span>
+    </div>
+    <div class="slider-group">
+      <label for="carnivoreDeath">육식동물 자연사 확률</label>
+      <input type="range" id="carnivoreDeath" min="0" max="0.01" step="0.0005">
+      <span id="carnivoreDeathVal"></span>
+    </div>
   </div>
   <canvas id="sim" width="800" height="600"></canvas>
 </div>
@@ -47,6 +84,27 @@
   let herbivoreDeathProb = parseFloat(params.get('herbivoreDeath')) || 0.001;
   let carnivoreDeathProb = parseFloat(params.get('carnivoreDeath')) || 0.001;
 
+  function initSliders() {
+    const map = [
+      ['speed', v => speed = parseFloat(v)],
+      ['plantSpawn', v => plantSpawnRate = parseFloat(v)],
+      ['herbivoreBirth', v => herbivoreBirthProb = parseFloat(v)],
+      ['carnivoreBirth', v => carnivoreBirthProb = parseFloat(v)],
+      ['herbivoreDeath', v => herbivoreDeathProb = parseFloat(v)],
+      ['carnivoreDeath', v => carnivoreDeathProb = parseFloat(v)]
+    ];
+    for (const [id, setter] of map) {
+      const input = document.getElementById(id);
+      const span = document.getElementById(id + 'Val');
+      input.value = eval(id);
+      span.textContent = input.value;
+      input.addEventListener('input', () => {
+        setter(input.value);
+        span.textContent = input.value;
+      });
+    }
+  }
+
   // simple pseudo random
   function random() {
     seed = (seed * 9301 + 49297) % 233280;
@@ -60,7 +118,8 @@
   const plants = [];
   const herbivores = [];
   const carnivores = [];
-  const eggs = [];
+  const herbivoreEggs = [];
+  const corpses = [];
   const topCarnivores = [];
   const effects = [];
 
@@ -102,22 +161,51 @@
     }
   }
 
-  class Egg {
+  function spawnPlant(x, y) {
+    for (const p of plants) {
+      if (Math.hypot(p.x - x, p.y - y) < 12) return false;
+    }
+    plants.push(new Plant(x, y));
+    effects.push(new Effect(x, y, 'green'));
+    return true;
+  }
+
+  class HerbivoreEgg {
     constructor(x, y) {
       this.x = x; this.y = y; this.timer = 150;
     }
     update() {
       this.timer--;
       if (this.timer <= 0) {
-        eggs.splice(eggs.indexOf(this), 1);
-        carnivores.push(new Carnivore(this.x, this.y));
-        effects.push(new Effect(this.x, this.y, 'orange'));
+        herbivoreEggs.splice(herbivoreEggs.indexOf(this), 1);
+        const baby = new Herbivore(this.x, this.y);
+        herbivores.push(baby);
+        effects.push(new Effect(this.x, this.y, 'blue'));
       }
     }
     draw() {
-      ctx.fillStyle = 'orange';
+      ctx.fillStyle = 'yellow';
       ctx.beginPath();
       ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  class Corpse {
+    constructor(x, y) {
+      this.x = x; this.y = y; this.timer = 300;
+    }
+    update() {
+      this.timer--;
+      if (random() < 0.2) {
+        spawnPlant(this.x + randRange(-15, 15), this.y + randRange(-15, 15));
+      }
+      if (this.timer <= 0) corpses.splice(corpses.indexOf(this), 1);
+    }
+    draw() {
+      ctx.fillStyle = 'brown';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -169,9 +257,8 @@
       }
       if (this.energy > 180 && random() < herbivoreBirthProb) {
         this.energy /= 2;
-        const baby = new Herbivore(this.x + randRange(-5, 5), this.y + randRange(-5,5));
-        herbivores.push(baby);
-        effects.push(new Effect(baby.x, baby.y, 'blue'));
+        herbivoreEggs.push(new HerbivoreEgg(this.x, this.y));
+        effects.push(new Effect(this.x, this.y, 'yellow'));
       }
     }
     draw() {
@@ -186,9 +273,10 @@
     constructor(x, y) {
       super(x, y);
       this.eaten = 0;
+      this.slowTimer = 0;
     }
     update() {
-      if (random() < carnivoreDeathProb) { this.energy = 0; return; }
+      if (random() < carnivoreDeathProb) { this.energy = 0; }
       this.energy -= 0.15;
       let target = herbivores[0];
       let minDist = Infinity;
@@ -196,7 +284,8 @@
         const d = Math.hypot(this.x - h.x, this.y - h.y);
         if (d < minDist) { minDist = d; target = h; }
       }
-      if (target) this.moveTowards(target, 1.2 * speed);
+      const moveSpeed = this.slowTimer > 0 ? 0.4 * speed : 1.5 * speed;
+      if (target) this.moveTowards(target, moveSpeed);
       // eat
       for (let i = herbivores.length - 1; i >= 0; i--) {
         const h = herbivores[i];
@@ -204,22 +293,27 @@
           herbivores.splice(i, 1);
           this.energy += 40;
           this.eaten++;
+          this.slowTimer = 120;
+          effects.push(new Effect(this.x, this.y, 'purple'));
         }
       }
+      if (this.slowTimer > 0) this.slowTimer--;
       if (this.energy > 200 && random() < carnivoreBirthProb) {
         this.energy /= 2;
         const baby = new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5));
         carnivores.push(baby);
         effects.push(new Effect(baby.x, baby.y, 'red'));
       }
-      if (this.energy > 150 && random() < 0.01) {
-        eggs.push(new Egg(this.x, this.y));
-        effects.push(new Effect(this.x, this.y, 'orange'));
-      }
       if (this.eaten >= 5) {
         carnivores.splice(carnivores.indexOf(this), 1);
         topCarnivores.push(new TopCarnivore(this.x, this.y));
         effects.push(new Effect(this.x, this.y, 'black'));
+        return;
+      }
+      if (this.energy <= 0) {
+        carnivores.splice(carnivores.indexOf(this), 1);
+        corpses.push(new Corpse(this.x, this.y));
+        effects.push(new Effect(this.x, this.y, 'brown'));
         return;
       }
     }
@@ -233,9 +327,9 @@
 
   function spawnInitial() {
     plants.length = 0; herbivores.length = 0; carnivores.length = 0;
-    eggs.length = 0; topCarnivores.length = 0; effects.length = 0;
+    herbivoreEggs.length = 0; corpses.length = 0; topCarnivores.length = 0; effects.length = 0;
     for (let i = 0; i < plantCount; i++)
-      plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
+      spawnPlant(randRange(0, canvas.width), randRange(0, canvas.height));
     for (let i = 0; i < herbivoreCount; i++)
       herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
     for (let i = 0; i < carnivoreCount; i++)
@@ -245,11 +339,12 @@
   function update() {
     if (!running) return;
     if (random() < plantSpawnRate) {
-      plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
+      spawnPlant(randRange(0, canvas.width), randRange(0, canvas.height));
     }
     herbivores.forEach(h => h.update());
     carnivores.forEach(c => c.update());
-    eggs.forEach(e => e.update());
+    herbivoreEggs.forEach(e => e.update());
+    corpses.forEach(c => c.update());
     topCarnivores.forEach(t => t.update());
     for (let i = effects.length - 1; i >= 0; i--) {
       effects[i].update();
@@ -257,9 +352,6 @@
     }
     for (let i = herbivores.length - 1; i >= 0; i--) {
       if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
-    }
-    for (let i = carnivores.length - 1; i >= 0; i--) {
-      if (carnivores[i].energy <= 0) carnivores.splice(i, 1);
     }
     for (let i = topCarnivores.length - 1; i >= 0; i--) {
       if (topCarnivores[i].energy <= 0) topCarnivores.splice(i, 1);
@@ -271,7 +363,8 @@
     plants.forEach(p => p.draw());
     herbivores.forEach(h => h.draw());
     carnivores.forEach(c => c.draw());
-    eggs.forEach(e => e.draw());
+    herbivoreEggs.forEach(e => e.draw());
+    corpses.forEach(c => c.draw());
     topCarnivores.forEach(t => t.draw());
     effects.forEach(f => f.draw());
   }
@@ -287,6 +380,7 @@
   document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
 
   spawnInitial();
+  initSliders();
   draw();
   loop();
 })();
