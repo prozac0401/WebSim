@@ -23,7 +23,7 @@
             
             .container {
                 width: 100%;
-                max-width: 1200px;
+                max-width: 800px;
                 text-align: center;
                 display: flex;
                 flex-direction: column;
@@ -166,7 +166,7 @@
             </div>
             
             <div class="canvas-container">
-                <canvas id="canvas" width="600" height="600"></canvas>
+                <canvas id="canvas" width="800" height="800" style="width:100%; max-width:800px; height:auto;"></canvas>
             </div>
             
             <div class="stats">
@@ -443,7 +443,7 @@
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const availableWidth = Math.min(Math.max(window.innerWidth - 80, 100), 800);
-                const availableHeight = Math.min(Math.max(window.innerHeight - 300, 100), 600);
+                const availableHeight = Math.min(Math.max(window.innerHeight - 300, 100), 800);
                 const size = Math.max(Math.min(availableWidth, availableHeight), 100);
                 
                 canvas.width = size;

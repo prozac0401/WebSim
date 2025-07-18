@@ -15,10 +15,11 @@
   }
   .container {
     width: 100%;
+    max-width: 800px;
     margin: 0 auto;
     text-align: center;
   }
-  canvas { background: #f8f8f8; display: block; margin: 0 auto; }
+  canvas { background: #f8f8f8; display: block; margin: 0 auto; max-width: 800px; width: 100%; }
   #controls { margin-bottom: 10px; text-align:center; }
   #controls button { margin-right: 5px; }
   #sliders { margin: 10px 0; display: inline-block; text-align: left; }
@@ -70,7 +71,7 @@
       <span id="carnivoreDeathVal"></span>
     </div>
   </div>
-  <canvas id="sim" height="600" style="width:100%;"></canvas>
+  <canvas id="sim" height="600" style="width:100%; max-width:800px;"></canvas>
 </div>
 <script>
 (function() {

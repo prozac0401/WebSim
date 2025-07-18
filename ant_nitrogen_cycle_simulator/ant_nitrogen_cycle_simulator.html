@@ -17,9 +17,12 @@
     display: block;
     margin: 0 auto;
     background: #f8f9fa;
+    max-width: 800px;
+    width: 100%;
     }
     .controls {
-    max-width: 600px;
+    max-width: 800px;
+    width: 100%;
     margin: 10px auto;
     text-align: center;
     }
@@ -39,7 +42,7 @@
     <input id="nitrogenInterval" type="range" min="1" max="20" value="5" />
   </div>
   <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
-  <div id="legend" style="max-width:600px;margin:0 auto 10px auto;font-size:14px;">
+  <div id="legend" style="max-width:800px;margin:0 auto 10px auto;font-size:14px;width:100%;">
     <span style="display:inline-block;width:12px;height:12px;background:#b5651d;vertical-align:middle;margin-right:4px;"></span>둥지
     <span style="display:inline-block;width:12px;height:12px;background:black;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>개미
     <span style="display:inline-block;width:12px;height:12px;background:yellow;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%;"></span>질소 패치
@@ -196,7 +199,7 @@
     }
 
     function setup(){
-    CELL_SIZE = Math.floor(window.innerWidth/GRID_SIZE);
+    CELL_SIZE = Math.floor(Math.min(window.innerWidth, 800)/GRID_SIZE);
     WIDTH = CELL_SIZE * GRID_SIZE;
     HEIGHT = CELL_SIZE * GRID_HEIGHT;
     PLANT_THRESHOLD = CELL_SIZE/2;
