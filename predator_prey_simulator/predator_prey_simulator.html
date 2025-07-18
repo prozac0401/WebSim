@@ -14,7 +14,7 @@
     box-sizing: border-box;
   }
   .container {
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
   }
   canvas { background: #f8f8f8; display: block; margin: 0 auto; }
@@ -75,7 +75,7 @@
   const params = new URLSearchParams(location.search);
   let plantCount = parseInt(params.get('plants')) || 50;
   let herbivoreCount = parseInt(params.get('herbivores')) || 30;
-  let carnivoreCount = parseInt(params.get('carnivores')) || 3;
+  let carnivoreCount = parseInt(params.get('carnivores')) || 2;
   let speed = parseFloat(params.get('speed')) || 1;
   let seed = parseInt(params.get('seed')) || Date.now();
 
@@ -126,8 +126,8 @@
   const herbivores = [];
   const carnivores = [];
   const herbivoreEggs = [];
-  const corpses = [];
   const effects = [];
+  let addMode = null;
 
   class Plant {
     constructor(x, y) {
@@ -193,25 +193,6 @@
       ctx.fillStyle = 'yellow';
       ctx.beginPath();
       ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  class Corpse {
-    constructor(x, y) {
-      this.x = x; this.y = y; this.timer = 300;
-    }
-    update() {
-      this.timer--;
-      if (random() < 0.2) {
-        spawnPlant(this.x + randRange(-15, 15), this.y + randRange(-15, 15));
-      }
-      if (this.timer <= 0) corpses.splice(corpses.indexOf(this), 1);
-    }
-    draw() {
-      ctx.fillStyle = 'brown';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -287,7 +268,6 @@
       }
       if (this.energy <= 0) {
         carnivores.splice(carnivores.indexOf(this), 1);
-        corpses.push(new Corpse(this.x, this.y));
         effects.push(new Effect(this.x, this.y, 'brown'));
         return;
       }
@@ -303,7 +283,7 @@
   function spawnInitial() {
     resizeCanvas();
     plants.length = 0; herbivores.length = 0; carnivores.length = 0;
-    herbivoreEggs.length = 0; corpses.length = 0; effects.length = 0;
+    herbivoreEggs.length = 0; effects.length = 0;
     for (let i = 0; i < plantCount; i++)
       spawnPlant(randRange(0, canvas.width), randRange(0, canvas.height));
     for (let i = 0; i < herbivoreCount; i++)
@@ -320,7 +300,6 @@
     herbivores.forEach(h => h.update());
     carnivores.forEach(c => c.update());
     herbivoreEggs.forEach(e => e.update());
-    corpses.forEach(c => c.update());
     for (let i = effects.length - 1; i >= 0; i--) {
       effects[i].update();
       if (effects[i].life <= 0) effects.splice(i, 1);
@@ -336,7 +315,6 @@
     herbivores.forEach(h => h.draw());
     carnivores.forEach(c => c.draw());
     herbivoreEggs.forEach(e => e.draw());
-    corpses.forEach(c => c.draw());
     effects.forEach(f => f.draw());
   }
 
@@ -349,12 +327,18 @@
   document.getElementById('start-btn').onclick = () => running = true;
   document.getElementById('pause-btn').onclick = () => running = false;
   document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
-  document.getElementById('add-herbivore-btn').onclick = () => {
-    herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
-  };
-  document.getElementById('add-carnivore-btn').onclick = () => {
-    carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
-  };
+  document.getElementById('add-herbivore-btn').onclick = () => { addMode = 'herbivore'; };
+  document.getElementById('add-carnivore-btn').onclick = () => { addMode = 'carnivore'; };
+  canvas.addEventListener('click', e => {
+    if (addMode === 'herbivore') {
+      herbivores.push(new Herbivore(e.offsetX, e.offsetY));
+    } else if (addMode === 'carnivore') {
+      carnivores.push(new Carnivore(e.offsetX, e.offsetY));
+    } else {
+      return;
+    }
+    addMode = null;
+  });
 
   spawnInitial();
   initSliders();
