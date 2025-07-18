@@ -34,8 +34,8 @@
   <h1 style="text-align:center;">개미-질소 순환 시뮬레이터</h1>
   <p style="text-align:center;">개미가 유기물을 운반해 토양의 질소를 증가시키고 식물을 성장시키는 과정을 관찰해보세요.</p>
   <div class="controls">
-    <label>개미 수: <span id="antCountLabel">100</span></label>
-    <input id="antCount" type="range" min="10" max="100" value="100" />
+    <label>개미 수: <span id="antCountLabel">30</span></label>
+    <input id="antCount" type="range" min="10" max="100" value="30" />
     <br/>
     <label>질소량: <span id="nitrogenAmountLabel">50</span></label>
     <input id="nitrogenAmount" type="range" min="10" max="200" value="50" />
@@ -46,13 +46,13 @@
   <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
   <div id="legend" style="max-width:800px;margin:0 auto 10px auto;font-size:14px;width:100%;">
     <span style="display:inline-block;width:12px;height:12px;background:#b5651d;vertical-align:middle;margin-right:4px;"></span>둥지
-    <span style="display:inline-block;width:12px;height:12px;background:black;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%;"></span>개미
-    <span style="display:inline-block;width:12px;height:14px;background:yellow;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%/40%;"></span>질소 패치
+    <span style="display:inline-block;width:12px;height:12px;background:black;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>개미
+    <span style="display:inline-block;width:12px;height:12px;background:yellow;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%;"></span>질소 패치
     <span style="display:inline-block;width:12px;height:12px;background:rgb(50,150,50);margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>식물
   </div>
   <script>
     const GRID_SIZE = 20;
-    const GRID_HEIGHT = GRID_SIZE;
+    const GRID_HEIGHT = 30;
     let CELL_SIZE;
     let WIDTH;
     let HEIGHT;
@@ -141,12 +141,8 @@
     constructor(){
       this.pos = createVector(random(width), random(height));
       this.carrying = false;
-      this.isResting = false;
     }
     update(){
-      if(this.isResting){
-        return;
-      }
       if(this.carrying){
         let nestCell = getNearestNest(this.pos);
         let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,
@@ -155,7 +151,6 @@
         if(p5.Vector.dist(this.pos,target)<5){
           nestCell.nitrogen += 5;
           this.carrying=false;
-          this.isResting=false;
         }
       }else{
         let nearest = null;
@@ -167,15 +162,9 @@
           }
         }
         if(nearest && dmin<5){
-          if(nearest.amount>0){
-            nearest.amount -= 5;
-            this.carrying=true;
-            this.isResting=false;
-          } else {
-            this.isResting = true;
-          }
+          nearest.amount -= 5;
+          this.carrying=true;
         }else if(nearest && dmin<80){
-          this.isResting = false;
           this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(1));
         }else{
           const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
@@ -195,7 +184,6 @@
               }
             }
           }
-          this.isResting = false;
           this.pos.add(bestDir.setMag(1));
         }
       }
@@ -229,7 +217,7 @@
     }
     soil[NEST_X][NEST_Y].isNest = true;
     initFood();
-    initAnts(100);
+    initAnts(30);
     document.getElementById('antCount').addEventListener('input', e=>{
       const val = parseInt(e.target.value);
       document.getElementById('antCountLabel').textContent = val;
@@ -314,10 +302,6 @@ function relocateNest(cell){
   const cx = Math.floor(random(GRID_SIZE));
   const cy = Math.floor(random(HEIGHT/CELL_SIZE));
   foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
-
-  for(let ant of ants){
-    ant.isResting = false;
-  }
 
     for(let dx=-1; dx<=1; dx++){
       for(let dy=-1; dy<=1; dy++){
