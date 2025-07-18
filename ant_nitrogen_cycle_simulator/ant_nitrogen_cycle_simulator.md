@@ -1,0 +1,12 @@
+# Ant-Driven Nitrogen Cycle Simulator
+[블로그 글]
+https://example.com/ant-nitrogen-sim
+
+개미가 유기물을 둥지로 옮기며 토양 내 질소 농도를 높이고, 그 결과 식물이 성장하는 과정을 단순화한 모델입니다.
+
+## Script Functions
+- `SoilCell` 클래스: 유기물과 질소를 저장하고 식물 성장까지 담당합니다.
+- `Ant` 클래스: 음식원을 찾아 운반하고, 둥지에 도착하면 유기물을 토양에 추가합니다.
+- `FoodSource` 클래스: 개미가 수거할 수 있는 유기물 위치를 나타냅니다.
+- `initAnts(n)`: 지정한 수의 개미를 생성합니다.
+- `draw()`: 매 프레임 토양, 음식, 개미를 갱신하고 화면에 표시합니다.
