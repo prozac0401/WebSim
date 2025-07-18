@@ -7,21 +7,21 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
     body {
-      margin: 0;
-      padding: 10px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #ffffff;
+    margin: 0;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #ffffff;
     }
     #canvas {
-      border: 1px solid #ddd;
-      display: block;
-      margin: 0 auto;
-      background: #f8f9fa;
+    border: 1px solid #ddd;
+    display: block;
+    margin: 0 auto;
+    background: #f8f9fa;
     }
     .controls {
-      max-width: 600px;
-      margin: 10px auto;
-      text-align: center;
+    max-width: 600px;
+    margin: 10px auto;
+    text-align: center;
     }
   </style>
 </head>
@@ -56,175 +56,175 @@
     const PLANT_THRESHOLD = CELL_SIZE/2;
 
     class SoilCell {
-      constructor(x, y) {
-        this.x = x; this.y = y;
-        this.organic = 0;
-        this.nitrogen = 0;
-        this.plant = 0;
-        this.pheromone = 0;
-        this.isNest = false;
+    constructor(x, y) {
+      this.x = x; this.y = y;
+      this.organic = 0;
+      this.nitrogen = 0;
+      this.plant = 0;
+      this.pheromone = 0;
+      this.isNest = false;
+    }
+    update() {
+      let dn = this.organic * 0.02;
+      this.nitrogen += dn;
+      this.organic -= dn;
+      let uptake = this.nitrogen * 0.01;
+      this.plant += uptake*5;
+      this.nitrogen -= uptake;
+      // decay old plants back to nitrogen
+      let decay = this.plant * 0.005;
+      this.plant -= decay;
+      this.nitrogen += decay;
+      this.plant = constrain(this.plant, 0, CELL_SIZE-2);
+      this.pheromone *= 0.95;
+      if(this.isNest && this.plant > PLANT_THRESHOLD){
+        relocateNest(this);
       }
-      update() {
-        let dn = this.organic * 0.02;
-        this.nitrogen += dn;
-        this.organic -= dn;
-        let uptake = this.nitrogen * 0.01;
-        this.plant += uptake*5;
-        this.nitrogen -= uptake;
-        // decay old plants back to nitrogen
-        let decay = this.plant * 0.005;
-        this.plant -= decay;
-        this.nitrogen += decay;
-        this.plant = constrain(this.plant, 0, CELL_SIZE-2);
-        this.pheromone *= 0.95;
-        if(this.isNest && this.plant > PLANT_THRESHOLD){
-          relocateNest(this);
-        }
-      }
-      display() {
-        let n = constrain(this.nitrogen*40, 0, 200);
-        fill(200-n, 255-n, 200-n);
+    }
+    display() {
+      let n = constrain(this.nitrogen*40, 0, 200);
+      fill(200-n, 255-n, 200-n);
+      rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      if(this.pheromone>0.1){
+        const alpha = constrain(this.pheromone*50,0,150);
+        fill(180,80,200,alpha);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        if(this.pheromone>0.1){
-          const alpha = constrain(this.pheromone*50,0,150);
-          fill(180,80,200,alpha);
-          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        }
-        if(this.plant > 1){
-          fill(50,150,50);
-          rect(this.x*CELL_SIZE+CELL_SIZE/2-2, this.y*CELL_SIZE+CELL_SIZE-this.plant, 4, this.plant);
-        }
-        if(this.isNest){
-          fill('#b5651d');
-          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        }
       }
+      if(this.plant > 1){
+        fill(50,150,50);
+        rect(this.x*CELL_SIZE+CELL_SIZE/2-2, this.y*CELL_SIZE+CELL_SIZE-this.plant, 4, this.plant);
+      }
+      if(this.isNest){
+        fill('#b5651d');
+        rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
+    }
     }
 
     class FoodSource {
-      constructor(x,y,amount){
-        this.pos = createVector(x,y);
-        this.amount = amount;
+    constructor(x,y,amount){
+      this.pos = createVector(x,y);
+      this.amount = amount;
+    }
+    display(){
+      if(this.amount>0){
+        fill('orange');
+        ellipse(this.pos.x, this.pos.y, 8,8);
       }
-      display(){
-        if(this.amount>0){
-          fill('orange');
-          ellipse(this.pos.x, this.pos.y, 8,8);
-        }
-      }
+    }
     }
 
     class Ant {
-      constructor(){
-        this.pos = createVector(random(width), random(height));
-        this.carrying = false;
-      }
-      update(){
-        if(this.carrying){
-          let nestCell = getNearestNest(this.pos);
-          let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,
-                                   nestCell.y*CELL_SIZE+CELL_SIZE/2);
-          this.pos.add(p5.Vector.sub(target,this.pos).setMag(1));
-          if(p5.Vector.dist(this.pos,target)<5){
-            nestCell.organic += 5;
-            this.carrying=false;
+    constructor(){
+      this.pos = createVector(random(width), random(height));
+      this.carrying = false;
+    }
+    update(){
+      if(this.carrying){
+        let nestCell = getNearestNest(this.pos);
+        let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,
+                                 nestCell.y*CELL_SIZE+CELL_SIZE/2);
+        this.pos.add(p5.Vector.sub(target,this.pos).setMag(1));
+        if(p5.Vector.dist(this.pos,target)<5){
+          nestCell.nitrogen += 5;
+          this.carrying=false;
+        }
+      }else{
+        let nearest = null;
+        let dmin = 9999;
+        for(let fs of foodSources){
+          if(fs.amount>0){
+            let d = p5.Vector.dist(this.pos,fs.pos);
+            if(d<dmin){dmin=d; nearest=fs;}
           }
+        }
+        if(nearest && dmin<5){
+          nearest.amount -= 5;
+          this.carrying=true;
+        }else if(nearest && dmin<80){
+          this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(1));
         }else{
-          let nearest = null;
-          let dmin = 9999;
-          for(let fs of foodSources){
-            if(fs.amount>0){
-              let d = p5.Vector.dist(this.pos,fs.pos);
-              if(d<dmin){dmin=d; nearest=fs;}
-            }
-          }
-          if(nearest && dmin<5){
-            nearest.amount -= 5;
-            this.carrying=true;
-          }else if(nearest && dmin<80){
-            this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(1));
-          }else{
-            const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
-            const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
-            let bestDir = p5.Vector.random2D();
-            let bestPher = soil[cx][cy].pheromone;
-            for(let dx=-1; dx<=1; dx++){
-              for(let dy=-1; dy<=1; dy++){
-                if(dx===0 && dy===0) continue;
-                let nx=cx+dx, ny=cy+dy;
-                if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
-                  let pher=soil[nx][ny].pheromone;
-                  if(pher>bestPher){
-                    bestPher=pher;
-                    bestDir=createVector(dx,dy);
-                  }
+          const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+          const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
+          let bestDir = p5.Vector.random2D();
+          let bestPher = soil[cx][cy].pheromone;
+          for(let dx=-1; dx<=1; dx++){
+            for(let dy=-1; dy<=1; dy++){
+              if(dx===0 && dy===0) continue;
+              let nx=cx+dx, ny=cy+dy;
+              if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+                let pher=soil[nx][ny].pheromone;
+                if(pher>bestPher){
+                  bestPher=pher;
+                  bestDir=createVector(dx,dy);
                 }
               }
             }
-            this.pos.add(bestDir.setMag(1));
           }
+          this.pos.add(bestDir.setMag(1));
         }
-        this.pos.x = constrain(this.pos.x,0,width-1);
-        this.pos.y = constrain(this.pos.y,0,height-1);
-        const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
-        const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
-        soil[cx][cy].pheromone += this.carrying ? 0.5 : 0.2;
       }
-      display(){
-        fill(this.carrying?'#e67e22':'#000');
-        ellipse(this.pos.x,this.pos.y,5,5);
-      }
+      this.pos.x = constrain(this.pos.x,0,width-1);
+      this.pos.y = constrain(this.pos.y,0,height-1);
+      const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+      const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
+      soil[cx][cy].pheromone += this.carrying ? 0.5 : 0.2;
+    }
+    display(){
+      fill(this.carrying?'#e67e22':'#000');
+      ellipse(this.pos.x,this.pos.y,5,5);
+    }
     }
 
     function setup(){
-      let canvas = createCanvas(WIDTH, HEIGHT);
-      canvas.id('canvas');
-      for(let x=0;x<GRID_SIZE;x++){
-        soil[x]=[];
-        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          soil[x][y]=new SoilCell(x,y);
-        }
+    let canvas = createCanvas(WIDTH, HEIGHT);
+    canvas.id('canvas');
+    for(let x=0;x<GRID_SIZE;x++){
+      soil[x]=[];
+      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+        soil[x][y]=new SoilCell(x,y);
       }
-      soil[NEST_X][NEST_Y].isNest = true;
-      initFood();
-      initAnts(30);
-      document.getElementById('antCount').addEventListener('input', e=>{
-        const val = parseInt(e.target.value);
-        document.getElementById('antCountLabel').textContent = val;
-        initAnts(val);
-      });
+    }
+    soil[NEST_X][NEST_Y].isNest = true;
+    initFood();
+    initAnts(30);
+    document.getElementById('antCount').addEventListener('input', e=>{
+      const val = parseInt(e.target.value);
+      document.getElementById('antCountLabel').textContent = val;
+      initAnts(val);
+    });
     }
 
     function draw(){
-      background(250);
-      if(frameCount>=nextNitrogenFrame){
-        spawnNitrogenPatch();
-        nextNitrogenFrame = frameCount + nitrogenInterval;
+    background(250);
+    if(frameCount>=nextNitrogenFrame){
+      spawnNitrogenPatch();
+      nextNitrogenFrame = frameCount + nitrogenInterval;
+    }
+    for(let x=0;x<GRID_SIZE;x++){
+      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+        soil[x][y].update();
+        soil[x][y].display();
       }
-      for(let x=0;x<GRID_SIZE;x++){
-        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          soil[x][y].update();
-          soil[x][y].display();
-        }
-      }
-      for(let fs of foodSources){fs.display();}
-      for(let ant of ants){ant.update(); ant.display();}
+    }
+    for(let fs of foodSources){fs.display();}
+    for(let ant of ants){ant.update(); ant.display();}
 
-      if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
-        const cx = Math.floor(mouseX/CELL_SIZE);
-        const cy = Math.floor(mouseY/CELL_SIZE);
-        const cell = soil[cx][cy];
-        document.getElementById('stats').textContent =
-          `위치 (${cx},${cy}) - 페로몬: ${cell.pheromone.toFixed(1)} `+
-          `질소: ${cell.nitrogen.toFixed(1)} 식물: ${cell.plant.toFixed(1)}`;
-      }
+    if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
+      const cx = Math.floor(mouseX/CELL_SIZE);
+      const cy = Math.floor(mouseY/CELL_SIZE);
+      const cell = soil[cx][cy];
+      document.getElementById('stats').textContent =
+        `위치 (${cx},${cy}) - 페로몬: ${cell.pheromone.toFixed(1)} `+
+        `질소: ${cell.nitrogen.toFixed(1)} 식물: ${cell.plant.toFixed(1)}`;
+    }
     }
 
     function initFood(){
-      foodSources=[];
-      for(let i=0;i<3;i++){
-        foodSources.push(new FoodSource(random(width), random(height), 100));
-      }
+    foodSources=[];
+    for(let i=0;i<3;i++){
+      foodSources.push(new FoodSource(random(width), random(height), 100));
+    }
     }
 
 function initAnts(n){
@@ -241,10 +241,10 @@ function relocateNest(cell){
     const y = Math.floor(random(HEIGHT/CELL_SIZE));
     const c = soil[x][y];
     if(!c.isNest && c.plant < 1){
-      if(c.nitrogen > bestNitrogen){
-        bestNitrogen = c.nitrogen;
-        best = c;
-      }
+    if(c.nitrogen > bestNitrogen){
+      bestNitrogen = c.nitrogen;
+      best = c;
+    }
     }
   }
   if(!best){
@@ -254,49 +254,51 @@ function relocateNest(cell){
 }
 
     function getNearestNest(pos){
-      let nearest=null;
-      let dmin=9999;
-      for(let x=0;x<GRID_SIZE;x++){
-        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          if(soil[x][y].isNest){
-            let c = createVector(x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE/2);
-            let d=p5.Vector.dist(pos,c);
-            if(d<dmin){dmin=d; nearest=soil[x][y];}
-          }
+    let nearest=null;
+    let dmin=9999;
+    for(let x=0;x<GRID_SIZE;x++){
+      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+        if(soil[x][y].isNest){
+          let c = createVector(x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE/2);
+          let d=p5.Vector.dist(pos,c);
+          if(d<dmin){dmin=d; nearest=soil[x][y];}
         }
       }
-      return nearest||soil[NEST_X][NEST_Y];
+    }
+    return nearest||soil[NEST_X][NEST_Y];
     }
 
     function spawnNitrogenPatch(){
-      const cx = Math.floor(random(GRID_SIZE));
-      const cy = Math.floor(random(HEIGHT/CELL_SIZE));
-      for(let dx=-1; dx<=1; dx++){
-        for(let dy=-1; dy<=1; dy++){
-          let nx=cx+dx, ny=cy+dy;
-          if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
-            soil[nx][ny].nitrogen += nitrogenAmount/3;
-          }
+  const cx = Math.floor(random(GRID_SIZE));
+  const cy = Math.floor(random(HEIGHT/CELL_SIZE));
+  foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
+
+    for(let dx=-1; dx<=1; dx++){
+      for(let dy=-1; dy<=1; dy++){
+        let nx=cx+dx, ny=cy+dy;
+        if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+          soil[nx][ny].nitrogen += nitrogenAmount/3;
         }
       }
     }
+    }
 
     function mousePressed(){
-      if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
-        const cx = Math.floor(mouseX/CELL_SIZE);
-        const cy = Math.floor(mouseY/CELL_SIZE);
-        soil[cx][cy].isNest = !soil[cx][cy].isNest;
-      }
+    if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
+      const cx = Math.floor(mouseX/CELL_SIZE);
+      const cy = Math.floor(mouseY/CELL_SIZE);
+      soil[cx][cy].isNest = !soil[cx][cy].isNest;
+    }
     }
 
     document.getElementById('nitrogenAmount').addEventListener('input', e=>{
-      nitrogenAmount = parseInt(e.target.value);
-      document.getElementById('nitrogenAmountLabel').textContent = nitrogenAmount;
+    nitrogenAmount = parseInt(e.target.value);
+    document.getElementById('nitrogenAmountLabel').textContent = nitrogenAmount;
     });
     document.getElementById('nitrogenInterval').addEventListener('input', e=>{
-      const val = parseInt(e.target.value);
-      document.getElementById('nitrogenIntervalLabel').textContent = val;
-      nitrogenInterval = val*60;
+    const val = parseInt(e.target.value);
+    document.getElementById('nitrogenIntervalLabel').textContent = val;
+    nitrogenInterval = val*60;
     });
   </script>
 </body>
