@@ -128,6 +128,16 @@
             let startAngleDeg = -90;
             const rules = [{a:'F', b:'FF-[-F+F+F]+[+F-F-F]'}];
 
+            const patternsRequireLen = new Set(['Fractal Tree', 'Classic Fractal Plant']);
+
+            function updateLenInputState(name){
+                if(patternsRequireLen.has(name)){
+                    lenInput.disabled = false;
+                }else{
+                    lenInput.disabled = true;
+                }
+            }
+
             const patterns = {
                 'Fractal Tree': {
                     axiom: 'F',
@@ -221,6 +231,7 @@
                 lineLimit = p.maxLines || 500000;
                 angleVal.textContent = angleDeg;
                 lenVal.textContent = lenScale;
+                updateLenInputState(name);
                 draw();
             }
 
@@ -368,7 +379,7 @@
                 draw();
             });
             patternSelect.addEventListener('change', function(){
-            resizeCanvas();
+                resizeCanvas();
                 applyPattern(patternSelect.value);
             });
 
