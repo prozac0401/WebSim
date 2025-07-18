@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>개미-질소 순환 시뮬레이터</title>
-  <!-- Load p5.js locally to avoid CDN issues -->
-  <script src="p5.min.js"></script>
+  <!-- Load p5.js from CDN with a local fallback -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script>if(typeof p5==='undefined'){document.write('<script src="p5.min.js"><\\/script>');}</script>
   <style>
     body {
     margin: 0;
