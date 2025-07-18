@@ -39,11 +39,18 @@
     <input id="nitrogenInterval" type="range" min="1" max="20" value="5" />
   </div>
   <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
+  <div id="legend" style="max-width:600px;margin:0 auto 10px auto;font-size:14px;">
+    <span style="display:inline-block;width:12px;height:12px;background:#b5651d;vertical-align:middle;margin-right:4px;"></span>둥지
+    <span style="display:inline-block;width:12px;height:12px;background:black;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>개미
+    <span style="display:inline-block;width:12px;height:12px;background:yellow;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%;"></span>질소 패치
+    <span style="display:inline-block;width:12px;height:12px;background:rgb(50,150,50);margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>식물
+  </div>
   <script>
     const GRID_SIZE = 20;
-    const CELL_SIZE = 20;
-    const WIDTH = GRID_SIZE * CELL_SIZE;
-    const HEIGHT = 30 * CELL_SIZE;
+    const GRID_HEIGHT = 30;
+    let CELL_SIZE;
+    let WIDTH;
+    let HEIGHT;
     const NEST_X = Math.floor(GRID_SIZE/2);
     const NEST_Y = Math.floor(HEIGHT/CELL_SIZE/2);
     let nitrogenAmount = 50;
@@ -53,7 +60,7 @@
     let soil = [];
     let ants = [];
     let foodSources = [];
-    const PLANT_THRESHOLD = CELL_SIZE/2;
+    let PLANT_THRESHOLD;
 
     class SoilCell {
     constructor(x, y) {
@@ -83,7 +90,7 @@
     }
     display() {
       let n = constrain(this.nitrogen*40, 0, 200);
-      fill(200-n, 255-n, 200-n);
+      fill(220-n, 180+n/2, 120-n/3);
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       if(this.pheromone>0.1){
         const alpha = constrain(this.pheromone*50,0,150);
@@ -105,11 +112,22 @@
     constructor(x,y,amount){
       this.pos = createVector(x,y);
       this.amount = amount;
+      this.initial = amount;
     }
     display(){
       if(this.amount>0){
-        fill('orange');
-        ellipse(this.pos.x, this.pos.y, 8,8);
+        const r = CELL_SIZE*0.9;
+        let ctx = drawingContext;
+        let frac = this.amount/this.initial;
+        let grad = ctx.createLinearGradient(this.pos.x, this.pos.y-r/2, this.pos.x, this.pos.y+r/2);
+        let stop = Math.max(0,1-frac);
+        grad.addColorStop(0,'rgba(255,255,0,0)');
+        grad.addColorStop(stop,'rgba(255,255,0,0)');
+        grad.addColorStop(stop,'rgba(255,255,0,1)');
+        grad.addColorStop(1,'rgba(255,255,0,1)');
+        ctx.fillStyle = grad;
+        noStroke();
+        ellipse(this.pos.x, this.pos.y, r, r*1.2);
       }
     }
     }
@@ -164,6 +182,7 @@
           this.pos.add(bestDir.setMag(1));
         }
       }
+      this.pos.add(p5.Vector.random2D().mult(0.3));
       this.pos.x = constrain(this.pos.x,0,width-1);
       this.pos.y = constrain(this.pos.y,0,height-1);
       const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
@@ -177,6 +196,10 @@
     }
 
     function setup(){
+    CELL_SIZE = Math.floor(window.innerWidth/GRID_SIZE);
+    WIDTH = CELL_SIZE * GRID_SIZE;
+    HEIGHT = CELL_SIZE * GRID_HEIGHT;
+    PLANT_THRESHOLD = CELL_SIZE/2;
     let canvas = createCanvas(WIDTH, HEIGHT);
     canvas.id('canvas');
     for(let x=0;x<GRID_SIZE;x++){
