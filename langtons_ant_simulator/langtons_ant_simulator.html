@@ -442,9 +442,9 @@
             // 반응형 캔버스 크기 조정
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
-                const availableWidth = Math.min(window.innerWidth - 80, 800);
-                const availableHeight = Math.min(window.innerHeight - 300, 600);
-                const size = Math.min(availableWidth, availableHeight);
+                const availableWidth = Math.min(Math.max(window.innerWidth - 80, 100), 800);
+                const availableHeight = Math.min(Math.max(window.innerHeight - 300, 100), 600);
+                const size = Math.max(Math.min(availableWidth, availableHeight), 100);
                 
                 canvas.width = size;
                 canvas.height = size;
