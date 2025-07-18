@@ -8,14 +8,19 @@
 - `carnivores` 초기 육식동물 수 (기본 5)
 - `speed` 이동 속도 배율 (기본 1)
 - `seed` 난수 시드
+- `plantSpawn` 식물 생성 확률 (기본 0.05)
+- `herbivoreBirth` 초식동물 번식 확률 (기본 0.5)
+- `carnivoreBirth` 육식동물 번식 확률 (기본 0.5)
+- `herbivoreDeath` 초식동물 자연사 확률 (기본 0.001)
+- `carnivoreDeath` 육식동물 자연사 확률 (기본 0.001)
 
-예시: `?plants=100&herbivores=30&carnivores=8&speed=1.5&seed=42`
+예시: `?plants=100&herbivores=30&carnivores=8&speed=1.5&seed=42&plantSpawn=0.1&herbivoreBirth=0.6&carnivoreBirth=0.6`
 
 ## 동작 방식
 1. 식물은 고정된 위치에 존재하며 시간이 지남에 따라 무작위로 새로 생성됩니다.
 2. 초식동물은 가장 가까운 식물을 찾아 이동하고 먹이를 통해 에너지를 얻어 번식합니다.
 3. 육식동물은 초식동물을 추적해 잡아먹고 에너지를 얻으며 역시 번식합니다.
-4. 에너지가 모두 소모된 개체는 사라집니다.
+4. 매 틱마다 주어진 확률로 개체가 자연사할 수 있으며, 에너지가 모두 소모된 경우에도 사라집니다.
 
 ## 후속 아이디어
 - 계절 혹은 날씨에 따른 성장률 변화
