@@ -28,7 +28,8 @@
   .slider-group input[type="range"] { width: 200px; }
   .slider-group span { display: inline-block; width: 40px; text-align: right; }
 
-  .container.fullscreen #controls {
+  .container.fullscreen #controls,
+  .container.fullscreen #sliders {
     display: none;
   }
 </style>
@@ -129,7 +130,13 @@
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
   }
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', () => {
+    if (document.fullscreenElement === container) {
+      updateFullscreenUI();
+    } else {
+      resizeCanvas();
+    }
+  });
   resizeCanvas();
   let running = false;
   const plants = [];
@@ -359,20 +366,29 @@
       }
     }
   });
-  document.addEventListener('fullscreenchange', () => {
+  function updateFullscreenUI() {
     const inFs = document.fullscreenElement === container;
     fsBtn.textContent = inFs ? 'Exit Fullscreen' : 'Fullscreen';
     if (inFs) {
       container.classList.add('fullscreen');
-      canvas.style.width = '100vw';
-      canvas.style.height = '100vh';
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      if (vw > vh) {
+        canvas.style.width = vw + 'px';
+        canvas.style.height = vw + 'px';
+      } else {
+        canvas.style.width = vh + 'px';
+        canvas.style.height = vh + 'px';
+      }
     } else {
       container.classList.remove('fullscreen');
       canvas.style.width = '';
       canvas.style.height = '';
     }
     resizeCanvas();
-  });
+  }
+
+  document.addEventListener('fullscreenchange', updateFullscreenUI);
 
   spawnInitial();
   initSliders();
