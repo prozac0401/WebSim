@@ -6,6 +6,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       max-width: 900px;
       box-sizing: border-box;
+      text-align: center;
     }
     #ant-n-cycle canvas {
       display: block;
@@ -25,7 +26,6 @@
   <!-- Load p5.js from CDN with a local fallback -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <script>if(typeof p5==='undefined'){document.write('<script src="p5.min.js"><\\/script>');}</script>
-  <h1 style="text-align:center;">개미-질소 순환 시뮬레이터</h1>
   <!-- 설명 문구 제거 -->
   <div class="controls">
     <label>개미 수: <span id="antCountLabel">100</span></label>
@@ -39,13 +39,18 @@
   </div>
   <div id="legend" style="max-width:800px;margin:0 auto 10px auto;font-size:14px;width:100%;">
     <style>
-      #legend .box{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:middle;border:1px solid #999;border-radius:2px;}
+      #legend svg{width:12px;height:12px;margin-left:10px;vertical-align:middle;}
+      #legend svg:first-child{margin-left:0;}
     </style>
-    <span class="box" style="background:#b5651d;"></span>둥지
-    <span class="box" style="background:#000;border-radius:50%;margin-left:10px"></span>개미
-    <span class="box" style="background:yellow;border-radius:50%/40%;margin-left:10px"></span>질소 패치
-    <span class="box" style="background:rgb(50,150,50);margin-left:10px"></span>식물
-    <span class="box" style="background:gray;margin-left:10px"></span>빈 셀
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#b5651d"/></svg>둥지
+    <svg viewBox="0 0 12 12">
+      <circle cx="6" cy="3" r="2" fill="#000"/>
+      <circle cx="6" cy="6" r="2.5" fill="#000"/>
+      <circle cx="6" cy="9" r="3" fill="#000"/>
+    </svg>개미
+    <svg viewBox="0 0 12 12"><ellipse cx="6" cy="6" rx="6" ry="3" fill="yellow"/></svg>질소 패치
+    <svg viewBox="0 0 12 12"><line x1="6" y1="10" x2="6" y2="4" stroke="brown" stroke-width="2"/><circle cx="6" cy="3" r="3" fill="green"/></svg>식물
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FFFFF0" stroke="#ccc"/></svg>빈 셀
   </div>
   <div class="controls">
     <button id="startBtn">Start</button>
@@ -112,13 +117,13 @@
       noStroke();
       let n = constrain(this.nitrogen*40, 0, 200);
       if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
-        fill(200);
+        fill('#FFFFF0');
       }else{
         fill(220-n, 180+n/2, 120-n/3);
       }
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      stroke(220);
-      strokeWeight(0.5);
+      stroke('#cccccc');
+      strokeWeight(1);
       noFill();
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       noStroke();
@@ -240,8 +245,15 @@
       soil[cx][cy].pheromone += this.carrying ? 0.5 : 0.2;
     }
     display(){
-      fill(this.carrying?'#e67e22':'#000');
-      ellipse(this.pos.x,this.pos.y,ANT_SIZE,ANT_SIZE*0.8);
+      const col = this.carrying ? '#e67e22' : '#000';
+      noStroke();
+      fill(col);
+      push();
+      translate(this.pos.x, this.pos.y);
+      ellipse(0,-ANT_SIZE*0.3,ANT_SIZE*0.4,ANT_SIZE*0.4);
+      ellipse(0,0,ANT_SIZE*0.5,ANT_SIZE*0.5);
+      ellipse(0,ANT_SIZE*0.35,ANT_SIZE*0.6,ANT_SIZE*0.6);
+      pop();
     }
     }
 
