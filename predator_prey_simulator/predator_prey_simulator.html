@@ -40,6 +40,13 @@
   let speed = parseFloat(params.get('speed')) || 1;
   let seed = parseInt(params.get('seed')) || Date.now();
 
+  // reproduction and death rates
+  let plantSpawnRate = parseFloat(params.get('plantSpawn')) || 0.05;
+  let herbivoreBirthProb = parseFloat(params.get('herbivoreBirth')) || 0.5;
+  let carnivoreBirthProb = parseFloat(params.get('carnivoreBirth')) || 0.5;
+  let herbivoreDeathProb = parseFloat(params.get('herbivoreDeath')) || 0.001;
+  let carnivoreDeathProb = parseFloat(params.get('carnivoreDeath')) || 0.001;
+
   // simple pseudo random
   function random() {
     seed = (seed * 9301 + 49297) % 233280;
@@ -81,6 +88,7 @@
 
   class Herbivore extends Creature {
     update() {
+      if (random() < herbivoreDeathProb) { this.energy = 0; return; }
       this.energy -= 0.1;
       let target = plants[0];
       let minDist = Infinity;
@@ -97,7 +105,7 @@
           this.energy += 20;
         }
       }
-      if (this.energy > 180) {
+      if (this.energy > 180 && random() < herbivoreBirthProb) {
         this.energy /= 2;
         herbivores.push(new Herbivore(this.x + randRange(-5, 5), this.y + randRange(-5,5)));
       }
@@ -112,6 +120,7 @@
 
   class Carnivore extends Creature {
     update() {
+      if (random() < carnivoreDeathProb) { this.energy = 0; return; }
       this.energy -= 0.15;
       let target = herbivores[0];
       let minDist = Infinity;
@@ -128,7 +137,7 @@
           this.energy += 40;
         }
       }
-      if (this.energy > 200) {
+      if (this.energy > 200 && random() < carnivoreBirthProb) {
         this.energy /= 2;
         carnivores.push(new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5)));
       }
@@ -153,13 +162,17 @@
 
   function update() {
     if (!running) return;
-    if (random() < 0.02) {
+    if (random() < plantSpawnRate) {
       plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
     }
     herbivores.forEach(h => h.update());
     carnivores.forEach(c => c.update());
-    herbivores.filter(h => h.energy > 0);
-    carnivores.filter(c => c.energy > 0);
+    for (let i = herbivores.length - 1; i >= 0; i--) {
+      if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
+    }
+    for (let i = carnivores.length - 1; i >= 0; i--) {
+      if (carnivores[i].energy <= 0) carnivores.splice(i, 1);
+    }
   }
 
   function draw() {
