@@ -14,7 +14,6 @@
 - `herbivoreDeath` 초식동물 자연사 확률 (기본 0.001)
 - `carnivoreDeath` 육식동물 자연사 확률 (기본 0.001)
 
-예시: `?plants=100&herbivores=30&carnivores=8&speed=1.5&seed=42&plantSpawn=0.1&herbivoreBirth=0.6&carnivoreBirth=0.6`
 
 ## 동작 방식
 1. 식물은 고정된 위치에 존재하며 시간이 지남에 따라 무작위로 새로 생성됩니다.
