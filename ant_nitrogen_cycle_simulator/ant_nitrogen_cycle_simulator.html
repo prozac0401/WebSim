@@ -26,23 +26,31 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <script>if(typeof p5==='undefined'){document.write('<script src="p5.min.js"><\\/script>');}</script>
   <h1 style="text-align:center;">개미-질소 순환 시뮬레이터</h1>
-  <p style="text-align:center;">개미가 유기물을 운반해 토양의 질소를 증가시키고 식물을 성장시키는 과정을 관찰해보세요.</p>
+  <!-- 설명 문구 제거 -->
   <div class="controls">
     <label>개미 수: <span id="antCountLabel">100</span></label>
-    <input id="antCount" type="range" min="10" max="100" value="100" />
+    <input id="antCount" type="range" min="10" max="500" value="100" />
     <br/>
     <label>질소량: <span id="nitrogenAmountLabel">50</span></label>
-    <input id="nitrogenAmount" type="range" min="10" max="200" value="50" />
+    <input id="nitrogenAmount" type="range" min="10" max="500" value="50" />
     <br/>
     <label>질소 생성주기(초): <span id="nitrogenIntervalLabel">5</span></label>
     <input id="nitrogenInterval" type="range" min="1" max="20" value="5" />
   </div>
-  <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
   <div id="legend" style="max-width:800px;margin:0 auto 10px auto;font-size:14px;width:100%;">
-    <span style="display:inline-block;width:12px;height:12px;background:#b5651d;vertical-align:middle;margin-right:4px;"></span>둥지
-    <span style="display:inline-block;width:12px;height:12px;background:black;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%;"></span>개미
-    <span style="display:inline-block;width:12px;height:14px;background:yellow;margin:0 0 0 10px;vertical-align:middle;margin-right:4px;border-radius:50%/40%;"></span>질소 패치
-    <span style="display:inline-block;width:12px;height:12px;background:rgb(50,150,50);margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>식물
+    <style>
+      #legend .box{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:middle;border:1px solid #999;border-radius:2px;}
+    </style>
+    <span class="box" style="background:#b5651d;"></span>둥지
+    <span class="box" style="background:#000;border-radius:50%;margin-left:10px"></span>개미
+    <span class="box" style="background:yellow;border-radius:50%/40%;margin-left:10px"></span>질소 패치
+    <span class="box" style="background:rgb(50,150,50);margin-left:10px"></span>식물
+    <span class="box" style="background:gray;margin-left:10px"></span>빈 셀
+  </div>
+  <div class="controls">
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <button id="resetBtn">Reset</button>
   </div>
   <script>
     const GRID_SIZE = 30;
@@ -61,6 +69,7 @@
     let foodSources = [];
     let PLANT_THRESHOLD;
     let ANT_SIZE;
+    const TREE_LIFESPAN = 800;
 
     class SoilCell {
     constructor(x, y) {
@@ -70,6 +79,7 @@
       this.plant = 0;
       this.pheromone = 0;
       this.isNest = false;
+      this.plantAge = 0;
     }
     update() {
       let dn = this.organic * 0.02;
@@ -82,6 +92,16 @@
       let decay = this.plant * 0.005;
       this.plant -= decay;
       this.nitrogen += decay;
+      if(this.plant > 1){
+        this.plantAge++;
+        if(this.plantAge > TREE_LIFESPAN){
+          this.nitrogen += this.plant;
+          this.plant = 0;
+          this.plantAge = 0;
+        }
+      } else {
+        this.plantAge = 0;
+      }
       this.plant = constrain(this.plant, 0, CELL_SIZE-2);
       this.pheromone *= 0.95;
       if(this.isNest && this.plant > PLANT_THRESHOLD){
@@ -91,8 +111,17 @@
     display() {
       noStroke();
       let n = constrain(this.nitrogen*40, 0, 200);
-      fill(220-n, 180+n/2, 120-n/3);
+      if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
+        fill(200);
+      }else{
+        fill(220-n, 180+n/2, 120-n/3);
+      }
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      stroke(220);
+      strokeWeight(0.5);
+      noFill();
+      rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      noStroke();
       if(this.pheromone>0.1){
         const alpha = constrain(this.pheromone*50,0,150);
         fill(180,80,200,alpha);
@@ -100,10 +129,15 @@
       }
       if(this.plant > 1){
         let h = this.plant;
-        fill(139,69,19);
-        rect(this.x*CELL_SIZE+CELL_SIZE/2-1.5, this.y*CELL_SIZE+CELL_SIZE-h, 3, h);
+        push();
+        translate(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE);
+        stroke(139,69,19);
+        strokeWeight(2);
+        line(0,0,0,-h);
+        noStroke();
         fill(34,139,34);
-        ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE-h, h*0.9, h*0.9);
+        ellipse(0,-h,h,h);
+        pop();
       }
       if(this.isNest){
         fill('#b5651d');
@@ -253,14 +287,6 @@
     for(let fs of foodSources){fs.display();}
     for(let ant of ants){ant.update(); ant.display();}
 
-    if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
-      const cx = Math.floor(mouseX/CELL_SIZE);
-      const cy = Math.floor(mouseY/CELL_SIZE);
-      const cell = soil[cx][cy];
-      document.getElementById('stats').textContent =
-        `위치 (${cx},${cy}) - 페로몬: ${cell.pheromone.toFixed(1)} `+
-        `질소: ${cell.nitrogen.toFixed(1)} 식물: ${cell.plant.toFixed(1)}`;
-    }
     }
 
     function initFood(){
@@ -346,6 +372,24 @@ function relocateNest(cell){
     const val = parseInt(e.target.value);
     document.getElementById('nitrogenIntervalLabel').textContent = val;
     nitrogenInterval = val*60;
+    });
+    document.getElementById('startBtn').addEventListener('click',()=>loop());
+    document.getElementById('stopBtn').addEventListener('click',()=>noLoop());
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      initFood();
+      initAnts(parseInt(document.getElementById('antCount').value));
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          soil[x][y].organic=0;
+          soil[x][y].nitrogen=0;
+          soil[x][y].plant=0;
+          soil[x][y].plantAge=0;
+          soil[x][y].pheromone=0;
+          soil[x][y].isNest=false;
+        }
+      }
+      soil[NEST_X][NEST_Y].isNest=true;
+      loop();
     });
   </script>
 </div>
