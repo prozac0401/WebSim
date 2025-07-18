@@ -31,6 +31,12 @@
   <div class="controls">
     <label>개미 수: <span id="antCountLabel">30</span></label>
     <input id="antCount" type="range" min="10" max="100" value="30" />
+    <br/>
+    <label>질소량: <span id="nitrogenAmountLabel">50</span></label>
+    <input id="nitrogenAmount" type="range" min="10" max="200" value="50" />
+    <br/>
+    <label>질소 생성주기(초): <span id="nitrogenIntervalLabel">5</span></label>
+    <input id="nitrogenInterval" type="range" min="1" max="20" value="5" />
   </div>
   <div id="stats" style="text-align:center;margin-bottom:10px;">&nbsp;</div>
   <script>
@@ -40,6 +46,9 @@
     const HEIGHT = 30 * CELL_SIZE;
     const NEST_X = Math.floor(GRID_SIZE/2);
     const NEST_Y = Math.floor(HEIGHT/CELL_SIZE/2);
+    let nitrogenAmount = 50;
+    let nitrogenInterval = 5 * 60; // frames
+    let nextNitrogenFrame = nitrogenInterval;
 
     let soil = [];
     let ants = [];
@@ -52,8 +61,10 @@
         this.nitrogen = 0;
         this.plant = 0;
         this.pheromone = 0;
+        this.isNest = false;
       }
       update() {
+        if(this.isNest) this.plant = 0;
         let dn = this.organic * 0.02;
         this.nitrogen += dn;
         this.organic -= dn;
@@ -75,6 +86,10 @@
         if(this.plant > 1){
           fill(50,150,50);
           rect(this.x*CELL_SIZE+CELL_SIZE/2-2, this.y*CELL_SIZE+CELL_SIZE-this.plant, 4, this.plant);
+        }
+        if(this.isNest){
+          fill('#b5651d');
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
       }
     }
@@ -99,10 +114,11 @@
       }
       update(){
         if(this.carrying){
-          let target = createVector(NEST_X*CELL_SIZE+CELL_SIZE/2,NEST_Y*CELL_SIZE+CELL_SIZE/2);
+          let nestCell = getNearestNest(this.pos);
+          let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,nestCell.y*CELL_SIZE+CELL_SIZE/2);
           this.pos.add(p5.Vector.sub(target,this.pos).setMag(1));
           if(p5.Vector.dist(this.pos,target)<5){
-            soil[NEST_X][NEST_Y].organic += 5;
+            nestCell.organic += 5;
             this.carrying=false;
           }
           soil[Math.floor(this.pos.x/CELL_SIZE)][Math.floor(this.pos.y/CELL_SIZE)].pheromone += 0.5;
@@ -143,6 +159,7 @@
           soil[x][y]=new SoilCell(x,y);
         }
       }
+      soil[NEST_X][NEST_Y].isNest = true;
       initFood();
       initAnts(30);
       document.getElementById('antCount').addEventListener('input', e=>{
@@ -154,6 +171,10 @@
 
     function draw(){
       background(250);
+      if(frameCount>=nextNitrogenFrame){
+        spawnNitrogenPatch();
+        nextNitrogenFrame = frameCount + nitrogenInterval;
+      }
       for(let x=0;x<GRID_SIZE;x++){
         for(let y=0;y<HEIGHT/CELL_SIZE;y++){
           soil[x][y].update();
@@ -162,9 +183,6 @@
       }
       for(let fs of foodSources){fs.display();}
       for(let ant of ants){ant.update(); ant.display();}
-      // nest
-      fill('#b5651d');
-      rect(NEST_X*CELL_SIZE,NEST_Y*CELL_SIZE,CELL_SIZE,CELL_SIZE);
 
       if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
         const cx = Math.floor(mouseX/CELL_SIZE);
@@ -187,6 +205,52 @@
       ants=[];
       for(let i=0;i<n;i++) ants.push(new Ant());
     }
+
+    function getNearestNest(pos){
+      let nearest=null;
+      let dmin=9999;
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          if(soil[x][y].isNest){
+            let c = createVector(x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE/2);
+            let d=p5.Vector.dist(pos,c);
+            if(d<dmin){dmin=d; nearest=soil[x][y];}
+          }
+        }
+      }
+      return nearest||soil[NEST_X][NEST_Y];
+    }
+
+    function spawnNitrogenPatch(){
+      const cx = Math.floor(random(GRID_SIZE));
+      const cy = Math.floor(random(HEIGHT/CELL_SIZE));
+      for(let dx=-1; dx<=1; dx++){
+        for(let dy=-1; dy<=1; dy++){
+          let nx=cx+dx, ny=cy+dy;
+          if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+            soil[nx][ny].nitrogen += nitrogenAmount/3;
+          }
+        }
+      }
+    }
+
+    function mousePressed(){
+      if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
+        const cx = Math.floor(mouseX/CELL_SIZE);
+        const cy = Math.floor(mouseY/CELL_SIZE);
+        soil[cx][cy].isNest = !soil[cx][cy].isNest;
+      }
+    }
+
+    document.getElementById('nitrogenAmount').addEventListener('input', e=>{
+      nitrogenAmount = parseInt(e.target.value);
+      document.getElementById('nitrogenAmountLabel').textContent = nitrogenAmount;
+    });
+    document.getElementById('nitrogenInterval').addEventListener('input', e=>{
+      const val = parseInt(e.target.value);
+      document.getElementById('nitrogenIntervalLabel').textContent = val;
+      nitrogenInterval = val*60;
+    });
   </script>
 </body>
 </html>
