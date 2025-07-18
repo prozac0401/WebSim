@@ -1,36 +1,30 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>개미-질소 순환 시뮬레이터</title>
+<div id="ant-n-cycle">
+  <style>
+    #ant-n-cycle {
+      margin: 0 auto;
+      padding: 10px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      box-sizing: border-box;
+    }
+    #ant-n-cycle canvas {
+      display: block;
+      margin: 0 auto;
+      background: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 900px;
+    }
+    #ant-n-cycle .controls {
+      width: 100%;
+      margin: 10px auto;
+      text-align: center;
+    }
+  </style>
   <!-- Load p5.js from CDN with a local fallback -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <script>if(typeof p5==='undefined'){document.write('<script src="p5.min.js"><\\/script>');}</script>
-  <style>
-    body {
-    margin: 0;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #ffffff;
-    }
-    #canvas {
-    border: 1px solid #ddd;
-    display: block;
-    margin: 0 auto;
-    background: #f8f9fa;
-    max-width: 800px;
-    width: 100%;
-    }
-    .controls {
-    max-width: 800px;
-    width: 100%;
-    margin: 10px auto;
-    text-align: center;
-    }
-  </style>
-</head>
-<body>
   <h1 style="text-align:center;">개미-질소 순환 시뮬레이터</h1>
   <p style="text-align:center;">개미가 유기물을 운반해 토양의 질소를 증가시키고 식물을 성장시키는 과정을 관찰해보세요.</p>
   <div class="controls">
@@ -51,7 +45,7 @@
     <span style="display:inline-block;width:12px;height:12px;background:rgb(50,150,50);margin:0 0 0 10px;vertical-align:middle;margin-right:4px;"></span>식물
   </div>
   <script>
-    const GRID_SIZE = 20;
+    const GRID_SIZE = 30;
     const GRID_HEIGHT = GRID_SIZE;
     let CELL_SIZE;
     let WIDTH;
@@ -66,6 +60,7 @@
     let ants = [];
     let foodSources = [];
     let PLANT_THRESHOLD;
+    let ANT_SIZE;
 
     class SoilCell {
     constructor(x, y) {
@@ -94,6 +89,7 @@
       }
     }
     display() {
+      noStroke();
       let n = constrain(this.nitrogen*40, 0, 200);
       fill(220-n, 180+n/2, 120-n/3);
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -103,8 +99,11 @@
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
       if(this.plant > 1){
-        fill(50,150,50);
-        rect(this.x*CELL_SIZE+CELL_SIZE/2-2, this.y*CELL_SIZE+CELL_SIZE-this.plant, 4, this.plant);
+        let h = this.plant;
+        fill(139,69,19);
+        rect(this.x*CELL_SIZE+CELL_SIZE/2-1.5, this.y*CELL_SIZE+CELL_SIZE-h, 3, h);
+        fill(34,139,34);
+        ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE-h, h*0.9, h*0.9);
       }
       if(this.isNest){
         fill('#b5651d');
@@ -208,17 +207,19 @@
     }
     display(){
       fill(this.carrying?'#e67e22':'#000');
-      ellipse(this.pos.x,this.pos.y,5,5);
+      ellipse(this.pos.x,this.pos.y,ANT_SIZE,ANT_SIZE*0.8);
     }
     }
 
     function setup(){
-    CELL_SIZE = Math.floor(Math.min(window.innerWidth, 800)/GRID_SIZE);
+    const size = Math.min(window.innerWidth, 900);
+    CELL_SIZE = Math.floor(size / GRID_SIZE);
     WIDTH = CELL_SIZE * GRID_SIZE;
-    HEIGHT = CELL_SIZE * GRID_HEIGHT;
+    HEIGHT = WIDTH;
     NEST_X = Math.floor(GRID_SIZE/2);
     NEST_Y = Math.floor(GRID_HEIGHT/2);
     PLANT_THRESHOLD = CELL_SIZE/2;
+    ANT_SIZE = CELL_SIZE * 0.4;
     let canvas = createCanvas(WIDTH, HEIGHT);
     canvas.id('canvas');
     for(let x=0;x<GRID_SIZE;x++){
@@ -347,5 +348,4 @@ function relocateNest(cell){
     nitrogenInterval = val*60;
     });
   </script>
-</body>
-</html>
+</div>
