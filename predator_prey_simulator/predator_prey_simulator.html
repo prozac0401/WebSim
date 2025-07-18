@@ -36,6 +36,7 @@
     <button id="reset-btn">Reset</button>
     <button id="add-herbivore-btn" style="color:blue">Add Herbivore</button>
     <button id="add-carnivore-btn" style="color:red">Add Carnivore</button>
+    <button id="fullscreen-btn">Fullscreen</button>
   </div>
   <div id="sliders">
     <div class="slider-group">
@@ -117,9 +118,11 @@
 
   const canvas = document.getElementById('sim');
   const ctx = canvas.getContext('2d');
+  const container = document.querySelector('.container');
+  const fsBtn = document.getElementById('fullscreen-btn');
   function resizeCanvas() {
     canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -337,6 +340,25 @@
   document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
   document.getElementById('add-herbivore-btn').onclick = () => { addMode = 'herbivore'; };
   document.getElementById('add-carnivore-btn').onclick = () => { addMode = 'carnivore'; };
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      }
+      canvas.style.height = '100vh';
+      canvas.style.width = '100vw';
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      canvas.style.width = '100%';
+      canvas.style.height = '600px';
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    fsBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+    resizeCanvas();
+  });
   canvas.addEventListener('click', e => {
     if (addMode === 'herbivore') {
       herbivores.push(new Herbivore(e.offsetX, e.offsetY));
