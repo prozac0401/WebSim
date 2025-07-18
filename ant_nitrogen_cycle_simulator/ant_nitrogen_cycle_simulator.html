@@ -115,13 +115,13 @@
       update(){
         if(this.carrying){
           let nestCell = getNearestNest(this.pos);
-          let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,nestCell.y*CELL_SIZE+CELL_SIZE/2);
+          let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,
+                                   nestCell.y*CELL_SIZE+CELL_SIZE/2);
           this.pos.add(p5.Vector.sub(target,this.pos).setMag(1));
           if(p5.Vector.dist(this.pos,target)<5){
             nestCell.organic += 5;
             this.carrying=false;
           }
-          soil[Math.floor(this.pos.x/CELL_SIZE)][Math.floor(this.pos.y/CELL_SIZE)].pheromone += 0.5;
         }else{
           let nearest = null;
           let dmin = 9999;
@@ -137,12 +137,31 @@
           }else if(nearest && dmin<80){
             this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(1));
           }else{
-            this.pos.add(p5.Vector.random2D());
+            const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+            const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
+            let bestDir = p5.Vector.random2D();
+            let bestPher = soil[cx][cy].pheromone;
+            for(let dx=-1; dx<=1; dx++){
+              for(let dy=-1; dy<=1; dy++){
+                if(dx===0 && dy===0) continue;
+                let nx=cx+dx, ny=cy+dy;
+                if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+                  let pher=soil[nx][ny].pheromone;
+                  if(pher>bestPher){
+                    bestPher=pher;
+                    bestDir=createVector(dx,dy);
+                  }
+                }
+              }
+            }
+            this.pos.add(bestDir.setMag(1));
           }
-          soil[Math.floor(this.pos.x/CELL_SIZE)][Math.floor(this.pos.y/CELL_SIZE)].pheromone += 0.2;
         }
         this.pos.x = constrain(this.pos.x,0,width-1);
         this.pos.y = constrain(this.pos.y,0,height-1);
+        const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+        const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
+        soil[cx][cy].pheromone += this.carrying ? 0.5 : 0.2;
       }
       display(){
         fill(this.carrying?'#e67e22':'#000');
