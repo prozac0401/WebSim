@@ -1,4 +1,6 @@
 # Predator-Prey Simulator
+[블로그 글]
+https://prozac0401.tistory.com/69
 
 간단한 포식자-피식자 생태계 모델을 웹에서 시각적으로 체험할 수 있는 데모입니다. URL 파라미터를 통해 초기 개체 수를 조정할 수 있으며 **Start**, **Pause**, **Reset** 버튼으로 시뮬레이션을 제어할 수 있습니다.
 
