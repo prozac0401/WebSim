@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predator Prey Simulator</title>
+<style>
+  body {
+    margin: 0;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  canvas { background: #f8f8f8; display: block; margin: 0 auto; }
+  #controls { margin-bottom: 10px; }
+  #controls button { margin-right: 5px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="controls">
+    <button id="start-btn">Start</button>
+    <button id="pause-btn">Pause</button>
+    <button id="reset-btn">Reset</button>
+  </div>
+  <canvas id="sim" width="800" height="600"></canvas>
+</div>
+<script>
+(function() {
+  const params = new URLSearchParams(location.search);
+  let plantCount = parseInt(params.get('plants')) || 50;
+  let herbivoreCount = parseInt(params.get('herbivores')) || 20;
+  let carnivoreCount = parseInt(params.get('carnivores')) || 5;
+  let speed = parseFloat(params.get('speed')) || 1;
+  let seed = parseInt(params.get('seed')) || Date.now();
+
+  // simple pseudo random
+  function random() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+  function randRange(min, max) { return random() * (max - min) + min; }
+
+  const canvas = document.getElementById('sim');
+  const ctx = canvas.getContext('2d');
+  let running = false;
+  const plants = [];
+  const herbivores = [];
+  const carnivores = [];
+
+  class Plant {
+    constructor(x, y) {
+      this.x = x; this.y = y;
+    }
+    draw() {
+      ctx.fillStyle = 'green';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  class Creature {
+    constructor(x, y) {
+      this.x = x; this.y = y; this.energy = 100;
+    }
+    moveTowards(target, speedMul) {
+      const dx = target.x - this.x;
+      const dy = target.y - this.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      this.x += (dx / dist) * speedMul;
+      this.y += (dy / dist) * speedMul;
+    }
+  }
+
+  class Herbivore extends Creature {
+    update() {
+      this.energy -= 0.1;
+      let target = plants[0];
+      let minDist = Infinity;
+      for (const p of plants) {
+        const d = Math.hypot(this.x - p.x, this.y - p.y);
+        if (d < minDist) { minDist = d; target = p; }
+      }
+      if (target) this.moveTowards(target, 1 * speed);
+      // eat
+      for (let i = plants.length - 1; i >= 0; i--) {
+        const p = plants[i];
+        if (Math.hypot(this.x - p.x, this.y - p.y) < 5) {
+          plants.splice(i, 1);
+          this.energy += 20;
+        }
+      }
+      if (this.energy > 180) {
+        this.energy /= 2;
+        herbivores.push(new Herbivore(this.x + randRange(-5, 5), this.y + randRange(-5,5)));
+      }
+    }
+    draw() {
+      ctx.fillStyle = 'blue';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  class Carnivore extends Creature {
+    update() {
+      this.energy -= 0.15;
+      let target = herbivores[0];
+      let minDist = Infinity;
+      for (const h of herbivores) {
+        const d = Math.hypot(this.x - h.x, this.y - h.y);
+        if (d < minDist) { minDist = d; target = h; }
+      }
+      if (target) this.moveTowards(target, 1.2 * speed);
+      // eat
+      for (let i = herbivores.length - 1; i >= 0; i--) {
+        const h = herbivores[i];
+        if (Math.hypot(this.x - h.x, this.y - h.y) < 6) {
+          herbivores.splice(i, 1);
+          this.energy += 40;
+        }
+      }
+      if (this.energy > 200) {
+        this.energy /= 2;
+        carnivores.push(new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5)));
+      }
+    }
+    draw() {
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function spawnInitial() {
+    plants.length = 0; herbivores.length = 0; carnivores.length = 0;
+    for (let i = 0; i < plantCount; i++)
+      plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
+    for (let i = 0; i < herbivoreCount; i++)
+      herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+    for (let i = 0; i < carnivoreCount; i++)
+      carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+  }
+
+  function update() {
+    if (!running) return;
+    if (random() < 0.02) {
+      plants.push(new Plant(randRange(0, canvas.width), randRange(0, canvas.height)));
+    }
+    herbivores.forEach(h => h.update());
+    carnivores.forEach(c => c.update());
+    herbivores.filter(h => h.energy > 0);
+    carnivores.filter(c => c.energy > 0);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    plants.forEach(p => p.draw());
+    herbivores.forEach(h => h.draw());
+    carnivores.forEach(c => c.draw());
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('start-btn').onclick = () => running = true;
+  document.getElementById('pause-btn').onclick = () => running = false;
+  document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
+
+  spawnInitial();
+  draw();
+  loop();
+})();
+</script>
+</body>
+</html>
