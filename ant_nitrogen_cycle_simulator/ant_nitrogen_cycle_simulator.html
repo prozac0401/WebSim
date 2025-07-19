@@ -442,7 +442,11 @@
             }
           }
           if(count >= 9){
-            clusterCenters.push({x: Math.round(sumX/count), y: Math.round(sumY/count)});
+            let cx = Math.floor(sumX / count);
+            let cy = Math.floor(sumY / count);
+            cx = constrain(cx, 0, GRID_SIZE - 1);
+            cy = constrain(cy, 0, HEIGHT / CELL_SIZE - 1);
+            clusterCenters.push({x: cx, y: cy});
           }
         }
       }
