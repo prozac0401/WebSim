@@ -88,6 +88,7 @@
       this.isNest = false;
       this.plantAge = 0;
       this.visited = false;
+      this.treeSpawned = false;
     }
     update() {
       let dn = this.organic * 0.02;
@@ -101,6 +102,10 @@
       this.plant -= decay;
       this.nitrogen += decay;
       if(this.plant > 1){
+        if(!this.treeSpawned){
+          spawnNestNear(this.x, this.y);
+          this.treeSpawned = true;
+        }
         this.plantAge++;
         if(this.plantAge === 1){
           for(let ant of ants){ ant.isResting = false; }
@@ -171,19 +176,20 @@
     display(){
       if(this.amount>0){
         const frac = this.amount/this.initial;
+        const step = Math.ceil(frac*5)/5;
         const c = color('#ffb6c1');
-        c.setAlpha(200*frac+55);
+        c.setAlpha(200*step+55);
         fill(c);
-        stroke(255,255,255,180*frac);
+        stroke(255,255,255,180*step);
         strokeWeight(1);
         push();
         translate(this.pos.x,this.pos.y);
         beginShape();
-        for(let v of this.shape){ vertex(v.x,v.y); }
+        for(let v of this.shape){ vertex(v.x*step,v.y*step); }
         endShape(CLOSE);
         noStroke();
-        fill(255,255,255,150*frac);
-        ellipse(0,-CELL_SIZE*0.2,CELL_SIZE*0.3,CELL_SIZE*0.2);
+        fill(255,255,255,150*step);
+        ellipse(0,-CELL_SIZE*0.2*step,CELL_SIZE*0.3*step,CELL_SIZE*0.2*step);
         pop();
       }
     }
@@ -324,7 +330,7 @@
       push();
       translate(x*CELL_SIZE+CELL_SIZE/2, y*CELL_SIZE+CELL_SIZE);
       stroke(139,69,19);
-      strokeWeight(2);
+      strokeWeight(6);
       line(0,0,0,-h);
       noStroke();
       randomSeed(x*1000+y);
@@ -334,8 +340,11 @@
         const sx = cos(ang)*rad;
         const sy = -h + sin(ang)*rad*0.5;
         const size = random(h*0.15, h*0.3);
-        fill(random(['#ffc6dc','#ffd9e8','#ffeef5']));
-        ellipse(sx, sy, size, size);
+        const col = random(['#ffc6dc','#ffd9e8','#ffeef5']);
+        stroke(col);
+        strokeWeight(1);
+        noFill();
+        drawSnowflakePetal(sx, sy, size);
       }
       pop();
     }
@@ -345,7 +354,7 @@
       push();
       translate(cx*CELL_SIZE + CELL_SIZE/2, cy*CELL_SIZE + CELL_SIZE);
       stroke(139,69,19);
-      strokeWeight(4);
+      strokeWeight(8);
       line(0,0,0,-size);
       noStroke();
       randomSeed(cx*2000+cy);
@@ -355,8 +364,22 @@
         const sx = cos(ang)*rad;
         const sy = -size + sin(ang)*rad*0.6;
         const rsize = random(size*0.25,size*0.4);
-        fill(random(['#ffc6dc','#ffd9e8','#ffeef5']));
-        ellipse(sx, sy, rsize, rsize);
+        const col = random(['#ffc6dc','#ffd9e8','#ffeef5']);
+        stroke(col);
+        strokeWeight(1);
+        noFill();
+        drawSnowflakePetal(sx, sy, rsize);
+      }
+      pop();
+    }
+
+    function drawSnowflakePetal(px, py, size){
+      push();
+      translate(px, py);
+      const arms = 6;
+      for(let i=0;i<arms;i++){
+        const ang = TWO_PI*i/arms;
+        line(0,0,cos(ang)*size/2,sin(ang)*size/2);
       }
       pop();
     }
@@ -475,6 +498,37 @@ function relocateNest(cell){
   best.isNest = true;
 }
 
+function spawnNestNear(cx, cy){
+  let options=[];
+  for(let dx=-1; dx<=1; dx++){
+    for(let dy=-1; dy<=1; dy++){
+      if(dx===0 && dy===0) continue;
+      let nx=cx+dx, ny=cy+dy;
+      if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+        let cell=soil[nx][ny];
+        if(!cell.isNest && cell.plant<=1){
+          options.push(cell);
+        }
+      }
+    }
+  }
+  if(options.length>0){
+    const nestCell = random(options);
+    nestCell.isNest = true;
+    for(let ant of ants){
+      const ax=Math.floor(ant.pos.x/CELL_SIZE);
+      const ay=Math.floor(ant.pos.y/CELL_SIZE);
+      if(ax===cx && ay===cy){
+        ant.pos.x = nestCell.x*CELL_SIZE + CELL_SIZE/2;
+        ant.pos.y = nestCell.y*CELL_SIZE + CELL_SIZE/2;
+        ant.prevPos = ant.pos.copy();
+        ant.isResting=false;
+      }
+    }
+    spawnNitrogenPatchAround(nestCell.x, nestCell.y);
+  }
+}
+
     function getNearestNest(pos){
     let nearest=null;
     let dmin=9999;
@@ -508,6 +562,36 @@ function spawnNitrogenPatch(){
         if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
           soil[nx][ny].nitrogen += nitrogenAmount/3;
         }
+    }
+  }
+}
+
+function spawnNitrogenPatchAround(cx, cy){
+  let options=[];
+  for(let dx=-2; dx<=2; dx++){
+    for(let dy=-2; dy<=2; dy++){
+      let nx=cx+dx, ny=cy+dy;
+      if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+        let cell=soil[nx][ny];
+        if(cell.plant<=1){
+          options.push({x:nx,y:ny});
+        }
+      }
+    }
+  }
+  if(options.length>0){
+    const choice = random(options);
+    foodSources.push(new FoodSource(choice.x*CELL_SIZE+CELL_SIZE/2, choice.y*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
+    for(let ant of ants){
+      ant.isResting=false;
+    }
+    for(let dx=-1; dx<=1; dx++){
+      for(let dy=-1; dy<=1; dy++){
+        let nx=choice.x+dx, ny=choice.y+dy;
+        if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+          soil[nx][ny].nitrogen += nitrogenAmount/3;
+        }
+      }
     }
   }
 }
