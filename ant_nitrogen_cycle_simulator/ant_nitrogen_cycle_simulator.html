@@ -81,6 +81,7 @@
     const MIN_CLUSTER_SIZE = 5; // cells needed to form a big tree
     let nestCount = 0;
     let clusterCenters = [];
+    let flowPath = [];
 
     function mulberry32(a){
       return function(){
@@ -189,7 +190,7 @@
           const ny=this.y+d.dy;
           if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
             const diff=soil[nx][ny].nitrogen-this.nitrogen;
-            if(diff>0.2 && diff>bestDiff){
+            if(diff>0.05 && diff>bestDiff){
               bestDiff=diff;
               arrow=d.ch;
             }
@@ -470,7 +471,7 @@
         pop();
       }
 
-    function computeClusterCenters(){
+function computeClusterCenters(){
       clusterCenters = [];
       const visited = Array.from({length: GRID_SIZE}, () =>
         Array(HEIGHT/CELL_SIZE).fill(false));
@@ -572,6 +573,7 @@
       releaseTrappedAnts(NEST_X, NEST_Y);
     }
     computeClusterCenters();
+    computeFlowPath();
       for(let c of clusterCenters){
         drawBigCherryTree(c.x,c.y);
       }
@@ -580,6 +582,7 @@
           if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
         }
       }
+    drawFlowPath();
 
       // draw nitrogen arrows on top of trees and plants so flow remains visible
       for(let x=0;x<GRID_SIZE;x++){
@@ -754,6 +757,51 @@ function spawnNitrogenPatchAround(cx, cy){
         }
       }
     }
+  }
+}
+
+function computeFlowPath(){
+  flowPath = [];
+  const DIRS = [
+    {dx:0,dy:-1,ch:'▲'},
+    {dx:1,dy:0,ch:'▶'},
+    {dx:0,dy:1,ch:'▼'},
+    {dx:-1,dy:0,ch:'◀'}
+  ];
+  let cx = NEST_X;
+  let cy = NEST_Y;
+  const visited = new Set([cx+','+cy]);
+  for(let i=0;i<GRID_SIZE*2;i++){
+    let best = null;
+    let bestVal = soil[cx][cy].plant*2 + soil[cx][cy].nitrogen;
+    let bestDir = null;
+    for(let d of DIRS){
+      const nx=cx+d.dx, ny=cy+d.dy;
+      if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE && !visited.has(nx+','+ny)){
+        const cell=soil[nx][ny];
+        const val=cell.plant*2 + cell.nitrogen;
+        if(val>bestVal){
+          bestVal=val;
+          best={x:nx,y:ny};
+          bestDir=d.ch;
+        }
+      }
+    }
+    if(!best) break;
+    flowPath.push({x:cx,y:cy,ch:bestDir});
+    cx=best.x; cy=best.y;
+    visited.add(cx+','+cy);
+    if(soil[cx][cy].plant>1) break;
+  }
+}
+
+function drawFlowPath(){
+  textAlign(CENTER,CENTER);
+  textSize(CELL_SIZE*0.6);
+  noStroke();
+  fill('#ff6600');
+  for(let step of flowPath){
+    text(step.ch, step.x*CELL_SIZE+CELL_SIZE/2, step.y*CELL_SIZE+CELL_SIZE/2);
   }
 }
 
