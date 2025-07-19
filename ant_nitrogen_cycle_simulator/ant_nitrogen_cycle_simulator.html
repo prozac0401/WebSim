@@ -60,6 +60,7 @@
   <script>
     const GRID_SIZE = 30;
     const GRID_HEIGHT = GRID_SIZE;
+    const MAX_NESTS = 6;
     let CELL_SIZE;
     let WIDTH;
     let HEIGHT;
@@ -76,6 +77,7 @@
     let ANT_SIZE;
     let ANT_SPEED = 1.5;
     const TREE_LIFESPAN = 800;
+    let nestCount = 0;
     let clusterCenters = [];
 
     function mulberry32(a){
@@ -480,6 +482,7 @@
     }
     soil[NEST_X][NEST_Y].isNest = true;
     soil[NEST_X][NEST_Y].treeSpawned = true;
+    nestCount = 1;
     initFood();
     initAnts(100);
     document.getElementById('antCount').addEventListener('input', e=>{
@@ -553,6 +556,7 @@ function relocateNest(cell){
 }
 
 function spawnNestNear(cx, cy){
+  if(nestCount >= MAX_NESTS) return;
   let options=[];
   for(let dx=-1; dx<=1; dx++){
     for(let dy=-1; dy<=1; dy++){
@@ -569,6 +573,7 @@ function spawnNestNear(cx, cy){
   if(options.length>0){
     const nestCell = random(options);
     nestCell.isNest = true;
+    nestCount++;
     nestCell.treeSpawned = true;
     for(let ant of ants){
       const ax=Math.floor(ant.pos.x/CELL_SIZE);
@@ -580,7 +585,7 @@ function spawnNestNear(cx, cy){
         ant.isResting=false;
       }
     }
-    spawnNitrogenPatchAround(nestCell.x, nestCell.y);
+    // spawnNitrogenPatchAround(nestCell.x, nestCell.y);
   }
 }
 
@@ -712,6 +717,7 @@ function updateFoodSources(){
       }
       soil[NEST_X][NEST_Y].isNest=true;
       soil[NEST_X][NEST_Y].treeSpawned=true;
+      nestCount = 1;
       loop();
     });
     console.log('setup type before new p5', typeof window.setup);
