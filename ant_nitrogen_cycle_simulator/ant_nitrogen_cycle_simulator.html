@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ant–Nitrogen Cycle Simulator (v6 — Full, Continuous, Grid)</title>
+<title>Ant–Nitrogen Cycle Simulator (v7 — 완성)</title>
 <style>
   body{margin:0;padding:0;display:flex;justify-content:center;background:#fafafa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
   #ant-n-cycle{padding:10px;max-width:960px;width:100%;box-sizing:border-box;text-align:center;}
@@ -35,11 +35,10 @@
   <div id="legend">
     <style>#legend rect,#legend circle,#legend line{pointer-events:none;}</style>
     <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#b5651d"/></svg>둥지
-    <svg viewBox="0 0 12 12"><circle cx="6" cy="3" r="2" fill="#000"/><circle cx="6" cy="6" r="2.5" fill="#000"/><circle cx="6" cy="9" r="3" fill="#000"/></svg>개미
-    <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>사탕 부스러기(양분)
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.6"/></svg>질소 음영
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.6"/></svg>유기물 음영
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FF69B4" opacity="0.6"/></svg>개화 가능 지역
+    <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>사탕 부스러기
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.5"/></svg>질소 음영
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.5"/></svg>유기물 음영
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FF69B4" opacity="0.5"/></svg>개화 가능 지역
     <svg viewBox="0 0 12 12"><path d="M0 0 L12 0 M0 0 L0 12" stroke="#cccccc"/></svg>격자
   </div>
 
@@ -53,122 +52,75 @@
 <script>
 (()=>{
 /****************************** CONSTANTS ******************************/
-const GRID_SIZE     = 30;
-const TREE_LIFESPAN = 800;   // frames a tree persists
-const STILL_LIMIT   = 600;   // frames before an ant is teleported to avoid stall
-const MAX_NESTS     = 6;
-// bloom thresholds
-const N_THRESHOLD   = 3;     // nitrogen
-const O_THRESHOLD   = 2;     // organic
-const AGE_THRESHOLD = 120;   // frames matured
-const BLOOM_CHANCE  = 0.3;   // probability per frame after matured
-/******************************* Globals *******************************/
-let CELL_SIZE, WIDTH, HEIGHT;
-let NEST_X, NEST_Y;
-let nutrientAmount   = 50;   // slider controlled
-let nutrientInterval = 5 * 60; // frames (set by slider)
-let nextNutrientFrame = 0;
-let nestCount;
-let soil = [], ants = [], foodSources = [];
-let ANT_SIZE, ANT_SPEED;
-/***************************** Random util *****************************/
-const rngSeed = a =>(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};
-/******************************* Classes *******************************/
-class SoilCell{
-  constructor(x,y){this.x=x;this.y=y;this.organic=0;this.nitrogen=0;this.plant=0;this.pheromone=0;this.isNest=false;this.plantAge=0;this.treeSpawned=false;this.bloomCounter=0;this.bloomPotential=0;}
-  update(){
-    // nutrient cycling: organic → nitrogen → plant → decay
-    const dn=this.organic*0.02; this.nitrogen+=dn; this.organic-=dn;
-    const uptake=this.nitrogen*0.01; this.plant+=uptake*5; this.nitrogen-=uptake;
-    const decay=this.plant*0.005; this.plant-=decay; this.nitrogen+=decay;
-
-    // bloom potential & tree spawning
-    if(!this.isNest && this.plant<=1){
-      const nPot=this.nitrogen/N_THRESHOLD;
-      const oPot=this.organic/O_THRESHOLD;
-      this.bloomPotential = constrain((nPot+oPot)/2,0,1);
-      if(this.bloomPotential>=1){this.bloomCounter++;}else{this.bloomCounter=0;}
-      if(this.bloomCounter>AGE_THRESHOLD && random()<BLOOM_CHANCE && !this.treeSpawned){
-        this.plant = 2; // start new tree
-        this.treeSpawned = true;
-      }
-    } else {this.bloomPotential=0; this.bloomCounter=0;}
-
-    // tree ageing
-    if(this.plant>1){
-      this.plantAge++;
-      if(this.plantAge>TREE_LIFESPAN){
-        this.nitrogen+=this.plant; this.plant=0; this.plantAge=0; this.treeSpawned=false;
-      }
-    } else {this.plantAge=0;}
-
-    // pheromone decay
-    this.pheromone*=0.95;
-  }
-  displayGround(){
-    const x=this.x*CELL_SIZE, y=this.y*CELL_SIZE;
-    noStroke(); fill('#FFFFF0'); rect(x,y,CELL_SIZE,CELL_SIZE);
-    if(this.nitrogen>0.05){fill(34,139,34,constrain(this.nitrogen*60,0,160));rect(x,y,CELL_SIZE,CELL_SIZE);} // nitrogen
-    if(this.organic>0.05){fill(139,69,19,constrain(this.organic*60,0,160));rect(x,y,CELL_SIZE,CELL_SIZE);} // organic
-    if(this.bloomPotential>0 && this.plant<=1){fill(255,105,180,constrain(this.bloomPotential*120,0,120));rect(x,y,CELL_SIZE,CELL_SIZE);} // bloom potential
-    if(this.pheromone>0.1){fill(180,80,200,constrain(this.pheromone*50,0,150));rect(x,y,CELL_SIZE,CELL_SIZE);} // pheromone
-    if(this.nitrogen>0.5 && !this.isNest && this.plant<=1){fill('#ffb6c1'); ellipse(x+CELL_SIZE/2,y+CELL_SIZE/2,CELL_SIZE*0.3);} // crumbs
-    if(this.isNest){fill('#b5651d'); rect(x,y,CELL_SIZE,CELL_SIZE);} // nest
-  }
-  displayPlant(){if(this.plant>1) drawCherryTree(this.x,this.y,this.plant);} }
-
-class FoodSource{
-  constructor(x,y,amount){this.pos=createVector(x,y);this.initial=amount;this.amount=amount;this.shape=[];for(let i=0;i<8;i++){const ang=TWO_PI*i/8+random(-0.2,0.2);const rad=CELL_SIZE*0.8*random(0.8,1.2);this.shape.push({x:cos(ang)*rad,y:sin(ang)*rad});}}
-  display(){if(this.amount<=0) return; const frac=this.amount/this.initial; const step=Math.ceil(frac*5)/5; const col=color('#ffb6c1'); col.setAlpha(200*step+55); fill(col); stroke(255,255,255,180*step); strokeWeight(1); push(); translate(this.pos.x,this.pos.y); beginShape(); this.shape.forEach(v=>vertex(v.x*step,v.y*step)); endShape(CLOSE); pop(); }
-}
-
-class Ant{
-  constructor(){this.pos=createVector(random(width),random(height)); this.prevPos=this.pos.copy(); this.vel=createVector(1,0); this.carrying=false; this.load=0; this.still=0; this.dir=int(random(4));}
-  update(){
-    const prev=this.pos.copy();
-    const cx=floor(this.pos.x/CELL_SIZE), cy=floor(this.pos.y/CELL_SIZE); const cell=soil[cx][cy];
-    // nudge out if trapped in tree
-    if(cell.plant>1){ this.dir=(this.dir+2)%4; this.pos=prev; }
-
-    if(this.carrying){ // bring nutrient to nest
-      const nestCell=getNearestNest(this.pos); const target=createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2, nestCell.y*CELL_SIZE+CELL_SIZE/2); this.pos.add(p5.Vector.sub(target,this.pos).setMag(ANT_SPEED));
-      if(dist(this.pos.x,this.pos.y,target.x,target.y)<2){ nestCell.organic+=this.load; this.carrying=false; this.load=0; }
-    } else {
-      // search food
-      let nearest=null, dmin=1e9;
-      for(const fs of foodSources){ if(fs.amount>0){ const d=dist(this.pos.x,this.pos.y,fs.pos.x,fs.pos.y); if(d<dmin){dmin=d; nearest=fs;} } }
-      if(nearest && dmin<5){ const take=min(5,nearest.amount); nearest.amount-=take; this.carrying=true; this.load=take; }
-      else if(nearest && dmin<80){ this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(ANT_SPEED)); }
-      else{ // random walk
-        if(random()<0.02) this.dir=int(random(4));
-        if(this.dir===0) this.pos.y-=ANT_SPEED; else if(this.dir===1) this.pos.x+=ANT_SPEED; else if(this.dir===2) this.pos.y+=ANT_SPEED; else this.pos.x-=ANT_SPEED;
-      }
-    }
-    // boundaries
-    this.pos.x=constrain(this.pos.x,0,width-1); this.pos.y=constrain(this.pos.y,0,height-1);
-    // pheromones
-    soil[floor(this.pos.x/CELL_SIZE)][floor(this.pos.y/CELL_SIZE)].pheromone += this.carrying?0.5:0.2;
-    // velocity & stall
-    this.vel=p5.Vector.sub(this.pos,prev);
-    if(this.vel.magSq()<0.5) this.still++; else this.still=0;
-    if(this.still>STILL_LIMIT){ const nestCell=getNearestNest(this.pos); this.pos.set(nestCell.x*CELL_SIZE+CELL_SIZE/2, nestCell.y*CELL_SIZE+CELL_SIZE/2); this.still=0; this.carrying=false; this.load=0; }
-  }
-  display(){ const col=this.carrying?'#d020d0':'#000'; noStroke(); fill(col); push(); translate(this.pos.x,this.pos.y); rotate(this.vel.heading()+HALF_PI);
-    ellipse(0,-ANT_SIZE*0.3,ANT_SIZE*0.4); ellipse(0,0,ANT_SIZE*0.5); ellipse(0,ANT_SIZE*0.35,ANT_SIZE*0.6);
-    if(this.carrying){ fill('#ffb6c1'); ellipse(0,-ANT_SIZE*0.8,ANT_SIZE*0.3);} pop(); }
-}
-/*************************** Drawing helpers ****************************/
-function drawCherryTree(x,y,h){ push(); translate(x*CELL_SIZE+CELL_SIZE/2, y*CELL_SIZE); stroke(139,69,19); strokeWeight(6); line(0,CELL_SIZE,0,CELL_SIZE-h); noStroke(); const rng=rngSeed(x*1000+y); for(let i=0;i<20;i++){ const ang=rng()*TWO_PI; const rad=rng()*(h*0.6)+h*0.2; const sx=cos(ang)*rad; const sy=-rad*0.6; const size=rng()*(h*0.15)+h*0.15; fill(random(['#ffc6dc','#ffd9e8','#ffeef5'])); ellipse(sx,sy,size);} pop(); }
-
-function drawGridLines(){ stroke(204,204,204,80); strokeWeight(1); for(let i=0;i<=GRID_SIZE;i++){ line(i*CELL_SIZE,0,i*CELL_SIZE,HEIGHT); line(0,i*CELL_SIZE,WIDTH,i*CELL_SIZE); } }
-/**************************** Simulation utils *************************/
-function getNearestNest(pos){ let nearest=null,dmin=1e9; for(let x=0;x<GRID_SIZE;x++){ for(let y=0;y<GRID_SIZE;y++){ if(soil[x][y].isNest){ const d=dist(pos.x,pos.y,x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE/2); if(d<dmin){dmin=d; nearest=soil[x][y];} } } } return nearest; }
-
-function initSoil(){ soil=[]; for(let x=0;x<GRID_SIZE;x++){ soil[x]=[]; for(let y=0;y<GRID_SIZE;y++){ soil[x][y]=new SoilCell(x,y);} } nestCount=1; soil[NEST_X][NEST_Y].isNest=true; soil[NEST_X][NEST_Y].treeSpawned=true; }
-
-function initAnts(n){ ants=[]; for(let i=0;i<n;i++) ants.push(new Ant()); }
-
-function initFood(){ foodSources=[]; for(let i=0;i<3;i++){ foodSources.push(new FoodSource(random(width),random(height),nutrientAmount)); } }
-
-function spawnNutrientPatch(){ let cx,cy; do{cx=floor(random(GRID_SIZE)); cy=floor(random(GRID_SIZE));}while(soil[cx][cy].plant>1);
-  foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL
+const GRID_SIZE=30,TREE_LIFESPAN=800,STILL_LIMIT=600,MAX_NESTS=6;const N_TH=3,O_TH=2,AGE_TH=120,BLOOM_P=0.3;
+/**************************** Runtime vars *****************************/
+let CELL,WIDTH,HEIGHT,NX,NY;let nutrientAmt=50,nutrientInt=5*60,nextNutrient=0;let soil=[],ants=[],foods=[];let ANT_S,ANT_V;let running=true;
+/***************************** p5 sketch ******************************/
+const sketch=p=>{
+ p.setup=()=>{
+   CELL=Math.floor(Math.min(p.windowWidth*0.9,920)/GRID_SIZE);
+   WIDTH=CELL*GRID_SIZE;HEIGHT=WIDTH;NX=Math.floor(GRID_SIZE/2);NY=NX;
+   ANT_S=CELL*0.4;ANT_V=CELL*0.1;
+   const cnv=p.createCanvas(WIDTH,HEIGHT);cnv.parent('ant-n-cycle');
+   initSoil();initAnts(100);initFoods();
+   // UI binds
+   p.select('#antCount').input(e=>{p.select('#antCountLabel').html(e.target.value);initAnts(+e.target.value);});
+   p.select('#nutrientAmount').input(e=>{nutrientAmt=+e.target.value;p.select('#nutrientAmountLabel').html(nutrientAmt);});
+   p.select('#nutrientInterval').input(e=>{nutrientInt=+e.target.value*60;p.select('#nutrientIntervalLabel').html(+e.target.value);});
+   p.select('#startBtn').mousePressed(()=>{running=true;});p.select('#stopBtn').mousePressed(()=>{running=false;});
+   p.select('#resetBtn').mousePressed(()=>{initSoil();initAnts(+p.select('#antCount').value());initFoods();running=true;});
+ };
+ p.draw=()=>{if(!running) return; if(p.frameCount>=nextNutrient){spawnPatch();nextNutrient=p.frameCount+nutrientInt;}
+   // update
+   soil.flat().forEach(c=>c.update()); ants.forEach(a=>a.update()); foods=foods.filter(f=>f.amount>0);
+   // render
+   p.background(250);
+   soil.flat().forEach(c=>{c.displayGround();});
+   drawGrid();
+   foods.forEach(f=>f.display(p));
+   ants.forEach(a=>a.display(p));
+   soil.flat().forEach(c=>c.displayPlant());
+ };
+ /* Helpers inside p5 context */
+ function drawGrid(){p.stroke(204,204,204,80);p.strokeWeight(1);for(let i=0;i<=GRID_SIZE;i++){p.line(i*CELL,0,i*CELL,HEIGHT);p.line(0,i*CELL,WIDTH,i*CELL);}}
+ function rng(a){return()=>{var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+ /* Classes */
+ class Soil{constructor(x,y){this.x=x;this.y=y;this.o=0;this.n=0;this.p=0;this.ph=0;this.nest=false;this.age=0;this.bloom=0;this.tree=false;}
+  update(){const dn=this.o*0.02;this.n+=dn;this.o-=dn;const up=this.n*0.01;this.p+=up*5;this.n-=up;const dc=this.p*0.005;this.p-=dc;this.n+=dc;
+   // bloom potential
+   if(!this.nest&&this.p<=1){this.bloom=((this.n/N_TH)+(this.o/O_TH))/2; if(this.bloom>=1){this.age++;}else this.age=0; if(this.age>AGE_TH&&Math.random()<BLOOM_P&&!this.tree){this.p=2;this.tree=true;}}
+   else {this.bloom=0;this.age=0;}
+   if(this.p>1){this.age++;if(this.age>TREE_LIFESPAN){this.n+=this.p;this.p=0;this.age=0;this.tree=false;}}
+   this.ph*=0.95; }
+  displayGround(){const x=this.x*CELL,y=this.y*CELL;p.noStroke();p.fill('#FFFFF0');p.rect(x,y,CELL,CELL);
+   if(this.n>0.05){p.fill(34,139,34,Math.min(this.n*60,160));p.rect(x,y,CELL,CELL);} if(this.o>0.05){p.fill(139,69,19,Math.min(this.o*60,160));p.rect(x,y,CELL,CELL);}
+   if(this.bloom>0&&this.p<=1){p.fill(255,105,180,Math.min(this.bloom*120,120));p.rect(x,y,CELL,CELL);} if(this.nest){p.fill('#b5651d');p.rect(x,y,CELL,CELL);} }
+  displayPlant(){if(this.p>1) drawTree(this.x,this.y,this.p);} }
+ class Food{constructor(x,y,amt){this.pos=p.createVector(x,y);this.init=amt;this.amount=amt;this.shape=[];for(let i=0;i<8;i++){const ang=TWO_PI*i/8+p.random(-0.2,0.2);const rad=CELL*0.8*p.random(0.8,1.2);this.shape.push({x:Math.cos(ang)*rad,y:Math.sin(ang)*rad});}}
+  display(){const frac=this.amount/this.init;if(frac<=0) return;const step=Math.ceil(frac*5)/5;const col=p.color('#ffb6c1');col.setAlpha(200*step+55);p.fill(col);p.noStroke();p.push();p.translate(this.pos.x,this.pos.y);p.beginShape();this.shape.forEach(v=>p.vertex(v.x*step,v.y*step));p.endShape(p.CLOSE);p.pop();}}
+ class Ant{constructor(){this.pos=p.createVector(p.random(WIDTH),p.random(HEIGHT));this.vel=p.createVector(1,0);this.carry=false;this.load=0;this.dir=p.int(p.random(4));this.still=0;}
+  update(){const px=this.pos.copy();const cx=Math.floor(this.pos.x/CELL),cy=Math.floor(this.pos.y/CELL);const cell=soil[cx][cy];if(cell.p>1){this.dir=(this.dir+2)%4;}
+   if(this.carry){const nest=nearestNest(this.pos);const tgt=p.createVector(nest.x*CELL+CELL/2,nest.y*CELL+CELL/2);this.pos.add(p5.Vector.sub(tgt,this.pos).setMag(ANT_V));if(p.dist(this.pos.x,this.pos.y,tgt.x,tgt.y)<2){nest.o+=this.load;this.carry=false;this.load=0;}}
+   else{let near=null,dmin=1e9;foods.forEach(f=>{if(f.amount>0){const d=p.dist(this.pos.x,this.pos.y,f.pos.x,f.pos.y);if(d<dmin){dmin=d;near=f;}}});
+     if(near&&dmin<5){const take=Math.min(5,near.amount);near.amount-=take;this.carry=true;this.load=take;}
+     else if(near&&dmin<80){this.pos.add(p5.Vector.sub(near.pos,this.pos).setMag(ANT_V));}
+     else {if(Math.random()<0.02) this.dir=p.int(p.random(4)); if(this.dir===0) this.pos.y-=ANT_V;else if(this.dir===1) this.pos.x+=ANT_V;else if(this.dir===2) this.pos.y+=ANT_V;else this.pos.x-=ANT_V;}}
+   this.pos.x=p.constrain(this.pos.x,0,WIDTH-1);this.pos.y=p.constrain(this.pos.y,0,HEIGHT-1);soil[Math.floor(this.pos.x/CELL)][Math.floor(this.pos.y/CELL)].ph+=this.carry?0.5:0.2;
+   this.vel=p5.Vector.sub(this.pos,px);if(this.vel.magSq()<0.5)this.still++;else this.still=0;if(this.still>STILL_LIMIT){const n=nearestNest(this.pos);this.pos.set(n.x*CELL+CELL/2,n.y*CELL+CELL/2);this.still=0;}}
+  display(){p.noStroke();p.fill(this.carry?'#d020d0':'#000');p.push();p.translate(this.pos.x,this.pos.y);p.rotate(this.vel.heading()+p.HALF_PI);
+   p.ellipse(0,-ANT_S*0.3,ANT_S*0.4);p.ellipse(0,0,ANT_S*0.5);p.ellipse(0,ANT_S*0.35,ANT_S*0.6);
+   if(this.carry){p.fill('#ffb6c1');p.ellipse(0,-ANT_S*0.8,ANT_S*0.3);}p.pop();}}
+ function drawTree(x,y,h){p.push();p.translate(x*CELL+CELL/2,y*CELL);p.stroke(139,69,19);p.strokeWeight(6);p.line(0,CELL,0,CELL-h);p.noStroke();const rand=rng(x*1000+y);for(let i=0;i<20;i++){const ang=rand()*TWO_PI,rad=rand()*(h*0.6)+h*0.2;sx=Math.cos(ang)*rad;sy=-rad*0.6;size=rand()*(h*0.15)+h*0.15;p.fill(p.random(['#ffc6dc','#ffd9e8','#ffeef5']));p.ellipse(sx,sy,size);}p.pop();}
+ /* util funcs */
+ function nearestNest(pos){let best=soil[NX][NY],dmin=1e9;soil.flat().forEach(c=>{if(c.nest){const d=p.dist(pos.x,pos.y,c.x*CELL+CELL/2,c.y*CELL+CELL/2);if(d<dmin){dmin=d;best=c;}}});return best;}
+ function initSoil(){soil=[];for(let x=0;x<GRID_SIZE;x++){soil[x]=[];for(let y=0;y<GRID_SIZE;y++){soil[x][y]=new Soil(x,y);}}soil[NX][NY].nest=true;}
+ function initAnts(n){ants=[];for(let i=0;i<n;i++)ants.push(new Ant());}
+ function initFoods(){foods=[];for(let i=0;i<3;i++){foods.push(new Food(p.random(WIDTH),p.random(HEIGHT),nutrientAmt));}}
+ function spawnPatch(){let cx,cy;do{cx=p.int(p.random(GRID_SIZE));cy=p.int(p.random(GRID_SIZE));}while(soil[cx][cy].p>1);foods.push(new Food(cx*CELL+CELL/2,cy*CELL+CELL/2,nutrientAmt));soil[cx][cy].o+=nutrientAmt;}
+};
+new p5(sketch);
+})();
+</script>
+</div>
+</body>
+</html>
