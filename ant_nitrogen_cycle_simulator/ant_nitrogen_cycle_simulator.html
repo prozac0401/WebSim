@@ -571,6 +571,7 @@ function computeClusterCenters(){
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
+        soil[x][y].displayNitrogenFlow();
         if(soil[x][y].plantAge === 1){
           releaseTrappedAnts(NEST_X, NEST_Y);
         }
