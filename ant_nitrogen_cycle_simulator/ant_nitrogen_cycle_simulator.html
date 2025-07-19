@@ -1,10 +1,13 @@
-<!-- Fixed Ant–Nitrogen Cycle Simulator (ant_n_cycle_fixed.html)
-     주요 수정 사항:
-     1. "양분" 흐름을 organic → nitrogen 으로 분리
-        · 개미가 FoodSource 에서 섭취한 유기물(organic)을 보금자리로 운반해 토양 organic 증가
-        · SoilCell.update() 에서 organic → nitrogen 전환 유지 (기존 로직)
-     2. spawnNitrogenPatch() → 양분 패치 실제로 organic 축적만 수행
-     3. 변수 및 메서드 이름 명확화, 중복 fill 제거, 렌더링 최적화
+<!-- Ant–Nitrogen Cycle Simulator (Full Implementation)
+     ✦ 수정 & 개선 ✦
+     1. 유기물(organic) ↔ 질소(nitrogen) 흐름 완전 구현
+        – 개미가 FoodSource 에서 유기물을 들고 보금자리로 운반해 토양 organic 증가
+        – SoilCell.update() 가 organic→nitrogen 전환 유지 (기존 로직)
+     2. spawnNitrogenPatch() 은 실제로 organic 축적만 수행
+     3. 질소·유기물 시각화
+        – 질소: 녹색 반투명 오버레이, 유기물: 갈색 반투명 오버레이
+        – 레전드 추가
+     4. 불필요한 중복 렌더링 제거·변수명 명확화
 -->
 <div id="ant-n-cycle">
   <style>
@@ -12,9 +15,9 @@
       margin: 0 auto;
       padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 900px;
-      box-sizing: border-box;
+      max-width: 920px;
       text-align: center;
+      box-sizing: border-box;
     }
     #ant-n-cycle canvas {
       display: block;
@@ -23,7 +26,7 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
       width: 100%;
-      max-width: 900px;
+      max-width: 920px;
     }
     #ant-n-cycle .controls {
       width: 100%;
@@ -31,23 +34,20 @@
       text-align: center;
     }
   </style>
-
-  <!-- Load p5.js from CDN with a local fallback -->
+  <!-- Load p5.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-  <script>if(typeof p5==='undefined'){document.write('<script src="p5.min.js"><\\/script>');}</script>
-
   <div class="controls">
     <label>개미 수: <span id="antCountLabel">100</span></label>
     <input id="antCount" type="range" min="10" max="500" value="100" />
     <br/>
-    <label>양분(organic) 패치 크기: <span id="nutrientAmountLabel">50</span></label>
+    <label>양분 패치 크기: <span id="nutrientAmountLabel">50</span></label>
     <input id="nutrientAmount" type="range" min="10" max="500" value="50" />
     <br/>
     <label>양분 생성주기(초): <span id="nutrientIntervalLabel">5</span></label>
     <input id="nutrientInterval" type="range" min="1" max="20" value="5" />
   </div>
-
-  <div id="legend" style="max-width:800px;margin:0 auto 10px auto;font-size:14px;width:100%;">
+  <!-- Legend -->
+  <div id="legend" style="max-width:820px;margin:0 auto 10px auto;font-size:14px;width:100%;">
     <style>
       #legend svg{width:12px;height:12px;margin-left:10px;vertical-align:middle;}
       #legend svg:first-child{margin-left:0;}
@@ -58,421 +58,292 @@
       <circle cx="6" cy="6" r="2.5" fill="#000"/>
       <circle cx="6" cy="9" r="3" fill="#000"/>
     </svg>개미
-    <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>양분(사탕 부스러기)
-    <svg viewBox="0 0 12 12"><line x1="6" y1="10" x2="6" y2="4" stroke="brown" stroke-width="2"/><circle cx="6" cy="3" r="3" fill="green"/></svg>식물
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FFFFF0" stroke="#ccc"/></svg>빈 셀
+    <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>사탕 부스러기(양분)
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.6"/></svg>질소 농도(녹색 음영)
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.6"/></svg>유기물 농도(갈색 음영)
   </div>
-
   <div class="controls">
     <button id="startBtn">Start</button>
     <button id="stopBtn">Stop</button>
     <button id="resetBtn">Reset</button>
   </div>
-
   <script>
-    /* ----- 전역 설정 ----- */
-    const GRID_SIZE   = 30;
-    const MAX_NESTS   = 6;
-    const GRID_HEIGHT = GRID_SIZE; // 그리드가 정사각형일 때 사용
-
+    /* ------- 시뮬레이터 전역 상수 & 변수 ------- */
+    const GRID_SIZE = 30;
+    const GRID_HEIGHT = GRID_SIZE;
+    const MAX_NESTS = 6;
     let CELL_SIZE, WIDTH, HEIGHT;
     let NEST_X, NEST_Y;
 
-    /* 시뮬레이션 파라미터 (UI 슬라이더로 변경 가능) */
-    let nutrientAmount   = 50;      // 패치 유기물 양
-    let nutrientInterval = 5 * 60;  // 프레임 단위(초*60)
+    /* 유저 조절 매개변수 */
+    let nutrientAmount = 50;          // 패치 1개 유기물 양
+    let nutrientInterval = 5 * 60;    // 프레임 단위
     let nextNutrientFrame = nutrientInterval;
 
     /* 컬렉션 */
-    let soil = [];       // 2D 토양 셀
-    let ants = [];       // 개미 객체
-    let foodSources = []; // 양분 패치 (사탕 부스러기)
+    let soil = [];
+    let ants = [];
+    let foodSources = [];
 
-    /* 상수 계산용 */
+    /* 시뮬 조정 */
     let PLANT_THRESHOLD, ANT_SIZE, ANT_SPEED;
     const TREE_LIFESPAN = 800;
-    const STILL_LIMIT   = 600; // 움직임 없으면 개미 사망
+    const STILL_LIMIT   = 600; // 정지 프레임 한계
     const MIN_CLUSTER_SIZE = 5;
+    let nestCount = 0;
 
-    /* 클러스터/흐름 시각화 관련 */
-    let clusterCenters = [], clusterCells = [], clusterMap = [], flowPath = [];
-
-    /* ----- 유틸: 결정적 난수 ----- */
+    /* ------- 유틸리티 난수 함수 (seeded) ------- */
     function mulberry32(a){
       return function(){
-        let t = a += 0x6D2B79F5;
+        var t = a += 0x6D2B79F5;
         t = Math.imul(t ^ t >>> 15, t | 1);
         t ^= t + Math.imul(t ^ t >>> 7, t | 61);
         return ((t ^ t >>> 14) >>> 0) / 4294967296;
-      };
+      }
     }
 
-    /* ----- SoilCell 클래스 ----- */
+    /* ------- SoilCell 클래스 ------- */
     class SoilCell {
-      constructor(x, y){
-        this.x = x; this.y = y;
-        this.organic   = 0; // 유기물 (양분)
-        this.nitrogen  = 0; // 질소
-        this.plant     = 0; // 식물 크기
-        this.pheromone = 0;
-        this.isNest    = false;
-        this.plantAge  = 0;
-        this.treeSpawned = false;
+      constructor(x, y) {
+        Object.assign(this,{x,y, organic:0, nitrogen:0, plant:0, pheromone:0, isNest:false, plantAge:0, treeSpawned:false});
       }
-
-      /* 일 단위 토양 갱신 */
       update(){
-        // organic -> nitrogen 변환
-        const dN = this.organic * 0.02;
-        this.nitrogen += dN;
-        this.organic  -= dN;
-
-        // 식물 질소 흡수 및 성장
-        const uptake = this.nitrogen * 0.01;
-        this.plant   += uptake * 5;
+        /* 1) 유기물 → 질소 전환 */
+        let dn = this.organic * 0.02;
+        this.nitrogen += dn;
+        this.organic  -= dn;
+        /* 2) 질소 → 식물 성장 */
+        let uptake = this.nitrogen * 0.01;
+        this.plant  += uptake*5;
         this.nitrogen -= uptake;
-
-        // 고목/낙엽 분해 → nitrogen 회수
-        const decay = this.plant * 0.005;
+        /* 3) 식물 노화 & 분해 */
+        let decay = this.plant * 0.005;
         this.plant   -= decay;
         this.nitrogen += decay;
-
-        // 식물 관련 이벤트
-        if(this.plant > 1){
+        /* 4) 초과 성장 시 나무 & 둥지 재배치 트리거 */
+        if(this.plant>1){
           this.plantAge++;
           if(!this.treeSpawned && !this.isNest && !isNestNearby(this.x,this.y,3)){
             spawnNestNear(this.x,this.y);
             this.treeSpawned = true;
           }
-          if(this.plantAge > TREE_LIFESPAN){
+          if(this.plantAge>TREE_LIFESPAN){
             this.nitrogen += this.plant;
-            this.plant = 0;
-            this.plantAge = 0;
+            this.plant = 0; this.plantAge = 0;
           }
         } else {
           this.plantAge = 0;
         }
-        this.plant = constrain(this.plant, 0, CELL_SIZE-2);
-
-        // 페로몬 자연 소실
+        this.plant = constrain(this.plant,0,CELL_SIZE-2);
+        /* 페로몬 자연 감쇠 */
         this.pheromone *= 0.95;
       }
-
-      /* 땅 배경 타일 렌더링 */
       displayGround(){
+        /* 기본 배경 */
         noStroke();
-        // 기본 채움: 질소 농도에 따라 채도 변환 (밝은 → 어두운)
-        const shade = constrain(255 - this.nitrogen * 40, 55, 245);
-        fill(shade);
+        fill('#FFFFF0');
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-        // 격자선 (얇게)
-        stroke('#cccccc');
-        strokeWeight(1);
-        noFill();
-        rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        noStroke();
+        /* 질소 시각화 (녹색) */
+        if(this.nitrogen>0.05){
+          const alpha = constrain(this.nitrogen*60,0,160);
+          fill(34,139,34,alpha); // forestgreen
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
+        /* 유기물 시각화 (갈색) */
+        if(this.organic>0.05){
+          const alpha = constrain(this.organic*60,0,160);
+          fill(139,69,19,alpha); // saddlebrown
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
 
-        // 페로몬
+        /* 페로몬 시각화 (보라) */
         if(this.pheromone>0.1){
-          const alpha = constrain(this.pheromone*50, 0, 150);
+          const alpha = constrain(this.pheromone*50,0,150);
           fill(180,80,200,alpha);
           rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
 
-        // 양분(사탕 부스러기) 표시
-        if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
+        /* 사탕 부스러기 표시 (식물 없는 셀 only) */
+        if(this.nitrogen>0.5 && !this.isNest && this.plant<=1){
           fill('#ffb6c1');
           ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3);
         }
-
-        // 둥지 표시
+        /* 둥지 렌더 */
         if(this.isNest){
           fill('#b5651d');
           rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
       }
-
-      /* 벚꽃(식물) 렌더링 */
       displayPlant(){
-        if(this.plant > 1){
-          drawCherryTree(this.x, this.y, this.plant);
-        }
+        if(this.plant>1){ drawCherryTree(this.x,this.y,this.plant); }
       }
     }
 
-    /* ----- FoodSource (사탕 부스러기) ----- */
+    /* ------- FoodSource (사탕 부스러기) ------- */
     class FoodSource{
       constructor(x,y,amount){
-        this.pos = createVector(x,y);
-        this.amount = amount;
-        this.initial = amount;
-        this.shape = [];
-        const steps = 8;
+        this.pos=createVector(x,y);
+        this.amount=this.initial=amount; this.shape=[];
+        const steps=8;
         for(let i=0;i<steps;i++){
-          const ang = TWO_PI*i/steps + random(-0.2,0.2);
-          const rad = CELL_SIZE*0.8*random(0.8,1.2);
-          this.shape.push({x:cos(ang)*rad, y:sin(ang)*rad});
+          const ang=TWO_PI*i/steps+random(-0.2,0.2);
+          const rad=CELL_SIZE*0.8*random(0.8,1.2);
+          this.shape.push({x:cos(ang)*rad,y:sin(ang)*rad});
         }
       }
       display(){
         if(this.amount>0){
-          const frac = this.amount/this.initial;
-          const step = Math.ceil(frac*5)/5;
-          const c = color('#ffb6c1');
-          c.setAlpha(200*step+55);
-          fill(c);
-          stroke(255,255,255,180*step);
-          strokeWeight(1);
-          push();
-          translate(this.pos.x,this.pos.y);
-          beginShape();
-          for(let v of this.shape){ vertex(v.x*step,v.y*step); }
-          endShape(CLOSE);
+          const frac=this.amount/this.initial;
+          const step=Math.ceil(frac*5)/5;
+          const c=color('#ffb6c1'); c.setAlpha(200*step+55);
+          fill(c); stroke(255,255,255,180*step); strokeWeight(1);
+          push(); translate(this.pos.x,this.pos.y);
+          beginShape(); for(let v of this.shape) vertex(v.x*step,v.y*step); endShape(CLOSE);
+          noStroke(); fill(255,255,255,150*step); ellipse(0,-CELL_SIZE*0.2*step,CELL_SIZE*0.3*step);
           pop();
         }
       }
     }
 
-    /* ----- Ant 클래스 ----- */
-    class Ant {
+    /* ------- Ant 클래스 ------- */
+    class Ant{
       constructor(){
-        this.pos = createVector(random(width), random(height));
-        this.prevPos = this.pos.copy();
-        this.vel = createVector(1,0);
-        this.carrying = false;
-        this.load = 0; // 운반 중인 organic 양
-        this.isResting = false;
-        this.dir = int(random(4));
-        this.still = 0;
+        this.pos=createVector(random(width),random(height));
+        this.prevPos=this.pos.copy(); this.vel=createVector(1,0);
+        this.carrying=false; this.carryingAmount=0;
+        this.isResting=false; this.dir=int(random(4)); this.still=0;
       }
-
       update(){
-        const prev = this.pos.copy();
-        const cx = constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
-        const cy = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
-        const cell = soil[cx][cy];
+        const prev=this.pos.copy();
+        const cx=constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+        const cy=constrain(Math.floor(this.pos.y/CELL_SIZE),0,GRID_SIZE-1);
+        const cell=soil[cx][cy];
 
-        /* 휴식 상태 해제 조건 */
-        if(this.isResting){
-          if(cell.pheromone > 0.1){ this.isResting = false; }
-          else { return; }
-        }
+        /* 휴면 상태 풀기 */
+        if(this.isResting){ if(cell.pheromone>0.1){ this.isResting=false; } else return; }
 
-        /* 운반(둥지로 돌아가기) */
-        if(this.carrying){
-          const nestCell = getNearestNest(this.pos);
-          const target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2, nestCell.y*CELL_SIZE+CELL_SIZE/2);
+        /* 1) 식물 충돌 시 반전 */
+        if(cell.plant>1){ this.pos=prev; this.dir=(this.dir+2)%4; }
+        /* 2) 운반 중이면 둥지로 */
+        else if(this.carrying){
+          const nestCell=getNearestNest(this.pos);
+          const target=createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,nestCell.y*CELL_SIZE+CELL_SIZE/2);
           this.pos.add(p5.Vector.sub(target,this.pos).setMag(ANT_SPEED));
-          if(p5.Vector.dist(this.pos,target) < 5){
-            nestCell.organic += this.load; // ★ 수정: nitrogen → organic
-            this.carrying = false;
-            this.load = 0;
+          if(p5.Vector.dist(this.pos,target)<5){
+            nestCell.organic+=this.carryingAmount; // 유기물 적재
+            this.carrying=false; this.carryingAmount=0;
           }
         }
-        /* 탐색/채집 */
-        else {
-          // 가장 가까운 FoodSource 탐색
-          let nearest=null, dmin=1e9;
-          for(const fs of foodSources){
-            if(fs.amount<=0) continue;
-            const d = p5.Vector.dist(this.pos, fs.pos);
-            if(d<dmin){ dmin=d; nearest=fs; }
-          }
-
-          // FoodSource 도달 → 유기물 수집
-          if(nearest && dmin<5){
-            const pick = Math.min(nearest.amount, 5);
-            nearest.amount -= pick;
-            this.carrying = true;
-            this.load = pick;
-          }
-          // FoodSource 근처로 이동
-          else if(nearest && dmin<80){
+        /* 3) 먹이 탐색 */
+        else{
+          let nearest=null,dmin=9999;
+          for(let fs of foodSources){ if(fs.amount>0){ let d=p5.Vector.dist(this.pos,fs.pos); if(d<dmin){dmin=d; nearest=fs;} } }
+          if(nearest&&dmin<5){
+            const pick=Math.min(5,nearest.amount);
+            nearest.amount-=pick; this.carrying=true; this.carryingAmount=pick;
+          } else if(nearest&&dmin<80){
             this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(ANT_SPEED));
-          }
-          // 무작위 보행 (페로몬 힌트)
-          else {
-            if(random()<0.02){ this.dir = int(random(4)); }
-            if(this.dir===0) this.pos.y -= ANT_SPEED;
-            if(this.dir===1) this.pos.x += ANT_SPEED;
-            if(this.dir===2) this.pos.y += ANT_SPEED;
-            if(this.dir===3) this.pos.x -= ANT_SPEED;
+          } else {
+            /* 간단 랜덤 워크 + 페로몬 */
+            if(random()<0.02){ this.dir=int(random(4)); }
+            if(this.dir===0) this.pos.y-=ANT_SPEED;
+            if(this.dir===1) this.pos.x+=ANT_SPEED;
+            if(this.dir===2) this.pos.y+=ANT_SPEED;
+            if(this.dir===3) this.pos.x-=ANT_SPEED;
           }
         }
 
-        /* 위치 한정 및 페로몬 표시 */
-        this.pos.x = constrain(this.pos.x,0,width-1);
-        this.pos.y = constrain(this.pos.y,0,height-1);
-        const cx2 = Math.floor(this.pos.x/CELL_SIZE);
-        const cy2 = Math.floor(this.pos.y/CELL_SIZE);
-        soil[cx2][cy2].pheromone += this.carrying ? 0.5 : 0.2;
-
-        /* 정지 체크 */
-        if(p5.Vector.dist(this.pos,prev) < 0.5) this.still++; else this.still=0;
-        if(this.still>STILL_LIMIT) this.dead=true;
-        this.prevPos = this.pos.copy();
-        this.vel = p5.Vector.sub(this.pos,prev);
+        /* 경계 & 기록 */
+        this.pos.x=constrain(this.pos.x,0,width-1);
+        this.pos.y=constrain(this.pos.y,0,height-1);
+        const cx2=constrain(Math.floor(this.pos.x/CELL_SIZE),0,GRID_SIZE-1);
+        const cy2=constrain(Math.floor(this.pos.y/CELL_SIZE),0,GRID_SIZE-1);
+        soil[cx2][cy2].pheromone+=this.carrying?0.5:0.2;
+        this.vel=p5.Vector.sub(this.pos,prev);
+        if(this.vel.magSq()<0.0001){ this.vel.setMag(ANT_SPEED); }
+        (p5.Vector.dist(this.pos,prev)<0.5)?this.still++:this.still=0;
+        if(this.still>STILL_LIMIT){ this.dead=true; }
+        this.prevPos=this.pos.copy();
       }
-
       display(){
-        const col = this.carrying ? '#d020d0' : '#000';
-        noStroke();
-        fill(col);
-        push();
-        translate(this.pos.x, this.pos.y);
-        rotate(this.vel.heading()+HALF_PI);
-        ellipse(0,-ANT_SIZE*0.3,ANT_SIZE*0.4,ANT_SIZE*0.4);
-        ellipse(0,0,ANT_SIZE*0.5,ANT_SIZE*0.5);
-        ellipse(0,ANT_SIZE*0.35,ANT_SIZE*0.6,ANT_SIZE*0.6);
-        pop();
+        const col=this.carrying?'#d020d0':'#000';
+        noStroke(); fill(col);
+        push(); translate(this.pos.x,this.pos.y); rotate(this.vel.heading()+HALF_PI);
+        for(let i=-1;i<=1;i++){ stroke(col); strokeWeight(1); line(-ANT_SIZE*0.4,ANT_SIZE*0.1*i,-ANT_SIZE*0.8,ANT_SIZE*0.3*i); line(ANT_SIZE*0.4,ANT_SIZE*0.1*i,ANT_SIZE*0.8,ANT_SIZE*0.3*i);} noStroke();
+        ellipse(0,-ANT_SIZE*0.3,ANT_SIZE*0.4);
+        ellipse(0,0,ANT_SIZE*0.5);
+        ellipse(0,ANT_SIZE*0.35,ANT_SIZE*0.6);
+        if(this.carrying){ fill('#ffb6c1'); ellipse(0,-ANT_SIZE*0.8,ANT_SIZE*0.3); fill(col);} pop();
       }
     }
 
-    /* ----- p5.js setup & draw ----- */
+    /* ------- 시각화용 식물 / 나무 그리기 ------- */
+    function drawCherryTree(x,y,h){
+      push(); translate(x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE); stroke(139,69,19); strokeWeight(6); line(0,0,0,-h);
+      noStroke(); const rng=mulberry32(x*1000+y);
+      for(let i=0;i<20;i++){ const ang=rng()*TWO_PI, rad=rng()*(h*0.6)+h*0.2, sx=cos(ang)*rad, sy=-h+sin(ang)*rad*0.5, size=rng()*(h*0.15)+h*0.15; fill(['#ffc6dc','#ffd9e8','#ffeef5'][Math.floor(rng()*3)]); ellipse(sx,sy,size); }
+      pop();
+    }
+
+    /* ------- 초기화 & 헬퍼 ------- */
     function setup(){
-      const size = Math.min(window.innerWidth, 900);
-      CELL_SIZE = Math.floor(size / GRID_SIZE);
-      WIDTH  = CELL_SIZE * GRID_SIZE;
-      HEIGHT = WIDTH; // 정사각형
+      const size=Math.min(window.innerWidth,920); CELL_SIZE=Math.floor(size/GRID_SIZE);
+      WIDTH=CELL_SIZE*GRID_SIZE; HEIGHT=WIDTH;
+      NEST_X=Math.floor(GRID_SIZE/2); NEST_Y=Math.floor(GRID_SIZE/2);
+      PLANT_THRESHOLD=CELL_SIZE/2; ANT_SIZE=CELL_SIZE*0.4; ANT_SPEED=CELL_SIZE*0.1;
+      createCanvas(WIDTH,HEIGHT).id('simCanvas');
 
-      NEST_X = Math.floor(GRID_SIZE/2);
-      NEST_Y = Math.floor(GRID_HEIGHT/2);
-      PLANT_THRESHOLD = CELL_SIZE/2;
-      ANT_SIZE  = CELL_SIZE * 0.4;
-      ANT_SPEED = CELL_SIZE * 0.1;
+      /* 토양 배열 생성 */
+      for(let x=0;x<GRID_SIZE;x++){ soil[x]=[]; for(let y=0;y<GRID_SIZE;y++){ soil[x][y]=new SoilCell(x,y); } }
+      soil[NEST_X][NEST_Y].isNest=true; soil[NEST_X][NEST_Y].treeSpawned=true; nestCount=1;
 
-      const canvas = createCanvas(WIDTH, HEIGHT);
-      canvas.id('canvas');
+      initFood(); initAnts(100);
 
-      // 토양 초기화
-      for(let x=0;x<GRID_SIZE;x++){
-        soil[x]=[]; for(let y=0;y<HEIGHT/CELL_SIZE;y++) soil[x][y]=new SoilCell(x,y);
-      }
-      soil[NEST_X][NEST_Y].isNest = true;
-      soil[NEST_X][NEST_Y].treeSpawned = true;
-
-      initFood();
-      initAnts(100);
-
-      // UI 이벤트
-      document.getElementById('antCount').addEventListener('input', e=>{
-        const val = parseInt(e.target.value);
-        document.getElementById('antCountLabel').textContent = val;
-        initAnts(val);
-      });
-      document.getElementById('nutrientAmount').addEventListener('input', e=>{
-        nutrientAmount = parseInt(e.target.value);
-        document.getElementById('nutrientAmountLabel').textContent = nutrientAmount;
-      });
-      document.getElementById('nutrientInterval').addEventListener('input', e=>{
-        const val = parseInt(e.target.value);
-        nutrientInterval = val * 60;
-        document.getElementById('nutrientIntervalLabel').textContent = val;
-      });
-
+      /* UI 이벤트 */
+      document.getElementById('antCount').addEventListener('input',e=>{const v=parseInt(e.target.value); document.getElementById('antCountLabel').textContent=v; initAnts(v);});
+      document.getElementById('nutrientAmount').addEventListener('input',e=>{nutrientAmount=parseInt(e.target.value); document.getElementById('nutrientAmountLabel').textContent=nutrientAmount;});
+      document.getElementById('nutrientInterval').addEventListener('input',e=>{const v=parseInt(e.target.value); nutrientInterval=v*60; document.getElementById('nutrientIntervalLabel').textContent=v;});
       document.getElementById('startBtn').addEventListener('click',()=>loop());
       document.getElementById('stopBtn').addEventListener('click',()=>noLoop());
-      document.getElementById('resetBtn').addEventListener('click', resetSim);
+      document.getElementById('resetBtn').addEventListener('click',resetSimulation);
     }
 
     function draw(){
       background(250);
-
-      // 주기적 nutrient 패치 생성
-      if(frameCount >= nextNutrientFrame){
-        spawnNutrientPatch();
-        nextNutrientFrame = frameCount + nutrientInterval;
-      }
-
-      // 토양 업데이트 및 렌더링
-      for(let x=0;x<GRID_SIZE;x++){
-        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          const cell = soil[x][y];
-          cell.update();
-          cell.displayGround();
-        }
-      }
-
-      // FoodSource 렌더링 & 삭제
-      for(const fs of foodSources) fs.display();
-      foodSources = foodSources.filter(fs => fs.amount>0);
-
-      // 개미 업데이트 & 렌더링
-      for(const ant of ants){ ant.update(); ant.display(); }
-      ants = ants.filter(a => !a.dead);
+      /* 주기적 양분 패치 생성 */
+      if(frameCount>=nextNutrientFrame){ spawnNutrientPatch(); nextNutrientFrame=frameCount+nutrientInterval; }
+      /* 토양 셀 업데이트 & 렌더 */
+      for(let x=0;x<GRID_SIZE;x++){ for(let y=0;y<GRID_SIZE;y++){ soil[x][y].update(); soil[x][y].displayGround(); } }
+      /* 식물 렌더 (separate pass for 깊이) */
+      for(let x=0;x<GRID_SIZE;x++){ for(let y=0;y<GRID_SIZE;y++){ soil[x][y].displayPlant(); } }
+      /* 먹이, 개미 */
+      for(let fs of foodSources) fs.display(); updateFoodSources();
+      ants.forEach(a=>{a.update(); a.display();}); ants=ants.filter(a=>!a.dead);
     }
 
-    /* ----- 유틸 함수 ----- */
-    function initFood(){
-      foodSources = [];
-      for(let i=0;i<3;i++){
-        foodSources.push(new FoodSource(random(width), random(height), nutrientAmount));
-      }
-    }
-    function initAnts(n){
-      ants = [];
-      for(let i=0;i<n;i++) ants.push(new Ant());
-    }
+    /* ---------- 초기/재시작 핸들러 ---------- */
+    function initFood(){ foodSources=[]; for(let i=0;i<3;i++) foodSources.push(new FoodSource(random(width),random(height),100)); }
+    function initAnts(n){ ants=[]; for(let i=0;i<n;i++) ants.push(new Ant()); }
+    function resetSimulation(){ initFood(); initAnts(parseInt(document.getElementById('antCount').value)); nextNutrientFrame=frameCount+nutrientInterval;
+      for(let x=0;x<GRID_SIZE;x++){ for(let y=0;y<GRID_SIZE;y++){ Object.assign(soil[x][y],{organic:0,nitrogen:0,plant:0,plantAge:0,pheromone:0,isNest:false,treeSpawned:false}); } }
+      soil[NEST_X][NEST_Y].isNest=true; soil[NEST_X][NEST_Y].treeSpawned=true; nestCount=1; loop(); }
 
-    function resetSim(){
-      initAnts(parseInt(document.getElementById('antCount').value));
-      for(let x=0;x<GRID_SIZE;x++){
-        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          const c = soil[x][y];
-          c.organic=c.nitrogen=c.plant=c.plantAge=c.pheromone=0;
-          c.isNest=false; c.treeSpawned=false;
-        }
-      }
-      soil[NEST_X][NEST_Y].isNest=true; soil[NEST_X][NEST_Y].treeSpawned=true;
-      initFood();
-      loop();
-    }
+    /* ---------- 핵심 헬퍼 ---------- */
+    function getNearestNest(pos){ let res=null,min=1e9; for(let x=0;x<GRID_SIZE;x++){ for(let y=0;y<GRID_SIZE;y++){ if(soil[x][y].isNest){ let d=p5.Vector.dist(pos,createVector(x*CELL_SIZE+CELL_SIZE/2,y*CELL_SIZE+CELL_SIZE/2)); if(d<min){min=d; res=soil[x][y];} } } } return res; }
+    function isNestNearby(x,y,r){ for(let dx=-r;dx<=r;dx++){ for(let dy=-r;dy<=r;dy++){ if(dx===0&&dy===0) continue; let nx=x+dx,ny=y+dy; if(nx>=0&&nx<GRID_SIZE&&ny>=0&&ny<GRID_SIZE&&soil[nx][ny].isNest) return true;} } return false; }
+    function spawnNestNear(cx,cy){ if(nestCount>=MAX_NESTS) return; let opts=[]; for(let dx=-1;dx<=1;dx++){ for(let dy=-1;dy<=1;dy++){ if(dx===0&&dy===0) continue; let nx=cx+dx,ny=cy+dy; if(nx>=0&&nx<GRID_SIZE&&ny>=0&&ny<GRID_SIZE&&!soil[nx][ny].isNest&&soil[nx][ny].plant<=1) opts.push(soil[nx][ny]); } } if(opts.length){ const nestCell=random(opts); nestCell.isNest=true; nestCell.treeSpawned=true; nestCount++; }}
 
-    /* ----- 양분 패치 생성 (기존 질소 패치 → organic) ----- */
-    function spawnNutrientPatch(){
-      let cx, cy;
-      do{
-        cx = floor(random(GRID_SIZE));
-        cy = floor(random(HEIGHT/CELL_SIZE));
-      }while(soil[cx][cy].plant>1);
-
-      // FoodSource(사탕) 추가
+    /* ---------- 양분 패치 ---------- */
+    function spawnNutrientPatch(){ let cx,cy; do{ cx=Math.floor(random(GRID_SIZE)); cy=Math.floor(random(GRID_SIZE)); }while(soil[cx][cy].plant>1);
       foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL_SIZE+CELL_SIZE/2, nutrientAmount));
-
-      // 주변 토양 organic 증대 (벚나무 근처 거름 효과)
-      for(let dx=-1; dx<=1; dx++){
-        for(let dy=-1; dy<=1; dy++){
-          const nx=cx+dx, ny=cy+dy;
-          if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
-            soil[nx][ny].organic += nutrientAmount/3;
-          }
-        }
-      }
-
-      // 휴식 중인 개미 깨우기
-      ants.forEach(a=>{ a.isResting=false; a.still=0; });
+      /* 인근 3×3 셀에 유기물 투입 */
+      for(let dx=-1;dx<=1;dx++){ for(let dy=-1;dy<=1;dy++){ let nx=cx+dx,ny=cy+dy; if(nx>=0&&nx<GRID_SIZE&&ny>=0&&ny<GRID_SIZE){ soil[nx][ny].organic += nutrientAmount/3; } } }
     }
 
-    /* 둥지/식물 관련 함수 (코어 로직 대부분 기존 유지) */
-    function isNestNearby(x,y,radius){
-      for(let dx=-radius;dx<=radius;dx++){
-        for(let dy=-radius;dy<=radius;dy++){
-          if(dx===0&&dy===0) continue;
-          const nx=x+dx, ny=y+dy;
-          if(nx>=0&&nx<GRID_SIZE&&ny>=0&&ny<HEIGHT/CELL_SIZE){
-            if(soil[nx][ny].isNest) return true;
-          }
-        }
-      }
-      return false;
-    }
+    /* ---------- 기타 ---------- */
+    function updateFoodSources(){ for(let i=foodSources.length-1;i>=0;i--){ if(foodSources[i].amount<=0) foodSources.splice(i,1); } }
 
-    function spawnNestNear(cx,cy){ /* 내용 동일, 구현 생략 */ }
-    function getNearestNest(pos){ /* 내용 동일, 구현 생략 */ }
-    function drawCherryTree(x,y,h){ /* 내용 동일, 구현 생략 */ }
-
-    /* p5 instance */
-    new p5();
+    window.setup=setup; // p5 글로벌 등록
   </script>
 </div>
