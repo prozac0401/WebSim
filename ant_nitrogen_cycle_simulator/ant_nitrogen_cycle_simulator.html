@@ -1,22 +1,19 @@
-<!-- Ant–Nitrogen Cycle Simulator (Flower‑Logic v2)
-     ★ 주요 추가 · 변경 ★
-     1. 현실적인 꽃 개화 조건
-        – N_THRESHOLD, O_THRESHOLD, AGE_THRESHOLD, BLOOM_CHANCE 상수 도입
-        – nitrogen·organic·성숙기간·확률 충족 시 ‘벚꽃나무’ 개화
-     2. 잠재 개화 영역 시각화(연한 분홍 음영)
-        – 매 프레임 bloomPotential 계산 → 음영 강도 알파값으로 표시(다른 음영 위 우선)
-     3. 레전드에 ‘개화 가능 지역’ 추가
-     4. 코드 정리·주석 보강
+<!-- Ant–Nitrogen Cycle Simulator (v3 – complete, render‑ready)
+     ▣ 주요 특징 ▣
+     ● 현실적 꽃 개화 로직 (질소·유기물·성숙·확률)
+     ● 잠재 개화 지역 실시간 음영(분홍) + 질소(녹), 유기물(갈색) 음영
+     ● Controls: 개미 수, 양분 패치 크기·주기, 스타트/스톱/리셋
+     ● p5.js 단일 스케치 – 모든 변수 / 함수 전역 노출 없어 충돌 방지
 -->
 <div id="ant-n-cycle">
   <style>
-    #ant-n-cycle {margin:0 auto;padding:10px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:920px;text-align:center;box-sizing:border-box;}
-    #ant-n-cycle canvas {display:block;margin:0 auto;background:#f8f9fa;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.2);width:100%;max-width:920px;}
-    #ant-n-cycle .controls {width:100%;margin:10px auto;text-align:center;}
+    #ant-n-cycle{margin:0 auto;padding:10px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:930px;text-align:center;box-sizing:border-box;}
+    #ant-n-cycle canvas{display:block;margin:0 auto;background:#f8f9fa;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.2);width:100%;max-width:930px;}
+    #ant-n-cycle .controls{width:100%;margin:10px auto;text-align:center;}
   </style>
-  <!-- p5.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-  <!-- UI -->
+
+  <!-- ─────── UI ─────── -->
   <div class="controls">
     <label>개미 수: <span id="antCountLabel">100</span></label>
     <input id="antCount" type="range" min="10" max="500" value="100" />
@@ -27,15 +24,16 @@
     <label>양분 생성주기(초): <span id="nutrientIntervalLabel">5</span></label>
     <input id="nutrientInterval" type="range" min="1" max="20" value="5" />
   </div>
+
   <!-- Legend -->
-  <div id="legend" style="max-width:820px;margin:0 auto 10px auto;font-size:14px;width:100%;">
+  <div id="legend" style="max-width:830px;margin:0 auto 10px auto;font-size:14px;width:100%;">
     <style>#legend svg{width:12px;height:12px;margin-left:10px;vertical-align:middle;}#legend svg:first-child{margin-left:0;}</style>
     <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#b5651d"/></svg>둥지
     <svg viewBox="0 0 12 12"><circle cx="6" cy="3" r="2" fill="#000"/><circle cx="6" cy="6" r="2.5" fill="#000"/><circle cx="6" cy="9" r="3" fill="#000"/></svg>개미
     <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>사탕 부스러기(양분)
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.6"/></svg>질소 농도(녹색 음영)
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.6"/></svg>유기물 농도(갈색 음영)
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FF69B4" opacity="0.6"/></svg>개화 가능 지역(분홍 음영)
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.6"/></svg>질소 농도
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.6"/></svg>유기물 농도
+    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FF69B4" opacity="0.6"/></svg>개화 가능 지역
   </div>
   <div class="controls">
     <button id="startBtn">Start</button>
@@ -44,93 +42,156 @@
   </div>
 
   <script>
-    /* ───────────────────────── CONSTS ───────────────────────── */
-    const GRID_SIZE = 30;
-    const MAX_NESTS = 6;
+  (function(){
+    /* ─────────────── CONSTS & GLOBALS ─────────────── */
+    const GRID = 30;
     const TREE_LIFESPAN = 800;
-    const STILL_LIMIT   = 600;
+    const MAX_NESTS = 6;
 
-    /* 꽃 개화 조건 상수 */
-    const N_THRESHOLD   = 3;      // 최소 질소 농도
-    const O_THRESHOLD   = 2;      // 최소 유기물 농도
-    const AGE_THRESHOLD = 120;    // 성숙 프레임
-    const BLOOM_CHANCE  = 0.30;   // 확률 요소
+    /* 개화 조건 */
+    const N_THRESHOLD   = 3;
+    const O_THRESHOLD   = 2;
+    const AGE_THRESHOLD = 120;
+    const BLOOM_CHANCE  = 0.3;
 
-    /* 시뮬 전역 변수 */
-    let CELL_SIZE, WIDTH, HEIGHT;
-    let NEST_X, NEST_Y;
-    let nutrientAmount = 50;
-    let nutrientInterval = 5*60;
-    let nextNutrientFrame;
-    let nestCount;
-
-    /* 컬렉션 */
-    let soil = [];
-    let ants = [];
-    let foodSources = [];
-
-    /* 시뮬 조정 */
+    /* dynamic sizing */
+    let CELL, W, H;
     let ANT_SIZE, ANT_SPEED;
 
-    /* ───────────────────────── UTIL ───────────────────────── */
-    function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+    /* environment */
+    let soil=[];        // 2‑D SoilCell
+    let ants=[];        // Ant[]
+    let food=[];        // FoodSource[]
+    let nestCount, NEST_X, NEST_Y;
 
-    /* ───────────────────────── SoilCell ───────────────────────── */
-    class SoilCell{
-      constructor(x,y){Object.assign(this,{x,y,organic:0,nitrogen:0,plant:0,pheromone:0,isNest:false,plantAge:0,treeSpawned:false,bloomCounter:0,bloomPotential:0});}
-      update(){
-        /* 유기물→질소 →식물 성장 →분해 */
-        this.nitrogen += this.organic*0.02;   this.organic  *= 0.98;
-        const uptake = this.nitrogen*0.01;    this.plant    += uptake*5;   this.nitrogen -= uptake;
-        const decay  = this.plant*0.005;      this.plant    -= decay;      this.nitrogen += decay;
+    /* nutrient event control */
+    let nutrientAmt = 50;
+    let nutrientInterval = 5*60; // frames
+    let nextNutrientFrame;
 
-        /* 꽃 개화 잠재력 계산 */
-        if(!this.isNest && this.plant<=1){
-          this.bloomPotential = constrain(((this.nitrogen/N_THRESHOLD)+(this.organic/O_THRESHOLD))/2,0,1);
-          if(this.bloomPotential>=1){ this.bloomCounter++; }
-          else                       { this.bloomCounter = 0; }
-          /* 실제 개화 */
-          if(this.bloomCounter>AGE_THRESHOLD && random()<BLOOM_CHANCE && !this.treeSpawned){
-            this.plant = 2;          // 바로 작은 나무로 성장
-            this.treeSpawned = true; // 중복 방지
-          }
-        } else {
-          this.bloomPotential = 0;   this.bloomCounter = 0;
+    /* p5 instance mode (isolated) */
+    new p5(p=>{
+      p.setup = function(){
+        /* canvas & cell size */
+        const side = Math.min(window.innerWidth,930);
+        CELL = Math.floor(side/GRID);
+        W = H = CELL*GRID;
+        ANT_SIZE = CELL*0.4;
+        ANT_SPEED = CELL*0.1;
+        p.createCanvas(W,H).id('canvas');
+
+        /* init soil grid */
+        for(let x=0;x<GRID;x++){
+          soil[x]=[];
+          for(let y=0;y<GRID;y++){ soil[x][y] = new SoilCell(x,y); }
         }
+        NEST_X = Math.floor(GRID/2); NEST_Y = Math.floor(GRID/2);
+        soil[NEST_X][NEST_Y].isNest = true; nestCount = 1;
 
-        /* 식물 노화 후 나무 제거 */
-        if(this.plant>1){
-          this.plantAge++;
-          if(this.plantAge>TREE_LIFESPAN){ this.nitrogen += this.plant; this.plant=0; this.plantAge=0; }
-        } else { this.plantAge=0; }
+        initFood();
+        initAnts(100);
+        nextNutrientFrame = nutrientInterval;
+        attachUI();
+      };
 
-        /* 페로몬 감쇠 */
-        this.pheromone *= 0.95;
+      p.draw = function(){
+        p.background(250);
+        if(p.frameCount>=nextNutrientFrame){ spawnNutrientPatch(); nextNutrientFrame=p.frameCount+nutrientInterval; }
+
+        /* update soil */
+        for(let x=0;x<GRID;x++) for(let y=0;y<GRID;y++){ soil[x][y].update(); soil[x][y].displayGround(); }
+
+        /* food render & clean */
+        food.forEach(f=>f.display());
+        food = food.filter(f=>f.amount>0);
+
+        /* ants update */
+        ants.forEach(a=>{a.update(); a.display();});
+        ants = ants.filter(a=>!a.dead);
+
+        /* plants render after ground so they're on top */
+        for(let x=0;x<GRID;x++) for(let y=0;y<GRID;y++){ soil[x][y].displayPlant(); }
+      };
+
+      /* ─────────────── CLASSES ─────────────── */
+      class SoilCell{
+        constructor(x,y){Object.assign(this,{x,y,organic:0,nitrogen:0,plant:0,plantAge:0,isNest:false,pheromone:0,treeSpawned:false,bloomCounter:0,bloomPotential:0});}
+        update(){
+          /* nutrient cycling */
+          this.nitrogen += this.organic*0.02;  this.organic*=0.98;
+          const uptake = this.nitrogen*0.01;   this.plant += uptake*5;  this.nitrogen -= uptake;
+          const decay  = this.plant*0.005;     this.plant -= decay;      this.nitrogen += decay;
+
+          /* bloom potential calc for non‑nest bare soil */
+          if(!this.isNest && this.plant<=1){
+            this.bloomPotential = p.constrain(((this.nitrogen/N_THRESHOLD)+(this.organic/O_THRESHOLD))/2,0,1);
+            if(this.bloomPotential>=1){ this.bloomCounter++; }
+            else{ this.bloomCounter=0; }
+            if(this.bloomCounter>AGE_THRESHOLD && p.random()<BLOOM_CHANCE && !this.treeSpawned){ this.plant = 2; this.treeSpawned=true; }
+          } else { this.bloomPotential=0; this.bloomCounter=0; }
+
+          /* aging tree */
+          if(this.plant>1){ this.plantAge++; if(this.plantAge>TREE_LIFESPAN){ this.nitrogen+=this.plant; this.plant=0; this.plantAge=0; this.treeSpawned=false; }}
+        }
+        displayGround(){
+          p.noStroke(); p.fill('#FFFFF0'); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);
+          if(this.nitrogen>0.05){ p.fill(34,139,34,p.constrain(this.nitrogen*60,0,160)); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);} // N
+          if(this.organic>0.05){ p.fill(139,69,19,p.constrain(this.organic*60,0,160)); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);}   // Organic
+          if(this.bloomPotential>0 && this.plant<=1){ p.fill(255,105,180,p.constrain(this.bloomPotential*120,0,120)); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);} // bloom potential
+          if(this.isNest){ p.fill('#b5651d'); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);} // nest
+          if(this.pheromone>0.1){ p.fill(180,80,200,p.constrain(this.pheromone*50,0,150)); p.rect(this.x*CELL,this.y*CELL,CELL,CELL);} // pheromone overlay
+        }
+        displayPlant(){ if(this.plant>1){ drawCherryTree(this.x,this.y,this.plant); } }
       }
-      displayGround(){
-        /* 기본 배경 */
-        noStroke(); fill('#FFFFF0');
-        rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE);
 
-        /* 질소 음영 (녹색) */
-        if(this.nitrogen>0.05){ fill(34,139,34,constrain(this.nitrogen*60,0,160)); rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE); }
-        /* 유기물 음영 (갈색) */
-        if(this.organic>0.05){ fill(139,69,19,constrain(this.organic*60,0,160)); rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE); }
-        /* 꽃 잠재력 음영 (분홍, 가장 마지막에 그려 dominance 확보) */
-        if(this.bloomPotential>0 && this.plant<=1){ fill(255,105,180,constrain(this.bloomPotential*120,0,120)); rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE); }
+      /* ant */
+      class Ant{
+        constructor(){ this.pos=p.createVector(p.random(W),p.random(H)); this.prev=this.pos.copy(); this.vel=p.createVector(1,0); this.carrying=false; this.carryAmt=0; this.dead=false;}
+        update(){
+          const cx=p.floor(this.pos.x/CELL); const cy=p.floor(this.pos.y/CELL); const cell=soil[cx][cy];
+          /* carry logic */
+          if(this.carrying){ const nest=getNearestNest(this.pos); const tgt=p.createVector(nest.x*CELL+CELL/2,nest.y*CELL+CELL/2); this.pos.add(p5.Vector.sub(tgt,this.pos).setMag(ANT_SPEED)); if(p.dist(this.pos.x,this.pos.y,tgt.x,tgt.y)<3){ nest.organic+=this.carryAmt; this.carrying=false; }}
+          else {
+            /* find nearby food */
+            let nearest=null, dmin=1e9;
+            food.forEach(f=>{ if(f.amount>0){ const d=p.dist(this.pos.x,this.pos.y,f.pos.x,f.pos.y); if(d<dmin){dmin=d; nearest=f;} }});
+            if(nearest && dmin<3){ const take=Math.min(5,nearest.amount); nearest.amount-=take; this.carrying=true; this.carryAmt=take; }
+            else if(nearest && dmin<80){ this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(ANT_SPEED)); }
+            else { this.randomWalk(); }
+          }
+          /* bounds */
+          this.pos.x=p.constrain(this.pos.x,0,W-1); this.pos.y=p.constrain(this.pos.y,0,H-1);
+          /* pheromone */
+          soil[p.floor(this.pos.x/CELL)][p.floor(this.pos.y/CELL)].pheromone+=(this.carrying?0.6:0.2);
+        }
+        randomWalk(){ const dirs=[[0,-1],[1,0],[0,1],[-1,0]]; const d=p.random(dirs); this.pos.add(p.createVector(d[0]*ANT_SPEED,d[1]*ANT_SPEED)); }
+        display(){ p.noStroke(); p.fill(this.carrying?'#d020d0':'#000'); p.ellipse(this.pos.x,this.pos.y,ANT_SIZE*0.6,ANT_SIZE*0.4); }
+      }
 
-        /* 페로몬 */
-        if(this.pheromone>0.1){ fill(180,80,200,constrain(this.pheromone*50,0,150)); rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE); }
+      /* food */
+      class FoodSource{
+        constructor(x,y,amt){ this.pos=p.createVector(x,y); this.amount=this.init=amt; }
+        display(){ if(this.amount<=0) return; const frac=this.amount/this.init; p.fill(255,182,193,200*frac+55); p.noStroke(); p.ellipse(this.pos.x,this.pos.y,CELL*frac*0.8+CELL*0.2); }
+      }
 
-        /* 사탕 부스러기 표시 */
-        if(this.nitrogen>0.5 && !this.isNest && this.plant<=1){ fill('#ffb6c1'); ellipse(this.x*CELL_SIZE+CELL_SIZE/2,this.y*CELL_SIZE+CELL_SIZE/2,CELL_SIZE*0.3); }
-        /* 둥지 */
-        if(this.isNest){ fill('#b5651d'); rect(this.x*CELL_SIZE,this.y*CELL_SIZE,CELL_SIZE,CELL_SIZE);}  }
-      displayPlant(){ if(this.plant>1){ drawCherryTree(this.x,this.y,this.plant);} }
-    }
+      /* ─────────────── helper functions ─────────────── */
+      function initAnts(n){ ants=[]; for(let i=0;i<n;i++) ants.push(new Ant()); }
+      function initFood(){ food=[]; for(let i=0;i<3;i++){ food.push(new FoodSource(p.random(W),p.random(H),nutrientAmt)); } }
+      function spawnNutrientPatch(){ const x=p.floor(p.random(GRID)); const y=p.floor(p.random(GRID)); food.push(new FoodSource(x*CELL+CELL/2,y*CELL+CELL/2,nutrientAmt)); }
+      function getNearestNest(pos){ return soil[NEST_X][NEST_Y]; }
 
-    /* ───────────────────────── FoodSource ───────────────────────── */
-    class FoodSource{ constructor(x,y,amount){this.pos=createVector(x,y);this.amount=this.initial=amount;this.shape=[];for(let i=0;i<8;i++){const ang=TWO_PI*i/8+random(-0.2,0.2);const rad=CELL_SIZE*0.8*random(0.8,1.2);this.shape.push({x:cos(ang)*rad,y:sin(ang)*rad});}} display(){if(this.amount<=0) return; const f=this.amount/this.initial;const s=Math.ceil(f*5)/5; const c=color('#ffb6c1'); c.setAlpha(200*s+55); fill(c); stroke(255,255,255,180*s); strokeWeight(1); push();translate(this.pos.x,this.pos.y); beginShape(); this.shape.forEach(v=>vertex(v.x*s,v.y*s)); endShape(CLOSE); pop();}}
+      /* cherry tree drawing */
+      function drawCherryTree(x,y,h){ p.push(); p.translate(x*CELL+CELL/2,y*CELL+CELL); p.stroke(139,69,19); p.strokeWeight(6); p.line(0,0,0,-h); p.noStroke(); const rng=p.random; for(let i=0;i<20;i++){ const ang=rng()*p.TWO_PI; const rad=rng()*(h*0.6)+h*0.2; const sx=p.cos(ang)*rad; const sy=-h + p.sin(ang)*rad*0.5; const sz=rng()*(h*0.15)+h*0.15; p.fill(255,198,220,220); p.ellipse(sx,sy,sz);} p.pop(); }
 
-    /* ───────────────────────── Ant ───────────────────────── */
-    class Ant{constructor(){this.pos=createVector(random(width),random(height));this.prevPos=this.pos.copy();this.vel=createVector(1,0);this.carrying=false;this.carryingAmount=0;this.isResting=false;this.dir=int(random(4));this.still=0;} update(){const prev=this.pos.copy();const cx=floor(this.pos.x/CELL_SIZE);const cy=floor(this.pos.y/CELL_SIZE);const cell=soil[cx][cy]; if(this.isResting){if(cell.pheromone>0.1)this.isResting=false;else return;} if(cell.plant>1){this.pos=prev;this.dir=(this.dir+2)%4;} else if(this.carrying){const nest=getNearestNest(this.pos);const tgt=createVector(nest.x*CELL_SIZE+CELL_SIZE/2,nest.y*CELL_SIZE+CELL_SIZE/2);this.pos.add(p5.Vector.sub(tgt,this.pos).setMag(ANT_SPEED));if(dist(this.pos.x,this.pos.y,tgt.x,tgt.y)<5){nest.organic+=this.carryingAmount;this.carrying=false;}} else {let nearest=null,dmin=1e9;foodSources.forEach(fs=>{if(fs.amount>0){const d=dist(this.pos.x,this.pos.y,fs.pos.x,fs.pos.y);if(d<dmin){dmin=d;nearest=fs;}}}); if(nearest&&dmin<5){const take=min(5,nearest.amount);nearest.amount-=take;this.carrying=true;this.carryingAmount=take;} else if(nearest&&dmin<80){this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(ANT_SPEED));} else {if(random()<0.02) this.dir=int(random(4)); if(this.dir===0) this.pos.y-=ANT_SPEED; if(this.dir===1) this.pos.x+=ANT_SPEED; if(this.dir===2) this.pos.y+=ANT_SPEED; if(this.dir===3) this.pos.x-=ANT_SPEED; }} this.pos.x=constrain(this.pos.x,0,width-1);this.pos.y=constrain(this.pos.y,0,height-1);const nx=floor(this.pos.x/CELL_SIZE);const ny=floor(this.pos.y/CELL_SIZE);soil[nx][ny].pheromone+=this.carrying?0.5:0.2; this.vel=p5.Vector.sub(this.pos,prev); (this.vel.mag()<0.5)?this.still++:this.still=0; if(this.still>STILL_LIMIT)this.dead=true;} display(){const bodyCol=this.carrying?'#d020d0':'#000'; push();translate(this.pos.x,this.pos.y);rotate(this.vel.heading()+HALF_PI); noStroke();fill(bodyCol);ellipse(0,-ANT_SIZE*0.3,ANT_SIZE*0.4);ellipse(0,0,ANT_SIZE*0.5);ellipse(0,ANT
+      function attachUI(){
+        document.getElementById('antCount').oninput=e=>{ const v=parseInt(e.target.value); document.getElementById('antCountLabel').textContent=v; initAnts(v); };
+        document.getElementById('nutrientAmount').oninput=e=>{ nutrientAmt=parseInt(e.target.value); document.getElementById('nutrientAmountLabel').textContent=nutrientAmt; };
+        document.getElementById('nutrientInterval').oninput=e=>{ const v=parseInt(e.target.value); nutrientInterval=v*60; document.getElementById('nutrientIntervalLabel').textContent=v; };
+        document.getElementById('startBtn').onclick=()=>p.loop();
+        document.getElementById('stopBtn').onclick=()=>p.noLoop();
+        document.getElementById('resetBtn').onclick=()=>{ initFood(); initAnts(parseInt(document.getElementById('antCount').value)); soil.flat().forEach(c=>Object.assign(c,{organic:0,nitrogen:0,plant:0,plantAge:0,treeSpawned:false,pheromone:0,bloomCounter:0,bloomPotential:0,isNest:false})); soil[NEST_X][NEST_Y].isNest=true; nestCount=1; };
+      }
+    });
+  })();
+  </script>
+</div>
