@@ -138,6 +138,10 @@
       noFill();
       rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       noStroke();
+      if(this.plant > 1){
+        fill(80,80,80,120);
+        rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
       if(this.pheromone>0.1){
         const alpha = constrain(this.pheromone*50,0,150);
         fill(180,80,200,alpha);
