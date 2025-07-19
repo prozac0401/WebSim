@@ -77,6 +77,8 @@
     let ANT_SIZE;
     let ANT_SPEED = 1.5;
     const TREE_LIFESPAN = 800;
+    const STILL_LIMIT = 600; // frames before an unmoving ant is removed
+    const MIN_CLUSTER_SIZE = 5; // cells needed to form a big tree
     let nestCount = 0;
     let clusterCenters = [];
 
@@ -135,24 +137,25 @@
         relocateNest(this);
       }
     }
-    displayGround() {
-      noStroke();
-      let n = constrain(this.nitrogen*40, 0, 200);
-      if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
-        fill('#FFFFF0');
-      }else{
-        fill(220-n, 180+n/2, 120-n/3);
-      }
-      rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      stroke('#cccccc');
-      strokeWeight(1);
-      noFill();
-      rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      noStroke();
-      if(this.plant > 1){
-        fill(80,80,80,120);
+      displayGround() {
+        noStroke();
+        let n = constrain(this.nitrogen*40, 0, 200);
+        if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
+          fill('#FFFFF0');
+        }else{
+          const shade = 230 - n;
+          fill(shade);
+        }
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      }
+        stroke('#cccccc');
+        strokeWeight(1);
+        noFill();
+        rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        noStroke();
+        if(this.plant > 1){
+          fill(120,120,120,120);
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
       if(this.pheromone>0.1){
         const alpha = constrain(this.pheromone*50,0,150);
         fill(180,80,200,alpha);
@@ -330,6 +333,9 @@
       } else {
         this.still=0;
       }
+      if(this.still > STILL_LIMIT){
+        this.dead = true;
+      }
       this.prevPos = this.pos.copy();
     }
     display(){
@@ -382,41 +388,53 @@
       pop();
     }
 
-    function drawBigCherryTree(cx, cy){
-      const size = CELL_SIZE * 3;
-      push();
-      translate(cx*CELL_SIZE + CELL_SIZE/2, cy*CELL_SIZE + CELL_SIZE);
-      stroke(139,69,19);
-      strokeWeight(8);
-      line(0,0,0,-size);
-      noStroke();
-      const rng = mulberry32(cx*2000+cy);
-      for(let i=0;i<50;i++){ 
-        const ang = rng()*TWO_PI; 
-        const rad = rng()*size*0.8 + size*0.2; 
-        const sx = cos(ang)*rad;
-        const sy = -size + sin(ang)*rad*0.6;
-        const rsize = rng()*size*0.15 + size*0.25;
-        const colors = ['#ffc6dc','#ffd9e8','#ffeef5'];
-        const col = colors[Math.floor(rng()*colors.length)];
-        stroke(col);
-        strokeWeight(1);
-        noFill();
-        drawSnowflakePetal(sx, sy, rsize);
+      function drawBigCherryTree(cx, cy){
+        const size = CELL_SIZE * 3;
+        push();
+        translate(cx*CELL_SIZE + CELL_SIZE/2, cy*CELL_SIZE + CELL_SIZE);
+        stroke(139,69,19);
+        strokeWeight(8);
+        line(0,0,0,-size);
+        noStroke();
+        const rng = mulberry32(cx*2000+cy);
+        for(let i=0;i<50;i++){
+          const ang = rng()*TWO_PI;
+          const rad = rng()*size*0.8 + size*0.2;
+          const sx = cos(ang)*rad;
+          const sy = -size + sin(ang)*rad*0.6;
+          const rsize = rng()*size*0.15 + size*0.25;
+          const colors = ['#ffc6dc','#ffd9e8','#ffeef5'];
+          const col = colors[Math.floor(rng()*colors.length)];
+          fill(col);
+          drawFullBloom(sx, sy, rsize);
+        }
+        pop();
       }
-      pop();
-    }
 
-    function drawSnowflakePetal(px, py, size){
-      push();
-      translate(px, py);
-      const arms = 6;
-      for(let i=0;i<arms;i++){
-        const ang = TWO_PI*i/arms;
-        line(0,0,cos(ang)*size/2,sin(ang)*size/2);
+      function drawSnowflakePetal(px, py, size){
+        push();
+        translate(px, py);
+        const arms = 6;
+        for(let i=0;i<arms;i++){
+          const ang = TWO_PI*i/arms;
+          line(0,0,cos(ang)*size/2,sin(ang)*size/2);
+        }
+        pop();
       }
-      pop();
-    }
+
+      function drawFullBloom(px, py, size){
+        push();
+        translate(px, py);
+        noStroke();
+        const petals = 6;
+        for(let i=0;i<petals;i++){
+          const ang = TWO_PI*i/petals;
+          const x = cos(ang)*size*0.4;
+          const y = sin(ang)*size*0.4;
+          ellipse(x, y, size*0.7, size*0.7);
+        }
+        pop();
+      }
 
     function computeClusterCenters(){
       clusterCenters = [];
@@ -443,7 +461,7 @@
               }
             }
           }
-          if(count >= 9){
+          if(count >= MIN_CLUSTER_SIZE){
             let cx = Math.floor(sumX / count);
             let cy = Math.floor(sumY / count);
             cx = constrain(cx, 0, GRID_SIZE - 1);
@@ -510,7 +528,8 @@
     ant.update();
     ant.display();
   }
-    computeClusterCenters();
+  ants = ants.filter(a => !a.dead);
+  computeClusterCenters();
     for(let c of clusterCenters){
       drawBigCherryTree(c.x,c.y);
     }
@@ -629,6 +648,7 @@ function spawnNitrogenPatch(){
 
   for(let ant of ants){
     ant.isResting = false;
+    ant.still = 0;
   }
 
     for(let dx=-1; dx<=1; dx++){
@@ -659,6 +679,7 @@ function spawnNitrogenPatchAround(cx, cy){
     foodSources.push(new FoodSource(choice.x*CELL_SIZE+CELL_SIZE/2, choice.y*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
     for(let ant of ants){
       ant.isResting=false;
+      ant.still = 0;
     }
     for(let dx=-1; dx<=1; dx++){
       for(let dy=-1; dy<=1; dy++){
