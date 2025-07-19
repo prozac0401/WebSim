@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ant–Nitrogen Cycle Simulator (v7 — 완성)</title>
+<title>Ant–Nitrogen Cycle Simulator (v8 — Canvas Fix)</title>
 <style>
   body{margin:0;padding:0;display:flex;justify-content:center;background:#fafafa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
   #ant-n-cycle{padding:10px;max-width:960px;width:100%;box-sizing:border-box;text-align:center;}
@@ -51,11 +51,13 @@
 
 <script>
 (()=>{
-/****************************** CONSTANTS ******************************/
-const GRID_SIZE=30,TREE_LIFESPAN=800,STILL_LIMIT=600,MAX_NESTS=6;const N_TH=3,O_TH=2,AGE_TH=120,BLOOM_P=0.3;
-/**************************** Runtime vars *****************************/
-let CELL,WIDTH,HEIGHT,NX,NY;let nutrientAmt=50,nutrientInt=5*60,nextNutrient=0;let soil=[],ants=[],foods=[];let ANT_S,ANT_V;let running=true;
-/***************************** p5 sketch ******************************/
+/*********************** CONSTANTS ***************************/
+const GRID_SIZE=30,TREE_LIFESPAN=800,STILL_LIMIT=600,MAX_NESTS=6;
+const N_TH=3,O_TH=2,AGE_TH=120,BLOOM_P=0.3;
+/********************* Runtime vars **************************/
+let CELL,WIDTH,HEIGHT,NX,NY;let nutrientAmt=50,nutrientInt=5*60,nextNutrient=0;
+let soil=[],ants=[],foods=[];let ANT_S,ANT_V;let running=true;
+/********************** p5 sketch ****************************/
 const sketch=p=>{
  p.setup=()=>{
    CELL=Math.floor(Math.min(p.windowWidth*0.9,920)/GRID_SIZE);
@@ -67,36 +69,48 @@ const sketch=p=>{
    p.select('#antCount').input(e=>{p.select('#antCountLabel').html(e.target.value);initAnts(+e.target.value);});
    p.select('#nutrientAmount').input(e=>{nutrientAmt=+e.target.value;p.select('#nutrientAmountLabel').html(nutrientAmt);});
    p.select('#nutrientInterval').input(e=>{nutrientInt=+e.target.value*60;p.select('#nutrientIntervalLabel').html(+e.target.value);});
-   p.select('#startBtn').mousePressed(()=>{running=true;});p.select('#stopBtn').mousePressed(()=>{running=false;});
-   p.select('#resetBtn').mousePressed(()=>{initSoil();initAnts(+p.select('#antCount').value());initFoods();running=true;});
+   p.select('#startBtn').mousePressed(()=>{running=true;});
+   p.select('#stopBtn').mousePressed(()=>{running=false;});
+   p.select('#resetBtn').mousePressed(()=>{initSoil();initAnts(+p.select('#antCount').value());initFoods();running=true;nextNutrient=p.frameCount+nutrientInt;});
  };
- p.draw=()=>{if(!running) return; if(p.frameCount>=nextNutrient){spawnPatch();nextNutrient=p.frameCount+nutrientInt;}
+ p.draw=()=>{
+   if(!running) return;
+   if(p.frameCount>=nextNutrient){spawnPatch();nextNutrient=p.frameCount+nutrientInt;}
    // update
-   soil.flat().forEach(c=>c.update()); ants.forEach(a=>a.update()); foods=foods.filter(f=>f.amount>0);
+   soil.flat().forEach(c=>c.update());
+   ants.forEach(a=>a.update());
+   foods=foods.filter(f=>f.amount>0);
    // render
    p.background(250);
-   soil.flat().forEach(c=>{c.displayGround();});
+   soil.flat().forEach(c=>c.displayGround());
    drawGrid();
-   foods.forEach(f=>f.display(p));
-   ants.forEach(a=>a.display(p));
+   foods.forEach(f=>f.display());
+   ants.forEach(a=>a.display());
    soil.flat().forEach(c=>c.displayPlant());
  };
- /* Helpers inside p5 context */
+ /******** Helpers inside p5 context ********/
  function drawGrid(){p.stroke(204,204,204,80);p.strokeWeight(1);for(let i=0;i<=GRID_SIZE;i++){p.line(i*CELL,0,i*CELL,HEIGHT);p.line(0,i*CELL,WIDTH,i*CELL);}}
- function rng(a){return()=>{var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
- /* Classes */
+ function rng(a){return()=>{var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+t*Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+ /******************** Classes *************************/
  class Soil{constructor(x,y){this.x=x;this.y=y;this.o=0;this.n=0;this.p=0;this.ph=0;this.nest=false;this.age=0;this.bloom=0;this.tree=false;}
-  update(){const dn=this.o*0.02;this.n+=dn;this.o-=dn;const up=this.n*0.01;this.p+=up*5;this.n-=up;const dc=this.p*0.005;this.p-=dc;this.n+=dc;
+  update(){const dn=this.o*0.02;this.n+=dn;this.o-=dn;
+   const up=this.n*0.01;this.p+=up*5;this.n-=up;
+   const dc=this.p*0.005;this.p-=dc;this.n+=dc;
    // bloom potential
-   if(!this.nest&&this.p<=1){this.bloom=((this.n/N_TH)+(this.o/O_TH))/2; if(this.bloom>=1){this.age++;}else this.age=0; if(this.age>AGE_TH&&Math.random()<BLOOM_P&&!this.tree){this.p=2;this.tree=true;}}
-   else {this.bloom=0;this.age=0;}
+   if(!this.nest&&this.p<=1){
+     this.bloom=((this.n/N_TH)+(this.o/O_TH))*0.5;
+     if(this.bloom>=1){this.age++;}else this.age=0;
+     if(this.age>AGE_TH&&Math.random()<BLOOM_P&&!this.tree){this.p=2;this.tree=true;}
+   } else {this.bloom=0;this.age=0;}
    if(this.p>1){this.age++;if(this.age>TREE_LIFESPAN){this.n+=this.p;this.p=0;this.age=0;this.tree=false;}}
    this.ph*=0.95; }
   displayGround(){const x=this.x*CELL,y=this.y*CELL;p.noStroke();p.fill('#FFFFF0');p.rect(x,y,CELL,CELL);
-   if(this.n>0.05){p.fill(34,139,34,Math.min(this.n*60,160));p.rect(x,y,CELL,CELL);} if(this.o>0.05){p.fill(139,69,19,Math.min(this.o*60,160));p.rect(x,y,CELL,CELL);}
-   if(this.bloom>0&&this.p<=1){p.fill(255,105,180,Math.min(this.bloom*120,120));p.rect(x,y,CELL,CELL);} if(this.nest){p.fill('#b5651d');p.rect(x,y,CELL,CELL);} }
+   if(this.n>0.05){p.fill(34,139,34,Math.min(this.n*60,160));p.rect(x,y,CELL,CELL);} 
+   if(this.o>0.05){p.fill(139,69,19,Math.min(this.o*60,160));p.rect(x,y,CELL,CELL);} 
+   if(this.bloom>0&&this.p<=1){p.fill(255,105,180,Math.min(this.bloom*120,120));p.rect(x,y,CELL,CELL);} 
+   if(this.nest){p.fill('#b5651d');p.rect(x,y,CELL,CELL);} }
   displayPlant(){if(this.p>1) drawTree(this.x,this.y,this.p);} }
- class Food{constructor(x,y,amt){this.pos=p.createVector(x,y);this.init=amt;this.amount=amt;this.shape=[];for(let i=0;i<8;i++){const ang=TWO_PI*i/8+p.random(-0.2,0.2);const rad=CELL*0.8*p.random(0.8,1.2);this.shape.push({x:Math.cos(ang)*rad,y:Math.sin(ang)*rad});}}
+ class Food{constructor(x,y,amt){this.pos=p.createVector(x,y);this.init=amt;this.amount=amt;this.shape=[];for(let i=0;i<8;i++){const ang=p.TWO_PI*i/8+p.random(-0.2,0.2);const rad=CELL*0.8*p.random(0.8,1.2);this.shape.push({x:Math.cos(ang)*rad,y:Math.sin(ang)*rad});}}
   display(){const frac=this.amount/this.init;if(frac<=0) return;const step=Math.ceil(frac*5)/5;const col=p.color('#ffb6c1');col.setAlpha(200*step+55);p.fill(col);p.noStroke();p.push();p.translate(this.pos.x,this.pos.y);p.beginShape();this.shape.forEach(v=>p.vertex(v.x*step,v.y*step));p.endShape(p.CLOSE);p.pop();}}
  class Ant{constructor(){this.pos=p.createVector(p.random(WIDTH),p.random(HEIGHT));this.vel=p.createVector(1,0);this.carry=false;this.load=0;this.dir=p.int(p.random(4));this.still=0;}
   update(){const px=this.pos.copy();const cx=Math.floor(this.pos.x/CELL),cy=Math.floor(this.pos.y/CELL);const cell=soil[cx][cy];if(cell.p>1){this.dir=(this.dir+2)%4;}
