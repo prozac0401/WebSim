@@ -81,6 +81,9 @@
     const MIN_CLUSTER_SIZE = 5; // cells needed to form a big tree
     let nestCount = 0;
     let clusterCenters = [];
+    let clusterCells = [];
+    let clusterMap = [];
+    let flowPath = [];
 
     function mulberry32(a){
       return function(){
@@ -139,10 +142,10 @@
     }
       displayGround() {
         noStroke();
-        let n = constrain(this.nitrogen*40, 0, 200);
+        let n = constrain(this.nitrogen * 40, 0, 200);
         if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
           fill('#FFFFF0');
-        }else{
+        } else {
           const shade = 230 - n;
           fill(shade);
         }
@@ -152,16 +155,12 @@
         noFill();
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         noStroke();
-        if(this.plant > 1){
-          fill(120,120,120,60);
-          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        }
       if(this.pheromone>0.1){
         const alpha = constrain(this.pheromone*50,0,150);
         fill(180,80,200,alpha);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-        if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
+      if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
           fill('#ffb6c1');
           noStroke();
           ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, CELL_SIZE*0.3);
@@ -170,6 +169,44 @@
           fill('#b5651d');
           rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
+      }
+      displayNitrogenFlow(){
+        if(this.isNest || this.plant>1) return;
+        textAlign(CENTER, CENTER);
+        textSize(CELL_SIZE*0.5);
+        noStroke();
+        const dirs=[
+          {dx:0,dy:-1,ch:'▼'}, // from cell above to here
+          {dx:1,dy:0,ch:'◀'},  // from cell to the right
+          {dx:0,dy:1,ch:'▲'},  // from cell below
+          {dx:-1,dy:0,ch:'▶'}  // from cell to the left
+        ];
+        let bestDiff=0;
+        let arrow=null;
+        for(let d of dirs){
+          const nx=this.x+d.dx;
+          const ny=this.y+d.dy;
+          if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+            const diff=soil[nx][ny].nitrogen-this.nitrogen;
+            if(diff>0.05 && diff>bestDiff){
+              bestDiff=diff;
+              arrow=d.ch;
+            }
+          }
+        }
+        if(arrow){
+          const c=color('#ff9900');
+          c.setAlpha(constrain(bestDiff*80,50,200));
+          fill(c);
+          text(arrow, this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2);
+        }
+      }
+      displayNitrogenLevel(){
+        textAlign(CENTER,CENTER);
+        textSize(CELL_SIZE*0.3);
+        noStroke();
+        fill('#003300');
+        text(this.nitrogen.toFixed(1), this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2);
       }
       displayPlant(){
         if(this.plant > 1){
@@ -439,8 +476,11 @@
         pop();
       }
 
-    function computeClusterCenters(){
+function computeClusterCenters(){
       clusterCenters = [];
+      clusterCells = [];
+      clusterMap = Array.from({length: GRID_SIZE}, () =>
+        Array(HEIGHT/CELL_SIZE).fill(false));
       const visited = Array.from({length: GRID_SIZE}, () =>
         Array(HEIGHT/CELL_SIZE).fill(false));
       for(let x=0; x<GRID_SIZE; x++){
@@ -449,9 +489,11 @@
           const queue = [[x,y]];
           visited[x][y] = true;
           let sumX = 0, sumY = 0, count = 0;
+          const cells = [];
           while(queue.length){
             const [cx,cy] = queue.pop();
             sumX += cx; sumY += cy; count++;
+            cells.push({x:cx,y:cy});
             for(let dx=-1; dx<=1; dx++){
               for(let dy=-1; dy<=1; dy++){
                 if(dx===0 && dy===0) continue;
@@ -470,16 +512,17 @@
             cx = constrain(cx, 0, GRID_SIZE - 1);
             cy = constrain(cy, 0, HEIGHT / CELL_SIZE - 1);
             clusterCenters.push({x: cx, y: cy});
+            for(let c of cells){
+              clusterCells.push(c);
+              clusterMap[c.x][c.y] = true;
+            }
           }
         }
       }
     }
 
     function isPartOfCluster(x,y){
-      for(let c of clusterCenters){
-        if(Math.abs(c.x - x) <= 1 && Math.abs(c.y - y) <= 1) return true;
-      }
-      return false;
+      return clusterMap[x] && clusterMap[x][y];
     }
 
     function setup(){
@@ -540,14 +583,25 @@
       releaseTrappedAnts(NEST_X, NEST_Y);
     }
     computeClusterCenters();
-    for(let c of clusterCenters){
-      drawBigCherryTree(c.x,c.y);
-    }
-    for(let x=0;x<GRID_SIZE;x++){
-      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-        if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+    computeFlowPath();
+      for(let c of clusterCenters){
+        drawBigCherryTree(c.x,c.y);
       }
-    }
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+        }
+      }
+    displayClusterOverlay();
+    drawFlowPath();
+
+      // draw nitrogen arrows on top of trees and plants so flow remains visible
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          soil[x][y].displayNitrogenFlow();
+          soil[x][y].displayNitrogenLevel();
+        }
+      }
 
     }
 
@@ -715,6 +769,60 @@ function spawnNitrogenPatchAround(cx, cy){
         }
       }
     }
+  }
+}
+
+function computeFlowPath(){
+  flowPath = [];
+  const DIRS = [
+    {dx:0,dy:-1,ch:'▲'},
+    {dx:1,dy:0,ch:'▶'},
+    {dx:0,dy:1,ch:'▼'},
+    {dx:-1,dy:0,ch:'◀'}
+  ];
+  let cx = NEST_X;
+  let cy = NEST_Y;
+  const visited = new Set([cx+','+cy]);
+  for(let i=0;i<GRID_SIZE*2;i++){
+    let best = null;
+    let bestVal = soil[cx][cy].plant*2 + soil[cx][cy].nitrogen;
+    let bestDir = null;
+    for(let d of DIRS){
+      const nx=cx+d.dx, ny=cy+d.dy;
+      if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE && !visited.has(nx+','+ny)){
+        const cell=soil[nx][ny];
+        const val=cell.plant*2 + cell.nitrogen;
+        if(val>bestVal){
+          bestVal=val;
+          best={x:nx,y:ny};
+          bestDir=d.ch;
+        }
+      }
+    }
+    if(!best) break;
+    flowPath.push({x:cx,y:cy,ch:bestDir});
+    cx=best.x; cy=best.y;
+    visited.add(cx+','+cy);
+    if(soil[cx][cy].plant>1) break;
+  }
+}
+
+function drawFlowPath(){
+  textAlign(CENTER,CENTER);
+  textSize(CELL_SIZE*0.6);
+  noStroke();
+  fill('#ff6600');
+  for(let step of flowPath){
+    text(step.ch, step.x*CELL_SIZE+CELL_SIZE/2, step.y*CELL_SIZE+CELL_SIZE/2);
+  }
+}
+
+function displayClusterOverlay(){
+  noFill();
+  stroke('#1e90ff');
+  strokeWeight(1);
+  for(let c of clusterCells){
+    rect(c.x*CELL_SIZE, c.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
 }
 
