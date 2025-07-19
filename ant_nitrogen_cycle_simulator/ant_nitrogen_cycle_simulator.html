@@ -547,7 +547,6 @@
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
-        soil[x][y].displayNitrogenFlow();
         if(soil[x][y].plantAge === 1){
           releaseTrappedAnts(NEST_X, NEST_Y);
         }
@@ -565,14 +564,21 @@
       releaseTrappedAnts(NEST_X, NEST_Y);
     }
     computeClusterCenters();
-    for(let c of clusterCenters){
-      drawBigCherryTree(c.x,c.y);
-    }
-    for(let x=0;x<GRID_SIZE;x++){
-      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-        if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+      for(let c of clusterCenters){
+        drawBigCherryTree(c.x,c.y);
       }
-    }
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+        }
+      }
+
+      // draw nitrogen arrows on top of trees and plants so flow remains visible
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          soil[x][y].displayNitrogenFlow();
+        }
+      }
 
     }
 
