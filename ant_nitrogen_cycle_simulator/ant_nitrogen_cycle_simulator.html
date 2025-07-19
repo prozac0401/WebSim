@@ -177,23 +177,29 @@
         textSize(CELL_SIZE*0.5);
         noStroke();
         const dirs=[
-          {dx:0,dy:-1,ch:'▲'},
-          {dx:1,dy:0,ch:'▶'},
-          {dx:0,dy:1,ch:'▼'},
-          {dx:-1,dy:0,ch:'◀'}
+          {dx:0,dy:-1,ch:'▼'}, // from cell above to here
+          {dx:1,dy:0,ch:'◀'},  // from cell to the right
+          {dx:0,dy:1,ch:'▲'},  // from cell below
+          {dx:-1,dy:0,ch:'▶'}  // from cell to the left
         ];
+        let bestDiff=0;
+        let arrow=null;
         for(let d of dirs){
           const nx=this.x+d.dx;
           const ny=this.y+d.dy;
           if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
-            const diff=this.nitrogen-soil[nx][ny].nitrogen;
-            if(diff>0.2){
-              const c=color('#ff9900');
-              c.setAlpha(constrain(diff*80,50,200));
-              fill(c);
-              text(d.ch, this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2);
+            const diff=soil[nx][ny].nitrogen-this.nitrogen;
+            if(diff>0.2 && diff>bestDiff){
+              bestDiff=diff;
+              arrow=d.ch;
             }
           }
+        }
+        if(arrow){
+          const c=color('#ff9900');
+          c.setAlpha(constrain(bestDiff*80,50,200));
+          fill(c);
+          text(arrow, this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2);
         }
       }
       displayPlant(){
