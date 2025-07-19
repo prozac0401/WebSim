@@ -161,7 +161,7 @@
         fill(180,80,200,alpha);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-        if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
+      if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
           fill('#ffb6c1');
           noStroke();
           ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, CELL_SIZE*0.3);
@@ -169,6 +169,30 @@
         if(this.isNest){
           fill('#b5651d');
           rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
+      }
+      displayNitrogenFlow(){
+        textAlign(CENTER, CENTER);
+        textSize(CELL_SIZE*0.5);
+        noStroke();
+        const dirs=[
+          {dx:0,dy:-1,ch:'▲'},
+          {dx:1,dy:0,ch:'▶'},
+          {dx:0,dy:1,ch:'▼'},
+          {dx:-1,dy:0,ch:'◀'}
+        ];
+        for(let d of dirs){
+          const nx=this.x+d.dx;
+          const ny=this.y+d.dy;
+          if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+            const diff=this.nitrogen-soil[nx][ny].nitrogen;
+            if(diff>0.2){
+              const c=color('#ff9900');
+              c.setAlpha(constrain(diff*80,50,200));
+              fill(c);
+              text(d.ch, this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2);
+            }
+          }
         }
       }
       displayPlant(){
@@ -540,14 +564,21 @@
       releaseTrappedAnts(NEST_X, NEST_Y);
     }
     computeClusterCenters();
-    for(let c of clusterCenters){
-      drawBigCherryTree(c.x,c.y);
-    }
-    for(let x=0;x<GRID_SIZE;x++){
-      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-        if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+      for(let c of clusterCenters){
+        drawBigCherryTree(c.x,c.y);
       }
-    }
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+        }
+      }
+
+      // draw nitrogen arrows on top of trees and plants so flow remains visible
+      for(let x=0;x<GRID_SIZE;x++){
+        for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+          soil[x][y].displayNitrogenFlow();
+        }
+      }
 
     }
 
