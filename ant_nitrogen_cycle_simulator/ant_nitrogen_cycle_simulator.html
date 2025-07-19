@@ -567,7 +567,7 @@ function computeClusterCenters(){
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
-        soil[x][y].displayNitrogenFlow();
+        //soil[x][y].displayNitrogenFlow();
         if(soil[x][y].plantAge === 1){
           releaseTrappedAnts(NEST_X, NEST_Y);
         }
@@ -600,8 +600,8 @@ function computeClusterCenters(){
       // draw nitrogen arrows on top of trees and plants so flow remains visible
       for(let x=0;x<GRID_SIZE;x++){
         for(let y=0;y<HEIGHT/CELL_SIZE;y++){
-          soil[x][y].displayNitrogenFlow();
-          soil[x][y].displayNitrogenLevel();
+          //soil[x][y].displayNitrogenFlow();
+          soil[x][y].displayGround();
         }
       }
 
