@@ -384,6 +384,7 @@
     }
 
     function setup(){
+    console.log('setup called');
     const size = Math.min(window.innerWidth, 900);
     CELL_SIZE = Math.floor(size / GRID_SIZE);
     WIDTH = CELL_SIZE * GRID_SIZE;
@@ -506,6 +507,7 @@ function spawnNitrogenPatch(){
         let nx=cx+dx, ny=cy+dy;
         if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
           soil[nx][ny].nitrogen += nitrogenAmount/3;
+        }
     }
   }
 }
@@ -556,5 +558,7 @@ function updateFoodSources(){
       soil[NEST_X][NEST_Y].isNest=true;
       loop();
     });
+    console.log('setup type before new p5', typeof window.setup);
+    new p5();
   </script>
 </div>
