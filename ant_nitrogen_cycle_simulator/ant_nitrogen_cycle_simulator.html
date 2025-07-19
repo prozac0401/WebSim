@@ -111,7 +111,7 @@
       this.plant -= decay;
       this.nitrogen += decay;
       if(this.plant > 1){
-        if(!this.treeSpawned){
+        if(!this.treeSpawned && !this.isNest){
           spawnNestNear(this.x, this.y);
           this.treeSpawned = true;
         }
@@ -479,6 +479,7 @@
       }
     }
     soil[NEST_X][NEST_Y].isNest = true;
+    soil[NEST_X][NEST_Y].treeSpawned = true;
     initFood();
     initAnts(100);
     document.getElementById('antCount').addEventListener('input', e=>{
@@ -695,6 +696,7 @@ function updateFoodSources(){
         }
       }
       soil[NEST_X][NEST_Y].isNest=true;
+      soil[NEST_X][NEST_Y].treeSpawned=true;
       loop();
     });
     console.log('setup type before new p5', typeof window.setup);
