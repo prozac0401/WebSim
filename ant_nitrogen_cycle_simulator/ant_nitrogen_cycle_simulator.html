@@ -138,7 +138,7 @@
         fill(180,80,200,alpha);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-        if(this.nitrogen>0.5 && !this.isNest){
+        if(this.nitrogen>0.5 && !this.isNest && this.plant <= 1){
           fill('#ffb6c1');
           noStroke();
           ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, CELL_SIZE*0.3);
@@ -423,11 +423,12 @@
         soil[x][y].displayGround();
       }
     }
-    for(let fs of foodSources){fs.display();}
-    for(let ant of ants){
-      ant.update();
-      ant.display();
-    }
+  for(let fs of foodSources){fs.display();}
+  updateFoodSources();
+  for(let ant of ants){
+    ant.update();
+    ant.display();
+  }
     computeClusterCenters();
     for(let c of clusterCenters){
       drawBigCherryTree(c.x,c.y);
@@ -488,7 +489,7 @@ function relocateNest(cell){
     return nearest||soil[NEST_X][NEST_Y];
     }
 
-    function spawnNitrogenPatch(){
+function spawnNitrogenPatch(){
   let cx, cy;
   do {
     cx = Math.floor(random(GRID_SIZE));
@@ -505,10 +506,20 @@ function relocateNest(cell){
         let nx=cx+dx, ny=cy+dy;
         if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
           soil[nx][ny].nitrogen += nitrogenAmount/3;
-        }
-      }
     }
+  }
+}
+
+function updateFoodSources(){
+  for(let i=foodSources.length-1;i>=0;i--){
+    const fs = foodSources[i];
+    const cx = Math.floor(fs.pos.x / CELL_SIZE);
+    const cy = Math.floor(fs.pos.y / CELL_SIZE);
+    if(fs.amount <= 0 || soil[cx][cy].plant > 1){
+      foodSources.splice(i,1);
     }
+  }
+}
 
     function mousePressed(){
     if(mouseX>=0 && mouseX<width && mouseY>=0 && mouseY<height){
