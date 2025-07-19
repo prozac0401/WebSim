@@ -172,6 +172,7 @@
         }
       }
       displayNitrogenFlow(){
+        if(this.isNest || this.plant>1) return;
         textAlign(CENTER, CENTER);
         textSize(CELL_SIZE*0.5);
         noStroke();
