@@ -111,7 +111,7 @@
       this.plant -= decay;
       this.nitrogen += decay;
       if(this.plant > 1){
-        if(!this.treeSpawned && !this.isNest){
+        if(!this.treeSpawned && !this.isNest && !isNestNearby(this.x, this.y, 3)){
           spawnNestNear(this.x, this.y);
           this.treeSpawned = true;
         }
@@ -582,6 +582,21 @@ function spawnNestNear(cx, cy){
     }
     spawnNitrogenPatchAround(nestCell.x, nestCell.y);
   }
+}
+
+function isNestNearby(x, y, radius){
+  for(let dx=-radius; dx<=radius; dx++){
+    for(let dy=-radius; dy<=radius; dy++){
+      if(dx===0 && dy===0) continue;
+      let nx = x + dx, ny = y + dy;
+      if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<HEIGHT/CELL_SIZE){
+        if(soil[nx][ny].isNest){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
     function getNearestNest(pos){
