@@ -253,9 +253,18 @@
               }
             }
           }
-          this.pos.add(createVector(bestDir.dx,bestDir.dy).setMag(ANT_SPEED));
-          if(bestDir.dx==1) this.dir=1; else if(bestDir.dx==-1) this.dir=3;
-          if(bestDir.dy==1) this.dir=2; else if(bestDir.dy==-1) this.dir=0;
+          if(bestDir.dx===0 && bestDir.dy===0){
+            const randDir = int(random(4));
+            if(randDir===0) this.pos.y-=ANT_SPEED;
+            if(randDir===1) this.pos.x+=ANT_SPEED;
+            if(randDir===2) this.pos.y+=ANT_SPEED;
+            if(randDir===3) this.pos.x-=ANT_SPEED;
+            this.dir = randDir;
+          }else{
+            this.pos.add(createVector(bestDir.dx,bestDir.dy).setMag(ANT_SPEED));
+            if(bestDir.dx==1) this.dir=1; else if(bestDir.dx==-1) this.dir=3;
+            if(bestDir.dy==1) this.dir=2; else if(bestDir.dy==-1) this.dir=0;
+          }
         }else{
           if(!cell.visited){
             this.dir=(this.dir+1)%4;
@@ -321,7 +330,7 @@
       randomSeed(x*1000+y);
       for(let i=0;i<30;i++){
         const ang = random(TWO_PI);
-        const rad = random(h*0.3, h*0.8);
+        const rad = random(h*0.1, h*0.8);
         const sx = cos(ang)*rad;
         const sy = -h + sin(ang)*rad*0.5;
         const size = random(h*0.15, h*0.3);
@@ -342,7 +351,7 @@
       randomSeed(cx*2000+cy);
       for(let i=0;i<70;i++){
         const ang = random(TWO_PI);
-        const rad = random(size*0.5,size*1.2);
+        const rad = random(size*0.2,size*1.2);
         const sx = cos(ang)*rad;
         const sy = -size + sin(ang)*rad*0.6;
         const rsize = random(size*0.25,size*0.4);
