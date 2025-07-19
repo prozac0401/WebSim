@@ -523,6 +523,9 @@
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
+        if(soil[x][y].plantAge === 1){
+          releaseTrappedAnts(NEST_X, NEST_Y);
+        }
       }
     }
   for(let fs of foodSources){fs.display();}
@@ -531,8 +534,12 @@
     ant.update();
     ant.display();
   }
-  ants = ants.filter(a => !a.dead);
-  computeClusterCenters();
+    ants = ants.filter(a => !a.dead);
+    if(frameCount % 300 === 0){
+      // Periodically free ants trapped in trees so they don't hit STILL_LIMIT
+      releaseTrappedAnts(NEST_X, NEST_Y);
+    }
+    computeClusterCenters();
     for(let c of clusterCenters){
       drawBigCherryTree(c.x,c.y);
     }
