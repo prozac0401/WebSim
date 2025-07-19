@@ -20,6 +20,10 @@
 
   <!-- UI -->
   <div class="controls">
+    
+<label>개미 이동 속도: <span id="speedLabel">1</span>x</label>
+<input id="antSpeed" type="range" min="0.2" max="2" step="0.1" value="1"/>
+
     <label>개미 수: <span id="antCountLabel">100</span></label>
     <input id="antCount" type="range" min="10" max="500" value="100"/>
     <br/>
@@ -28,16 +32,6 @@
     <br/>
     <label>양분 생성주기(초): <span id="nutrientIntervalLabel">5</span></label>
     <input id="nutrientInterval" type="range" min="1" max="20" value="5"/>
-  </div>
-
-  <div id="legend">
-    <style>#legend rect,#legend circle,#legend path{pointer-events:none;}</style>
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#b5651d"/></svg>둥지
-    <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4" fill="#ffb6c1"/></svg>사탕
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#228B22" opacity="0.5"/></svg>질소
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#8B4513" opacity="0.5"/></svg>유기물
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#FF69B4" opacity="0.6"/></svg>개화 가능
-    <svg viewBox="0 0 12 12"><rect width="12" height="12" fill="#ffecb3" opacity="0.7"/></svg>영양 농축지
   </div>
 
   <div class="controls">
@@ -52,12 +46,15 @@
 
 <script>
 /* CONFIG */
-const GRID=30, TREE_LIFE=800, N_TH=3, O_TH=2, AGE_TH=120, BLOOM_P=0.3,
-      MAX_TREE_H=3, NUTRIENT_HIGHLIGHT_TH=4;
+const GRID=30, TREE_LIFE=800, N_TH=3, O_TH=2, AGE_TH=120, BLOOM_P=0.3;
 const BLOSSOM_COLORS=['#ffb6c1','#ffc0cb','#ffd1dc','#ffa6c9','#ffccd5'];
+const MAX_TREE_H=3, NUTRIENT_HIGHLIGHT_TH=4;
 
 /* STATE */
-let CELL,W,H,NX,NY,soil=[],ants=[],foods=[],
+let CELL,W,H,NX,NY,soil=[],ants=[],foods=[];
+let CELL_BG_COLOR = '#816C30';
+let BACKGROUND_CHANGED = false;
+const CAND_SHADE_COLOR = '#816C30';
     nutrientSize=50,nutrientInterval=5*60,nextPatch=0,running=true;
 
 /* CLASSES */
@@ -84,97 +81,136 @@ class SoilCell{
   }
   drawGround(){
     const x=this.x*CELL,y=this.y*CELL;
-    noStroke(); fill('#FFFFF0'); rect(x,y,CELL,CELL);
-
-    if(this.nit>NUTRIENT_HIGHLIGHT_TH||this.org>NUTRIENT_HIGHLIGHT_TH){
-      fill(255,236,179, min((this.nit+this.org)*10,180)); // yellow highlight for nutrient cluster
-      rect(x,y,CELL,CELL);
+    noStroke(); fill(CELL_BG_COLOR); rect(x,y,CELL,CELL);
+    // shade candidate 3x3 area for potential tree growth
+    let cand=false;
+    for(let dy=-1;dy<=1&&!cand;dy++){
+      for(let dx=-1;dx<=1;dx++){
+        const nx=this.x+dx, ny=this.y+dy;
+        if(nx>=0&&nx<NX&&ny>=0&&ny<NY){
+          const n=soil[ny][nx];
+          if(!n.tree && n.bloom>BLOOM_P*0.6){ cand=true; break; }
+        }
+      }
     }
-    if(this.nit>0.2){
-      fill(34,139,34, min(this.nit*60,160)); rect(x,y,CELL,CELL);
-    }
-    if(this.org>0.2){
-      fill(139,69,19, min(this.org*60,160)); rect(x,y,CELL,CELL);
-    }
-    if(this.bloom>0 && this.plant<=1){
-      fill(255,105,180, min(this.bloom*150,180)); rect(x,y,CELL,CELL);
-    }
-    if(this.nest){ fill('#b5651d'); rect(x,y,CELL,CELL); }
+    if(cand && !BACKGROUND_CHANGED){
+  BACKGROUND_CHANGED = true;
+  CELL_BG_COLOR = CAND_SHADE_COLOR;
+}
+if(cand){
+  push();
+  for (let i = 0; i < 3; i++) {
+    const alpha = 30 - i * 10;
+    fill(129,108,48, alpha);
+    rect(x - i, y - i, CELL + 2 * i, CELL + 2 * i);
   }
+  pop();
+}
+}
   drawPlant(){ if(this.plant>1) drawTree(this.x,this.y,this.plant); }
 }
 
+
+
 class Ant{
-  constructor(){this.pos=createVector(random(W),random(H));this.carry=false;this.dir=random(TWO_PI);}
-  update(){
-    const nestPos=createVector(NX*CELL+CELL/2,NY*CELL+CELL/2);
-    if(this.carry){
-      this.pos.add(p5.Vector.sub(nestPos,this.pos).setMag(CELL*0.13));
-      if(p5.Vector.dist(this.pos,nestPos)<3){soil[NX][NY].org+=5; this.carry=false;}
-    }else{
-      let nearest=null,dmin=1e9;
-      for(const f of foods){const d=p5.Vector.dist(this.pos,f.pos); if(d<dmin){dmin=d; nearest=f;}}
-      if(nearest && dmin<5 && nearest.amount>0){nearest.amount-=5; this.carry=true;}
-      else if(nearest && dmin<80){this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(CELL*0.13));}
-      else{this.dir+=random(-0.4,0.4); this.pos.add(createVector(cos(this.dir),sin(this.dir)).setMag(CELL*0.12));}
-    }
-    this.pos.x=constrain(this.pos.x,0,W-1); this.pos.y=constrain(this.pos.y,0,H-1);
+  constructor(x,y){
+    this.x=x;
+    this.y=y;
+    this.angle=0;   // 라디안 각도
   }
+  update(){
+    // 4방향 랜덤 이동
+    const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+    const [dx,dy] = random(dirs);
+    // 격자 경계 체크
+    if(this.x+dx>=0 && this.x+dx<NX) this.x += dx;
+    if(this.y+dy>=0 && this.y+dy<NY) this.y += dy;
+    // 이동한 방향에 맞춰 각도 갱신
+    this.angle = atan2(dy, dx);
+  }
+  
   draw(){
-    push(); translate(this.pos.x,this.pos.y); rotate(this.dir+HALF_PI);
-    stroke('#000');strokeWeight(1);
-    for(let i=-1;i<=1;i++) line(-CELL*0.24,CELL*0.07*i,-CELL*0.42,CELL*0.2*i),
-                          line(CELL*0.24,CELL*0.07*i,CELL*0.42,CELL*0.2*i);
-    noStroke(); fill(this.carry?'#d020d0':'#000');
-    ellipse(0,-CELL*0.15,CELL*0.22,CELL*0.22);
-    ellipse(0,0,CELL*0.28,CELL*0.28);
-    ellipse(0,CELL*0.28,CELL*0.34,CELL*0.34);
+    push();
+    translate(this.x*CELL + CELL/2, this.y*CELL + CELL/2);
+    rotate(this.angle);
+    noStroke();
+
+    fill(140, 128, 64);
+    arc(0, 0, CELL * 0.8, CELL * 0.8, radians(45), radians(315), PIE);
     pop();
   }
 }
 
-class Food{
-  constructor(x,y,amt){
-    this.pos=createVector(x,y); this.amount=amt; this.init=amt;
-    this.shape=[]; for(let i=0;i<6;i++){const ang=TWO_PI*i/6+random(-0.25,0.25); const rad=CELL*0.4*random(0.9,1.1); this.shape.push({x:cos(ang)*rad,y:sin(ang)*rad});}
+
+class Food {
+  constructor(x, y, amount = 1) {
+    this.x = x;
+    this.y = y;
+    this.amount = amount;
   }
-  draw(){
-    if(this.amount<=0) return;
-    const f=this.amount/this.init;
-    push(); translate(this.pos.x,this.pos.y); noStroke(); fill(255,182,193,200*f+55);
-    beginShape(); this.shape.forEach(v=>vertex(v.x*f,v.y*f)); endShape(CLOSE); pop();
+  draw() {
+    push();
+    translate(this.x * CELL + CELL / 2, this.y * CELL + CELL / 2);
+    noStroke();
+    fill(138, 43, 226, 220); // bright obsidian purple
+
+    beginShape();
+    vertex(0, -CELL * 0.9);
+    vertex(CELL * 0.9, 0);
+    vertex(0, CELL * 0.9);
+    vertex(-CELL * 0.9, 0);
+    endShape(CLOSE);
+    pop();
   }
 }
 
+
 /* TREE & BLOSSOM */
+
 function drawTree(cx,cy,h){
-  const height=min(h,CELL*MAX_TREE_H);
-  push(); translate(cx*CELL+CELL/2,cy*CELL+CELL);
+  const height = min(h, CELL*MAX_TREE_H);
+  push();
+  translate(cx*CELL + CELL/2, cy*CELL + CELL);
   stroke(139,69,19); strokeWeight(6);
-  // radial branches
-  for(let ang=0; ang<TWO_PI; ang+=PI/3){
-    const len=height*0.6; const bx=len*cos(ang), by=-height+len*sin(ang);
-    line(0,-height,bx,by);
-  }
+
   // trunk
-  line(0,0,0,-height);
+  line(0, 0, 0, -height);
+
+  // radial branches
+  for (let ang = 0; ang < TWO_PI; ang += PI / 3) {
+    const len = height * 0.6;
+    const bx = len * cos(ang);
+    const by = -height + len * sin(ang);
+    line(0, -height, bx, by);
+  }
+
   noStroke();
-  for(let i=0;i<25;i++){
-    const ang=random(TWO_PI); const rad=random(height*0.2,height*0.75);
-    drawBlossom(cos(ang)*rad, sin(ang)*rad-height, height*0.28);
+
+  // deterministic pseudo‑random blossoms without affecting global random()
+  const fract = v => v - Math.floor(v);
+  for (let i = 0; i < 25; i++) {
+    const r1 = fract(Math.sin((i + 1) * 12.9898 + cx * 78.233 + cy * 37.719) * 43758.5453);
+    const ang = TWO_PI * r1;
+    const r2 = fract(Math.sin((i + 1) * 93.9898 + cx * 11.233 + cy * 7.719) * 43758.5453);
+    const rad = map(r2, 0, 1, height * 0.2, height * 0.75);
+    const colIndex = Math.floor(r1 * BLOSSOM_COLORS.length) % BLOSSOM_COLORS.length;
+    const col = BLOSSOM_COLORS[colIndex];
+    drawBlossom(cos(ang) * rad, sin(ang) * rad - height, height * 0.28, col);
   }
   pop();
 }
-function drawBlossom(x,y,size){
-  push(); translate(x,y); const col=random(BLOSSOM_COLORS);
-  const c=color(col);
-  c.setAlpha(230);
-  fill(c); noStroke();
-  const petals=5;
-  for(let i=0;i<petals;i++){
-    const ang=TWO_PI*i/petals;
-    ellipse(cos(ang)*size*0.6, sin(ang)*size*0.6, size, size*0.55);
-}
+
+
+function drawBlossom(x, y, size, col){
+  push();
+  translate(x, y);
+  fill(col + 'AA');
+  noStroke();
+  const petals = 5;
+  for (let i = 0; i < petals; i++){
+    const ang = TWO_PI * i / petals;
+    ellipse(cos(ang) * size * 0.6, sin(ang) * size * 0.6, size, size * 0.55);
+  }
   pop();
 }
 
@@ -182,10 +218,12 @@ function drawBlossom(x,y,size){
 function initWorld(count){
   CELL=floor(min(window.innerWidth*0.9,920)/GRID); W=CELL*GRID; H=W;
   resizeCanvas ? resizeCanvas(W,H) : createCanvas(W,H).parent('wrapper');
-  NX=NY=floor(GRID/2);
+  NX=NY=GRID;
   soil=[]; for(let x=0;x<GRID;x++){soil[x]=[]; for(let y=0;y<GRID;y++){soil[x][y]=new SoilCell(x,y);}}
-  soil[NX][NY].nest=true;
-  ants=[]; for(let i=0;i<count;i++) ants.push(new Ant());
+  let _mid =Math.floor(GRID/2);
+  soil[_mid ][_mid ].nest=true;
+  ants=[]; 
+  let mid=Math.floor(GRID/2); for(let i=0;i<count;i++) ants.push(new Ant(mid, mid));
   foods=[]; for(let i=0;i<3;i++) foods.push(new Food(random(W),random(H),100));
   nextPatch=frameCount+nutrientInterval;
 }
