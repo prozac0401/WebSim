@@ -79,6 +79,7 @@
     const TREE_LIFESPAN = 800;
     const STILL_LIMIT = 600; // frames before an unmoving ant is removed
     const MIN_CLUSTER_SIZE = 5; // cells needed to form a big tree
+    const SHADE_MAX_NITROGEN = 5; // nitrogen value mapped to darkest shade
     let nestCount = 0;
     let clusterCenters = [];
     let clusterCells = [];
@@ -142,12 +143,12 @@
     }
       displayGround() {
         noStroke();
-        let n = constrain(this.nitrogen*40, 0, 200);
+        let nScale = constrain(this.nitrogen / SHADE_MAX_NITROGEN, 0, 1);
         if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
           fill('#FFFFF0');
-        }else{
-          const shade = 230 - n;
-          fill(shade);
+        } else {
+          const col = lerpColor(color('#FFFFF0'), color('#004d00'), nScale);
+          fill(col);
         }
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         stroke('#cccccc');
@@ -821,6 +822,7 @@ function drawFlowPath(){
     text(step.ch, step.x*CELL_SIZE+CELL_SIZE/2, step.y*CELL_SIZE+CELL_SIZE/2);
   }
 }
+
 function displayClusterOverlay(){
   noFill();
   stroke('#1e90ff');
@@ -829,6 +831,7 @@ function displayClusterOverlay(){
     rect(c.x*CELL_SIZE, c.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
 }
+
 function updateFoodSources(){
   for(let i=foodSources.length-1;i>=0;i--){
     const fs = foodSources[i];
