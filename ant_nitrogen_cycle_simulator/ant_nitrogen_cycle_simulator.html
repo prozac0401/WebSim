@@ -79,6 +79,7 @@
     const TREE_LIFESPAN = 800;
     const STILL_LIMIT = 600; // frames before an unmoving ant is removed
     const MIN_CLUSTER_SIZE = 5; // cells needed to form a big tree
+    const SHADE_MAX_NITROGEN = 5; // nitrogen value mapped to darkest shade
     let nestCount = 0;
     let clusterCenters = [];
     let clusterCells = [];
@@ -566,6 +567,7 @@ function computeClusterCenters(){
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
+        soil[x][y].displayNitrogenFlow();
         if(soil[x][y].plantAge === 1){
           releaseTrappedAnts(NEST_X, NEST_Y);
         }
