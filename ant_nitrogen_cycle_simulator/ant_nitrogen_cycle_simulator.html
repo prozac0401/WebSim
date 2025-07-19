@@ -146,9 +146,9 @@
         let n = constrain(this.nitrogen * 40, 0, 200);
         if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
           fill('#FFFFF0');
-        } else {
           const shade = 230 - n;
           fill(shade);
+        } else {
         }
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         stroke('#cccccc');
