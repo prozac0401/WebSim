@@ -570,6 +570,7 @@ function computeClusterCenters(){
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
         soil[x][y].displayGround();
+        soil[x][y].displayNitrogenFlow();
         if(soil[x][y].plantAge === 1){
           releaseTrappedAnts(NEST_X, NEST_Y);
         }
@@ -820,7 +821,6 @@ function drawFlowPath(){
     text(step.ch, step.x*CELL_SIZE+CELL_SIZE/2, step.y*CELL_SIZE+CELL_SIZE/2);
   }
 }
-
 function displayClusterOverlay(){
   noFill();
   stroke('#1e90ff');
@@ -829,7 +829,6 @@ function displayClusterOverlay(){
     rect(c.x*CELL_SIZE, c.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
 }
-
 function updateFoodSources(){
   for(let i=foodSources.length-1;i>=0;i--){
     const fs = foodSources[i];
