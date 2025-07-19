@@ -153,7 +153,7 @@
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         noStroke();
         if(this.plant > 1){
-          fill(120,120,120,120);
+          fill(120,120,120,60);
           rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
         }
       if(this.pheromone>0.1){
@@ -414,10 +414,13 @@
       function drawSnowflakePetal(px, py, size){
         push();
         translate(px, py);
-        const arms = 6;
-        for(let i=0;i<arms;i++){
-          const ang = TWO_PI*i/arms;
-          line(0,0,cos(ang)*size/2,sin(ang)*size/2);
+        noStroke();
+        const petals = 6;
+        for(let i=0;i<petals;i++){
+          const ang = TWO_PI*i/petals;
+          const x = cos(ang)*size*0.25;
+          const y = sin(ang)*size*0.25;
+          ellipse(x, y, size*0.4, size*0.4);
         }
         pop();
       }
@@ -638,6 +641,20 @@ function isNestNearby(x, y, radius){
     return nearest||soil[NEST_X][NEST_Y];
     }
 
+function releaseTrappedAnts(tx, ty){
+  for(let ant of ants){
+    const ax = Math.floor(ant.pos.x/CELL_SIZE);
+    const ay = Math.floor(ant.pos.y/CELL_SIZE);
+    if(soil[ax][ay].plant > 1){
+      ant.pos.x = tx*CELL_SIZE + CELL_SIZE/2;
+      ant.pos.y = ty*CELL_SIZE + CELL_SIZE/2;
+      ant.prevPos = ant.pos.copy();
+      ant.isResting = false;
+      ant.still = 0;
+    }
+  }
+}
+
 function spawnNitrogenPatch(){
   let cx, cy;
   do {
@@ -645,6 +662,7 @@ function spawnNitrogenPatch(){
     cy = Math.floor(random(HEIGHT/CELL_SIZE));
   } while(soil[cx][cy].plant > 1);
   foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
+  releaseTrappedAnts(cx, cy);
 
   for(let ant of ants){
     ant.isResting = false;
@@ -677,6 +695,7 @@ function spawnNitrogenPatchAround(cx, cy){
   if(options.length>0){
     const choice = random(options);
     foodSources.push(new FoodSource(choice.x*CELL_SIZE+CELL_SIZE/2, choice.y*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
+    releaseTrappedAnts(choice.x, choice.y);
     for(let ant of ants){
       ant.isResting=false;
       ant.still = 0;
