@@ -568,6 +568,7 @@ function spawnNestNear(cx, cy){
   if(options.length>0){
     const nestCell = random(options);
     nestCell.isNest = true;
+    nestCell.treeSpawned = true;
     for(let ant of ants){
       const ax=Math.floor(ant.pos.x/CELL_SIZE);
       const ay=Math.floor(ant.pos.y/CELL_SIZE);
@@ -690,6 +691,7 @@ function updateFoodSources(){
           soil[x][y].plantAge=0;
           soil[x][y].pheromone=0;
           soil[x][y].isNest=false;
+          soil[x][y].treeSpawned=false;
         }
       }
       soil[NEST_X][NEST_Y].isNest=true;
