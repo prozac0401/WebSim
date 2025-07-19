@@ -74,6 +74,7 @@
     let foodSources = [];
     let PLANT_THRESHOLD;
     let ANT_SIZE;
+    let ANT_SPEED = 1.5;
     const TREE_LIFESPAN = 800;
     let clusterCenters = [];
 
@@ -101,6 +102,9 @@
       this.nitrogen += decay;
       if(this.plant > 1){
         this.plantAge++;
+        if(this.plantAge === 1){
+          for(let ant of ants){ ant.isResting = false; }
+        }
         if(this.plantAge > TREE_LIFESPAN){
           this.nitrogen += this.plant;
           this.plant = 0;
@@ -157,12 +161,12 @@
       this.amount = amount;
       this.initial = amount;
       this.shape = [];
-        const steps = int(random(5,8));
-        for(let i=0;i<steps;i++){
-          const ang = random(TWO_PI);
-          const rad = CELL_SIZE*0.8*random(1,1.8);
-          this.shape.push({x:cos(ang)*rad, y:sin(ang)*rad});
-        }
+      const steps = 8;
+      for(let i=0;i<steps;i++){
+        const ang = TWO_PI*i/steps + random(-0.2,0.2);
+        const rad = CELL_SIZE*0.8*random(0.8,1.2);
+        this.shape.push({x:cos(ang)*rad, y:sin(ang)*rad});
+      }
     }
     display(){
       if(this.amount>0){
@@ -170,12 +174,16 @@
         const c = color('#ffb6c1');
         c.setAlpha(200*frac+55);
         fill(c);
-        noStroke();
+        stroke(255,255,255,180*frac);
+        strokeWeight(1);
         push();
         translate(this.pos.x,this.pos.y);
         beginShape();
         for(let v of this.shape){ vertex(v.x,v.y); }
         endShape(CLOSE);
+        noStroke();
+        fill(255,255,255,150*frac);
+        ellipse(0,-CELL_SIZE*0.2,CELL_SIZE*0.3,CELL_SIZE*0.2);
         pop();
       }
     }
@@ -208,7 +216,7 @@
         let nestCell = getNearestNest(this.pos);
         let target = createVector(nestCell.x*CELL_SIZE+CELL_SIZE/2,
                                  nestCell.y*CELL_SIZE+CELL_SIZE/2);
-        this.pos.add(p5.Vector.sub(target,this.pos).setMag(1));
+        this.pos.add(p5.Vector.sub(target,this.pos).setMag(ANT_SPEED));
         if(p5.Vector.dist(this.pos,target)<5){
           nestCell.nitrogen += 5;
           this.carrying=false;
@@ -230,7 +238,7 @@
             this.isResting = true;
           }
         }else if(nearest && dmin<80){
-          this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(1));
+          this.pos.add(p5.Vector.sub(nearest.pos,this.pos).setMag(ANT_SPEED));
         }else if(cell.pheromone>0.1){
           let bestDir = {dx:0,dy:0,val:cell.pheromone};
           for(let dx=-1; dx<=1; dx++){
@@ -245,7 +253,7 @@
               }
             }
           }
-          this.pos.add(createVector(bestDir.dx,bestDir.dy).setMag(1));
+          this.pos.add(createVector(bestDir.dx,bestDir.dy).setMag(ANT_SPEED));
           if(bestDir.dx==1) this.dir=1; else if(bestDir.dx==-1) this.dir=3;
           if(bestDir.dy==1) this.dir=2; else if(bestDir.dy==-1) this.dir=0;
         }else{
@@ -256,10 +264,10 @@
             this.dir=(this.dir+3)%4;
             cell.visited=false;
           }
-          if(this.dir===0) this.pos.y-=1;
-          if(this.dir===1) this.pos.x+=1;
-          if(this.dir===2) this.pos.y+=1;
-          if(this.dir===3) this.pos.x-=1;
+          if(this.dir===0) this.pos.y-=ANT_SPEED;
+          if(this.dir===1) this.pos.x+=ANT_SPEED;
+          if(this.dir===2) this.pos.y+=ANT_SPEED;
+          if(this.dir===3) this.pos.x-=ANT_SPEED;
         }
       }
 
@@ -269,7 +277,7 @@
       const cy2 = constrain(Math.floor(this.pos.y/CELL_SIZE),0,HEIGHT/CELL_SIZE-1);
       soil[cx2][cy2].pheromone += this.carrying ? 0.5 : 0.2;
       this.vel = p5.Vector.sub(this.pos, prev);
-      if(this.vel.magSq() < 0.0001) this.vel = this.vel.setMag(1);
+      if(this.vel.magSq() < 0.0001) this.vel = this.vel.setMag(ANT_SPEED);
       if(p5.Vector.dist(this.pos, prev) < 0.5){
         this.still++;
       } else {
@@ -311,7 +319,7 @@
       line(0,0,0,-h);
       noStroke();
       randomSeed(x*1000+y);
-      for(let i=0;i<18;i++){
+      for(let i=0;i<30;i++){
         const ang = random(TWO_PI);
         const rad = random(h*0.3, h*0.8);
         const sx = cos(ang)*rad;
@@ -332,7 +340,7 @@
       line(0,0,0,-size);
       noStroke();
       randomSeed(cx*2000+cy);
-      for(let i=0;i<40;i++){
+      for(let i=0;i<70;i++){
         const ang = random(TWO_PI);
         const rad = random(size*0.5,size*1.2);
         const sx = cos(ang)*rad;
@@ -375,6 +383,7 @@
     NEST_Y = Math.floor(GRID_HEIGHT/2);
     PLANT_THRESHOLD = CELL_SIZE/2;
     ANT_SIZE = CELL_SIZE * 0.4;
+    ANT_SPEED = CELL_SIZE * 0.1;
     let canvas = createCanvas(WIDTH, HEIGHT);
     canvas.id('canvas');
     for(let x=0;x<GRID_SIZE;x++){
@@ -471,8 +480,11 @@ function relocateNest(cell){
     }
 
     function spawnNitrogenPatch(){
-  const cx = Math.floor(random(GRID_SIZE));
-  const cy = Math.floor(random(HEIGHT/CELL_SIZE));
+  let cx, cy;
+  do {
+    cx = Math.floor(random(GRID_SIZE));
+    cy = Math.floor(random(HEIGHT/CELL_SIZE));
+  } while(soil[cx][cy].plant > 1);
   foodSources.push(new FoodSource(cx*CELL_SIZE+CELL_SIZE/2, cy*CELL_SIZE+CELL_SIZE/2, nitrogenAmount));
 
   for(let ant of ants){
