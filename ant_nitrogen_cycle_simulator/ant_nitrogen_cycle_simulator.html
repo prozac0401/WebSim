@@ -75,6 +75,7 @@
     let PLANT_THRESHOLD;
     let ANT_SIZE;
     const TREE_LIFESPAN = 800;
+    let clusterCenters = [];
 
     class SoilCell {
     constructor(x, y) {
@@ -114,7 +115,7 @@
         relocateNest(this);
       }
     }
-    display() {
+    displayGround() {
       noStroke();
       let n = constrain(this.nitrogen*40, 0, 200);
       if(this.nitrogen < 0.1 && this.plant < 1 && !this.isNest){
@@ -133,32 +134,22 @@
         fill(180,80,200,alpha);
         rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-      if(this.plant > 1){
-        let h = this.plant;
-        push();
-        translate(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE);
-        stroke(139,69,19);
-        strokeWeight(2);
-        line(0,0,0,-h);
-        noStroke();
-        fill('#ffb7c5');
-        ellipse(0,-h*0.7,h*1.2,h*1.2);
-        fill('#ffe5ec');
-        ellipse(-h*0.3,-h*0.9,h*0.6,h*0.6);
-        ellipse(h*0.3,-h*0.9,h*0.6,h*0.6);
-        pop();
+        if(this.nitrogen>0.5 && !this.isNest){
+          fill('#ffb6c1');
+          noStroke();
+          ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, CELL_SIZE*0.3);
+        }
+        if(this.isNest){
+          fill('#b5651d');
+          rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
       }
-      if(this.nitrogen>0.5 && !this.isNest){
-        fill('#ffb6c1');
-        noStroke();
-        ellipse(this.x*CELL_SIZE+CELL_SIZE/2, this.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.3, CELL_SIZE*0.3);
+      displayPlant(){
+        if(this.plant > 1){
+          drawCherryTree(this.x, this.y, this.plant);
+        }
       }
-      if(this.isNest){
-        fill('#b5651d');
-        rect(this.x*CELL_SIZE, this.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-    }
-    }
 
     class FoodSource {
     constructor(x,y,amount){
@@ -166,12 +157,12 @@
       this.amount = amount;
       this.initial = amount;
       this.shape = [];
-      const steps = int(random(5,8));
-      for(let i=0;i<steps;i++){
-        const ang = random(TWO_PI);
-        const rad = CELL_SIZE*0.4*random(0.6,1.2);
-        this.shape.push({x:cos(ang)*rad, y:sin(ang)*rad});
-      }
+        const steps = int(random(5,8));
+        for(let i=0;i<steps;i++){
+          const ang = random(TWO_PI);
+          const rad = CELL_SIZE*0.8*random(1,1.8);
+          this.shape.push({x:cos(ang)*rad, y:sin(ang)*rad});
+        }
     }
     display(){
       if(this.amount>0){
@@ -199,7 +190,6 @@
       this.isResting = false;
       this.dir = int(random(4));
       this.still = 0;
-      this.toRemove = false;
     }
     update(){
       const prev = this.pos.copy();
@@ -282,7 +272,6 @@
       if(this.vel.magSq() < 0.0001) this.vel = this.vel.setMag(1);
       if(p5.Vector.dist(this.pos, prev) < 0.5){
         this.still++;
-        if(this.still>300) this.toRemove=true;
       } else {
         this.still=0;
       }
@@ -312,6 +301,69 @@
       }
       pop();
     }
+    }
+
+    function drawCherryTree(x, y, h){
+      push();
+      translate(x*CELL_SIZE+CELL_SIZE/2, y*CELL_SIZE+CELL_SIZE);
+      stroke(139,69,19);
+      strokeWeight(2);
+      line(0,0,0,-h);
+      noStroke();
+      randomSeed(x*1000+y);
+      for(let i=0;i<18;i++){
+        const ang = random(TWO_PI);
+        const rad = random(h*0.3, h*0.8);
+        const sx = cos(ang)*rad;
+        const sy = -h + sin(ang)*rad*0.5;
+        const size = random(h*0.15, h*0.3);
+        fill(random(['#ffc6dc','#ffd9e8','#ffeef5']));
+        ellipse(sx, sy, size, size);
+      }
+      pop();
+    }
+
+    function drawBigCherryTree(cx, cy){
+      const size = CELL_SIZE * 3;
+      push();
+      translate(cx*CELL_SIZE + CELL_SIZE/2, cy*CELL_SIZE + CELL_SIZE);
+      stroke(139,69,19);
+      strokeWeight(4);
+      line(0,0,0,-size);
+      noStroke();
+      randomSeed(cx*2000+cy);
+      for(let i=0;i<40;i++){
+        const ang = random(TWO_PI);
+        const rad = random(size*0.5,size*1.2);
+        const sx = cos(ang)*rad;
+        const sy = -size + sin(ang)*rad*0.6;
+        const rsize = random(size*0.25,size*0.4);
+        fill(random(['#ffc6dc','#ffd9e8','#ffeef5']));
+        ellipse(sx, sy, rsize, rsize);
+      }
+      pop();
+    }
+
+    function computeClusterCenters(){
+      clusterCenters = [];
+      for(let x=1; x<GRID_SIZE-1; x++){
+        for(let y=1; y<HEIGHT/CELL_SIZE-1; y++){
+          let all=true;
+          for(let dx=-1; dx<=1 && all; dx++){
+            for(let dy=-1; dy<=1; dy++){
+              if(soil[x+dx][y+dy].plant <= 1){ all=false; break; }
+            }
+          }
+          if(all) clusterCenters.push({x,y});
+        }
+      }
+    }
+
+    function isPartOfCluster(x,y){
+      for(let c of clusterCenters){
+        if(Math.abs(c.x - x) <= 1 && Math.abs(c.y - y) <= 1) return true;
+      }
+      return false;
     }
 
     function setup(){
@@ -350,15 +402,22 @@
     for(let x=0;x<GRID_SIZE;x++){
       for(let y=0;y<HEIGHT/CELL_SIZE;y++){
         soil[x][y].update();
-        soil[x][y].display();
+        soil[x][y].displayGround();
       }
     }
     for(let fs of foodSources){fs.display();}
-    for(let i=ants.length-1;i>=0;i--){
-      const ant = ants[i];
+    for(let ant of ants){
       ant.update();
       ant.display();
-      if(ant.toRemove) ants.splice(i,1);
+    }
+    computeClusterCenters();
+    for(let c of clusterCenters){
+      drawBigCherryTree(c.x,c.y);
+    }
+    for(let x=0;x<GRID_SIZE;x++){
+      for(let y=0;y<HEIGHT/CELL_SIZE;y++){
+        if(!isPartOfCluster(x,y)) soil[x][y].displayPlant();
+      }
     }
 
     }
