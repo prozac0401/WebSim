@@ -15,4 +15,4 @@ https://prozac0401.github.io/WebSim
 - [ulam_spiral 패턴 시각화](https://prozac0401.tistory.com/48) - [source](ulam_spiral/ulam_spiral.html) - [설명](ulam_spiral/ulam_spiral.md)
 - [프랙탈 나무 시뮬레이터](https://prozac0401.tistory.com/66) - [source](fractal_tree_simulator/fractal_tree_simulator.html) - [설명](fractal_tree_simulator/fractal_tree_simulator.md)
 - [포식자-피식자 시뮬레이터](https://prozac0401.tistory.com/69) - [source](predator_prey_simulator/predator_prey_simulator.html) - [설명](predator_prey_simulator/predator_prey_simulator.md)
-- [개미-질소 순환 시뮬레이터](https://example.com/ant-nitrogen-sim) - [source](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) - [설명](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.md)
+<!-- - [개미-질소 순환 시뮬레이터](https://example.com/ant-nitrogen-sim) - [source](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) - [설명](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.md) -->
