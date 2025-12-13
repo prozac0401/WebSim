@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Schelling 분리 모형 시뮬레이터</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Schelling Segregation Simulator (v5.2: step-time default 100ms + legend toggle + 2x2 toggles) -->
+</head>
+<body>
+<!-- Schelling Segregation Simulator (v5.2: step-time default 100ms + legend toggle + 2x2 toggles) -->
+<div class="schelling-widget" id="schellingWidget_v52">
+  <div class="schelling-stage">
+    <!-- Legend (toggleable) -->
+    <div class="schelling-legend-top" id="sLegendTop_v52">
+      <span class="a"></span> A
+      <span class="b"></span> B
+      <span class="e"></span> 빈집
+    </div>
+
+    <canvas class="schelling-canvas" id="schellingCanvas_v52"></canvas>
+    <canvas class="schelling-spark" id="schellingSpark_v52" aria-label="segregation history"></canvas>
+
+    <!-- Overlay (toggleable) -->
+    <div class="schelling-overlay" id="schellingOverlay_v52"></div>
+  </div>
+
+  <div class="schelling-panel">
+    <div class="schelling-title">
+      <b>Schelling 분리 모형</b>
+      <span class="schelling-sub">‘조금의 선호’가 ‘큰 분리’를 만드는 과정</span>
+    </div>
+
+    <div class="schelling-section">
+      <div class="schelling-section-title">0. 도시 설정</div>
+
+      <div class="schelling-row">
+        <label>격자 크기</label>
+        <select id="sGrid_v52">
+          <option value="40x28">40 × 28 (가볍게)</option>
+          <option value="60x40" selected>60 × 40 (기본)</option>
+          <option value="80x54">80 × 54 (무겁게)</option>
+        </select>
+        <span class="schelling-val"></span>
+      </div>
+
+      <div class="schelling-row">
+        <label>공실률 (vacancy)</label>
+        <input type="range" id="sVac_v52" min="0" max="45" step="1" value="12">
+        <span class="schelling-val" id="sVacval_v52">12%</span>
+      </div>
+
+      <div class="schelling-row">
+        <label>집단 비율</label>
+        <input type="range" id="sMix_v52" min="10" max="90" step="1" value="50">
+        <span class="schelling-val" id="sMixval_v52">A 50% / B 50%</span>
+      </div>
+    </div>
+
+    <div class="schelling-section">
+      <div class="schelling-section-title">1. 선호(관용도)와 이웃</div>
+
+      <div class="schelling-row">
+        <label>관용도 (tolerance)</label>
+        <input type="range" id="sTol_v52" min="0" max="100" step="1" value="35">
+        <span class="schelling-val" id="sTolval_v52">35%</span>
+      </div>
+
+      <div class="schelling-row">
+        <label>이웃 범위</label>
+        <select id="sNbr_v52">
+          <option value="1" selected>반경 1 (8방향)</option>
+          <option value="2">반경 2 (24칸)</option>
+        </select>
+        <span class="schelling-val"></span>
+      </div>
+    </div>
+
+    <div class="schelling-section">
+      <div class="schelling-section-title">2. 이동 규칙</div>
+
+      <div class="schelling-row">
+        <label>이사 방식</label>
+        <select id="sRule_v52">
+          <option value="random">랜덤 빈집</option>
+          <option value="bestof" selected>빈집 샘플 중 최선</option>
+        </select>
+        <span class="schelling-val"></span>
+      </div>
+
+      <div class="schelling-row">
+        <label>샘플 수 (best-of)</label>
+        <input type="range" id="sK_v52" min="3" max="60" step="1" value="25">
+        <span class="schelling-val" id="sKval_v52">25</span>
+      </div>
+
+      <div class="schelling-row">
+        <label>한 스텝 이사량</label>
+        <input type="range" id="sBatch_v52" min="10" max="400" step="10" value="120">
+        <span class="schelling-val" id="sBatchval_v52">120</span>
+      </div>
+    </div>
+
+    <div class="schelling-section">
+      <div class="schelling-section-title">3. 속도 / 표시</div>
+
+      <!-- default: 100ms -->
+      <div class="schelling-row">
+        <label>스텝별 시간</label>
+        <input type="range" id="sInterval_v52" min="20" max="1200" step="10" value="100">
+        <span class="schelling-val" id="sIntervalVal_v52">100ms</span>
+      </div>
+
+      <!-- NEW: 2x2 toggle grid -->
+      <div class="schelling-toggle-grid">
+        <label class="schelling-toggle">
+          <input type="checkbox" id="sShowOverlay_v52" checked>
+          <span>상태창</span>
+        </label>
+
+        <label class="schelling-toggle">
+          <input type="checkbox" id="sShowUnhappy_v52" checked>
+          <span>불만족 표시</span>
+        </label>
+
+        <label class="schelling-toggle">
+          <input type="checkbox" id="sGridLines_v52" checked>
+          <span>격자선</span>
+        </label>
+
+        <label class="schelling-toggle">
+          <input type="checkbox" id="sShowLegend_v52" checked>
+          <span>범례</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="schelling-buttons">
+      <button id="sToggle_v52">⏸ 일시정지</button>
+      <button id="sStep_v52">1스텝</button>
+      <button id="sReset_v52">↻ 리셋</button>
+      <button id="sPresetMix_v52">통합</button>
+      <button id="sPresetTip_v52">Tipping</button>
+      <button id="sPresetSeg_v52">분리</button>
+    </div>
+
+    <div class="schelling-stats" id="sStats_v52">
+      만족도: 0% | 분리도: 0.00 | 불만족: 0 | 스텝: 0
+    </div>
+  </div>
+</div>
+
+<style>
+  .schelling-widget{ border:1px solid rgba(0,0,0,0.12); border-radius:14px; overflow:hidden; margin:18px 0; background:rgba(0,0,0,0.02);} 
+  .schelling-stage{ position:relative; background:#0b0e12; }
+  .schelling-canvas{ display:block; width:100%; height:380px; background:#0b0e12; }
+  .schelling-spark{ display:block; width:100%; height:70px; border-top:1px solid rgba(255,255,255,0.08); background:#0b0e12; }
+
+  .schelling-legend-top{
+    position:absolute; top:10px; right:10px; display:flex; gap:10px; align-items:center;
+    color:rgba(255,255,255,0.92); font-size:13px; padding:8px 10px; border-radius:10px;
+    background:rgba(0,0,0,0.35); backdrop-filter:blur(6px); z-index:5; user-select:none;
+  }
+  .schelling-legend-top span{ display:inline-block; width:14px; height:14px; border-radius:4px; border:1px solid rgba(255,255,255,0.18); margin-right:4px; }
+  .schelling-legend-top .a{ background:#69d2ff; border-color:rgba(105,210,255,0.55); }
+  .schelling-legend-top .b{ background:#ff8aa6; border-color:rgba(255,138,166,0.55); }
+  .schelling-legend-top .e{ background:rgba(255,255,255,0.14); border-color:rgba(255,255,255,0.22); }
+
+  .schelling-overlay{
+    position:absolute; left:10px; top:10px; color:rgba(255,255,255,0.92); font-size:13px; line-height:1.35;
+    padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.35); backdrop-filter:blur(6px);
+    pointer-events:none; max-width:92%; white-space:pre-line; z-index:4;
+  }
+
+  .schelling-panel{ padding:14px 14px 16px 14px; background:rgba(255,255,255,0.98); }
+  .schelling-title{ display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+  .schelling-sub{ font-size:12px; opacity:0.75; }
+  .schelling-section{ padding:10px; border-radius:12px; background:rgba(0,0,0,0.03); margin-bottom:10px; }
+  .schelling-section-title{ font-weight:700; font-size:13px; margin-bottom:8px; opacity:0.9; }
+
+  .schelling-row{ display:grid; grid-template-columns:130px 1fr 70px; gap:10px; align-items:center; margin:7px 0; }
+  .schelling-row label{ font-size:13px; opacity:0.9; }
+  .schelling-row input[type="range"]{ width:100%; }
+  .schelling-row select{ width:100%; padding:6px 8px; border-radius:10px; border:1px solid rgba(0,0,0,0.15); background:#fff; }
+  .schelling-val{ font-variant-numeric:tabular-nums; text-align:right; font-size:13px; opacity:0.9; }
+
+  /* NEW: 2x2 toggle layout */
+  .schelling-toggle-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    margin-top: 10px;
+  }
+  .schelling-toggle{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(255,255,255,0.9);
+    font-size: 13px;
+    user-select:none;
+  }
+  .schelling-toggle input{ transform: translateY(0.5px); }
+
+  .schelling-buttons{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .schelling-buttons button{ padding:8px 10px; border-radius:12px; border:1px solid rgba(0,0,0,0.15); background:#fff; cursor:pointer; }
+  .schelling-buttons button:hover{ background:rgba(0,0,0,0.03); }
+  .schelling-stats{ margin-top:10px; font-size:13px; opacity:0.85; font-variant-numeric:tabular-nums; }
+
+  @media (max-width:520px){
+    .schelling-canvas{ height:320px; }
+    .schelling-row{ grid-template-columns:110px 1fr 66px; }
+    .schelling-toggle-grid{ grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<script>
+(() => {
+  const canvas  = document.getElementById('schellingCanvas_v52');
+  const spark   = document.getElementById('schellingSpark_v52');
+  const overlay = document.getElementById('schellingOverlay_v52');
+  const legend  = document.getElementById('sLegendTop_v52');
+  const statsEl = document.getElementById('sStats_v52');
+
+  const el = (id) => document.getElementById(id);
+  const ui = {
+    grid: el('sGrid_v52'),
+    vac: el('sVac_v52'), vacVal: el('sVacval_v52'),
+    mix: el('sMix_v52'), mixVal: el('sMixval_v52'),
+    tol: el('sTol_v52'), tolVal: el('sTolval_v52'),
+    nbr: el('sNbr_v52'),
+    rule: el('sRule_v52'),
+    k: el('sK_v52'), kVal: el('sKval_v52'),
+    batch: el('sBatch_v52'), batchVal: el('sBatchval_v52'),
+
+    interval: el('sInterval_v52'), intervalVal: el('sIntervalVal_v52'),
+    showOverlay: el('sShowOverlay_v52'),
+    showUnhappy: el('sShowUnhappy_v52'),
+    gridLines: el('sGridLines_v52'),
+    showLegend: el('sShowLegend_v52'),
+
+    toggle: el('sToggle_v52'),
+    stepBtn: el('sStep_v52'),
+    reset: el('sReset_v52'),
+    presetMix: el('sPresetMix_v52'),
+    presetTip: el('sPresetTip_v52'),
+    presetSeg: el('sPresetSeg_v52'),
+  };
+
+  const ctx  = canvas.getContext('2d', { alpha: false });
+  const sctx = spark.getContext('2d', { alpha: false });
+
+  const state = {
+    running: true,
+    dpr: 1,
+    W: 640, H: 380,
+    GW: 60, GH: 40,
+    cell: 10,
+
+    gridArr: null,      // Int8Array: -1 empty, 0 A, 1 B
+    empties: [],
+    unhappyMask: null,  // Uint8Array
+
+    step: 0,
+    lastT: performance.now(),
+    accMs: 0,
+    intervalMs: 100,
+
+    segHist: [],
+    satHist: [],
+    lastMetrics: {sat: 0, seg: 0, unhappy: 0, occ: 0},
+  };
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function randInt(n){ return (Math.random() * n) | 0; }
+  function idx(x,y){ return y * state.GW + x; }
+  function xy(i){ return [i % state.GW, (i / state.GW) | 0]; }
+
+  function parseGridSize(){
+    const [gw, gh] = ui.grid.value.split('x').map(x => parseInt(x,10));
+    state.GW = gw; state.GH = gh;
+  }
+
+  function resize(){
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    state.dpr = dpr;
+
+    const rect = canvas.getBoundingClientRect();
+    state.W = Math.max(320, Math.floor(rect.width));
+    state.H = Math.max(260, Math.floor(rect.height));
+
+    canvas.width  = Math.floor(state.W * dpr);
+    canvas.height = Math.floor(state.H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const srect = spark.getBoundingClientRect();
+    const sW = Math.max(320, Math.floor(srect.width));
+    const sH = Math.max(50,  Math.floor(srect.height));
+    spark.width  = Math.floor(sW * dpr);
+    spark.height = Math.floor(sH * dpr);
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    state.cell = Math.floor(Math.min(state.W / state.GW, state.H / state.GH));
+    state.cell = clamp(state.cell, 4, 18);
+  }
+
+  function syncUI(){
+    ui.vacVal.textContent = `${ui.vac.value}%`;
+    const mixA = parseInt(ui.mix.value,10);
+    ui.mixVal.textContent = `A ${mixA}% / B ${100-mixA}%`;
+    ui.tolVal.textContent = `${ui.tol.value}%`;
+    ui.kVal.textContent = ui.k.value;
+    ui.batchVal.textContent = ui.batch.value;
+
+    state.intervalMs = parseInt(ui.interval.value, 10);
+    ui.intervalVal.textContent = `${state.intervalMs}ms`;
+
+    overlay.style.display = ui.showOverlay.checked ? 'block' : 'none';
+    legend.style.display  = ui.showLegend.checked ? 'flex' : 'none';
+  }
+
+  function initModel(){
+    parseGridSize();
+    resize();
+
+    const total = state.GW * state.GH;
+
+    const vacancy = parseInt(ui.vac.value,10) / 100;
+    const occ = Math.round(total * (1 - vacancy));
+    const emptyCount = total - occ;
+
+    const mixA = parseInt(ui.mix.value,10) / 100;
+    const countA = Math.round(occ * mixA);
+    const countB = occ - countA;
+
+    const arr = new Int8Array(total);
+    arr.fill(-1);
+
+    const indices = Array.from({length: total}, (_, i) => i);
+    for (let i = total - 1; i > 0; i--){
+      const j = randInt(i + 1);
+      const tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
+    }
+
+    let p = 0;
+    for (let i = 0; i < countA; i++, p++) arr[indices[p]] = 0;
+    for (let i = 0; i < countB; i++, p++) arr[indices[p]] = 1;
+    for (let i = 0; i < emptyCount; i++, p++) arr[indices[p]] = -1;
+
+    state.gridArr = arr;
+
+    state.empties = [];
+    for (let i = 0; i < total; i++) if (arr[i] === -1) state.empties.push(i);
+
+    state.unhappyMask = new Uint8Array(total);
+
+    state.step = 0;
+    state.segHist = [];
+    state.satHist = [];
+    state.accMs = 0;
+
+    const radius = parseInt(ui.nbr.value,10);
+    const tol = parseInt(ui.tol.value,10) / 100;
+    const M = computeMetrics(tol, radius);
+    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ};
+  }
+
+  function neighborFracSame(i, radius){
+    const [x0, y0] = xy(i);
+    const me = state.gridArr[i];
+    if (me < 0) return 1;
+
+    let same = 0, occ = 0;
+    for (let dy = -radius; dy <= radius; dy++){
+      const y = y0 + dy; if (y < 0 || y >= state.GH) continue;
+      for (let dx = -radius; dx <= radius; dx++){
+        const x = x0 + dx; if (x < 0 || x >= state.GW) continue;
+        if (dx === 0 && dy === 0) continue;
+
+        const v = state.gridArr[idx(x,y)];
+        if (v < 0) continue;
+        occ++;
+        if (v === me) same++;
+      }
+    }
+    return occ === 0 ? 1 : (same / occ);
+  }
+
+  function isSatisfied(i, tol, radius){
+    const v = state.gridArr[i];
+    if (v < 0) return true;
+    return neighborFracSame(i, radius) >= tol;
+  }
+
+  function evalTarget(type, targetIndex, tol, radius){
+    const [x0, y0] = xy(targetIndex);
+
+    let same = 0, occ = 0;
+    for (let dy = -radius; dy <= radius; dy++){
+      const y = y0 + dy; if (y < 0 || y >= state.GH) continue;
+      for (let dx = -radius; dx <= radius; dx++){
+        const x = x0 + dx; if (x < 0 || x >= state.GW) continue;
+        if (dx === 0 && dy === 0) continue;
+
+        const v = state.gridArr[idx(x,y)];
+        if (v < 0) continue;
+        occ++;
+        if (v === type) same++;
+      }
+    }
+    const frac = occ === 0 ? 1 : (same / occ);
+    return {sat: frac >= tol ? 1 : 0, frac};
+  }
+
+  function pickEmpty(type, tol, radius){
+    if (state.empties.length === 0) return -1;
+    if (ui.rule.value === 'random') return state.empties[randInt(state.empties.length)];
+
+    const K = clamp(parseInt(ui.k.value,10), 3, 200);
+    let best = -1, bestSat = -1, bestFrac = -1;
+    for (let t = 0; t < K; t++){
+      const cand = state.empties[randInt(state.empties.length)];
+      const q = evalTarget(type, cand, tol, radius);
+      if (q.sat > bestSat || (q.sat === bestSat && q.frac > bestFrac)){
+        best = cand; bestSat = q.sat; bestFrac = q.frac;
+      }
+    }
+    return best;
+  }
+
+  function removeEmpty(i){
+    const arr = state.empties;
+    for (let k = 0; k < arr.length; k++){
+      if (arr[k] === i){ arr[k] = arr[arr.length - 1]; arr.pop(); return; }
+    }
+  }
+  function addEmpty(i){ state.empties.push(i); }
+
+  function computeMetrics(tol, radius){
+    const total = state.GW * state.GH;
+    state.unhappyMask.fill(0);
+
+    let occ=0, sat=0, unhappy=0, segSum=0, segCnt=0;
+    for (let i = 0; i < total; i++){
+      const v = state.gridArr[i];
+      if (v < 0) continue;
+
+      occ++;
+      const frac = neighborFracSame(i, radius);
+      const ok = frac >= tol;
+
+      if (ok) sat++;
+      else { unhappy++; state.unhappyMask[i] = 1; }
+
+      segSum += frac; segCnt++;
+    }
+
+    return {
+      satRate: occ === 0 ? 1 : sat/occ,
+      seg: segCnt === 0 ? 0.5 : segSum/segCnt,
+      unhappy, occ
+    };
+  }
+
+  function stepOnce(){
+    const radius = parseInt(ui.nbr.value,10);
+    const tol = parseInt(ui.tol.value,10) / 100;
+    const batch = clamp(parseInt(ui.batch.value,10), 1, 5000);
+    const total = state.GW * state.GH;
+
+    const unhappyIdx = [];
+    for (let i = 0; i < total; i++){
+      if (state.unhappyMask[i] === 1) unhappyIdx.push(i);
+    }
+
+    if (unhappyIdx.length > 0){
+      const moves = Math.min(batch, unhappyIdx.length);
+      for (let m = 0; m < moves; m++){
+        const pick = unhappyIdx[randInt(unhappyIdx.length)];
+        const type = state.gridArr[pick];
+        if (type < 0) continue;
+        if (isSatisfied(pick, tol, radius)) continue;
+
+        const dest = pickEmpty(type, tol, radius);
+        if (dest < 0) continue;
+
+        state.gridArr[dest] = type;
+        state.gridArr[pick] = -1;
+
+        removeEmpty(dest);
+        addEmpty(pick);
+      }
+      state.step++;
+    }
+
+    const M = computeMetrics(tol, radius);
+    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ};
+
+    state.segHist.push(M.seg);
+    state.satHist.push(M.satRate);
+    if (state.segHist.length > 240) state.segHist.shift();
+    if (state.satHist.length > 240) state.satHist.shift();
+  }
+
+  function draw(){
+    const GW = state.GW, GH = state.GH, cell = state.cell;
+
+    ctx.fillStyle = '#0b0e12';
+    ctx.fillRect(0, 0, state.W, state.H);
+
+    const ox = Math.floor((state.W - GW * cell) / 2);
+    const oy = Math.floor((state.H - GH * cell) / 2);
+
+    for (let y = 0; y < GH; y++){
+      for (let x = 0; x < GW; x++){
+        const v = state.gridArr[idx(x,y)];
+        if (v === -1) ctx.fillStyle = 'rgba(255,255,255,0.10)';
+        else if (v === 0) ctx.fillStyle = '#69d2ff';
+        else ctx.fillStyle = '#ff8aa6';
+        ctx.fillRect(ox + x*cell, oy + y*cell, cell, cell);
+      }
+    }
+
+    if (ui.gridLines.checked && cell >= 7){
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y <= GH; y++){
+        ctx.beginPath();
+        ctx.moveTo(ox, oy + y*cell);
+        ctx.lineTo(ox + GW*cell, oy + y*cell);
+        ctx.stroke();
+      }
+      for (let x = 0; x <= GW; x++){
+        ctx.beginPath();
+        ctx.moveTo(ox + x*cell, oy);
+        ctx.lineTo(ox + x*cell, oy + GH*cell);
+        ctx.stroke();
+      }
+    }
+
+    if (ui.showUnhappy.checked && state.unhappyMask){
+      ctx.lineWidth = Math.max(1, Math.floor(cell * 0.12));
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      const inset = 0.5;
+      for (let i = 0; i < state.unhappyMask.length; i++){
+        if (state.unhappyMask[i] !== 1) continue;
+        const x = i % GW;
+        const y = (i / GW) | 0;
+        ctx.strokeRect(
+          ox + x*cell + inset,
+          oy + y*cell + inset,
+          cell - 2*inset,
+          cell - 2*inset
+        );
+      }
+    }
+
+    if (ui.showOverlay.checked){
+      const tolP = parseInt(ui.tol.value,10);
+      const vacP = parseInt(ui.vac.value,10);
+      overlay.textContent =
+        `만족도: ${(state.lastMetrics.sat*100).toFixed(0)}%  |  분리도: ${state.lastMetrics.seg.toFixed(2)}\n` +
+        `불만족: ${state.lastMetrics.unhappy}  |  관용도: ${tolP}%  |  공실률: ${vacP}%\n` +
+        `스텝별 시간: ${state.intervalMs}ms  |  스텝: ${state.step}`;
+    }
+
+    // sparkline
+    const sW = spark.getBoundingClientRect().width;
+    const sH = spark.getBoundingClientRect().height;
+    sctx.fillStyle = '#0b0e12';
+    sctx.fillRect(0, 0, sW, sH);
+
+    sctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    sctx.lineWidth = 1;
+    sctx.beginPath();
+    sctx.moveTo(0, sH - 12);
+    sctx.lineTo(sW, sH - 12);
+    sctx.stroke();
+
+    const hist = state.segHist;
+    if (hist.length >= 2){
+      sctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      sctx.lineWidth = 1.4;
+      sctx.beginPath();
+      for (let i = 0; i < hist.length; i++){
+        const x = (i / (hist.length - 1)) * (sW - 10) + 5;
+        const y = (1 - hist[i]) * (sH - 22) + 8;
+        if (i === 0) sctx.moveTo(x, y);
+        else sctx.lineTo(x, y);
+      }
+      sctx.stroke();
+    }
+  }
+
+  function tick(t){
+    const dt = t - state.lastT;
+    state.lastT = t;
+
+    if (state.running){
+      state.accMs += dt;
+      if (state.accMs >= state.intervalMs){
+        state.accMs = 0;
+        stepOnce();
+      }
+    }
+
+    draw();
+
+    statsEl.textContent =
+      `만족도: ${(state.lastMetrics.sat*100).toFixed(0)}% | ` +
+      `분리도: ${state.lastMetrics.seg.toFixed(2)} | ` +
+      `불만족: ${state.lastMetrics.unhappy} | ` +
+      `스텝: ${state.step}`;
+
+    requestAnimationFrame(tick);
+  }
+
+  function applyPreset(kind){
+    if (kind === 'mix'){
+      ui.vac.value=15; ui.tol.value=20; ui.rule.value='random'; ui.k.value=20; ui.batch.value=80; ui.interval.value=850;
+    } else if (kind === 'tip'){
+      ui.vac.value=12; ui.tol.value=35; ui.rule.value='bestof'; ui.k.value=25; ui.batch.value=120; ui.interval.value=1000;
+    } else if (kind === 'seg'){
+      ui.vac.value=15; ui.tol.value=55; ui.rule.value='bestof'; ui.k.value=35; ui.batch.value=160; ui.interval.value=650;
+    }
+    syncUI(); initModel();
+  }
+
+  // wiring
+  const onAnyInput = () => syncUI();
+
+  ui.grid.addEventListener('change', () => { syncUI(); initModel(); });
+  ui.vac.addEventListener('input', onAnyInput);
+  ui.mix.addEventListener('input', onAnyInput);
+  ui.tol.addEventListener('input', onAnyInput);
+  ui.k.addEventListener('input', onAnyInput);
+  ui.batch.addEventListener('input', onAnyInput);
+  ui.interval.addEventListener('input', onAnyInput);
+
+  ui.vac.addEventListener('change', initModel);
+  ui.mix.addEventListener('change', initModel);
+  ui.nbr.addEventListener('change', () => { syncUI(); initModel(); });
+  ui.rule.addEventListener('change', () => syncUI());
+
+  ui.showOverlay.addEventListener('change', syncUI);
+  ui.showUnhappy.addEventListener('change', syncUI);
+  ui.gridLines.addEventListener('change', syncUI);
+  ui.showLegend.addEventListener('change', syncUI);
+
+  ui.toggle.addEventListener('click', () => {
+    state.running = !state.running;
+    ui.toggle.textContent = state.running ? '⏸ 일시정지' : '▶ 재생';
+  });
+
+  ui.stepBtn.addEventListener('click', () => { stepOnce(); draw(); });
+  ui.reset.addEventListener('click', initModel);
+
+  ui.presetMix.addEventListener('click', () => applyPreset('mix'));
+  ui.presetTip.addEventListener('click', () => applyPreset('tip'));
+  ui.presetSeg.addEventListener('click', () => applyPreset('seg'));
+
+  window.addEventListener('resize', () => resize());
+
+  // Start with your requested default: 100ms step-time (already set in HTML)
+  syncUI();
+  initModel();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
