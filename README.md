@@ -17,3 +17,4 @@ https://prozac0401.github.io/WebSim
 - [포식자-피식자 시뮬레이터](https://prozac0401.tistory.com/69) - [source](predator_prey_simulator/predator_prey_simulator.html) - [설명](predator_prey_simulator/predator_prey_simulator.md)
 - [Schelling 분리 모형 시뮬레이터](https://prozac0401.tistory.com/91) - [source](schelling_segregation_simulator/schelling_segregation_simulator.html) - [설명](schelling_segregation_simulator/schelling_segregation_simulator_doc.html)
 - [개미-질소 순환 시뮬레이터](미개시) - [source](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) - [설명](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.md)
+- [Vicsek/Boids 시뮬레이터 비교](https://prozac0401.tistory.com/92) - [source](vicsek_boids_simulator/vicsek_boids_simulator.html) - [설명](vicsek_boids_simulator/vicsek_boids_simulator_doc.html)

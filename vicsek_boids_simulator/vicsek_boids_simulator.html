@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vicsek / Boids 시뮬레이터</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <!-- Vicsek/Boids 시뮬레이터 (단일 DIV 임베드: FIXED) -->
+  <div class="vicsek-boids-embed" style="display:block;width:100%;max-width:980px;margin:0 auto;">
+    <script>
+    (function(){
+      const host = document.currentScript && document.currentScript.parentElement;
+      if (!host) return;
+
+      // If the platform strips <script>, nothing below will run.
+      // We keep this block self-contained for pages that allow inline scripts.
+
+      if (!host.attachShadow) {
+        host.innerHTML = "<p style='padding:12px'>이 브라우저는 Shadow DOM을 지원하지 않아 시뮬레이터를 표시할 수 없습니다.</p>";
+        return;
+      }
+
+      const shadow = host.attachShadow({ mode: "open" });
+
+      // --- UI markup (NO JS inside the HTML string) ---
+      shadow.innerHTML = `
+        <style>
+          :host{
+            --bg:transparent; --card:rgba(255,255,255,.88); --text:#111827; --muted:#667085;
+            --line:rgba(0,0,0,.10); --shadow:0 10px 30px rgba(0,0,0,.12);
+            --accent:#2563eb; --radius:18px;
+            display:block; margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+            background: transparent;
+            color:var(--text);
+          }
+          *{ box-sizing:border-box; }
+          .wrap{ width:100%; padding:22px; }
+          .header{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px; }
+          .title h1{ margin:0; font-size:20px; letter-spacing:.2px; }
+          .subtitle{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }
+          .top-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+          .btn{ appearance:none; border:1px solid var(--line); background:rgba(0,0,0,.04); color:var(--text);
+                padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px; }
+          .btn:hover{ background:rgba(0,0,0,.06); }
+          .btn:active{ transform:translateY(1px); }
+          .btn.ghost{ background:transparent; }
+          .btn.primary{ border-color:rgba(37,99,235,.35); background:rgba(37,99,235,.10); }
+          .pill{ display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--line);
+                 border-radius:14px; background:rgba(0,0,0,.03); }
+          .pill label{ color:var(--muted); font-size:12px; font-weight:800; }
+          .select{ border:1px solid var(--line); background:rgba(0,0,0,.03); color:var(--text); border-radius:12px;
+                   padding:8px 10px; outline:none; }
+          .grid{ display:flex; flex-direction:column; gap:14px; align-items:stretch; }
+          
+          .stage{ position:relative; background:var(--card); border:1px solid var(--line);
+                  border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); height:560px; }
+          #canvas{ display:block; width:100%; height:100%; }
+          @media (max-width: 600px){ .stage{ height:420px; } }
+          .overlay{ position:absolute; left:14px; top:14px; padding:10px 12px; background:rgba(255,255,255,.82);
+                    border:1px solid rgba(0,0,0,.10); border-radius:14px; backdrop-filter:blur(10px);
+                    display:flex; gap:10px; align-items:center; }
+          .kv{ display:flex; flex-direction:column; gap:3px; }
+          .kv .k{ font-size:11px; color:var(--muted); font-weight:900; }
+          .kv .v{ font-size:15px; font-weight:900; letter-spacing:.2px; }
+          .legend{ position:absolute; right:14px; top:14px; background:rgba(255,255,255,.82);
+                   border:1px solid rgba(0,0,0,.10); border-radius:14px; padding:10px 12px;
+                   backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:8px; max-width:220px; }
+          .legend h3{ margin:0; font-size:12px; color:var(--muted); letter-spacing:.2px; }
+          .legend .item{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; }
+          .swatch{ width:10px; height:10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); }
+          .panel{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+                  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+          .panel .head{ padding:14px 14px 10px; border-bottom:1px solid var(--line); display:flex;
+                        align-items:flex-start; justify-content:space-between; gap:10px; }
+          .panel .head .hgroup h2{ margin:0; font-size:14px; }
+          .panel .head .hgroup p{ margin:6px 0 0; font-size:12px; color:var(--muted); line-height:1.35; }
+          .panel .body{ padding:12px 14px 14px; display:flex; flex-direction:column; gap:14px; }
+          .section{ padding:12px; border:1px solid var(--line); border-radius:16px; background:var(--card); }
+          .section h3{ margin:0 0 10px; font-size:12px; letter-spacing:.2px; color:var(--muted); }
+          .row{ display:grid; grid-template-columns:70px 1fr 52px; align-items:center; gap:10px; margin:10px 0; }
+          .row .label{ font-size:12px; color:var(--text); font-weight:800; }
+          .row .val{ text-align:right; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+          input[type="range"]{ width:100%; accent-color:var(--accent); }
+          .hr{ height:1px; background:var(--line); margin:10px 0; }
+          .toggle-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+          .toggle{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px;
+                   border-radius:14px; border:1px solid var(--line); background:var(--card); }
+          .toggle span{ font-size:12px; color:var(--text); font-weight:800; }
+          .toggle input{ width:18px; height:18px; }
+          .footer{ margin-top:auto; padding:12px 14px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:10px; }
+          .small{ font-size:12px; color:var(--muted); }
+          .hint{ font-size:12px; color:var(--muted); line-height:1.35; }
+        </style>
+
+        <main class="wrap">
+          <header class="header">
+            <div class="title">
+              <h1>Vicsek / Boids</h1>
+              <p class="subtitle">정렬 하나로 생기는 질서(=Vicsek), 그리고 ‘세 가지 힘’으로 조율되는 무리(=Boids)</p>
+            </div>
+            <div class="top-actions">
+              <button id="btnPause" class="btn primary">⏸︎ Pause</button>
+              <button id="btnStep" class="btn ghost">▸ Step</button>
+              <button id="btnReset" class="btn">↻ Reset</button>
+
+              <div class="pill">
+                <label for="modelSelect">모델</label>
+                <select id="modelSelect" class="select">
+                  <option value="vicsek">Vicsek</option>
+                  <option value="boids">Boids</option>
+                </select>
+              </div>
+            </div>
+          </header>
+
+          <section class="grid">
+            <div class="stage">
+              <canvas id="canvas"></canvas>
+
+              <div id="status" class="overlay">
+                <div class="kv">
+                  <div class="k">정렬도</div>
+                  <div id="polVal" class="v">0.00</div>
+                </div>
+                <div class="kv">
+                  <div class="k">FPS</div>
+                  <div id="fpsVal" class="v">0</div>
+                </div>
+              </div>
+
+              <div id="legend" class="legend">
+                <h3>Legend</h3>
+                <div class="item"><span>개체</span><span class="swatch" style="background:#c9d6ff"></span></div>
+                <div class="item"><span>선택 반경</span><span class="swatch" style="background:#ffd6a5"></span></div>
+                <div class="item"><span>평균 방향</span><span class="swatch" style="background:#b5f5c0"></span></div>
+              </div>
+            </div>
+
+            <aside class="panel">
+              <div class="head">
+                <div class="hgroup">
+                  <h2>Controls</h2>
+                  <p>Vicsek은 “이웃 평균 방향 + 노이즈”, Boids는 “분리/정렬/응집” 힘을 조합합니다.</p>
+                </div>
+              </div>
+
+              <div class="body">
+                <div class="section">
+                  <h3>공통</h3>
+
+                  <label class="row">
+                    <span class="label">개체 수</span>
+                    <input id="nAgents" type="range" min="50" max="800" step="10" />
+                    <span id="nAgentsVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">속도</span>
+                    <input id="speed" type="range" min="0.5" max="5.0" step="0.1" />
+                    <span id="speedVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">초기 밀집</span>
+                    <select id="spawnMode" class="select">
+                      <option value="uniform">전체 랜덤</option>
+                      <option value="cluster">한 덩어리</option>
+                      <option value="two">두 덩어리</option>
+                    </select>
+                    <span class="val"></span>
+                  </label>
+
+                  <div class="hr"></div>
+
+                  <label class="row">
+                    <span class="label">반경 R</span>
+                    <input id="radius" type="range" min="8" max="120" step="1" />
+                    <span id="radiusVal" class="val"></span>
+                  </label>
+                </div>
+
+                <div class="section" id="vicsekSection">
+                  <h3>Vicsek</h3>
+                  <label class="row">
+                    <span class="label">노이즈 η</span>
+                    <input id="vicsekNoise" type="range" min="0.0" max="1.0" step="0.01" />
+                    <span id="vicsekNoiseVal" class="val"></span>
+                  </label>
+                </div>
+
+                <div class="section" id="boidsSection">
+                  <h3>Boids</h3>
+
+                  <label class="row">
+                    <span class="label">분리 거리</span>
+                    <input id="sepDist" type="range" min="4" max="60" step="1" />
+                    <span id="sepDistVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">분리 힘</span>
+                    <input id="sepForce" type="range" min="0.0" max="2.0" step="0.05" />
+                    <span id="sepForceVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">정렬 거리</span>
+                    <input id="aliDist" type="range" min="6" max="140" step="1" />
+                    <span id="aliDistVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">정렬 힘</span>
+                    <input id="aliForce" type="range" min="0.0" max="2.0" step="0.05" />
+                    <span id="aliForceVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">응집 거리</span>
+                    <input id="cohDist" type="range" min="6" max="200" step="1" />
+                    <span id="cohDistVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">응집 힘</span>
+                    <input id="cohForce" type="range" min="0.0" max="2.0" step="0.05" />
+                    <span id="cohForceVal" class="val"></span>
+                  </label>
+
+                  <label class="row">
+                    <span class="label">회전 제한</span>
+                    <input id="turnRate" type="range" min="0.02" max="0.5" step="0.01" />
+                    <span id="turnRateVal" class="val"></span>
+                  </label>
+                </div>
+
+                <div class="section">
+                  <h3>표시</h3>
+                  <div class="toggle-grid">
+                    <label class="toggle">
+                      <span>상태창</span>
+                      <input id="tglStatus" type="checkbox" checked />
+                    </label>
+                    <label class="toggle">
+                      <span>범례</span>
+                      <input id="tglLegend" type="checkbox" checked />
+                    </label>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <label class="row">
+                    <span class="label">선택 모드</span>
+                    <select id="pickMode" class="select">
+                      <option value="hover">마우스 오버</option>
+                      <option value="click">클릭</option>
+                    </select>
+                    <span class="val"></span>
+                  </label>
+
+                  <span class="hint">팁: 노이즈(η)를 올리면 정렬이 무너지고, 이웃 반경/밀도를 올리면 다시 살아납니다.</span>
+                </div>
+              </div>
+
+              <footer class="footer">
+                <span class="small">ⓘ 마우스를 올리면(또는 선택 모드) 반경 링이 표시됩니다.</span>
+              </footer>
+            </aside>
+          </section>
+        </main>
+      `;
+
+      // --- Simulator JS (runs after markup is in place) ---
+      try{
+      (function(root){
+        const $ = (sel) => root.querySelector(sel);
+        const canvas = $("#canvas");
+        const ctx = canvas.getContext("2d", { alpha: true });
+const TRAIL_ALPHA = 0.08; // 0~1, 작을수록 궤적이 오래 남습니다.
+
+        const statusEl = $("#status");
+        const legendEl = $("#legend");
+
+        const btnPause = $("#btnPause");
+        const btnStep = $("#btnStep");
+        const btnReset = $("#btnReset");
+        const modelSelect = $("#modelSelect");
+
+        const nAgents = $("#nAgents");
+        const nAgentsVal = $("#nAgentsVal");
+        const speed = $("#speed");
+        const speedVal = $("#speedVal");
+        const radius = $("#radius");
+        const radiusVal = $("#radiusVal");
+        const spawnMode = $("#spawnMode");
+
+        const vicsekSection = $("#vicsekSection");
+        const vicsekNoise = $("#vicsekNoise");
+        const vicsekNoiseVal = $("#vicsekNoiseVal");
+        const pickMode = $("#pickMode");
+
+        const boidsSection = $("#boidsSection");
+        const sepDist = $("#sepDist");
+        const sepDistVal = $("#sepDistVal");
+        const sepForce = $("#sepForce");
+        const sepForceVal = $("#sepForceVal");
+        const aliDist = $("#aliDist");
+        const aliDistVal = $("#aliDistVal");
+        const aliForce = $("#aliForce");
+        const aliForceVal = $("#aliForceVal");
+        const cohDist = $("#cohDist");
+        const cohDistVal = $("#cohDistVal");
+        const cohForce = $("#cohForce");
+        const cohForceVal = $("#cohForceVal");
+        const turnRate = $("#turnRate");
+        const turnRateVal = $("#turnRateVal");
+
+        const tglStatus = $("#tglStatus");
+        const tglLegend = $("#tglLegend");
+
+        const polVal = $("#polVal");
+        const fpsVal = $("#fpsVal");
+
+        const rand = (a=0,b=1)=>a+Math.random()*(b-a);
+        const TAU = Math.PI*2;
+
+        let W=800,H=520,dpr=1;
+
+        const ro = new ResizeObserver(() => resizeCanvas());
+        ro.observe(host);
+
+        function resizeCanvas(){
+          const rect = canvas.getBoundingClientRect();
+          dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+          W = Math.max(10, Math.floor(rect.width));
+          H = Math.max(10, Math.floor(rect.height));
+          canvas.width = W*dpr;
+          canvas.height = H*dpr;
+          ctx.setTransform(dpr,0,0,dpr,0,0);
+        }
+
+        let N=320;
+        let agents=[];
+        let model="vicsek";
+
+        let vSpeed=2.2;
+        let neighR=35;
+
+        let eta=0.22;
+
+        let sepD=16, sepK=0.65;
+        let aliD=52, aliK=0.55;
+        let cohD=80, cohK=0.25;
+        let maxTurn=0.16;
+
+        let paused=false;
+        let stepOnce=false;
+
+        let pick={mode:"hover",x:0,y:0,active:false};
+
+        function wrapPos(a){
+          if (a.x<0) a.x+=W; if (a.x>=W) a.x-=W;
+          if (a.y<0) a.y+=H; if (a.y>=H) a.y-=H;
+        }
+
+        function initAgents(mode="uniform"){
+          agents=[];
+          const cx=W/2, cy=H/2;
+          for(let i=0;i<N;i++){
+            let x,y;
+            if(mode==="cluster"){ x=cx+rand(-W*0.08,W*0.08); y=cy+rand(-H*0.08,H*0.08); }
+            else if(mode==="two"){
+              if(i<N/2){ x=W*0.35+rand(-W*0.06,W*0.06); y=H*0.5+rand(-H*0.06,H*0.06); }
+              else { x=W*0.65+rand(-W*0.06,W*0.06); y=H*0.5+rand(-H*0.06,H*0.06); }
+            } else { x=rand(0,W); y=rand(0,H); }
+
+            const heading=rand(0,TAU);
+            agents.push({x,y,heading,vx:Math.cos(heading)*vSpeed,vy:Math.sin(heading)*vSpeed});
+          }
+        }
+
+        function dist2(a,b){
+          let dx=b.x-a.x, dy=b.y-a.y;
+          if(dx>W/2) dx-=W; if(dx<-W/2) dx+=W;
+          if(dy>H/2) dy-=H; if(dy<-H/2) dy+=H;
+          return dx*dx+dy*dy;
+        }
+
+        function neighborDelta(a,b){
+          let dx=b.x-a.x, dy=b.y-a.y;
+          if(dx>W/2) dx-=W; if(dx<-W/2) dx+=W;
+          if(dy>H/2) dy-=H; if(dy<-H/2) dy+=H;
+          return {dx,dy};
+        }
+
+        function angleWrap(t){
+          while(t<=-Math.PI) t+=TAU;
+          while(t>Math.PI) t-=TAU;
+          return t;
+        }
+
+        function updateVicsek(){
+          const r2=neighR*neighR;
+          const len=agents.length;
+          const newH=new Array(len);
+          for(let i=0;i<len;i++){
+            const a=agents[i];
+            let sx=0, sy=0, c=0;
+            for(let j=0;j<len;j++){
+              if(i===j) continue;
+              const b=agents[j];
+              if(dist2(a,b)<=r2){
+                sx+=Math.cos(b.heading);
+                sy+=Math.sin(b.heading);
+                c++;
+              }
+            }
+            sx+=Math.cos(a.heading);
+            sy+=Math.sin(a.heading);
+            c++;
+            const mean=Math.atan2(sy/c, sx/c);
+            const noise=(rand(-0.5,0.5)*2)*eta*Math.PI;
+            newH[i]=mean+noise;
+          }
+          for(let i=0;i<len;i++){
+            const a=agents[i];
+            a.heading=newH[i];
+            a.vx=Math.cos(a.heading)*vSpeed;
+            a.vy=Math.sin(a.heading)*vSpeed;
+            a.x+=a.vx; a.y+=a.vy;
+            wrapPos(a);
+          }
+        }
+
+        function steerTowards(cur, desired){
+          let d=angleWrap(desired-cur);
+          d=Math.max(-maxTurn, Math.min(maxTurn, d));
+          return cur+d;
+        }
+
+        function updateBoids(){
+          const sep2=sepD*sepD, ali2=aliD*aliD, coh2=cohD*cohD;
+          const len=agents.length;
+          const newH=new Array(len);
+          for(let i=0;i<len;i++){
+            const a=agents[i];
+            let sx=0, sy=0;
+            let ax=0, ay=0, ac=0;
+            let cx=0, cy=0, cc=0;
+            for(let j=0;j<len;j++){
+              if(i===j) continue;
+              const b=agents[j];
+              const d2=dist2(a,b);
+              if(d2<=coh2){
+                const {dx,dy}=neighborDelta(a,b);
+                if(d2<=sep2 && d2>1e-6){ sx-=dx/d2; sy-=dy/d2; }
+                if(d2<=ali2){ ax+=Math.cos(b.heading); ay+=Math.sin(b.heading); ac++; }
+                cx+=dx; cy+=dy; cc++;
+              }
+            }
+            let vx=Math.cos(a.heading), vy=Math.sin(a.heading);
+            let sepH=null; const sm=Math.hypot(sx,sy); if(sm>1e-6) sepH=Math.atan2(sy/sm, sx/sm);
+            let aliH=null; if(ac>0) aliH=Math.atan2(ay/ac, ax/ac);
+            let cohH=null; if(cc>0) cohH=Math.atan2(cy/cc, cx/cc);
+            let dx=vx, dy=vy;
+            if(sepH!==null){ dx+=Math.cos(sepH)*sepK; dy+=Math.sin(sepH)*sepK; }
+            if(aliH!==null){ dx+=Math.cos(aliH)*aliK; dy+=Math.sin(aliH)*aliK; }
+            if(cohH!==null){ dx+=Math.cos(cohH)*cohK; dy+=Math.sin(cohH)*cohK; }
+            const desired=Math.atan2(dy,dx);
+            newH[i]=steerTowards(a.heading, desired);
+          }
+          for(let i=0;i<len;i++){
+            const a=agents[i];
+            a.heading=newH[i];
+            a.vx=Math.cos(a.heading)*vSpeed;
+            a.vy=Math.sin(a.heading)*vSpeed;
+            a.x+=a.vx; a.y+=a.vy;
+            wrapPos(a);
+          }
+        }
+
+        function polarization(){
+          const len=agents.length||1;
+          let sx=0, sy=0;
+          for(const a of agents){ sx+=Math.cos(a.heading); sy+=Math.sin(a.heading); }
+          return Math.hypot(sx,sy)/len;
+        }
+
+        function clear(){
+          // 이전 프레임을 "조금씩 지우는" 방식으로 궤적을 남깁니다.
+          // 배경은 CSS(스테이지)로 깔고, 캔버스 픽셀만 서서히 사라지게 합니다.
+          ctx.save();
+          ctx.globalCompositeOperation = "destination-out";
+          ctx.fillStyle = `rgba(0,0,0,${TRAIL_ALPHA})`;
+          ctx.fillRect(0,0,W,H);
+          ctx.restore();
+        }
+
+        function drawAgents(){
+          ctx.save();
+          // Match legend color (soft periwinkle) + subtle outline for contrast on light backgrounds
+          ctx.fillStyle="rgba(201,214,255,.85)";
+          ctx.strokeStyle="rgba(30,41,59,.28)";
+          ctx.lineWidth=1;
+          for(const a of agents){
+            ctx.beginPath();
+            ctx.arc(a.x,a.y,2.2,0,TAU);
+            ctx.fill();
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function pickNearest(x,y){
+          let best=null, bestD2=1e12;
+          for(const a of agents){
+            const dx=a.x-x, dy=a.y-y;
+            const d2=dx*dx+dy*dy;
+            if(d2<bestD2){ bestD2=d2; best=a; }
+          }
+          return best;
+        }
+
+        function neighborhoodAverageHeading(a){
+          const r2=neighR*neighR;
+          const len=agents.length;
+          let sx=Math.cos(a.heading), sy=Math.sin(a.heading), c=1;
+          for(let j=0;j<len;j++){
+            const b=agents[j];
+            if(b===a) continue;
+            if(dist2(a,b)<=r2){ sx+=Math.cos(b.heading); sy+=Math.sin(b.heading); c++; }
+          }
+          return Math.atan2(sy/c, sx/c);
+        }
+
+        function drawHeadingVector(){
+          if(!pick.active) return;
+          const a=pickNearest(pick.x,pick.y);
+          if(!a) return;
+
+          ctx.save();
+          ctx.strokeStyle="rgba(255,214,165,.85)";
+          ctx.lineWidth=2;
+          ctx.beginPath(); ctx.arc(a.x,a.y,neighR,0,TAU); ctx.stroke();
+
+          const avg=neighborhoodAverageHeading(a);
+          ctx.strokeStyle="rgba(181,245,192,.9)";
+          ctx.lineWidth=3;
+          const len=28;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y);
+          ctx.lineTo(a.x+Math.cos(avg)*len, a.y+Math.sin(avg)*len);
+          ctx.stroke();
+
+          ctx.fillStyle="rgba(255,255,255,.9)";
+          ctx.beginPath(); ctx.arc(a.x,a.y,3.6,0,TAU); ctx.fill();
+          ctx.restore();
+        }
+
+        // UI helpers
+        function setVal(el,v,d=2){ el.textContent=Number(v).toFixed(d); }
+        function setInt(el,v){ el.textContent=String(Math.round(v)); }
+
+        function syncUI(){
+          nAgents.value=N; setInt(nAgentsVal,N);
+          speed.value=vSpeed; setVal(speedVal,vSpeed,1);
+          radius.value=neighR; setInt(radiusVal,neighR);
+          vicsekNoise.value=eta; setVal(vicsekNoiseVal,eta,2);
+
+          sepDist.value=sepD; setInt(sepDistVal,sepD);
+          sepForce.value=sepK; setVal(sepForceVal,sepK,2);
+          aliDist.value=aliD; setInt(aliDistVal,aliD);
+          aliForce.value=aliK; setVal(aliForceVal,aliK,2);
+          cohDist.value=cohD; setInt(cohDistVal,cohD);
+          cohForce.value=cohK; setVal(cohForceVal,cohK,2);
+          turnRate.value=maxTurn; setVal(turnRateVal,maxTurn,2);
+
+          modelSelect.value=model;
+          vicsekSection.style.display=(model==="vicsek")?"":"none";
+          boidsSection.style.display=(model==="boids")?"":"none";
+        }
+
+        function reset(){
+          resizeCanvas();
+          initAgents(spawnMode.value);
+          syncUI();
+        }
+
+        btnPause.addEventListener("click", ()=>{
+          paused=!paused;
+          btnPause.textContent = paused ? "▶︎ Resume" : "⏸︎ Pause";
+        });
+        btnStep.addEventListener("click", ()=>{ stepOnce=true; paused=true; btnPause.textContent="▶︎ Resume"; });
+        btnReset.addEventListener("click", ()=>reset());
+
+        modelSelect.addEventListener("change", ()=>{ model=modelSelect.value; syncUI(); });
+
+        nAgents.addEventListener("input", ()=>{ N=parseInt(nAgents.value,10); setInt(nAgentsVal,N); });
+        nAgents.addEventListener("change", ()=>reset());
+
+        speed.addEventListener("input", ()=>{ vSpeed=parseFloat(speed.value); setVal(speedVal,vSpeed,1); });
+
+        radius.addEventListener("input", ()=>{ neighR=parseInt(radius.value,10); setInt(radiusVal,neighR); });
+
+        spawnMode.addEventListener("change", ()=>reset());
+
+        vicsekNoise.addEventListener("input", ()=>{ eta=parseFloat(vicsekNoise.value); setVal(vicsekNoiseVal,eta,2); });
+
+        sepDist.addEventListener("input", ()=>{ sepD=parseInt(sepDist.value,10); setInt(sepDistVal,sepD); });
+        sepForce.addEventListener("input", ()=>{ sepK=parseFloat(sepForce.value); setVal(sepForceVal,sepK,2); });
+        aliDist.addEventListener("input", ()=>{ aliD=parseInt(aliDist.value,10); setInt(aliDistVal,aliD); });
+        aliForce.addEventListener("input", ()=>{ aliK=parseFloat(aliForce.value); setVal(aliForceVal,aliK,2); });
+        cohDist.addEventListener("input", ()=>{ cohD=parseInt(cohDist.value,10); setInt(cohDistVal,cohD); });
+        cohForce.addEventListener("input", ()=>{ cohK=parseFloat(cohForce.value); setVal(cohForceVal,cohK,2); });
+        turnRate.addEventListener("input", ()=>{ maxTurn=parseFloat(turnRate.value); setVal(turnRateVal,maxTurn,2); });
+
+        tglStatus.addEventListener("change", ()=>{ statusEl.style.display = tglStatus.checked ? "" : "none"; });
+        tglLegend.addEventListener("change", ()=>{ legendEl.style.display = tglLegend.checked ? "" : "none"; });
+
+        pickMode.addEventListener("change", ()=>{ pick.mode=pickMode.value; pick.active=false; });
+
+        function pointerPos(ev){
+          const rect = canvas.getBoundingClientRect();
+          const x = (ev.clientX - rect.left) * (W / rect.width);
+          const y = (ev.clientY - rect.top) * (H / rect.height);
+          return {x,y};
+        }
+
+        canvas.addEventListener("mousemove", (ev)=>{
+          if(pick.mode!=="hover") return;
+          const p=pointerPos(ev);
+          pick.x=p.x; pick.y=p.y; pick.active=true;
+        });
+        canvas.addEventListener("mouseleave", ()=>{
+          if(pick.mode!=="hover") return;
+          pick.active=false;
+        });
+        canvas.addEventListener("click", (ev)=>{
+          if(pick.mode!=="click") return;
+          const p=pointerPos(ev);
+          pick.x=p.x; pick.y=p.y; pick.active=true;
+        });
+
+        // main loop
+        let lastTime=performance.now();
+        let fps=0, fpsAcc=0, fpsN=0, fpsLast=performance.now();
+
+        function step(){
+          if(model==="vicsek") updateVicsek();
+          else updateBoids();
+        }
+
+        function render(){
+          clear();
+          drawAgents();
+          drawHeadingVector();
+          polVal.textContent = polarization().toFixed(2);
+          fpsVal.textContent = String(Math.round(fps));
+        }
+
+        function tick(t){
+          const dt=t-lastTime;
+          lastTime=t;
+
+          fpsAcc += dt; fpsN++;
+          if(t - fpsLast >= 400){
+            fps = 1000 * fpsN / fpsAcc;
+            fpsAcc=0; fpsN=0; fpsLast=t;
+          }
+
+          try{
+            if(!paused || stepOnce){ step(); stepOnce=false; }
+            render();
+          }catch(e){
+            paused=true;
+            if(btnPause) btnPause.textContent = "▶︎ Resume";
+            // show error on overlay so it doesn't look like "nothing"
+            try{
+              statusEl.style.display = "";
+              polVal.textContent = "ERR";
+              fpsVal.textContent = "";
+            }catch(_){ }
+            console.error(e);
+          }
+          requestAnimationFrame(tick);
+        }
+
+        // boot
+        resizeCanvas();
+        initAgents("uniform");
+        syncUI();
+        statusEl.style.display = tglStatus.checked ? "" : "none";
+        legendEl.style.display = tglLegend.checked ? "" : "none";
+
+        requestAnimationFrame((t0)=>{
+          lastTime=t0;
+          requestAnimationFrame(tick);
+        });
+      })(shadow);
+      }catch(e){
+        console.error(e);
+        shadow.innerHTML = `<div style="padding:14px;font-family:ui-sans-serif,system-ui;color:#111">시뮬레이터 초기화에 실패했습니다 ㅠㅠ F12 를 눌러 콘솔을 확인해 주세요 (__*</div>`;
+      }
+    })();
+    </script>
+  </div>
+</body>
+</html>
