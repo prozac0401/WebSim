@@ -3,7 +3,11 @@
 
 https://prozac0401.github.io/WebSim
 
-## 목록
+## 2026 작업 시뮬레이터
+
+- [주말 회복 플래너 시뮬레이터](신규) - [보러가기](weekend_recovery_simulator/weekend_recovery_simulator.html) | [설명](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
+
+## 2025 작업 시뮬레이터
 
 - [개미 군집 최적화(ACO) 시뮬레이션](https://prozac0401.tistory.com/37) - [보러가기](aco_simulator/aco_simulator.html) | [설명](aco_simulator/aco_simulator_doc.html)
 - [보이드 알고리즘 새떼 시뮬레이션](https://prozac0401.tistory.com/34) - [보러가기](boids_simulation/boids_simulation.html) | [설명](boids_simulation/boids_simulation_doc.html)
@@ -18,4 +22,3 @@ https://prozac0401.github.io/WebSim
 - [개미-질소 순환 시뮬레이터](미개시) - [보러가기](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) | [설명](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator_doc.html)
 - [Schelling 분리 모형 시뮬레이터](https://prozac0401.tistory.com/91) - [보러가기](schelling_segregation_simulator/schelling_segregation_simulator.html) | [설명](schelling_segregation_simulator/schelling_segregation_simulator_doc.html)
 - [Vicsek/Boids 시뮬레이터 비교](https://prozac0401.tistory.com/92) - [보러가기](vicsek_boids_simulator/vicsek_boids_simulator.html) | [설명](vicsek_boids_simulator/vicsek_boids_simulator_doc.html)
-- [주말 회복 플래너 시뮬레이터](신규) - [보러가기](weekend_recovery_simulator/weekend_recovery_simulator.html) | [설명](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
