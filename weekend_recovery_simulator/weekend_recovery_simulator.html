@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주말 회복 플래너</title>
+</head>
+<body>
+<div id="weekend-recovery-simulator-app">
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+#weekend-recovery-simulator-app{font-family:"Pretendard","Noto Sans KR",sans-serif;color:#183030}
+#weekend-recovery-simulator-app *{box-sizing:border-box}
+#weekend-recovery-simulator-app .wrs-wrap{max-width:1140px;margin:0 auto;padding:20px;border:1px solid rgba(24,48,48,.12);border-radius:24px;background:
+radial-gradient(circle at 12% 8%,rgba(244,160,64,.18),transparent 40%),
+radial-gradient(circle at 90% 16%,rgba(22,120,122,.18),transparent 45%),
+linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12)}
+#weekend-recovery-simulator-app .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+#weekend-recovery-simulator-app h1{margin:0;font-size:28px}
+#weekend-recovery-simulator-app .sub{margin:8px 0 0;color:#5e7070;font-size:14px;line-height:1.45}
+#weekend-recovery-simulator-app .btn{border:1px solid rgba(24,48,48,.2);background:rgba(255,255,255,.8);padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+#weekend-recovery-simulator-app .btn.primary{background:#d7efec;border-color:rgba(22,120,122,.35);color:#0c585a}
+#weekend-recovery-simulator-app .status{min-height:18px;margin:10px 0;color:#0f6163;font-size:13px;font-weight:600}
+#weekend-recovery-simulator-app .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:12px}
+#weekend-recovery-simulator-app .card{background:rgba(255,255,255,.86);border:1px solid rgba(24,48,48,.12);border-radius:16px;box-shadow:0 10px 20px rgba(24,48,48,.08)}
+#weekend-recovery-simulator-app .card .body{padding:12px}
+#weekend-recovery-simulator-app h2{margin:0;font-size:14px}
+#weekend-recovery-simulator-app .hint{margin:6px 0 0;color:#5e7070;font-size:12px;line-height:1.38}
+#weekend-recovery-simulator-app .goal-grid{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#weekend-recovery-simulator-app .goal{border:1px solid rgba(24,48,48,.14);background:#fff;border-radius:10px;padding:8px;text-align:left;cursor:pointer}
+#weekend-recovery-simulator-app .goal b{display:block;font-size:13px}
+#weekend-recovery-simulator-app .goal span{display:block;margin-top:2px;font-size:11px;color:#5e7070}
+#weekend-recovery-simulator-app .goal.active{background:#d7efec;border-color:rgba(22,120,122,.4)}
+#weekend-recovery-simulator-app .row{margin-top:10px}
+#weekend-recovery-simulator-app .row-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+#weekend-recovery-simulator-app .val{color:#0f6668;font-weight:800}
+#weekend-recovery-simulator-app input[type=range]{width:100%;accent-color:#157a7c}
+#weekend-recovery-simulator-app .palette{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#weekend-recovery-simulator-app .chip{border:1px solid rgba(24,48,48,.14);border-left:6px solid #ccc;background:#fff;border-radius:10px;padding:8px;cursor:grab;text-align:left}
+#weekend-recovery-simulator-app .chip .t{display:block;font-size:12px;font-weight:700}
+#weekend-recovery-simulator-app .chip .m{display:block;font-size:11px;color:#5e7070;margin-top:2px}
+#weekend-recovery-simulator-app .chip.sel{outline:2px solid rgba(22,120,122,.45)}
+#weekend-recovery-simulator-app .picked{margin-top:8px;color:#5e7070;font-size:12px}
+#weekend-recovery-simulator-app .ins-empty{margin-top:10px;font-size:12px;color:#5e7070}
+#weekend-recovery-simulator-app .ins-box{margin-top:10px;border:1px solid rgba(24,48,48,.14);border-radius:10px;padding:8px;background:#fff}
+#weekend-recovery-simulator-app .ins-head b{font-size:13px}
+#weekend-recovery-simulator-app .ins-head small{color:#5e7070;font-size:11px}
+#weekend-recovery-simulator-app .ins-row{margin-top:8px}
+#weekend-recovery-simulator-app .ins-row label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+#weekend-recovery-simulator-app .ins-actions{margin-top:8px;display:flex;gap:6px}
+#weekend-recovery-simulator-app .planner{margin-top:10px;display:grid;grid-template-columns:56px 1fr 1fr;gap:8px}
+#weekend-recovery-simulator-app .axis{position:relative;height:768px;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:rgba(255,255,255,.6)}
+#weekend-recovery-simulator-app .axis span{position:absolute;left:5px;transform:translateY(-50%);font-size:11px;color:#5e7070}
+#weekend-recovery-simulator-app .day{position:relative;border:1px solid rgba(24,48,48,.12);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.72)}
+#weekend-recovery-simulator-app .day .dh{padding:8px 10px;border-bottom:1px solid rgba(24,48,48,.12);font-size:13px;font-weight:800;background:rgba(255,255,255,.8)}
+#weekend-recovery-simulator-app .slots{position:relative;height:768px}
+#weekend-recovery-simulator-app .slot{position:absolute;left:0;right:0;height:24px;border:0;border-bottom:1px dashed rgba(0,0,0,.12);background:transparent;cursor:pointer}
+#weekend-recovery-simulator-app .slot:hover,#weekend-recovery-simulator-app .slot.over{background:rgba(73,160,120,.14)}
+#weekend-recovery-simulator-app .events{position:absolute;inset:0;pointer-events:none}
+#weekend-recovery-simulator-app .ev{position:absolute;left:5px;right:5px;padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.15);font-size:11px;line-height:1.25;box-shadow:0 4px 10px rgba(0,0,0,.12);pointer-events:auto;cursor:pointer}
+#weekend-recovery-simulator-app .ev b{display:block;font-size:12px}
+#weekend-recovery-simulator-app .ev.sel{outline:2px solid rgba(22,120,122,.55)}
+#weekend-recovery-simulator-app .rz{position:absolute;left:8px;right:8px;height:6px;border-radius:999px;background:rgba(0,0,0,.18);cursor:ns-resize;z-index:2}
+#weekend-recovery-simulator-app .rz.top{top:2px}
+#weekend-recovery-simulator-app .rz.bottom{bottom:2px}
+#weekend-recovery-simulator-app .tone-sleep{background:#dde4ff}
+#weekend-recovery-simulator-app .tone-social{background:#ffd9c8}
+#weekend-recovery-simulator-app .tone-travel{background:#d4e6ff}
+#weekend-recovery-simulator-app .tone-alone{background:#d8f2e2}
+#weekend-recovery-simulator-app .tone-chore{background:#f6e5cd}
+#weekend-recovery-simulator-app .tone-rest{background:#def5ef}
+#weekend-recovery-simulator-app .tone-screen{background:#eadff7}
+#weekend-recovery-simulator-app .ana{display:flex;justify-content:space-between;align-items:center}
+#weekend-recovery-simulator-app .badge-score{border:1px solid rgba(22,120,122,.36);background:#d7efec;color:#0c585a;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
+#weekend-recovery-simulator-app canvas{margin-top:10px;width:100%;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(243,250,250,.9))}
+#weekend-recovery-simulator-app .legend{margin-top:6px;font-size:12px;color:#5e7070}
+#weekend-recovery-simulator-app .axes{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#weekend-recovery-simulator-app .ax{border:1px solid rgba(24,48,48,.12);border-radius:9px;padding:8px;background:#fff}
+#weekend-recovery-simulator-app .ax-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+#weekend-recovery-simulator-app .bar{height:8px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden}
+#weekend-recovery-simulator-app .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#157a7c,#4aa084)}
+#weekend-recovery-simulator-app .badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+#weekend-recovery-simulator-app .b{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(24,48,48,.12);background:#fff}
+#weekend-recovery-simulator-app .copy{margin-top:9px;border:1px solid rgba(24,48,48,.12);border-radius:10px;padding:10px;background:#fff}
+#weekend-recovery-simulator-app .copy p{margin:0;font-size:13px;line-height:1.45}
+#weekend-recovery-simulator-app .copy p+p{margin-top:6px}
+#weekend-recovery-simulator-app .sugs{margin-top:10px;display:grid;gap:8px}
+#weekend-recovery-simulator-app .s{border:1px solid rgba(24,48,48,.12);border-radius:10px;padding:10px;background:#fff}
+#weekend-recovery-simulator-app .s h3{margin:0;font-size:13px}
+#weekend-recovery-simulator-app .s p{margin:4px 0 0;font-size:12px;color:#5e7070;line-height:1.35}
+#weekend-recovery-simulator-app .s .m{margin-top:6px;font-size:12px;font-weight:800;color:#0d5d5f}
+#weekend-recovery-simulator-app .s .a{margin-top:7px;display:flex;gap:6px}
+#weekend-recovery-simulator-app .empty{font-size:12px;color:#5e7070}
+@media (max-width:1000px){#weekend-recovery-simulator-app .layout{grid-template-columns:1fr}}
+@media (max-width:760px){
+  #weekend-recovery-simulator-app .wrs-wrap{padding:14px;border-radius:16px}
+  #weekend-recovery-simulator-app h1{font-size:22px}
+  #weekend-recovery-simulator-app .planner{grid-template-columns:44px 1fr}
+  #weekend-recovery-simulator-app .day.sun,#weekend-recovery-simulator-app .day.sat{grid-column:2}
+  #weekend-recovery-simulator-app .day.sun{margin-top:8px}
+  #weekend-recovery-simulator-app .axes{grid-template-columns:1fr}
+  #weekend-recovery-simulator-app .palette{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrs-wrap">
+  <div class="head">
+    <div>
+      <h1>주말 회복 플래너</h1>
+      <p class="sub">문답 테스트 대신 주말 블록을 배치해 회복 곡선을 미리 확인합니다. 같은 일정도 <b>이동·사회 전환·미해결 압박</b>이 다르면 결과가 달라집니다.</p>
+    </div>
+    <div>
+      <button type="button" class="btn primary" id="wrs-sample">샘플 계획</button>
+      <button type="button" class="btn" id="wrs-clear">초기화</button>
+    </div>
+  </div>
+  <p id="wrs-status" class="status"></p>
+  <div class="layout">
+    <aside>
+      <section class="card"><div class="body"><h2>1) 주말 목표</h2><p class="hint">목표에 따라 4축 가중치가 달라집니다.</p><div id="wrs-goals" class="goal-grid"></div></div></section>
+      <section class="card"><div class="body">
+        <h2>2) 기본 상태</h2><p class="hint">동일한 일정도 시작 컨디션이 다르면 결과가 달라집니다.</p>
+        <div class="row"><div class="row-top"><span>예상 평균 수면</span><span class="val" id="wrs-sleep-v">7.0h</span></div><input id="wrs-sleep" type="range" min="5" max="9" step="0.5" value="7"></div>
+        <div class="row"><div class="row-top"><span>밀린 집안일 압박</span><span class="val" id="wrs-chores-v">3</span></div><input id="wrs-chores" type="range" min="0" max="5" step="1" value="3"></div>
+        <div class="row"><div class="row-top"><span>월요일 불안감</span><span class="val" id="wrs-anx-v">3</span></div><input id="wrs-anx" type="range" min="0" max="5" step="1" value="3"></div>
+        <div class="row"><div class="row-top"><span>일정 사이 마진</span><span class="val" id="wrs-gap-v">0분</span></div><input id="wrs-gap" type="range" min="0" max="4" step="1" value="0"></div>
+      </div></section>
+      <section class="card"><div class="body"><h2>3) 활동 블록</h2><p class="hint">블록을 드래그하거나, 블록을 선택한 뒤 슬롯을 클릭해 추가합니다. (브런치/일찍 눕기/밤늦게 폰 보기는 시간대 제한, 일정 사이 마진 적용)</p><div id="wrs-palette" class="palette"></div><p id="wrs-picked" class="picked">선택된 블록: 없음</p></div></section>
+      <section class="card" id="wrs-ins"></section>
+    </aside>
+    <main>
+      <section class="card"><div class="body"><h2>4) 주말 계획판</h2><p class="hint">토/일 일정이 바뀔 때마다 결과가 실시간 갱신됩니다. 블록 위/아래 막대를 드래그하면 길이를 늘리거나 줄일 수 있습니다.</p>
+        <div class="planner">
+          <div class="axis" id="wrs-axis"></div>
+          <div class="day sat"><div class="dh">토요일</div><div class="slots" data-day="sat"></div><div class="events" data-day="sat"></div></div>
+          <div class="day sun"><div class="dh">일요일</div><div class="slots" data-day="sun"></div><div class="events" data-day="sun"></div></div>
+        </div>
+      </div></section>
+      <section class="card"><div class="body">
+        <div class="ana"><h2>5) 현재 상태</h2><span id="wrs-score" class="badge-score">현재 상태 0</span></div>
+        <canvas id="wrs-canvas" width="980" height="250"></canvas>
+        <div id="wrs-legend" class="legend">실선: 현재 계획 | 점선: 추천안 미리보기</div>
+        <div class="axes">
+          <div class="ax"><div class="ax-top"><span>몸 회복</span><b id="ax-body">0</b></div><div class="bar"><i id="bar-body"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>사회적 소모</span><b id="ax-social">0</b></div><div class="bar"><i id="bar-social"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>이동 피로</span><b id="ax-travel">0</b></div><div class="bar"><i id="bar-travel"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>미해결 압박</span><b id="ax-pressure">0</b></div><div class="bar"><i id="bar-pressure"></i></div></div>
+        </div>
+        <div id="wrs-badges" class="badges"></div>
+        <div class="copy"><p id="wrs-d1">일정을 배치하면 결과 해석이 나옵니다.</p><p id="wrs-d2"></p><p id="wrs-d3"></p></div>
+      </div></section>
+      <section class="card"><div class="body"><div class="ana"><h2>6) 이걸 바꾸면?</h2><button id="wrs-refresh" class="btn" type="button">추천안 갱신</button></div><div id="wrs-sugs" class="sugs"></div></div></section>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SLOT_MIN = 30;
+  const START_HOUR = 8;
+  const END_HOUR = 24;
+  const SLOT_COUNT = ((END_HOUR - START_HOUR) * 60) / SLOT_MIN;
+  const DAY_ORDER = { sat: 0, sun: 1 };
+
+  const GOALS = {
+    rest: { label: "최대한 쉬기", sub: "회복 우선", w: { body: 0.42, social: 0.18, travel: 0.2, pressure: 0.2 } },
+    social: { label: "약속 하나 즐기기", sub: "사회 소모 관리", w: { body: 0.28, social: 0.34, travel: 0.2, pressure: 0.18 } },
+    chores: { label: "밀린 일 처리", sub: "압박 감소 우선", w: { body: 0.22, social: 0.15, travel: 0.15, pressure: 0.48 } },
+    mix: { label: "균형형", sub: "바깥+회복", w: { body: 0.28, social: 0.24, travel: 0.24, pressure: 0.24 } }
+  };
+
+  const TEMPLATES = {
+    sleep_in: { label: "늦잠", tone: "sleep", color: "#7c8fd1", dur: 4, travel: 0, strain: 2, meta: "2시간" },
+    brunch: { label: "브런치 약속", tone: "social", color: "#ef7e56", dur: 4, travel: 60, strain: 3, meta: "2시간 + 이동" },
+    family_dining: { label: "가족과 함께 외식", tone: "social", color: "#f0a66a", dur: 3, travel: 30, strain: 2, meta: "1.5시간" },
+    long_travel: { label: "왕복 이동", tone: "travel", color: "#3f72af", dur: 3, travel: 90, strain: 3, meta: "90분 이동" },
+    driving: { label: "운전", tone: "travel", color: "#4f82ba", dur: 2, travel: 60, strain: 3, meta: "1시간 운전" },
+    solo_cafe: { label: "혼자 카페", tone: "alone", color: "#49a078", dur: 3, travel: 20, strain: 2, meta: "90분 리셋" },
+    chores: { label: "청소/빨래", tone: "chore", color: "#f2994a", dur: 4, travel: 0, strain: 3, meta: "2시간 처리" },
+    grocery: { label: "장보기", tone: "chore", color: "#d98e3e", dur: 2, travel: 25, strain: 3, meta: "1시간" },
+    walk: { label: "집 근처 산책", tone: "rest", color: "#4aa395", dur: 2, travel: 0, strain: 2, meta: "1시간 회복" },
+    deep_rest: { label: "완전 빈 시간", tone: "alone", color: "#58b28d", dur: 3, travel: 0, strain: 1, meta: "90분 여유" },
+    late_screen: { label: "밤늦게 폰 보기", tone: "screen", color: "#9a76c1", dur: 3, travel: 0, strain: 3, meta: "22:00 이후" },
+    early_sleep: { label: "일찍 눕기", tone: "sleep", color: "#667bd3", dur: 3, travel: 0, strain: 2, meta: "20:00 이후" }
+  };
+
+  const TIME_RULES = {
+    late_screen: { start: 22 * 60, end: 24 * 60, label: "22:00~24:00" },
+    early_sleep: { start: 20 * 60, end: 24 * 60, label: "20:00~24:00" },
+    brunch: { start: 9 * 60, end: 14 * 60, label: "09:00~14:00" }
+  };
+
+  const TONE_CURVE = {
+    sleep: { delta: 2.35, p: -0.1 },
+    social: { delta: -1.65, p: -0.25 },
+    travel: { delta: -2, p: 0.25 },
+    alone: { delta: 1.25, p: -0.65 },
+    chore: { delta: -0.9, p: -1.35 },
+    rest: { delta: 0.9, p: -0.35 },
+    screen: { delta: 0.35, p: 0.2 }
+  };
+
+  const st = {
+    goal: "mix",
+    baseSleep: 7,
+    chores: 3,
+    anxiety: 3,
+    gapSlots: 0,
+    events: [],
+    selectedTpl: null,
+    selectedEvent: null,
+    drag: null,
+    compare: null,
+    metrics: null,
+    resizing: null,
+    seq: 0
+  };
+
+  const el = {
+    goals: document.getElementById("wrs-goals"),
+    palette: document.getElementById("wrs-palette"),
+    picked: document.getElementById("wrs-picked"),
+    ins: document.getElementById("wrs-ins"),
+    axis: document.getElementById("wrs-axis"),
+    score: document.getElementById("wrs-score"),
+    canvas: document.getElementById("wrs-canvas"),
+    legend: document.getElementById("wrs-legend"),
+    badges: document.getElementById("wrs-badges"),
+    d1: document.getElementById("wrs-d1"),
+    d2: document.getElementById("wrs-d2"),
+    d3: document.getElementById("wrs-d3"),
+    sugs: document.getElementById("wrs-sugs"),
+    status: document.getElementById("wrs-status"),
+    sleep: document.getElementById("wrs-sleep"),
+    sleepV: document.getElementById("wrs-sleep-v"),
+    chores: document.getElementById("wrs-chores"),
+    choresV: document.getElementById("wrs-chores-v"),
+    anx: document.getElementById("wrs-anx"),
+    anxV: document.getElementById("wrs-anx-v"),
+    gap: document.getElementById("wrs-gap"),
+    gapV: document.getElementById("wrs-gap-v"),
+    sample: document.getElementById("wrs-sample"),
+    clear: document.getElementById("wrs-clear"),
+    refresh: document.getElementById("wrs-refresh"),
+    axBody: document.getElementById("ax-body"),
+    axSocial: document.getElementById("ax-social"),
+    axTravel: document.getElementById("ax-travel"),
+    axPressure: document.getElementById("ax-pressure"),
+    barBody: document.getElementById("bar-body"),
+    barSocial: document.getElementById("bar-social"),
+    barTravel: document.getElementById("bar-travel"),
+    barPressure: document.getElementById("bar-pressure")
+  };
+
+  let statusTimer = null;
+
+  const clamp = (v, mi, ma) => Math.min(ma, Math.max(mi, v));
+  const aSlot = (e) => DAY_ORDER[e.day] * SLOT_COUNT + e.start;
+  const sortEvents = () => st.events.sort((a, b) => aSlot(a) - aSlot(b));
+
+  const clock = (slot) => {
+    const m = START_HOUR * 60 + slot * SLOT_MIN;
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  };
+
+  const durTxt = (slots) => {
+    const mins = slots * SLOT_MIN;
+    if (mins % 60 === 0) return `${mins / 60}시간`;
+    return `${Math.floor(mins / 60)}시간 ${mins % 60}분`;
+  };
+
+  const overlap = (s1, e1, s2, e2) => s1 < e2 && s2 < e1;
+
+  function inTimeRule(type, start, dur) {
+    const rule = TIME_RULES[type];
+    if (!rule) return true;
+    const s = START_HOUR * 60 + start * SLOT_MIN;
+    const e = s + dur * SLOT_MIN;
+    return s >= rule.start && e <= rule.end;
+  }
+
+  function timeRuleMessage(type) {
+    const rule = TIME_RULES[type];
+    if (!rule) return null;
+    return `${TEMPLATES[type].label} 블록은 ${rule.label} 시간에만 배치할 수 있습니다.`;
+  }
+
+  function canPlace(candidate, ignoreId) {
+    if (candidate.start < 0 || candidate.start + candidate.dur > SLOT_COUNT) return false;
+    const margin = Math.max(0, st.gapSlots || 0);
+    for (const ev of st.events) {
+      if (ev.id === ignoreId || ev.id === candidate.id) continue;
+      if (ev.day !== candidate.day) continue;
+      if (candidate.start < ev.start + ev.dur + margin && ev.start < candidate.start + candidate.dur + margin) return false;
+    }
+    return true;
+  }
+
+  function freeSlot(day, dur, from, ignoreId, type) {
+    const max = SLOT_COUNT - dur;
+    const start = clamp(from || 0, 0, max);
+    for (let i = start; i <= max; i++) {
+      if (canPlace({ day, start: i, dur }, ignoreId) && inTimeRule(type, i, dur)) return i;
+    }
+    for (let i = 0; i < start; i++) {
+      if (canPlace({ day, start: i, dur }, ignoreId) && inTimeRule(type, i, dur)) return i;
+    }
+    return null;
+  }
+
+  function status(msg, ms) {
+    el.status.textContent = msg || "";
+    if (!ms) return;
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { el.status.textContent = ""; statusTimer = null; }, ms);
+  }
+
+  function renderGoals() {
+    el.goals.innerHTML = "";
+    Object.entries(GOALS).forEach(([k, v]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `goal${st.goal === k ? " active" : ""}`;
+      b.innerHTML = `<b>${v.label}</b><span>${v.sub}</span>`;
+      b.onclick = () => { st.goal = k; renderAll(); };
+      el.goals.appendChild(b);
+    });
+  }
+
+  function renderPalette() {
+    el.palette.innerHTML = "";
+    Object.entries(TEMPLATES).forEach(([k, t]) => {
+      const c = document.createElement("button");
+      c.type = "button";
+      c.draggable = true;
+      c.className = `chip${st.selectedTpl === k ? " sel" : ""}`;
+      c.style.borderLeftColor = t.color;
+      c.innerHTML = `<span class="t">${t.label}</span><span class="m">${t.meta}</span>`;
+      c.onclick = () => {
+        st.selectedTpl = st.selectedTpl === k ? null : k;
+        el.picked.textContent = `선택된 블록: ${st.selectedTpl ? TEMPLATES[st.selectedTpl].label : "없음"}`;
+        renderPalette();
+      };
+      c.ondragstart = (e) => { st.drag = { kind: "tpl", key: k }; e.dataTransfer.effectAllowed = "copy"; };
+      el.palette.appendChild(c);
+    });
+  }
+
+  function renderAxis() {
+    el.axis.innerHTML = "";
+    for (let h = START_HOUR; h <= END_HOUR; h++) {
+      const s = document.createElement("span");
+      s.style.top = `${(h - START_HOUR) * 48}px`;
+      s.textContent = `${String(h).padStart(2, "0")}:00`;
+      el.axis.appendChild(s);
+    }
+  }
+
+  function addEvent(type, day, start) {
+    const t = TEMPLATES[type];
+    if (!t) return;
+    const ev = { id: `e${++st.seq}`, type, day, start, dur: t.dur, travel: t.travel, strain: t.strain };
+    if (!inTimeRule(type, start, ev.dur)) {
+      return status(timeRuleMessage(type), 1900);
+    }
+    if (!canPlace(ev)) {
+      const free = freeSlot(day, ev.dur, start, null, type);
+      if (free == null) return status(st.gapSlots > 0 ? `마진 ${st.gapSlots * SLOT_MIN}분을 포함해 배치할 빈 슬롯이 부족합니다.` : "빈 슬롯이 부족합니다. 다른 시간대를 선택해 주세요.", 1800);
+      if (free !== start) {
+        status(`요청 시간에 여유가 부족해 ${clock(free)}부터 자동 배치했습니다.`, 1600);
+      }
+      ev.start = free;
+    }
+    st.events.push(ev);
+    sortEvents();
+    st.selectedEvent = ev.id;
+    st.compare = null;
+    renderAll();
+  }
+
+  function moveEvent(id, day, start) {
+    const ev = st.events.find((x) => x.id === id);
+    if (!ev) return;
+    const old = { day: ev.day, start: ev.start };
+    ev.day = day;
+    ev.start = start;
+    if (!inTimeRule(ev.type, ev.start, ev.dur)) {
+      ev.day = old.day;
+      ev.start = old.start;
+      return status(timeRuleMessage(ev.type), 1700);
+    }
+    if (!canPlace(ev, ev.id)) {
+      const free = freeSlot(day, ev.dur, start, ev.id, ev.type);
+      if (free == null) {
+        ev.day = old.day;
+        ev.start = old.start;
+        return status(st.gapSlots > 0 ? `마진 ${st.gapSlots * SLOT_MIN}분을 포함하면 해당 시간대에 배치할 수 없습니다.` : "해당 시간대에는 이미 일정이 있습니다.", 1700);
+      }
+      if (free !== start) {
+        status(`요청 시간에 여유가 부족해 ${clock(free)}로 이동했습니다.`, 1600);
+      }
+      ev.start = free;
+    }
+    sortEvents();
+    st.selectedEvent = ev.id;
+    st.compare = null;
+    renderAll();
+  }
+
+  function buildSlots() {
+    ["sat", "sun"].forEach((day) => {
+      const box = document.querySelector(`.slots[data-day="${day}"]`);
+      box.innerHTML = "";
+      for (let i = 0; i < SLOT_COUNT; i++) {
+        const s = document.createElement("button");
+        s.type = "button";
+        s.className = "slot";
+        s.style.top = `${i * 24}px`;
+        s.onmouseenter = () => {};
+        s.ondragover = (e) => { e.preventDefault(); s.classList.add("over"); };
+        s.ondragleave = () => s.classList.remove("over");
+        s.ondrop = (e) => {
+          e.preventDefault();
+          s.classList.remove("over");
+          if (!st.drag) return;
+          if (st.drag.kind === "tpl") addEvent(st.drag.key, day, i);
+          if (st.drag.kind === "ev") moveEvent(st.drag.id, day, i);
+          st.drag = null;
+        };
+        s.onclick = () => {
+          if (st.selectedTpl) addEvent(st.selectedTpl, day, i);
+          else { st.selectedEvent = null; renderInspector(); renderEvents(); }
+        };
+        box.appendChild(s);
+      }
+    });
+  }
+
+  function renderEvents() {
+    ["sat", "sun"].forEach((day) => {
+      const layer = document.querySelector(`.events[data-day="${day}"]`);
+      layer.innerHTML = "";
+      st.events.filter((x) => x.day === day).forEach((ev) => {
+        const t = TEMPLATES[ev.type];
+        const d = document.createElement("article");
+        d.className = `ev tone-${t.tone}${st.selectedEvent === ev.id ? " sel" : ""}`;
+        d.style.top = `${ev.start * 24 + 2}px`;
+        d.style.height = `${ev.dur * 24 - 4}px`;
+        d.draggable = true;
+        d.dataset.id = ev.id;
+        d.innerHTML = `<span class="rz top" data-edge="top"></span><b>${t.label}</b><span>${clock(ev.start)}-${clock(ev.start + ev.dur)}</span><span class="rz bottom" data-edge="bottom"></span>`;
+        d.onclick = (e) => { e.stopPropagation(); st.selectedEvent = ev.id; renderInspector(); renderEvents(); };
+        d.ondragstart = (e) => { st.drag = { kind: "ev", id: ev.id }; e.dataTransfer.effectAllowed = "move"; };
+        d.querySelectorAll(".rz").forEach((handle) => {
+          handle.onpointerdown = (e) => startResize(e, ev.id, handle.dataset.edge);
+        });
+        layer.appendChild(d);
+      });
+    });
+  }
+
+  function startResize(evt, id, edge) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    const ev = st.events.find((x) => x.id === id);
+    if (!ev) return;
+    st.resizing = {
+      id,
+      edge,
+      y: evt.clientY,
+      start: ev.start,
+      dur: ev.dur
+    };
+    window.addEventListener("pointermove", onResizeMove);
+    window.addEventListener("pointerup", stopResize, { once: true });
+  }
+
+  function onResizeMove(evt) {
+    if (!st.resizing) return;
+    const r = st.resizing;
+    const ev = st.events.find((x) => x.id === r.id);
+    if (!ev) return;
+    const deltaSlots = Math.round((evt.clientY - r.y) / 24);
+    let nextStart = r.start;
+    let nextDur = r.dur;
+    if (r.edge === "top") {
+      nextStart = r.start + deltaSlots;
+      nextDur = r.dur - deltaSlots;
+    } else {
+      nextDur = r.dur + deltaSlots;
+    }
+    nextDur = clamp(nextDur, 1, 8);
+    nextStart = clamp(nextStart, 0, SLOT_COUNT - nextDur);
+    const candidate = { ...ev, start: nextStart, dur: nextDur };
+    if (!canPlace(candidate, ev.id)) return;
+    if (!inTimeRule(ev.type, nextStart, nextDur)) return;
+    ev.start = nextStart;
+    ev.dur = nextDur;
+    st.compare = null;
+    sortEvents();
+    renderEvents();
+    renderInspector();
+    renderAnalytics();
+  }
+
+  function stopResize() {
+    window.removeEventListener("pointermove", onResizeMove);
+    st.resizing = null;
+  }
+
+  function patchSelected(fn) {
+    const ev = st.events.find((x) => x.id === st.selectedEvent);
+    if (!ev) return;
+    const prev = { ...ev };
+    fn(ev);
+    ev.dur = clamp(Math.round(ev.dur), 1, 8);
+    ev.start = clamp(Math.round(ev.start), 0, SLOT_COUNT - ev.dur);
+    ev.travel = clamp(Math.round(ev.travel), 0, 180);
+    ev.strain = clamp(Math.round(ev.strain), 1, 5);
+    if (!canPlace(ev, ev.id)) {
+      Object.assign(ev, prev);
+      return status(st.gapSlots > 0 ? `변경 후 일정 간 마진 ${st.gapSlots * SLOT_MIN}분이 확보되지 않습니다.` : "변경 후 블록이 겹칩니다.", 1500);
+    }
+    if (!inTimeRule(ev.type, ev.start, ev.dur)) {
+      Object.assign(ev, prev);
+      return status(timeRuleMessage(ev.type), 1700);
+    }
+    st.compare = null;
+    sortEvents();
+    renderAll();
+  }
+
+  function renderInspector() {
+    el.ins.innerHTML = '<div class="body"><h2>선택 블록 편집</h2></div>';
+    const b = el.ins.firstElementChild;
+    const ev = st.events.find((x) => x.id === st.selectedEvent);
+    if (!ev) {
+      const p = document.createElement("p");
+      p.className = "ins-empty";
+      p.textContent = "타임라인 블록을 클릭하면 길이/이동/심리 소모도를 조절할 수 있습니다. 가장자리 막대를 드래그해 길이를 조절할 수도 있습니다.";
+      b.appendChild(p);
+      return;
+    }
+    const t = TEMPLATES[ev.type];
+    const strainValue = ev.strain ?? 3;
+    if (ev.strain == null) ev.strain = strainValue;
+    const box = document.createElement("div");
+    box.className = "ins-box";
+    box.innerHTML = `
+      <div class="ins-head"><b>${t.label}</b><br><small>${ev.day === "sat" ? "토" : "일"} ${clock(ev.start)}-${clock(ev.start + ev.dur)}</small></div>
+      <div class="ins-row"><label>길이 <span id="ins-dur-v">${durTxt(ev.dur)}</span></label><input id="ins-dur" type="range" min="1" max="8" step="1" value="${ev.dur}"></div>
+      <div class="ins-row"><label>이동시간 <span id="ins-tr-v">${ev.travel}분</span></label><input id="ins-tr" type="range" min="0" max="180" step="5" value="${ev.travel}"></div>
+      <div class="ins-row"><label>심리 소모도 <span id="ins-c-v">${strainValue}</span></label><input id="ins-c" type="range" min="1" max="5" step="1" value="${strainValue}"></div>
+      <div class="ins-actions"><button type="button" class="btn" id="ins-copy">복제</button><button type="button" class="btn" id="ins-del">삭제</button></div>
+    `;
+    b.appendChild(box);
+    b.querySelector("#ins-dur").oninput = (e) => { b.querySelector("#ins-dur-v").textContent = durTxt(+e.target.value); patchSelected((x) => { x.dur = +e.target.value; }); };
+    b.querySelector("#ins-tr").oninput = (e) => { b.querySelector("#ins-tr-v").textContent = `${+e.target.value}분`; patchSelected((x) => { x.travel = +e.target.value; }); };
+    b.querySelector("#ins-c").oninput = (e) => { b.querySelector("#ins-c-v").textContent = `${+e.target.value}`; patchSelected((x) => { x.strain = +e.target.value; }); };
+    b.querySelector("#ins-del").onclick = () => { st.events = st.events.filter((x) => x.id !== ev.id); st.selectedEvent = null; st.compare = null; renderAll(); };
+    b.querySelector("#ins-copy").onclick = () => {
+      const cp = { ...ev, id: `e${++st.seq}` };
+      const free = freeSlot(ev.day, cp.dur, ev.start + cp.dur, null, cp.type);
+      if (free == null) return status(st.gapSlots > 0 ? `마진 ${st.gapSlots * SLOT_MIN}분 기준으로 복제할 빈 슬롯이 부족합니다.` : "복제할 빈 슬롯이 부족합니다.", 1500);
+      cp.start = free;
+      st.events.push(cp);
+      st.selectedEvent = cp.id;
+      st.compare = null;
+      sortEvents();
+      renderAll();
+    };
+  }
+
+  function slotMap(events) {
+    const map = new Array(SLOT_COUNT * 2).fill(null);
+    events.forEach((ev) => {
+      const off = DAY_ORDER[ev.day] * SLOT_COUNT;
+      for (let i = 0; i < ev.dur; i++) map[off + ev.start + i] = ev;
+    });
+    return map;
+  }
+
+  function trace(events) {
+    const map = slotMap(events);
+    let curve = clamp(50 + (st.baseSleep - 7) * 4 - st.chores * 2, 0, 100);
+    let p = 12 + st.chores * 6 + st.anxiety * 4;
+    let socialBat = 65;
+    const out = [];
+    for (let i = 0; i < map.length; i++) {
+      const ev = map[i];
+      const day = i < SLOT_COUNT ? "sat" : "sun";
+      const minute = START_HOUR * 60 + (i % SLOT_COUNT) * SLOT_MIN;
+      let d = 0.22;
+      if (!ev) {
+        d += minute >= 22 * 60 ? -0.25 : 0.55;
+        p += day === "sun" && minute >= 18 * 60 ? 0.22 * st.anxiety : 0.03;
+        socialBat += 0.35;
+      } else {
+        const tone = TEMPLATES[ev.type].tone;
+        const rule = TONE_CURVE[tone];
+        const strain = 1 + ((ev.strain ?? 3) - 3) * 0.15;
+        d += rule.delta;
+        p += rule.p;
+        d -= ev.travel / Math.max(ev.dur, 1) / 35;
+        if (tone === "social") { d -= 0.45 * (strain - 1); socialBat -= 2.2 * strain; }
+        if (tone === "screen" && minute >= 22 * 60) d -= 1.05;
+        if (tone === "sleep") socialBat += 0.7;
+      }
+      if (day === "sun" && minute >= 20 * 60) d -= 0.13 * st.anxiety;
+      if (minute >= 23 * 60) d -= 0.35;
+      d -= p / 260;
+      d += (socialBat - 55) / 350;
+      curve = clamp(curve + d, 0, 100);
+      socialBat = clamp(socialBat, 0, 100);
+      p = clamp(p, 0, 100);
+      out.push(curve);
+    }
+    return out;
+  }
+
+  function metrics(events) {
+    const arr = [...events].sort((a, b) => aSlot(a) - aSlot(b));
+    let appointment = 0;
+    let travel = 0;
+    let alone = 0;
+    let choreH = 0;
+    let sleepH = 0;
+    let lateH = 0;
+    let socialSwitch = 0;
+    let prevSocial = false;
+
+    arr.forEach((ev) => {
+      const tone = TEMPLATES[ev.type].tone;
+      const h = ev.dur * SLOT_MIN / 60;
+      const strain = 1 + ((ev.strain ?? 3) - 3) * 0.18;
+      travel += ev.travel;
+      if (tone === "travel") travel += h * 35;
+      if (tone === "social") {
+        appointment++;
+        if (prevSocial) socialSwitch += 1.1;
+        socialSwitch += h * 0.32 * strain;
+        prevSocial = true;
+      } else prevSocial = false;
+      if (tone === "alone" || tone === "rest") alone += h;
+      if (tone === "sleep") sleepH += h;
+      if (tone === "chore") choreH += h;
+      if (tone === "screen") {
+        const s = START_HOUR * 60 + ev.start * SLOT_MIN;
+        const e = s + ev.dur * SLOT_MIN;
+        const lateStart = Math.max(s, 22 * 60);
+        if (e > lateStart) lateH += (e - lateStart) / 60;
+      }
+    });
+
+    const unresolved = clamp(st.chores - choreH * 0.44, 0, 5);
+    const avgSleep = clamp(st.baseSleep + sleepH / 2 - lateH * 0.35, 4.5, 9.5);
+    const sleepGain = clamp((avgSleep - 5.5) * 8, 0, 24);
+    const aloneGain = clamp(alone * 2, 0, 16);
+    const socialCost = appointment * 7 + socialSwitch * 3.1;
+    const travelCost = travel / 15;
+    const pressureCost = unresolved * 5 + st.anxiety * 4;
+    const nightCost = lateH * 4;
+
+    const scoreA = clamp(45 + sleepGain + aloneGain - socialCost - travelCost - pressureCost - nightCost, 0, 100);
+    const axes = {
+      body: Math.round(clamp(42 + sleepGain * 1.7 - nightCost * 0.9 - Math.max(0, travelCost - 6) * 1.5, 0, 100)),
+      social: Math.round(clamp(100 - socialCost * 2.75 + Math.min(10, aloneGain * 0.65), 0, 100)),
+      travel: Math.round(clamp(100 - travelCost * 4.3, 0, 100)),
+      pressure: Math.round(clamp(100 - pressureCost * 2.85 + Math.min(14, choreH * 2), 0, 100))
+    };
+    const w = GOALS[st.goal].w;
+    const scoreB = clamp(axes.body * w.body + axes.social * w.social + axes.travel * w.travel + axes.pressure * w.pressure, 0, 100);
+    const score = Math.round(clamp(scoreA * 0.6 + scoreB * 0.4, 0, 100));
+    const dominant = Object.entries({ travel: travelCost, pressure: pressureCost, social: socialCost, night: nightCost }).sort((a, b) => b[1] - a[1])[0][0];
+    return {
+      score,
+      axes,
+      costs: { sleepGain, aloneGain, socialCost, travelCost, pressureCost, nightCost },
+      dominant,
+      trace: trace(events)
+    };
+  }
+
+  const band = (s) => s <= 29 ? "휴식보다 버티기에 가까운 주말입니다." : s <= 54 ? "쉬긴 했지만 회복보다 일정 정리에 가까웠습니다." : s <= 79 ? "몸은 회복됐지만 마음이 월요일을 의식합니다." : "생활 리듬이 다시 정렬된 주말입니다.";
+  const cause = (d) => d === "travel" ? "이번 점수를 가장 깎은 건 약속 수보다 동선 길이입니다." : d === "pressure" ? "쉬는 날을 무겁게 만든 건 일정이 아니라 미해결 과제의 잔압입니다." : d === "social" ? "사람을 만난 횟수보다 사람 사이를 전환한 비용이 컸습니다." : "핵심 원인은 활동량보다 밤 스크린으로 인한 수면 질 저하입니다.";
+  const essay = (d) => d === "travel" ? "사람을 지치게 하는 건 큰 사건보다 흩어진 이동 비용일 때가 많습니다." : d === "pressure" ? "회복을 막는 건 바쁨 자체보다 끝내지 못한 일의 여운일 수 있습니다." : d === "social" ? "약속 자체보다 회복 구간 없는 연속 전환이 배터리를 먼저 고갈시킵니다." : "휴식은 양보다 질이라서 밤의 작은 누수가 다음날 시작점을 바꿉니다.";
+
+  function draw(main, compare) {
+    const c = el.canvas;
+    const w = Math.max(320, c.clientWidth || 320);
+    const h = 250;
+    const dpr = window.devicePixelRatio || 1;
+    c.width = Math.floor(w * dpr);
+    c.height = Math.floor(h * dpr);
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const p = { t: 20, r: 20, b: 28, l: 34 };
+    const pw = w - p.l - p.r;
+    const ph = h - p.t - p.b;
+    ctx.strokeStyle = "rgba(0,0,0,.1)";
+    ctx.lineWidth = 1;
+    for (let y = 0; y <= 5; y++) {
+      const yy = p.t + (ph / 5) * y;
+      ctx.beginPath(); ctx.moveTo(p.l, yy); ctx.lineTo(p.l + pw, yy); ctx.stroke();
+    }
+    for (let x = 0; x <= 8; x++) {
+      const xx = p.l + (pw / 8) * x;
+      ctx.beginPath(); ctx.moveTo(xx, p.t); ctx.lineTo(xx, p.t + ph); ctx.stroke();
+    }
+    const plot = (arr, color, dash) => {
+      if (!arr || !arr.length) return;
+      ctx.beginPath();
+      ctx.setLineDash(dash ? [6, 5] : []);
+      arr.forEach((v, i) => {
+        const x = p.l + i / Math.max(arr.length - 1, 1) * pw;
+        const y = p.t + (100 - v) / 100 * ph;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    if (compare) plot(compare, "rgba(70,92,135,.55)", true);
+    plot(main, "#157a7c", false);
+    ctx.font = "11px Pretendard";
+    ctx.fillStyle = "rgba(0,0,0,.55)";
+    ["토 08", "토 12", "토 16", "토 20", "일 08", "일 12", "일 16", "일 20"].forEach((t, i) => {
+      const x = p.l + i / 7 * pw;
+      ctx.fillText(t, x - 12, 246);
+    });
+    [20, 40, 60, 80, 100].forEach((v) => {
+      const y = p.t + (100 - v) / 100 * ph;
+      ctx.fillText(String(v), 6, y + 4);
+    });
+  }
+
+  function scenario(key) {
+    const arr = st.events.map((x) => ({ ...x }));
+    if (key === "bundle") {
+      arr.forEach((e) => { if (e.travel > 0) e.travel = Math.round(e.travel * 0.68); });
+      const satSocial = arr.filter((e) => e.day === "sat" && TEMPLATES[e.type].tone === "social");
+      const sunSocial = arr.filter((e) => e.day === "sun" && TEMPLATES[e.type].tone === "social");
+      if (satSocial.length && sunSocial.length) {
+        const mv = sunSocial[0];
+        let latest = 8;
+        satSocial.forEach((e) => latest = Math.max(latest, e.start + e.dur + 1));
+        const used = arr.filter((e) => e.id !== mv.id);
+        const can = (day, s, d) => inTimeRule(mv.type, s, d) && !used.some((u) => u.day === day && overlap(s, s + d, u.start, u.start + u.dur));
+        for (let s = latest; s <= SLOT_COUNT - mv.dur; s++) if (can("sat", s, mv.dur)) { mv.day = "sat"; mv.start = s; break; }
+      }
+    }
+    if (key === "buffer") {
+      const extra = { id: `x${Math.random().toString(36).slice(2, 7)}`, type: "deep_rest", day: "sun", start: 4, dur: 3, travel: 0, strain: 1 };
+      const fits = (d, s, len) => !arr.some((e) => e.day === d && overlap(s, s + len, e.start, e.start + e.dur));
+      for (let s = 4; s <= SLOT_COUNT - 3; s++) if (fits("sun", s, 3)) { extra.start = s; arr.push(extra); break; }
+      arr.forEach((e) => { if (e.type === "late_screen") e.dur = Math.max(1, e.dur - 1); });
+    }
+    if (key === "sleep") {
+      arr.forEach((e) => {
+        if (e.type !== "late_screen") return;
+        const cut = 29;
+        if (e.start + e.dur > cut) e.dur = Math.max(1, cut - e.start);
+        if (e.start >= cut) e.start = Math.max(28, cut - e.dur - 1);
+      });
+      const has = arr.some((e) => e.day === "sun" && TEMPLATES[e.type].tone === "sleep" && e.start >= 26);
+      if (!has) {
+        const block = { id: `x${Math.random().toString(36).slice(2, 7)}`, type: "early_sleep", day: "sun", start: 28, dur: 2, travel: 0, strain: 2 };
+        const fits = !arr.some((e) => e.day === "sun" && overlap(block.start, block.start + block.dur, e.start, e.start + e.dur));
+        if (fits) arr.push(block);
+      }
+    }
+    return arr;
+  }
+
+  function renderSugs(m) {
+    el.sugs.innerHTML = "";
+    if (!st.events.length) {
+      el.sugs.innerHTML = '<p class="empty">먼저 타임라인에 블록을 추가해 주세요.</p>';
+      return;
+    }
+    const specs = [
+      { key: "bundle", t: "추천안 A · 토요일 외출 몰기형", p: "동선을 묶어 이동 비용을 낮춥니다." },
+      { key: "buffer", t: "추천안 B · 일요일 회복 버퍼", p: "일요일 오전 회복 구간을 확보합니다." },
+      { key: "sleep", t: "추천안 C · 수면 보호형", p: "야간 스크린을 줄여 월요일 시작점을 높입니다." }
+    ].map((x) => {
+      const plan = scenario(x.key);
+      const mm = metrics(plan);
+      return { ...x, plan, m: mm, d: mm.score - m.score };
+    }).sort((a, b) => b.m.score - a.m.score);
+
+    specs.forEach((x) => {
+      const sign = x.d >= 0 ? "+" : "";
+      const n = document.createElement("article");
+      n.className = "s";
+      n.innerHTML = `<h3>${x.t}</h3><p>${x.p}</p><div class="m">예상 상태 ${x.m.score} (${sign}${x.d})</div><div class="a"><button type="button" class="btn pv">미리보기</button><button type="button" class="btn ap">적용</button></div>`;
+      n.querySelector(".pv").onclick = () => { st.compare = { title: x.t, score: x.m.score, trace: x.m.trace }; renderAnalytics(); };
+      n.querySelector(".ap").onclick = () => {
+        st.events = x.plan.map((e) => ({ ...e }));
+        st.compare = null;
+        st.selectedEvent = null;
+        sortEvents();
+        status(`${x.t} 적용 완료`, 1400);
+        renderAll();
+      };
+      el.sugs.appendChild(n);
+    });
+  }
+
+  function textState() {
+    const m = st.metrics || metrics(st.events);
+    return {
+      mode: "weekend-recovery-planner",
+      coordinate_system: {
+        day_axis: "sat, sun",
+        time_axis: "slot index (0 = 08:00, +1 = 30 minutes, downward)",
+        origin: "sat slot 0"
+      },
+      goal: st.goal,
+      baseline: { base_sleep_hours: st.baseSleep, chores_pressure: st.chores, monday_anxiety: st.anxiety, schedule_margin_minutes: st.gapSlots * SLOT_MIN },
+      events: st.events.map((e) => ({ id: e.id, type: e.type, label: TEMPLATES[e.type].label, tone: TEMPLATES[e.type].tone, day: e.day, start_slot: e.start, duration_slots: e.dur, travel_minutes: e.travel, social_strain: e.strain })),
+      current_state: m.score,
+      score: m.score,
+      axes: m.axes,
+      dominant_cost: m.dominant,
+      interpretation: { diagnosis: band(m.score), cause: cause(m.dominant), essay: essay(m.dominant) }
+    };
+  }
+
+  function publish() { document.getElementById("weekend-recovery-simulator-app")._textState = textState(); }
+
+  function renderAnalytics() {
+    const m = metrics(st.events);
+    st.metrics = m;
+    el.score.textContent = `현재 상태 ${m.score}`;
+    const fill = (v, tv, bar) => { tv.textContent = `${v}`; bar.style.width = `${v}%`; };
+    fill(m.axes.body, el.axBody, el.barBody);
+    fill(m.axes.social, el.axSocial, el.barSocial);
+    fill(m.axes.travel, el.axTravel, el.barTravel);
+    fill(m.axes.pressure, el.axPressure, el.barPressure);
+    el.badges.innerHTML = "";
+    [
+      `수면 회복 +${m.costs.sleepGain.toFixed(1)}`,
+      `혼자 시간 +${m.costs.aloneGain.toFixed(1)}`,
+      `이동 비용 -${m.costs.travelCost.toFixed(1)}`,
+      `사회 전환 -${m.costs.socialCost.toFixed(1)}`,
+      `미해결 압박 -${m.costs.pressureCost.toFixed(1)}`,
+      `야간 스크린 -${m.costs.nightCost.toFixed(1)}`
+    ].forEach((txt) => { const b = document.createElement("span"); b.className = "b"; b.textContent = txt; el.badges.appendChild(b); });
+    el.d1.textContent = band(m.score);
+    el.d2.textContent = cause(m.dominant);
+    el.d3.textContent = essay(m.dominant);
+    draw(m.trace, st.compare ? st.compare.trace : null);
+    el.legend.textContent = st.compare ? `실선: 현재 계획 | 점선: ${st.compare.title} (상태 ${st.compare.score})` : "실선: 현재 계획 | 점선: 추천안 미리보기";
+    renderSugs(m);
+    publish();
+  }
+
+  function renderAll() {
+    el.sleepV.textContent = `${st.baseSleep.toFixed(1)}h`;
+    el.choresV.textContent = `${st.chores}`;
+    el.anxV.textContent = `${st.anxiety}`;
+    el.gapV.textContent = `${st.gapSlots * SLOT_MIN}분`;
+    renderGoals();
+    renderPalette();
+    el.picked.textContent = `선택된 블록: ${st.selectedTpl ? TEMPLATES[st.selectedTpl].label : "없음"}`;
+    renderEvents();
+    renderInspector();
+    renderAnalytics();
+  }
+
+  function loadSample() {
+    const arr = [
+      { type: "sleep_in", day: "sat", start: 2, dur: 4, travel: 0, strain: 2 },
+      { type: "brunch", day: "sat", start: 8, dur: 4, travel: 70, strain: 3 },
+      { type: "long_travel", day: "sat", start: 12, dur: 2, travel: 90, strain: 3 },
+      { type: "family_dining", day: "sat", start: 18, dur: 3, travel: 35, strain: 2 },
+      { type: "late_screen", day: "sat", start: 28, dur: 3, travel: 0, strain: 3 },
+      { type: "sleep_in", day: "sun", start: 4, dur: 3, travel: 0, strain: 2 },
+      { type: "driving", day: "sun", start: 10, dur: 2, travel: 60, strain: 3 },
+      { type: "chores", day: "sun", start: 13, dur: 3, travel: 0, strain: 3 },
+      { type: "walk", day: "sun", start: 18, dur: 2, travel: 0, strain: 2 }
+    ];
+    st.events = arr.map((e) => ({ id: `e${++st.seq}`, ...e }));
+    st.selectedTpl = null;
+    st.selectedEvent = null;
+    st.compare = null;
+    status("샘플 계획을 불러왔습니다. 블록을 옮기며 변화를 확인해 보세요.", 2200);
+    renderAll();
+  }
+
+  function bind() {
+    el.sleep.oninput = () => { st.baseSleep = +el.sleep.value; renderAnalytics(); el.sleepV.textContent = `${st.baseSleep.toFixed(1)}h`; publish(); };
+    el.chores.oninput = () => { st.chores = +el.chores.value; el.choresV.textContent = `${st.chores}`; renderAnalytics(); publish(); };
+    el.anx.oninput = () => { st.anxiety = +el.anx.value; el.anxV.textContent = `${st.anxiety}`; renderAnalytics(); publish(); };
+    el.gap.oninput = () => {
+      st.gapSlots = +el.gap.value;
+      el.gapV.textContent = `${st.gapSlots * SLOT_MIN}분`;
+      st.selectedEvent = null;
+      renderAll();
+      status(`일정 사이 최소 마진을 ${st.gapSlots * SLOT_MIN}분으로 적용했습니다.`, 1200);
+      publish();
+    };
+    el.sample.onclick = loadSample;
+    el.clear.onclick = () => { st.events = []; st.selectedEvent = null; st.compare = null; status("계획을 초기화했습니다.", 1200); renderAll(); };
+    el.refresh.onclick = () => { st.compare = null; renderAnalytics(); status("추천안을 다시 계산했습니다.", 1200); };
+  }
+
+  window.render_game_to_text = () => {
+    try { return JSON.stringify(textState()); }
+    catch { return JSON.stringify({ mode: "weekend-recovery-planner", error: "state_unavailable" }); }
+  };
+  window.advanceTime = (ms) => {
+    const steps = Math.max(1, Math.round((ms || 0) / 500));
+    for (let i = 0; i < steps; i++) publish();
+    renderAnalytics();
+  };
+
+  renderAxis();
+  buildSlots();
+  bind();
+  renderAll();
+  status("블록을 배치하면 회복 곡선이 바로 변합니다.", 1800);
+})();
+</script>
+</div>
+</body>
+</html>

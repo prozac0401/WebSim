@@ -18,3 +18,4 @@ https://prozac0401.github.io/WebSim
 - [개미-질소 순환 시뮬레이터](미개시) - [보러가기](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) | [설명](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator_doc.html)
 - [Schelling 분리 모형 시뮬레이터](https://prozac0401.tistory.com/91) - [보러가기](schelling_segregation_simulator/schelling_segregation_simulator.html) | [설명](schelling_segregation_simulator/schelling_segregation_simulator_doc.html)
 - [Vicsek/Boids 시뮬레이터 비교](https://prozac0401.tistory.com/92) - [보러가기](vicsek_boids_simulator/vicsek_boids_simulator.html) | [설명](vicsek_boids_simulator/vicsek_boids_simulator_doc.html)
+- [주말 회복 플래너 시뮬레이터](신규) - [보러가기](weekend_recovery_simulator/weekend_recovery_simulator.html) | [설명](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
