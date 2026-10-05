@@ -1,15 +1,44 @@
 <!doctype html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="개미가 양분을 집으로 운반하고 주변 식물이 자라는 모습을 봅니다.">
+  <title>개미와 땅속 양분 사용법 | Web Simulator</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('ant_nitrogen_cycle_simulator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="ant_nitrogen_cycle_simulator.html">직접 해보기 →</a></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>개미와 땅속 양분 사용법</h1><p class="doc-lead">개미가 양분을 집으로 운반하고 주변 식물이 자라는 모습을 봅니다.</p></header>
+    <article class="doc-content" id="guide">
+<h2>언제 쓰나요</h2>
+<p>개미가 자원을 둥지로 운반할 때 토양의 양분 분포와 식물이 어떻게 달라지는지 봅니다. 작은 개체의 행동이 환경을 바꾸는 생태계 공학과 자원 재분배의 예입니다.</p>
+<h2>처음 세 단계</h2>
+<ol><li>페이지를 열면 자동으로 진행됩니다. 보라 다이아몬드는 자원 패치, 분홍 개미는 운반 중, 갈색 원은 둥지입니다.</li><li><strong>일시정지</strong>로 분포와 재고를 고정하고 <strong>1스텝</strong>으로 자원 이동을 한 번 관찰합니다. <strong>시작</strong>은 현재 상태에서 이어 갑니다.</li><li><strong>새 양분 패치 공급</strong>을 끄고 전체 재고와 보존 오차를 봅니다. <strong>초기화</strong> 또는 개미 수 변경을 완료하면 새 환경을 만들고 멈춥니다.</li></ol>
+<h2>결과 읽기</h2>
+<p>토양 양분은 유기물과 이용 가능한 양분의 합, 식물 양분은 식물에 들어간 자원입니다. 패치 잔량과 운반량까지 더한 전체 재고가 누적 투입량과 같아야 합니다. 표시의 소수점 반올림과 부동소수점 연산 때문에 아주 작은 오차가 있을 수 있습니다.</p>
+<p>공급을 끄면 총량은 일정하지만 유기물·이용 가능한 양분·식물·패치·운반 중 재고 사이에서 자원이 이동합니다. 식물의 그림 크기는 재고의 시각적 표시이며 실제 나무 높이나 성장률이 아닙니다.</p>
+<h2>한 가지 조건으로 비교하기</h2>
+<p>개미 수를 바꾸면 슬라이더 조작 완료 시 새 분포가 만들어지므로 이전 분포와 같은 조건은 아닙니다. 패치 총량과 생성 간격은 이후 공급에 적용합니다. 모형 초는 30스텝이며 일·계절의 생태학적 시간과 대응하지 않습니다. 화면 크기를 바꿔도 30 × 30 모형 격자와 재고는 유지됩니다.</p>
+<h2>학술적 의미와 이론적 근거</h2>
+<p>개미 둥지가 자원의 공간적 집중과 식물 주변 환경에 영향을 줄 수 있다는 생태계 공학의 관점을 보여 줍니다. Farji-Brener와 Werenkraut의 메타분석은 둥지의 토양 비옥도와 식물 성과를 다룬 연구들을 종합했으며, 효과는 맥락과 개미의 특성에 따라 달라집니다. <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.12672">Farji-Brener &amp; Werenkraut (2017), 원 연구</a></p>
+<p>이 앱은 한 종류의 추상 자원을 묶어 이동시키는 교육 모형입니다. 탄소·질소 화학종이나 실제 질량을 구분하지 않고 질소 고정, 질산화, 탈질, 용탈을 계산하지 않습니다. 경로 이름에 nitrogen_cycle이 남아 있어도 완전한 질소 순환 모델이라는 뜻은 아닙니다. 관련 블로그 글의 공개 여부와 시뮬레이터 사용 가능 여부는 별개입니다.</p>
+<details class="doc-principles"><summary>제작 원리 · 자원 흐름과 보존식</summary>
+<h3>자원은 어디로 이동하나요</h3>
+<p>매 스텝 유기물의 2%를 이용 가능한 양분으로 옮깁니다. 둥지가 아닌 셀은 이용 가능한 양분의 1%를 식물로 옮기고, 식물 재고의 0.5%는 유기물로 돌아갑니다. 이용 가능한 양분의 8%는 상하좌우의 유효 이웃에 나눠 퍼집니다. 가장자리 밖으로 버리지 않습니다. 이 비율은 현장 관측에서 추정한 값이 아닌 설계 가정입니다.</p>
+<h3>패치와 개미</h3>
+<p>처음에는 현재 패치 총량의 자원을 세 번 넣습니다. 패치 하나의 70%는 개미가 집는 자원, 30%는 주변 셀의 유기물입니다. 개미는 가까운 패치를 향해 이동하고 한 번에 최대 5 단위를 집습니다. 남은 양이 5보다 작으면 그 실제 잔량만 운반합니다. 둥지에 도착하면 운반한 양을 정확히 둥지 유기물에 더합니다. 환경이 포화되어 패치를 놓을 유효 셀이 없으면 새 투입을 하지 않습니다.</p>
+<h3>보존식</h3>
+<p><code>전체 재고 = 유기물 + 이용 가능한 양분 + 식물 + 패치 잔량 + 운반량 = 누적 외부 투입</code>. 생성, 운반, 분해, 흡수, 되돌림, 확산은 이 재고를 중복 생성하지 않습니다. 나무 그림의 크기 제한도 자원을 삭제하지 않습니다.</p>
+<h3>원형과 구현의 구분</h3>
+<p><a href="https://doi.org/10.1111/1365-2656.12672">The effects of ant nests on soil fertility and plant performance: a meta-analysis (2017)</a>는 생태적 배경입니다. 위의 격자, 확산, 운반·전환 계수는 논문의 수치 모델을 재현한 것이 아닙니다.</p>
+</details>
+    </article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="ant_nitrogen_cycle_simulator.html">직접 해보기 →</a></nav></footer>
+  </main>
 </body>
 </html>

@@ -1,244 +1,15 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>블랙홀 중력 시뮬레이터</title>
-</head>
-<body>
-    <div style="
-        margin: 0;
-        padding: 20px;
-        color: #333;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        overflow-x: hidden;
-    ">
-        <div style="
-            max-width: 800px;
-            margin: 0 auto;
-        ">
-            
-            <div style="
-                position: relative;
-                width: 100%;
-                max-width: 700px;
-                aspect-ratio: 1/1;
-                margin: 0 auto;
-                border: 3px solid #888;
-                border-radius: 10px;
-                overflow: hidden;
-                box-shadow: 0 0 30px rgba(136, 136, 136, 0.3);
-                background: transparent;
-            ">
-                <canvas id="sim-canvas" style="
-                    width: 100%;
-                    height: 100%;
-                    display: block;
-                    cursor: crosshair;
-                "></canvas>
-                <div id="drag-indicator" style="
-                    position: absolute;
-                    pointer-events: none;
-                    border: 2px dashed #666;
-                    border-radius: 50%;
-                    opacity: 0;
-                    transition: opacity 0.2s;
-                "></div>
-            </div>
-            
-            <div id="status-bar" style="
-                background: rgba(255, 255, 255, 0.9);
-                color: #333;
-                padding: 10px;
-                border-radius: 5px;
-                font-size: 14px;
-                border: 1px solid #888;
-                margin: 15px 0;
-                text-align: center;
-                box-shadow: 0 2px 5px rgba(136, 136, 136, 0.2);
-            ">
-                블랙홀: 1개 | 위성: 0개 | 평균 속도: 0 | 시간: 0초
-            </div>
-            
-            <div style="
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-                justify-content: center;
-                margin: 15px 0;
-            ">
-                <button onclick="resetSim()" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">초기화</button>
-                
-                <button onclick="startSim()" id="start-btn" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">시작</button>
-                
-                <button onclick="pauseSim()" id="pause-btn" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                    display: none;
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">일시정지</button>
-                
-                <button onclick="addRandomPlanet()" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">블랙홀 추가</button>
-                
-                <button onclick="addRandomSatellite()" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">무작위 위성</button>
-                
-                <button onclick="clearSatellites()" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">위성 초기화</button>
-                
-                <button onclick="toggleCollision()" id="collision-btn" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">충돌</button>
-                
-                <button onclick="toggleOrbit()" id="orbit-btn" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                    opacity: 0.6;
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">궤도</button>
-                
-                <button onclick="toggleVelocity()" id="velocity-btn" style="
-                    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
-                    color: #333;
-                    border: 1px solid #888;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 5px rgba(136, 136, 136, 0.3);
-                " onmouseover="this.style.background='linear-gradient(145deg, #f0f0f0, #e0e0e0)'; this.style.borderColor='#666'; this.style.boxShadow='0 0 10px rgba(102, 102, 102, 0.3)';" onmouseout="this.style.background='linear-gradient(145deg, #e8e8e8, #d8d8d8)'; this.style.borderColor='#888'; this.style.boxShadow='0 2px 5px rgba(136, 136, 136, 0.3)';" onmousedown="this.style.transform='translateY(1px)';" onmouseup="this.style.transform='translateY(0)';">방향</button>
-            </div>
-            
-            <div style="
-                display: flex;
-                gap: 20px;
-                justify-content: center;
-                margin: 15px 0;
-                flex-wrap: wrap;
-            ">
-                <label style="
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 14px;
-                    color: #333;
-                ">
-                    시뮬레이션 속도: <span id="speed-mult-value">1.0</span>x
-                    <input type="range" min="0.5" max="3" step="0.1" value="1" id="speed-mult" style="width: 100px;">
-                </label>
-                <label style="
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 14px;
-                    color: #333;
-                ">
-                    중력 강도: <span id="gravity-value">1.0</span>x
-                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="gravity-strength" style="width: 100px;">
-                </label>
-                <label style="
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 14px;
-                    color: #333;
-                ">
-                    무작위 위성 개수: <span id="random-count-value">20</span>개
-                    <input type="range" min="1" max="50" value="20" id="random-satellite-count" style="width: 100px;">
-                </label>
-            </div>
-            
-            <div style="
-                text-align: center;
-                margin-top: 20px;
-                padding: 15px;
-                background: rgba(255, 255, 255, 0.8);
-                border-radius: 10px;
-                border: 1px solid #888;
-                color: #333;
-            ">
-                <h3 style="
-                    color: #2c3e50;
-                    margin-top: 0;
-                ">🎮 사용법</h3>
-                <p><strong>위성 발사:</strong> 빈 공간에서 드래그하여 위성을 발사하세요 (시뮬레이션 중에도 가능)</p>
-                <p><strong>블랙홀 이동:</strong> 블랙홀을 클릭하고 드래그하여 위치를 변경하세요</p>
-                <p><strong>충돌 모드:</strong> 충돌 버튼으로 위성의 블랙홀 충돌 여부를 조절</p>
-                <p><strong>중력 효과:</strong> 블랙홀 근처를 지나가며 위성의 속도와 방향이 변경됨</p>
-            </div>
-        </div>
-    </div>
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>중력과 궤도 실험</title><link rel="stylesheet" href="../assets/simulator.css"><script src="../assets/simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><style>
+#gravity-app .gravity-stage{position:relative;background:radial-gradient(ellipse at center,#fbfcfa,#edf2e8);border:1px solid #dce4da;border-radius:14px;overflow:hidden}#gravity-app canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;cursor:crosshair}#gravity-app #drag-indicator{position:absolute;pointer-events:none;border:2px dashed #1f6b50;border-radius:50%;opacity:0}#gravity-app .gravity-chip{font-size:11px;color:#69766c}@media(max-width:600px){#gravity-app .gravity-chip{display:none}}
+#gravity-app .sim-stage-panel .sim-stat-grid{margin:18px 20px;grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:600px){#gravity-app .sim-stage-panel .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}#gravity-app .gravity-stage{max-width:640px;width:calc(100% - 40px);margin:20px auto}</style></head><body><main id="gravity-app" class="sim-app sim-app--gravity-app">
+<div class="sim-workspace"><section class="sim-stage-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">ORBIT LAB</span><h2>초기 속도가 만드는 경로</h2></div><span class="gravity-chip">뉴턴 중력 · 시험 입자</span></div>
+<div class="sim-toolbar"><button class="sim-primary" id="start-btn" onclick="startSim()">시작</button><button id="pause-btn" onclick="pauseSim()" style="display:none">일시정지</button><button onclick="stepSim()">한 단계 · 0.1 t</button><button onclick="resetSim()">초기화</button></div><div class="gravity-stage"><canvas id="sim-canvas" aria-label="중력원과 위성의 경로" width="700" height="700"></canvas><div id="drag-indicator"></div></div>
 
-    <script>
+<div class="sim-stat-grid"><div class="sim-stat"><span>남은 위성</span><strong id="satellite-stat">0</strong></div><div class="sim-stat"><span>모형 시간</span><strong id="time-stat">0 t</strong></div><div class="sim-stat"><span>포획 / 화면 이탈</span><strong id="capture-stat">0 / 0</strong></div><div class="sim-stat"><span>평균 속도</span><strong id="speed-stat">0 u/t</strong></div></div><p id="status-bar" class="sim-note" role="status"></p></section>
+<aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SET THE MOTION</span><h2>실험 조건</h2></div></div><div class="sim-toolbar"><button onclick="orbitExample()">원궤도 예제</button><button onclick="addRandomSatellite()">무작위 위성</button><button onclick="addRandomPlanet()">중력원 추가</button><button onclick="clearSatellites()">위성 지우기</button></div>
+<label class="sim-control" for="speed-mult">재생 속도 <output id="speed-mult-value">1.0</output> ×<input id="speed-mult" type="range" min="0.5" max="3" step="0.1" value="1"></label><label class="sim-control" for="gravity-strength">중력 강도 <output id="gravity-value">1.0</output> ×<input id="gravity-strength" type="range" min="0.5" max="2" step="0.1" value="1"></label><label class="sim-control" for="random-satellite-count">한 번에 추가할 위성 <output id="random-count-value">20</output>개<input id="random-satellite-count" type="range" min="1" max="50" value="20"></label>
+<h3 class="sim-section-title">보이는 정보</h3><div class="sim-toolbar"><button id="collision-btn" onclick="toggleCollision()">충돌: 켜짐</button><button id="orbit-btn" onclick="toggleOrbit()">궤도: 켜짐</button><button id="velocity-btn" onclick="toggleVelocity()">방향: 켜짐</button></div>
+<p class="sim-note">빈 공간에서 끌어 놓으면 시작점에서 드래그 방향으로 발사됩니다. 긴 드래그는 빠른 속도입니다. 중력원은 끌어서 옮기고 두 번 눌러 삭제할 수 있습니다.</p><p class="sim-note">u와 t는 모형의 거리·시간 단위입니다. 검은 원은 고정된 중력원과 포획 경계이며, 빛·시공간을 계산하는 블랙홀 모형은 아닙니다.</p><p class="sim-note">먼 곳에서는 거리가 두 배가 되면 인력이 약 ¼이 됩니다. 중심 가까이서는 수치 발산을 줄이는 완화 길이 10 u를 적용합니다.</p></aside></div></main>    <script>
         const canvas = document.getElementById('sim-canvas');
         const ctx = canvas.getContext('2d');
         const statusBar = document.getElementById('status-bar');
@@ -249,14 +20,21 @@
         let satellites = [];
         let dragging = false;
         let dragStart = null;
+        let dragCurrent = null;
         let simRunning = false;
         let simTime = 0;
         let animationId = null;
-        let showOrbit = false; // 궤도 기본값 off
+        let showOrbit = true; // 궤도 기본값 off
         let showVelocity = true;
         let dragMode = 'satellite'; // 'satellite' 또는 'blackhole'
         let selectedPlanet = null;
         let collisionEnabled = true; // 충돌 활성화 여부
+        let capturedCount = 0;
+        let escapedCount = 0;
+        let accumulator = 0;
+        let previousFrame = null;
+        const FIXED_DT = 1/120;
+        const SOFTENING = 10;
         let lastClickTime = 0; // 더블클릭 감지용
         
         // 초기 설정
@@ -265,15 +43,24 @@
             resetSim();
             setupEventListeners();
             updateUI();
-            loop();
+            requestAnimationFrame(loop);
         }
         
         function resizeCanvas() {
             const container = canvas.parentElement;
-            width = container.clientWidth;
-            height = container.clientHeight;
+            const oldWidth = width;
+            const oldHeight = height;
+            width = 700;
+            height = 700;
             canvas.width = width;
             canvas.height = height;
+            if (oldWidth > 0 && oldHeight > 0) {
+                for (const body of [...planets, ...satellites]) {
+                    body.x *= width / oldWidth;
+                    body.y *= height / oldHeight;
+                    if (body.orbit) body.orbit.forEach(p => { p.x *= width / oldWidth; p.y *= height / oldHeight; });
+                }
+            }
         }
         
         function setupEventListeners() {
@@ -283,6 +70,12 @@
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
             canvas.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchcancel', () => {
+                dragging = false;
+                selectedPlanet = null;
+                hideDragIndicator();
+            });
             
             // 터치 이벤트 (모바일 지원)
             canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
@@ -414,18 +207,21 @@
         }
         
         function updateDragIndicator(start, current) {
+            dragCurrent = current;
             const dx = current.x - start.x;
             const dy = current.y - start.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            dragIndicator.style.left = (start.x - distance/2) + 'px';
-            dragIndicator.style.top = (start.y - distance/2) + 'px';
-            dragIndicator.style.width = distance + 'px';
-            dragIndicator.style.height = distance + 'px';
+            const scale = canvas.clientWidth / width;
+            dragIndicator.style.left = ((start.x - distance/2) * scale) + 'px';
+            dragIndicator.style.top = ((start.y - distance/2) * scale) + 'px';
+            dragIndicator.style.width = (distance * scale) + 'px';
+            dragIndicator.style.height = (distance * scale) + 'px';
             dragIndicator.style.opacity = '0.5';
         }
         
         function hideDragIndicator() {
+            dragCurrent = null;
             dragIndicator.style.opacity = '0';
         }
         
@@ -445,7 +241,6 @@
             
             satellites.push(newSatellite);
             
-            simTime = 0;
             updateStatus();
         }
         
@@ -458,7 +253,7 @@
             planets.push({
                 x: width / 2,
                 y: height / 2,
-                mass: 15000 * gravityStrength,
+                mass: 15000,
                 radius: 20, // 통일된 크기
                 color: '#000000'
             });
@@ -474,8 +269,6 @@
         function updateGravityStrength() {
             const value = parseFloat(document.getElementById('gravity-strength').value);
             document.getElementById('gravity-value').textContent = value.toFixed(1);
-            // 중력 강도 변경시 블랙홀을 1개로 초기화
-            updatePlanetCount();
         }
         
         function updateRandomCount() {
@@ -485,7 +278,7 @@
         
         function addRandomPlanet() {
             if (planets.length >= 3) {
-                alert('최대 3개의 블랙홀까지만 추가할 수 있습니다.');
+                statusBar.textContent = ('최대 3개의 블랙홀까지만 추가할 수 있습니다.');
                 return;
             }
             
@@ -499,7 +292,7 @@
                 newPlanet = {
                     x: Math.random() * (width - 100) + 50,
                     y: Math.random() * (height - 100) + 50,
-                    mass: (8000 + Math.random() * 4000) * gravityStrength,
+                    mass: 8000 + Math.random() * 4000,
                     radius: 20, // 통일된 크기
                     color: '#000000'
                 };
@@ -525,7 +318,7 @@
                 planets.push(newPlanet);
                 updateStatus();
             } else {
-                alert('적절한 위치를 찾을 수 없습니다. 다시 시도해주세요.');
+                statusBar.textContent = ('적절한 위치를 찾을 수 없습니다. 다시 시도해주세요.');
             }
         }
         
@@ -579,7 +372,8 @@
         function toggleCollision() {
             collisionEnabled = !collisionEnabled;
             const btn = document.getElementById('collision-btn');
-            btn.textContent = collisionEnabled ? '충돌' : '무적';
+            btn.textContent = collisionEnabled ? '충돌: 켜짐' : '충돌: 꺼짐';
+            btn.setAttribute('aria-pressed', String(collisionEnabled));
             btn.style.opacity = collisionEnabled ? '1' : '0.6';
             btn.style.backgroundColor = collisionEnabled ? '' : '#ddd';
         }
@@ -587,14 +381,16 @@
         function toggleOrbit() {
             showOrbit = !showOrbit;
             const btn = document.getElementById('orbit-btn');
-            btn.textContent = showOrbit ? '궤도' : '궤도';
+            btn.textContent = showOrbit ? '궤도: 켜짐' : '궤도: 꺼짐';
+            btn.setAttribute('aria-pressed', String(showOrbit));
             btn.style.opacity = showOrbit ? '1' : '0.6';
         }
         
         function toggleVelocity() {
             showVelocity = !showVelocity;
             const btn = document.getElementById('velocity-btn');
-            btn.textContent = showVelocity ? '방향' : '방향';
+            btn.textContent = showVelocity ? '방향: 켜짐' : '방향: 꺼짐';
+            btn.setAttribute('aria-pressed', String(showVelocity));
             btn.style.opacity = showVelocity ? '1' : '0.6';
         }
         
@@ -602,7 +398,8 @@
             satellites = [];
             simRunning = false;
             simTime = 0;
-            
+            capturedCount = escapedCount = 0;
+            accumulator = 0;
             document.getElementById('start-btn').style.display = 'inline-block';
             document.getElementById('pause-btn').style.display = 'none';
             
@@ -631,16 +428,30 @@
             }
             const avgSpeed = satellites.length > 0 ? (totalSpeed / satellites.length).toFixed(2) : 0;
             
-            statusBar.textContent = 
-                `블랙홀: ${planets.length}개 | 위성: ${satellites.length}개 | 평균 속도: ${avgSpeed} | 시간: ${simTime.toFixed(1)}초`;
+            statusBar.textContent = simRunning ? '실행 중 · 끌어 놓는 방향으로 위성을 발사할 수 있습니다.' : '일시정지 · 빈 공간을 끌어 위성을 발사하거나 원궤도 예제를 선택하세요.';
+            document.getElementById('satellite-stat').textContent=satellites.length;
+            document.getElementById('time-stat').textContent=simTime.toFixed(2)+' t';
+            document.getElementById('capture-stat').textContent=capturedCount+' / '+escapedCount;
+            document.getElementById('speed-stat').textContent=avgSpeed+' u/t';
         }
         
         function updateUI() {
             updateSpeedMult();
             updateGravityStrength();
             updateRandomCount();
+            [['collision-btn', collisionEnabled, '충돌'], ['orbit-btn', showOrbit, '궤도'], ['velocity-btn', showVelocity, '방향']].forEach(([id, on, label]) => {
+                const button = document.getElementById(id);
+                button.textContent = label + ': ' + (on ? '켜짐' : '꺼짐');
+                button.setAttribute('aria-pressed', String(on));
+            });
         }
         
+        function acceleration(x,y) {
+            const strength=Number(document.getElementById('gravity-strength').value);
+            let ax=0,ay=0;
+            for(const p of planets){const dx=p.x-x,dy=p.y-y;const den=Math.pow(dx*dx+dy*dy+SOFTENING*SOFTENING,1.5);ax+=p.mass*strength*dx/den;ay+=p.mass*strength*dy/den;}
+            return {ax,ay};
+        }
         function physics(dt) {
             if (satellites.length === 0) return;
             
@@ -648,34 +459,22 @@
             
             for (let i = satellites.length - 1; i >= 0; i--) {
                 const satellite = satellites[i];
+                let absorbed = false;
                 
-                // 중력 계산
-                for (const planet of planets) {
-                    const dx = planet.x - satellite.x;
-                    const dy = planet.y - satellite.y;
-                    const distSq = dx * dx + dy * dy;
-                    const dist = Math.sqrt(distSq);
-                    
-                    if (collisionEnabled && dist < planet.radius + 2) {
-                        // 충돌 처리 - 위성 제거 (충돌이 활성화된 경우만)
-                        satellites.splice(i, 1);
-                        continue;
+                const oldX=satellite.x, oldY=satellite.y;
+                const a=acceleration(oldX,oldY);
+                satellite.vx+=a.ax*dt/2; satellite.vy+=a.ay*dt/2;
+                satellite.x+=satellite.vx*dt; satellite.y+=satellite.vy*dt;
+                const b=acceleration(satellite.x,satellite.y);
+                satellite.vx+=b.ax*dt/2; satellite.vy+=b.ay*dt/2;
+                if(collisionEnabled){
+                    for(const p of planets){
+                        const sx=satellite.x-oldX,sy=satellite.y-oldY;
+                        const t=Math.max(0,Math.min(1,((p.x-oldX)*sx+(p.y-oldY)*sy)/(sx*sx+sy*sy||1)));
+                        if(Math.hypot(oldX+t*sx-p.x,oldY+t*sy-p.y)<=p.radius+2){satellites.splice(i,1);capturedCount++;absorbed=true;break;}
                     }
-                    
-                    const force = (planet.mass * gravityStrength) / (distSq + 100);
-                    const ax = force * dx / dist;
-                    const ay = force * dy / dist;
-                    
-                    satellite.vx += ax * dt;
-                    satellite.vy += ay * dt;
                 }
-                
-                if (i >= satellites.length) continue; // 위성이 제거된 경우 건너뛰기
-                
-                // 위치 업데이트
-                satellite.x += satellite.vx * dt;
-                satellite.y += satellite.vy * dt;
-                
+                if(absorbed) continue;
                 // 궤도 추적
                 satellite.orbit.push({ x: satellite.x, y: satellite.y });
                 if (satellite.orbit.length > 800) satellite.orbit.shift();
@@ -684,12 +483,12 @@
                 if (satellite.x < -100 || satellite.x > width + 100 || 
                     satellite.y < -100 || satellite.y > height + 100) {
                     satellites.splice(i, 1);
+                    escapedCount++;
                     continue;
                 }
             }
             
             simTime += dt;
-            updateStatus();
         }
         
         function draw() {
@@ -792,20 +591,24 @@
                     ctx.stroke();
                 }
             }
+            if (!dragging || dragMode !== 'satellite' || !dragStart || !dragCurrent) return;
+            const angle = Math.atan2(dragCurrent.y - dragStart.y, dragCurrent.x - dragStart.x);
+            ctx.strokeStyle = '#1f6b50'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(dragStart.x, dragStart.y); ctx.lineTo(dragCurrent.x, dragCurrent.y);
+            ctx.lineTo(dragCurrent.x - 12 * Math.cos(angle - 0.4), dragCurrent.y - 12 * Math.sin(angle - 0.4));
+            ctx.moveTo(dragCurrent.x, dragCurrent.y);
+            ctx.lineTo(dragCurrent.x - 12 * Math.cos(angle + 0.4), dragCurrent.y - 12 * Math.sin(angle + 0.4)); ctx.stroke();
         }
-        
-        function loop() {
-            if (simRunning) {
-                const speedMult = parseFloat(document.getElementById('speed-mult').value);
-                physics(0.05 * speedMult);
-            }
-            
-            draw();
-            animationId = requestAnimationFrame(loop);
+        function stepSim(){pauseSim();for(let i=0;i<12;i++) physics(FIXED_DT);updateStatus();draw();}
+        function loop(timestamp) {
+            if(previousFrame===null) previousFrame=timestamp;
+            const elapsed=Math.min((timestamp-previousFrame)/1000,0.1);previousFrame=timestamp;
+            if(simRunning){accumulator+=elapsed*Number(document.getElementById('speed-mult').value);while(accumulator>=FIXED_DT){physics(FIXED_DT);accumulator-=FIXED_DT;}}
+            else accumulator=0;
+            draw();updateStatus();animationId=requestAnimationFrame(loop);
         }
-        
+        function orbitExample(){resetSim();const p=planets[0],r=180;const mu=p.mass*Number(document.getElementById('gravity-strength').value);const v=Math.sqrt(mu*r*r/Math.pow(r*r+SOFTENING*SOFTENING,1.5));satellites.push({x:p.x+r,y:p.y,vx:0,vy:v,orbit:[],color:'#1f6b50',id:Date.now()});updateStatus();}
         // 초기화
         init();
-    </script>
-</body>
-</html>
+        orbitExample();
+    </script></body></html>

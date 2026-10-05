@@ -4,34 +4,12 @@
   <meta charset="UTF-8" />
   <title>Schelling 분리 모형 시뮬레이터</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Schelling Segregation Simulator (v5.2: step-time default 100ms + legend toggle + 2x2 toggles) -->
-</head>
-<body>
-<!-- Schelling Segregation Simulator (v5.2: step-time default 100ms + legend toggle + 2x2 toggles) -->
-<div class="schelling-widget" id="schellingWidget_v52">
-  <div class="schelling-stage">
-    <!-- Legend (toggleable) -->
-    <div class="schelling-legend-top" id="sLegendTop_v52">
-      <span class="a"></span> A
-      <span class="b"></span> B
-      <span class="e"></span> 빈집
-    </div>
 
-    <canvas class="schelling-canvas" id="schellingCanvas_v52"></canvas>
-    <canvas class="schelling-spark" id="schellingSpark_v52" aria-label="segregation history"></canvas>
-
-    <!-- Overlay (toggleable) -->
-    <div class="schelling-overlay" id="schellingOverlay_v52"></div>
-  </div>
-
-  <div class="schelling-panel">
-    <div class="schelling-title">
-      <b>Schelling 분리 모형</b>
-      <span class="schelling-sub">‘조금의 선호’가 ‘큰 분리’를 만드는 과정</span>
-    </div>
-
-    <div class="schelling-section">
-      <div class="schelling-section-title">0. 도시 설정</div>
+  <link rel="stylesheet" href="../assets/simulator.css">
+  <script src="../assets/simulator.js" defer></script>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<style>.sim-app--schelling .sim-workspace{grid-template-columns:minmax(0,2.15fr) minmax(290px,1fr)}.sim-app--schelling .schelling-stage{background:#f5f8f2;padding:14px}.sim-app--schelling .schelling-canvas{display:block;width:100%;height:490px;background:#f5f8f2}.sim-app--schelling .schelling-spark{display:block;width:100%;height:90px;background:#f5f8f2;border-top:1px solid #dce4da}.sim-app--schelling .schelling-legend-top{display:flex;align-items:center;gap:8px;color:#69766c;font-size:11px;padding:12px 20px}.sim-app--schelling .schelling-legend-top span{width:9px;height:9px;border-radius:3px;display:inline-block}.sim-app--schelling .a{background:#79a8be}.sim-app--schelling .b{background:#cd918f}.sim-app--schelling .e{background:#e1e8dc;border:1px solid #cbd7c6}.sim-app--schelling .schelling-panel{padding:22px}.sim-app--schelling .schelling-section{border-bottom:1px solid #e7eee3;padding:0 0 16px;margin:0 0 18px}.sim-app--schelling .schelling-section-title{font-size:12px;font-weight:700;margin-bottom:12px}.sim-app--schelling .schelling-row{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:7px;margin:16px 0;align-items:center}.sim-app--schelling .schelling-row label{grid-column:1/-1;font-size:12px;color:#172e27}.sim-app--schelling .schelling-row select{font-size:12px}.sim-app--schelling .schelling-val{font-size:11px;text-align:right;color:#1f6b50;font-variant-numeric:tabular-nums}.sim-app--schelling .schelling-toggle-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.sim-app--schelling .schelling-toggle{display:flex;align-items:center;gap:8px;font-size:11px;padding:5px 0}.sim-app--schelling .schelling-overlay{font-size:11px;white-space:pre-line;padding:10px 20px;color:#69766c;border-top:1px solid #e7eee3;line-height:1.65}.sim-app--schelling .sim-stat-grid{grid-template-columns:repeat(4,minmax(0,1fr));padding:18px 20px 0}.sim-app--schelling .preset-row{display:flex;flex-wrap:wrap;gap:6px}.sim-app--schelling .sPresetNote{font-size:11px;color:#69766c;line-height:1.7}.sim-app--schelling .schelling-stats{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:820px){.sim-app--schelling .sim-workspace{grid-template-columns:1fr}.sim-app--schelling .schelling-canvas{height:360px}.sim-app--schelling .schelling-panel{padding:18px}.sim-app--schelling .sim-stat-grid{padding:14px 14px 0;gap:7px}.sim-app--schelling .sim-stat-value{font-size:20px}.sim-app--schelling .sim-stat{padding:10px 7px}}.sim-app--schelling .sim-stat-label{font-size:10px;line-height:1.5}@media(max-width:560px){.sim-app--schelling .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}.sim-app--schelling .chart-caption{padding:14px 0 7px;border-top:1px solid #dce4da;color:#69766c;font-size:10px;line-height:1.7}.sim-app--schelling .chart-caption strong{display:block;color:#172e27;font-size:11px}.sim-app--schelling .schelling-spark{border-top:0}</style></head><body><main class="sim-app sim-app--schelling" id="schellingWidget_v52"><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><h2>주민의 선택, 도시의 무늬</h2><span class="sim-status" id="sRunStatus">실행 중</span></div><div class="sim-stat-grid"><div class="sim-stat"><span class="sim-stat-label">기준 충족 주민</span><b class="sim-stat-value" id="sSatNow">0%</b></div><div class="sim-stat"><span class="sim-stat-label">같은 집단 이웃 평균</span><b class="sim-stat-value" id="sSegNow">0%</b></div><div class="sim-stat"><span class="sim-stat-label">이번 스텝 이사</span><b class="sim-stat-value" id="sMovesNow">0</b></div><div class="sim-stat"><span class="sim-stat-label">계산 스텝</span><b class="sim-stat-value" id="sStepNow">0</b></div></div><div class="sim-toolbar"><button id="sToggle_v52" class="primary">일시정지</button><button id="sStep_v52">1스텝</button><button id="sReset_v52">초기화</button></div><div class="schelling-stage"><canvas class="schelling-canvas" id="schellingCanvas_v52" aria-label="두 가상 집단과 빈집의 도시 격자"></canvas><div class="chart-caption"><strong>같은 집단 이웃 평균의 변화</strong><span>왼쪽은 과거 → 오른쪽은 현재 · 최근 240스텝</span></div><canvas class="schelling-spark" id="schellingSpark_v52" aria-label="같은 집단 이웃 평균의 기록"></canvas></div><div class="schelling-legend-top" id="sLegendTop_v52"><span class="a"></span>A 집단 <span class="b"></span>B 집단 <span class="e"></span>빈집 · 테두리: 기준 미충족</div><div class="schelling-overlay" id="schellingOverlay_v52"></div><p class="sim-note" id="sObservation"></p><p class="sim-note" id="sBaseline"></p><div class="schelling-stats" id="sStats_v52" aria-live="off"></div></section><aside class="sim-controls-panel schelling-panel">    <div class="schelling-section">
+      <div class="schelling-section-title">도시의 시작 조건</div>
 
       <div class="schelling-row">
         <label>격자 크기</label>
@@ -57,10 +35,10 @@
     </div>
 
     <div class="schelling-section">
-      <div class="schelling-section-title">1. 선호(관용도)와 이웃</div>
+      <div class="schelling-section-title">이웃을 고르는 기준</div>
 
       <div class="schelling-row">
-        <label>관용도 (tolerance)</label>
+        <label>같은 집단 이웃의 최소 비율</label>
         <input type="range" id="sTol_v52" min="0" max="100" step="1" value="35">
         <span class="schelling-val" id="sTolval_v52">35%</span>
       </div>
@@ -76,7 +54,7 @@
     </div>
 
     <div class="schelling-section">
-      <div class="schelling-section-title">2. 이동 규칙</div>
+      <div class="schelling-section-title">이사의 규칙</div>
 
       <div class="schelling-row">
         <label>이사 방식</label>
@@ -94,14 +72,14 @@
       </div>
 
       <div class="schelling-row">
-        <label>한 스텝 이사량</label>
+        <label>한 스텝의 최대 이사 시도</label>
         <input type="range" id="sBatch_v52" min="10" max="400" step="10" value="120">
         <span class="schelling-val" id="sBatchval_v52">120</span>
       </div>
     </div>
 
     <div class="schelling-section">
-      <div class="schelling-section-title">3. 속도 / 표시</div>
+      <div class="schelling-section-title">속도와 표시</div>
 
       <!-- default: 100ms -->
       <div class="schelling-row">
@@ -119,7 +97,7 @@
 
         <label class="schelling-toggle">
           <input type="checkbox" id="sShowUnhappy_v52" checked>
-          <span>불만족 표시</span>
+          <span>미충족 표시</span>
         </label>
 
         <label class="schelling-toggle">
@@ -134,88 +112,7 @@
       </div>
     </div>
 
-    <div class="schelling-buttons">
-      <button id="sToggle_v52">⏸ 일시정지</button>
-      <button id="sStep_v52">1스텝</button>
-      <button id="sReset_v52">↻ 리셋</button>
-      <button id="sPresetMix_v52">통합</button>
-      <button id="sPresetTip_v52">Tipping</button>
-      <button id="sPresetSeg_v52">분리</button>
-    </div>
-
-    <div class="schelling-stats" id="sStats_v52">
-      만족도: 0% | 분리도: 0.00 | 불만족: 0 | 스텝: 0
-    </div>
-  </div>
-</div>
-
-<style>
-  .schelling-widget{ border:1px solid rgba(0,0,0,0.12); border-radius:14px; overflow:hidden; margin:18px 0; background:rgba(0,0,0,0.02);} 
-  .schelling-stage{ position:relative; background:#0b0e12; }
-  .schelling-canvas{ display:block; width:100%; height:380px; background:#0b0e12; }
-  .schelling-spark{ display:block; width:100%; height:70px; border-top:1px solid rgba(255,255,255,0.08); background:#0b0e12; }
-
-  .schelling-legend-top{
-    position:absolute; top:10px; right:10px; display:flex; gap:10px; align-items:center;
-    color:rgba(255,255,255,0.92); font-size:13px; padding:8px 10px; border-radius:10px;
-    background:rgba(0,0,0,0.35); backdrop-filter:blur(6px); z-index:5; user-select:none;
-  }
-  .schelling-legend-top span{ display:inline-block; width:14px; height:14px; border-radius:4px; border:1px solid rgba(255,255,255,0.18); margin-right:4px; }
-  .schelling-legend-top .a{ background:#69d2ff; border-color:rgba(105,210,255,0.55); }
-  .schelling-legend-top .b{ background:#ff8aa6; border-color:rgba(255,138,166,0.55); }
-  .schelling-legend-top .e{ background:rgba(255,255,255,0.14); border-color:rgba(255,255,255,0.22); }
-
-  .schelling-overlay{
-    position:absolute; left:10px; top:10px; color:rgba(255,255,255,0.92); font-size:13px; line-height:1.35;
-    padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.35); backdrop-filter:blur(6px);
-    pointer-events:none; max-width:92%; white-space:pre-line; z-index:4;
-  }
-
-  .schelling-panel{ padding:14px 14px 16px 14px; background:rgba(255,255,255,0.98); }
-  .schelling-title{ display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
-  .schelling-sub{ font-size:12px; opacity:0.75; }
-  .schelling-section{ padding:10px; border-radius:12px; background:rgba(0,0,0,0.03); margin-bottom:10px; }
-  .schelling-section-title{ font-weight:700; font-size:13px; margin-bottom:8px; opacity:0.9; }
-
-  .schelling-row{ display:grid; grid-template-columns:130px 1fr 70px; gap:10px; align-items:center; margin:7px 0; }
-  .schelling-row label{ font-size:13px; opacity:0.9; }
-  .schelling-row input[type="range"]{ width:100%; }
-  .schelling-row select{ width:100%; padding:6px 8px; border-radius:10px; border:1px solid rgba(0,0,0,0.15); background:#fff; }
-  .schelling-val{ font-variant-numeric:tabular-nums; text-align:right; font-size:13px; opacity:0.9; }
-
-  /* NEW: 2x2 toggle layout */
-  .schelling-toggle-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 10px;
-    margin-top: 10px;
-  }
-  .schelling-toggle{
-    display:flex;
-    align-items:center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(0,0,0,0.12);
-    background: rgba(255,255,255,0.9);
-    font-size: 13px;
-    user-select:none;
-  }
-  .schelling-toggle input{ transform: translateY(0.5px); }
-
-  .schelling-buttons{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  .schelling-buttons button{ padding:8px 10px; border-radius:12px; border:1px solid rgba(0,0,0,0.15); background:#fff; cursor:pointer; }
-  .schelling-buttons button:hover{ background:rgba(0,0,0,0.03); }
-  .schelling-stats{ margin-top:10px; font-size:13px; opacity:0.85; font-variant-numeric:tabular-nums; }
-
-  @media (max-width:520px){
-    .schelling-canvas{ height:320px; }
-    .schelling-row{ grid-template-columns:110px 1fr 66px; }
-    .schelling-toggle-grid{ grid-template-columns: 1fr 1fr; }
-  }
-</style>
-
-<script>
+<h3 class="sim-section-title">조건 묶음으로 비교</h3><div class="preset-row"><button id="sPresetMix_v52">낮은 선호</button><button id="sPresetTip_v52">중간 선호</button><button id="sPresetSeg_v52">높은 선호</button></div><p class="sPresetNote">이 버튼은 선호뿐 아니라 공실률·이사 규칙·속도를 함께 바꾸고 새 도시를 만듭니다. 선호의 영향만 보려면 슬라이더 하나만 바꾸세요.</p><details class="sim-explainer"><summary>이 지표가 말하는 것</summary><p>만족은 같은 집단 이웃의 최소 비율을 충족한다는 뜻입니다. 개인의 행복을 측정하지 않습니다. 같은 집단 이웃 평균은 집단 비율의 영향을 받으므로 무작위 혼합 기준과 비교해야 합니다.</p><p>무작위 빈집은 기준 충족을 보장하지 않습니다. 샘플 중 최선은 후보 중 기준 충족과 같은 집단 비율을 차례로 우선합니다. 도시 가장자리의 이웃은 화면 안에 있는 주민만 셉니다. 이웃이 없는 주민은 기준 충족으로 처리하고 같은 집단 이웃 평균에서 제외합니다.</p></details></aside></div></main><script>
 (() => {
   const canvas  = document.getElementById('schellingCanvas_v52');
   const spark   = document.getElementById('schellingSpark_v52');
@@ -262,7 +159,7 @@
     empties: [],
     unhappyMask: null,  // Uint8Array
 
-    step: 0,
+    step: 0, moves: 0,
     lastT: performance.now(),
     accMs: 0,
     intervalMs: 100,
@@ -286,23 +183,24 @@
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     state.dpr = dpr;
 
+    canvas.style.height=Math.min(490,canvas.clientWidth*state.GH/state.GW)+'px';
     const rect = canvas.getBoundingClientRect();
-    state.W = Math.max(320, Math.floor(rect.width));
-    state.H = Math.max(260, Math.floor(rect.height));
+    state.W = Math.max(1, Math.floor(rect.width));
+    state.H = Math.max(1, Math.floor(rect.height));
 
     canvas.width  = Math.floor(state.W * dpr);
     canvas.height = Math.floor(state.H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const srect = spark.getBoundingClientRect();
-    const sW = Math.max(320, Math.floor(srect.width));
+    const sW = Math.max(1, Math.floor(srect.width));
     const sH = Math.max(50,  Math.floor(srect.height));
     spark.width  = Math.floor(sW * dpr);
     spark.height = Math.floor(sH * dpr);
     sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     state.cell = Math.floor(Math.min(state.W / state.GW, state.H / state.GH));
-    state.cell = clamp(state.cell, 4, 18);
+    state.cell = Math.max(0.5, Math.min(18, state.W / state.GW, state.H / state.GH));
   }
 
   function syncUI(){
@@ -355,7 +253,7 @@
 
     state.unhappyMask = new Uint8Array(total);
 
-    state.step = 0;
+    state.step = 0; state.moves=0;
     state.segHist = [];
     state.satHist = [];
     state.accMs = 0;
@@ -363,7 +261,7 @@
     const radius = parseInt(ui.nbr.value,10);
     const tol = parseInt(ui.tol.value,10) / 100;
     const M = computeMetrics(tol, radius);
-    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ};
+    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ, isolated:M.isolated, measured:M.measured};
   }
 
   function neighborFracSame(i, radius){
@@ -384,16 +282,16 @@
         if (v === me) same++;
       }
     }
-    return occ === 0 ? 1 : (same / occ);
+    return occ === 0 ? null : (same / occ);
   }
 
   function isSatisfied(i, tol, radius){
     const v = state.gridArr[i];
     if (v < 0) return true;
-    return neighborFracSame(i, radius) >= tol;
+    const frac=neighborFracSame(i,radius); return frac===null || frac>=tol;
   }
 
-  function evalTarget(type, targetIndex, tol, radius){
+  function evalTarget(type, targetIndex, tol, radius, origin){
     const [x0, y0] = xy(targetIndex);
 
     let same = 0, occ = 0;
@@ -403,6 +301,7 @@
         const x = x0 + dx; if (x < 0 || x >= state.GW) continue;
         if (dx === 0 && dy === 0) continue;
 
+        if (idx(x,y) === origin) continue;
         const v = state.gridArr[idx(x,y)];
         if (v < 0) continue;
         occ++;
@@ -413,7 +312,7 @@
     return {sat: frac >= tol ? 1 : 0, frac};
   }
 
-  function pickEmpty(type, tol, radius){
+  function pickEmpty(type, tol, radius, origin){
     if (state.empties.length === 0) return -1;
     if (ui.rule.value === 'random') return state.empties[randInt(state.empties.length)];
 
@@ -421,7 +320,7 @@
     let best = -1, bestSat = -1, bestFrac = -1;
     for (let t = 0; t < K; t++){
       const cand = state.empties[randInt(state.empties.length)];
-      const q = evalTarget(type, cand, tol, radius);
+      const q = evalTarget(type, cand, tol, radius, origin);
       if (q.sat > bestSat || (q.sat === bestSat && q.frac > bestFrac)){
         best = cand; bestSat = q.sat; bestFrac = q.frac;
       }
@@ -441,24 +340,25 @@
     const total = state.GW * state.GH;
     state.unhappyMask.fill(0);
 
-    let occ=0, sat=0, unhappy=0, segSum=0, segCnt=0;
+    let occ=0, sat=0, unhappy=0, segSum=0, segCnt=0, isolated=0;
     for (let i = 0; i < total; i++){
       const v = state.gridArr[i];
       if (v < 0) continue;
 
       occ++;
       const frac = neighborFracSame(i, radius);
-      const ok = frac >= tol;
+      const ok = frac===null || frac >= tol;
 
       if (ok) sat++;
       else { unhappy++; state.unhappyMask[i] = 1; }
 
-      segSum += frac; segCnt++;
+      if(frac===null)isolated++;else{segSum += frac; segCnt++;}
     }
 
     return {
       satRate: occ === 0 ? 1 : sat/occ,
-      seg: segCnt === 0 ? 0.5 : segSum/segCnt,
+      seg: segCnt === 0 ? null : segSum/segCnt,
+      isolated, measured:segCnt,
       unhappy, occ
     };
   }
@@ -466,6 +366,7 @@
   function stepOnce(){
     const radius = parseInt(ui.nbr.value,10);
     const tol = parseInt(ui.tol.value,10) / 100;
+    computeMetrics(tol, radius);
     const batch = clamp(parseInt(ui.batch.value,10), 1, 5000);
     const total = state.GW * state.GH;
 
@@ -474,15 +375,17 @@
       if (state.unhappyMask[i] === 1) unhappyIdx.push(i);
     }
 
+    state.moves=0;
+    for(let i=unhappyIdx.length-1;i>0;i--){const j=randInt(i+1);[unhappyIdx[i],unhappyIdx[j]]=[unhappyIdx[j],unhappyIdx[i]];}
     if (unhappyIdx.length > 0){
       const moves = Math.min(batch, unhappyIdx.length);
       for (let m = 0; m < moves; m++){
-        const pick = unhappyIdx[randInt(unhappyIdx.length)];
+        const pick = unhappyIdx[m];
         const type = state.gridArr[pick];
         if (type < 0) continue;
         if (isSatisfied(pick, tol, radius)) continue;
 
-        const dest = pickEmpty(type, tol, radius);
+        const dest = pickEmpty(type, tol, radius, pick);
         if (dest < 0) continue;
 
         state.gridArr[dest] = type;
@@ -490,12 +393,13 @@
 
         removeEmpty(dest);
         addEmpty(pick);
+        state.moves++;
       }
-      state.step++;
     }
+    state.step++;
 
     const M = computeMetrics(tol, radius);
-    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ};
+    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ, isolated:M.isolated, measured:M.measured};
 
     state.segHist.push(M.seg);
     state.satHist.push(M.satRate);
@@ -503,10 +407,12 @@
     if (state.satHist.length > 240) state.satHist.shift();
   }
 
+  function satisfactionLabel(){return state.lastMetrics.unhappy===0?'100%':Math.min(99.99,state.lastMetrics.sat*100).toFixed(2)+'%';}
+
   function draw(){
     const GW = state.GW, GH = state.GH, cell = state.cell;
 
-    ctx.fillStyle = '#0b0e12';
+    ctx.fillStyle = '#f5f8f2';
     ctx.fillRect(0, 0, state.W, state.H);
 
     const ox = Math.floor((state.W - GW * cell) / 2);
@@ -515,9 +421,9 @@
     for (let y = 0; y < GH; y++){
       for (let x = 0; x < GW; x++){
         const v = state.gridArr[idx(x,y)];
-        if (v === -1) ctx.fillStyle = 'rgba(255,255,255,0.10)';
-        else if (v === 0) ctx.fillStyle = '#69d2ff';
-        else ctx.fillStyle = '#ff8aa6';
+        if (v === -1) ctx.fillStyle = '#e1e8dc';
+        else if (v === 0) ctx.fillStyle = '#79a8be';
+        else ctx.fillStyle = '#cd918f';
         ctx.fillRect(ox + x*cell, oy + y*cell, cell, cell);
       }
     }
@@ -541,7 +447,7 @@
 
     if (ui.showUnhappy.checked && state.unhappyMask){
       ctx.lineWidth = Math.max(1, Math.floor(cell * 0.12));
-      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.strokeStyle = '#1f6b50';
       const inset = 0.5;
       for (let i = 0; i < state.unhappyMask.length; i++){
         if (state.unhappyMask[i] !== 1) continue;
@@ -560,34 +466,46 @@
       const tolP = parseInt(ui.tol.value,10);
       const vacP = parseInt(ui.vac.value,10);
       overlay.textContent =
-        `만족도: ${(state.lastMetrics.sat*100).toFixed(0)}%  |  분리도: ${state.lastMetrics.seg.toFixed(2)}\n` +
-        `불만족: ${state.lastMetrics.unhappy}  |  관용도: ${tolP}%  |  공실률: ${vacP}%\n` +
+        `기준 충족: ${satisfactionLabel()}  |  같은 집단 이웃: ${(state.lastMetrics.seg===null?'—':(state.lastMetrics.seg*100).toFixed(1)+'%')}\n` +
+        `기준 미충족: ${state.lastMetrics.unhappy}  |  같은 집단 최소: ${tolP}%  |  공실률: ${vacP}%\n` +
         `스텝별 시간: ${state.intervalMs}ms  |  스텝: ${state.step}`;
     }
 
+    document.getElementById('sSatNow').textContent=satisfactionLabel();
+    document.getElementById('sSegNow').textContent=state.lastMetrics.seg===null?'—':(state.lastMetrics.seg*100).toFixed(0)+'%';
+    document.getElementById('sMovesNow').textContent=state.moves;
+    document.getElementById('sStepNow').textContent=state.step;
+    const countA=state.gridArr.reduce((n,v)=>n+(v===0),0),countB=state.gridArr.reduce((n,v)=>n+(v===1),0),total=countA+countB;
+    const baseline=total?((countA/total)**2+(countB/total)**2):0;
+    document.getElementById('sBaseline').textContent=`현재 집단 비율의 무작위 혼합 기준은 약 ${(baseline*100).toFixed(0)}%입니다. 같은 집단 비율을 이 기준과 함께 읽어 보세요.`;
+    document.getElementById('sRunStatus').textContent=state.running?'실행 중':'멈춤';
+    document.getElementById('sObservation').textContent=state.empties.length===0?'빈집이 없어 이사할 수 없습니다. 기준을 못 채운 주민이 있어도 배치가 멈출 수 있습니다.':state.lastMetrics.unhappy===0?'모든 주민이 자신의 최소 비율을 충족했습니다. 이웃의 집단 구성이 섞여 있는지는 별도의 지표입니다.':`기준을 못 채운 주민 ${state.lastMetrics.unhappy}명이 있습니다. 개인의 이동 규칙이 도시 전체의 무늬를 어떻게 바꾸는지 보세요.`;
     // sparkline
     const sW = spark.getBoundingClientRect().width;
     const sH = spark.getBoundingClientRect().height;
-    sctx.fillStyle = '#0b0e12';
+    sctx.fillStyle = '#f5f8f2';
     sctx.fillRect(0, 0, sW, sH);
 
-    sctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    sctx.strokeStyle = '#dce4da';
     sctx.lineWidth = 1;
     sctx.beginPath();
     sctx.moveTo(0, sH - 12);
     sctx.lineTo(sW, sH - 12);
     sctx.stroke();
 
+    sctx.fillStyle='#69766c';sctx.font='10px system-ui';sctx.fillText('100%',4,11);sctx.fillText('0%',4,sH-5);
     const hist = state.segHist;
     if (hist.length >= 2){
-      sctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      sctx.strokeStyle = '#1f6b50';
       sctx.lineWidth = 1.4;
       sctx.beginPath();
+      let previousValid=false;
       for (let i = 0; i < hist.length; i++){
-        const x = (i / (hist.length - 1)) * (sW - 10) + 5;
+        if(hist[i]===null){previousValid=false;continue;}
+        const x = (i / (hist.length - 1)) * (sW - 39) + 32;
         const y = (1 - hist[i]) * (sH - 22) + 8;
-        if (i === 0) sctx.moveTo(x, y);
-        else sctx.lineTo(x, y);
+        if (!previousValid) sctx.moveTo(x, y);
+        else sctx.lineTo(x, y);previousValid=true;
       }
       sctx.stroke();
     }
@@ -598,9 +516,9 @@
     state.lastT = t;
 
     if (state.running){
-      state.accMs += dt;
-      if (state.accMs >= state.intervalMs){
-        state.accMs = 0;
+      state.accMs += Math.min(dt,250);
+      while (state.accMs >= state.intervalMs){
+        state.accMs -= state.intervalMs;
         stepOnce();
       }
     }
@@ -608,9 +526,9 @@
     draw();
 
     statsEl.textContent =
-      `만족도: ${(state.lastMetrics.sat*100).toFixed(0)}% | ` +
-      `분리도: ${state.lastMetrics.seg.toFixed(2)} | ` +
-      `불만족: ${state.lastMetrics.unhappy} | ` +
+      `기준 충족: ${satisfactionLabel()} | ` +
+      `같은 집단 이웃: ${(state.lastMetrics.seg===null?'—':(state.lastMetrics.seg*100).toFixed(1)+'%')} | ` +
+      `기준 미충족: ${state.lastMetrics.unhappy} | ` +
       `스텝: ${state.step}`;
 
     requestAnimationFrame(tick);
@@ -633,7 +551,12 @@
   ui.grid.addEventListener('change', () => { syncUI(); initModel(); });
   ui.vac.addEventListener('input', onAnyInput);
   ui.mix.addEventListener('input', onAnyInput);
-  ui.tol.addEventListener('input', onAnyInput);
+  ui.tol.addEventListener('input', () => {
+    syncUI();
+    const M = computeMetrics(Number(ui.tol.value) / 100, Number(ui.nbr.value));
+    state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ, isolated:M.isolated, measured:M.measured};
+    draw();
+  });
   ui.k.addEventListener('input', onAnyInput);
   ui.batch.addEventListener('input', onAnyInput);
   ui.interval.addEventListener('input', onAnyInput);
@@ -650,11 +573,11 @@
 
   ui.toggle.addEventListener('click', () => {
     state.running = !state.running;
-    ui.toggle.textContent = state.running ? '⏸ 일시정지' : '▶ 재생';
+    ui.toggle.textContent = state.running ? '일시정지' : '이어서 실행';
   });
 
-  ui.stepBtn.addEventListener('click', () => { stepOnce(); draw(); });
-  ui.reset.addEventListener('click', initModel);
+  ui.stepBtn.addEventListener('click', () => { state.running = false;state.accMs=0;ui.toggle.textContent = '이어서 실행'; stepOnce(); draw(); });
+  ui.reset.addEventListener('click', () => {state.running=false;ui.toggle.textContent='시작';initModel();draw();});
 
   ui.presetMix.addEventListener('click', () => applyPreset('mix'));
   ui.presetTip.addEventListener('click', () => applyPreset('tip'));
@@ -662,11 +585,11 @@
 
   window.addEventListener('resize', () => resize());
 
+  window.render_game_to_text=()=>JSON.stringify({mode:'schelling',running:state.running,step:state.step,moves:state.moves,grid:{width:state.GW,height:state.GH},counts:{a:state.gridArr.reduce((n,v)=>n+(v===0),0),b:state.gridArr.reduce((n,v)=>n+(v===1),0),empty:state.empties.length},metrics:state.lastMetrics,minimum_same_group:Number(ui.tol.value)/100});
+  window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms/state.intervalMs);i++)stepOnce();draw();};
   // Start with your requested default: 100ms step-time (already set in HTML)
   syncUI();
   initModel();
   requestAnimationFrame(tick);
 })();
-</script>
-</body>
-</html>
+</script></body></html>

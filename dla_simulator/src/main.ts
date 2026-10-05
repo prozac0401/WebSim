@@ -1,106 +1,21 @@
 import './style.css';
-import { Pane } from 'tweakpane';
 import { NeighborMode } from './dla';
 import type { Params } from './dla';
-import workerCode from './worker?raw';
-
+import DlaWorker from './worker?worker&inline';
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
-const worker = new Worker(
-  URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })),
-  { type: 'module' }
-);
-
-let params: Params = {
-  stickProb: 1,
-  spawnMargin: 5,
-  killMargin: 10,
-  neighborMode: NeighborMode.Four,
-  biasAngle: 0,
-  biasStrength: 0,
-  particleBatch: 100,
-  seed: 1,
-};
-
-const pane = new Pane() as any;
-pane.addInput(params, 'stickProb', { min: 0, max: 1, step: 0.01 }).on('change', () => sendParams());
-pane.addInput(params, 'spawnMargin', { min: 1, max: 50, step: 1 }).on('change', () => sendParams());
-pane.addInput(params, 'killMargin', { min: 1, max: 100, step: 1 }).on('change', () => sendParams());
-pane
-  .addInput(params, 'neighborMode', { options: { four: NeighborMode.Four, eight: NeighborMode.Eight } })
-  .on('change', () => sendParams());
-pane.addInput(params, 'biasAngle', { min: 0, max: 360, step: 1 }).on('change', () => sendParams());
-pane.addInput(params, 'biasStrength', { min: 0, max: 1, step: 0.01 }).on('change', () => sendParams());
-const batchInput = pane.addInput(params, 'particleBatch', { min: 1, max: 1000, step: 1 });
-batchInput.on('change', () => sendParams());
-pane.addInput(params, 'seed', { min: 0, max: 2 ** 32 - 1, step: 1 }).on('change', () => sendParams());
-
-const btnStart = pane.addButton({ title: 'Start/Pause' });
-const btnReset = pane.addButton({ title: 'Reset' });
-const btnSave = pane.addButton({ title: 'Save PNG' });
-
-let running = false;
-let stickCount = 0;
-let clusterRadius = 0;
-let processedPerSec = 0;
-
-btnStart.on('click', () => {
-  running = !running;
-  worker.postMessage({ type: running ? 'start' : 'pause' });
-});
-
-btnReset.on('click', () => {
-  worker.postMessage({ type: 'reset' });
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  stickCount = 0;
-  clusterRadius = 0;
-});
-
-btnSave.on('click', () => {
-  const link = document.createElement('a');
-  link.download = 'dla.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-});
-
-function sendParams() {
-  worker.postMessage({ type: 'params', params });
-}
-
-worker.onmessage = (e: MessageEvent) => {
-  const data = e.data;
-  if (data.type === 'batch') {
-    processedPerSec += data.processed;
-    data.particles.forEach((p: { x: number; y: number }) => {
-      ctx.fillStyle = `hsl(${(stickCount % 360)},100%,50%)`;
-      ctx.fillRect(p.x, p.y, 1, 1);
-      stickCount++;
-    });
-    clusterRadius = data.clusterRadius;
-  }
-};
-
-sendParams();
-
-const hud = document.getElementById('hud')!;
-let lastFrame = performance.now();
-let lastSec = performance.now();
-let fps = 0;
-
-function frame() {
-  const now = performance.now();
-  fps = 1000 / (now - lastFrame);
-  lastFrame = now;
-  if (now - lastSec >= 1000) {
-    hud.textContent = `FPS: ${fps.toFixed(1)} | Particles/s: ${processedPerSec.toFixed(0)} | Radius: ${clusterRadius.toFixed(1)}`;
-    processedPerSec = 0;
-    lastSec = now;
-    if (fps < 55 && params.particleBatch > 1) {
-      params.particleBatch--;
-      batchInput.refresh();
-      worker.postMessage({ type: 'setBatch', batch: params.particleBatch });
-    }
-  }
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+const worker = new DlaWorker();
+let params: Params = {stickProb:1,spawnMargin:5,killMargin:10,neighborMode:NeighborMode.Four,biasAngle:0,biasStrength:0,particleBatch:100,seed:1};
+let running=false,sticks=0,attempts=0,radius=0,perSecond=0;
+const status=document.getElementById('status')!;
+const start=document.getElementById('dla-start') as HTMLButtonElement;
+const $=(id:string)=>document.getElementById(id)!;
+function hud(){ $('stick-stat').textContent=sticks.toLocaleString();$('attempt-stat').textContent=attempts.toLocaleString();$('radius-stat').textContent=radius.toFixed(1)+'칸';$('hud').textContent=`씨앗 포함 ${sticks+1}개 · 성공률 ${attempts?(100*sticks/attempts).toFixed(1):'0.0'}%`;canvas.dataset.sticks=String(sticks); }
+function clear(){ctx.fillStyle='#0c1720';ctx.fillRect(0,0,600,600);ctx.fillStyle='#dff3bd';ctx.fillRect(300,300,1,1);sticks=attempts=radius=perSecond=0;hud();}
+function setRunning(on:boolean){running=on;start.textContent=on?'일시정지':'시작';start.setAttribute('aria-pressed',String(on));worker.postMessage({type:on?'start':'pause'});status.textContent=on?'성장 중 · 바깥 가지가 입자를 먼저 만납니다.':'일시정지 · 조건 하나를 바꾸고 초기화해 비교해 보세요.';}
+function reset(){setRunning(false);worker.postMessage({type:'reset'});}
+function sendParams(){worker.postMessage({type:'params',params});}
+for(const key of Object.keys(params) as (keyof Params)[]){const input=document.getElementById(key) as HTMLInputElement;const change=()=>{let value=Number(input.value);if(!Number.isFinite(value))return;if(key==='seed'){value=Math.max(0,Math.min(4294967295,Math.floor(value)));input.value=String(value);}params={...params,[key]:value};const output=document.getElementById(key+'-value');if(output)output.textContent=input.value;sendParams();if(key==='seed'){reset();status.textContent='시드를 바꾸어 새 씨앗에서 시작합니다.';}};input.addEventListener(input.type==='range'?'input':'change',change);}
+start.onclick=()=>setRunning(!running);$('dla-reset').onclick=reset;$('dla-step').onclick=()=>{setRunning(false);worker.postMessage({type:'step'});status.textContent='입자 100개를 시도합니다. 일부는 붙지 않고 제거됩니다.';};$('dla-save').onclick=()=>{const a=document.createElement('a');a.download=`dla-seed-${params.seed}.png`;a.href=canvas.toDataURL('image/png');a.click();};
+worker.onmessage=(e:MessageEvent)=>{const d=e.data;if(d.type==='reset'){clear();status.textContent='중앙 씨앗으로 초기화했습니다. 시작을 눌러 보세요.';}if(d.type==='boundary'){setRunning(false);status.textContent='격자의 가장자리에 도달해 성장을 멈췄습니다. PNG를 저장하거나 초기화하세요.';}if(d.type==='batch'){attempts+=d.processed;perSecond+=d.processed;for(const p of d.particles){ctx.fillStyle=`hsl(${140+(sticks%150)},65%,68%)`;ctx.fillRect(p.x,p.y,1,1);sticks++;}radius=d.clusterRadius;hud();}};
+worker.onerror=()=>{running=false;start.textContent='시작';status.textContent='계산을 시작하지 못했습니다. 페이지를 새로고침해 주세요.';};sendParams();clear();setInterval(()=>{$('rate-stat').textContent=perSecond.toLocaleString()+'/초';perSecond=0;},1000);

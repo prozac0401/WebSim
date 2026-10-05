@@ -1,15 +1,160 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('langtons_ant_simulator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
-</body>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="현재 칸의 색에 따라 회전하고 색을 뒤집은 뒤 한 칸 이동하는 결정론적 격자 모형입니다."
+    />
+    <title>랭턴의 개미 · 이론과 사용법</title>
+    <link rel="stylesheet" href="../assets/docs.css" />
+    <script src="../assets/docs.js" defer></script>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  </head>
+  <body class="doc-page">
+    <a class="skip-link" href="#guide">본문으로 이동</a>
+    <main class="doc-shell">
+      <nav class="doc-nav" aria-label="페이지 이동">
+        <a href="../index.html">← 전체 목록</a
+        ><a class="doc-launch" href="langtons_ant_simulator.html"
+          >실험 열기 →</a
+        >
+      </nav>
+      <header class="doc-header">
+        <p class="doc-kicker">WEBSIM LAB · THEORY & GUIDE</p>
+        <h1>랭턴의 개미</h1>
+        <p class="doc-lead">
+          현재 칸의 색에 따라 회전하고 색을 뒤집은 뒤 한 칸 이동하는 결정론적
+          격자 모형입니다.
+        </p>
+      </header>
+      <article class="doc-content" id="guide">
+        <h2>처음 세 단계</h2>
+        <ol>
+          <li>
+            <strong>한 칸 진행</strong>을 눌러 북쪽을 보던 개미가 흰 칸에서
+            오른쪽으로 돌아 동쪽 한 칸으로 이동하는지 확인합니다.
+          </li>
+          <li>
+            여러 번 진행하면서 방향, 검은 칸 수, 좌표가 함께 바뀌는 과정을
+            봅니다.
+          </li>
+          <li>
+            <strong>빈 격자에서 10,000단계</strong>를 누른 뒤
+            <strong>계속 진행</strong>하여 반복되는 대각선 흔적을 관찰합니다.
+          </li>
+        </ol>
+        <h2>한 단계의 순서</h2>
+        <ol>
+          <li>
+            현재 칸이 흰색이면 오른쪽 90°, 검은색이면 왼쪽 90°로 회전합니다.
+          </li>
+          <li>현재 칸의 색을 흰색↔검은색으로 뒤집습니다.</li>
+          <li>새 방향으로 한 칸 이동하고 단계 수를 1 늘립니다.</li>
+        </ol>
+        <p>
+          화면의 개미는 다음 회전이 일어날 칸에 있습니다. 자료에 따라 이동 후
+          도착 칸에서 회전·색 변경을 쓰기도 하므로 상태를 기록하는 시점에
+          주의합니다.
+        </p>
+        <h2>결과 읽기</h2>
+        <ul>
+          <li>
+            <strong>규칙을 적용한 횟수</strong>는 회전·색 변경·이동을 모두 끝낸
+            횟수입니다. 편집은 포함하지 않습니다.
+          </li>
+          <li>
+            <strong>현재 검은 칸</strong>은 지금 검은 칸 전체의 수입니다. 방문한
+            칸 수나 누적 이동 거리와 구분하며 화면 밖도 포함합니다.
+          </li>
+          <li>
+            좌표는 원점에서 오른쪽이 x+, 위쪽이 y+입니다. 이동 방향은 다음
+            단계의 시작 방향입니다.
+          </li>
+          <li>
+            <strong>고속도로</strong>는 빈 무한 격자의 긴 실험에서 나타나는
+            반복적 대각선 이동의 별명입니다. 이것이 임의의 초기 색 배치에 대한
+            일반적 보장을 뜻하지는 않습니다.
+          </li>
+        </ul>
+        <h2>격자·편집·초기화</h2>
+        <ul>
+          <li>
+            기본은 무한 격자이며 화면은 일부를 보여 주는 관찰 창입니다. 개미가
+            가장자리에 가까워지면 창이 따라 이동합니다. 격자 폭 슬라이더는 모형
+            영역을 자르는 대신 보이는 범위를 바꿉니다.
+          </li>
+          <li>
+            <strong>유한 격자 · 맞은편 연결</strong>은 선택한 폭의 토러스
+            변형입니다. 오른쪽·왼쪽과 위·아래가 연결됩니다. 이 모드에서 폭을
+            바꾸거나 연결 방식을 바꾸면 초기화됩니다.
+          </li>
+          <li>
+            화면 클릭의 기능을 개미 이동 또는 칸 색 변경으로 선택할 수 있습니다.
+            편집과 방향 변경은 자동 진행을 멈춥니다. 캔버스 방향키는 개미를
+            옮기고 Space는 개미가 있는 칸의 색을 바꿉니다.
+          </li>
+          <li>
+            속도는 단계/초이고 렌더링 FPS와 다릅니다.
+            <strong>한 칸 진행</strong>은 자동 진행을 멈춘 뒤 한 단계만
+            적용합니다.
+          </li>
+          <li>
+            <strong>초기화</strong>는 흰 격자, 원점, 북쪽, 0단계로 돌아가며
+            속도·격자 보기·편집 모드를 유지합니다.
+          </li>
+          <li>
+            <strong>빈 격자에서 10,000단계</strong>는 무한 격자로 전환하여
+            초기화한 뒤 정확히 10,000단계를 진행하고 멈춥니다.
+          </li>
+        </ul>
+        <details class="doc-principles">
+          <summary>모형의 핵심과 학술적 근거</summary>
+          <h3>튜링 기계와 유사한 국소 상태 모형</h3>
+          <p>
+            개미의 위치·네 방향·격자의 두 색이 전체 상태를 정합니다. 매 단계는
+            단 하나의 칸을 읽고, 색을 바꾸고, 방향을 바꾸며 이동합니다. 작은
+            국소 규칙이 긴 시간에 복잡한 패턴을 만드는 결정론적 계산 모형입니다.
+          </p>
+          <p>
+            무한 격자는 검은 칸의 정수 좌표를 희소 집합으로 저장합니다. 창 밖의
+            칸도 보존하므로 화면 크기가 표준 모형의 궤적을 바꾸지 않습니다. 유한
+            토러스는 별도 변형이며 무한 격자의 장기 행동과 같다고 해석하면 안
+            됩니다.
+          </p>
+          <p>
+            빈 무한 격자에서 알려진 고속도로는 104단계가 반복되는 과정에서
+            대각선으로 두 칸씩 이동합니다. 임의의 유한 초기 배치가 결국 항상
+            고속도로에 도달한다는 주장은 Gajardo 등의 논문에서도 일반적인 증명과
+            구분해 다루므로, 실험 화면은 관찰 결과와 보장을 구분합니다.
+          </p>
+          <h3>참고 문헌</h3>
+          <p>
+            Gajardo, A., Moreira, A., & Goles, E. (2002).
+            <em>Complexity of Langton’s ant.</em> Discrete Applied Mathematics,
+            117(1–3), 41–50.
+            <a href="https://arxiv.org/abs/nlin/0306022">저자 원문</a> ·
+            <a href="https://arxiv.org/html/nlin/0306022"
+              >규칙·고속도로·초기 조건에 관한 본문</a
+            >.
+          </p>
+          <p>
+            Boon, J. P. (2000). <em>How fast does Langton’s ant move?</em>
+            <a href="https://arxiv.org/abs/cond-mat/0004331"
+              >고속도로의 104단계와 대각선 변위를 다룬 저자 원문</a
+            >.
+          </p>
+        </details>
+      </article>
+      <footer class="doc-footer">
+        <nav class="doc-nav" aria-label="페이지 이동">
+          <a href="../index.html">← 전체 목록</a
+          ><a class="doc-launch" href="langtons_ant_simulator.html"
+            >실험 열기 →</a
+          >
+        </nav>
+      </footer>
+    </main>
+  </body>
 </html>

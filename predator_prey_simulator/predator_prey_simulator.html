@@ -1,112 +1,49 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Predator Prey Simulator</title>
-<style>
-  body {
-    margin: 0;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    min-height: 100vh;
-    box-sizing: border-box;
-  }
-  .container {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  canvas { background: #f8f8f8; display: block; margin: 0 auto; max-width: 800px; width: 100%; aspect-ratio: 1/1; }
-  #controls { margin-bottom: 10px; text-align:center; }
-  #controls button { margin-right: 5px; }
-  #sliders { margin: 10px 0; display: inline-block; text-align: left; }
-  .slider-group { margin-bottom: 8px; font-size: 14px; }
-  .slider-group label { display: inline-block; width: 150px; }
-  .slider-group input[type="range"] { width: 200px; }
-  .slider-group span { display: inline-block; width: 40px; text-align: right; }
-
-  .container.fullscreen #controls,
-  .container.fullscreen #sliders {
-    display: none;
-  }
-</style>
-</head>
-<body>
-<div class="container">
-  <div id="controls">
-    <button id="start-btn">Start</button>
-    <button id="pause-btn">Pause</button>
-    <button id="reset-btn">Reset</button>
-    <button id="add-herbivore-btn" style="color:blue">Add Herbivore</button>
-    <button id="add-carnivore-btn" style="color:red">Add Carnivore</button>
-    <button id="fullscreen-btn">Fullscreen</button>
-  </div>
-  <div id="sliders">
-    <div class="slider-group">
-      <label for="speed">속도 배율</label>
-      <input type="range" id="speed" min="0.5" max="3" step="0.1">
-      <span id="speedVal"></span>
-    </div>
-    <div class="slider-group">
-      <label for="plantSpawn">식물 생성 확률</label>
-      <input type="range" id="plantSpawn" min="0" max="0.2" step="0.005">
-      <span id="plantSpawnVal"></span>
-    </div>
-    <div class="slider-group">
-      <label for="herbivoreBirth">초식동물 번식 확률</label>
-      <input type="range" id="herbivoreBirth" min="0" max="1" step="0.05">
-      <span id="herbivoreBirthVal"></span>
-    </div>
-    <div class="slider-group">
-      <label for="carnivoreBirth">육식동물 번식 확률</label>
-      <input type="range" id="carnivoreBirth" min="0" max="1" step="0.05">
-      <span id="carnivoreBirthVal"></span>
-    </div>
-    <div class="slider-group">
-      <label for="herbivoreDeath">초식동물 자연사 확률</label>
-      <input type="range" id="herbivoreDeath" min="0" max="0.01" step="0.0005">
-      <span id="herbivoreDeathVal"></span>
-    </div>
-    <div class="slider-group">
-      <label for="carnivoreDeath">육식동물 자연사 확률</label>
-      <input type="range" id="carnivoreDeath" min="0" max="0.01" step="0.0005">
-      <span id="carnivoreDeathVal"></span>
-    </div>
-  </div>
-  <canvas id="sim" width="800" height="800" style="width:100%; max-width:800px; aspect-ratio:1/1;"></canvas>
-</div>
-<script>
+<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>포식자와 먹이의 관계</title><link rel="stylesheet" href="../assets/simulator.css"><script src="../assets/simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><style>.sim-app--predator{max-width:1240px;margin:0 auto;padding:0 20px 32px;color:#172e27;font-family:system-ui,sans-serif}.sim-app--predator *{box-sizing:border-box}.sim-app--predator .sim-workspace{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:20px;align-items:start}.sim-app--predator .sim-stage-panel,.sim-app--predator .sim-controls-panel{padding:20px;background:white;border:1px solid #dce4da;border-radius:16px}.sim-app--predator .sim-panel-heading{display:flex;justify-content:space-between;gap:8px;margin-bottom:14px;align-items:center}.sim-app--predator h2{font-size:15px;margin:0}.sim-app--predator #sim{width:100%;height:auto;display:block;aspect-ratio:1;background:#f5f8f1;border-radius:12px;border:1px solid #e0e7dd}.sim-app--predator .sim-toolbar{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.sim-app--predator button{border:1px solid #dce4da;border-radius:9px;background:#fff;color:#172e27;padding:9px 12px;font:600 13px system-ui;cursor:pointer}.sim-app--predator button.primary{background:#1f6b50;color:white;border-color:#1f6b50}.sim-app--predator button:disabled{opacity:.45;cursor:default}.sim-app--predator .sim-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.sim-app--predator .sim-stat{padding:10px;background:#f4f6f1;border-radius:10px;font-size:11px;color:#69766c}.sim-app--predator .sim-stat b{display:block;font-size:23px;color:#172e27;font-variant-numeric:tabular-nums}.sim-app--predator .legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0;font-size:12px}.sim-app--predator .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.sim-app--predator .sim-note{font-size:12px;line-height:1.7;color:#69766c}.sim-app--predator #sim-status{font-size:12px;color:#1f6b50}.sim-app--predator #population-chart{display:block;width:100%;height:130px}.sim-app--predator .slider-group{display:grid;grid-template-columns:minmax(0,1fr) 55px;gap:6px;margin:18px 0}.sim-app--predator .slider-group label{grid-column:1/-1;font-size:12px;font-weight:600}.sim-app--predator input[type=range]{width:100%;min-width:0;accent-color:#1f6b50}.sim-app--predator .slider-group span{text-align:right;font-size:12px;color:#69766c}.sim-app--predator .sim-section-title{padding-top:6px;margin-top:16px}.sim-app--predator details{font-size:12px;line-height:1.7;border-top:1px solid #dce4da;padding-top:14px;margin-top:18px}.sim-app--predator summary{font-weight:650;cursor:pointer}.sim-app--predator.fullscreen{padding:0;width:100%;max-width:none;height:100%;background:#f4f5f1}.sim-app--predator.fullscreen .sim-workspace{display:block;height:100%}.sim-app--predator.fullscreen .sim-stage-panel{height:100%;border:0;display:flex;align-items:center;justify-content:center;padding:0}.sim-app--predator.fullscreen .sim-stage-panel>*:not(#sim):not(#controls),.sim-app--predator.fullscreen .sim-controls-panel{display:none}.sim-app--predator.fullscreen #controls{position:absolute;top:8px;right:8px;z-index:3}.sim-app--predator.fullscreen #controls button:not(#fullscreen-btn){display:none}.sim-app--predator.fullscreen #sim{max-width:none}@media(max-width:760px){.sim-app--predator{padding:0 12px 24px}.sim-app--predator .sim-workspace{grid-template-columns:1fr}.sim-app--predator .sim-stage-panel,.sim-app--predator .sim-controls-panel{padding:14px}.sim-app--predator .sim-stat b{font-size:20px}.sim-app--predator .sim-stat{padding:8px}}.sim-app--predator{max-width:none;margin:0 auto;padding:0 0 32px}.sim-app--predator .sim-stage-panel{padding:0}.sim-app--predator .sim-controls-panel{padding:22px}.sim-app--predator .sim-panel-heading{margin:0}.sim-app--predator .sim-toolbar{margin:0}.sim-app--predator .sim-stat-grid{margin:0;padding:18px 20px 14px}.sim-app--predator .legend{margin:0;padding:12px 20px}.sim-app--predator .sim-stage-panel>.sim-note{margin:0}@media(max-width:820px){.sim-app--predator .sim-workspace{grid-template-columns:1fr}.sim-app--predator .sim-controls-panel{padding:18px}.sim-app--predator .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px}} .sim-app--predator #sim{width:calc(100% - 40px);margin:0 20px}.sim-app--predator #population-chart{width:calc(100% - 40px);margin:12px 20px}.sim-app--predator .sim-panel-heading>.sim-note{padding:0;border:0}.sim-app--predator.fullscreen #sim{margin:0;width:auto}@media(max-width:820px){.sim-app--predator #sim{width:calc(100% - 28px);margin:0 14px}}</style></head><body><main class="container sim-app sim-app--predator"><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><h2>먹이 관계 실험실</h2><span id="sim-status" role="status">멈춤 · 시작을 눌러 보세요</span></div><div class="sim-stat-grid"><div class="sim-stat">식물<b id="plant-count">0</b></div><div class="sim-stat">초식동물<b id="herbivore-count">0</b></div><div class="sim-stat">육식동물<b id="carnivore-count">0</b></div><div class="sim-stat">계산 스텝<b id="tick-count">0</b></div></div><div id="controls" class="sim-toolbar"><button id="start-btn" class="primary">시작</button><button id="pause-btn">일시정지</button><button id="step-btn">1스텝</button><button id="reset-btn">초기화</button><button id="fullscreen-btn">전체화면</button></div><canvas id="sim" width="800" height="800" aria-label="식물과 두 동물의 먹이 관계"></canvas><div class="legend"><span><i class="dot" style="background:#39965c"></i>식물</span><span><i class="dot" style="background:#3871ad"></i>초식동물</span><span><i class="dot" style="background:#ca5d4e"></i>육식동물</span><span>부화 대기 <b id="egg-count">0</b>개</span></div><p class="sim-note" id="observation"></p><div class="sim-panel-heading"><h2>개체 수의 변화</h2><span class="sim-note">최근 1,800스텝</span></div><canvas id="population-chart" width="700" height="130" aria-label="식물, 초식동물, 육식동물 개체 수 기록"></canvas></section><aside class="sim-controls-panel"><div id="sliders">
+<h2 class="sim-section-title">실험 조건</h2>
+<div class="slider-group sim-control"><label for="speed">이동 속도 배율</label><input type="range" id="speed" min="0.5" max="3" step="0.1"><span id="speedVal"></span></div>
+<div class="slider-group sim-control"><label for="plantSpawn">식물 생성 확률 / 스텝</label><input type="range" id="plantSpawn" min="0" max="0.2" step="0.005"><span id="plantSpawnVal"></span></div>
+<div class="slider-group sim-control"><label for="herbivoreBirth">초식동물 번식 확률</label><input type="range" id="herbivoreBirth" min="0" max="1" step="0.05"><span id="herbivoreBirthVal"></span></div>
+<div class="slider-group sim-control"><label for="carnivoreBirth">육식동물 번식 확률</label><input type="range" id="carnivoreBirth" min="0" max="1" step="0.05"><span id="carnivoreBirthVal"></span></div>
+<div class="slider-group sim-control"><label for="herbivoreDeath">초식동물 자연사 확률 / 스텝</label><input type="range" id="herbivoreDeath" min="0" max="0.01" step="0.0005"><span id="herbivoreDeathVal"></span></div>
+<div class="slider-group sim-control"><label for="carnivoreDeath">육식동물 자연사 확률 / 스텝</label><input type="range" id="carnivoreDeath" min="0" max="0.01" step="0.0005"><span id="carnivoreDeathVal"></span></div>
+<p class="sim-note">번식은 에너지 조건을 만족했을 때만 시도합니다. 하루·연간 확률이 아니라 모형의 계산 한 번에 쓰는 값입니다.</p>
+<h2 class="sim-section-title">외부에서 개체 넣기</h2><div class="sim-toolbar"><button id="add-herbivore-btn">초식동물 +1</button><button id="add-carnivore-btn">육식동물 +1</button></div><p class="sim-note">한 종류가 사라져도 자동 보충하지 않습니다. 위 버튼은 사용자가 하는 재도입 실험입니다.</p>
+<details class="model-detail"><summary>이 화면의 모형</summary><p>식물은 무작위로 자라고, 동물은 가까운 먹이를 찾아 이동합니다. 먹이·에너지·번식·죽음의 연결을 표현하는 개체 기반 모형입니다. 고전적인 Lotka–Volterra 미분방정식을 직접 푸는 모형은 아닙니다.</p><p>초기화는 조절값을 유지하고 같은 난수 시드의 처음 배치로 돌아갑니다.</p></details></div></aside></div></main><script>
 (function() {
   const params = new URLSearchParams(location.search);
-  let plantCount = parseInt(params.get('plants')) || 50;
-  let herbivoreCount = parseInt(params.get('herbivores')) || 30;
-  let carnivoreCount = parseInt(params.get('carnivores')) || 2;
-  let speed = parseFloat(params.get('speed')) || 1;
-  let seed = parseInt(params.get('seed')) || Date.now();
+  function queryNumber(name, fallback, min, max) {
+    const raw = params.get(name);
+    const value = raw === null || raw.trim() === '' ? fallback : Number(raw);
+    return Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
+  }
+  const plantCount = Math.round(queryNumber('plants', 50, 0, 1000));
+  const herbivoreCount = Math.round(queryNumber('herbivores', 30, 0, 500));
+  const carnivoreCount = Math.round(queryNumber('carnivores', 2, 0, 500));
+  let speed = queryNumber('speed', 1, 0.5, 3);
+  const initialSeed = Math.trunc(queryNumber('seed', Date.now(), 0, Number.MAX_SAFE_INTEGER)) % 233280;
+  let seed = initialSeed;
 
-  // reproduction and death rates
-  let plantSpawnRate = parseFloat(params.get('plantSpawn')) || 0.05;
-  let herbivoreBirthProb = parseFloat(params.get('herbivoreBirth')) || 0.5;
-  let carnivoreBirthProb = parseFloat(params.get('carnivoreBirth')) || 0.5;
-  let herbivoreDeathProb = parseFloat(params.get('herbivoreDeath')) || 0.001;
-  let carnivoreDeathProb = parseFloat(params.get('carnivoreDeath')) || 0.001;
+  // The browser normalizes range values; the model reads those same values below.
+  let plantSpawnRate = queryNumber('plantSpawn', 0.1, 0, 0.2);
+  let herbivoreBirthProb = queryNumber('herbivoreBirth', 0.5, 0, 1);
+  let carnivoreBirthProb = queryNumber('carnivoreBirth', 0.5, 0, 1);
+  let herbivoreDeathProb = queryNumber('herbivoreDeath', 0.005, 0, 0.01);
+  let carnivoreDeathProb = queryNumber('carnivoreDeath', 0.005, 0, 0.01);
 
   function initSliders() {
     const map = [
-      ['speed', v => speed = parseFloat(v)],
-      ['plantSpawn', v => plantSpawnRate = parseFloat(v)],
-      ['herbivoreBirth', v => herbivoreBirthProb = parseFloat(v)],
-      ['carnivoreBirth', v => carnivoreBirthProb = parseFloat(v)],
-      ['herbivoreDeath', v => herbivoreDeathProb = parseFloat(v)],
-      ['carnivoreDeath', v => carnivoreDeathProb = parseFloat(v)]
+      ['speed', speed, v => speed = Number(v)],
+      ['plantSpawn', plantSpawnRate, v => plantSpawnRate = Number(v)],
+      ['herbivoreBirth', herbivoreBirthProb, v => herbivoreBirthProb = Number(v)],
+      ['carnivoreBirth', carnivoreBirthProb, v => carnivoreBirthProb = Number(v)],
+      ['herbivoreDeath', herbivoreDeathProb, v => herbivoreDeathProb = Number(v)],
+      ['carnivoreDeath', carnivoreDeathProb, v => carnivoreDeathProb = Number(v)]
     ];
-    for (const [id, setter] of map) {
+    for (const [id, initialValue, setter] of map) {
       const input = document.getElementById(id);
       const span = document.getElementById(id + 'Val');
-      input.value = eval(id);
+      input.value = initialValue;
+      setter(input.value);
       span.textContent = input.value;
       input.addEventListener('input', () => {
         setter(input.value);
@@ -127,8 +64,9 @@
   const container = document.querySelector('.container');
   const fsBtn = document.getElementById('fullscreen-btn');
   function resizeCanvas() {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    // Keep simulation coordinates stable when the viewport changes.
+    canvas.width = 800;
+    canvas.height = 800;
   }
   window.addEventListener('resize', () => {
     if (document.fullscreenElement === container) {
@@ -138,7 +76,9 @@
     }
   });
   resizeCanvas();
-  let running = false;
+  let running = false, tick = 0, accumulator = 0, lastTime = performance.now();
+  const TICK_MS = 1000 / 30;
+  const history = [];
   const plants = [];
   const herbivores = [];
   const carnivores = [];
@@ -150,7 +90,7 @@
       this.x = x; this.y = y;
     }
     draw() {
-      ctx.fillStyle = 'green';
+      ctx.fillStyle = '#39965c';
       ctx.beginPath();
       ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
       ctx.fill();
@@ -165,8 +105,9 @@
       const dx = target.x - this.x;
       const dy = target.y - this.y;
       const dist = Math.hypot(dx, dy) || 1;
-      this.x += (dx / dist) * speedMul;
-      this.y += (dy / dist) * speedMul;
+      const move=Math.min(speedMul,dist);
+      this.x += (dx / dist) * move;
+      this.y += (dy / dist) * move;
     }
   }
 
@@ -218,6 +159,7 @@
     update() {
       if (random() < herbivoreDeathProb) { this.energy = 0; return; }
       this.energy -= 0.1;
+      if (this.energy <= 0) return;
       let target = plants[0];
       let minDist = Infinity;
       for (const p of plants) {
@@ -240,7 +182,7 @@
       }
     }
     draw() {
-      ctx.fillStyle = 'blue';
+      ctx.fillStyle = '#3871ad';
       ctx.beginPath();
       ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
       ctx.fill();
@@ -254,8 +196,14 @@
       this.slowTimer = 0;
     }
     update() {
-      if (random() < carnivoreDeathProb) { this.energy = 0; }
+      if (random() < carnivoreDeathProb) {
+        this.energy = 0;
+        carnivores.splice(carnivores.indexOf(this), 1);
+        effects.push(new Effect(this.x, this.y, 'brown'));
+        return;
+      }
       this.energy -= 0.15;
+      if (this.energy <= 0) { carnivores.splice(carnivores.indexOf(this), 1); effects.push(new Effect(this.x, this.y, 'brown')); return; }
       let target = herbivores[0];
       let minDist = Infinity;
       for (const h of herbivores) {
@@ -278,7 +226,7 @@
       if (this.slowTimer > 0) this.slowTimer--;
       if (this.energy > 200 && random() < carnivoreBirthProb) {
         this.energy /= 2;
-        const baby = new Carnivore(this.x + randRange(-5,5), this.y + randRange(-5,5));
+        const baby = new Carnivore(Math.max(0,Math.min(canvas.width,this.x + randRange(-5,5))), Math.max(0,Math.min(canvas.height,this.y + randRange(-5,5))));
         carnivores.push(baby);
         effects.push(new Effect(baby.x, baby.y, 'red'));
       }
@@ -289,7 +237,7 @@
       }
     }
     draw() {
-      ctx.fillStyle = 'red';
+      ctx.fillStyle = '#ca5d4e';
       ctx.beginPath();
       ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
       ctx.fill();
@@ -300,7 +248,7 @@
     resizeCanvas();
     plants.length = 0; herbivores.length = 0; carnivores.length = 0;
     herbivoreEggs.length = 0; effects.length = 0;
-    for (let i = 0; i < plantCount; i++)
+    for (let tries=0; plants.length<plantCount && tries<plantCount*200; tries++)
       spawnPlant(randRange(0, canvas.width), randRange(0, canvas.height));
     for (let i = 0; i < herbivoreCount; i++)
       herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
@@ -308,14 +256,16 @@
       carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
   }
 
-  function update() {
-    if (!running) return;
+  function update(force = false) {
+    if (!running && !force) return;
+    tick++;
     if (random() < plantSpawnRate) {
       spawnPlant(randRange(0, canvas.width), randRange(0, canvas.height));
     }
-    herbivores.forEach(h => h.update());
-    carnivores.forEach(c => c.update());
-    herbivoreEggs.forEach(e => e.update());
+    [...herbivores].forEach(h => h.update());
+    for (let i = herbivores.length - 1; i >= 0; i--) if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
+    [...carnivores].forEach(c => c.update());
+    [...herbivoreEggs].forEach(e => e.update());
     for (let i = effects.length - 1; i >= 0; i--) {
       effects[i].update();
       if (effects[i].life <= 0) effects.splice(i, 1);
@@ -323,11 +273,9 @@
     for (let i = herbivores.length - 1; i >= 0; i--) {
       if (herbivores[i].energy <= 0) herbivores.splice(i, 1);
     }
-    if (herbivores.length <= 1) {
-      herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
-    }
-    if (carnivores.length <= 1) {
-      carnivores.push(new Carnivore(randRange(0, canvas.width), randRange(0, canvas.height)));
+    if (tick % 10 === 0) {
+      history.push({tick,plants:plants.length,herbivores:herbivores.length,carnivores:carnivores.length});
+      if(history.length>180) history.shift();
     }
   }
 
@@ -338,17 +286,40 @@
     carnivores.forEach(c => c.draw());
     herbivoreEggs.forEach(e => e.draw());
     effects.forEach(f => f.draw());
+    renderStats();
   }
 
-  function loop() {
-    update();
-    draw();
-    requestAnimationFrame(loop);
+  function renderStats() {
+    document.getElementById('plant-count').textContent=plants.length;
+    document.getElementById('herbivore-count').textContent=herbivores.length;
+    document.getElementById('carnivore-count').textContent=carnivores.length;
+    document.getElementById('tick-count').textContent=tick;
+    document.getElementById('egg-count').textContent=herbivoreEggs.length;
+    document.getElementById('start-btn').disabled=running;
+    document.getElementById('pause-btn').disabled=!running;
+    const extinct=herbivores.length===0&&herbivoreEggs.length===0;
+    document.getElementById('observation').textContent=extinct?'초식동물과 알이 모두 사라졌습니다. 먹이의 연결이 끊기면 육식동물도 에너지를 잃습니다. 자동 보충은 없습니다.':carnivores.length===0?'육식동물이 사라졌습니다. 초식동물과 식물만 남은 상태가 어떻게 달라지는지 관찰해 보세요.':'먹이 섭취 → 에너지 증가 → 번식의 연결을 보세요. 개체 수가 주기적으로 변하거나 한 종류가 사라질 수도 있습니다.';
+    drawHistory();
+  }
+  function drawHistory() {
+    const c=document.getElementById('population-chart'), g=c.getContext('2d');
+    const w=c.width,h=c.height,p=28,max=Math.max(10,...history.map(x=>Math.max(x.plants,x.herbivores,x.carnivores)));
+    g.clearRect(0,0,w,h);g.strokeStyle='#e0e7df';g.lineWidth=1;g.font='11px system-ui';g.fillStyle='#69766c';
+    for(let i=0;i<4;i++){const y=14+i*(h-36)/3;g.beginPath();g.moveTo(p,y);g.lineTo(w-10,y);g.stroke();g.fillText(Math.round(max*(1-i/3)),2,y+3);}
+    [['plants','#39965c'],['herbivores','#3871ad'],['carnivores','#ca5d4e']].forEach(([key,color])=>{g.strokeStyle=color;g.lineWidth=2;g.beginPath();history.forEach((x,i)=>{const xx=p+i/Math.max(1,history.length-1)*(w-p-10),yy=14+(1-x[key]/max)*(h-36);if(i)g.lineTo(xx,yy);else g.moveTo(xx,yy);});g.stroke();});
+    g.fillText(history.length?`${history[0].tick} → ${history[history.length-1].tick} 스텝`:'시작하면 개체 수 기록이 쌓입니다',p,h-4);
+  }
+  function loop(now) {
+    if(running){accumulator+=Math.min(150,now-lastTime);while(accumulator>=TICK_MS){update();accumulator-=TICK_MS;}}
+    else accumulator=0;
+    lastTime=now;draw();requestAnimationFrame(loop);
   }
 
-  document.getElementById('start-btn').onclick = () => running = true;
-  document.getElementById('pause-btn').onclick = () => running = false;
-  document.getElementById('reset-btn').onclick = () => { running = false; spawnInitial(); draw(); };
+  const status = document.getElementById('sim-status');
+  document.getElementById('start-btn').onclick = () => { running = true; lastTime=performance.now(); status.textContent = '실행 중 · 30스텝/초'; };
+  document.getElementById('pause-btn').onclick = () => { running = false; status.textContent = '멈춤 · 시작을 누르면 이어서 진행합니다.'; };
+  document.getElementById('reset-btn').onclick = () => { running = false; seed = initialSeed; tick=0;history.length=0;spawnInitial();draw();status.textContent='같은 초기 배치로 돌아왔습니다. 현재 조절값은 유지됩니다.'; };
+  document.getElementById('step-btn').onclick=()=>{running=false;update(true);draw();status.textContent='1스텝 진행 · 멈춤';};
   document.getElementById('add-herbivore-btn').onclick = () => {
     herbivores.push(new Herbivore(randRange(0, canvas.width), randRange(0, canvas.height)));
   };
@@ -368,18 +339,14 @@
   });
   function updateFullscreenUI() {
     const inFs = document.fullscreenElement === container;
-    fsBtn.textContent = inFs ? 'Exit Fullscreen' : 'Fullscreen';
+    fsBtn.textContent = inFs ? '전체화면 닫기' : '전체화면';
     if (inFs) {
       container.classList.add('fullscreen');
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      if (vw > vh) {
-        canvas.style.width = vw + 'px';
-        canvas.style.height = vw + 'px';
-      } else {
-        canvas.style.width = vh + 'px';
-        canvas.style.height = vh + 'px';
-      }
+      const size = Math.max(100, Math.min(vw, vh - 40));
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
     } else {
       container.classList.remove('fullscreen');
       canvas.style.width = '';
@@ -390,11 +357,11 @@
 
   document.addEventListener('fullscreenchange', updateFullscreenUI);
 
-  spawnInitial();
   initSliders();
+  spawnInitial();
   draw();
-  loop();
+  window.render_game_to_text=()=>JSON.stringify({mode:"predator-prey",running,tick,plants:plants.length,herbivores:herbivores.length,carnivores:carnivores.length,eggs:herbivoreEggs.length,auto_repopulation:false,bounded:[...plants,...herbivores,...carnivores,...herbivoreEggs].every(a=>a.x>=0&&a.x<=canvas.width&&a.y>=0&&a.y<=canvas.height),rates:{plantSpawnRate,herbivoreBirthProb,carnivoreBirthProb,herbivoreDeathProb,carnivoreDeathProb}});
+  window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms/TICK_MS+1e-9);i++)update(true);draw();};
+  requestAnimationFrame(loop);
 })();
-</script>
-</body>
-</html>
+</script></body></html>

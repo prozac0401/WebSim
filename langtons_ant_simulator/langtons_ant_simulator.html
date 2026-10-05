@@ -1,460 +1,878 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>랭턴의 개미 시뮬레이터</title>
-</head>
-<body>
-    <div class="app-container">
-        <style>
-            .app-container {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 20px;
-                background: white;
-                color: black;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .container {
-                width: 100%;
-                max-width: 800px;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
-            }
-            
-            .controls {
-                background: #f5f5f5;
-                padding: 20px;
-                border-radius: 15px;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-                align-items: center;
-                border: 1px solid #ddd;
-            }
-            
-            .button-row {
-                display: flex;
-                gap: 15px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .slider-row {
-                display: flex;
-                gap: 30px;
-                flex-wrap: wrap;
-                justify-content: center;
-                width: 100%;
-            }
-            
-            button {
-                background: white;
-                border: 1px solid #ddd;
-                padding: 12px 24px;
-                border-radius: 25px;
-                color: black;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            
-            button:hover {
-                background: #f0f0f0;
-            }
-            
-            button:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            
-            .slider-container {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            input[type="range"] {
-                width: 120px;
-            }
-            
-            .canvas-container {
-                background: #f5f5f5;
-                padding: 20px;
-                border-radius: 15px;
-                border: 1px solid #ddd;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            
-            canvas {
-                background: white;
-                cursor: pointer;
-            }
-            
-            .stats {
-                background: #f5f5f5;
-                padding: 15px;
-                border-radius: 15px;
-                border: 1px solid #ddd;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 30px;
-                flex-wrap: wrap;
-                width: 100%;
-                max-width: 600px;
-            }
-            
-            .stat-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .stat-value {
-                font-size: 1.2em;
-                font-weight: bold;
-                color: black;
-            }
-            
-            .info {
-                background: #f5f5f5;
-                padding: 20px;
-                border-radius: 15px;
-                border: 1px solid #ddd;
-                text-align: left;
-                max-width: 600px;
-            }
-        </style>
-        
-        <div class="container">
-            <div class="controls">
-                <div class="button-row">
-                    <button id="startBtn">시작</button>
-                    <button id="pauseBtn" disabled>일시정지</button>
-                    <button id="resetBtn">리셋</button>
-                </div>
-                
-                <div class="button-row">
-                    <button id="stepBtn">한 스텝</button>
-                </div>
-                
-                <div class="slider-row">
-                    <div class="slider-container">
-                        <label>속도:</label>
-                        <input type="range" id="speedSlider" min="1" max="100" value="20">
-                        <span id="speedValue">20</span>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <label>격자 크기:</label>
-                        <input type="range" id="gridSizeSlider" min="80" max="200" value="80">
-                        <span id="gridSizeValue">80</span>
-                    </div>
-                </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>랭턴의 개미 · WebSim Lab</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/simulator.css" />
+    <script src="../assets/simulator.js" defer></script>
+    <style>
+      body {
+        margin: 0;
+        background: #f4f5f1;
+        color: #172e27;
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .sim-app,
+      .sim-app * {
+        box-sizing: border-box;
+      }
+      .sim-app {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 28px 56px;
+      }
+      .sim-app .sim-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .sim-app .sim-controls-panel {
+        display: grid;
+        gap: 18px;
+        min-width: 0;
+      }
+      .sim-app .sim-panel {
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+      }
+      .sim-app .sim-stage-panel {
+        padding: 22px;
+      }
+      .sim-app .sim-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .sim-app .sim-panel-heading h2,
+      .sim-app .sim-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .sim-app .sim-section-title {
+        margin-bottom: 17px;
+      }
+      .sim-app .sim-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .sim-app button,
+      .sim-app select,
+      .sim-app input[type="number"] {
+        font: inherit;
+        border: 1px solid #dce4da;
+        border-radius: 9px;
+        color: #172e27;
+        background: #fff;
+        min-height: 42px;
+        padding: 9px 13px;
+        box-shadow: none;
+        margin: 0;
+      }
+      .sim-app button {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .sim-app button:hover {
+        background: #edf3ec;
+        transform: none;
+      }
+      .sim-app button.primary {
+        background: #1f6b50;
+        color: #fff;
+        border-color: #1f6b50;
+      }
+      .sim-app button.primary:hover {
+        background: #195940;
+      }
+      .sim-app button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .sim-app button:focus-visible,
+      .sim-app canvas:focus-visible,
+      .sim-app input:focus-visible,
+      .sim-app select:focus-visible {
+        outline: 3px solid #a9cbb9;
+        outline-offset: 3px;
+      }
+      .sim-app .sim-status {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 4px 10px;
+        background: #edf3ec;
+        color: #35644c;
+        white-space: nowrap;
+      }
+      .sim-app .sim-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-stat {
+        background: #f7f9f5;
+        border: 1px solid #e6ece2;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .sim-app .sim-stat dt {
+        font-size: 11px;
+        color: #69766c;
+        margin-bottom: 5px;
+      }
+      .sim-app .sim-stat dd {
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 650;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+      }
+      .sim-app .sim-stat dd small {
+        font-size: 11px;
+        font-weight: 500;
+        color: #69766c;
+      }
+      .sim-app canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        background: #f7f9f4;
+        border: 1px solid #e2e9de;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .sim-app .sim-note {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #69766c;
+        margin: 12px 0 0;
+      }
+      .sim-app .sim-note strong {
+        color: #365443;
+        font-weight: 600;
+      }
+      .sim-app .sim-control {
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-control:last-child {
+        margin-bottom: 0;
+      }
+      .sim-app .sim-control label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        margin-bottom: 8px;
+      }
+      .sim-app .sim-control output {
+        color: #1f6b50;
+        font-size: 12px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .sim-app input[type="range"] {
+        display: block;
+        accent-color: #1f6b50;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+      }
+      .sim-app .sim-control select,
+      .sim-app .sim-control input[type="number"] {
+        width: 100%;
+        font-size: 13px;
+      }
+      .sim-app .check-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        margin: 12px 0;
+      }
+      .sim-app .check-control input {
+        accent-color: #1f6b50;
+        margin: 5px 0 0;
+        flex: 0 0 auto;
+      }
+      .sim-app .preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .sim-app .preset-row button {
+        font-size: 12px;
+        min-height: 36px;
+        padding: 7px 11px;
+      }
+      .sim-app .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 13px;
+      }
+      .sim-app .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sim-app .legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #1f6b50;
+      }
+      .sim-app .rule-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .sim-app .rule-chip {
+        border: 1px solid #dce4da;
+        background: #f7f9f5;
+        border-radius: 9px;
+        padding: 12px;
+        font-size: 12px;
+      }
+      .sim-app .rule-chip b {
+        display: block;
+        font-size: 14px;
+        color: #172e27;
+        margin-top: 4px;
+      }
+      .sim-app .sim-result {
+        background: #edf3ec;
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: #365443;
+        margin-top: 13px;
+        min-height: 43px;
+      }
+      .sim-app .compact-stat {
+        font-size: 11px;
+        color: #69766c;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-app .sim-divider {
+        height: 1px;
+        background: #e4eade;
+        margin: 18px 0;
+      }
+      .sim-app .sim-muted {
+        color: #69766c;
+      }
+      .sim-app a {
+        color: #1f6b50;
+      }
+      .sim-app .sim-stat-grid.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .sim-app .sim-stat-grid.four dd {
+        font-size: 19px;
+      }
+      .sim-app .square-stage {
+        max-width: 680px;
+        margin: auto;
+      }
+      .sim-app .instruction-line {
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 8px;
+      }
+      .sim-app {
+        max-width: 1360px;
+        width: calc(100% - 64px);
+        padding: 0 0 42px;
+      }
+      .sim-app .sim-controls-panel {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .sim-app .sim-panel-heading {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .sim-app .sim-toolbar {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-note {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-stat dd small {
+        display: inline;
+      }
+      @media (max-width: 1050px) {
+        .sim-app {
+          width: calc(100% - 40px);
+        }
+      }
+      @media (max-width: 900px) {
+        .sim-app .sim-workspace {
+          grid-template-columns: 1fr;
+        }
+        .sim-app .sim-controls-panel {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sim-app .sim-controls-panel .full-width {
+          grid-column: 1/-1;
+        }
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          padding: 16px 12px 36px;
+        }
+        .sim-app .sim-panel,
+        .sim-app .sim-stage-panel {
+          padding: 16px;
+        }
+        .sim-app .sim-controls-panel {
+          grid-template-columns: 1fr;
+        }
+        .sim-app .sim-stat {
+          padding: 9px;
+        }
+        .sim-app .sim-stat dd {
+          font-size: 19px;
+        }
+        .sim-app .sim-stat-grid.four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sim-app .sim-toolbar {
+          gap: 6px;
+        }
+        .sim-app button {
+          padding: 9px 11px;
+        }
+        .sim-app .sim-panel-heading {
+          align-items: flex-start;
+        }
+        .sim-app .sim-note {
+          font-size: 11px;
+        }
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          width: calc(100% - 28px);
+          padding: 0 0 36px;
+        }
+        .sim-app .sim-stat dd small {
+          display: block;
+          margin-top: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="sim-app sim-app--langton" id="sim-app">
+      <div class="sim-workspace">
+        <section class="sim-panel sim-stage-panel">
+          <div class="sim-panel-heading">
+            <h2>격자 위의 개미</h2>
+            <span class="sim-status" id="ant-status">준비</span>
+          </div>
+          <div class="sim-toolbar">
+            <button class="primary" id="startBtn">시작</button
+            ><button id="pauseBtn" disabled>일시정지</button
+            ><button id="stepBtn">한 칸 진행</button
+            ><button id="resetBtn">초기화</button>
+          </div>
+          <dl class="sim-stat-grid four">
+            <div class="sim-stat">
+              <dt>규칙을 적용한 횟수</dt>
+              <dd><span id="stepCount">0</span></dd>
             </div>
-            
-            <div class="canvas-container">
-                <canvas id="canvas" width="800" height="800" style="width:100%; max-width:800px; height:auto;"></canvas>
+            <div class="sim-stat">
+              <dt>현재 검은 칸</dt>
+              <dd><span id="blackCount">0</span></dd>
             </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="stepCount">0</div>
-                    <span>Step</span>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="blackCells">0</div>
-                    <span>Black</span>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="antPosition">(0, 0)</div>
-                    <span>Position</span>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="antDirection">▲</div>
-                    <span>Direction</span>
-                </div>
+            <div class="sim-stat">
+              <dt>개미의 좌표</dt>
+              <dd><span id="antPosition">(0, 0)</span></dd>
             </div>
-            
-            <div class="info">
-                <h3>🔍 랭턴의 개미란?</h3>
-                <p><strong>규칙:</strong></p>
-                <ul>
-                    <li>흰 칸에서는 시계방향으로 90도 회전 후 전진하고 해당 칸을 검게 칠함</li>
-                    <li>검은 칸에서는 반시계방향으로 90도 회전 후 전진하고 해당 칸을 흰색으로 칠함</li>
-                </ul>
-                <p>이 간단한 규칙만으로도 약 10,000 스텝 후 "고속도로" 패턴을 만들어내는 놀라운 복잡성을 보여줍니다!</p>
+            <div class="sim-stat">
+              <dt>이동 방향</dt>
+              <dd><span id="antDirection">북쪽 ↑</span></dd>
             </div>
-        </div>
-
-        <script>
-            class LangtonsAnt {
-                constructor(canvas, gridSize = 80) {
-                    this.canvas = canvas;
-                    this.ctx = canvas.getContext('2d');
-                    this.gridSize = gridSize;
-                    this.cellSize = canvas.width / gridSize;
-                    
-                    this.reset();
-                    this.setupEventListeners();
-                    this.draw();
-                }
-                
-                reset() {
-                    this.grid = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(false));
-                    this.antX = 0; // center x coordinate
-                    this.antY = 0; // center y coordinate
-                    this.antDirection = 0; // 0=북, 1=동, 2=남, 3=서
-                    this.stepCount = 0;
-                    this.isRunning = false;
-                    this.animationId = null;
-                    this.speed = 20;
-                    
-                    this.updateStats();
-                    this.draw();
-                }
-                
-                setupEventListeners() {
-                    document.getElementById('startBtn').addEventListener('click', () => this.start());
-                    document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
-                    document.getElementById('resetBtn').addEventListener('click', () => this.reset());
-                    document.getElementById('stepBtn').addEventListener('click', () => this.step());
-                    
-                    const speedSlider = document.getElementById('speedSlider');
-                    speedSlider.addEventListener('input', (e) => {
-                        this.speed = parseInt(e.target.value);
-                        document.getElementById('speedValue').textContent = this.speed;
-                    });
-                    
-                    const gridSizeSlider = document.getElementById('gridSizeSlider');
-                    gridSizeSlider.addEventListener('input', (e) => {
-                        const newSize = parseInt(e.target.value);
-                        document.getElementById('gridSizeValue').textContent = newSize;
-                        this.gridSize = newSize;
-                        this.cellSize = this.canvas.width / newSize;
-                        this.reset();
-                    });
-                    
-                    // 캔버스 클릭 이벤트 추가
-                    this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-                }
-                
-                handleCanvasClick(event) {
-                    const rect = this.canvas.getBoundingClientRect();
-                    const canvasX = event.clientX - rect.left;
-                    const canvasY = event.clientY - rect.top;
-                    
-                    // 캔버스 좌표를 격자 좌표로 변환
-                    const gridCoord = this.canvasToGrid(canvasX, canvasY);
-                    const { gridX, gridY } = this.coordToIndex(gridCoord.x, gridCoord.y);
-                    
-                    // 경계 체크
-                    if (gridX >= 0 && gridX < this.gridSize && gridY >= 0 && gridY < this.gridSize) {
-                        // 개미 위치 이동 (방향은 유지)
-                        this.antX = gridCoord.x;
-                        this.antY = gridCoord.y;
-                        
-                        this.updateStats();
-                        this.draw();
-                    }
-                }
-                
-                start() {
-                    if (!this.isRunning) {
-                        this.isRunning = true;
-                        document.getElementById('startBtn').disabled = true;
-                        document.getElementById('pauseBtn').disabled = false;
-                        this.animate();
-                    }
-                }
-                
-                pause() {
-                    this.isRunning = false;
-                    document.getElementById('startBtn').disabled = false;
-                    document.getElementById('pauseBtn').disabled = true;
-                    if (this.animationId) {
-                        cancelAnimationFrame(this.animationId);
-                    }
-                }
-                
-                animate() {
-                    if (!this.isRunning) return;
-                    
-                    for (let i = 0; i < this.speed; i++) {
-                        this.step();
-                    }
-                    
-                    this.draw();
-                    this.animationId = requestAnimationFrame(() => this.animate());
-                }
-                
-                // 좌표 변환 함수 (중앙을 (0,0)으로)
-                gridToCanvas(x, y) {
-                    return {
-                        x: (x + Math.floor(this.gridSize / 2)) * this.cellSize,
-                        y: (-y + Math.floor(this.gridSize / 2)) * this.cellSize
-                    };
-                }
-                
-                canvasToGrid(canvasX, canvasY) {
-                    return {
-                        x: Math.floor(canvasX / this.cellSize) - Math.floor(this.gridSize / 2),
-                        y: -(Math.floor(canvasY / this.cellSize) - Math.floor(this.gridSize / 2))
-                    };
-                }
-                
-                // 격자 배열 인덱스 변환
-                coordToIndex(x, y) {
-                    const gridX = x + Math.floor(this.gridSize / 2);
-                    const gridY = -y + Math.floor(this.gridSize / 2);
-                    return { gridX, gridY };
-                }
-                
-                step() {
-                    const { gridX, gridY } = this.coordToIndex(this.antX, this.antY);
-                    
-                    // 경계 체크
-                    if (gridX < 0 || gridX >= this.gridSize || gridY < 0 || gridY >= this.gridSize) {
-                        return;
-                    }
-                    
-                    // 현재 셀의 색상 확인
-                    const currentCell = this.grid[gridY][gridX];
-                    
-                    if (currentCell) {
-                        // 검은 셀: 반시계방향 회전
-                        this.antDirection = (this.antDirection + 3) % 4;
-                        this.grid[gridY][gridX] = false; // 흰색으로
-                    } else {
-                        // 흰 셀: 시계방향 회전
-                        this.antDirection = (this.antDirection + 1) % 4;
-                        this.grid[gridY][gridX] = true; // 검은색으로
-                    }
-                    
-                    // 앞으로 이동 (좌표계 반영)
-                    switch (this.antDirection) {
-                        case 0: this.antY++; break; // 북 (y 증가)
-                        case 1: this.antX++; break; // 동 (x 증가)
-                        case 2: this.antY--; break; // 남 (y 감소)
-                        case 3: this.antX--; break; // 서 (x 감소)
-                    }
-                    
-                    this.stepCount++;
-                    this.updateStats();
-                }
-                
-                updateStats() {
-                    document.getElementById('stepCount').textContent = this.stepCount.toLocaleString();
-                    
-                    let blackCells = 0;
-                    for (let y = 0; y < this.gridSize; y++) {
-                        for (let x = 0; x < this.gridSize; x++) {
-                            if (this.grid[y][x]) blackCells++;
-                        }
-                    }
-                    document.getElementById('blackCells').textContent = blackCells.toLocaleString();
-                    document.getElementById('antPosition').textContent = `(${this.antX}, ${this.antY})`;
-                    
-                    const directions = ['▲', '▶', '▼', '◀'];
-                    document.getElementById('antDirection').textContent = directions[this.antDirection];
-                }
-                
-                draw() {
-                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                    
-                    // 개미 현재 위치 계산
-                    const { gridX: antGridX, gridY: antGridY } = this.coordToIndex(this.antX, this.antY);
-                    
-                    // 격자 그리기
-                    for (let y = 0; y < this.gridSize; y++) {
-                        for (let x = 0; x < this.gridSize; x++) {
-                            // 개미가 현재 위치한 셀인지 확인
-                            const isAntPosition = (x === antGridX && y === antGridY);
-                            
-                            if (isAntPosition) {
-                                // 개미 위치는 빨간색으로
-                                this.ctx.fillStyle = '#e74c3c';
-                                this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
-                            } else if (this.grid[y][x]) {
-                                // 검은 셀
-                                this.ctx.fillStyle = '#2c3e50';
-                                this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
-                            }
-                        }
-                    }
-                    
-                    // 개미 그리기 (흰색 삼각형으로 변경하여 빨간 배경에서 보이도록)
-                    const antCanvas = this.gridToCanvas(this.antX, this.antY);
-                    this.ctx.fillStyle = 'white';
-                    const antCenterX = antCanvas.x + this.cellSize / 2;
-                    const antCenterY = antCanvas.y + this.cellSize / 2;
-                    
-                    this.ctx.save();
-                    this.ctx.translate(antCenterX, antCenterY);
-                    this.ctx.rotate(this.antDirection * Math.PI / 2);
-                    
-                    // 개미 모양 (삼각형)
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(0, -this.cellSize * 0.3);
-                    this.ctx.lineTo(-this.cellSize * 0.2, this.cellSize * 0.2);
-                    this.ctx.lineTo(this.cellSize * 0.2, this.cellSize * 0.2);
-                    this.ctx.closePath();
-                    this.ctx.fill();
-                    
-                    this.ctx.restore();
-                    
-                    // 격자선 (작은 셀 크기일 때는 생략)
-                    if (this.cellSize > 4) {
-                        this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-                        this.ctx.lineWidth = 0.5;
-                        
-                        for (let i = 0; i <= this.gridSize; i++) {
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(i * this.cellSize, 0);
-                            this.ctx.lineTo(i * this.cellSize, this.canvas.height);
-                            this.ctx.stroke();
-                            
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(0, i * this.cellSize);
-                            this.ctx.lineTo(this.canvas.width, i * this.cellSize);
-                            this.ctx.stroke();
-                        }
-                    }
-                }
+          </dl>
+          <div class="square-stage">
+            <canvas
+              id="ant-canvas"
+              width="800"
+              height="800"
+              tabindex="0"
+              aria-label="랭턴의 개미 격자. 클릭하면 개미를 옮깁니다. 방향키로 위치를 옮기고 스페이스로 현재 칸 색을 바꿀 수 있습니다."
+            ></canvas>
+          </div>
+          <div class="legend">
+            <span><i style="background: #172e27"></i>검은 칸</span
+            ><span><i style="background: #bc8b4a"></i>개미와 방향</span
+            ><span>x: 오른쪽 + · y: 위쪽 +</span>
+          </div>
+          <div class="sim-result" id="ant-result">
+            흰 칸에서 오른쪽으로 돌고, 칸을 검게 바꾼 뒤 한 칸 이동합니다.
+          </div>
+          <p class="sim-note" id="ant-view-note">
+            무한 격자의 일부를 보여 줍니다. 화면은 개미를 따라 이동하며, 검은 칸
+            수는 화면 밖까지 포함합니다.
+          </p>
+        </section>
+        <aside class="sim-controls-panel">
+          <section class="sim-panel">
+            <h2 class="sim-section-title">한 단계의 규칙</h2>
+            <div class="rule-pair">
+              <div class="rule-chip">현재 칸이 흰색<b>오른쪽 90° ↱</b></div>
+              <div
+                class="rule-chip"
+                style="background: #172e27; color: #dce4da"
+              >
+                현재 칸이 검은색<b style="color: white">왼쪽 90° ↰</b>
+              </div>
+            </div>
+            <p class="sim-note">
+              ① 현재 칸 색에 따라 회전 → ② 칸 색 뒤집기 → ③ 새 방향으로 한 칸
+              이동. 단계 수는 이 과정을 끝낸 횟수입니다.
+            </p>
+            <div class="sim-divider"></div>
+            <div class="sim-control">
+              <label for="speedSlider"
+                >진행 속도<output id="speedSlider-value"
+                  >1000 단계/초</output
+                ></label
+              ><input
+                type="range"
+                id="speedSlider"
+                min="1"
+                max="20000"
+                step="1"
+                value="1000"
+              />
+            </div>
+            <div class="preset-row">
+              <button data-ant-speed="10">10 단계/초</button
+              ><button data-ant-speed="1000">1,000</button
+              ><button data-ant-speed="10000">10,000</button>
+            </div>
+            <p class="sim-note">
+              실제 경과 시간으로 단계를 계산합니다. 화면 렌더링 횟수와
+              구분됩니다.
+            </p>
+          </section>
+          <section class="sim-panel">
+            <h2 class="sim-section-title">격자와 편집</h2>
+            <div class="sim-control">
+              <label for="gridSizeSlider"
+                >화면에 보이는 격자 폭<output id="gridSizeSlider-value"
+                  >80 칸</output
+                ></label
+              ><input
+                type="range"
+                id="gridSizeSlider"
+                min="20"
+                max="200"
+                step="20"
+                value="80"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="ant-boundary">격자의 연결</label
+              ><select id="ant-boundary">
+                <option value="infinite">무한 격자 · 표준 규칙</option>
+                <option value="wrap">유한 격자 · 맞은편 연결</option>
+              </select>
+            </div>
+            <div class="sim-control">
+              <label for="ant-edit">화면을 눌렀을 때</label
+              ><select id="ant-edit">
+                <option value="move">개미를 해당 칸으로 이동</option>
+                <option value="flip">해당 칸의 색 뒤집기</option>
+              </select>
+            </div>
+            <div class="sim-control">
+              <label for="ant-heading">개미의 방향</label
+              ><select id="ant-heading">
+                <option value="0">북쪽 ↑</option>
+                <option value="1">동쪽 →</option>
+                <option value="2">남쪽 ↓</option>
+                <option value="3">서쪽 ←</option>
+              </select>
+            </div>
+            <p class="sim-note">
+              편집하면 자동 진행이 멈춥니다. 초기화는 빈 격자, 원점, 북쪽,
+              0단계로 돌아가며 속도와 보기 설정은 유지합니다.
+            </p>
+          </section>
+          <section class="sim-panel full-width">
+            <h2 class="sim-section-title">오래 진행해 보기</h2>
+            <button id="ant-observe">빈 격자에서 10,000단계</button>
+            <p class="sim-note">
+              빈 무한 격자의 긴 실험에서 반복되는 대각선 이동을
+              <strong>고속도로</strong>라고 부릅니다. 약 10,000단계 부근의
+              복잡한 흔적을 관찰하고 이어 진행해 보세요. 임의로 편집한 모든 초기
+              상태에서 같은 결과가 보장되지는 않습니다.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <script>
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id),
+          app = $("sim-app");
+        const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+        const fmt = (x) => Number(x).toLocaleString("ko-KR");
+        const pointer = (event, canvas) => {
+          const r = canvas.getBoundingClientRect();
+          return {
+            x: ((event.clientX - r.left) * canvas.width) / r.width,
+            y: ((event.clientY - r.top) * canvas.height) / r.height,
+          };
+        };
+        const canvas = $("ant-canvas"),
+          ctx = canvas.getContext("2d"),
+          directions = [
+            [0, 1],
+            [1, 0],
+            [0, -1],
+            [-1, 0],
+          ],
+          names = ["북쪽 ↑", "동쪽 →", "남쪽 ↓", "서쪽 ←"];
+        let black = new Set(),
+          x = 0,
+          y = 0,
+          direction = 0,
+          steps = 0,
+          size = 80,
+          cameraX = 0,
+          cameraY = 0,
+          running = false,
+          lastTime = 0,
+          accumulator = 0;
+        const key = (x, y) => x + "," + y,
+          wrapped = (v) => ((((v + size / 2) % size) + size) % size) - size / 2;
+        function buttons() {
+          $("startBtn").disabled = running;
+          $("pauseBtn").disabled = !running;
+          $("ant-status").textContent = running
+            ? "진행 중"
+            : steps
+              ? "일시정지"
+              : "준비";
+          $("startBtn").textContent = steps ? "계속 진행" : "시작";
+        }
+        function pause() {
+          running = false;
+          accumulator = 0;
+          buttons();
+        }
+        function follow() {
+          if ($("ant-boundary").value === "wrap") {
+            cameraX = cameraY = 0;
+            return;
+          }
+          const margin = Math.max(2, Math.floor(size * 0.12));
+          if (Math.abs(x - cameraX) > size / 2 - margin) cameraX = x;
+          if (Math.abs(y - cameraY) > size / 2 - margin) cameraY = y;
+        }
+        function stats() {
+          $("stepCount").textContent = fmt(steps);
+          $("blackCount").textContent = fmt(black.size);
+          $("antPosition").textContent = "(" + x + ", " + y + ")";
+          $("antDirection").textContent = names[direction];
+          $("ant-heading").value = direction;
+          buttons();
+        }
+        function step() {
+          const k = key(x, y),
+            wasBlack = black.has(k);
+          direction = (direction + (wasBlack ? 3 : 1)) % 4;
+          if (wasBlack) black.delete(k);
+          else black.add(k);
+          x += directions[direction][0];
+          y += directions[direction][1];
+          if ($("ant-boundary").value === "wrap") {
+            x = wrapped(x);
+            y = wrapped(y);
+          }
+          steps++;
+          follow();
+          return { wasBlack, direction, x, y };
+        }
+        function draw() {
+          const s = 800 / size,
+            half = size / 2;
+          ctx.clearRect(0, 0, 800, 800);
+          ctx.fillStyle = "#172e27";
+          for (let row = 0; row < size; row++)
+            for (let col = 0; col < size; col++) {
+              const wx = cameraX + col - half,
+                wy = cameraY + half - 1 - row;
+              if (black.has(key(wx, wy)))
+                ctx.fillRect(col * s, row * s, s + 0.1, s + 0.1);
             }
-            
-            // 시뮬레이터 초기화
-            const canvas = document.getElementById('canvas');
-            const ant = new LangtonsAnt(canvas, 80);
-            
-            // 반응형 캔버스 크기 조정
-            function resizeCanvas() {
-                const container = document.querySelector('.canvas-container');
-                const availableWidth = Math.min(Math.max(window.innerWidth - 80, 100), 800);
-                const availableHeight = Math.min(Math.max(window.innerHeight - 300, 100), 800);
-                const size = Math.max(Math.min(availableWidth, availableHeight), 100);
-                
-                canvas.width = size;
-                canvas.height = size;
-                ant.cellSize = size / ant.gridSize;
-                ant.draw();
+          if (size <= 100) {
+            ctx.strokeStyle = "#e2e8db";
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            for (let i = 1; i < size; i++) {
+              ctx.moveTo(i * s, 0);
+              ctx.lineTo(i * s, 800);
+              ctx.moveTo(0, i * s);
+              ctx.lineTo(800, i * s);
             }
-            
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-        </script>
-    </div>
-</body>
+            ctx.stroke();
+          }
+          const ax = (x - cameraX + half + 0.5) * s,
+            ay = (cameraY + half - 1 - y + 0.5) * s,
+            markerSize = Math.max(s, 14);
+          ctx.save();
+          ctx.translate(ax, ay);
+          ctx.beginPath();
+          ctx.arc(0, 0, Math.max(s * 0.8, 12), 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(188,139,74,.5)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.rotate((direction * Math.PI) / 2);
+          ctx.beginPath();
+          ctx.moveTo(0, -markerSize * 0.44);
+          ctx.lineTo(markerSize * 0.34, markerSize * 0.34);
+          ctx.lineTo(0, markerSize * 0.17);
+          ctx.lineTo(-markerSize * 0.34, markerSize * 0.34);
+          ctx.closePath();
+          ctx.fillStyle = "#bc8b4a";
+          ctx.fill();
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = Math.max(0.7, s * 0.08);
+          ctx.stroke();
+          ctx.restore();
+        }
+        function reset() {
+          pause();
+          black.clear();
+          x = y = steps = direction = cameraX = cameraY = 0;
+          stats();
+          draw();
+          $("ant-result").textContent =
+            "빈 격자, 원점, 북쪽에서 시작합니다. 한 칸 진행으로 회전·색 변경·이동을 확인해 보세요.";
+        }
+        function advance(n) {
+          for (let i = 0; i < n; i++) step();
+          stats();
+          draw();
+        }
+        function values() {
+          $("speedSlider-value").textContent =
+            fmt($("speedSlider").value) + " 단계/초";
+          $("gridSizeSlider-value").textContent = size + " 칸";
+          document
+            .querySelectorAll("[data-ant-speed]")
+            .forEach((b) =>
+              b.setAttribute(
+                "aria-pressed",
+                +b.dataset.antSpeed === +$("speedSlider").value,
+              ),
+            );
+          $("ant-view-note").textContent =
+            $("ant-boundary").value === "infinite"
+              ? "무한 격자의 일부를 보여 줍니다. 화면은 개미를 따라 이동하며, 검은 칸 수는 화면 밖까지 포함합니다."
+              : size +
+                " × " +
+                size +
+                "칸의 유한 격자입니다. 오른쪽·왼쪽, 위·아래의 경계가 서로 이어지는 변형입니다.";
+        }
+        $("startBtn").onclick = () => {
+          running = true;
+          accumulator = 0;
+          buttons();
+        };
+        $("pauseBtn").onclick = pause;
+        $("stepBtn").onclick = () => {
+          pause();
+          const r = step();
+          stats();
+          draw();
+          $("ant-result").textContent =
+            (r.wasBlack ? "검은 칸에서 왼쪽" : "흰 칸에서 오른쪽") +
+            "으로 돌고, 색을 뒤집은 뒤 " +
+            names[r.direction] +
+            "으로 한 칸 이동했습니다.";
+        };
+        $("resetBtn").onclick = reset;
+        $("speedSlider").oninput = values;
+        document.querySelectorAll("[data-ant-speed]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              $("speedSlider").value = b.dataset.antSpeed;
+              values();
+            }),
+        );
+        $("gridSizeSlider").oninput = () => {
+          size = +$("gridSizeSlider").value;
+          if ($("ant-boundary").value === "wrap") reset();
+          follow();
+          values();
+          draw();
+        };
+        $("ant-boundary").onchange = () => {
+          reset();
+          values();
+        };
+        $("ant-heading").onchange = () => {
+          pause();
+          direction = +$("ant-heading").value;
+          stats();
+          draw();
+        };
+        $("ant-observe").onclick = () => {
+          $("ant-boundary").value = "infinite";
+          reset();
+          values();
+          advance(10000);
+          $("ant-result").textContent =
+            "빈 무한 격자에서 10,000단계를 완료했습니다. 계속 진행하면 반복되는 대각선 흔적을 관찰할 수 있습니다.";
+        };
+        function editCell(wx, wy) {
+          pause();
+          if ($("ant-edit").value === "move") {
+            x = wx;
+            y = wy;
+            if ($("ant-boundary").value === "wrap") {
+              x = wrapped(x);
+              y = wrapped(y);
+            }
+            follow();
+          } else {
+            const k = key(wx, wy);
+            if (black.has(k)) black.delete(k);
+            else black.add(k);
+          }
+          stats();
+          draw();
+          $("ant-result").textContent =
+            "격자를 직접 편집했습니다. 편집은 모형의 단계 수에 포함되지 않습니다.";
+        }
+        canvas.addEventListener("pointerdown", (e) => {
+          const p = pointer(e, canvas);
+          const col = clamp(Math.floor((p.x / 800) * size), 0, size - 1),
+            row = clamp(Math.floor((p.y / 800) * size), 0, size - 1);
+          editCell(cameraX + col - size / 2, cameraY + size / 2 - 1 - row);
+        });
+        canvas.addEventListener("keydown", (e) => {
+          const d = {
+            ArrowUp: [0, 1],
+            ArrowRight: [1, 0],
+            ArrowDown: [0, -1],
+            ArrowLeft: [-1, 0],
+          }[e.key];
+          if (d) {
+            e.preventDefault();
+            pause();
+            x += d[0];
+            y += d[1];
+            if ($("ant-boundary").value === "wrap") {
+              x = wrapped(x);
+              y = wrapped(y);
+            }
+            follow();
+            stats();
+            draw();
+          } else if (e.code === "Space") {
+            e.preventDefault();
+            pause();
+            const k = key(x, y);
+            black.has(k) ? black.delete(k) : black.add(k);
+            stats();
+            draw();
+          }
+        });
+        function frame(t) {
+          const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
+          lastTime = t;
+          if (running) {
+            accumulator += (dt * +$("speedSlider").value) / 1000;
+            const n = Math.floor(accumulator);
+            if (n) {
+              for (let i = 0; i < n; i++) step();
+              accumulator -= n;
+              stats();
+              draw();
+            }
+          }
+          requestAnimationFrame(frame);
+        }
+        app._model = {
+          get state() {
+            return {
+              black: [...black],
+              x,
+              y,
+              direction,
+              steps,
+              size,
+              cameraX,
+              cameraY,
+              running,
+            };
+          },
+          step,
+          advance,
+          reset,
+          setState(s) {
+            pause();
+            black = new Set(
+              (s.black || []).map((p) => (Array.isArray(p) ? key(...p) : p)),
+            );
+            x = s.x || 0;
+            y = s.y || 0;
+            direction = s.direction || 0;
+            steps = s.steps || 0;
+            follow();
+            stats();
+            draw();
+          },
+        };
+        values();
+        reset();
+        requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
 </html>

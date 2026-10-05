@@ -1,15 +1,40 @@
 <!doctype html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="같은 그리기 규칙을 반복해 나무, 눈꽃, 곡선 무늬를 만듭니다.">
+  <title>반복해서 만드는 나무와 무늬 사용법 | Web Simulator</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('fractal_tree_simulator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="fractal_tree_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/66" target="_blank" rel="noopener">관련 글 ↗</a></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>반복해서 만드는 나무와 무늬 사용법</h1><p class="doc-lead">문자 치환과 회전 규칙을 반복해 나무·눈꽃·곡선 무늬를 만듭니다.</p></header>
+    <article class="doc-content" id="guide">
+<h2>처음 세 단계</h2>
+<ol><li>기본 가지 나무의 두 단계 예제를 관찰합니다. 한 단계 생성으로 가지를 더 만듭니다.</li><li>회전 각도 하나를 바꿔 같은 단계의 모양을 비교합니다. 분기 길이 비율은 나무·식물 프리셋에서만 적용됩니다.</li><li>다른 무늬를 고르고 생성 단계를 늘리거나 SVG 저장으로 지금의 그림을 내려받습니다.</li></ol>
+<h2>결과 읽기</h2>
+<p>반복 단계는 모든 문자에 치환 규칙을 한 번 적용한 횟수입니다. 그린 선과 갈라진 가지 수가 단계에 따라 어떻게 증가하는지 관찰하세요. 시작 모양은 단계 0으로 돌아갑니다.</p>
+<p>방향 흔들림은 각 회전에 더하는 정해진 시각 효과입니다. 같은 설정이면 다시 그려도 같은 그림이 나오며 SVG는 화면과 같은 선·색·흔들림을 저장합니다.</p>
+<h2>확인할 점</h2>
+<p>나무의 나이·실제 바람·영양·빛은 계산하지 않습니다. 힐베르트·양치식물의 단계 0에는 선이 없으므로 한 단계 생성을 눌러야 보입니다. 선 60,000개 또는 문자 300,000개 한도를 넘는 다음 단계는 차단합니다.</p>
+<details class="doc-principles"><summary>제작 원리와 학술적 의미</summary>
+<h3>L-System의 학술적 의미</h3>
+<p>Lindenmayer 시스템은 시작 문자열과 문자 치환 규칙으로 구조 발달을 나타내는 형식 체계입니다. 이 도구는 문맥 없는 결정론적 규칙을 모든 문자에 동시에 적용합니다. 터틀 해석에서 F/G는 전진, +/-는 회전, [는 위치·방향 저장, ]는 저장 위치·방향 복귀입니다. X와 일부 A/B는 다음 치환을 위한 보조 기호입니다.</p>
+<p>괄호를 사용한 나무·식물은 위상적 분기와 회전 각도로 형태를 표현합니다. 분기 때 선 길이를 줄이는 이 페이지의 비율은 추가적인 시각적 설정입니다. 물리적 성장 법칙이나 생물종의 예측 모형으로 해석할 수 없습니다. <a href="https://algorithmicbotany.org/papers/abop/abop-ch1.pdf" target="_blank" rel="noopener">Prusinkiewicz·Lindenmayer, The Algorithmic Beauty of Plants, Chapter 1</a></p>
+<h3>프리셋의 차이</h3>
+<p>가지 나무: F → FF-[-F+F+F]+[+F-F-F], 회전 25°. 양치식물: X → F-[[X]+X]+F[+FX]-X, F → FF. 코흐 눈꽃: F++F++F에서 F → F-F++F-F, 회전 60°.</p>
+<p>고스퍼 곡선은 A/B 모두 선을 그리며 A → A-B--B+A++AA+B-, B → +A-BB--B-A++A+B, 회전 60°를 사용합니다. 다른 프리셋의 실제 시작 문자열과 규칙은 화면에 표시됩니다.</p>
+<p>오각 회전 무늬는 F → F++F--F의 창작 규칙입니다. 과거의 Penrose Tiling 이름을 수정했습니다. 이것은 Penrose 비주기 타일링을 구성하는 알고리즘이 아닙니다.</p>
+<h3>같은 그림을 저장하는 방식</h3>
+<p>먼저 하나의 터틀 해석으로 모든 선분을 계산하고 전체 경계를 구합니다. 화면에 맞춰 같은 비율로 축소해 Canvas와 SVG에 동일하게 그립니다. 이 방식으로 바람 효과·가지 두께·색·배경의 저장 차이를 제거합니다.</p>
+</details>
+</article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="fractal_tree_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/66" target="_blank" rel="noopener">관련 글 ↗</a></nav></footer>
+  </main>
 </body>
 </html>

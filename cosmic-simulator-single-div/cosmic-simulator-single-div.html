@@ -1,34 +1,6 @@
-<div id="cosmic-button-simulator">
-    <style>
-        #cosmic-button-simulator {
-            position: relative;
-            width: 100%;
-            height: 80vh;
-            font-family: 'Arial', sans-serif;
-            overflow: visible;
-            background: linear-gradient(135deg, #0c0c2e, #1a1a3e) !important;
-            color: white !important;
-            user-select: none;
-            color-scheme: dark;
-            margin-bottom: 80px;
-        }
-
-        #cosmic-button-simulator * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        #cosmic-button-simulator #cosmos {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            cursor: crosshair;
-            transition: background 2s ease;
-            overflow: hidden;
-        }
-
-        #cosmic-button-simulator .stars {
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>작은 우주 만들기</title><link rel="stylesheet" href="../assets/simulator.css"><script src="../assets/simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><style>        #cosmic-button-simulator .stars {
+            pointer-events: none;
             position: absolute;
             width: 2px;
             height: 2px;
@@ -45,7 +17,7 @@
         #cosmic-button-simulator .celestial-body {
             position: absolute;
             border-radius: 50%;
-            transition: all 0.3s ease;
+            transition: box-shadow 0.3s ease;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
             cursor: pointer;
         }
@@ -81,187 +53,9 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        #cosmic-button-simulator #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 25px;
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-        }
-
-        #cosmic-button-simulator #reset-container {
-            position: absolute;
-            bottom: -70px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
-
-        #cosmic-button-simulator #reset-button {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            border: none;
-            color: white;
-            padding: 12px 25px;
-            font-size: 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        #cosmic-button-simulator #reset-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
-        }
-
-        #cosmic-button-simulator #stats {
-            display: inline-block;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
-            vertical-align: middle;
-        }
-
-        #cosmic-button-simulator .stat-item {
-            display: inline-block;
-            margin-right: 20px;
-            padding: 0 10px;
-            border-right: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        #cosmic-button-simulator .stat-item:last-child {
-            border-right: none;
-            margin-right: 0;
-        }
-
-        #cosmic-button-simulator .stat-label {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-        }
-
-        #cosmic-button-simulator .stat-value {
-            color: #667eea;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        #cosmic-button-simulator #message {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 2000;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            text-align: center;
-            border: 1px solid #667eea;
-            color: #ffffff !important;
-            backdrop-filter: blur(5px);
-        }
-
-        #cosmic-button-simulator #status-log {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 250px;
-            height: 80px;
-            background: rgba(0, 0, 0, 0.8) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.9) !important;
-            overflow-y: auto;
-            z-index: 1500;
-            backdrop-filter: blur(10px);
-        }
-
-        #cosmic-button-simulator #status-log::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        #cosmic-button-simulator #status-log::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-        }
-
-        #cosmic-button-simulator #status-log::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-        }
-
-        #cosmic-button-simulator .log-entry {
-            margin-bottom: 4px;
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: inherit !important;
-        }
-
-        #cosmic-button-simulator .log-entry:last-child {
-            border-bottom: none;
-        }
-
-        #cosmic-button-simulator .cosmic-stage-1 {
-            background: linear-gradient(135deg, #0c0c2e, #1a1a3e);
-        }
-
-        #cosmic-button-simulator .cosmic-stage-2 {
-            background: linear-gradient(135deg, #2c1810, #1a0f0f);
-        }
-
-        #cosmic-button-simulator .cosmic-stage-3 {
-            background: linear-gradient(135deg, #0f0f0f, #000000);
-        }
-
-        #cosmic-button-simulator .trail {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0.5;
-            animation: cosmic-trail-fade 1s ease-out forwards;
-        }
-
-        @keyframes cosmic-trail-fade {
-            0% { opacity: 0.5; }
-            100% { opacity: 0; }
-        }
-    </style>
-
-    <div id="cosmos" class="cosmic-stage-1">
-        <div id="ui">
-            <div id="stats">
-                <span class="stat-item">
-                    <span class="stat-label">생성</span>
-                    <span class="stat-value" id="click-count">0</span>
-                </span>
-                <span class="stat-item">
-                    <span class="stat-label">천체</span>
-                    <span class="stat-value" id="body-count">0</span>
-                </span>
-                <span class="stat-item">
-                    <span class="stat-label">블랙홀</span>
-                    <span class="stat-value" id="blackhole-count">0</span>
-                </span>
-                <span class="stat-item">
-                    <span class="stat-label">단계</span>
-                    <span class="stat-value" id="cosmic-stage">원시 우주</span>
-                </span>
-            </div>
-        </div>
-        <div id="status-log"></div>
-    </div>
-    
-    <div id="reset-container">
-        <button id="reset-button">🔄 우주 초기화</button>
-    </div>
-
-    <script>
+#cosmic-button-simulator #cosmos{position:relative;width:100%;height:500px;border-radius:14px;overflow:hidden;cursor:crosshair;transition:background 2s ease;background:radial-gradient(ellipse at 60% 20%,#1c285b,#060d20)}#cosmic-button-simulator .cosmic-stage-2{background:radial-gradient(ellipse at 30% 30%,#512639,#090d20)!important}#cosmic-button-simulator .cosmic-stage-3{background:radial-gradient(ellipse at 80% 30%,#192040,#02040b)!important}#cosmic-button-simulator .trail{position:absolute;border-radius:50%;pointer-events:none;opacity:.5;animation:cosmic-trail-fade 1s ease-out forwards}@keyframes cosmic-trail-fade{to{opacity:0}}#cosmic-button-simulator #status-log{font-size:12px;line-height:1.7;min-height:130px;padding:14px;background:#f4f5f1;border-radius:12px;margin-top:10px;color:#69766c}#cosmic-button-simulator .log-entry+.log-entry{border-top:1px solid #dce4da;padding-top:5px;margin-top:5px}#cosmic-button-simulator .cosmic-caption{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#69766c;margin:12px 0}#cosmic-button-simulator .cosmic-caption strong{color:#1f6b50}@media(max-width:600px){#cosmic-button-simulator #cosmos{height:390px}}#cosmic-button-simulator .sim-stage-panel .sim-stat-grid{margin:18px 20px;grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:600px){#cosmic-button-simulator .sim-stage-panel .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}#cosmic-button-simulator #cosmic-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;pointer-events:none;color:#edf3f8;padding:24px}#cosmic-button-simulator #cosmic-empty span{color:#9dc7b6;font-size:10px;letter-spacing:.2em}#cosmic-button-simulator #cosmic-empty strong{font-size:20px;font-weight:550}#cosmic-button-simulator #cosmic-empty small{font-size:12px;color:#8e9db1}#cosmic-button-simulator #cosmos{width:calc(100% - 40px);margin:20px auto 0}#cosmic-button-simulator .cosmic-caption{padding:0 20px}</style></head><body><main id="cosmic-button-simulator" class="sim-app sim-app--cosmic-button-simulator">
+<div class="sim-workspace"><section class="sim-stage-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">YOUR LITTLE UNIVERSE</span><h2>만들고, 합치고, 나누기</h2></div></div><div class="sim-toolbar"><button class="sim-primary" id="cosmic-pause">일시정지</button><button id="cosmic-step">한 단계</button><button id="reset-button">초기화</button></div><div id="cosmos" class="cosmic-stage-1" aria-label="빈 공간을 눌러 천체를 추가하는 우주 무대"><div id="cosmic-empty"><span>YOUR FIRST STAR</span><strong>빈 곳을 눌러 천체를 만드세요</strong><small>또는 옆의 6개 천체로 시작을 선택하세요</small></div></div><div class="cosmic-caption"><span>빈 곳: 천체 생성 · 큰 천체: 분할</span><span>배경 <strong id="cosmic-stage">푸른 성운</strong></span></div><div class="sim-stat-grid"><div class="sim-stat"><span>생성 횟수</span><strong id="click-count">0</strong></div><div class="sim-stat"><span>현재 천체</span><strong id="body-count">0</strong></div><div class="sim-stat"><span>어두운 천체</span><strong id="blackhole-count">0</strong></div><div class="sim-stat"><span>총질량</span><strong id="cosmic-mass">0 m</strong></div></div></section>
+<aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">COMPOSE A SCENE</span><h2>장면과 관찰</h2></div></div><div class="sim-toolbar"><button id="cosmic-demo">6개 천체로 시작</button><button id="cosmic-add">무작위 천체 추가</button></div><p class="sim-note">서로 가까운 천체는 끌어당기고 닿으면 합쳐집니다. 충분히 큰 천체를 누르면 여러 조각으로 나뉩니다. 밝은 후광은 분할 후 1초 동안 합체를 피하는 표시입니다.</p><p class="sim-note">합체와 분할은 총질량과 순운동량을 보존합니다. 분할 버튼은 에너지를 추가하고, 벽에 튕길 때는 속도가 줄어듭니다.</p><h3 class="sim-section-title">최근 일어난 일</h3><div id="status-log" role="log" aria-label="최근 이벤트"></div><p class="sim-note">천체의 색·어두운 천체 전환·배경은 시각적 규칙입니다. 우주 팽창, 별의 진화, 실제 블랙홀의 폭발을 계산하는 장면은 아닙니다.</p></aside></div></main>    <script>
         (function() {
             var container = document.getElementById('cosmic-button-simulator');
             var cosmos = container.querySelector('#cosmos');
@@ -272,6 +66,11 @@
                 this.bodies = [];
                 this.clickCount = 0;
                 this.animationId = null;
+                this.running = true;
+                this.simTime = 0;
+                this.lastFrame = null;
+                this.accumulator = 0;
+                this.dt = 0.5;
                 
                 // 파라미터
                 this.maxPlanets = 100;
@@ -282,15 +81,22 @@
                 this.blackholeMassThreshold = 400;
                 
                 this.backgroundStages = [
-                    { threshold: 0, cssClass: 'cosmic-stage-1', name: '원시 우주' },
-                    { threshold: 25, cssClass: 'cosmic-stage-2', name: '성숙한 우주' },
-                    { threshold: 50, cssClass: 'cosmic-stage-3', name: '어둠의 우주' }
+                    { threshold: 0, cssClass: 'cosmic-stage-1', name: '푸른 성운' },
+                    { threshold: 25, cssClass: 'cosmic-stage-2', name: '붉은 성운' },
+                    { threshold: 50, cssClass: 'cosmic-stage-3', name: '깊은 밤' }
                 ];
 
                 this.initialize = function() {
                     self.createStars();
                     self.bindEvents();
-                    self.animate();
+                    container.querySelector('#cosmic-pause').onclick=function(){self.running=!self.running;this.textContent=self.running?'일시정지':'시작';};
+                    container.querySelector('#cosmic-step').onclick=function(){self.running=false;container.querySelector('#cosmic-pause').textContent='시작';self.advance();};
+                    container.querySelector('#cosmic-demo').onclick=function(){self.resetUniverse();for(var i=0;i<6;i++){var a=i*Math.PI/3;self.createCelestialBody(self.canvas.clientWidth/2+Math.cos(a)*self.canvas.clientWidth*.25,self.canvas.clientHeight/2+Math.sin(a)*self.canvas.clientHeight*.25);}};
+                    container.querySelector('#cosmic-add').onclick=function(){self.createCelestialBody(Math.random()*self.canvas.clientWidth*.7+self.canvas.clientWidth*.15,Math.random()*self.canvas.clientHeight*.7+self.canvas.clientHeight*.15);};
+                    var oldW=self.canvas.clientWidth,oldH=self.canvas.clientHeight;
+                    new ResizeObserver(function(){var w=self.canvas.clientWidth,h=self.canvas.clientHeight;if(oldW&&oldH){self.bodies.forEach(function(b){b.x*=w/oldW;b.y*=h/oldH;b.element.style.left=(b.x-b.size)+'px';b.element.style.top=(b.y-b.size)+'px';});}oldW=w;oldH=h;}).observe(self.canvas);
+
+                    requestAnimationFrame(self.animate);
                 };
 
                 this.createStars = function() {
@@ -329,8 +135,8 @@
                     var centerY = self.canvas.offsetHeight / 2;
                     var spreadFactor = Math.min(self.clickCount * 3, 200);
                     
-                    x = x || centerX + (Math.random() - 0.5) * spreadFactor;
-                    y = y || centerY + (Math.random() - 0.5) * spreadFactor;
+                    x = x == null ? centerX + (Math.random() - 0.5) * spreadFactor : x;
+                    y = y == null ? centerY + (Math.random() - 0.5) * spreadFactor : y;
 
                     var size = self.planetSizeRange[0] + Math.random() * 
                         (self.planetSizeRange[1] - self.planetSizeRange[0]);
@@ -360,6 +166,15 @@
                 this.createElement = function(x, y, size, type) {
                     var element = document.createElement('div');
                     element.className = 'celestial-body ' + type;
+                    element.tabIndex = 0;
+                    element.setAttribute('role', 'button');
+                    element.setAttribute('aria-label', '천체 · 누르면 분할');
+                    element.addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            self.splitCelestialBody(element, x, y);
+                        }
+                    });
                     element.style.left = (x - size) + 'px';
                     element.style.top = (y - size) + 'px';
                     element.style.width = (size * 2) + 'px';
@@ -374,13 +189,14 @@
                     return element;
                 };
 
-                this.animate = function() {
-                    self.updatePhysics();
-                    self.updatePositions();
-                    self.checkCollisions();
-                    self.animationId = requestAnimationFrame(self.animate);
+                this.advance = function(){self.updatePhysics();self.updatePositions();self.checkCollisions();self.simTime+=self.dt/60;};
+                this.animate = function(now) {
+                    if(self.lastFrame===null) self.lastFrame=now;
+                    var elapsed=Math.min((now-self.lastFrame)/1000,0.1);self.lastFrame=now;
+                    if(self.running){self.accumulator+=elapsed*60;while(self.accumulator>=self.dt){self.advance();self.accumulator-=self.dt;}}
+                    else self.accumulator=0;
+                    self.updateStats();self.animationId=requestAnimationFrame(self.animate);
                 };
-
                 this.updatePhysics = function() {
                     for (var i = 0; i < self.bodies.length; i++) {
                         var bodyA = self.bodies[i];
@@ -393,25 +209,25 @@
                             var distance = Math.sqrt(dx * dx + dy * dy);
                             
                             if (distance > 0) {
-                                var force = self.gravityConst * bodyA.mass * bodyB.mass / (distance * distance);
-                                var fx = force * dx / distance;
-                                var fy = force * dy / distance;
+                                var factor = self.gravityConst * bodyA.mass * bodyB.mass / Math.pow(distance*distance+64,1.5);
+                                var fx = factor * dx;
+                                var fy = factor * dy;
                                 
-                                bodyA.vx += fx / bodyA.mass;
-                                bodyA.vy += fy / bodyA.mass;
-                                bodyB.vx -= fx / bodyB.mass;
-                                bodyB.vy -= fy / bodyB.mass;
+                                bodyA.vx += fx / bodyA.mass * self.dt;
+                                bodyA.vy += fy / bodyA.mass * self.dt;
+                                bodyB.vx -= fx / bodyB.mass * self.dt;
+                                bodyB.vy -= fy / bodyB.mass * self.dt;
                             }
                         }
                     }
                 };
 
                 this.updatePositions = function() {
-                    var currentTime = Date.now();
+                    var currentTime = self.simTime*1000;
                     
                     self.bodies.forEach(function(body) {
-                        body.x += body.vx;
-                        body.y += body.vy;
+                        body.x += body.vx * self.dt;
+                        body.y += body.vy * self.dt;
                         
                         // 융합 보호 해제 체크
                         if (body.mergeProtected && currentTime >= body.mergeProtectionEnd) {
@@ -470,7 +286,7 @@
                 };
 
                 this.checkCollisions = function() {
-                    var currentTime = Date.now();
+                    var currentTime = self.simTime*1000;
                     
                     for (var i = self.bodies.length - 1; i >= 0; i--) {
                         for (var j = i - 1; j >= 0; j--) {
@@ -501,6 +317,8 @@
                     var smallerIndex = bodyA.mass > bodyB.mass ? indexB : indexA;
                     
                     var totalMass = larger.mass + smaller.mass;
+                    larger.x=(larger.x*larger.mass+smaller.x*smaller.mass)/totalMass;
+                    larger.y=(larger.y*larger.mass+smaller.y*smaller.mass)/totalMass;
                     larger.vx = (larger.vx * larger.mass + smaller.vx * smaller.mass) / totalMass;
                     larger.vy = (larger.vy * larger.mass + smaller.vy * smaller.mass) / totalMass;
                     larger.mass = totalMass;
@@ -533,7 +351,7 @@
                     body.element.style.width = (body.size * 2) + 'px';
                     body.element.style.height = (body.size * 2) + 'px';
                     
-                    self.showMessage('🌑 블랙홀이 탄생했습니다!');
+                    self.showMessage('질량 기준을 넘어서 어두운 천체로 표시합니다.');
                 };
 
                 this.splitCelestialBody = function(element, clickX, clickY) {
@@ -554,24 +372,25 @@
                     
                     if (originalBody.type === 'blackhole') {
                         fragments = 4 + Math.floor(Math.random() * 4);
-                        messageText = '🌑💥 블랙홀이 폭발하여 ' + fragments + '개의 천체로 분산되었습니다!';
+                        messageText = '어두운 천체를 ' + fragments + '개로 분할했습니다.';
                     } else {
                         fragments = 2 + Math.floor(Math.random() * 3);
                         messageText = '💥 천체가 ' + fragments + '개로 분할되었습니다!';
                     }
                     
+                    if(self.bodies.length-1+fragments>self.maxPlanets){self.showMessage('천체 수 제한 때문에 분할할 수 없습니다.');return;}
                     self.canvas.removeChild(originalBody.element);
                     self.bodies.splice(bodyIndex, 1);
                     
                     var fragmentMass = originalBody.mass / fragments;
                     var fragmentSize = Math.sqrt(fragmentMass / self.massFactor);
                     
+                    var phase=Math.random()*Math.PI*2;
+                    var burstSpeed=originalBody.type==='blackhole'?6:3;
                     for (var i = 0; i < fragments; i++) {
-                        var angle = (Math.PI * 2 * i) / fragments + Math.random() * 0.5;
+                        var angle = (Math.PI * 2 * i) / fragments + phase;
                         var distance = originalBody.size * 0.8;
-                        var speed = originalBody.type === 'blackhole' ? 
-                            4 + Math.random() * 6 : 
-                            2 + Math.random() * 3;
+                        var speed=burstSpeed;
                         
                         var fragment = {
                             id: Date.now() + Math.random() + i,
@@ -589,7 +408,7 @@
                                 'planet'
                             ),
                             mergeProtected: true,
-                            mergeProtectionEnd: Date.now() + 1000 // 1초 보호
+                            mergeProtectionEnd: self.simTime*1000 + 1000 // 1초 보호
                         };
                         
                         self.bodies.push(fragment);
@@ -694,7 +513,7 @@
                         stageElement.textContent = currentStage.name;
                         
                         if (currentStage.threshold > 0) {
-                            self.showMessage('🌌 ' + currentStage.name + '로 진화했습니다!');
+                            self.showMessage('배경 테마: ' + currentStage.name);
                         }
                     }
                 };
@@ -713,7 +532,7 @@
                     if (!text) {
                         var messages = [
                             '새로운 천체가 탄생했습니다! ✨',
-                            '우주가 확장되고 있습니다! 🌌',
+                            '천체가 추가되었습니다. 🌌',
                             '중력이 천체들을 이끌고 있습니다! 🪐',
                             '작은 클릭이 거대한 변화를 만듭니다! 🌟'
                         ];
@@ -748,10 +567,12 @@
                 };
 
                 this.updateStats = function() {
+                    container.querySelector('#cosmic-empty').hidden=self.bodies.length>0;
                     container.querySelector('#click-count').textContent = self.clickCount;
                     container.querySelector('#body-count').textContent = self.bodies.length;
                     container.querySelector('#blackhole-count').textContent = 
                         self.bodies.filter(function(body) { return body.type === 'blackhole'; }).length;
+                    container.querySelector('#cosmic-mass').textContent=self.bodies.reduce(function(s,b){return s+b.mass;},0).toFixed(0)+' m';
                 };
 
                 this.resetUniverse = function() {
@@ -763,10 +584,14 @@
                     
                     self.bodies = [];
                     self.clickCount = 0;
+                    self.simTime=0;
+                    self.accumulator=0;
+                    self.canvas.querySelectorAll('.trail').forEach(function(trail) { trail.remove(); });
+                    container.querySelector('#status-log').innerHTML = '';
                     self.canvas.className = 'cosmic-stage-1';
                     
                     self.updateStats();
-                    container.querySelector('#cosmic-stage').textContent = '원시 우주';
+                    container.querySelector('#cosmic-stage').textContent = '푸른 성운';
                     self.showMessage('🔄 우주가 초기화되었습니다!');
                 };
 
@@ -775,5 +600,4 @@
 
             new CosmicSimulator();
         })();
-    </script>
-</div>
+    </script></body></html>

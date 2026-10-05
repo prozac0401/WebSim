@@ -1,468 +1,941 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boids - 새떼 알고리즘</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>새 떼의 움직임 · WebSim Lab</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/simulator.css" />
+    <script src="../assets/simulator.js" defer></script>
     <style>
-        body {
-            margin: 0;
-            padding: 5px;
-            background: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            min-height: 100vh;
-            box-sizing: border-box;
+      body {
+        margin: 0;
+        background: #f4f5f1;
+        color: #172e27;
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .sim-app,
+      .sim-app * {
+        box-sizing: border-box;
+      }
+      .sim-app {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 28px 56px;
+      }
+      .sim-app .sim-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .sim-app .sim-controls-panel {
+        display: grid;
+        gap: 18px;
+        min-width: 0;
+      }
+      .sim-app .sim-panel {
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+      }
+      .sim-app .sim-stage-panel {
+        padding: 22px;
+      }
+      .sim-app .sim-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .sim-app .sim-panel-heading h2,
+      .sim-app .sim-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .sim-app .sim-section-title {
+        margin-bottom: 17px;
+      }
+      .sim-app .sim-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .sim-app button,
+      .sim-app select,
+      .sim-app input[type="number"] {
+        font: inherit;
+        border: 1px solid #dce4da;
+        border-radius: 9px;
+        color: #172e27;
+        background: #fff;
+        min-height: 42px;
+        padding: 9px 13px;
+        box-shadow: none;
+        margin: 0;
+      }
+      .sim-app button {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .sim-app button:hover {
+        background: #edf3ec;
+        transform: none;
+      }
+      .sim-app button.primary {
+        background: #1f6b50;
+        color: #fff;
+        border-color: #1f6b50;
+      }
+      .sim-app button.primary:hover {
+        background: #195940;
+      }
+      .sim-app button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .sim-app button:focus-visible,
+      .sim-app canvas:focus-visible,
+      .sim-app input:focus-visible,
+      .sim-app select:focus-visible {
+        outline: 3px solid #a9cbb9;
+        outline-offset: 3px;
+      }
+      .sim-app .sim-status {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 4px 10px;
+        background: #edf3ec;
+        color: #35644c;
+        white-space: nowrap;
+      }
+      .sim-app .sim-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-stat {
+        background: #f7f9f5;
+        border: 1px solid #e6ece2;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .sim-app .sim-stat dt {
+        font-size: 11px;
+        color: #69766c;
+        margin-bottom: 5px;
+      }
+      .sim-app .sim-stat dd {
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 650;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+      }
+      .sim-app .sim-stat dd small {
+        font-size: 11px;
+        font-weight: 500;
+        color: #69766c;
+      }
+      .sim-app canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        background: #f7f9f4;
+        border: 1px solid #e2e9de;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .sim-app .sim-note {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #69766c;
+        margin: 12px 0 0;
+      }
+      .sim-app .sim-note strong {
+        color: #365443;
+        font-weight: 600;
+      }
+      .sim-app .sim-control {
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-control:last-child {
+        margin-bottom: 0;
+      }
+      .sim-app .sim-control label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        margin-bottom: 8px;
+      }
+      .sim-app .sim-control output {
+        color: #1f6b50;
+        font-size: 12px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .sim-app input[type="range"] {
+        display: block;
+        accent-color: #1f6b50;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+      }
+      .sim-app .sim-control select,
+      .sim-app .sim-control input[type="number"] {
+        width: 100%;
+        font-size: 13px;
+      }
+      .sim-app .check-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        margin: 12px 0;
+      }
+      .sim-app .check-control input {
+        accent-color: #1f6b50;
+        margin: 5px 0 0;
+        flex: 0 0 auto;
+      }
+      .sim-app .preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .sim-app .preset-row button {
+        font-size: 12px;
+        min-height: 36px;
+        padding: 7px 11px;
+      }
+      .sim-app .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 13px;
+      }
+      .sim-app .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sim-app .legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #1f6b50;
+      }
+      .sim-app .rule-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .sim-app .rule-chip {
+        border: 1px solid #dce4da;
+        background: #f7f9f5;
+        border-radius: 9px;
+        padding: 12px;
+        font-size: 12px;
+      }
+      .sim-app .rule-chip b {
+        display: block;
+        font-size: 14px;
+        color: #172e27;
+        margin-top: 4px;
+      }
+      .sim-app .sim-result {
+        background: #edf3ec;
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: #365443;
+        margin-top: 13px;
+        min-height: 43px;
+      }
+      .sim-app .compact-stat {
+        font-size: 11px;
+        color: #69766c;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-app .sim-divider {
+        height: 1px;
+        background: #e4eade;
+        margin: 18px 0;
+      }
+      .sim-app .sim-muted {
+        color: #69766c;
+      }
+      .sim-app a {
+        color: #1f6b50;
+      }
+      .sim-app .sim-stat-grid.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .sim-app .sim-stat-grid.four dd {
+        font-size: 19px;
+      }
+      .sim-app .square-stage {
+        max-width: 680px;
+        margin: auto;
+      }
+      .sim-app .instruction-line {
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 8px;
+      }
+      .sim-app {
+        max-width: 1360px;
+        width: calc(100% - 64px);
+        padding: 0 0 42px;
+      }
+      .sim-app .sim-controls-panel {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .sim-app .sim-panel-heading {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .sim-app .sim-toolbar {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-note {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-stat dd small {
+        display: inline;
+      }
+      @media (max-width: 1050px) {
+        .sim-app {
+          width: calc(100% - 40px);
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+      }
+      @media (max-width: 900px) {
+        .sim-app .sim-workspace {
+          grid-template-columns: 1fr;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            color: #333;
+        .sim-app .sim-controls-panel {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        .subtitle {
-            text-align: left;
-            margin-bottom: 30px;
-            font-style: italic;
-            color: #666;
+        .sim-app .sim-controls-panel .full-width {
+          grid-column: 1/-1;
         }
-        #canvas {
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            background: #f8f9fa;
-            display: block;
-            margin: 0 auto 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          padding: 16px 12px 36px;
         }
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+        .sim-app .sim-panel,
+        .sim-app .sim-stage-panel {
+          padding: 16px;
         }
-        .control-group {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .sim-app .sim-controls-panel {
+          grid-template-columns: 1fr;
         }
-        .control-group h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+        .sim-app .sim-stat {
+          padding: 9px;
         }
-        .slider-container {
-            margin-bottom: 15px;
+        .sim-app .sim-stat dd {
+          font-size: 19px;
         }
-        .slider-container:last-child {
-            margin-bottom: 0;
+        .sim-app .sim-stat-grid.four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
+        .sim-app .sim-toolbar {
+          gap: 6px;
         }
-        input[type="range"] {
-            width: 100%;
-            margin-bottom: 5px;
+        .sim-app button {
+          padding: 9px 11px;
         }
-        .value-display {
-            text-align: right;
-            font-size: 0.9em;
-            opacity: 0.8;
+        .sim-app .sim-panel-heading {
+          align-items: flex-start;
         }
-
-        .stats {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #666;
+        .sim-app .sim-note {
+          font-size: 11px;
         }
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          width: calc(100% - 28px);
+          padding: 0 0 36px;
+        }
+        .sim-app .sim-stat dd small {
+          display: block;
+          margin-top: 4px;
+        }
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <p class="subtitle">"우리는 누구의 지시도 받지 않았다. 그저, 옆을 따라갔을 뿐이다."</p>
-        
-        <canvas id="canvas" width="800" height="500"></canvas>
-        
-        <div class="controls">
-            <div class="control-group">
-                <h3>🎯 기본 설정</h3>
-                <div class="slider-container">
-                    <label>새의 개수</label>
-                    <input type="range" id="boidCount" min="20" max="200" value="80">
-                    <div class="value-display" id="boidCountValue">80</div>
-                </div>
-                <div class="slider-container">
-                    <label>최대 속도</label>
-                    <input type="range" id="maxSpeed" min="1" max="5" step="0.1" value="2">
-                    <div class="value-display" id="maxSpeedValue">2.0</div>
-                </div>
+  </head>
+  <body>
+    <main class="sim-app sim-app--boids" id="sim-app">
+      <div class="sim-workspace">
+        <section class="sim-panel sim-stage-panel">
+          <div class="sim-panel-heading">
+            <h2>무리의 움직임</h2>
+            <span class="sim-status" id="boids-status">진행 중</span>
+          </div>
+          <div class="sim-toolbar">
+            <button class="primary" id="boids-start" disabled>시작</button
+            ><button id="boids-pause">일시정지</button
+            ><button id="boids-step">1단계 진행</button
+            ><button id="boids-reset">새 무리로 초기화</button
+            ><span class="compact-stat" id="fps">— FPS</span>
+          </div>
+          <dl class="sim-stat-grid">
+            <div class="sim-stat">
+              <dt>개체 수</dt>
+              <dd><span id="boids-count">100</span> <small>마리</small></dd>
             </div>
-            
-            <div class="control-group">
-                <h3>🔄 Separation (충돌 방지)</h3>
-                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">너무 가까운 개체는 피한다. 충돌을 방지하고 개체 간 최소 거리를 유지한다.</p>
-                <div class="slider-container">
-                    <label>분리 거리</label>
-                    <input type="range" id="separationRadius" min="10" max="60" value="25">
-                    <div class="value-display" id="separationRadiusValue">25</div>
-                </div>
-                <div class="slider-container">
-                    <label>분리 강도</label>
-                    <input type="range" id="separationForce" min="0.1" max="3" step="0.1" value="1.5">
-                    <div class="value-display" id="separationForceValue">1.5</div>
-                </div>
+            <div class="sim-stat">
+              <dt>방향 일치도</dt>
+              <dd><span id="boids-order">—</span></dd>
             </div>
-            
-            <div class="control-group">
-                <h3>📐 Alignment (방향 정렬)</h3>
-                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">이웃의 방향에 맞춘다. 주변 개체들의 평균 방향으로 자신의 방향을 조정한다.</p>
-                <div class="slider-container">
-                    <label>정렬 거리</label>
-                    <input type="range" id="alignmentRadius" min="20" max="100" value="50">
-                    <div class="value-display" id="alignmentRadiusValue">50</div>
-                </div>
-                <div class="slider-container">
-                    <label>정렬 강도</label>
-                    <input type="range" id="alignmentForce" min="0.1" max="2" step="0.1" value="1.0">
-                    <div class="value-display" id="alignmentForceValue">1.0</div>
-                </div>
+            <div class="sim-stat">
+              <dt>평균 이동 속도</dt>
+              <dd><span id="boids-speed">—</span> <small>좌표/단계</small></dd>
             </div>
-            
-            <div class="control-group">
-                <h3>🤝 Cohesion (무리 응집)</h3>
-                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">이웃들과 뭉친다. 주변 개체들의 중심점을 향해 이동하려는 경향을 보인다.</p>
-                <div class="slider-container">
-                    <label>응집 거리</label>
-                    <input type="range" id="cohesionRadius" min="30" max="120" value="80">
-                    <div class="value-display" id="cohesionRadiusValue">80</div>
-                </div>
-                <div class="slider-container">
-                    <label>응집 강도</label>
-                    <input type="range" id="cohesionForce" min="0.1" max="2" step="0.1" value="1.0">
-                    <div class="value-display" id="cohesionForceValue">1.0</div>
-                </div>
+          </dl>
+          <canvas
+            id="canvas"
+            width="800"
+            height="500"
+            tabindex="0"
+            aria-label="세 가지 이웃 규칙에 따라 움직이는 Boids. 포인터를 가까이 대면 주변 개체가 피합니다."
+          ></canvas>
+          <div class="legend">
+            <span><i></i>삼각형 끝 = 이동 방향</span
+            ><span><i style="background: #c6a16c"></i>포인터의 반발 범위</span
+            ><span>화면의 맞은편 경계는 이어집니다</span>
+          </div>
+          <div class="sim-result" id="boids-result">
+            방향 일치도 1은 모두 같은 방향, 0에 가까우면 방향이 서로 상쇄되는
+            상태입니다.
+          </div>
+          <p class="sim-note">
+            개체는 <strong>주변 이웃만</strong> 보고 움직입니다. 마우스 반발을
+            끄면 세 규칙만의 변화를 비교할 수 있습니다. FPS는 화면 성능이며
+            모형의 시간이나 일치도가 아닙니다.
+          </p>
+        </section>
+        <aside class="sim-controls-panel">
+          <section class="sim-panel">
+            <h2 class="sim-section-title">세 가지 이웃 규칙</h2>
+            <div class="sim-control">
+              <label for="separation"
+                >가까우면 피하기<output id="separation-value"
+                  >1.5</output
+                ></label
+              ><input
+                type="range"
+                id="separation"
+                min="0"
+                max="3"
+                step="0.1"
+                value="1.5"
+              />
             </div>
-        </div>
-        
-
-        
-        <div class="stats" id="stats">
-            새의 개수: 80 | 평균 속도: 0.0 | FPS: 0
-        </div>
-    </div>
-
+            <div class="sim-control">
+              <label for="alignment"
+                >방향 맞추기<output id="alignment-value">1</output></label
+              ><input
+                type="range"
+                id="alignment"
+                min="0"
+                max="3"
+                step="0.1"
+                value="1"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="cohesion"
+                >무리로 모이기<output id="cohesion-value">1</output></label
+              ><input
+                type="range"
+                id="cohesion"
+                min="0"
+                max="3"
+                step="0.1"
+                value="1"
+              />
+            </div>
+            <div class="preset-row">
+              <button data-boids-preset="balanced">균형</button
+              ><button data-boids-preset="separate">흩어지기</button
+              ><button data-boids-preset="align">방향 맞추기</button>
+            </div>
+            <p class="sim-note">
+              값 0은 해당 규칙을 끕니다. 프리셋은 같은 무리의 규칙만 바꿉니다.
+            </p>
+          </section>
+          <section class="sim-panel">
+            <h2 class="sim-section-title">이웃과 이동</h2>
+            <div class="sim-control">
+              <label for="separationRadius"
+                >피하기 거리<output id="separationRadius-value"
+                  >25 좌표</output
+                ></label
+              ><input
+                type="range"
+                id="separationRadius"
+                min="10"
+                max="100"
+                step="5"
+                value="25"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="alignmentRadius"
+                >방향을 볼 거리<output id="alignmentRadius-value"
+                  >50 좌표</output
+                ></label
+              ><input
+                type="range"
+                id="alignmentRadius"
+                min="10"
+                max="150"
+                step="5"
+                value="50"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="cohesionRadius"
+                >모일 이웃 거리<output id="cohesionRadius-value"
+                  >80 좌표</output
+                ></label
+              ><input
+                type="range"
+                id="cohesionRadius"
+                min="10"
+                max="200"
+                step="5"
+                value="80"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="maxSpeed"
+                >최대 이동 속도<output id="maxSpeed-value"
+                  >2 좌표/단계</output
+                ></label
+              ><input
+                type="range"
+                id="maxSpeed"
+                min="0.5"
+                max="6"
+                step="0.5"
+                value="2"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="boidCount"
+                >개체 수<output id="boidCount-value">100 마리</output></label
+              ><input
+                type="range"
+                id="boidCount"
+                min="10"
+                max="300"
+                step="10"
+                value="100"
+              />
+            </div>
+          </section>
+          <section class="sim-panel full-width">
+            <h2 class="sim-section-title">관찰 도구</h2>
+            <label class="check-control"
+              ><input id="mouseRepel" type="checkbox" checked />포인터에서
+              멀어지기</label
+            ><label class="check-control"
+              ><input id="trails" type="checkbox" />지나온 흔적 보이기</label
+            >
+            <p class="sim-note">
+              초당 60개의 모형 단계를 기준으로 진행합니다. 각 단계는 모든 개체의
+              이전 상태에서 함께 계산합니다. <strong>새 무리로 초기화</strong>는
+              설정을 유지하고 위치·방향을 다시 뽑은 뒤 멈춥니다.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
     <script>
-        class Vector2D {
-            constructor(x = 0, y = 0) {
-                this.x = x;
-                this.y = y;
-            }
-            
-            add(v) {
-                return new Vector2D(this.x + v.x, this.y + v.y);
-            }
-            
-            subtract(v) {
-                return new Vector2D(this.x - v.x, this.y - v.y);
-            }
-            
-            multiply(scalar) {
-                return new Vector2D(this.x * scalar, this.y * scalar);
-            }
-            
-            divide(scalar) {
-                return new Vector2D(this.x / scalar, this.y / scalar);
-            }
-            
-            magnitude() {
-                return Math.sqrt(this.x * this.x + this.y * this.y);
-            }
-            
-            normalize() {
-                const mag = this.magnitude();
-                return mag > 0 ? this.divide(mag) : new Vector2D(0, 0);
-            }
-            
-            limit(max) {
-                if (this.magnitude() > max) {
-                    return this.normalize().multiply(max);
-                }
-                return this;
-            }
-            
-            distance(v) {
-                return Math.sqrt((this.x - v.x) ** 2 + (this.y - v.y) ** 2);
-            }
-        }
-
-        class Boid {
-            constructor(x, y) {
-                this.position = new Vector2D(x, y);
-                this.velocity = new Vector2D(
-                    (Math.random() - 0.5) * 2,
-                    (Math.random() - 0.5) * 2
-                );
-                this.acceleration = new Vector2D(0, 0);
-                this.maxSpeed = 2;
-                this.maxForce = 0.03;
-                this.size = 3;
-                
-                // 색상 변화를 위한 속성
-                this.hue = Math.random() * 60 + 180; // 파란색~청록색 계열
-            }
-            
-            update() {
-                this.velocity = this.velocity.add(this.acceleration).limit(this.maxSpeed);
-                this.position = this.position.add(this.velocity);
-                this.acceleration = this.acceleration.multiply(0);
-                
-                // 화면 경계 처리 (래핑)
-                if (this.position.x < 0) this.position.x = canvas.width;
-                if (this.position.x > canvas.width) this.position.x = 0;
-                if (this.position.y < 0) this.position.y = canvas.height;
-                if (this.position.y > canvas.height) this.position.y = 0;
-                
-                // 속도에 따른 색상 변화
-                const speedRatio = this.velocity.magnitude() / this.maxSpeed;
-                this.hue = 180 + speedRatio * 60; // 속도가 빠를수록 더 밝은 색
-            }
-            
-            applyForce(force) {
-                this.acceleration = this.acceleration.add(force);
-            }
-            
-            seek(target) {
-                const desired = target.subtract(this.position).normalize().multiply(this.maxSpeed);
-                const steer = desired.subtract(this.velocity).limit(this.maxForce);
-                return steer;
-            }
-            
-            separate(boids, separationRadius, separationForce) {
-                const desiredSeparation = separationRadius;
-                let steer = new Vector2D(0, 0);
-                let count = 0;
-                
-                for (let other of boids) {
-                    const d = this.position.distance(other.position);
-                    if (d > 0 && d < desiredSeparation) {
-                        const diff = this.position.subtract(other.position).normalize().divide(d);
-                        steer = steer.add(diff);
-                        count++;
-                    }
-                }
-                
-                if (count > 0) {
-                    steer = steer.divide(count).normalize().multiply(this.maxSpeed).subtract(this.velocity);
-                    steer = steer.limit(this.maxForce * separationForce);
-                }
-                
-                return steer;
-            }
-            
-            align(boids, alignmentRadius, alignmentForce) {
-                const neighborDist = alignmentRadius;
-                let sum = new Vector2D(0, 0);
-                let count = 0;
-                
-                for (let other of boids) {
-                    const d = this.position.distance(other.position);
-                    if (d > 0 && d < neighborDist) {
-                        sum = sum.add(other.velocity);
-                        count++;
-                    }
-                }
-                
-                if (count > 0) {
-                    sum = sum.divide(count).normalize().multiply(this.maxSpeed);
-                    const steer = sum.subtract(this.velocity).limit(this.maxForce * alignmentForce);
-                    return steer;
-                }
-                
-                return new Vector2D(0, 0);
-            }
-            
-            cohesion(boids, cohesionRadius, cohesionForce) {
-                const neighborDist = cohesionRadius;
-                let sum = new Vector2D(0, 0);
-                let count = 0;
-                
-                for (let other of boids) {
-                    const d = this.position.distance(other.position);
-                    if (d > 0 && d < neighborDist) {
-                        sum = sum.add(other.position);
-                        count++;
-                    }
-                }
-                
-                if (count > 0) {
-                    sum = sum.divide(count);
-                    const steer = this.seek(sum).multiply(cohesionForce);
-                    return steer;
-                }
-                
-                return new Vector2D(0, 0);
-            }
-            
-            flock(boids, params) {
-                const sep = this.separate(boids, params.separationRadius, params.separationForce);
-                const ali = this.align(boids, params.alignmentRadius, params.alignmentForce);
-                const coh = this.cohesion(boids, params.cohesionRadius, params.cohesionForce);
-                
-                this.applyForce(sep);
-                this.applyForce(ali);
-                this.applyForce(coh);
-                
-                this.maxSpeed = params.maxSpeed;
-            }
-            
-            render(ctx) {
-                const angle = Math.atan2(this.velocity.y, this.velocity.x);
-                
-                ctx.save();
-                ctx.translate(this.position.x, this.position.y);
-                ctx.rotate(angle);
-                
-                // 점으로 그리기
-                const size = this.size;
-                ctx.fillStyle = `hsl(${this.hue}, 70%, 50%)`;
-                
-                ctx.beginPath();
-                ctx.arc(0, 0, size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.restore();
-            }
-        }
-
-        // 캔버스와 컨텍스트 설정
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Boids 배열
-        let boids = [];
-        
-        // 매개변수
-        let params = {
-            boidCount: 80,
-            maxSpeed: 2,
-            separationRadius: 25,
-            separationForce: 1.5,
-            alignmentRadius: 50,
-            alignmentForce: 1.0,
-            cohesionRadius: 80,
-            cohesionForce: 1.0
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id),
+          app = $("sim-app");
+        const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+        const fmt = (x) => Number(x).toLocaleString("ko-KR");
+        const pointer = (event, canvas) => {
+          const r = canvas.getBoundingClientRect();
+          return {
+            x: ((event.clientX - r.left) * canvas.width) / r.width,
+            y: ((event.clientY - r.top) * canvas.height) / r.height,
+          };
         };
-        
-        // FPS 카운터
-        let lastTime = 0;
-        let fps = 0;
-        
-        // 초기 Boids 생성
-        function initBoids() {
-            boids = [];
-            for (let i = 0; i < params.boidCount; i++) {
-                boids.push(new Boid(
-                    Math.random() * canvas.width,
-                    Math.random() * canvas.height
-                ));
-            }
+        const canvas = $("canvas"),
+          ctx = canvas.getContext("2d"),
+          W = 800,
+          H = 500,
+          forceLimit = 0.06;
+        let boids = [],
+          nextId = 0,
+          running = true,
+          stepCount = 0,
+          lastTime = 0,
+          accumulator = 0,
+          mouse = null,
+          fpsStart = 0,
+          fpsFrames = 0,
+          statTime = 0;
+        const ids = [
+          "separation",
+          "alignment",
+          "cohesion",
+          "separationRadius",
+          "alignmentRadius",
+          "cohesionRadius",
+          "maxSpeed",
+          "boidCount",
+        ];
+        function params() {
+          return Object.fromEntries(ids.map((id) => [id, +$(id).value]));
         }
-        
-        // 애니메이션 루프
-        function animate(currentTime) {
-            // FPS 계산
-            if (currentTime - lastTime >= 1000) {
-                fps = Math.round(1000 / (currentTime - lastTime) * boids.length) / boids.length;
-                lastTime = currentTime;
-            }
-            
-            // 캔버스 초기화
-            ctx.fillStyle = 'rgba(248, 249, 250, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 평균 속도 계산
-            let totalSpeed = 0;
-            
-            // Boids 업데이트 및 렌더링
-            for (let boid of boids) {
-                boid.flock(boids, params);
-                boid.update();
-                boid.render(ctx);
-                totalSpeed += boid.velocity.magnitude();
-            }
-            
-            const avgSpeed = totalSpeed / boids.length;
-            
-            // 통계 업데이트
-            document.getElementById('stats').textContent = 
-                `새의 개수: ${boids.length} | 평균 속도: ${avgSpeed.toFixed(1)} | FPS: ${fps}`;
-            
-            requestAnimationFrame(animate);
+        function values() {
+          ids.forEach(
+            (id) =>
+              ($(id + "-value").textContent =
+                $(id).value +
+                (id.endsWith("Radius")
+                  ? " 좌표"
+                  : id === "maxSpeed"
+                    ? " 좌표/단계"
+                    : id === "boidCount"
+                      ? " 마리"
+                      : "")),
+          );
+          const presets = {
+            balanced: [1.5, 1, 1],
+            separate: [2.5, 0, 0],
+            align: [0.6, 2.5, 0.4],
+          };
+          document.querySelectorAll("[data-boids-preset]").forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              presets[b.dataset.boidsPreset].every(
+                (v, i) => v === +$(ids[i]).value,
+              ),
+            ),
+          );
         }
-        
-        // 컨트롤 업데이트
-        function updateControls() {
-            // 값 표시 업데이트
-            document.getElementById('boidCountValue').textContent = document.getElementById('boidCount').value;
-            document.getElementById('maxSpeedValue').textContent = document.getElementById('maxSpeed').value;
-            document.getElementById('separationRadiusValue').textContent = document.getElementById('separationRadius').value;
-            document.getElementById('separationForceValue').textContent = document.getElementById('separationForce').value;
-            document.getElementById('alignmentRadiusValue').textContent = document.getElementById('alignmentRadius').value;
-            document.getElementById('alignmentForceValue').textContent = document.getElementById('alignmentForce').value;
-            document.getElementById('cohesionRadiusValue').textContent = document.getElementById('cohesionRadius').value;
-            document.getElementById('cohesionForceValue').textContent = document.getElementById('cohesionForce').value;
-            
-            // 매개변수 업데이트
-            const newBoidCount = parseInt(document.getElementById('boidCount').value);
-            if (newBoidCount !== params.boidCount) {
-                params.boidCount = newBoidCount;
-                initBoids();
-            }
-            
-            params.maxSpeed = parseFloat(document.getElementById('maxSpeed').value);
-            params.separationRadius = parseInt(document.getElementById('separationRadius').value);
-            params.separationForce = parseFloat(document.getElementById('separationForce').value);
-            params.alignmentRadius = parseInt(document.getElementById('alignmentRadius').value);
-            params.alignmentForce = parseFloat(document.getElementById('alignmentForce').value);
-            params.cohesionRadius = parseInt(document.getElementById('cohesionRadius').value);
-            params.cohesionForce = parseFloat(document.getElementById('cohesionForce').value);
+        function randomBoid() {
+          const a = Math.random() * Math.PI * 2,
+            s = +$("maxSpeed").value;
+          return {
+            id: nextId++,
+            x: Math.random() * W,
+            y: Math.random() * H,
+            vx: Math.cos(a) * s,
+            vy: Math.sin(a) * s,
+          };
         }
-        
-        // 이벤트 리스너 추가
-        document.querySelectorAll('input[type="range"]').forEach(slider => {
-            slider.addEventListener('input', updateControls);
-        });
-        
-        // 마우스 인터랙션
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            
-            // 마우스 근처의 Boids에 영향 주기
-            for (let boid of boids) {
-                const distance = boid.position.distance(new Vector2D(mouseX, mouseY));
-                if (distance < 100) {
-                    const force = boid.position.subtract(new Vector2D(mouseX, mouseY))
-                                    .normalize().multiply(0.5);
-                    boid.applyForce(force);
+        function setCount() {
+          const n = +$("boidCount").value;
+          while (boids.length < n) boids.push(randomBoid());
+          boids.length = n;
+          stats();
+        }
+        function limit(x, y, max) {
+          const m = Math.hypot(x, y);
+          return m > max ? { x: (x / m) * max, y: (y / m) * max } : { x, y };
+        }
+        function steer(x, y, b, speed) {
+          const m = Math.hypot(x, y);
+          if (m < 1e-12) return { x: 0, y: 0 };
+          return limit(
+            (x / m) * speed - b.vx,
+            (y / m) * speed - b.vy,
+            forceLimit,
+          );
+        }
+        function offset(a, b) {
+          let x = b.x - a.x,
+            y = b.y - a.y;
+          x -= W * Math.round(x / W);
+          y -= H * Math.round(y / H);
+          return { x, y };
+        }
+        function forces(previous, p, pointerPosition = null) {
+          return previous.map((b, i) => {
+            let sx = 0,
+              sy = 0,
+              ax = 0,
+              ay = 0,
+              cx = 0,
+              cy = 0,
+              ns = 0,
+              na = 0,
+              nc = 0;
+            previous.forEach((other, j) => {
+              if (i === j) return;
+              const d = offset(b, other),
+                r = Math.hypot(d.x, d.y);
+              if (r < p.separationRadius) {
+                if (r < 1e-9) {
+                  // Exact overlaps have no geometric direction. Stable IDs give
+                  // the pair opposite directions without update-order bias.
+                  sx += b.id < other.id ? -1 : 1;
+                } else {
+                  sx -= d.x / (r * r);
+                  sy -= d.y / (r * r);
                 }
+                ns++;
+              }
+              if (r < p.alignmentRadius) {
+                ax += other.vx;
+                ay += other.vy;
+                na++;
+              }
+              if (r < p.cohesionRadius) {
+                cx += d.x;
+                cy += d.y;
+                nc++;
+              }
+            });
+            const s = ns
+                ? steer(sx / ns, sy / ns, b, p.maxSpeed)
+                : { x: 0, y: 0 },
+              a = na ? steer(ax / na, ay / na, b, p.maxSpeed) : { x: 0, y: 0 },
+              c = nc ? steer(cx / nc, cy / nc, b, p.maxSpeed) : { x: 0, y: 0 };
+            let x = s.x * p.separation + a.x * p.alignment + c.x * p.cohesion,
+              y = s.y * p.separation + a.y * p.alignment + c.y * p.cohesion;
+            if (pointerPosition) {
+              const d = offset(b, pointerPosition),
+                r = Math.hypot(d.x, d.y);
+              if (r < 90) {
+                const m =
+                  r < 1e-9 ? { x: 1, y: 0 } : { x: -d.x / r, y: -d.y / r };
+                x += m.x * 0.18 * (1 - r / 90);
+                y += m.y * 0.18 * (1 - r / 90);
+              }
             }
-        });
-        
-        // 초기화 및 시작
-        initBoids();
-        updateControls();
-        animate(0);
+            return { x, y };
+          });
+        }
+        function tick() {
+          const p = params(),
+            previous = boids.map((b) => ({ ...b })),
+            f = forces(previous, p, $("mouseRepel").checked ? mouse : null);
+          boids = previous.map((b, i) => {
+            const v = limit(b.vx + f[i].x, b.vy + f[i].y, p.maxSpeed);
+            return {
+              id: b.id,
+              x: (((b.x + v.x) % W) + W) % W,
+              y: (((b.y + v.y) % H) + H) % H,
+              vx: v.x,
+              vy: v.y,
+            };
+          });
+          stepCount++;
+        }
+        function stats() {
+          const n = boids.length;
+          let x = 0,
+            y = 0,
+            s = 0;
+          boids.forEach((b) => {
+            const m = Math.hypot(b.vx, b.vy);
+            s += m;
+            if (m > 1e-9) {
+              x += b.vx / m;
+              y += b.vy / m;
+            }
+          });
+          $("boids-count").textContent = n;
+          $("boids-order").textContent = (
+            Math.hypot(x, y) / Math.max(n, 1)
+          ).toFixed(2);
+          $("boids-speed").textContent = (s / Math.max(n, 1)).toFixed(2);
+        }
+        function buttons() {
+          $("boids-start").disabled = running;
+          $("boids-pause").disabled = !running;
+          $("boids-status").textContent = running ? "진행 중" : "일시정지";
+          $("boids-start").textContent = stepCount ? "계속 진행" : "시작";
+        }
+        function pause() {
+          running = false;
+          accumulator = 0;
+          buttons();
+          stats();
+        }
+        function reset() {
+          pause();
+          boids = [];
+          nextId = 0;
+          setCount();
+          stepCount = 0;
+          ctx.clearRect(0, 0, W, H);
+          draw();
+          buttons();
+        }
+        function draw() {
+          if ($("trails").checked && running) {
+            ctx.fillStyle = "rgba(247,249,244,.16)";
+            ctx.fillRect(0, 0, W, H);
+          } else {
+            ctx.clearRect(0, 0, W, H);
+          }
+          if (mouse && $("mouseRepel").checked) {
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, 90, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(188,139,74,.4)";
+            ctx.setLineDash([4, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+          boids.forEach((b) => {
+            ctx.save();
+            ctx.translate(b.x, b.y);
+            ctx.rotate(Math.atan2(b.vy, b.vx));
+            ctx.beginPath();
+            ctx.moveTo(7, 0);
+            ctx.lineTo(-5, -3.5);
+            ctx.lineTo(-3, 0);
+            ctx.lineTo(-5, 3.5);
+            ctx.closePath();
+            ctx.fillStyle = "#1f6b50";
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+        function frame(t) {
+          const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
+          lastTime = t;
+          if (running) {
+            accumulator += dt;
+            while (accumulator >= 1000 / 60) {
+              tick();
+              accumulator -= 1000 / 60;
+            }
+          }
+          draw();
+          fpsFrames++;
+          if (!fpsStart) fpsStart = t;
+          if (t - fpsStart >= 500) {
+            $("fps").textContent =
+              Math.round((fpsFrames * 1000) / (t - fpsStart)) + " FPS";
+            fpsFrames = 0;
+            fpsStart = t;
+          }
+          if (t - statTime >= 200) {
+            stats();
+            statTime = t;
+          }
+          requestAnimationFrame(frame);
+        }
+        ids.forEach((id) =>
+          $(id).addEventListener("input", () => {
+            values();
+            if (id === "boidCount") setCount();
+          }),
+        );
+        $("boids-start").onclick = () => {
+          running = true;
+          accumulator = 0;
+          buttons();
+        };
+        $("boids-pause").onclick = pause;
+        $("boids-step").onclick = () => {
+          pause();
+          tick();
+          stats();
+          draw();
+        };
+        $("boids-reset").onclick = reset;
+        $("trails").onchange = () => ctx.clearRect(0, 0, W, H);
+        $("mouseRepel").onchange = () => {
+          if (!$("mouseRepel").checked) mouse = null;
+        };
+        canvas.addEventListener(
+          "pointermove",
+          (e) => (mouse = pointer(e, canvas)),
+        );
+        canvas.addEventListener("pointerleave", () => (mouse = null));
+        canvas.addEventListener("pointercancel", () => (mouse = null));
+        document.querySelectorAll("[data-boids-preset]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const presets = {
+                  balanced: [1.5, 1, 1],
+                  separate: [2.5, 0, 0],
+                  align: [0.6, 2.5, 0.4],
+                },
+                p = presets[b.dataset.boidsPreset];
+              ["separation", "alignment", "cohesion"].forEach(
+                (id, i) => ($(id).value = p[i]),
+              );
+              values();
+            }),
+        );
+        app._model = {
+          get state() {
+            return {
+              boids: boids.map((b) => ({ ...b })),
+              running,
+              stepCount,
+              params: params(),
+              mouse,
+            };
+          },
+          forces,
+          offset,
+          tick,
+          reset,
+          setBoids(points) {
+            pause();
+            boids = points.map((p) => ({ ...p, id: p.id ?? nextId++ }));
+            nextId = Math.max(nextId, ...boids.map((b) => b.id + 1));
+            $("boidCount").value = boids.length;
+            stats();
+            draw();
+          },
+        };
+        values();
+        setCount();
+        buttons();
+        requestAnimationFrame(frame);
+      })();
     </script>
-</body>
+  </body>
 </html>

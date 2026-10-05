@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>주말 회복 플래너</title>
+
+  <link rel="stylesheet" href="../assets/simulator.css">
+  <script src="../assets/simulator.js" defer></script>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 </head>
 <body>
 <div id="weekend-recovery-simulator-app">
 <style>
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
 #weekend-recovery-simulator-app{font-family:"Pretendard","Noto Sans KR",sans-serif;color:#183030}
 #weekend-recovery-simulator-app *{box-sizing:border-box}
 #weekend-recovery-simulator-app .wrs-wrap{max-width:1140px;margin:0 auto;padding:20px;border:1px solid rgba(24,48,48,.12);border-radius:24px;background:
@@ -56,11 +60,11 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
 #weekend-recovery-simulator-app .slots{position:relative;height:768px}
 #weekend-recovery-simulator-app .slot{position:absolute;left:0;right:0;height:24px;border:0;border-bottom:1px dashed rgba(0,0,0,.12);background:transparent;cursor:pointer}
 #weekend-recovery-simulator-app .slot:hover,#weekend-recovery-simulator-app .slot.over{background:rgba(73,160,120,.14)}
-#weekend-recovery-simulator-app .events{position:absolute;inset:0;pointer-events:none}
+#weekend-recovery-simulator-app .events{position:absolute;top:34px;right:0;bottom:0;left:0;pointer-events:none}
 #weekend-recovery-simulator-app .ev{position:absolute;left:5px;right:5px;padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.15);font-size:11px;line-height:1.25;box-shadow:0 4px 10px rgba(0,0,0,.12);pointer-events:auto;cursor:pointer}
 #weekend-recovery-simulator-app .ev b{display:block;font-size:12px}
 #weekend-recovery-simulator-app .ev.sel{outline:2px solid rgba(22,120,122,.55)}
-#weekend-recovery-simulator-app .rz{position:absolute;left:8px;right:8px;height:6px;border-radius:999px;background:rgba(0,0,0,.18);cursor:ns-resize;z-index:2}
+#weekend-recovery-simulator-app .rz{position:absolute;left:8px;right:8px;height:6px;border-radius:999px;background:rgba(0,0,0,.18);cursor:ns-resize;touch-action:none;z-index:2}
 #weekend-recovery-simulator-app .rz.top{top:2px}
 #weekend-recovery-simulator-app .rz.bottom{bottom:2px}
 #weekend-recovery-simulator-app .tone-sleep{background:#dde4ff}
@@ -72,7 +76,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
 #weekend-recovery-simulator-app .tone-screen{background:#eadff7}
 #weekend-recovery-simulator-app .ana{display:flex;justify-content:space-between;align-items:center}
 #weekend-recovery-simulator-app .badge-score{border:1px solid rgba(22,120,122,.36);background:#d7efec;color:#0c585a;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
-#weekend-recovery-simulator-app canvas{margin-top:10px;width:100%;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(243,250,250,.9))}
+#weekend-recovery-simulator-app canvas{margin-top:10px;width:100%;height:250px;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(243,250,250,.9))}
 #weekend-recovery-simulator-app .legend{margin-top:6px;font-size:12px;color:#5e7070}
 #weekend-recovery-simulator-app .axes{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #weekend-recovery-simulator-app .ax{border:1px solid rgba(24,48,48,.12);border-radius:9px;padding:8px;background:#fff}
@@ -101,59 +105,91 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   #weekend-recovery-simulator-app .axes{grid-template-columns:1fr}
   #weekend-recovery-simulator-app .palette{grid-template-columns:1fr}
 }
+
+#weekend-recovery-simulator-app{font-family:system-ui,"Noto Sans KR",sans-serif;color:#172e27}
+#weekend-recovery-simulator-app .wrs-wrap{max-width:1240px;margin:0 auto;padding:0 20px 32px;border:0;border-radius:0;background:transparent;box-shadow:none}
+#weekend-recovery-simulator-app .layout{grid-template-columns:minmax(0,2.2fr) minmax(310px,1fr);gap:20px;align-items:start}
+#weekend-recovery-simulator-app .planner-main,#weekend-recovery-simulator-app .analytics-pane{display:grid;gap:14px;min-width:0}
+#weekend-recovery-simulator-app .card{border-color:#dce4da;box-shadow:none;border-radius:16px;background:#fff;margin:0}
+#weekend-recovery-simulator-app .card .body{padding:18px}
+#weekend-recovery-simulator-app h2{font-size:14px;line-height:1.5}
+#weekend-recovery-simulator-app .hint,#weekend-recovery-simulator-app .sim-note{font-size:12px;line-height:1.65;color:#69766c}
+#weekend-recovery-simulator-app .planner-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;flex-wrap:wrap}
+#weekend-recovery-simulator-app .btn{border-color:#dce4da;padding:9px 12px;font:600 12px system-ui;border-radius:9px;background:#fff;color:#172e27}
+#weekend-recovery-simulator-app .btn.primary{background:#1f6b50;border-color:#1f6b50;color:#fff}
+#weekend-recovery-simulator-app .btn:disabled{opacity:.4;cursor:default}
+#weekend-recovery-simulator-app .setup-disclosure,#weekend-recovery-simulator-app .model-details{padding:14px 18px;border:1px solid #dce4da;border-radius:14px;background:white;font-size:12px;line-height:1.7}
+#weekend-recovery-simulator-app summary{cursor:pointer;font-weight:650;font-size:13px}
+#weekend-recovery-simulator-app .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+#weekend-recovery-simulator-app .setup-grid .card{border:0;background:#f4f6f1;border-radius:10px}
+#weekend-recovery-simulator-app .goal-grid{gap:6px}.goal{min-width:0}
+#weekend-recovery-simulator-app .goal{padding:8px;border-color:#dce4da;border-radius:8px}
+#weekend-recovery-simulator-app .goal.active{background:#e4eee3;border-color:#7ca78d}
+#weekend-recovery-simulator-app .palette{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}
+#weekend-recovery-simulator-app .chip{border-color:#dce4da;border-left-width:4px;border-radius:9px;padding:9px;min-width:0}
+#weekend-recovery-simulator-app .chip .t{font-size:12px}.chip .m{font-size:10px}
+#weekend-recovery-simulator-app .chip.sel{outline-color:#1f6b50;background:#eef5ed}
+#weekend-recovery-simulator-app .picked{font-size:12px;color:#1f6b50;margin-bottom:0}
+#weekend-recovery-simulator-app .planner-scroll{max-height:640px;overflow:auto;margin-top:14px;padding:3px}
+#weekend-recovery-simulator-app .planner{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:0}
+#weekend-recovery-simulator-app .day.sun,#weekend-recovery-simulator-app .day.sat{grid-column:auto;margin-top:0}
+#weekend-recovery-simulator-app .axis{background:#f4f6f1;border-color:#dce4da;margin-top:34px}
+#weekend-recovery-simulator-app .day{background:#fcfdf9;border-color:#dce4da}
+#weekend-recovery-simulator-app .day .dh{background:#f4f6f1;color:#172e27;line-height:17px}
+#weekend-recovery-simulator-app .slot{border-bottom-color:#e0e7dd}
+#weekend-recovery-simulator-app .ev{box-shadow:none;border-color:rgba(23,46,39,.15);font-size:10px;overflow:hidden;padding:7px 7px}
+#weekend-recovery-simulator-app .ev b{font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#weekend-recovery-simulator-app .ev.sel{outline-color:#1f6b50}
+#weekend-recovery-simulator-app canvas{height:180px;margin-top:12px;border-color:#dce4da;background:#fbfcf8}
+#weekend-recovery-simulator-app .badge-score{background:#edf4e8;color:#1f6b50;border-color:#c9dcc4;white-space:nowrap;padding:7px 10px;font-size:12px}
+#weekend-recovery-simulator-app .axes{grid-template-columns:1fr;gap:8px}
+#weekend-recovery-simulator-app .ax{padding:7px 0;border:0;border-radius:0}
+#weekend-recovery-simulator-app .bar{height:6px;background:#e8ede5}
+#weekend-recovery-simulator-app .bar i{background:#63956b}
+#weekend-recovery-simulator-app .badges{gap:5px}.b{font-size:10px}
+#weekend-recovery-simulator-app .copy{border:0;background:#f4f6f1;border-radius:10px;padding:12px}
+#weekend-recovery-simulator-app .copy p{font-size:12px;line-height:1.65}
+#weekend-recovery-simulator-app .copy p:last-child{color:#69766c}
+#weekend-recovery-simulator-app .s{border-color:#dce4da;border-radius:11px;background:#fcfdf9}
+#weekend-recovery-simulator-app .s h3{font-size:12px}.s .m{font-size:12px}
+#weekend-recovery-simulator-app input[type=range]{accent-color:#1f6b50}
+#weekend-recovery-simulator-app .status{min-height:18px;margin:10px 0;font-size:12px;color:#1f6b50}
+@media(max-width:860px){#weekend-recovery-simulator-app .layout{grid-template-columns:1fr}#weekend-recovery-simulator-app .wrs-wrap{padding:0 12px 24px}#weekend-recovery-simulator-app .analytics-pane{grid-template-columns:1fr 1fr}#weekend-recovery-simulator-app .analytics-pane>.card:first-child{grid-row:span 3}}
+@media(max-width:560px){#weekend-recovery-simulator-app .analytics-pane{grid-template-columns:1fr}#weekend-recovery-simulator-app .analytics-pane>.card:first-child{grid-row:auto}#weekend-recovery-simulator-app .card .body{padding:13px}#weekend-recovery-simulator-app .setup-grid{grid-template-columns:1fr}#weekend-recovery-simulator-app .palette{grid-template-columns:repeat(2,minmax(0,1fr))}#weekend-recovery-simulator-app .planner{grid-template-columns:38px minmax(0,1fr) minmax(0,1fr);gap:5px}#weekend-recovery-simulator-app .planner-scroll{max-height:580px}#weekend-recovery-simulator-app .planner-toolbar .sim-note{width:100%}#weekend-recovery-simulator-app .ev{left:3px;right:3px;padding:6px 4px}}
+#weekend-recovery-simulator-app .wrs-wrap{max-width:none;padding:0 0 32px}#weekend-recovery-simulator-app .planner-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 16px;padding:12px 14px;background:#f3f7ed;border:1px solid #dce4da;border-radius:10px;font-size:12px;color:#69766c}#weekend-recovery-simulator-app .planner-summary b{font-size:23px;color:#1f6b50;font-variant-numeric:tabular-nums}#weekend-recovery-simulator-app .planner-summary a{color:#1f6b50;font-size:11px}#weekend-recovery-simulator-app .planner-summary small{font-size:10px}#weekend-recovery-simulator-app .planner-toolbar .sim-note{padding:0;border:0}@media(max-width:860px){#weekend-recovery-simulator-app .wrs-wrap{padding:0 0 24px}}
 </style>
 
-<div class="wrs-wrap">
-  <div class="head">
-    <div>
-      <h1>주말 회복 플래너</h1>
-      <p class="sub">문답 테스트 대신 주말 블록을 배치해 회복 곡선을 미리 확인합니다. 같은 일정도 <b>이동·사회 전환·미해결 압박</b>이 다르면 결과가 달라집니다.</p>
-    </div>
-    <div>
-      <button type="button" class="btn primary" id="wrs-sample">샘플 계획</button>
-      <button type="button" class="btn" id="wrs-clear">초기화</button>
-    </div>
-  </div>
-  <p id="wrs-status" class="status"></p>
-  <div class="layout">
-    <aside>
-      <section class="card"><div class="body"><h2>1) 주말 목표</h2><p class="hint">목표에 따라 4축 가중치가 달라집니다.</p><div id="wrs-goals" class="goal-grid"></div></div></section>
-      <section class="card"><div class="body">
-        <h2>2) 기본 상태</h2><p class="hint">동일한 일정도 시작 컨디션이 다르면 결과가 달라집니다.</p>
+<div class="wrs-wrap sim-app sim-app--weekend">
+<div class="planner-toolbar sim-toolbar"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button></div></div>
+<p id="wrs-status" class="status" role="status" aria-live="polite"></p>
+<div class="layout"><main class="planner-main">
+<details class="setup-disclosure"><summary>목표와 시작 조건 조절</summary><div class="setup-grid"><section class="card"><div class="body"><h2>주말 목표</h2><p class="hint">점수에서 각 요소를 얼마나 중시할지 정합니다.</p><div id="wrs-goals" class="goal-grid"></div></div></section><section class="card"><div class="body">
+        <h2>시작 조건</h2><p class="hint">일정이 같아도 아래 가정에 따라 계산값이 달라집니다.</p>
         <div class="row"><div class="row-top"><span>예상 평균 수면</span><span class="val" id="wrs-sleep-v">7.0h</span></div><input id="wrs-sleep" type="range" min="5" max="9" step="0.5" value="7"></div>
         <div class="row"><div class="row-top"><span>밀린 집안일 압박</span><span class="val" id="wrs-chores-v">3</span></div><input id="wrs-chores" type="range" min="0" max="5" step="1" value="3"></div>
         <div class="row"><div class="row-top"><span>월요일 불안감</span><span class="val" id="wrs-anx-v">3</span></div><input id="wrs-anx" type="range" min="0" max="5" step="1" value="3"></div>
         <div class="row"><div class="row-top"><span>일정 사이 마진</span><span class="val" id="wrs-gap-v">0분</span></div><input id="wrs-gap" type="range" min="0" max="4" step="1" value="0"></div>
-      </div></section>
-      <section class="card"><div class="body"><h2>3) 활동 블록</h2><p class="hint">블록을 드래그하거나, 블록을 선택한 뒤 슬롯을 클릭해 추가합니다. (브런치/일찍 눕기/밤늦게 폰 보기는 시간대 제한, 일정 사이 마진 적용)</p><div id="wrs-palette" class="palette"></div><p id="wrs-picked" class="picked">선택된 블록: 없음</p></div></section>
-      <section class="card" id="wrs-ins"></section>
-    </aside>
-    <main>
-      <section class="card"><div class="body"><h2>4) 주말 계획판</h2><p class="hint">토/일 일정이 바뀔 때마다 결과가 실시간 갱신됩니다. 블록 위/아래 막대를 드래그하면 길이를 늘리거나 줄일 수 있습니다.</p>
-        <div class="planner">
+      </div></section></div></details><section class="card"><div class="body"><h2>① 활동을 고르세요</h2><p class="hint">활동을 고른 뒤 원하는 시간 칸을 누르세요. 드래그로도 배치할 수 있습니다.</p><div id="wrs-palette" class="palette"></div><p id="wrs-picked" class="picked">선택된 블록: 없음</p></div></section><section class="card"><div class="body"><h2>② 토요일과 일요일에 배치하세요</h2><p class="hint">활동을 선택하면 길이·이동 시간을 편집할 수 있습니다. 표는 30분 단위입니다.</p>
+        <div class="planner-summary"><span>계획 비교 지수 <b id="wrs-score-summary">0</b> <small>/ 100</small></span><a href="#wrs-score">결과와 가정 보기 ↓</a></div><div class="planner-scroll"><div class="planner">
           <div class="axis" id="wrs-axis"></div>
           <div class="day sat"><div class="dh">토요일</div><div class="slots" data-day="sat"></div><div class="events" data-day="sat"></div></div>
           <div class="day sun"><div class="dh">일요일</div><div class="slots" data-day="sun"></div><div class="events" data-day="sun"></div></div>
         </div>
-      </div></section>
-      <section class="card"><div class="body">
-        <div class="ana"><h2>5) 현재 상태</h2><span id="wrs-score" class="badge-score">현재 상태 0</span></div>
-        <canvas id="wrs-canvas" width="980" height="250"></canvas>
+      </div></div></section></main><aside class="analytics-pane"><section class="card"><div class="body">
+        <div class="ana"><h2>계획 여유 지수</h2><span id="wrs-score" class="badge-score">비교 지수 0</span></div>
+        <p class="hint">4축 모두 높을수록 이 모형에서 여유가 큰 방향입니다. 실제 건강·피로의 측정값이 아닙니다.</p>
+        <canvas id="wrs-canvas" width="980" height="250" aria-label="현재 계획과 추천안의 회복 여유 비교 곡선"></canvas>
         <div id="wrs-legend" class="legend">실선: 현재 계획 | 점선: 추천안 미리보기</div>
         <div class="axes">
           <div class="ax"><div class="ax-top"><span>몸 회복</span><b id="ax-body">0</b></div><div class="bar"><i id="bar-body"></i></div></div>
-          <div class="ax"><div class="ax-top"><span>사회적 소모</span><b id="ax-social">0</b></div><div class="bar"><i id="bar-social"></i></div></div>
-          <div class="ax"><div class="ax-top"><span>이동 피로</span><b id="ax-travel">0</b></div><div class="bar"><i id="bar-travel"></i></div></div>
-          <div class="ax"><div class="ax-top"><span>미해결 압박</span><b id="ax-pressure">0</b></div><div class="bar"><i id="bar-pressure"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>사람을 만난 뒤의 여유</span><b id="ax-social">0</b></div><div class="bar"><i id="bar-social"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>이동 후의 여유</span><b id="ax-travel">0</b></div><div class="bar"><i id="bar-travel"></i></div></div>
+          <div class="ax"><div class="ax-top"><span>밀린 일을 처리한 뒤의 여유</span><b id="ax-pressure">0</b></div><div class="bar"><i id="bar-pressure"></i></div></div>
         </div>
+        <p id="wrs-constraint-note" class="hint"></p>
         <div id="wrs-badges" class="badges"></div>
         <div class="copy"><p id="wrs-d1">일정을 배치하면 결과 해석이 나옵니다.</p><p id="wrs-d2"></p><p id="wrs-d3"></p></div>
-      </div></section>
-      <section class="card"><div class="body"><div class="ana"><h2>6) 이걸 바꾸면?</h2><button id="wrs-refresh" class="btn" type="button">추천안 갱신</button></div><div id="wrs-sugs" class="sugs"></div></div></section>
-    </main>
-  </div>
-</div>
-
+      </div></section><section class="card" id="wrs-ins"></section><section class="card"><div class="body"><div class="ana"><h2>③ 다른 안과 비교하세요</h2><button id="wrs-refresh" class="btn" type="button">추천안 갱신</button></div><p class="hint">미리보기는 점선만 보여 줍니다. 적용은 시간표를 바꿉니다.</p><div id="wrs-sugs" class="sugs"></div></div></section><details class="model-details"><summary>이 지수는 어떻게 계산하나요?</summary><p>수면·혼자 있는 시간을 기회로, 이동·약속 전환·밀린 일·밤 스크린을 비용으로 둔 설계자의 휴리스틱입니다. 계수와 가중치는 연구에서 추정한 값이 아닙니다.</p><p id="wrs-assumptions"></p><p>일정의 길이와 이동 분은 별도로 입력합니다. 이동 시간을 늘려도 시간표의 블록이 자동으로 늘어나지는 않습니다.</p></details></aside></div></div>
 <script>
 (() => {
   const SLOT_MIN = 30;
@@ -323,8 +359,9 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
       const b = document.createElement("button");
       b.type = "button";
       b.className = `goal${st.goal === k ? " active" : ""}`;
+      b.setAttribute("aria-pressed", String(st.goal === k));
       b.innerHTML = `<b>${v.label}</b><span>${v.sub}</span>`;
-      b.onclick = () => { st.goal = k; renderAll(); };
+      b.onclick = () => { st.goal = k; st.compare = null; renderAll(); };
       el.goals.appendChild(b);
     });
   }
@@ -336,6 +373,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
       c.type = "button";
       c.draggable = true;
       c.className = `chip${st.selectedTpl === k ? " sel" : ""}`;
+      c.setAttribute("aria-pressed", String(st.selectedTpl === k));
       c.style.borderLeftColor = t.color;
       c.innerHTML = `<span class="t">${t.label}</span><span class="m">${t.meta}</span>`;
       c.onclick = () => {
@@ -417,6 +455,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
         const s = document.createElement("button");
         s.type = "button";
         s.className = "slot";
+        s.setAttribute("aria-label", `${day === 'sat' ? '토요일' : '일요일'} ${clock(i)} 활동 추가`);
         s.style.top = `${i * 24}px`;
         s.onmouseenter = () => {};
         s.ondragover = (e) => { e.preventDefault(); s.classList.add("over"); };
@@ -441,6 +480,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   function renderEvents() {
     ["sat", "sun"].forEach((day) => {
       const layer = document.querySelector(`.events[data-day="${day}"]`);
+      layer.style.top = document.querySelector(`.slots[data-day="${day}"]`).offsetTop + 'px';
       layer.innerHTML = "";
       st.events.filter((x) => x.day === day).forEach((ev) => {
         const t = TEMPLATES[ev.type];
@@ -450,6 +490,10 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
         d.style.height = `${ev.dur * 24 - 4}px`;
         d.draggable = true;
         d.dataset.id = ev.id;
+        d.tabIndex = 0;
+        d.setAttribute("role", "button");
+        d.setAttribute("aria-label", `${t.label}, ${ev.day === 'sat' ? '토요일' : '일요일'} ${clock(ev.start)}부터 ${clock(ev.start + ev.dur)}까지, 편집`);
+        d.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); d.click(); } };
         d.innerHTML = `<span class="rz top" data-edge="top"></span><b>${t.label}</b><span>${clock(ev.start)}-${clock(ev.start + ev.dur)}</span><span class="rz bottom" data-edge="bottom"></span>`;
         d.onclick = (e) => { e.stopPropagation(); st.selectedEvent = ev.id; renderInspector(); renderEvents(); };
         d.ondragstart = (e) => { st.drag = { kind: "ev", id: ev.id }; e.dataTransfer.effectAllowed = "move"; };
@@ -550,9 +594,9 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
     box.className = "ins-box";
     box.innerHTML = `
       <div class="ins-head"><b>${t.label}</b><br><small>${ev.day === "sat" ? "토" : "일"} ${clock(ev.start)}-${clock(ev.start + ev.dur)}</small></div>
-      <div class="ins-row"><label>길이 <span id="ins-dur-v">${durTxt(ev.dur)}</span></label><input id="ins-dur" type="range" min="1" max="8" step="1" value="${ev.dur}"></div>
-      <div class="ins-row"><label>이동시간 <span id="ins-tr-v">${ev.travel}분</span></label><input id="ins-tr" type="range" min="0" max="180" step="5" value="${ev.travel}"></div>
-      <div class="ins-row"><label>심리 소모도 <span id="ins-c-v">${strainValue}</span></label><input id="ins-c" type="range" min="1" max="5" step="1" value="${strainValue}"></div>
+      <div class="ins-row"><label for="ins-dur">길이 <span id="ins-dur-v">${durTxt(ev.dur)}</span></label><input id="ins-dur" type="range" min="1" max="8" step="1" value="${ev.dur}"></div>
+      <div class="ins-row"><label for="ins-tr">이동시간 <span id="ins-tr-v">${ev.travel}분</span></label><input id="ins-tr" type="range" min="0" max="180" step="5" value="${ev.travel}"></div>
+      <div class="ins-row"><label for="ins-c">심리 소모도 <span id="ins-c-v">${strainValue}</span></label><input id="ins-c" type="range" min="1" max="5" step="1" value="${strainValue}"></div>
       <div class="ins-actions"><button type="button" class="btn" id="ins-copy">복제</button><button type="button" class="btn" id="ins-del">삭제</button></div>
     `;
     b.appendChild(box);
@@ -636,7 +680,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
       const h = ev.dur * SLOT_MIN / 60;
       const strain = 1 + ((ev.strain ?? 3) - 3) * 0.18;
       travel += ev.travel;
-      if (tone === "travel") travel += h * 35;
+      // Travel minutes are counted once, from the explicit travel input.
       if (tone === "social") {
         appointment++;
         if (prevSocial) socialSwitch += 1.1;
@@ -683,14 +727,19 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
     };
   }
 
-  const band = (s) => s <= 29 ? "휴식보다 버티기에 가까운 주말입니다." : s <= 54 ? "쉬긴 했지만 회복보다 일정 정리에 가까웠습니다." : s <= 79 ? "몸은 회복됐지만 마음이 월요일을 의식합니다." : "생활 리듬이 다시 정렬된 주말입니다.";
-  const cause = (d) => d === "travel" ? "이번 점수를 가장 깎은 건 약속 수보다 동선 길이입니다." : d === "pressure" ? "쉬는 날을 무겁게 만든 건 일정이 아니라 미해결 과제의 잔압입니다." : d === "social" ? "사람을 만난 횟수보다 사람 사이를 전환한 비용이 컸습니다." : "핵심 원인은 활동량보다 밤 스크린으로 인한 수면 질 저하입니다.";
-  const essay = (d) => d === "travel" ? "사람을 지치게 하는 건 큰 사건보다 흩어진 이동 비용일 때가 많습니다." : d === "pressure" ? "회복을 막는 건 바쁨 자체보다 끝내지 못한 일의 여운일 수 있습니다." : d === "social" ? "약속 자체보다 회복 구간 없는 연속 전환이 배터리를 먼저 고갈시킵니다." : "휴식은 양보다 질이라서 밤의 작은 누수가 다음날 시작점을 바꿉니다.";
+  const band = (s) => s<=29?"이 모형에서는 회복 블록에 비해 일정 비용이 큰 계획입니다.":s<=54?"일정 비용과 회복 기회의 균형을 다시 살펴볼 수 있습니다.":s<=79?"회복 구간과 일정 비용이 함께 있는 계획입니다.":"이 모형에서는 회복 구간의 여유가 큰 계획입니다.";
+  const cause = (d) => ({travel:"계산된 비용 중 이동 시간이 가장 큽니다.",pressure:"계산된 비용 중 밀린 일·월요일 불안 가정이 가장 큽니다.",social:"계산된 비용 중 약속·사회 전환이 가장 큽니다.",night:"계산된 비용 중 밤 스크린 시간이 가장 큽니다."})[d];
+  const essay = () => "한 가지 조건만 바꿔 비교하세요. 지수 차이는 가정의 민감도를 보여 주며 실제 회복량을 예측하지 않습니다.";
+  function planViolations(events) {
+    let n=0;
+    events.forEach((e,i)=>{if(!inTimeRule(e.type,e.start,e.dur)||e.start<0||e.start+e.dur>SLOT_COUNT)n++;events.slice(i+1).forEach(o=>{if(e.day===o.day&&e.start<o.start+o.dur+st.gapSlots&&o.start<e.start+e.dur+st.gapSlots)n++;});});
+    return n;
+  }
 
   function draw(main, compare) {
     const c = el.canvas;
-    const w = Math.max(320, c.clientWidth || 320);
-    const h = 250;
+    const w = Math.max(1, c.clientWidth || 320);
+    const h = 180;
     const dpr = window.devicePixelRatio || 1;
     c.width = Math.floor(w * dpr);
     c.height = Math.floor(h * dpr);
@@ -729,8 +778,8 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
     ctx.font = "11px Pretendard";
     ctx.fillStyle = "rgba(0,0,0,.55)";
     ["토 08", "토 12", "토 16", "토 20", "일 08", "일 12", "일 16", "일 20"].forEach((t, i) => {
-      const x = p.l + i / 7 * pw;
-      ctx.fillText(t, x - 12, 246);
+      const x = p.l + (i * 8) / Math.max(main.length - 1, 1) * pw;
+      if(w>420 || i%2===0) ctx.fillText(t, x - 12, h - 4);
     });
     [20, 40, 60, 80, 100].forEach((v) => {
       const y = p.t + (100 - v) / 100 * ph;
@@ -739,7 +788,8 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   }
 
   function scenario(key) {
-    const arr = st.events.map((x) => ({ ...x }));
+    let arr = st.events.map((x) => ({ ...x }));
+    const fitsPlan=(day,start,dur,ignoreId)=>!arr.some(e=>e.id!==ignoreId&&e.day===day&&start<e.start+e.dur+st.gapSlots&&e.start<start+dur+st.gapSlots);
     if (key === "bundle") {
       arr.forEach((e) => { if (e.travel > 0) e.travel = Math.round(e.travel * 0.68); });
       const satSocial = arr.filter((e) => e.day === "sat" && TEMPLATES[e.type].tone === "social");
@@ -749,29 +799,22 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
         let latest = 8;
         satSocial.forEach((e) => latest = Math.max(latest, e.start + e.dur + 1));
         const used = arr.filter((e) => e.id !== mv.id);
-        const can = (day, s, d) => inTimeRule(mv.type, s, d) && !used.some((u) => u.day === day && overlap(s, s + d, u.start, u.start + u.dur));
+        const can = (day, s, d) => inTimeRule(mv.type, s, d) && !used.some((u) => u.day === day && s < u.start + u.dur + st.gapSlots && u.start < s + d + st.gapSlots);
         for (let s = latest; s <= SLOT_COUNT - mv.dur; s++) if (can("sat", s, mv.dur)) { mv.day = "sat"; mv.start = s; break; }
       }
     }
     if (key === "buffer") {
       const extra = { id: `x${Math.random().toString(36).slice(2, 7)}`, type: "deep_rest", day: "sun", start: 4, dur: 3, travel: 0, strain: 1 };
-      const fits = (d, s, len) => !arr.some((e) => e.day === d && overlap(s, s + len, e.start, e.start + e.dur));
+      const fits = (d, s, len) => fitsPlan(d,s,len);
       for (let s = 4; s <= SLOT_COUNT - 3; s++) if (fits("sun", s, 3)) { extra.start = s; arr.push(extra); break; }
       arr.forEach((e) => { if (e.type === "late_screen") e.dur = Math.max(1, e.dur - 1); });
     }
     if (key === "sleep") {
-      arr.forEach((e) => {
-        if (e.type !== "late_screen") return;
-        const cut = 29;
-        if (e.start + e.dur > cut) e.dur = Math.max(1, cut - e.start);
-        if (e.start >= cut) e.start = Math.max(28, cut - e.dur - 1);
-      });
-      const has = arr.some((e) => e.day === "sun" && TEMPLATES[e.type].tone === "sleep" && e.start >= 26);
-      if (!has) {
-        const block = { id: `x${Math.random().toString(36).slice(2, 7)}`, type: "early_sleep", day: "sun", start: 28, dur: 2, travel: 0, strain: 2 };
-        const fits = !arr.some((e) => e.day === "sun" && overlap(block.start, block.start + block.dur, e.start, e.start + e.dur));
-        if (fits) arr.push(block);
-      }
+      const cut=29;
+      arr=arr.filter(e=>e.type!=="late_screen" || e.start<cut);
+      arr.forEach(e=>{if(e.type==="late_screen")e.dur=Math.min(e.dur,cut-e.start);});
+      const has=arr.some(e=>e.day==="sun"&&e.type==="early_sleep");
+      if(!has){const block={id:`x${Math.random().toString(36).slice(2,7)}`,type:"early_sleep",day:"sun",start:28,dur:2,travel:0,strain:2};if(fitsPlan(block.day,block.start,block.dur))arr.push(block);}
     }
     return arr;
   }
@@ -783,22 +826,25 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
       return;
     }
     const specs = [
-      { key: "bundle", t: "추천안 A · 토요일 외출 몰기형", p: "동선을 묶어 이동 비용을 낮춥니다." },
-      { key: "buffer", t: "추천안 B · 일요일 회복 버퍼", p: "일요일 오전 회복 구간을 확보합니다." },
-      { key: "sleep", t: "추천안 C · 수면 보호형", p: "야간 스크린을 줄여 월요일 시작점을 높입니다." }
+      { key: "bundle", t: "추천안 A · 이동 시간 줄이기", p: "이동 시간을 32% 줄일 수 있다고 가정해 비교합니다." },
+      { key: "buffer", t: "추천안 B · 일요일 회복 버퍼", p: "빈 칸과 마진이 허용하면 일요일에 90분의 빈 시간을 넣습니다." },
+      { key: "sleep", t: "추천안 C · 수면 보호형", p: "22:30 이후 폰 보기를 빼고, 가능하면 일요일에 일찍 눕기를 넣습니다." }
     ].map((x) => {
       const plan = scenario(x.key);
       const mm = metrics(plan);
-      return { ...x, plan, m: mm, d: mm.score - m.score };
+      return { ...x, plan, m: mm, d: mm.score - m.score, valid: planViolations(plan)===0 };
     }).sort((a, b) => b.m.score - a.m.score);
 
     specs.forEach((x) => {
       const sign = x.d >= 0 ? "+" : "";
       const n = document.createElement("article");
       n.className = "s";
-      n.innerHTML = `<h3>${x.t}</h3><p>${x.p}</p><div class="m">예상 상태 ${x.m.score} (${sign}${x.d})</div><div class="a"><button type="button" class="btn pv">미리보기</button><button type="button" class="btn ap">적용</button></div>`;
+      n.innerHTML = `<h3>${x.t}</h3><p>${x.p}</p><div class="m">비교 지수 ${x.m.score} (${sign}${x.d})</div><div class="a"><button type="button" class="btn pv">미리보기</button><button type="button" class="btn ap">적용</button></div>`;
       n.querySelector(".pv").onclick = () => { st.compare = { title: x.t, score: x.m.score, trace: x.m.trace }; renderAnalytics(); };
+      n.querySelector(".ap").disabled=!x.valid;
+      if(!x.valid){const note=document.createElement("p");note.textContent="시간대·일정 사이 마진을 먼저 확인해 주세요.";n.appendChild(note);}
       n.querySelector(".ap").onclick = () => {
+        if(planViolations(x.plan))return status("시간대나 일정 사이 마진 조건을 확인해 주세요.",2000);
         st.events = x.plan.map((e) => ({ ...e }));
         st.compare = null;
         st.selectedEvent = null;
@@ -835,7 +881,11 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   function renderAnalytics() {
     const m = metrics(st.events);
     st.metrics = m;
-    el.score.textContent = `현재 상태 ${m.score}`;
+    el.score.textContent = `비교 지수 ${m.score}`;
+    document.getElementById("wrs-score-summary").textContent=m.score;
+    const violations=planViolations(st.events);
+    document.getElementById("wrs-constraint-note").textContent=violations?`일정 조건 ${violations}곳을 확인하세요. 기존 일정은 자동으로 옮기지 않습니다.`:"시간대와 일정 사이 마진 조건을 충족합니다.";
+    const weights=GOALS[st.goal].w;document.getElementById("wrs-assumptions").textContent=`목표 가중치: 몸 ${Math.round(weights.body*100)}%, 사람 ${Math.round(weights.social*100)}%, 이동 ${Math.round(weights.travel*100)}%, 밀린 일 ${Math.round(weights.pressure*100)}%. 최종 지수는 비용식 60% + 4축 가중합 40%입니다.`;
     const fill = (v, tv, bar) => { tv.textContent = `${v}`; bar.style.width = `${v}%`; };
     fill(m.axes.body, el.axBody, el.barBody);
     fill(m.axes.social, el.axSocial, el.barSocial);
@@ -854,7 +904,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
     el.d2.textContent = cause(m.dominant);
     el.d3.textContent = essay(m.dominant);
     draw(m.trace, st.compare ? st.compare.trace : null);
-    el.legend.textContent = st.compare ? `실선: 현재 계획 | 점선: ${st.compare.title} (상태 ${st.compare.score})` : "실선: 현재 계획 | 점선: 추천안 미리보기";
+    el.legend.textContent = st.compare ? `실선: 현재 계획 | 점선: ${st.compare.title} (비교 지수 ${st.compare.score})` : "실선: 현재 계획 | 점선: 추천안 미리보기";
     renderSugs(m);
     publish();
   }
@@ -893,11 +943,16 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   }
 
   function bind() {
-    el.sleep.oninput = () => { st.baseSleep = +el.sleep.value; renderAnalytics(); el.sleepV.textContent = `${st.baseSleep.toFixed(1)}h`; publish(); };
-    el.chores.oninput = () => { st.chores = +el.chores.value; el.choresV.textContent = `${st.chores}`; renderAnalytics(); publish(); };
-    el.anx.oninput = () => { st.anxiety = +el.anx.value; el.anxV.textContent = `${st.anxiety}`; renderAnalytics(); publish(); };
+    el.sleep.setAttribute('aria-label', '예상 평균 수면');
+    el.chores.setAttribute('aria-label', '밀린 집안일 압박');
+    el.anx.setAttribute('aria-label', '월요일 불안감');
+    el.gap.setAttribute('aria-label', '일정 사이 마진');
+    el.sleep.oninput = () => { st.baseSleep = +el.sleep.value; st.compare = null; renderAnalytics(); el.sleepV.textContent = `${st.baseSleep.toFixed(1)}h`; publish(); };
+    el.chores.oninput = () => { st.chores = +el.chores.value; st.compare = null; el.choresV.textContent = `${st.chores}`; renderAnalytics(); publish(); };
+    el.anx.oninput = () => { st.anxiety = +el.anx.value; st.compare = null; el.anxV.textContent = `${st.anxiety}`; renderAnalytics(); publish(); };
     el.gap.oninput = () => {
       st.gapSlots = +el.gap.value;
+      st.compare = null;
       el.gapV.textContent = `${st.gapSlots * SLOT_MIN}분`;
       st.selectedEvent = null;
       renderAll();
@@ -922,6 +977,7 @@ linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12
   renderAxis();
   buildSlots();
   bind();
+  window.addEventListener("resize", () => { if (st.metrics) draw(st.metrics.trace, st.compare ? st.compare.trace : null); });
   renderAll();
   status("블록을 배치하면 회복 곡선이 바로 변합니다.", 1800);
 })();

@@ -1,15 +1,39 @@
 <!doctype html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="위성을 발사하고 중력 강도에 따라 경로가 어떻게 달라지는지 봅니다.">
+  <title>중력과 위성의 궤도 사용법 | Web Simulator</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('gravity_simulator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="gravity_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/43" target="_blank" rel="noopener">관련 글 ↗</a></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>중력과 위성의 궤도 사용법</h1><p class="doc-lead">시작 위치와 속도가 중력 안에서 만드는 경로를 비교합니다.</p></header>
+    <article class="doc-content" id="guide">
+<h2>처음 세 단계</h2>
+<ol><li>원궤도 예제를 누르면 한 위성이 준비됩니다. 시작을 눌러 경로를 관찰합니다.</li><li>일시정지 후 한 단계(0.1 t)를 눌러 조금씩 움직입니다. 중력 강도 하나를 바꾸어 경로가 달라지는지 봅니다.</li><li>빈 공간에서 끌어 놓으면 시작점에서 드래그 방향으로 위성이 발사됩니다. 긴 드래그는 더 큰 초기 속도입니다.</li></ol>
+<h2>결과 읽기</h2>
+<p>모형 시간 t와 거리 u는 화면의 임의 단위입니다. 평균 속도는 u/t입니다. 포획은 중력원의 원 안으로 들어간 위성, 화면 이탈은 계산 영역에서 충분히 멀어진 위성의 누적 수입니다.</p>
+<p>궤도는 지나간 경로, 방향 화살표는 현재 속도입니다. 충돌을 끄면 중심 부근을 통과할 수 있습니다. 재생 속도는 모형 시간을 빠르게 진행하고 중력 강도는 힘 자체를 바꿉니다.</p>
+<h2>장면 조작</h2>
+<p>중력원을 끌어 옮길 수 있습니다. 두 번 누르면 삭제하며 최소 하나는 유지합니다. 중력원 추가는 최대 세 개, 위성 지우기는 모든 위성을 지웁니다. 초기화는 시간을 0으로 하고 중앙 중력원 하나로 돌아갑니다.</p>
+<details class="doc-principles"><summary>제작 원리와 학술적 의미</summary>
+<h3>뉴턴 중력과 완화</h3>
+<p>뉴턴 중력은 질량의 곱에 비례하고 거리 제곱에 반비례합니다. 여기서는 위성의 질량을 무시하는 시험 입자 근사와 움직이지 않는 중력원을 사용합니다. 따라서 위성끼리의 인력이나 중력원의 반작용은 계산하지 않습니다. <a href="https://starchild.gsfc.nasa.gov/docs/StarChild/questions/question30.html" target="_blank" rel="noopener">NASA의 만유인력 설명</a></p>
+<p>가속도는 a = μ·(중력원 위치−위성 위치)/(r²+ε²)^(3/2)이며 μ는 중력 강도×중력원 질량, 완화 길이 ε=10 u입니다. 먼 곳에서는 역제곱 법칙에 가까워지고 중심에서는 무한 가속도를 피합니다. 이것은 뉴턴 중력을 완화한 계산이며 상대론적 블랙홀 해가 아닙니다.</p>
+<p>검은 원은 포획 반경입니다. 실제 사건의 지평선·빛의 휘어짐·시공간은 모형에 포함하지 않습니다. <a href="https://science.nasa.gov/universe/black-holes/" target="_blank" rel="noopener">NASA의 블랙홀 설명</a></p>
+<h3>시간과 수치 적분</h3>
+<p>위치 공간은 창 크기와 무관하게 700×700 u입니다. 물리는 고정 간격 Δt=1/120 t의 kick–drift–kick 방식으로 진행하고 화면의 벽시계 시간과 재생 배율로 반복 횟수를 정합니다. 60 FPS와 120 FPS가 같은 모형 속도를 사용하도록 바꿨습니다. 긴 탭 비활성 시간은 최대 0.1초만 따라갑니다.</p>
+<p>원궤도 예제의 초기 속도는 완화 중력에서 v²=μr²/(r²+ε²)^(3/2)로 계산합니다. 고정된 한 중력원에서 충돌·이탈 없이 짧은 간격으로 진행하면 각운동량과 에너지가 거의 일정한 궤도를 관찰할 수 있습니다. 강도를 바꾸거나 중력원을 이동시키면 비교 조건이 달라집니다.</p>
+<p>포획 여부는 한 스텝의 이동 선분과 원 경계의 교차로 확인합니다. 궤적은 최근 800개 점만 보관합니다. 화면 밖으로 100 u 넘게 나간 위성은 제거합니다.</p>
+</details>
+</article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="gravity_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/43" target="_blank" rel="noopener">관련 글 ↗</a></nav></footer>
+  </main>
 </body>
 </html>

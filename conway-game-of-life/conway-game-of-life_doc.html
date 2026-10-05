@@ -1,15 +1,134 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('conway-game-of-life.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
-</body>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="이웃 8칸의 상태로 모든 세포의 다음 세대를 동시에 정하는 결정론적 세포 자동자입니다."
+    />
+    <title>라이프 게임 · 이론과 사용법</title>
+    <link rel="stylesheet" href="../assets/docs.css" />
+    <script src="../assets/docs.js" defer></script>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  </head>
+  <body class="doc-page">
+    <a class="skip-link" href="#guide">본문으로 이동</a>
+    <main class="doc-shell">
+      <nav class="doc-nav" aria-label="페이지 이동">
+        <a href="../index.html">← 전체 목록</a
+        ><a class="doc-launch" href="conway-game-of-life.html">실험 열기 →</a>
+      </nav>
+      <header class="doc-header">
+        <p class="doc-kicker">WEBSIM LAB · THEORY & GUIDE</p>
+        <h1>라이프 게임</h1>
+        <p class="doc-lead">
+          이웃 8칸의 상태로 모든 세포의 다음 세대를 동시에 정하는 결정론적 세포
+          자동자입니다.
+        </p>
+      </header>
+      <article class="doc-content" id="guide">
+        <h2>처음 세 단계</h2>
+        <ol>
+          <li>
+            처음에 놓인 가로 3칸의 <strong>깜빡이</strong>를 확인하고
+            <strong>1세대 진행</strong>합니다.
+          </li>
+          <li>
+            세로 3칸으로 바뀐 것을 확인하고 다시 진행하여 가로 모양으로
+            돌아오는지 봅니다.
+          </li>
+          <li>
+            <strong>고정 블록</strong>과 <strong>글라이더</strong>를 골라 유지와
+            이동을 비교한 뒤 직접 패턴을 편집합니다.
+          </li>
+        </ol>
+        <h2>결과 읽기</h2>
+        <ul>
+          <li>
+            <strong>완료한 세대</strong>는 격자 전체에 규칙을 한 번 적용한
+            횟수입니다. 세포를 직접 편집한 횟수가 아닙니다.
+          </li>
+          <li>
+            <strong>살아 있는 세포</strong>는 현재 살아 있는 칸 수이며,
+            <strong>이번 세대의 변화</strong>는 태어난 칸과 죽은 칸의 합입니다.
+          </li>
+          <li>
+            깜빡이는 주기 2, 2 × 2 블록은 고정 상태, 글라이더는 빈 공간에서
+            4세대마다 같은 모양으로 대각선 한 칸 이동합니다. 경계나 다른 패턴에
+            닿으면 그 뒤의 행동은 달라질 수 있습니다.
+          </li>
+          <li>
+            선택한 칸의 위치·상태·살아 있는 이웃 수가 규칙 카드 아래 표시됩니다.
+          </li>
+        </ul>
+        <h2>편집과 실험 설정</h2>
+        <ul>
+          <li>
+            누르거나 끌어서 세포를 바꿉니다. 처음 누른 칸이 죽어 있으면 살아
+            있는 칸을 그리고, 살아 있으면 지웁니다. 드래그 사이의 칸도 이어서
+            편집합니다. 편집하면 자동 진행이 멈춥니다.
+          </li>
+          <li>
+            키보드로는 캔버스에 초점을 두고 방향키로 칸을 선택한 뒤 Space로
+            바꿉니다.
+          </li>
+          <li>
+            <strong>시작</strong>·<strong>계속 진행</strong>은 현재 상태에서
+            이어가고, <strong>1세대 진행</strong>은 멈춘 뒤 정확히 한 세대
+            계산합니다. <strong>모두 지우기</strong>는 빈 격자와 세대 0으로
+            돌아갑니다.
+          </li>
+          <li>
+            패턴 프리셋은 멈춘 상태에서 세대 0으로 시작합니다. 무작위는 각 칸을
+            확률 0.25로 살립니다.
+          </li>
+          <li>
+            기본 격자는 30 × 24칸이며 50 × 40, 80 × 64도 선택할 수 있습니다.
+            크기를 바꾸면 패턴을 지웁니다. 진행 속도의 단위는 세대/초입니다.
+          </li>
+          <li>
+            기본 경계는 격자 밖을 죽은 칸으로 봅니다. 맞은편 연결은 토러스
+            변형입니다. 경계를 바꾸면 현재 패턴을 유지하고 세대 0의 새 실험으로
+            시작합니다.
+          </li>
+        </ul>
+        <details class="doc-principles">
+          <summary>모형의 핵심과 학술적 근거</summary>
+          <h3>정확한 규칙 B3/S23</h3>
+          <p>
+            이웃은 가로·세로·대각선의 8칸이고 자기 자신은 포함하지 않습니다.
+            살아 있는 칸은 살아 있는 이웃이 2 또는 3개일 때만 살아남습니다. 죽은
+            칸은 이웃이 정확히 3개일 때 태어납니다. 나머지 상태는 죽습니다.
+            Birth 3 / Survival 2,3을 줄여 B3/S23이라고 부릅니다.
+          </p>
+          <p>
+            새 격자를 별도로 계산하여 모든 세포가 같은 이전 세대를 참고합니다.
+            칸별 순차 변경으로 생길 수 있는 순서 의존성을 피합니다. 같은 초기
+            패턴과 경계에서는 같은 결과가 나타나는 결정론적 모형입니다. 최초
+            구상은 무한 격자이며, 이 실험은 사용자가 선택한 유한 경계 조건을
+            명시합니다.
+          </p>
+          <h3>참고 문헌</h3>
+          <p>
+            Gardner, M. (1970, October).
+            <em
+              >Mathematical Games: The fantastic combinations of John Conway’s
+              new solitaire game “life”.</em
+            >
+            Scientific American, 223, 120–123.
+            <a href="https://www.ibiblio.org/lifepatterns/october1970.html"
+              >1970년 원 기사 재현</a
+            >.
+          </p>
+        </details>
+      </article>
+      <footer class="doc-footer">
+        <nav class="doc-nav" aria-label="페이지 이동">
+          <a href="../index.html">← 전체 목록</a
+          ><a class="doc-launch" href="conway-game-of-life.html">실험 열기 →</a>
+        </nav>
+      </footer>
+    </main>
+  </body>
 </html>

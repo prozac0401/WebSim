@@ -1,512 +1,920 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conway's Game of Life</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>라이프 게임 · WebSim Lab</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/simulator.css" />
+    <script src="../assets/simulator.js" defer></script>
     <style>
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-            font-family: 'Segoe UI', sans-serif;
+      body {
+        margin: 0;
+        background: #f4f5f1;
+        color: #172e27;
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .sim-app,
+      .sim-app * {
+        box-sizing: border-box;
+      }
+      .sim-app {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 28px 56px;
+      }
+      .sim-app .sim-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .sim-app .sim-controls-panel {
+        display: grid;
+        gap: 18px;
+        min-width: 0;
+      }
+      .sim-app .sim-panel {
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+      }
+      .sim-app .sim-stage-panel {
+        padding: 22px;
+      }
+      .sim-app .sim-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .sim-app .sim-panel-heading h2,
+      .sim-app .sim-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .sim-app .sim-section-title {
+        margin-bottom: 17px;
+      }
+      .sim-app .sim-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .sim-app button,
+      .sim-app select,
+      .sim-app input[type="number"] {
+        font: inherit;
+        border: 1px solid #dce4da;
+        border-radius: 9px;
+        color: #172e27;
+        background: #fff;
+        min-height: 42px;
+        padding: 9px 13px;
+        box-shadow: none;
+        margin: 0;
+      }
+      .sim-app button {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .sim-app button:hover {
+        background: #edf3ec;
+        transform: none;
+      }
+      .sim-app button.primary {
+        background: #1f6b50;
+        color: #fff;
+        border-color: #1f6b50;
+      }
+      .sim-app button.primary:hover {
+        background: #195940;
+      }
+      .sim-app button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .sim-app button:focus-visible,
+      .sim-app canvas:focus-visible,
+      .sim-app input:focus-visible,
+      .sim-app select:focus-visible {
+        outline: 3px solid #a9cbb9;
+        outline-offset: 3px;
+      }
+      .sim-app .sim-status {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 4px 10px;
+        background: #edf3ec;
+        color: #35644c;
+        white-space: nowrap;
+      }
+      .sim-app .sim-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-stat {
+        background: #f7f9f5;
+        border: 1px solid #e6ece2;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .sim-app .sim-stat dt {
+        font-size: 11px;
+        color: #69766c;
+        margin-bottom: 5px;
+      }
+      .sim-app .sim-stat dd {
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 650;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+      }
+      .sim-app .sim-stat dd small {
+        font-size: 11px;
+        font-weight: 500;
+        color: #69766c;
+      }
+      .sim-app canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        background: #f7f9f4;
+        border: 1px solid #e2e9de;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .sim-app .sim-note {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #69766c;
+        margin: 12px 0 0;
+      }
+      .sim-app .sim-note strong {
+        color: #365443;
+        font-weight: 600;
+      }
+      .sim-app .sim-control {
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-control:last-child {
+        margin-bottom: 0;
+      }
+      .sim-app .sim-control label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        margin-bottom: 8px;
+      }
+      .sim-app .sim-control output {
+        color: #1f6b50;
+        font-size: 12px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .sim-app input[type="range"] {
+        display: block;
+        accent-color: #1f6b50;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+      }
+      .sim-app .sim-control select,
+      .sim-app .sim-control input[type="number"] {
+        width: 100%;
+        font-size: 13px;
+      }
+      .sim-app .check-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        margin: 12px 0;
+      }
+      .sim-app .check-control input {
+        accent-color: #1f6b50;
+        margin: 5px 0 0;
+        flex: 0 0 auto;
+      }
+      .sim-app .preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .sim-app .preset-row button {
+        font-size: 12px;
+        min-height: 36px;
+        padding: 7px 11px;
+      }
+      .sim-app .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 13px;
+      }
+      .sim-app .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sim-app .legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #1f6b50;
+      }
+      .sim-app .rule-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .sim-app .rule-chip {
+        border: 1px solid #dce4da;
+        background: #f7f9f5;
+        border-radius: 9px;
+        padding: 12px;
+        font-size: 12px;
+      }
+      .sim-app .rule-chip b {
+        display: block;
+        font-size: 14px;
+        color: #172e27;
+        margin-top: 4px;
+      }
+      .sim-app .sim-result {
+        background: #edf3ec;
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: #365443;
+        margin-top: 13px;
+        min-height: 43px;
+      }
+      .sim-app .compact-stat {
+        font-size: 11px;
+        color: #69766c;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-app .sim-divider {
+        height: 1px;
+        background: #e4eade;
+        margin: 18px 0;
+      }
+      .sim-app .sim-muted {
+        color: #69766c;
+      }
+      .sim-app a {
+        color: #1f6b50;
+      }
+      .sim-app .sim-stat-grid.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .sim-app .sim-stat-grid.four dd {
+        font-size: 19px;
+      }
+      .sim-app .square-stage {
+        max-width: 680px;
+        margin: auto;
+      }
+      .sim-app .instruction-line {
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 8px;
+      }
+      .sim-app {
+        max-width: 1360px;
+        width: calc(100% - 64px);
+        padding: 0 0 42px;
+      }
+      .sim-app .sim-controls-panel {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .sim-app .sim-panel-heading {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .sim-app .sim-toolbar {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-note {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-stat dd small {
+        display: inline;
+      }
+      @media (max-width: 1050px) {
+        .sim-app {
+          width: calc(100% - 40px);
         }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+      }
+      @media (max-width: 900px) {
+        .sim-app .sim-workspace {
+          grid-template-columns: 1fr;
         }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .sim-app .sim-controls-panel {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 15px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .sim-app .sim-controls-panel .full-width {
+          grid-column: 1/-1;
         }
-
-        .play-btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          padding: 16px 12px 36px;
         }
-
-        .pause-btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            color: white;
+        .sim-app .sim-panel,
+        .sim-app .sim-stage-panel {
+          padding: 16px;
         }
-
-        .reset-btn {
-            background: linear-gradient(45deg, #ffd93d, #ff9800);
-            color: white;
+        .sim-app .sim-controls-panel {
+          grid-template-columns: 1fr;
         }
-
-        .step-btn {
-            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
-            color: white;
+        .sim-app .sim-stat {
+          padding: 9px;
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        .sim-app .sim-stat dd {
+          font-size: 19px;
         }
-
-        .grid-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+        .sim-app .sim-stat-grid.four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-
-        .grid {
-            background-color: #ddd;
-            margin: 0 auto;
-            overflow: hidden; /* 내용이 넘치지 않도록 */
-            touch-action: none; /* 터치 스크롤 방지 */
+        .sim-app .sim-toolbar {
+          gap: 6px;
         }
-
-        .cell {
-            background-color: #fff;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            user-select: none; /* 텍스트 선택 방지 */
-            touch-action: none; /* 터치 동작 방지 */
+        .sim-app button {
+          padding: 9px 11px;
         }
-
-        .cell.alive {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 2px;
-            box-shadow: 0 0 3px rgba(102, 126, 234, 0.5);
+        .sim-app .sim-panel-heading {
+          align-items: flex-start;
         }
-
-        .cell:hover {
-            background-color: #e0e0e0;
+        .sim-app .sim-note {
+          font-size: 11px;
         }
-
-        .cell.alive:hover {
-            transform: scale(1.1);
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          width: calc(100% - 28px);
+          padding: 0 0 36px;
         }
-
-        .info {
-            text-align: center;
-            color: #666;
-            margin-bottom: 15px;
+        .sim-app .sim-stat dd small {
+          display: block;
+          margin-top: 4px;
         }
-
-        .generation {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .speed-control {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .speed-control label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .speed-control input {
-            width: 100px;
-        }
-
-        .patterns {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .pattern-btn {
-            background: linear-gradient(45deg, #74b9ff, #0984e3);
-            color: white;
-            margin: 5px;
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .instructions {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #555;
-            text-align: center;
-        }
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎮 Conway's Game of Life</h1>
-        
-        <div class="info">
-            클릭해서 셀을 활성화/비활성화하세요
-        </div>
-        
-        <div class="generation">
-            세대: <span id="generation">0</span>
-        </div>
-
-        <div class="speed-control">
-            <label for="speed">속도:</label>
-            <input type="range" id="speed" min="1" max="20" value="5">
-            <span id="speed-value">5</span>
-        </div>
-
-        <div class="controls">
-            <button id="playBtn" class="play-btn">▶️ 시작</button>
-            <button id="pauseBtn" class="pause-btn">⏸️ 정지</button>
-            <button id="stepBtn" class="step-btn">⏭️ 단계</button>
-            <button id="resetBtn" class="reset-btn">🔄 초기화</button>
-        </div>
-
-        <div class="grid-container">
-            <div id="grid" class="grid"></div>
-        </div>
-
-
-
-
-    </div>
-
+  </head>
+  <body>
+    <main class="sim-app sim-app--conway" id="sim-app">
+      <div class="sim-workspace">
+        <section class="sim-panel sim-stage-panel">
+          <div class="sim-panel-heading">
+            <h2>세포의 세대 변화</h2>
+            <span class="sim-status" id="life-status">준비</span>
+          </div>
+          <div class="sim-toolbar">
+            <button class="primary" id="startBtn">시작</button
+            ><button id="stopBtn" disabled>일시정지</button
+            ><button id="stepBtn">1세대 진행</button
+            ><button id="resetBtn">모두 지우기</button>
+          </div>
+          <dl class="sim-stat-grid">
+            <div class="sim-stat">
+              <dt>완료한 세대</dt>
+              <dd><span id="generation">0</span></dd>
+            </div>
+            <div class="sim-stat">
+              <dt>살아 있는 세포</dt>
+              <dd><span id="liveCells">3</span> <small>개</small></dd>
+            </div>
+            <div class="sim-stat">
+              <dt>이번 세대의 변화</dt>
+              <dd><span id="life-change">0</span> <small>칸</small></dd>
+            </div>
+          </dl>
+          <canvas
+            id="grid"
+            width="900"
+            height="720"
+            tabindex="0"
+            aria-label="라이프 게임 30열 24행 격자. 누르거나 끌어서 세포를 편집합니다. 방향키로 칸을 선택하고 스페이스로 바꿀 수 있습니다."
+          ></canvas>
+          <div class="legend">
+            <span><i></i>살아 있음</span
+            ><span><i style="background: #eef2e9"></i>죽어 있음</span
+            ><span><i style="background: #bc8b4a"></i>선택한 칸</span>
+          </div>
+          <div class="sim-result" id="life-result">
+            깜빡이의 가로 3칸을 1세대 진행해 보세요. 세로 3칸으로 바뀌고 다음
+            세대에 돌아옵니다.
+          </div>
+          <p class="sim-note">
+            누르거나 끌면 <strong>자동 진행이 멈추고</strong> 격자를 편집합니다.
+            방향키로 칸 선택 · Space로 세포 변경. 세대는 격자 전체에 규칙을 한
+            번 적용한 횟수입니다.
+          </p>
+        </section>
+        <aside class="sim-controls-panel">
+          <section class="sim-panel">
+            <h2 class="sim-section-title">시작 패턴</h2>
+            <div class="preset-row">
+              <button id="blinkerBtn" data-life-pattern="blinker">깜빡이</button
+              ><button data-life-pattern="block">고정 블록</button
+              ><button data-life-pattern="glider">글라이더</button
+              ><button data-life-pattern="random">무작위</button>
+            </div>
+            <p class="sim-note">
+              패턴을 고르면 멈춘 상태에서 세대 0으로 시작합니다.
+            </p>
+            <div class="sim-divider"></div>
+            <div class="sim-control">
+              <label for="speedSlider"
+                >진행 속도<output id="speedSlider-value"
+                  >5 세대/초</output
+                ></label
+              ><input
+                type="range"
+                id="speedSlider"
+                min="1"
+                max="30"
+                step="1"
+                value="5"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="life-size">격자 크기</label
+              ><select id="life-size">
+                <option value="30,24">30 × 24칸 · 기본</option>
+                <option value="50,40">50 × 40칸</option>
+                <option value="80,64">80 × 64칸</option>
+              </select>
+            </div>
+            <div class="sim-control">
+              <label for="life-boundary">경계 규칙</label
+              ><select id="life-boundary">
+                <option value="dead">격자 바깥은 죽은 세포</option>
+                <option value="wrap">맞은편 경계와 연결</option>
+              </select>
+            </div>
+            <p class="sim-note">
+              격자 크기를 바꾸면 현재 패턴을 지웁니다. 경계를 바꾸면 현재
+              패턴에서 새 실험으로 세대가 0이 됩니다.
+            </p>
+          </section>
+          <section class="sim-panel">
+            <h2 class="sim-section-title">변하지 않는 두 규칙</h2>
+            <div class="rule-pair">
+              <div class="rule-chip">
+                살아 있는 세포<b>이웃 2 · 3개 → 생존</b>
+              </div>
+              <div class="rule-chip">죽어 있는 세포<b>이웃 3개 → 탄생</b></div>
+            </div>
+            <p class="sim-note">
+              이웃은 가로·세로·대각선의 8칸입니다. 나머지는 죽으며, 모든 칸은
+              <strong>같은 이전 세대</strong>를 보고 동시에 바뀝니다. 이 규칙을
+              B3/S23이라고 씁니다.
+            </p>
+            <div class="sim-result" id="life-detail">선택한 칸: 아직 없음</div>
+          </section>
+        </aside>
+      </div>
+    </main>
     <script>
-        const ROWS = 40;
-        const COLS = 50;
-        let grid = [];
-        let running = false;
-        let generation = 0;
-        let intervalId = null;
-        let isMouseDown = false;
-        let drawMode = null; // true for drawing, false for erasing
-
-        // 그리드 초기화
-        function initGrid() {
-            grid = [];
-            for (let i = 0; i < ROWS; i++) {
-                grid[i] = [];
-                for (let j = 0; j < COLS; j++) {
-                    grid[i][j] = false;
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id),
+          app = $("sim-app");
+        const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+        const fmt = (x) => Number(x).toLocaleString("ko-KR");
+        const pointer = (event, canvas) => {
+          const r = canvas.getBoundingClientRect();
+          return {
+            x: ((event.clientX - r.left) * canvas.width) / r.width,
+            y: ((event.clientY - r.top) * canvas.height) / r.height,
+          };
+        };
+        const canvas = $("grid"),
+          ctx = canvas.getContext("2d");
+        let cols = 30,
+          rows = 24,
+          cells = new Uint8Array(cols * rows),
+          generation = 0,
+          running = false,
+          lastTime = 0,
+          accumulator = 0,
+          births = 0,
+          deaths = 0,
+          selected = null,
+          painting = false,
+          paintValue = 0,
+          previousCell = null;
+        function index(x, y) {
+          return y * cols + x;
+        }
+        function updateButtons() {
+          $("startBtn").disabled = running;
+          $("stopBtn").disabled = !running;
+          $("life-status").textContent = running
+            ? "진행 중"
+            : generation
+              ? "일시정지"
+              : "준비";
+          $("startBtn").textContent = generation ? "계속 진행" : "시작";
+        }
+        function pause() {
+          running = false;
+          accumulator = 0;
+          updateButtons();
+        }
+        function details() {
+          if (!selected) {
+            $("life-detail").textContent = "선택한 칸: 아직 없음";
+            return;
+          }
+          const count = neighbors(cells, selected.x, selected.y);
+          $("life-detail").textContent =
+            selected.x +
+            1 +
+            "열 " +
+            (selected.y + 1) +
+            "행 · " +
+            (cells[index(selected.x, selected.y)] ? "살아 있음" : "죽어 있음") +
+            " · 살아 있는 이웃 " +
+            count +
+            "개";
+        }
+        function neighbors(previous, x, y) {
+          let n = 0;
+          const wrap = $("life-boundary").value === "wrap";
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+              if (!dx && !dy) continue;
+              let nx = x + dx,
+                ny = y + dy;
+              if (wrap) {
+                nx = (nx + cols) % cols;
+                ny = (ny + rows) % rows;
+              }
+              if (nx >= 0 && nx < cols && ny >= 0 && ny < rows)
+                n += previous[index(nx, ny)];
+            }
+          return n;
+        }
+        function evolve(previous, width, height, wrap = false) {
+          const next = new Uint8Array(previous.length);
+          let born = 0,
+            died = 0;
+          for (let y = 0; y < height; y++)
+            for (let x = 0; x < width; x++) {
+              let count = 0;
+              for (let dy = -1; dy <= 1; dy++)
+                for (let dx = -1; dx <= 1; dx++) {
+                  if (!dx && !dy) continue;
+                  let nx = x + dx,
+                    ny = y + dy;
+                  if (wrap) {
+                    nx = (nx + width) % width;
+                    ny = (ny + height) % height;
+                  }
+                  if (nx >= 0 && nx < width && ny >= 0 && ny < height)
+                    count += previous[ny * width + nx];
                 }
+              const i = y * width + x;
+              next[i] = previous[i]
+                ? count === 2 || count === 3
+                  ? 1
+                  : 0
+                : count === 3
+                  ? 1
+                  : 0;
+              if (next[i] && !previous[i]) born++;
+              if (!next[i] && previous[i]) died++;
             }
+          return { cells: next, births: born, deaths: died };
         }
-
-        // DOM 그리드 생성
-        function createGridDOM() {
-            const gridElement = document.getElementById('grid');
-            gridElement.innerHTML = '';
-            
-            // 실제 사용 가능한 공간 계산
-            const container = document.querySelector('.container');
-            const controls = document.querySelector('.controls');
-            const speedControl = document.querySelector('.speed-control');
-            const info = document.querySelector('.info');
-            
-            // 컨테이너의 전체 크기
-            const containerWidth = container.clientWidth;
-            const containerHeight = window.innerHeight;
-            
-            // 다른 요소들이 차지하는 높이 계산
-            const controlsHeight = controls ? controls.offsetHeight + 40 : 80; // 여백 포함
-            const speedControlHeight = speedControl ? speedControl.offsetHeight + 40 : 60;
-            const infoHeight = info ? info.offsetHeight + 30 : 50;
-            const titleHeight = 120; // 제목 영역 추정
-            
-            const usedHeight = controlsHeight + speedControlHeight + infoHeight + titleHeight;
-            const availableHeight = containerHeight - usedHeight - 40; // 추가 여백
-            
-            // 실제 그리드에 사용할 수 있는 공간 (패딩 제외)
-            const availableWidth = containerWidth - 40; // 좌우 패딩
-            
-            // 셀 크기 계산 - 가로/세로 중 더 제한적인 것을 기준으로
-            const maxCellSizeByWidth = Math.floor(availableWidth / COLS);
-            const maxCellSizeByHeight = Math.floor(availableHeight / ROWS);
-            const cellSize = Math.max(3, Math.min(maxCellSizeByWidth, maxCellSizeByHeight, 25));
-            
-            // 실제 그리드 크기 계산 (gap 포함)
-            const gridWidth = COLS * cellSize + (COLS - 1); // 셀 + 간격
-            const gridHeight = ROWS * cellSize + (ROWS - 1); // 셀 + 간격
-            
-            // 그리드 스타일 설정
-            gridElement.style.display = 'grid';
-            gridElement.style.gridTemplateColumns = `repeat(${COLS}, ${cellSize}px)`;
-            gridElement.style.gridTemplateRows = `repeat(${ROWS}, ${cellSize}px)`;
-            gridElement.style.gap = '1px';
-            gridElement.style.width = `${gridWidth}px`; // 패딩 제거
-            gridElement.style.height = `${gridHeight}px`; // 패딩 제거
-            
-            for (let i = 0; i < ROWS; i++) {
-                for (let j = 0; j < COLS; j++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.style.width = `${cellSize}px`;
-                    cell.style.height = `${cellSize}px`;
-                    
-                    // 마우스 및 터치 이벤트 리스너 추가
-                    cell.addEventListener('mousedown', (e) => handleMouseDown(i, j, e));
-                    cell.addEventListener('mouseenter', () => handleMouseEnter(i, j));
-                    cell.addEventListener('mouseup', handleMouseUp);
-                    
-                    // 터치 이벤트 추가 (모바일 지원)
-                    cell.addEventListener('touchstart', (e) => {
-                        e.preventDefault();
-                        handleMouseDown(i, j, e);
-                    });
-                    cell.addEventListener('touchmove', (e) => {
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        const element = document.elementFromPoint(touch.clientX, touch.clientY);
-                        if (element && element.classList.contains('cell')) {
-                            const cellId = element.id;
-                            const [, row, col] = cellId.split('-');
-                            handleMouseEnter(parseInt(row), parseInt(col));
-                        }
-                    });
-                    cell.addEventListener('touchend', (e) => {
-                        e.preventDefault();
-                        handleMouseUp();
-                    });
-                    
-                    // 드래그 방지
-                    cell.addEventListener('dragstart', (e) => e.preventDefault());
-                    
-                    cell.id = `cell-${i}-${j}`;
-                    gridElement.appendChild(cell);
-                }
+        function step() {
+          const next = evolve(
+            cells,
+            cols,
+            rows,
+            $("life-boundary").value === "wrap",
+          );
+          cells = next.cells;
+          births = next.births;
+          deaths = next.deaths;
+          generation++;
+          stats();
+          $("life-result").textContent =
+            births === 0 && deaths === 0
+              ? "이번 세대에 바뀐 세포가 없습니다. 규칙에 따라 그대로 유지되는 상태입니다."
+              : "이번 세대에 " +
+                births +
+                "칸이 태어나고 " +
+                deaths +
+                "칸이 죽었습니다.";
+        }
+        function stats() {
+          $("generation").textContent = fmt(generation);
+          $("liveCells").textContent = fmt(cells.reduce((a, b) => a + b, 0));
+          $("life-change").textContent = fmt(births + deaths);
+          details();
+          updateButtons();
+        }
+        function draw() {
+          const cw = canvas.width / cols,
+            ch = canvas.height / rows;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#1f6b50";
+          cells.forEach((value, i) => {
+            if (value)
+              ctx.fillRect(
+                (i % cols) * cw + 1,
+                Math.floor(i / cols) * ch + 1,
+                cw - 2,
+                ch - 2,
+              );
+          });
+          ctx.strokeStyle = "#e1e8dc";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let x = 1; x < cols; x++) {
+            ctx.moveTo(x * cw, 0);
+            ctx.lineTo(x * cw, canvas.height);
+          }
+          for (let y = 1; y < rows; y++) {
+            ctx.moveTo(0, y * ch);
+            ctx.lineTo(canvas.width, y * ch);
+          }
+          ctx.stroke();
+          if (selected) {
+            ctx.strokeStyle = "#bc8b4a";
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(
+              selected.x * cw + 2,
+              selected.y * ch + 2,
+              cw - 4,
+              ch - 4,
+            );
+          }
+        }
+        function pattern(name) {
+          pause();
+          cells = new Uint8Array(cols * rows);
+          generation = 0;
+          births = deaths = 0;
+          selected = null;
+          const x = Math.floor(cols / 2),
+            y = Math.floor(rows / 2);
+          const seeds = {
+            blinker: [
+              [-1, 0],
+              [0, 0],
+              [1, 0],
+            ],
+            block: [
+              [0, 0],
+              [1, 0],
+              [0, 1],
+              [1, 1],
+            ],
+            glider: [
+              [0, -1],
+              [1, 0],
+              [-1, 1],
+              [0, 1],
+              [1, 1],
+            ],
+          };
+          if (name === "random") {
+            for (let i = 0; i < cells.length; i++)
+              cells[i] = Math.random() < 0.25 ? 1 : 0;
+          } else
+            (seeds[name] || []).forEach(
+              ([dx, dy]) => (cells[index(x + dx, y + dy)] = 1),
+            );
+          stats();
+          draw();
+          $("life-result").textContent =
+            name === "blinker"
+              ? "가로 3칸을 1세대 진행해 보세요. 세로로 바뀌고 다음 세대에 돌아옵니다."
+              : name === "block"
+                ? "2 × 2 블록의 각 세포는 이웃 3개를 갖습니다. 세대를 진행해도 그대로 유지됩니다."
+                : name === "glider"
+                  ? "글라이더는 4세대마다 같은 모양으로 대각선 한 칸 이동합니다."
+                  : name === "random"
+                    ? "무작위 초기 상태입니다. 같은 규칙이 다양한 형태를 남기는 과정을 관찰해 보세요."
+                    : "빈 격자입니다. 가로로 세 칸을 그린 뒤 1세대 진행해 보세요.";
+        }
+        function cellAt(e) {
+          const p = pointer(e, canvas);
+          return {
+            x: clamp(Math.floor((p.x / canvas.width) * cols), 0, cols - 1),
+            y: clamp(Math.floor((p.y / canvas.height) * rows), 0, rows - 1),
+          };
+        }
+        function paintLine(a, b) {
+          let x = a.x,
+            y = a.y;
+          const dx = Math.abs(b.x - x),
+            sx = x < b.x ? 1 : -1,
+            dy = -Math.abs(b.y - y),
+            sy = y < b.y ? 1 : -1;
+          let err = dx + dy;
+          while (true) {
+            cells[index(x, y)] = paintValue;
+            if (x === b.x && y === b.y) break;
+            const e2 = 2 * err;
+            if (e2 >= dy) {
+              err += dy;
+              x += sx;
             }
-            
-            // 전역 마우스 업 이벤트 (그리드 밖에서 마우스를 떼는 경우)
-            document.addEventListener('mouseup', handleMouseUp);
-        }
-
-        // 셀 토글
-        function toggleCell(row, col) {
-            grid[row][col] = !grid[row][col];
-            updateDisplay();
-        }
-
-        // 셀 설정 (드래그용)
-        function setCell(row, col, state) {
-            if (grid[row][col] !== state) {
-                grid[row][col] = state;
-                updateDisplay();
+            if (e2 <= dx) {
+              err += dx;
+              y += sy;
             }
+          }
+          selected = b;
+          births = deaths = 0;
+          stats();
+          draw();
         }
-
-        // 마우스 이벤트 핸들러
-        function handleMouseDown(row, col, event) {
-            event.preventDefault();
-            isMouseDown = true;
-            drawMode = !grid[row][col]; // 현재 상태의 반대로 설정
-            setCell(row, col, drawMode);
-        }
-
-        function handleMouseEnter(row, col) {
-            if (isMouseDown) {
-                setCell(row, col, drawMode);
+        canvas.addEventListener("pointerdown", (e) => {
+          pause();
+          painting = true;
+          const p = cellAt(e);
+          paintValue = 1 - cells[index(p.x, p.y)];
+          previousCell = p;
+          paintLine(p, p);
+          canvas.setPointerCapture(e.pointerId);
+          $("life-result").textContent =
+            "현재 세대를 직접 편집했습니다. 이어서 규칙을 적용할 수 있습니다.";
+        });
+        canvas.addEventListener("pointermove", (e) => {
+          if (!painting) return;
+          const p = cellAt(e);
+          paintLine(previousCell, p);
+          previousCell = p;
+        });
+        const end = () => {
+          painting = false;
+          previousCell = null;
+        };
+        canvas.addEventListener("pointerup", end);
+        canvas.addEventListener("pointercancel", end);
+        window.addEventListener("blur", end);
+        canvas.addEventListener("keydown", (e) => {
+          const d = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1],
+          }[e.key];
+          if (d) {
+            e.preventDefault();
+            selected = selected || {
+              x: Math.floor(cols / 2),
+              y: Math.floor(rows / 2),
+            };
+            selected = {
+              x: clamp(selected.x + d[0], 0, cols - 1),
+              y: clamp(selected.y + d[1], 0, rows - 1),
+            };
+            details();
+            draw();
+          } else if (e.code === "Space") {
+            e.preventDefault();
+            pause();
+            selected = selected || {
+              x: Math.floor(cols / 2),
+              y: Math.floor(rows / 2),
+            };
+            cells[index(selected.x, selected.y)] ^= 1;
+            births = deaths = 0;
+            stats();
+            draw();
+          }
+        });
+        $("startBtn").onclick = () => {
+          running = true;
+          accumulator = 0;
+          updateButtons();
+        };
+        $("stopBtn").onclick = pause;
+        $("stepBtn").onclick = () => {
+          pause();
+          step();
+          draw();
+        };
+        $("resetBtn").onclick = () => pattern("blank");
+        document
+          .querySelectorAll("[data-life-pattern]")
+          .forEach((b) => (b.onclick = () => pattern(b.dataset.lifePattern)));
+        $("speedSlider").oninput = () => {
+          $("speedSlider-value").textContent =
+            $("speedSlider").value + " 세대/초";
+        };
+        $("life-size").onchange = () => {
+          [cols, rows] = $("life-size").value.split(",").map(Number);
+          canvas.setAttribute(
+            "aria-label",
+            cols +
+              "열 " +
+              rows +
+              "행 라이프 게임 격자. 방향키로 칸 선택, 스페이스로 세포 변경.",
+          );
+          pattern("blank");
+        };
+        $("life-boundary").onchange = () => {
+          pause();
+          generation = 0;
+          births = deaths = 0;
+          stats();
+          draw();
+          $("life-result").textContent =
+            "현재 패턴을 유지하고 경계 규칙을 바꾸었습니다. 새 실험의 세대 0입니다.";
+        };
+        function frame(t) {
+          const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
+          lastTime = t;
+          if (running) {
+            accumulator += dt;
+            const interval = 1000 / +$("speedSlider").value;
+            while (accumulator >= interval) {
+              step();
+              accumulator -= interval;
             }
+            draw();
+          }
+          requestAnimationFrame(frame);
         }
-
-        function handleMouseUp() {
-            isMouseDown = false;
-            drawMode = null;
-        }
-
-        // 화면 업데이트
-        function updateDisplay() {
-            for (let i = 0; i < ROWS; i++) {
-                for (let j = 0; j < COLS; j++) {
-                    const cell = document.getElementById(`cell-${i}-${j}`);
-                    if (grid[i][j]) {
-                        cell.classList.add('alive');
-                    } else {
-                        cell.classList.remove('alive');
-                    }
-                }
-            }
-            document.getElementById('generation').textContent = generation;
-        }
-
-        // 이웃 카운트
-        function countNeighbors(row, col) {
-            let count = 0;
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    if (i === 0 && j === 0) continue;
-                    const newRow = row + i;
-                    const newCol = col + j;
-                    if (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS) {
-                        if (grid[newRow][newCol]) count++;
-                    }
-                }
-            }
-            return count;
-        }
-
-        // 다음 세대 계산
-        function nextGeneration() {
-            const newGrid = [];
-            for (let i = 0; i < ROWS; i++) {
-                newGrid[i] = [];
-                for (let j = 0; j < COLS; j++) {
-                    const neighbors = countNeighbors(i, j);
-                    const currentCell = grid[i][j];
-                    
-                    if (currentCell) {
-                        // 살아있는 셀
-                        newGrid[i][j] = neighbors === 2 || neighbors === 3;
-                    } else {
-                        // 죽은 셀
-                        newGrid[i][j] = neighbors === 3;
-                    }
-                }
-            }
-            grid = newGrid;
-            generation++;
-            updateDisplay();
-        }
-
-        // 패턴 로드
-        function loadPattern(patternName) {
-            initGrid();
+        app._model = {
+          get state() {
+            return {
+              cells: Array.from(cells),
+              cols,
+              rows,
+              generation,
+              running,
+              births,
+              deaths,
+              selected,
+            };
+          },
+          evolve,
+          step,
+          pattern,
+          setCells(points) {
+            pause();
+            cells = new Uint8Array(cols * rows);
+            points.forEach(([x, y]) => {
+              if (x >= 0 && x < cols && y >= 0 && y < rows)
+                cells[index(x, y)] = 1;
+            });
             generation = 0;
-            
-            const centerRow = Math.floor(ROWS / 2);
-            const centerCol = Math.floor(COLS / 2);
-            
-            switch(patternName) {
-                case 'glider':
-                    grid[centerRow-1][centerCol] = true;
-                    grid[centerRow][centerCol+1] = true;
-                    grid[centerRow+1][centerCol-1] = true;
-                    grid[centerRow+1][centerCol] = true;
-                    grid[centerRow+1][centerCol+1] = true;
-                    break;
-                
-                case 'blinker':
-                    grid[centerRow][centerCol-1] = true;
-                    grid[centerRow][centerCol] = true;
-                    grid[centerRow][centerCol+1] = true;
-                    break;
-                
-                case 'toad':
-                    grid[centerRow][centerCol] = true;
-                    grid[centerRow][centerCol+1] = true;
-                    grid[centerRow][centerCol+2] = true;
-                    grid[centerRow+1][centerCol-1] = true;
-                    grid[centerRow+1][centerCol] = true;
-                    grid[centerRow+1][centerCol+1] = true;
-                    break;
-                
-                case 'beacon':
-                    grid[centerRow][centerCol] = true;
-                    grid[centerRow][centerCol+1] = true;
-                    grid[centerRow+1][centerCol] = true;
-                    grid[centerRow+2][centerCol+3] = true;
-                    grid[centerRow+3][centerCol+2] = true;
-                    grid[centerRow+3][centerCol+3] = true;
-                    break;
-                
-                case 'gosper':
-                    // 고스퍼 글라이더 건 (간단한 버전)
-                    const gosperPattern = [
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
-                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
-                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                    ];
-                    
-                    for (let i = 0; i < gosperPattern.length && centerRow + i < ROWS; i++) {
-                        for (let j = 0; j < gosperPattern[i].length && centerCol + j < COLS; j++) {
-                            if (centerRow + i >= 0 && centerCol + j >= 0) {
-                                grid[centerRow + i][centerCol + j] = gosperPattern[i][j] === 1;
-                            }
-                        }
-                    }
-                    break;
-            }
-            updateDisplay();
-        }
-
-        // 이벤트 리스너
-        document.getElementById('playBtn').addEventListener('click', () => {
-            if (!running) {
-                running = true;
-                const speed = parseInt(document.getElementById('speed').value);
-                intervalId = setInterval(nextGeneration, 1000 / speed);
-            }
-        });
-
-        document.getElementById('pauseBtn').addEventListener('click', () => {
-            running = false;
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-        });
-
-        document.getElementById('stepBtn').addEventListener('click', () => {
-            if (!running) {
-                nextGeneration();
-            }
-        });
-
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            running = false;
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-            initGrid();
-            generation = 0;
-            updateDisplay();
-        });
-
-        document.getElementById('speed').addEventListener('input', (e) => {
-            document.getElementById('speed-value').textContent = e.target.value;
-            if (running) {
-                clearInterval(intervalId);
-                const speed = parseInt(e.target.value);
-                intervalId = setInterval(nextGeneration, 1000 / speed);
-            }
-        });
-
-        // 초기화
-        initGrid();
-        createGridDOM();
-        updateDisplay();
-
-        // 윈도우 리사이즈 이벤트 리스너
-        window.addEventListener('resize', () => {
-            createGridDOM();
-            updateDisplay();
-        });
+            births = deaths = 0;
+            stats();
+            draw();
+          },
+        };
+        pattern("blinker");
+        requestAnimationFrame(frame);
+      })();
     </script>
-</body>
+  </body>
 </html>

@@ -1,19 +1,40 @@
-# QR Generator
-[블로그 글]
-https://prozac0401.tistory.com/53
+# QR 코드 만들기 사용법
 
-입력한 문자열을 기반으로 QR 코드를 생성하는 도구입니다.
+글이나 웹주소를 휴대전화로 읽을 수 있는 QR 그림으로 저장합니다.
 
-## Script Functions
-- `addEvent(el, event, handler)` - IE8 호환성을 고려한 이벤트 등록 도우미입니다.
-- `$()` - `getElementById`를 간단히 호출하는 헬퍼입니다.
-- `showModal(msg)` / `closeModal(confirmed)` - 경고 모달을 표시하고 닫습니다.
-- `showLoading(stage)` - QR 코드 생성 단계별 로딩 메시지를 보여 줍니다.
-- `showProgressBar()` / `hideProgressBar()` - 진행 바 애니메이션을 제어합니다.
-- `limitTextLength(text, max)` - 입력 텍스트 길이를 제한합니다.
-- `updateCharCounter()` - 현재 입력 길이를 화면에 표시합니다.
-- `checkTextLimit(level, cb)` - 오류 보정 수준 변경 시 길이 제한을 확인합니다.
-- `generateQRCodeDelayed()` - 입력 변경 시 약간의 지연 후 QR 생성을 트리거합니다.
-- `generateQRCode()` - 실제 QR 코드를 생성하고 화면에 표시합니다.
-- `downloadQRCode()` - 생성된 QR 코드를 이미지로 저장합니다.
-- `init()` - 페이지 로드시 이벤트 바인딩과 기본 QR 생성을 수행합니다.
+[전체 목록](../index.html) · [직접 해보기](qr_generator.html)
+
+## 처음 세 단계
+
+1. 텍스트 또는 URL을 입력합니다. 내용이 바뀌면 자동으로 생성됩니다.
+2. 검은 코드·흰 배경과 오류 보정 M으로 시작합니다. 버전·격자·한 칸 크기를 확인합니다.
+3. PNG 다운로드를 누른 뒤 휴대전화로 읽어 실제 내용과 도착 주소를 확인합니다.
+
+## 결과 읽기
+
+자동 선택 버전 V1~V40은 들어가는 내용에 맞춘 격자 크기입니다. 입력 길이만이 아니라 UTF-8 바이트 양과 오류 보정 수준이 버전을 결정합니다. 격자 지표는 코드 본체만, 저장 크기는 바깥 여백까지 포함합니다.
+
+한 칸 크기는 정수 픽셀입니다. 모든 칸을 같은 크기로 그리고 남는 픽셀은 바깥 여백으로 남깁니다. 크기를 크게 골라도 담긴 내용은 바뀌지 않습니다.
+
+## 확인할 점
+
+오류 보정 수준은 일부 손상에서 복원할 여분 정보입니다. 높을수록 더 큰 격자가 필요할 수 있습니다. 특정 면적을 가려도 항상 읽힌다는 보장은 아닙니다.
+
+QR은 암호화가 아닙니다. 비공개 정보를 입력하지 마세요. 배포 전 실제 크기로 스캔해 확인하세요. 라이브러리를 불러오려면 인터넷 연결이 필요합니다.
+
+<details>
+<summary>제작 원리와 학술적 의미</summary>
+
+### 부호화와 복원
+
+이 도구는 QR Code Model 2의 바이트 부호화를 사용합니다. TextEncoder의 표준 UTF-8로 한글·ASCII·이모지를 변환하며, 비ASCII 내용에는 qrcodejs의 BOM 관례를 유지합니다. 선택한 보정 수준을 바꾸지 않고 데이터가 들어가는 가장 작은 버전을 찾습니다.
+
+오류 보정은 Reed–Solomon 코드에 기반합니다. L/M/Q/H의 약 7/15/25/30%는 전체 코드워드에 대한 복원 비율입니다. 위치 찾기 무늬의 손상·낮은 대비·너무 작은 출력도 인식에 영향을 줍니다.
+
+DENSO WAVE는 코드 네 면에 각각 최소 네 칸의 quiet zone을 요구합니다. 저장 그림에는 이 여백과 추가 픽셀 여백이 포함됩니다. [여백 공식 안내](https://www.qrcode.com/en/howto/code.html) · [오류 보정](https://www.qrcode.com/en/about/error_correction.html) · [버전](https://www.qrcode.com/en/about/version.html)
+
+### 구현과 제한
+
+입력 변경은 100ms 후 반영됩니다. 계산이 대기 중이면 이전 다운로드를 무효화합니다. 빈 입력·같은 전경색과 배경색·용량 초과를 안내하며 내용을 자르거나 보정 수준을 몰래 바꾸지 않습니다. 입력 칸의 최대 800자는 QR 용량 보장이 아닙니다.
+
+</details>

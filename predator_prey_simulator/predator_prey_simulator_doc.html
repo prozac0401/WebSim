@@ -1,14 +1,44 @@
 <!doctype html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="식물, 초식동물, 육식동물의 수와 움직임을 관찰합니다.">
+  <title>포식자와 먹이의 관계 사용법 | Web Simulator</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('predator_prey_simulator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="predator_prey_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/69" target="_blank" rel="noopener">관련 글 ↗</a></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>포식자와 먹이의 관계 사용법</h1><p class="doc-lead">식물, 초식동물, 육식동물의 수와 움직임을 관찰합니다.</p></header>
+    <article class="doc-content" id="guide">
+<h2>언제 쓰나요</h2>
+<p>식물·초식동물·육식동물의 만남과 먹이 섭취가 개체 수를 어떻게 바꾸는지 관찰합니다. 국소적인 개체 행동에서 전체 생태계의 변화가 생기는 과정을 살펴보는 실험입니다.</p>
+<h2>처음 세 단계</h2>
+<ol><li>초록 식물, 파랑 초식동물, 빨강 육식동물과 초기 개체 수를 확인하고 <strong>시작</strong>을 누릅니다.</li><li><strong>일시정지</strong>로 배치를 고정하거나 <strong>1스텝</strong>으로 계산을 한 번만 진행합니다. 식물 생성 또는 자연사 확률 하나를 바꾸고 다시 관찰합니다.</li><li><strong>초기화</strong>하면 현재 조절값을 유지한 채 같은 초기 배치와 계산 스텝 0으로 돌아갑니다. 전체화면에서는 같은 버튼으로 닫거나 Escape를 누릅니다.</li></ol>
+<h2>결과 읽기</h2>
+<p>상단은 현재 개체 수와 스텝, 노란 점은 부화 대기 중인 초식동물 알입니다. 아래 그래프는 최근 1,800스텝 안에서 10스텝마다 기록한 세 개체군의 수입니다. 그래프의 세로축은 기록 구간에 맞춰 바뀝니다.</p>
+<p>한 종류가 모두 사라지면 자동으로 보충하지 않습니다. 초식동물 0이라도 알이 남아 있으면 다시 부화할 수 있습니다. 초식동물과 알이 모두 0이면 수동 도입 전까지 초식동물이 돌아오지 않습니다. <strong>초식동물 +1 / 육식동물 +1</strong>은 실험자의 외부 도입입니다.</p>
+<h2>한 가지 조건으로 비교하기</h2>
+<p>계산은 표시 프레임과 분리해 초당 30스텝을 진행합니다. 식물 생성은 스텝마다 한 번 시도하는 확률이며 가까운 식물이 있으면 생성하지 못할 수 있습니다. 동물 자연사는 각 살아 있는 개체·스텝에 적용합니다. 번식 확률은 충분한 에너지를 가진 개체가 스텝마다 번식할 확률입니다. 달력상 하루·연간 생존율이 아닙니다. 이동 속도 배율은 이동 거리만 바꿉니다.</p>
+<h2>학술적 의미와 이론적 근거</h2>
+<p>먹이가 늘면 소비자의 성장 기회가 커지고, 소비자가 먹이를 줄이면 다시 자신의 성장에 제약이 생기는 상호 피드백을 탐구합니다. Lotka의 고전 연구는 상호작용하는 생물 개체군의 주기적 변화에 대한 수학적 원형입니다. <a href="https://doi.org/10.1073/pnas.6.7.410">Lotka (1920), 원 논문</a></p>
+<p>이 구현은 그 미분방정식을 푸는 Lotka–Volterra 수치해석기가 아닙니다. 이동·접촉·에너지·확률 번식을 사용한 개체 기반 변형입니다. 유한한 개체 수와 확률적 사건으로 멸종이 생길 수 있고, 항상 주기적 진동이 나타나는 것도 아닙니다. 실제 종의 수나 생태계 미래를 예측하지 않습니다.</p>
+<details class="doc-principles"><summary>제작 원리 · 개체의 행동과 실험 가정</summary>
+<h3>한 스텝의 순서</h3>
+<p>식물 생성 시도 → 기존 초식동물 갱신과 사망 제거 → 기존 육식동물 갱신 → 알 부화 → 시각 효과와 기록 순서입니다. 같은 스텝에서 막 태어난 동물은 다음 스텝부터 행동합니다. 이 단계는 순차 갱신이며 Vicsek처럼 모든 종을 동시에 갱신하는 규칙이 아닙니다.</p>
+<h3>에너지와 번식</h3>
+<p>동물은 에너지 100에서 시작합니다. 초식동물은 스텝마다 0.1을 쓰고 식물 하나를 먹으면 20을 얻으며, 에너지 180 초과일 때 번식 확률을 적용합니다. 번식하면 에너지를 절반으로 나누고 150스텝 후 부화하는 알을 남깁니다. 육식동물은 스텝마다 0.15를 쓰고 초식동물 하나를 먹으면 40을 얻습니다. 섭취 뒤 120스텝 동안 느려지고, 에너지 200 초과일 때 번식 확률을 적용합니다. 에너지가 0이 되거나 자연사한 개체는 먹거나 번식하지 않습니다.</p>
+<h3>경계와 재현성</h3>
+<p>800 × 800의 고정 공간에서 최근접 먹이를 향합니다. 표시는 화면에 맞춰 축소되며 화면 크기 변경이 모델 공간을 바꾸지 않습니다. 초기화는 초기 난수 시드를 다시 사용합니다. URL의 seed와 plants / herbivores / carnivores, 생성·번식·사망 매개변수로 초기 조건을 지정할 수 있습니다. 에너지는 추상 값이며 실제 물질의 질량 보존 모델이 아닙니다.</p>
+<h3>원형과 이 구현</h3>
+<p><a href="https://doi.org/10.1073/pnas.6.7.410">Analytical Note on Certain Rhythmic Relations in Organic Systems — Lotka (1920)</a>는 수학적 배경입니다. 이 앱의 에너지 계수·알·식물 간격·이동·자연사 수치는 교육용 설계 가정입니다.</p>
+</details>
+    </article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="predator_prey_simulator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/69" target="_blank" rel="noopener">관련 글 ↗</a></nav></footer>
+  </main>
 </body>
 </html>

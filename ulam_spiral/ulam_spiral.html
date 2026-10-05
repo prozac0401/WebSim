@@ -1,372 +1,776 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>울람 소용돌이 (Ulam Spiral)</title>
-</head>
-<body>
-    <div style="
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>울람 나선 · WebSim Lab</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/simulator.css" />
+    <script src="../assets/simulator.js" defer></script>
+    <style>
+      body {
         margin: 0;
-        padding: 5px;
+        background: #f4f5f1;
+        color: #172e27;
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .sim-app,
+      .sim-app * {
+        box-sizing: border-box;
+      }
+      .sim-app {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 28px 56px;
+      }
+      .sim-app .sim-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .sim-app .sim-controls-panel {
+        display: grid;
+        gap: 18px;
+        min-width: 0;
+      }
+      .sim-app .sim-panel {
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+      }
+      .sim-app .sim-stage-panel {
+        padding: 22px;
+      }
+      .sim-app .sim-panel-heading {
         display: flex;
-        justify-content: center;
         align-items: center;
-    ">
-        <div style="
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            max-width: 600px;
-            width: 100%;
-        ">
-            <div style="
-                position: relative;
-                width: 100%;
-                max-width: 520px;
-                margin: 0 auto 10px;
-                border-radius: 5px;
-                overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            ">
-                <canvas id="ulam" style="
-                    width: 100%;
-                    height: auto;
-                    background: #f8f9fa;
-                    display: block;
-                " width="520" height="520">
-                    브라우저가 Canvas를 지원하지 않습니다.
-                </canvas>
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .sim-app .sim-panel-heading h2,
+      .sim-app .sim-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .sim-app .sim-section-title {
+        margin-bottom: 17px;
+      }
+      .sim-app .sim-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .sim-app button,
+      .sim-app select,
+      .sim-app input[type="number"] {
+        font: inherit;
+        border: 1px solid #dce4da;
+        border-radius: 9px;
+        color: #172e27;
+        background: #fff;
+        min-height: 42px;
+        padding: 9px 13px;
+        box-shadow: none;
+        margin: 0;
+      }
+      .sim-app button {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .sim-app button:hover {
+        background: #edf3ec;
+        transform: none;
+      }
+      .sim-app button.primary {
+        background: #1f6b50;
+        color: #fff;
+        border-color: #1f6b50;
+      }
+      .sim-app button.primary:hover {
+        background: #195940;
+      }
+      .sim-app button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .sim-app button:focus-visible,
+      .sim-app canvas:focus-visible,
+      .sim-app input:focus-visible,
+      .sim-app select:focus-visible {
+        outline: 3px solid #a9cbb9;
+        outline-offset: 3px;
+      }
+      .sim-app .sim-status {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 4px 10px;
+        background: #edf3ec;
+        color: #35644c;
+        white-space: nowrap;
+      }
+      .sim-app .sim-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-stat {
+        background: #f7f9f5;
+        border: 1px solid #e6ece2;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .sim-app .sim-stat dt {
+        font-size: 11px;
+        color: #69766c;
+        margin-bottom: 5px;
+      }
+      .sim-app .sim-stat dd {
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 650;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+      }
+      .sim-app .sim-stat dd small {
+        font-size: 11px;
+        font-weight: 500;
+        color: #69766c;
+      }
+      .sim-app canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        background: #f7f9f4;
+        border: 1px solid #e2e9de;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .sim-app .sim-note {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #69766c;
+        margin: 12px 0 0;
+      }
+      .sim-app .sim-note strong {
+        color: #365443;
+        font-weight: 600;
+      }
+      .sim-app .sim-control {
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-control:last-child {
+        margin-bottom: 0;
+      }
+      .sim-app .sim-control label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        margin-bottom: 8px;
+      }
+      .sim-app .sim-control output {
+        color: #1f6b50;
+        font-size: 12px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .sim-app input[type="range"] {
+        display: block;
+        accent-color: #1f6b50;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+      }
+      .sim-app .sim-control select,
+      .sim-app .sim-control input[type="number"] {
+        width: 100%;
+        font-size: 13px;
+      }
+      .sim-app .check-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        margin: 12px 0;
+      }
+      .sim-app .check-control input {
+        accent-color: #1f6b50;
+        margin: 5px 0 0;
+        flex: 0 0 auto;
+      }
+      .sim-app .preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .sim-app .preset-row button {
+        font-size: 12px;
+        min-height: 36px;
+        padding: 7px 11px;
+      }
+      .sim-app .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 13px;
+      }
+      .sim-app .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sim-app .legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #1f6b50;
+      }
+      .sim-app .rule-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .sim-app .rule-chip {
+        border: 1px solid #dce4da;
+        background: #f7f9f5;
+        border-radius: 9px;
+        padding: 12px;
+        font-size: 12px;
+      }
+      .sim-app .rule-chip b {
+        display: block;
+        font-size: 14px;
+        color: #172e27;
+        margin-top: 4px;
+      }
+      .sim-app .sim-result {
+        background: #edf3ec;
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: #365443;
+        margin-top: 13px;
+        min-height: 43px;
+      }
+      .sim-app .compact-stat {
+        font-size: 11px;
+        color: #69766c;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-app .sim-divider {
+        height: 1px;
+        background: #e4eade;
+        margin: 18px 0;
+      }
+      .sim-app .sim-muted {
+        color: #69766c;
+      }
+      .sim-app a {
+        color: #1f6b50;
+      }
+      .sim-app .sim-stat-grid.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .sim-app .sim-stat-grid.four dd {
+        font-size: 19px;
+      }
+      .sim-app .square-stage {
+        max-width: 680px;
+        margin: auto;
+      }
+      .sim-app .instruction-line {
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 8px;
+      }
+      .sim-app {
+        max-width: 1360px;
+        width: calc(100% - 64px);
+        padding: 0 0 42px;
+      }
+      .sim-app .sim-controls-panel {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .sim-app .sim-panel-heading {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .sim-app .sim-toolbar {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-note {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-stat dd small {
+        display: inline;
+      }
+      @media (max-width: 1050px) {
+        .sim-app {
+          width: calc(100% - 40px);
+        }
+      }
+      @media (max-width: 900px) {
+        .sim-app .sim-workspace {
+          grid-template-columns: 1fr;
+        }
+        .sim-app .sim-controls-panel {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sim-app .sim-controls-panel .full-width {
+          grid-column: 1/-1;
+        }
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          padding: 16px 12px 36px;
+        }
+        .sim-app .sim-panel,
+        .sim-app .sim-stage-panel {
+          padding: 16px;
+        }
+        .sim-app .sim-controls-panel {
+          grid-template-columns: 1fr;
+        }
+        .sim-app .sim-stat {
+          padding: 9px;
+        }
+        .sim-app .sim-stat dd {
+          font-size: 19px;
+        }
+        .sim-app .sim-stat-grid.four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sim-app .sim-toolbar {
+          gap: 6px;
+        }
+        .sim-app button {
+          padding: 9px 11px;
+        }
+        .sim-app .sim-panel-heading {
+          align-items: flex-start;
+        }
+        .sim-app .sim-note {
+          font-size: 11px;
+        }
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          width: calc(100% - 28px);
+          padding: 0 0 36px;
+        }
+        .sim-app .sim-stat dd small {
+          display: block;
+          margin-top: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="sim-app sim-app--ulam" id="sim-app">
+      <div class="sim-workspace">
+        <section class="sim-panel sim-stage-panel">
+          <div class="sim-panel-heading">
+            <h2>숫자의 위치와 소수</h2>
+            <span class="sim-status" id="ulam-status">1부터 1,001까지</span>
+          </div>
+          <div class="sim-toolbar">
+            <button data-ulam-n="49">49 · 숫자 읽기</button
+            ><button data-ulam-n="1001">1,001 · 기본 보기</button
+            ><button data-ulam-n="10001">10,001 · 넓게 보기</button>
+          </div>
+          <dl class="sim-stat-grid">
+            <div class="sim-stat">
+              <dt>표시할 마지막 숫자</dt>
+              <dd><span id="ulam-last">1,001</span></dd>
             </div>
-            
-            <div style="
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                align-items: center;
-            ">
-                <div style="
-                    width: 100%;
-                    max-width: 400px;
-                ">
-                    <input id="slider" style="
-                        width: 100%;
-                        height: 8px;
-                        border-radius: 5px;
-                        background: #e0e0e0;
-                        outline: none;
-                        -webkit-appearance: none;
-                        -moz-appearance: none;
-                        appearance: none;
-                    " type="range" min="101" max="30001" step="200" value="1001">
-                </div>
-                <div id="label" style="
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #333;
-                    text-align: center;
-                ">N = 1001 까지 소수 표시</div>
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-top: 5px;
-                ">
-                    <input type="checkbox" id="showLines" style="
-                        width: 18px;
-                        height: 18px;
-                        accent-color: #667eea;
-                        cursor: pointer;
-                    " checked>
-                    <label for="showLines" style="
-                        font-size: 14px;
-                        color: #555;
-                        cursor: pointer;
-                        user-select: none;
-                    ">나선 연결선 표시</label>
-                </div>
-                <div id="loading" style="
-                    text-align: center;
-                    color: #667eea;
-                    font-size: 14px;
-                    margin-top: 10px;
-                    height: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                "><!-- 고정 영역 --></div>
+            <div class="sim-stat">
+              <dt>그중 소수</dt>
+              <dd><span id="ulam-primes">168</span> <small>개</small></dd>
             </div>
-            
-            <script>
-                // DOM 요소 초기화 함수
-                function initializeElements() {
-                    var canvas = document.getElementById('ulam');
-                    var slider = document.getElementById('slider');
-                    var label = document.getElementById('label');
-                    var loading = document.getElementById('loading');
-                    var showLines = document.getElementById('showLines');
-
-                    if (!canvas) return null;
-
-                    var ctx = canvas.getContext('2d');
-                    if (!ctx) return null;
-
-                    // 슬라이더 스타일 추가 (Edge 호환)
-                    try {
-                        var style = document.createElement('style');
-                        style.type = 'text/css';
-                        style.innerHTML =
-                            '#slider::-webkit-slider-thumb { ' +
-                            '-webkit-appearance: none; ' +
-                            'appearance: none; ' +
-                            'width: 20px; ' +
-                            'height: 20px; ' +
-                            'border-radius: 50%; ' +
-                            'background: #667eea; ' +
-                            'cursor: pointer; ' +
-                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
-                            '} ' +
-                            '#slider::-moz-range-thumb { ' +
-                            'width: 20px; ' +
-                            'height: 20px; ' +
-                            'border-radius: 50%; ' +
-                            'background: #667eea; ' +
-                            'cursor: pointer; ' +
-                            'border: none; ' +
-                            'box-shadow: 0 2px 6px rgba(0,0,0,0.2); ' +
-                            '}';
-                        document.head.appendChild(style);
-                    } catch (e) {
-                        // 스타일 추가 실패 시 무시
-                    }
-
-                    return { canvas: canvas, ctx: ctx, slider: slider, label: label, loading: loading, showLines: showLines };
-                }
-
-                // 에라토스테네스의 체
-                function sieveOfEratosthenes(n) {
-                    var isPrime = new Array(n + 1);
-                    for (var i = 0; i <= n; i++) isPrime[i] = true;
-                    isPrime[0] = isPrime[1] = false;
-                    
-                    for (var p = 2; p * p <= n; p++) {
-                        if (isPrime[p]) {
-                            for (var k = p * p; k <= n; k += p) {
-                                isPrime[k] = false;
-                            }
-                        }
-                    }
-                    return isPrime;
-                }
-                
-                // 울람 소용돌이 그리기 (Edge 호환 버전)
-                function drawUlamSpiral(elements, maxN) {
-                    var canvas = elements.canvas;
-                    var ctx = elements.ctx;
-                    var showLines = elements.showLines;
-                    
-                    var WIDTH = canvas.width;
-                    var HEIGHT = canvas.height;
-                    var CENTER_X = WIDTH / 2;
-                    var CENTER_Y = HEIGHT / 2;
-                    
-                    try {
-                        // 캔버스 초기화
-                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-                        
-                        // 현재 범위의 나선 반지름 계산
-                        var currentRadius = Math.ceil(Math.sqrt(maxN));
-                        var maxCanvasRadius = Math.min(WIDTH, HEIGHT) * 0.47;
-                        var scale = maxCanvasRadius / currentRadius;
-                        var dynamicStep = Math.max(1, scale * 1.8);
-                        var dotSize = Math.max(1, Math.floor(dynamicStep * 0.35));
-                        
-                        // 격자 그리기
-                        ctx.strokeStyle = '#f0f0f0';
-                        ctx.lineWidth = 0.3;
-                        var gridStep = dynamicStep;
-                        
-                        ctx.beginPath();
-                        for (var i = 0; i <= Math.max(WIDTH/gridStep, HEIGHT/gridStep); i++) {
-                            var xRight = CENTER_X + i * gridStep;
-                            if (xRight < WIDTH) {
-                                ctx.moveTo(xRight, 0);
-                                ctx.lineTo(xRight, HEIGHT);
-                            }
-                            
-                            var xLeft = CENTER_X - i * gridStep;
-                            if (xLeft >= 0 && i > 0) {
-                                ctx.moveTo(xLeft, 0);
-                                ctx.lineTo(xLeft, HEIGHT);
-                            }
-                            
-                            var yDown = CENTER_Y + i * gridStep;
-                            if (yDown < HEIGHT) {
-                                ctx.moveTo(0, yDown);
-                                ctx.lineTo(WIDTH, yDown);
-                            }
-                            
-                            var yUp = CENTER_Y - i * gridStep;
-                            if (yUp >= 0 && i > 0) {
-                                ctx.moveTo(0, yUp);
-                                ctx.lineTo(WIDTH, yUp);
-                            }
-                        }
-                        ctx.stroke();
-                        
-                        // 소수 배열 생성
-                        var isPrime = sieveOfEratosthenes(maxN);
-                        
-                        // 나선 좌표 계산
-                        var x = 0, y = 0;
-                        var dx = 1, dy = 0;
-                        var segmentLength = 1;
-                        var segmentPassed = 0;
-                        var turnCount = 0;
-                        
-                        var allPositions = [{x: CENTER_X, y: CENTER_Y, n: 1}];
-                        var prevCanvasX = CENTER_X;
-                        var prevCanvasY = CENTER_Y;
-                        
-                        // 연결선 그리기
-                        if (showLines.checked) {
-                            ctx.strokeStyle = '#c0c0c0';
-                            ctx.lineWidth = 0.8;
-                            ctx.beginPath();
-                        }
-                        
-                        for (var n = 2; n <= maxN; n++) {
-                            x += dx;
-                            y += dy;
-                            
-                            var canvasX = CENTER_X + x * dynamicStep;
-                            var canvasY = CENTER_Y + y * dynamicStep;
-                            
-                            allPositions.push({x: canvasX, y: canvasY, n: n});
-                            
-                            if (showLines.checked && 
-                                canvasX >= 0 && canvasX < WIDTH && canvasY >= 0 && canvasY < HEIGHT &&
-                                prevCanvasX >= 0 && prevCanvasX < WIDTH && prevCanvasY >= 0 && prevCanvasY < HEIGHT) {
-                                if (n === 2) {
-                                    ctx.moveTo(prevCanvasX, prevCanvasY);
-                                }
-                                ctx.lineTo(canvasX, canvasY);
-                            }
-                            
-                            prevCanvasX = canvasX;
-                            prevCanvasY = canvasY;
-                            segmentPassed++;
-                            
-                            if (segmentPassed === segmentLength) {
-                                segmentPassed = 0;
-                                turnCount++;
-                                var newDx = -dy;
-                                var newDy = dx;
-                                dx = newDx;
-                                dy = newDy;
-                                
-                                if (turnCount % 2 === 0) {
-                                    segmentLength++;
-                                }
-                            }
-                        }
-                        
-                        if (showLines.checked) {
-                            ctx.stroke();
-                        }
-                        
-                        // 소수 점 그리기
-                        for (var i = 0; i < allPositions.length; i++) {
-                            var pos = allPositions[i];
-                            if (isPrime[pos.n] && pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT) {
-                                var intensity = Math.min(255, Math.floor(pos.n / maxN * 120) + 100);
-                                var red = Math.floor(102 * intensity / 255);
-                                var green = Math.floor(126 * intensity / 255);
-                                var blue = Math.floor(234 * intensity / 255);
-                                
-                                ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
-                                ctx.beginPath();
-                                ctx.arc(pos.x, pos.y, dotSize, 0, 2 * Math.PI);
-                                ctx.fill();
-                            }
-                        }
-                        
-                        // 숫자 표시 (101 이하)
-                        if (maxN <= 101) {
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            
-                            for (var i = 0; i < allPositions.length; i++) {
-                                var pos = allPositions[i];
-                                if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT) {
-                                    if (isPrime[pos.n]) {
-                                        ctx.fillStyle = '#ffffff';
-                                        ctx.font = 'bold ' + Math.max(8, Math.floor(dotSize * 0.7)) + 'px sans-serif';
-                                    } else {
-                                        ctx.fillStyle = '#333333';
-                                        ctx.font = Math.max(8, Math.floor(dotSize * 0.8)) + 'px sans-serif';
-                                    }
-                                    ctx.fillText(pos.n.toString(), pos.x, pos.y);
-                                }
-                            }
-                        }
-                        
-                        // 중심점
-                        ctx.fillStyle = '#ff4757';
-                        ctx.beginPath();
-                        ctx.arc(CENTER_X, CENTER_Y, dotSize, 0, 2 * Math.PI);
-                        ctx.fill();
-                        
-                        if (maxN <= 101) {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.font = 'bold ' + Math.max(8, Math.floor(dotSize * 0.7)) + 'px sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText('1', CENTER_X, CENTER_Y);
-                        }
-                        
-                    } catch (error) {
-                        // 그리기 오류 시 무시
-                    }
-                }
-                
-                // 메인 초기화 함수
-                function initialize() {
-                    var elements = initializeElements();
-                    if (!elements) return;
-                    
-                    var drawTimeout;
-                    function updateSpiral() {
-                        var N = parseInt(elements.slider.value);
-                        elements.label.textContent = 'N = ' + N.toLocaleString() + ' 까지 소수 표시';
-                        
-                        clearTimeout(drawTimeout);
-                        elements.loading.textContent = '계산 중...';
-                        
-                        drawTimeout = setTimeout(function() {
-                            drawUlamSpiral(elements, N);
-                            elements.loading.textContent = '';
-                        }, 100);
-                    }
-                    
-                    elements.slider.addEventListener('input', updateSpiral);
-                    elements.showLines.addEventListener('change', updateSpiral);
-                    
-                    // 초기 그리기
-                    setTimeout(function() {
-                        updateSpiral();
-                    }, 200);
-                }
-                
-                // DOM 로드 완료 후 초기화
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initialize);
-                } else {
-                    initialize();
-                }
-            </script>
-        </div>
-    </div>
-</body>
+            <div class="sim-stat">
+              <dt>소수의 비율</dt>
+              <dd><span id="ulam-density">16.78</span> <small>%</small></dd>
+            </div>
+          </dl>
+          <div class="square-stage">
+            <canvas
+              id="ulam-canvas"
+              width="800"
+              height="800"
+              tabindex="0"
+              aria-label="1에서 시작하여 오른쪽, 위쪽, 왼쪽, 아래쪽 순서로 펼치는 정수 나선. 소수는 초록색입니다. 방향키로 이전·다음 숫자를 선택할 수 있습니다."
+            ></canvas>
+          </div>
+          <div class="legend">
+            <span><i></i>소수</span
+            ><span><i style="background: #c7d0c1"></i>합성수</span
+            ><span><i style="background: #bc8b4a"></i>1 · 소수가 아님</span>
+          </div>
+          <div class="sim-result" id="ulam-result">
+            점을 누르면 숫자와 소수 여부를 확인합니다. 숫자는 나선 위에 차례로
+            놓이고, 소수만 초록색으로 표시됩니다.
+          </div>
+          <p class="sim-note">
+            대각선의 무늬는 <strong>자연수를 놓는 방식과 소수의 분포</strong>를
+            함께 보여 줍니다. 나선이 소수를 생성하거나 모든 대각선이 소수로
+            채워진다는 뜻은 아닙니다.
+          </p>
+        </section>
+        <aside class="sim-controls-panel">
+          <section class="sim-panel">
+            <h2 class="sim-section-title">표시 범위</h2>
+            <div class="sim-control">
+              <label for="slider"
+                >표시할 마지막 숫자<output id="slider-value"
+                  >1001</output
+                ></label
+              ><input
+                type="range"
+                id="slider"
+                min="9"
+                max="30001"
+                step="1"
+                value="1001"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="lastNumber">마지막 숫자 직접 입력</label
+              ><input
+                id="lastNumber"
+                type="number"
+                min="9"
+                max="30001"
+                step="1"
+                value="1001"
+                inputmode="numeric"
+              />
+            </div>
+            <p class="sim-note">
+              1부터 이 숫자까지 모두 배치합니다. 보기 크기는 실제 좌표 범위에
+              맞추므로 창 크기가 바뀌어도 배열은 같습니다.
+            </p>
+          </section>
+          <section class="sim-panel">
+            <h2 class="sim-section-title">겹쳐 보기</h2>
+            <label class="check-control"
+              ><input id="showLines" type="checkbox" />숫자가 놓인 순서를 선으로
+              연결</label
+            ><label class="check-control"
+              ><input id="showComposite" type="checkbox" checked />합성수도 옅은
+              점으로 표시</label
+            ><label class="check-control"
+              ><input id="showNumbers" type="checkbox" checked />숫자 표시 · 169
+              이하에서</label
+            >
+            <p class="sim-note" id="ulam-number-note">
+              숫자 글씨는 169 이하에서 표시됩니다. 49 프리셋으로 순서를 읽어
+              보세요.
+            </p>
+            <div class="sim-divider"></div>
+            <h3 class="sim-section-title">소수 판정</h3>
+            <p class="sim-note" style="margin: 0">
+              소수는 1과 자신으로만 나누어지는 2 이상의 정수입니다.
+              에라토스테네스의 체로 합성수를 걸러냅니다. 1은 소수도 합성수도
+              아닙니다.
+            </p>
+            <p class="sim-note">
+              ← / ↓ 이전 숫자 · → / ↑ 다음 숫자 · Home 1 · End 마지막 숫자
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <script>
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id),
+          app = $("sim-app");
+        const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+        const fmt = (x) => Number(x).toLocaleString("ko-KR");
+        const pointer = (event, canvas) => {
+          const r = canvas.getBoundingClientRect();
+          return {
+            x: ((event.clientX - r.left) * canvas.width) / r.width,
+            y: ((event.clientY - r.top) * canvas.height) / r.height,
+          };
+        };
+        const canvas = $("ulam-canvas"),
+          ctx = canvas.getContext("2d");
+        let N = +$("slider").value,
+          points = [],
+          prime = new Uint8Array(),
+          layout = null,
+          selected = 1,
+          lookup = new Map();
+        function spiral(n) {
+          const p = [{ x: 0, y: 0, n: 1 }];
+          let x = 0,
+            y = 0,
+            d = 0,
+            length = 1;
+          const directions = [
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+            [0, -1],
+          ];
+          while (p.length < n) {
+            for (let r = 0; r < 2 && p.length < n; r++) {
+              for (let s = 0; s < length && p.length < n; s++) {
+                x += directions[d][0];
+                y += directions[d][1];
+                p.push({ x, y, n: p.length + 1 });
+              }
+              d = (d + 1) % 4;
+            }
+            length++;
+          }
+          return p;
+        }
+        function sieve(n) {
+          const isPrime = new Uint8Array(n + 1);
+          isPrime.fill(1, 2);
+          for (let p = 2; p * p <= n; p++)
+            if (isPrime[p]) for (let m = p * p; m <= n; m += p) isPrime[m] = 0;
+          return isPrime;
+        }
+        function fit(points) {
+          let minX = Infinity,
+            maxX = -Infinity,
+            minY = Infinity,
+            maxY = -Infinity;
+          for (const p of points) {
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x);
+            minY = Math.min(minY, p.y);
+            maxY = Math.max(maxY, p.y);
+          }
+          const step = Math.min(
+            752 / (maxX - minX + 1),
+            752 / (maxY - minY + 1),
+          );
+          return {
+            minX,
+            maxX,
+            minY,
+            maxY,
+            step,
+            centerX: (minX + maxX) / 2,
+            centerY: (minY + maxY) / 2,
+          };
+        }
+        function screen(p) {
+          return {
+            x: 400 + (p.x - layout.centerX) * layout.step,
+            y: 400 - (p.y - layout.centerY) * layout.step,
+          };
+        }
+        function result() {
+          const n = selected;
+          let text;
+          if (n === 1) text = "1은 소수도 합성수도 아닙니다.";
+          else if (prime[n])
+            text = n + "은 소수입니다. 양의 약수는 1과 " + n + " 두 개입니다.";
+          else {
+            let factor = 2;
+            while (n % factor !== 0) factor++;
+            text =
+              n +
+              "은 합성수입니다. 예를 들어 " +
+              factor +
+              " × " +
+              n / factor +
+              " = " +
+              n +
+              "입니다.";
+          }
+          const p = points[n - 1];
+          $("ulam-result").textContent =
+            fmt(n) + " · 좌표 (" + p.x + ", " + p.y + ") · " + text;
+        }
+        function draw() {
+          ctx.clearRect(0, 0, 800, 800);
+          if ($("showLines").checked) {
+            ctx.beginPath();
+            points.forEach((p, i) => {
+              const s = screen(p);
+              i ? ctx.lineTo(s.x, s.y) : ctx.moveTo(s.x, s.y);
+            });
+            ctx.strokeStyle = "#d4dfca";
+            ctx.lineWidth = Math.min(1.4, layout.step * 0.15);
+            ctx.stroke();
+          }
+          const numbers = $("showNumbers").checked && N <= 169,
+            r = clamp(layout.step * 0.18, 1.25, 7);
+          for (const p of points) {
+            if (
+              p.n > 1 &&
+              !prime[p.n] &&
+              !$("showComposite").checked &&
+              !numbers
+            )
+              continue;
+            const s = screen(p);
+            ctx.fillStyle =
+              p.n === 1 ? "#bc8b4a" : prime[p.n] ? "#1f6b50" : "#c7d0c1";
+            if (numbers) {
+              ctx.font = Math.min(24, layout.step * 0.33) + "px system-ui";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillStyle =
+                p.n === 1 ? "#bc8b4a" : prime[p.n] ? "#1f6b50" : "#889580";
+              ctx.fillText(p.n, s.x, s.y);
+            } else {
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          if (points[selected - 1]) {
+            const s = screen(points[selected - 1]);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, clamp(layout.step * 0.4, 4, 26), 0, Math.PI * 2);
+            ctx.strokeStyle = "#bc8b4a";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+        }
+        function render(n) {
+          N = clamp(Math.round(Number(n) || 9), 9, 30001);
+          $("slider").value = N;
+          document.querySelectorAll("[data-ulam-n]").forEach((b) => {
+            const active = +b.dataset.ulamN === N;
+            b.setAttribute("aria-pressed", active);
+            b.classList.toggle("primary", active);
+          });
+          $("lastNumber").value = N;
+          $("lastNumber").removeAttribute("aria-invalid");
+          $("slider-value").textContent = fmt(N);
+          points = spiral(N);
+          prime = sieve(N);
+          lookup = new Map(points.map((p) => [p.x + "," + p.y, p.n]));
+          layout = fit(points);
+          selected = clamp(selected, 1, N);
+          const count = prime.reduce((a, b) => a + b, 0);
+          $("ulam-last").textContent = fmt(N);
+          $("ulam-primes").textContent = fmt(count);
+          $("ulam-density").textContent = ((count / N) * 100).toFixed(2);
+          $("ulam-status").textContent = "1부터 " + fmt(N) + "까지";
+          $("ulam-number-note").textContent =
+            N <= 169
+              ? "숫자 글씨로 배치 순서를 읽을 수 있습니다. 2는 1의 오른쪽, 3은 2의 위쪽입니다."
+              : "글씨가 겹치지 않도록 숫자는 169 이하에서 표시합니다. 점을 누르면 큰 범위에서도 숫자를 읽을 수 있습니다.";
+          draw();
+          result();
+        }
+        $("slider").oninput = () => render($("slider").value);
+        $("lastNumber").oninput = () => {
+          const v = $("lastNumber").valueAsNumber;
+          if (Number.isInteger(v) && v >= 9 && v <= 30001) render(v);
+          else $("lastNumber").setAttribute("aria-invalid", "true");
+        };
+        $("lastNumber").onchange = () => render($("lastNumber").value);
+        ["showLines", "showComposite", "showNumbers"].forEach(
+          (id) => ($(id).onchange = draw),
+        );
+        document.querySelectorAll("[data-ulam-n]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              selected = 1;
+              render(b.dataset.ulamN);
+            }),
+        );
+        canvas.addEventListener("pointerdown", (e) => {
+          const s = pointer(e, canvas),
+            x = Math.round((s.x - 400) / layout.step + layout.centerX),
+            y = Math.round((400 - s.y) / layout.step + layout.centerY),
+            n = lookup.get(x + "," + y);
+          if (n) {
+            selected = n;
+            result();
+            draw();
+          }
+        });
+        canvas.addEventListener("keydown", (e) => {
+          if (
+            [
+              "ArrowLeft",
+              "ArrowDown",
+              "ArrowRight",
+              "ArrowUp",
+              "Home",
+              "End",
+            ].includes(e.key)
+          ) {
+            e.preventDefault();
+            selected =
+              e.key === "Home"
+                ? 1
+                : e.key === "End"
+                  ? N
+                  : clamp(
+                      selected +
+                        (["ArrowRight", "ArrowUp"].includes(e.key) ? 1 : -1),
+                      1,
+                      N,
+                    );
+            result();
+            draw();
+          }
+        });
+        app._model = {
+          get state() {
+            return {
+              N,
+              points: points.map((p) => ({ ...p })),
+              prime: Array.from(prime),
+              layout: { ...layout },
+              selected,
+            };
+          },
+          spiral,
+          sieve,
+          fit,
+          screen,
+          render,
+        };
+        render(N);
+      })();
+    </script>
+  </body>
 </html>

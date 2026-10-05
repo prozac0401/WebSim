@@ -1,15 +1,38 @@
 <!doctype html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <!-- 최신 Marked 16.x CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="글이나 웹주소를 휴대전화로 읽을 수 있는 QR 그림으로 저장합니다.">
+  <title>QR 코드 만들기 사용법 | Web Simulator</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module">
-    const md = await fetch('qr_generator.md').then(r => r.text());
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="qr_generator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/53" target="_blank" rel="noopener">관련 글 ↗</a></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>QR 코드 만들기 사용법</h1><p class="doc-lead">글이나 웹주소를 휴대전화로 읽을 수 있는 QR 그림으로 저장합니다.</p></header>
+    <article class="doc-content" id="guide">
+<h2>처음 세 단계</h2>
+<ol><li>텍스트 또는 URL을 입력합니다. 내용이 바뀌면 자동으로 생성됩니다.</li><li>검은 코드·흰 배경과 오류 보정 M으로 시작합니다. 버전·격자·한 칸 크기를 확인합니다.</li><li>PNG 다운로드를 누른 뒤 휴대전화로 읽어 실제 내용과 도착 주소를 확인합니다.</li></ol>
+<h2>결과 읽기</h2>
+<p>자동 선택 버전 V1~V40은 들어가는 내용에 맞춘 격자 크기입니다. 입력 길이만이 아니라 UTF-8 바이트 양과 오류 보정 수준이 버전을 결정합니다. 격자 지표는 코드 본체만, 저장 크기는 바깥 여백까지 포함합니다.</p>
+<p>한 칸 크기는 정수 픽셀입니다. 모든 칸을 같은 크기로 그리고 남는 픽셀은 바깥 여백으로 남깁니다. 크기를 크게 골라도 담긴 내용은 바뀌지 않습니다.</p>
+<h2>확인할 점</h2>
+<p>오류 보정 수준은 일부 손상에서 복원할 여분 정보입니다. 높을수록 더 큰 격자가 필요할 수 있습니다. 특정 면적을 가려도 항상 읽힌다는 보장은 아닙니다.</p>
+<p>QR은 암호화가 아닙니다. 비공개 정보를 입력하지 마세요. 배포 전 실제 크기로 스캔해 확인하세요. 라이브러리를 불러오려면 인터넷 연결이 필요합니다.</p>
+<details class="doc-principles"><summary>제작 원리와 학술적 의미</summary>
+<h3>부호화와 복원</h3>
+<p>이 도구는 QR Code Model 2의 바이트 부호화를 사용합니다. TextEncoder의 표준 UTF-8로 한글·ASCII·이모지를 변환하며, 비ASCII 내용에는 qrcodejs의 BOM 관례를 유지합니다. 선택한 보정 수준을 바꾸지 않고 데이터가 들어가는 가장 작은 버전을 찾습니다.</p>
+<p>오류 보정은 Reed–Solomon 코드에 기반합니다. L/M/Q/H의 약 7/15/25/30%는 전체 코드워드에 대한 복원 비율입니다. 위치 찾기 무늬의 손상·낮은 대비·너무 작은 출력도 인식에 영향을 줍니다.</p>
+<p>DENSO WAVE는 코드 네 면에 각각 최소 네 칸의 quiet zone을 요구합니다. 저장 그림에는 이 여백과 추가 픽셀 여백이 포함됩니다. <a href="https://www.qrcode.com/en/howto/code.html" target="_blank" rel="noopener">여백 공식 안내</a> · <a href="https://www.qrcode.com/en/about/error_correction.html" target="_blank" rel="noopener">오류 보정</a> · <a href="https://www.qrcode.com/en/about/version.html" target="_blank" rel="noopener">버전</a></p>
+<h3>구현과 제한</h3>
+<p>입력 변경은 100ms 후 반영됩니다. 계산이 대기 중이면 이전 다운로드를 무효화합니다. 빈 입력·같은 전경색과 배경색·용량 초과를 안내하며 내용을 자르거나 보정 수준을 몰래 바꾸지 않습니다. 입력 칸의 최대 800자는 QR 용량 보장이 아닙니다.</p>
+</details>
+</article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="qr_generator.html">직접 해보기 →</a><a href="https://prozac0401.tistory.com/53" target="_blank" rel="noopener">관련 글 ↗</a></nav></footer>
+  </main>
 </body>
 </html>

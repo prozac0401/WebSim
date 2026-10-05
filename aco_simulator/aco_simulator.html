@@ -1,1013 +1,983 @@
-<div class="aco-simulator">
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>개미의 길 찾기 · WebSim Lab</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/simulator.css" />
+    <script src="../assets/simulator.js" defer></script>
     <style>
-        .aco-simulator {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 10px;
-            min-height: 100vh;
-            color: #333;
-            box-sizing: border-box;
+      body {
+        margin: 0;
+        background: #f4f5f1;
+        color: #172e27;
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .sim-app,
+      .sim-app * {
+        box-sizing: border-box;
+      }
+      .sim-app {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 24px 28px 56px;
+      }
+      .sim-app .sim-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .sim-app .sim-controls-panel {
+        display: grid;
+        gap: 18px;
+        min-width: 0;
+      }
+      .sim-app .sim-panel {
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+      }
+      .sim-app .sim-stage-panel {
+        padding: 22px;
+      }
+      .sim-app .sim-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .sim-app .sim-panel-heading h2,
+      .sim-app .sim-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      .sim-app .sim-section-title {
+        margin-bottom: 17px;
+      }
+      .sim-app .sim-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .sim-app button,
+      .sim-app select,
+      .sim-app input[type="number"] {
+        font: inherit;
+        border: 1px solid #dce4da;
+        border-radius: 9px;
+        color: #172e27;
+        background: #fff;
+        min-height: 42px;
+        padding: 9px 13px;
+        box-shadow: none;
+        margin: 0;
+      }
+      .sim-app button {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .sim-app button:hover {
+        background: #edf3ec;
+        transform: none;
+      }
+      .sim-app button.primary {
+        background: #1f6b50;
+        color: #fff;
+        border-color: #1f6b50;
+      }
+      .sim-app button.primary:hover {
+        background: #195940;
+      }
+      .sim-app button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .sim-app button:focus-visible,
+      .sim-app canvas:focus-visible,
+      .sim-app input:focus-visible,
+      .sim-app select:focus-visible {
+        outline: 3px solid #a9cbb9;
+        outline-offset: 3px;
+      }
+      .sim-app .sim-status {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 4px 10px;
+        background: #edf3ec;
+        color: #35644c;
+        white-space: nowrap;
+      }
+      .sim-app .sim-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-stat {
+        background: #f7f9f5;
+        border: 1px solid #e6ece2;
+        border-radius: 10px;
+        padding: 12px;
+        min-width: 0;
+      }
+      .sim-app .sim-stat dt {
+        font-size: 11px;
+        color: #69766c;
+        margin-bottom: 5px;
+      }
+      .sim-app .sim-stat dd {
+        font-size: 23px;
+        line-height: 1.25;
+        font-weight: 650;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+      }
+      .sim-app .sim-stat dd small {
+        font-size: 11px;
+        font-weight: 500;
+        color: #69766c;
+      }
+      .sim-app canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        background: #f7f9f4;
+        border: 1px solid #e2e9de;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .sim-app .sim-note {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #69766c;
+        margin: 12px 0 0;
+      }
+      .sim-app .sim-note strong {
+        color: #365443;
+        font-weight: 600;
+      }
+      .sim-app .sim-control {
+        margin: 0 0 18px;
+      }
+      .sim-app .sim-control:last-child {
+        margin-bottom: 0;
+      }
+      .sim-app .sim-control label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 550;
+        margin-bottom: 8px;
+      }
+      .sim-app .sim-control output {
+        color: #1f6b50;
+        font-size: 12px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .sim-app input[type="range"] {
+        display: block;
+        accent-color: #1f6b50;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+      }
+      .sim-app .sim-control select,
+      .sim-app .sim-control input[type="number"] {
+        width: 100%;
+        font-size: 13px;
+      }
+      .sim-app .check-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        margin: 12px 0;
+      }
+      .sim-app .check-control input {
+        accent-color: #1f6b50;
+        margin: 5px 0 0;
+        flex: 0 0 auto;
+      }
+      .sim-app .preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .sim-app .preset-row button {
+        font-size: 12px;
+        min-height: 36px;
+        padding: 7px 11px;
+      }
+      .sim-app .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 13px;
+      }
+      .sim-app .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sim-app .legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #1f6b50;
+      }
+      .sim-app .rule-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .sim-app .rule-chip {
+        border: 1px solid #dce4da;
+        background: #f7f9f5;
+        border-radius: 9px;
+        padding: 12px;
+        font-size: 12px;
+      }
+      .sim-app .rule-chip b {
+        display: block;
+        font-size: 14px;
+        color: #172e27;
+        margin-top: 4px;
+      }
+      .sim-app .sim-result {
+        background: #edf3ec;
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: #365443;
+        margin-top: 13px;
+        min-height: 43px;
+      }
+      .sim-app .compact-stat {
+        font-size: 11px;
+        color: #69766c;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-app .sim-divider {
+        height: 1px;
+        background: #e4eade;
+        margin: 18px 0;
+      }
+      .sim-app .sim-muted {
+        color: #69766c;
+      }
+      .sim-app a {
+        color: #1f6b50;
+      }
+      .sim-app .sim-stat-grid.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .sim-app .sim-stat-grid.four dd {
+        font-size: 19px;
+      }
+      .sim-app .square-stage {
+        max-width: 680px;
+        margin: auto;
+      }
+      .sim-app .instruction-line {
+        font-size: 11px;
+        color: #69766c;
+        margin-top: 8px;
+      }
+      .sim-app {
+        max-width: 1360px;
+        width: calc(100% - 64px);
+        padding: 0 0 42px;
+      }
+      .sim-app .sim-controls-panel {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .sim-app .sim-panel-heading {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .sim-app .sim-toolbar {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-note {
+        padding: 0;
+        border: 0;
+      }
+      .sim-app .sim-stat dd small {
+        display: inline;
+      }
+      @media (max-width: 1050px) {
+        .sim-app {
+          width: calc(100% - 40px);
         }
-        
-        .aco-simulator * {
-            box-sizing: border-box;
+      }
+      @media (max-width: 900px) {
+        .sim-app .sim-workspace {
+          grid-template-columns: 1fr;
         }
-        
-        .aco-simulator .container {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 10px;
+        .sim-app .sim-controls-panel {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        
-        .aco-simulator .main-content {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
+        .sim-app .sim-controls-panel .full-width {
+          grid-column: 1/-1;
         }
-        
-        .aco-simulator .canvas-container {
-            flex: 2;
-            min-width: 400px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 0;
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          padding: 16px 12px 36px;
         }
-        
-        .aco-simulator .controls {
-            flex: 1;
-            min-width: 300px;
+        .sim-app .sim-panel,
+        .sim-app .sim-stage-panel {
+          padding: 16px;
         }
-        
-        .aco-simulator canvas {
-            cursor: crosshair;
-            display: block;
-            margin: 0 auto;
-            background-color: #fffef7;
-            max-width: 800px;
-            width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        .sim-app .sim-controls-panel {
+          grid-template-columns: 1fr;
         }
-        
-        @media (max-width: 768px) {
-            .aco-simulator canvas {
-                /* 모바일에서 캔버스 안정성 확보 */
-                max-width: calc(100vw - 40px);
-                max-height: 300px;
-            }
+        .sim-app .sim-stat {
+          padding: 9px;
         }
-        
-        .aco-simulator .control-group {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
+        .sim-app .sim-stat dd {
+          font-size: 19px;
         }
-        
-        .aco-simulator .control-group h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            font-size: 1.2em;
+        .sim-app .sim-stat-grid.four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        
-        .aco-simulator .param-control {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            gap: 10px;
-            max-width: 100%;
+        .sim-app .sim-toolbar {
+          gap: 6px;
         }
-        
-        .aco-simulator .param-control label {
-            font-weight: 600;
-            min-width: 80px;
-            color: #34495e;
-            flex-shrink: 0;
+        .sim-app button {
+          padding: 9px 11px;
         }
-        
-        .aco-simulator .param-control input[type="range"] {
-            flex: 1;
-            margin: 0 10px;
-            min-width: 0;
+        .sim-app .sim-panel-heading {
+          align-items: flex-start;
         }
-        
-        .aco-simulator .param-control span {
-            min-width: 60px;
-            width: 60px;
-            text-align: right;
-            font-weight: bold;
-            color: #e74c3c;
-            flex-shrink: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .sim-app .sim-note {
+          font-size: 11px;
         }
-        
-        .aco-simulator button {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      }
+      @media (max-width: 600px) {
+        .sim-app {
+          width: calc(100% - 28px);
+          padding: 0 0 36px;
         }
-        
-        .aco-simulator button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        .sim-app .sim-stat dd small {
+          display: block;
+          margin-top: 4px;
         }
-        
-        .aco-simulator .info-panel {
-            padding: 10px 15px;
-            margin-bottom: 20px;
-            background: #e8f4fd;
-            border-radius: 8px;
-            border: 1px solid #bee5eb;
-            width: 100%;
-        }
-        
-        .aco-simulator .stats {
-            display: flex;
-            justify-content: space-around;
-            gap: 20px;
-            font-size: 14px;
-        }
-        
-        .aco-simulator .stat-item {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .aco-simulator .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #e74c3c;
-        }
-        
-        .aco-simulator .param-description {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #dee2e6;
-            font-size: 14px;
-            text-align: left;
-        }
-        
-        .aco-simulator .param-description p {
-            margin: 5px 0;
-            color: #6c757d;
-        }
-        
-        @media (max-width: 768px) {
-            .aco-simulator {
-                padding: 5px;
-            }
-            
-            .aco-simulator .container {
-                padding: 5px;
-            }
-            
-            .aco-simulator .main-content {
-                flex-direction: column;
-            }
-            
-            .aco-simulator .canvas-container {
-                min-width: auto;
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .aco-simulator .controls {
-                width: 100%;
-                min-width: auto;
-                padding: 0 5px;
-            }
-            
-            .aco-simulator .param-control {
-                gap: 8px;
-            }
-            
-            .aco-simulator .param-control label {
-                min-width: 70px;
-                font-size: 14px;
-            }
-            
-            .aco-simulator .param-control span {
-                min-width: 55px;
-                width: 55px;
-                font-size: 14px;
-            }
-            
-            .aco-simulator .stats {
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-            
-            .aco-simulator .stat-item {
-                min-width: calc(50% - 7.5px);
-            }
-        }
+      }
     </style>
-
-    <div class="container">
-        <div class="info-panel">
-            <div class="stats">
-                <div class="stat-item">
-                    <div>세대</div>
-                    <div class="stat-value" id="aco-generation">0</div>
-                </div>
-                <div class="stat-item">
-                    <div>최단거리</div>
-                    <div class="stat-value" id="aco-bestDistance">-</div>
-                </div>
-                <div class="stat-item">
-                    <div>도시수</div>
-                    <div class="stat-value" id="aco-cityCount">0</div>
-                </div>
-                <div class="stat-item">
-                    <div>활성도로</div>
-                    <div class="stat-value" id="aco-roadCount">0</div>
-                </div>
+  </head>
+  <body>
+    <main class="sim-app sim-app--aco" id="sim-app">
+      <div class="sim-workspace">
+        <section class="sim-panel sim-stage-panel" aria-label="경로 탐색 실험">
+          <div class="sim-panel-heading">
+            <h2>경로 탐색</h2>
+            <span class="sim-status" id="aco-status">준비</span>
+          </div>
+          <div class="sim-toolbar">
+            <button class="primary" id="aco-start-btn">시작</button
+            ><button id="aco-stop-btn" disabled>일시정지</button
+            ><button id="aco-step-btn">1세대 진행</button
+            ><button id="aco-reset-btn">기록 초기화</button>
+          </div>
+          <dl class="sim-stat-grid">
+            <div class="sim-stat">
+              <dt>완료한 세대</dt>
+              <dd><span id="aco-generation">0</span></dd>
             </div>
-        </div>
-        
-        <div class="main-content">
-            <div class="canvas-container">
-                <canvas id="aco-canvas"></canvas>
+            <div class="sim-stat">
+              <dt>찾은 길 중 가장 짧은 거리</dt>
+              <dd>
+                <span id="aco-bestDistance">—</span> <small>좌표 단위</small>
+              </dd>
             </div>
-            
-            <div class="controls">
-                <div class="control-group">
-                    <h3>시뮬레이션 제어</h3>
-                    <button id="aco-start-btn">시뮬레이션 시작</button>
-                    <button id="aco-stop-btn">정지</button>
-                    <button id="aco-reset-btn">리셋</button>
-                </div>
-                
-                <div class="control-group">
-                    <h3>파라미터</h3>
-                    <div class="param-control">
-                        <label>도시 수:</label>
-                        <input type="range" id="aco-cityNumber" min="10" max="50" step="1" value="25">
-                        <span id="aco-cityNumberValue">25</span>
-                    </div>
-                    
-                    <div class="param-control">
-                        <label>Alpha (α):</label>
-                        <input type="range" id="aco-alpha" min="0.1" max="3" step="0.1" value="1">
-                        <span id="aco-alphaValue">1.0</span>
-                    </div>
-                    
-                    <div class="param-control">
-                        <label>Beta (β):</label>
-                        <input type="range" id="aco-beta" min="0.1" max="5" step="0.1" value="2">
-                        <span id="aco-betaValue">2.0</span>
-                    </div>
-                    
-                    <div class="param-control">
-                        <label>Rho (ρ):</label>
-                        <input type="range" id="aco-rho" min="0.01" max="0.5" step="0.01" value="0.1">
-                        <span id="aco-rhoValue">0.10</span>
-                    </div>
-                    
-                    <div class="param-control">
-                        <label>개미 수:</label>
-                        <input type="range" id="aco-antCount" min="20" max="100" step="5" value="40">
-                        <span id="aco-antCountValue">40</span>
-                    </div>
-                    
-                    <div class="param-control">
-                        <label>속도:</label>
-                        <input type="range" id="aco-speed" min="5" max="50" step="5" value="20">
-                        <span id="aco-speedValue">20ms</span>
-                    </div>
-                    
-                    <div class="param-description">
-                        <p><strong>Alpha (α):</strong> 페로몬 중요도 (과거 경험)</p>
-                        <p><strong>Beta (β):</strong> 거리 중요도 (즉각적 이익)</p>
-                        <p><strong>Rho (ρ):</strong> 페로몬 증발율 (다양성 유지)</p>
-                    </div>
-                </div>
+            <div class="sim-stat">
+              <dt>방문할 도시</dt>
+              <dd><span id="aco-cityCount">25</span> <small>개</small></dd>
             </div>
-        </div>
-    </div>
-
+          </dl>
+          <canvas
+            id="aco-canvas"
+            width="800"
+            height="500"
+            tabindex="0"
+            aria-label="도시와 왕복 경로. 빈 곳을 누르면 도시가 추가되며, 도시를 끌어 위치를 바꿀 수 있습니다."
+          ></canvas>
+          <div class="legend">
+            <span><i></i>찾은 최선의 왕복 경로</span
+            ><span><i style="background: #afc7b0"></i>페로몬이 쌓인 연결</span
+            ><span
+              ><i style="background: #bc8b4a"></i>완료한 세대 경로의 재생</span
+            >
+          </div>
+          <div class="sim-result" id="aco-result">
+            시작하면 모든 도시를 한 번씩 방문하고 출발점으로 돌아오는 길을
+            비교합니다.
+          </div>
+          <p class="sim-note">
+            도시를 추가하거나 끌면 <strong>탐색 기록이 초기화</strong>됩니다.
+            거리는 고정된 800 × 500 좌표의 합이며, 화면 크기를 바꿔도 같은
+            문제입니다.
+          </p>
+        </section>
+        <aside class="sim-controls-panel">
+          <section class="sim-panel">
+            <h2 class="sim-section-title">탐색 규칙</h2>
+            <div class="sim-control">
+              <label for="aco-alpha"
+                >페로몬을 따르는 정도 α<output id="aco-alpha-value"
+                  >1</output
+                ></label
+              ><input
+                type="range"
+                id="aco-alpha"
+                min="0"
+                max="5"
+                step="0.1"
+                value="1"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="aco-beta"
+                >가까운 도시를 선호하는 정도 β<output id="aco-beta-value"
+                  >2</output
+                ></label
+              ><input
+                type="range"
+                id="aco-beta"
+                min="0"
+                max="8"
+                step="0.1"
+                value="2"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="aco-rho"
+                >세대마다 사라지는 페로몬 비율<output id="aco-rho-value"
+                  >0.1</output
+                ></label
+              ><input
+                type="range"
+                id="aco-rho"
+                min="0.01"
+                max="1"
+                step="0.01"
+                value="0.1"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="aco-antCount"
+                >세대당 개미<output id="aco-antCount-value"
+                  >40 마리</output
+                ></label
+              ><input
+                type="range"
+                id="aco-antCount"
+                min="5"
+                max="150"
+                step="5"
+                value="40"
+              />
+            </div>
+            <div class="sim-control">
+              <label for="aco-speed"
+                >진행 속도<output id="aco-speed-value">3 세대/초</output></label
+              ><input
+                type="range"
+                id="aco-speed"
+                min="1"
+                max="10"
+                step="1"
+                value="3"
+              />
+            </div>
+            <p class="sim-note">
+              설정은 다음 세대부터 적용됩니다. 한 세대 안에서는 같은 설정으로
+              비교합니다.
+            </p>
+          </section>
+          <section class="sim-panel">
+            <h2 class="sim-section-title">도시 배치</h2>
+            <div class="sim-control">
+              <label for="aco-cityNumber"
+                >도시 수<output id="aco-cityNumber-value">25 개</output></label
+              ><input
+                type="range"
+                id="aco-cityNumber"
+                min="4"
+                max="50"
+                step="1"
+                value="25"
+              />
+            </div>
+            <div class="preset-row">
+              <button id="aco-random-btn">새 무작위 배치</button
+              ><button id="aco-circle-btn">원형 배치</button>
+            </div>
+            <p class="sim-note">
+              새 배치는 탐색 기록도 지웁니다. <strong>기록 초기화</strong>는
+              도시와 설정을 유지하고 페로몬·세대·최선 경로만 지웁니다.
+            </p>
+          </section>
+          <section class="sim-panel full-width">
+            <h2 class="sim-section-title">결과 읽기</h2>
+            <p class="sim-note" style="margin: 0">
+              짧은 왕복 경로를 만든 개미는 그 길에 더 많은 페로몬을 남깁니다.
+              다른 개미들이 이를 참고하면서 좋은 경로가 자주 선택됩니다. 표시된
+              거리는 <strong>지금까지 찾은 최선</strong>이며, 모든 가능한 경로
+              중 최적이라는 보장은 없습니다.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
     <script>
-        (function() {
-            let acoSimulator;
-            
-            class ACOSimulator {
-                constructor() {
-                    this.canvas = document.getElementById('aco-canvas');
-                    this.ctx = this.canvas.getContext('2d');
-                    
-                    this.displayWidth = 0;
-                    this.displayHeight = 0;
-                    
-                    this.cities = [];
-                    this.pheromones = [];
-                    this.distances = [];
-                    this.bestPath = [];
-                    this.bestDistance = Infinity;
-                    this.generation = 0;
-                    this.isRunning = false;
-                    
-                    this.roads = new Map();
-                    this.roadThreshold = 2.0;
-                    this.roadDecayRate = 0.02;
-                    
-                    this.currentGenerationAnts = [];
-                    this.animationSpeed = 20;
-                    this.maxGenerations = 100;
-                    
-                    this.cityNumber = 25;
-                    this.alpha = 1.0;
-                    this.beta = 2.0;
-                    this.rho = 0.1;
-                    this.antCount = 40;
-                    this.Q = 100;
-                    
-                    this.setupCanvas();
-                    this.setupEventListeners();
-                    this.generateRandomCities();
-                }
-                
-                setupCanvas() {
-                    const dpr = window.devicePixelRatio || 1;
-                    const canvasContainer = this.canvas.parentElement;
-                    const isMobile = window.innerWidth <= 768;
-                    
-                    let displayWidth, displayHeight;
-                    
-                    if (isMobile) {
-                        displayWidth = Math.min(window.innerWidth - 60, 600);
-                        displayHeight = Math.min(Math.max(window.innerHeight * 0.4, 300), 400);
-                    } else {
-                        const containerWidth = canvasContainer.clientWidth;
-                        displayWidth = Math.max(400, Math.min(containerWidth - 20, 800));
-                        displayHeight = Math.min(Math.max(window.innerHeight * 0.6, 400), 600);
-                    }
-                    
-                    this.canvas.width = displayWidth * dpr;
-                    this.canvas.height = displayHeight * dpr;
-                    this.canvas.style.width = displayWidth + 'px';
-                    this.canvas.style.height = displayHeight + 'px';
-                    
-                    this.ctx.scale(dpr, dpr);
-                    
-                    this.displayWidth = displayWidth;
-                    this.displayHeight = displayHeight;
-                    
-                    window.addEventListener('resize', () => this.resizeCanvas());
-                }
-                
-                resizeCanvas() {
-                    const dpr = window.devicePixelRatio || 1;
-                    const isMobile = window.innerWidth <= 768;
-                    let newDisplayWidth, newDisplayHeight;
-                    
-                    if (isMobile) {
-                        newDisplayWidth = Math.min(window.innerWidth - 60, 600);
-                        newDisplayHeight = Math.min(Math.max(window.innerHeight * 0.4, 300), 400);
-                    } else {
-                        const containerWidth = this.canvas.parentElement.clientWidth;
-                        newDisplayWidth = Math.max(400, Math.min(containerWidth - 20, 800));
-                        newDisplayHeight = Math.min(Math.max(window.innerHeight * 0.6, 400), 600);
-                    }
-                    
-                    if (newDisplayWidth !== this.displayWidth || newDisplayHeight !== this.displayHeight) {
-                        const oldDisplayWidth = this.displayWidth;
-                        const oldDisplayHeight = this.displayHeight;
-                        
-                        this.canvas.width = newDisplayWidth * dpr;
-                        this.canvas.height = newDisplayHeight * dpr;
-                        this.canvas.style.width = newDisplayWidth + 'px';
-                        this.canvas.style.height = newDisplayHeight + 'px';
-                        
-                        this.ctx.scale(dpr, dpr);
-                        
-                        this.displayWidth = newDisplayWidth;
-                        this.displayHeight = newDisplayHeight;
-                        
-                        if (this.cities.length > 0 && oldDisplayWidth > 0 && oldDisplayHeight > 0) {
-                            const scaleX = newDisplayWidth / oldDisplayWidth;
-                            const scaleY = newDisplayHeight / oldDisplayHeight;
-                            
-                            this.cities.forEach(city => {
-                                city.x = Math.max(30, Math.min(newDisplayWidth - 30, city.x * scaleX));
-                                city.y = Math.max(30, Math.min(newDisplayHeight - 30, city.y * scaleY));
-                            });
-                            
-                            this.initializeMatrices();
-                        }
-                        
-                        this.updateDisplay();
-                    }
-                }
-                
-                setupEventListeners() {
-                    this.canvas.addEventListener('click', (e) => {
-                        if (!this.isRunning) {
-                            const rect = this.canvas.getBoundingClientRect();
-                            const x = (e.clientX - rect.left) * (this.displayWidth / rect.width);
-                            const y = (e.clientY - rect.top) * (this.displayHeight / rect.height);
-                            this.addCity(x, y);
-                        }
-                    });
-                    
-                    document.getElementById('aco-start-btn').addEventListener('click', () => this.startSimulation());
-                    document.getElementById('aco-stop-btn').addEventListener('click', () => this.stopSimulation());
-                    document.getElementById('aco-reset-btn').addEventListener('click', () => this.resetSimulation());
-                    
-                    ['aco-cityNumber', 'aco-alpha', 'aco-beta', 'aco-rho', 'aco-antCount', 'aco-speed'].forEach(id => {
-                        document.getElementById(id).addEventListener('input', () => this.updateParameters());
-                    });
-                }
-                
-                addCity(x, y) {
-                    const minDistance = 40;
-                    let validPosition = true;
-                    
-                    // 최대 도시 수 확인
-                    const maxCities = parseInt(document.getElementById('aco-cityNumber').max);
-                    if (this.cities.length >= maxCities) {
-                        return; // 최대 도시 수에 도달하면 추가하지 않음
-                    }
-                    
-                    for (const city of this.cities) {
-                        const distance = Math.sqrt(Math.pow(x - city.x, 2) + Math.pow(y - city.y, 2));
-                        if (distance < minDistance) {
-                            validPosition = false;
-                            break;
-                        }
-                    }
-                    
-                    if (validPosition) {
-                        this.cities.push({x, y});
-                        this.updateDistanceMatrix();
-                        
-                        // 도시 수가 변경되었으므로 UI 업데이트
-                        this.cityNumber = this.cities.length;
-                        document.getElementById('aco-cityNumber').value = this.cityNumber;
-                        document.getElementById('aco-cityNumberValue').textContent = this.cityNumber;
-                        
-                        this.updateDisplay();
-                    }
-                }
-                
-                updateDistanceMatrix() {
-                    const n = this.cities.length;
-                    
-                    // 거리 행렬만 업데이트 (generation 보존)
-                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            if (i !== j) {
-                                const dx = this.cities[i].x - this.cities[j].x;
-                                const dy = this.cities[i].y - this.cities[j].y;
-                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
-                            }
-                        }
-                    }
-                    
-                    // 페로몬 행렬 크기 조정 (기존 값 보존)
-                    const oldPheromones = this.pheromones;
-                    this.pheromones = Array(n).fill().map(() => Array(n).fill(1.0));
-                    
-                    // 기존 페로몬 값이 있다면 복사
-                    if (oldPheromones && oldPheromones.length > 0) {
-                        for (let i = 0; i < Math.min(n, oldPheromones.length); i++) {
-                            for (let j = 0; j < Math.min(n, oldPheromones[0].length); j++) {
-                                this.pheromones[i][j] = oldPheromones[i][j];
-                            }
-                        }
-                    }
-                }
-                
-                updateDistanceMatrixOnly() {
-                    const n = this.cities.length;
-                    
-                    // 거리 행렬만 업데이트 (페로몬과 generation 완전 보존)
-                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            if (i !== j) {
-                                const dx = this.cities[i].x - this.cities[j].x;
-                                const dy = this.cities[i].y - this.cities[j].y;
-                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
-                            }
-                        }
-                    }
-                    // 페로몬 행렬은 그대로 유지
-                }
-                
-                generateRandomCities() {
-                    this.cities = [];
-                    const numCities = this.cityNumber;
-                    const margin = 30;
-                    const minDistance = Math.max(25, 150 / Math.sqrt(numCities));
-                    
-                    for (let i = 0; i < numCities; i++) {
-                        let x, y, attempts = 0;
-                        let validPosition = false;
-                        
-                        while (!validPosition && attempts < 100) {
-                            x = margin + Math.random() * (this.displayWidth - 2 * margin);
-                            y = margin + Math.random() * (this.displayHeight - 2 * margin);
-                            
-                            validPosition = true;
-                            for (const city of this.cities) {
-                                const distance = Math.sqrt(Math.pow(x - city.x, 2) + Math.pow(y - city.y, 2));
-                                if (distance < minDistance) {
-                                    validPosition = false;
-                                    break;
-                                }
-                            }
-                            attempts++;
-                        }
-                        
-                        if (validPosition) {
-                            this.cities.push({x, y});
-                        }
-                    }
-                    
-                    // 완전히 새로운 시작이므로 모든 것을 초기화
-                    this.initializeMatrices();
-                    this.updateDisplay();
-                }
-                
-                initializeMatrices() {
-                    const n = this.cities.length;
-                    
-                    this.distances = Array(n).fill().map(() => Array(n).fill(0));
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            if (i !== j) {
-                                const dx = this.cities[i].x - this.cities[j].x;
-                                const dy = this.cities[i].y - this.cities[j].y;
-                                this.distances[i][j] = Math.sqrt(dx * dx + dy * dy);
-                            }
-                        }
-                    }
-                    
-                    this.pheromones = Array(n).fill().map(() => Array(n).fill(1.0));
-                    this.roads.clear();
-                    this.bestDistance = Infinity;
-                    this.bestPath = [];
-                    this.generation = 0;
-                }
-                
-                startSimulation() {
-                    if (this.cities.length < 3) {
-                        alert('최소 3개의 도시가 필요합니다!');
-                        return;
-                    }
-                    
-                    this.isRunning = true;
-                    this.generation = 0;
-                    this.initializeMatrices();
-                    this.continuousSimulation();
-                }
-                
-                async continuousSimulation() {
-                    while (this.isRunning && this.generation < this.maxGenerations) {
-                        await this.runGeneration();
-                        this.generation++;
-                        this.updateStats();
-                        
-                        if (this.isRunning) {
-                            await this.delay(300);
-                        }
-                    }
-                    
-                    if (this.generation >= this.maxGenerations) {
-                        this.isRunning = false;
-                        this.currentGenerationAnts = [];
-                        this.updateDisplay();
-                        
-                        // 시뮬레이션 완료 후 지연된 리사이즈 처리
-                        setTimeout(() => {
-                            this.resizeCanvas();
-                        }, 100);
-                    }
-                }
-                
-                async runGeneration() {
-                    const antPaths = [];
-                    const antDistances = [];
-                    
-                    for (let ant = 0; ant < this.antCount; ant++) {
-                        const path = this.constructPath();
-                        const distance = this.calculatePathDistance(path);
-                        
-                        antPaths.push(path);
-                        antDistances.push(distance);
-                        
-                        if (distance < this.bestDistance) {
-                            this.bestDistance = distance;
-                            this.bestPath = [...path];
-                        }
-                    }
-                    
-                    this.currentGenerationAnts = [];
-                    for (let i = 0; i < Math.min(this.antCount, 15); i++) {
-                        this.currentGenerationAnts.push({
-                            path: antPaths[i],
-                            currentStep: 0,
-                            position: {
-                                x: this.cities[antPaths[i][0]].x,
-                                y: this.cities[antPaths[i][0]].y
-                            },
-                            color: `hsl(${(i * 360 / 15) % 360}, 70%, 50%)`,
-                            isMoving: false,
-                            visitedCities: []
-                        });
-                    }
-                    
-                    await this.animateAnts();
-                    this.updatePheromones(antPaths, antDistances);
-                }
-                
-                async animateAnts() {
-                    const maxSteps = Math.max(...this.currentGenerationAnts.map(ant => ant.path.length));
-                    
-                    for (let step = 1; step < maxSteps; step++) {
-                        for (const ant of this.currentGenerationAnts) {
-                            if (step < ant.path.length) {
-                                const targetIndex = ant.path[step];
-                                const target = this.cities[targetIndex];
-                                
-                                ant.targetPosition = {x: target.x, y: target.y};
-                                ant.isMoving = true;
-                                ant.visitedCities.push(targetIndex);
-                            }
-                        }
-                        
-                        await this.smoothMoveAnts();
-                        await this.delay(this.animationSpeed);
-                    }
-                    
-                    this.clearAntTrails();
-                }
-                
-                async smoothMoveAnts() {
-                    return new Promise((resolve) => {
-                        const duration = Math.max(this.animationSpeed, 20);
-                        const frames = Math.max(duration / 16, 2);
-                        let currentFrame = 0;
-                        
-                        this.currentGenerationAnts.forEach(ant => {
-                            if (ant.isMoving && ant.position && ant.targetPosition) {
-                                ant.startPosition = {x: ant.position.x, y: ant.position.y};
-                            }
-                        });
-                        
-                        const animate = () => {
-                            currentFrame++;
-                            const progress = Math.min(currentFrame / frames, 1);
-                            
-                            for (const ant of this.currentGenerationAnts) {
-                                if (ant.isMoving && ant.startPosition && ant.targetPosition) {
-                                    ant.position.x = ant.startPosition.x + (ant.targetPosition.x - ant.startPosition.x) * progress;
-                                    ant.position.y = ant.startPosition.y + (ant.targetPosition.y - ant.startPosition.y) * progress;
-                                }
-                            }
-                            
-                            this.updateDisplay();
-                            
-                            if (progress < 1) {
-                                requestAnimationFrame(animate);
-                            } else {
-                                for (const ant of this.currentGenerationAnts) {
-                                    if (ant.isMoving && ant.targetPosition) {
-                                        ant.position.x = ant.targetPosition.x;
-                                        ant.position.y = ant.targetPosition.y;
-                                        ant.isMoving = false;
-                                    }
-                                }
-                                resolve();
-                            }
-                        };
-                        
-                        animate();
-                    });
-                }
-                
-                clearAntTrails() {
-                    this.currentGenerationAnts.forEach(ant => {
-                        ant.visitedCities = [];
-                    });
-                }
-                
-                constructPath() {
-                    const n = this.cities.length;
-                    const visited = Array(n).fill(false);
-                    const path = [];
-                    
-                    let current = Math.floor(Math.random() * n);
-                    path.push(current);
-                    visited[current] = true;
-                    
-                    for (let step = 1; step < n; step++) {
-                        const probabilities = [];
-                        let totalProb = 0;
-                        
-                        for (let next = 0; next < n; next++) {
-                            if (!visited[next]) {
-                                const pheromone = Math.pow(this.pheromones[current][next], this.alpha);
-                                const heuristic = Math.pow(1 / this.distances[current][next], this.beta);
-                                const prob = pheromone * heuristic;
-                                probabilities.push({city: next, prob});
-                                totalProb += prob;
-                            }
-                        }
-                        
-                        const random = Math.random() * totalProb;
-                        let cumulative = 0;
-                        let nextCity = probabilities[0].city;
-                        
-                        for (const item of probabilities) {
-                            cumulative += item.prob;
-                            if (random <= cumulative) {
-                                nextCity = item.city;
-                                break;
-                            }
-                        }
-                        
-                        path.push(nextCity);
-                        visited[nextCity] = true;
-                        current = nextCity;
-                    }
-                    
-                    path.push(path[0]);
-                    return path;
-                }
-                
-                calculatePathDistance(path) {
-                    let distance = 0;
-                    for (let i = 0; i < path.length - 1; i++) {
-                        distance += this.distances[path[i]][path[i + 1]];
-                    }
-                    return distance;
-                }
-                
-                updatePheromones(antPaths, antDistances) {
-                    const n = this.cities.length;
-                    
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            this.pheromones[i][j] *= (1 - this.rho);
-                        }
-                    }
-                    
-                    for (let ant = 0; ant < antPaths.length; ant++) {
-                        const path = antPaths[ant];
-                        const distance = antDistances[ant];
-                        const deltaPheromone = this.Q / distance;
-                        
-                        for (let i = 0; i < path.length - 1; i++) {
-                            const from = path[i];
-                            const to = path[i + 1];
-                            this.pheromones[from][to] += deltaPheromone;
-                            this.pheromones[to][from] += deltaPheromone;
-                        }
-                    }
-                    
-                    this.updateRoadNetwork();
-                }
-                
-                updateRoadNetwork() {
-                    const n = this.cities.length;
-                    
-                    for (const [roadKey, road] of this.roads) {
-                        road.age++;
-                        road.strength *= (1 - this.roadDecayRate);
-                        
-                        if (road.strength < 0.5) {
-                            this.roads.delete(roadKey);
-                        }
-                    }
-                    
-                    for (let i = 0; i < n; i++) {
-                        for (let j = i + 1; j < n; j++) {
-                            const pheromoneLevel = this.pheromones[i][j];
-                            const roadKey = `${i}-${j}`;
-                            
-                            if (pheromoneLevel > this.roadThreshold) {
-                                if (!this.roads.has(roadKey)) {
-                                    this.roads.set(roadKey, {
-                                        strength: pheromoneLevel,
-                                        age: 0,
-                                        from: i,
-                                        to: j
-                                    });
-                                } else {
-                                    const road = this.roads.get(roadKey);
-                                    road.strength = Math.max(road.strength, pheromoneLevel);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                updateDisplay() {
-                    this.ctx.fillStyle = '#fffef7';
-                    this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
-                    
-                    this.drawRoadNetwork();
-                    
-                    if (this.bestPath.length > 0) {
-                        this.drawPath(this.bestPath, '#e74c3c', 4);
-                    }
-                    
-                    this.drawMovingAnts();
-                    this.drawCities();
-                    this.updateStats();
-                }
-                
-                drawRoadNetwork() {
-                    for (const [roadKey, road] of this.roads) {
-                        const from = this.cities[road.from];
-                        const to = this.cities[road.to];
-                        
-                        const normalizedStrength = Math.min(road.strength / 10, 1);
-                        const width = 2 + normalizedStrength * 4;
-                        const alpha = 0.3 + normalizedStrength * 0.4;
-                        
-                        let hue = 200;
-                        if (road.age > 10) hue = 120;
-                        if (road.age > 20) hue = 60;
-                        if (road.age > 30) hue = 0;
-                        
-                        this.ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
-                        this.ctx.lineWidth = width;
-                        this.ctx.lineCap = 'round';
-                        
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(from.x, from.y);
-                        this.ctx.lineTo(to.x, to.y);
-                        this.ctx.stroke();
-                    }
-                }
-                
-                drawPath(path, color, width) {
-                    this.ctx.strokeStyle = color;
-                    this.ctx.lineWidth = width;
-                    this.ctx.beginPath();
-                    
-                    for (let i = 0; i < path.length - 1; i++) {
-                        const from = this.cities[path[i]];
-                        const to = this.cities[path[i + 1]];
-                        
-                        if (i === 0) {
-                            this.ctx.moveTo(from.x, from.y);
-                        }
-                        this.ctx.lineTo(to.x, to.y);
-                    }
-                    
-                    this.ctx.stroke();
-                }
-                
-                drawMovingAnts() {
-                    if (!this.currentGenerationAnts) return;
-                    
-                    this.currentGenerationAnts.forEach((ant, index) => {
-                        if (!ant.position) return;
-                        
-                        const x = ant.position.x;
-                        const y = ant.position.y;
-                        
-                        this.ctx.fillStyle = ant.color;
-                        this.ctx.beginPath();
-                        this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
-                        this.ctx.fill();
-                        
-                        this.ctx.strokeStyle = '#333';
-                        this.ctx.lineWidth = 1;
-                        this.ctx.stroke();
-                        
-                        this.ctx.fillStyle = 'white';
-                        this.ctx.font = 'bold 8px Arial';
-                        this.ctx.textAlign = 'center';
-                        this.ctx.fillText((index + 1).toString(), x, y + 2);
-                        
-                        if (ant.visitedCities && ant.visitedCities.length > 1) {
-                            this.ctx.strokeStyle = ant.color + '60';
-                            this.ctx.lineWidth = 1;
-                            this.ctx.setLineDash([2, 2]);
-                            this.ctx.beginPath();
-                            
-                            for (let i = 0; i < ant.visitedCities.length; i++) {
-                                const cityIndex = ant.visitedCities[i];
-                                const city = this.cities[cityIndex];
-                                if (i === 0) {
-                                    this.ctx.moveTo(city.x, city.y);
-                                } else {
-                                    this.ctx.lineTo(city.x, city.y);
-                                }
-                            }
-                            
-                            if (ant.isMoving) {
-                                this.ctx.lineTo(x, y);
-                            }
-                            
-                            this.ctx.stroke();
-                            this.ctx.setLineDash([]);
-                        }
-                    });
-                }
-                
-                drawCities() {
-                    this.cities.forEach((city, index) => {
-                        this.ctx.fillStyle = '#2c3e50';
-                        this.ctx.beginPath();
-                        this.ctx.arc(city.x, city.y, 8, 0, 2 * Math.PI);
-                        this.ctx.fill();
-                        
-                        this.ctx.fillStyle = 'white';
-                        this.ctx.font = 'bold 12px Arial';
-                        this.ctx.textAlign = 'center';
-                        this.ctx.fillText(index.toString(), city.x, city.y + 4);
-                    });
-                }
-                
-                stopSimulation() {
-                    this.isRunning = false;
-                    this.currentGenerationAnts = [];
-                    this.updateDisplay();
-                    
-                    // 시뮬레이션 정지 후 지연된 리사이즈 처리
-                    setTimeout(() => {
-                        this.resizeCanvas();
-                    }, 100);
-                }
-                
-                resetSimulation() {
-                    this.stopSimulation();
-                    this.initializeMatrices();
-                    this.updateDisplay();
-                }
-                
-                updateStats() {
-                    document.getElementById('aco-generation').textContent = this.generation;
-                    document.getElementById('aco-bestDistance').textContent = 
-                        this.bestDistance === Infinity ? '-' : this.bestDistance.toFixed(1);
-                    document.getElementById('aco-cityCount').textContent = this.cities.length;
-                    document.getElementById('aco-roadCount').textContent = this.roads.size;
-                }
-                
-                updateParameters() {
-                    this.alpha = parseFloat(document.getElementById('aco-alpha').value);
-                    this.beta = parseFloat(document.getElementById('aco-beta').value);
-                    this.rho = parseFloat(document.getElementById('aco-rho').value);
-                    this.antCount = parseInt(document.getElementById('aco-antCount').value);
-                    this.animationSpeed = parseInt(document.getElementById('aco-speed').value);
-                    
-                    const newCityNumber = parseInt(document.getElementById('aco-cityNumber').value);
-                    
-                    document.getElementById('aco-alphaValue').textContent = this.alpha.toFixed(1);
-                    document.getElementById('aco-betaValue').textContent = this.beta.toFixed(1);
-                    document.getElementById('aco-rhoValue').textContent = this.rho.toFixed(2);
-                    document.getElementById('aco-antCountValue').textContent = this.antCount;
-                    document.getElementById('aco-speedValue').textContent = this.animationSpeed + 'ms';
-                    document.getElementById('aco-cityNumberValue').textContent = newCityNumber;
-                    
-                    if (!this.isRunning && newCityNumber !== this.cityNumber) {
-                        this.cityNumber = newCityNumber;
-                        this.generateRandomCities();
-                    }
-                }
-                
-                delay(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id),
+          app = $("sim-app");
+        const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+        const fmt = (x) => Number(x).toLocaleString("ko-KR");
+        const pointer = (event, canvas) => {
+          const r = canvas.getBoundingClientRect();
+          return {
+            x: ((event.clientX - r.left) * canvas.width) / r.width,
+            y: ((event.clientY - r.top) * canvas.height) / r.height,
+          };
+        };
+        const canvas = $("aco-canvas"),
+          ctx = canvas.getContext("2d");
+        let cities = [],
+          tau = [],
+          dist = [],
+          bestPath = [],
+          bestDistance = Infinity,
+          generation = 0,
+          running = false,
+          elapsed = 0,
+          lastTime = 0,
+          latestPaths = [],
+          lastSettings = null,
+          drag = null,
+          selected = 0;
+        const controls = [
+          "aco-alpha",
+          "aco-beta",
+          "aco-rho",
+          "aco-antCount",
+          "aco-speed",
+          "aco-cityNumber",
+        ];
+        function settings() {
+          return {
+            alpha: +$("aco-alpha").value,
+            beta: +$("aco-beta").value,
+            rho: +$("aco-rho").value,
+            antCount: +$("aco-antCount").value,
+          };
+        }
+        function updateValues() {
+          controls.forEach((id) => {
+            $(id + "-value").textContent =
+              id === "aco-rho"
+                ? (+$("aco-rho").value).toFixed(2)
+                : id === "aco-alpha" || id === "aco-beta"
+                  ? (+$(id).value).toFixed(1)
+                  : fmt($(id).value) +
+                    (id === "aco-antCount"
+                      ? " 마리"
+                      : id === "aco-speed"
+                        ? " 세대/초"
+                        : id === "aco-cityNumber"
+                          ? " 개"
+                          : "");
+          });
+        }
+        function matrices() {
+          const n = cities.length;
+          dist = Array.from({ length: n }, (_, i) =>
+            Array.from({ length: n }, (_, j) =>
+              Math.hypot(cities[i].x - cities[j].x, cities[i].y - cities[j].y),
+            ),
+          );
+          tau = Array.from({ length: n }, () => Array(n).fill(1));
+        }
+        function pause() {
+          running = false;
+          elapsed = 0;
+          buttons();
+        }
+        function buttons() {
+          $("aco-start-btn").disabled = running;
+          $("aco-stop-btn").disabled = !running;
+          $("aco-status").textContent = running
+            ? "탐색 중"
+            : generation
+              ? "일시정지"
+              : "준비";
+          $("aco-start-btn").textContent = generation ? "계속 탐색" : "시작";
+        }
+        function reset() {
+          pause();
+          generation = 0;
+          bestDistance = Infinity;
+          bestPath = [];
+          latestPaths = [];
+          lastSettings = null;
+          matrices();
+          refresh();
+          draw();
+          $("aco-result").textContent =
+            "도시와 설정은 그대로입니다. 새 페로몬으로 탐색을 시작할 수 있습니다.";
+        }
+        function layout(kind) {
+          pause();
+          const n = +$("aco-cityNumber").value;
+          cities = [];
+          for (let i = 0; i < n; i++) {
+            if (kind === "circle") {
+              const a = (i / n) * Math.PI * 2;
+              cities.push({
+                x: 400 + 320 * Math.cos(a),
+                y: 250 + 190 * Math.sin(a),
+              });
+            } else {
+              let c,
+                tries = 0;
+              do {
+                c = {
+                  x: 40 + Math.random() * 720,
+                  y: 40 + Math.random() * 420,
+                };
+                tries++;
+              } while (
+                cities.some((p) => Math.hypot(p.x - c.x, p.y - c.y) < 22) &&
+                tries < 200
+              );
+              cities.push(c);
             }
-            
-            // 초기화
-            window.addEventListener('load', () => {
-                // 모바일에서 viewport 고정을 위한 메타 태그 추가
-                if (window.innerWidth <= 768) {
-                    let viewport = document.querySelector('meta[name="viewport"]');
-                    if (!viewport) {
-                        viewport = document.createElement('meta');
-                        viewport.name = 'viewport';
-                        document.getElementsByTagName('head')[0].appendChild(viewport);
-                    }
-                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+          }
+          selected = 0;
+          reset();
+        }
+        function tour(p, rng = Math.random) {
+          const n = cities.length,
+            start = Math.floor(rng() * n);
+          const path = [start],
+            remaining = new Set(Array.from({ length: n }, (_, i) => i));
+          remaining.delete(start);
+          let length = 0;
+          while (remaining.size) {
+            const i = path[path.length - 1],
+              choices = [...remaining];
+            const logs = choices.map(
+              (j) =>
+                p.alpha * Math.log(Math.max(tau[i][j], 1e-12)) -
+                p.beta * Math.log(Math.max(dist[i][j], 1e-9)),
+            );
+            const maximum = Math.max(...logs),
+              weights = logs.map((v) => Math.exp(v - maximum));
+            const total = weights.reduce((a, b) => a + b, 0);
+            let pick = rng() * total,
+              k = 0;
+            while (k < weights.length - 1 && pick >= weights[k]) {
+              pick -= weights[k++];
+            }
+            const j = choices[k];
+            length += dist[i][j];
+            path.push(j);
+            remaining.delete(j);
+          }
+          length += dist[path[path.length - 1]][start];
+          path.push(start);
+          return { path, length };
+        }
+        function nextGeneration(rng = Math.random) {
+          const p = settings(),
+            n = cities.length;
+          if (n < 3) return;
+          const deposit = Array.from({ length: n }, () => Array(n).fill(0));
+          let improved = false;
+          latestPaths = [];
+          for (let a = 0; a < p.antCount; a++) {
+            const t = tour(p, rng);
+            latestPaths.push(t.path);
+            if (t.length < bestDistance) {
+              bestDistance = t.length;
+              bestPath = t.path.slice();
+              improved = true;
+            }
+            const q = 100 / Math.max(t.length, 1e-9);
+            for (let k = 0; k < t.path.length - 1; k++) {
+              const i = t.path[k],
+                j = t.path[k + 1];
+              deposit[i][j] += q;
+              deposit[j][i] += q;
+            }
+          }
+          for (let i = 0; i < n; i++)
+            for (let j = 0; j < n; j++)
+              tau[i][j] =
+                i === j
+                  ? 0
+                  : clamp((1 - p.rho) * tau[i][j] + deposit[i][j], 1e-12, 1e12);
+          generation++;
+          lastSettings = { ...p };
+          refresh();
+          $("aco-result").textContent = improved
+            ? "새 기록을 찾았습니다. 진한 경로의 왕복 거리가 이전 기록보다 짧아졌습니다."
+            : "이번 세대는 기록을 줄이지 못했습니다. 반복 탐색이 항상 개선을 보장하지는 않습니다.";
+        }
+        function refresh() {
+          $("aco-generation").textContent = fmt(generation);
+          $("aco-bestDistance").textContent = Number.isFinite(bestDistance)
+            ? bestDistance.toFixed(1)
+            : "—";
+          $("aco-cityCount").textContent = cities.length;
+          buttons();
+        }
+        function line(path, color, width) {
+          if (!path.length) return;
+          ctx.beginPath();
+          path.forEach((i, k) =>
+            k
+              ? ctx.lineTo(cities[i].x, cities[i].y)
+              : ctx.moveTo(cities[i].x, cities[i].y),
+          );
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.stroke();
+        }
+        function draw(time = 0) {
+          ctx.clearRect(0, 0, 800, 500);
+          let max = 0;
+          for (let i = 0; i < cities.length; i++)
+            for (let j = i + 1; j < cities.length; j++)
+              max = Math.max(max, tau[i][j]);
+          if (generation)
+            for (let i = 0; i < cities.length; i++)
+              for (let j = i + 1; j < cities.length; j++) {
+                const s = tau[i][j] / max;
+                if (s > 0.15) {
+                  ctx.strokeStyle = "rgba(82,126,77," + s * 0.45 + ")";
+                  ctx.lineWidth = 0.5 + s * 2;
+                  ctx.beginPath();
+                  ctx.moveTo(cities[i].x, cities[i].y);
+                  ctx.lineTo(cities[j].x, cities[j].y);
+                  ctx.stroke();
                 }
-                
-                acoSimulator = new ACOSimulator();
-                acoSimulator.updateParameters();
+              }
+          line(bestPath, "#1f6b50", 3);
+          if (running)
+            latestPaths.slice(0, 12).forEach((path, a) => {
+              let t = ((time / 1800 + a / 12) % 1) * (path.length - 1),
+                k = Math.floor(t),
+                fraction = t - k,
+                p = cities[path[k]],
+                q = cities[path[k + 1]];
+              ctx.fillStyle = "#bc8b4a";
+              ctx.beginPath();
+              ctx.arc(
+                p.x + (q.x - p.x) * fraction,
+                p.y + (q.y - p.y) * fraction,
+                3,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
             });
-        })();
+          cities.forEach((c, i) => {
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = i === selected ? "#bc8b4a" : "#172e27";
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = "#405749";
+            ctx.font = "11px system-ui";
+            ctx.fillText(i + 1, c.x + 10, c.y + 4);
+          });
+        }
+        function frame(t) {
+          const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
+          lastTime = t;
+          if (running) {
+            elapsed += dt;
+            const interval = 1000 / +$("aco-speed").value;
+            while (elapsed >= interval) {
+              elapsed -= interval;
+              nextGeneration();
+            }
+          }
+          draw(t);
+          requestAnimationFrame(frame);
+        }
+        $("aco-start-btn").onclick = () => {
+          running = true;
+          elapsed = 0;
+          buttons();
+        };
+        $("aco-stop-btn").onclick = pause;
+        $("aco-step-btn").onclick = () => {
+          pause();
+          nextGeneration();
+          draw();
+        };
+        $("aco-reset-btn").onclick = reset;
+        $("aco-random-btn").onclick = () => layout("random");
+        $("aco-circle-btn").onclick = () => layout("circle");
+        controls.forEach((id) =>
+          $(id).addEventListener("input", () => {
+            updateValues();
+            if (id === "aco-cityNumber") layout("random");
+          }),
+        );
+        canvas.addEventListener("pointerdown", (e) => {
+          pause();
+          const p = pointer(e, canvas);
+          let i = cities.findIndex(
+            (c) => Math.hypot(c.x - p.x, c.y - p.y) < 15,
+          );
+          if (i < 0) {
+            if (cities.length >= 50) {
+              $("aco-result").textContent =
+                "도시는 최대 50개까지 추가할 수 있습니다.";
+              return;
+            }
+            cities.push({ x: clamp(p.x, 15, 785), y: clamp(p.y, 15, 485) });
+            $("aco-cityNumber").value = cities.length;
+            updateValues();
+            selected = cities.length - 1;
+            reset();
+          } else {
+            selected = i;
+            drag = { i, start: { ...cities[i] }, moved: false };
+            canvas.setPointerCapture(e.pointerId);
+          }
+          draw();
+        });
+        canvas.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          const p = pointer(e, canvas),
+            next = { x: clamp(p.x, 15, 785), y: clamp(p.y, 15, 485) };
+          if (
+            cities.some(
+              (c, i) =>
+                i !== drag.i && Math.hypot(c.x - next.x, c.y - next.y) < 18,
+            )
+          )
+            return;
+          if (
+            Math.hypot(next.x - cities[drag.i].x, next.y - cities[drag.i].y) > 1
+          ) {
+            cities[drag.i] = next;
+            drag.moved = true;
+            reset();
+            draw();
+          }
+        });
+        const end = () => {
+          drag = null;
+        };
+        canvas.addEventListener("pointerup", end);
+        canvas.addEventListener("pointercancel", end);
+        canvas.addEventListener("keydown", (e) => {
+          if (e.key === "Tab") return;
+          const directions = {
+            ArrowLeft: [-5, 0],
+            ArrowRight: [5, 0],
+            ArrowUp: [0, -5],
+            ArrowDown: [0, 5],
+          };
+          if (directions[e.key]) {
+            e.preventDefault();
+            pause();
+            const c = cities[selected],
+              d = directions[e.key],
+              p = {
+                x: clamp(c.x + d[0], 15, 785),
+                y: clamp(c.y + d[1], 15, 485),
+              };
+            if (
+              !cities.some(
+                (v, i) =>
+                  i !== selected && Math.hypot(v.x - p.x, v.y - p.y) < 18,
+              )
+            ) {
+              cities[selected] = p;
+              reset();
+              draw();
+            }
+          } else if (e.key === "[" || e.key === "]") {
+            e.preventDefault();
+            selected =
+              (selected + (e.key === "]" ? 1 : cities.length - 1)) %
+              cities.length;
+            draw();
+          }
+        });
+        app._model = {
+          get state() {
+            return {
+              cities: cities.map((c) => ({ ...c })),
+              tau: tau.map((r) => r.slice()),
+              dist: dist.map((r) => r.slice()),
+              bestPath: bestPath.slice(),
+              bestDistance,
+              generation,
+              running,
+              lastSettings,
+            };
+          },
+          nextGeneration,
+          tour,
+          reset,
+          setCities(points) {
+            cities = points.map((p) => ({ ...p }));
+            $("aco-cityNumber").value = cities.length;
+            updateValues();
+            reset();
+          },
+        };
+        updateValues();
+        layout("random");
+        requestAnimationFrame(frame);
+      })();
     </script>
-</div>
+  </body>
+</html>
