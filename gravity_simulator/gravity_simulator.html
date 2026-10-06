@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>중력과 궤도 실험</title><link rel="stylesheet" href="../assets/simulator.css"><script src="../assets/simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><style>
-#gravity-app .gravity-stage{position:relative;background:radial-gradient(ellipse at center,#fbfcfa,#edf2e8);border:1px solid #dce4da;border-radius:14px;overflow:hidden}#gravity-app canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;cursor:crosshair}#gravity-app #drag-indicator{position:absolute;pointer-events:none;border:2px dashed #1f6b50;border-radius:50%;opacity:0}#gravity-app .gravity-chip{font-size:11px;color:#69766c}@media(max-width:600px){#gravity-app .gravity-chip{display:none}}
+#gravity-app .gravity-stage{position:relative;background:radial-gradient(ellipse at center,#fbfcfa,#edf2e8);border:1px solid var(--websim-line);border-radius:14px;overflow:hidden}#gravity-app canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;cursor:crosshair}#gravity-app #drag-indicator{position:absolute;pointer-events:none;border:2px dashed var(--websim-accent);border-radius:50%;opacity:0}#gravity-app .gravity-chip{font-size:11px;color:var(--websim-muted)}@media(max-width:600px){#gravity-app .gravity-chip{display:none}}
 #gravity-app .sim-stage-panel .sim-stat-grid{margin:18px 20px;grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:600px){#gravity-app .sim-stage-panel .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}#gravity-app .gravity-stage{max-width:640px;width:calc(100% - 40px);margin:20px auto}</style></head><body><main id="gravity-app" class="sim-app sim-app--gravity-app">
 <div class="sim-workspace"><section class="sim-stage-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">ORBIT LAB</span><h2>초기 속도가 만드는 경로</h2></div><span class="gravity-chip">뉴턴 중력 · 시험 입자</span></div>
-<div class="sim-toolbar"><button class="sim-primary" id="start-btn" onclick="startSim()">시작</button><button id="pause-btn" onclick="pauseSim()" style="display:none">일시정지</button><button onclick="stepSim()">한 단계 · 0.1 t</button><button onclick="resetSim()">초기화</button></div><div class="gravity-stage"><canvas id="sim-canvas" aria-label="중력원과 위성의 경로" width="700" height="700"></canvas><div id="drag-indicator"></div></div>
+<div class="sim-toolbar"><button class="sim-primary" id="start-btn" onclick="startSim()">시작</button><button class="sim-primary" id="pause-btn" onclick="pauseSim()" style="display:none">일시정지</button><button onclick="stepSim()">한 단계 · 0.1 t</button><button onclick="resetSim()">초기화</button></div><div class="gravity-stage"><canvas id="sim-canvas" aria-label="중력원과 위성의 경로" width="700" height="700"></canvas><div id="drag-indicator"></div></div>
 
 <div class="sim-stat-grid"><div class="sim-stat"><span>남은 위성</span><strong id="satellite-stat">0</strong></div><div class="sim-stat"><span>모형 시간</span><strong id="time-stat">0 t</strong></div><div class="sim-stat"><span>포획 / 화면 이탈</span><strong id="capture-stat">0 / 0</strong></div><div class="sim-stat"><span>평균 속도</span><strong id="speed-stat">0 u/t</strong></div></div><p id="status-bar" class="sim-note" role="status"></p></section>
 <aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SET THE MOTION</span><h2>실험 조건</h2></div></div><div class="sim-toolbar"><button onclick="orbitExample()">원궤도 예제</button><button onclick="addRandomSatellite()">무작위 위성</button><button onclick="addRandomPlanet()">중력원 추가</button><button onclick="clearSatellites()">위성 지우기</button></div>
@@ -374,8 +374,6 @@
             const btn = document.getElementById('collision-btn');
             btn.textContent = collisionEnabled ? '충돌: 켜짐' : '충돌: 꺼짐';
             btn.setAttribute('aria-pressed', String(collisionEnabled));
-            btn.style.opacity = collisionEnabled ? '1' : '0.6';
-            btn.style.backgroundColor = collisionEnabled ? '' : '#ddd';
         }
         
         function toggleOrbit() {
@@ -383,7 +381,6 @@
             const btn = document.getElementById('orbit-btn');
             btn.textContent = showOrbit ? '궤도: 켜짐' : '궤도: 꺼짐';
             btn.setAttribute('aria-pressed', String(showOrbit));
-            btn.style.opacity = showOrbit ? '1' : '0.6';
         }
         
         function toggleVelocity() {
@@ -391,7 +388,6 @@
             const btn = document.getElementById('velocity-btn');
             btn.textContent = showVelocity ? '방향: 켜짐' : '방향: 꺼짐';
             btn.setAttribute('aria-pressed', String(showVelocity));
-            btn.style.opacity = showVelocity ? '1' : '0.6';
         }
         
         function resetSim() {
@@ -400,7 +396,7 @@
             simTime = 0;
             capturedCount = escapedCount = 0;
             accumulator = 0;
-            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('start-btn').style.display = 'inline-flex';
             document.getElementById('pause-btn').style.display = 'none';
             
             updatePlanetCount();
@@ -411,13 +407,13 @@
             if (satellites.length > 0) {
                 simRunning = true;
                 document.getElementById('start-btn').style.display = 'none';
-                document.getElementById('pause-btn').style.display = 'inline-block';
+                document.getElementById('pause-btn').style.display = 'inline-flex';
             }
         }
         
         function pauseSim() {
             simRunning = false;
-            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('start-btn').style.display = 'inline-flex';
             document.getElementById('pause-btn').style.display = 'none';
         }
         

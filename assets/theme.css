@@ -1,0 +1,19 @@
+/* Shared by the catalog, guides, and every experiment, including Shadow DOM. */
+:root {
+  color-scheme: light;
+  --websim-paper: #f5f6f1;
+  --websim-surface: #ffffff;
+  --websim-ink: #192d29;
+  --websim-muted: #62706a;
+  --websim-accent: #21654f;
+  --websim-accent-hover: #18533f;
+  --websim-accent-soft: #e7f0e5;
+  --websim-line: #dce2d7;
+  --websim-radius: 12px;
+  --websim-focus: #598c70;
+  --websim-width: 1200px;
+  --websim-gutter: 80px;
+  --websim-font: Inter, "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+@media (max-width: 1050px) { :root { --websim-gutter: 48px; } }
+@media (max-width: 640px) { :root { --websim-gutter: 36px; } }

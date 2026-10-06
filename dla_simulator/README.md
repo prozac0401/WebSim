@@ -40,6 +40,8 @@ npm test
 
 Running `npm run build` produces `dist/index.html` with the simulation, styles and worker bundled inline. Copy that file to `standalone.html` to update the public entry point. Shared WebSim navigation loads from `../assets/simulator.js`; keep that repository asset available when serving the page.
 
+The bundled shared theme is a fallback in a separate `data-websim-theme-snapshot` style. When the current `../assets/simulator.css` loads, navigation disables that snapshot and retains the DLA-specific CSS. This keeps the public lab in sync with the catalog without losing the inline fallback. Restore the favicon link to `../assets/favicon.svg` when copying the built HTML into the repository.
+
 ## Limitations / Future Work
 
 - Currently uses a fixed 600x600 grid.

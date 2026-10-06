@@ -8,411 +8,65 @@
     <link rel="stylesheet" href="../assets/simulator.css" />
     <script src="../assets/simulator.js" defer></script>
     <style>
-      body {
-        margin: 0;
-        background: #f4f5f1;
-        color: #172e27;
-        font-family:
-          Inter,
-          "Noto Sans KR",
-          system-ui,
-          -apple-system,
-          sans-serif;
-        line-height: 1.55;
-      }
-      .sim-app,
-      .sim-app * {
-        box-sizing: border-box;
-      }
-      .sim-app {
-        max-width: 1240px;
-        margin: 0 auto;
-        padding: 24px 28px 56px;
-      }
-      .sim-app .sim-workspace {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-        gap: 22px;
-        align-items: start;
-      }
-      .sim-app .sim-controls-panel {
+      .sim-card-stack {
         display: grid;
         gap: 18px;
-        min-width: 0;
-      }
-      .sim-app .sim-panel {
-        background: white;
-        border: 1px solid #dce4da;
-        border-radius: 16px;
-        padding: 22px;
-        min-width: 0;
-      }
-      .sim-app .sim-stage-panel {
-        padding: 22px;
-      }
-      .sim-app .sim-panel-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-      .sim-app .sim-panel-heading h2,
-      .sim-app .sim-section-title {
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: -0.025em;
-        margin: 0;
-      }
-      .sim-app .sim-section-title {
-        margin-bottom: 17px;
-      }
-      .sim-app .sim-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 18px;
-      }
-      .sim-app button,
-      .sim-app select,
-      .sim-app input[type="number"] {
-        font: inherit;
-        border: 1px solid #dce4da;
-        border-radius: 9px;
-        color: #172e27;
-        background: #fff;
-        min-height: 42px;
-        padding: 9px 13px;
-        box-shadow: none;
-        margin: 0;
-      }
-      .sim-app button {
-        font-size: 13px;
-        font-weight: 650;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .sim-app button:hover {
-        background: #edf3ec;
-        transform: none;
-      }
-      .sim-app button.primary {
-        background: #1f6b50;
-        color: #fff;
-        border-color: #1f6b50;
-      }
-      .sim-app button.primary:hover {
-        background: #195940;
-      }
-      .sim-app button:disabled {
-        opacity: 0.4;
-        cursor: default;
-      }
-      .sim-app button:focus-visible,
-      .sim-app canvas:focus-visible,
-      .sim-app input:focus-visible,
-      .sim-app select:focus-visible {
-        outline: 3px solid #a9cbb9;
-        outline-offset: 3px;
-      }
-      .sim-app .sim-status {
-        font-size: 12px;
-        border-radius: 30px;
-        padding: 4px 10px;
-        background: #edf3ec;
-        color: #35644c;
-        white-space: nowrap;
-      }
-      .sim-app .sim-stat-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-        margin: 0 0 18px;
-      }
-      .sim-app .sim-stat {
-        background: #f7f9f5;
-        border: 1px solid #e6ece2;
-        border-radius: 10px;
-        padding: 12px;
-        min-width: 0;
-      }
-      .sim-app .sim-stat dt {
-        font-size: 11px;
-        color: #69766c;
-        margin-bottom: 5px;
-      }
-      .sim-app .sim-stat dd {
-        font-size: 23px;
-        line-height: 1.25;
-        font-weight: 650;
-        margin: 0;
-        font-variant-numeric: tabular-nums;
-        letter-spacing: -0.025em;
-      }
-      .sim-app .sim-stat dd small {
-        font-size: 11px;
-        font-weight: 500;
-        color: #69766c;
-      }
-      .sim-app canvas {
-        display: block;
-        width: 100%;
-        height: auto;
-        max-width: 100%;
-        background: #f7f9f4;
-        border: 1px solid #e2e9de;
-        border-radius: 10px;
-        touch-action: none;
-      }
-      .sim-app .sim-note {
-        font-size: 12px;
-        line-height: 1.7;
-        color: #69766c;
-        margin: 12px 0 0;
-      }
-      .sim-app .sim-note strong {
-        color: #365443;
-        font-weight: 600;
-      }
-      .sim-app .sim-control {
-        margin: 0 0 18px;
-      }
-      .sim-app .sim-control:last-child {
-        margin-bottom: 0;
-      }
-      .sim-app .sim-control label {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 8px;
-        font-size: 13px;
-        font-weight: 550;
-        margin-bottom: 8px;
-      }
-      .sim-app .sim-control output {
-        color: #1f6b50;
-        font-size: 12px;
-        font-weight: 650;
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
-      }
-      .sim-app input[type="range"] {
-        display: block;
-        accent-color: #1f6b50;
-        width: 100%;
-        height: 18px;
-        margin: 0;
-      }
-      .sim-app .sim-control select,
-      .sim-app .sim-control input[type="number"] {
-        width: 100%;
-        font-size: 13px;
-      }
-      .sim-app .check-control {
-        display: flex;
-        align-items: flex-start;
-        gap: 9px;
-        font-size: 13px;
-        cursor: pointer;
-        margin: 12px 0;
-      }
-      .sim-app .check-control input {
-        accent-color: #1f6b50;
-        margin: 5px 0 0;
-        flex: 0 0 auto;
-      }
-      .sim-app .preset-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 7px;
-      }
-      .sim-app .preset-row button {
-        font-size: 12px;
-        min-height: 36px;
-        padding: 7px 11px;
-      }
-      .sim-app .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 16px;
-        font-size: 11px;
-        color: #69766c;
-        margin-top: 13px;
-      }
-      .sim-app .legend span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .sim-app .legend i {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        background: #1f6b50;
-      }
-      .sim-app .rule-pair {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin: 12px 0;
-      }
-      .sim-app .rule-chip {
-        border: 1px solid #dce4da;
-        background: #f7f9f5;
-        border-radius: 9px;
-        padding: 12px;
-        font-size: 12px;
-      }
-      .sim-app .rule-chip b {
-        display: block;
-        font-size: 14px;
-        color: #172e27;
-        margin-top: 4px;
-      }
-      .sim-app .sim-result {
-        background: #edf3ec;
-        border-radius: 9px;
-        padding: 12px 14px;
-        font-size: 12px;
-        color: #365443;
-        margin-top: 13px;
-        min-height: 43px;
-      }
-      .sim-app .compact-stat {
-        font-size: 11px;
-        color: #69766c;
-        font-variant-numeric: tabular-nums;
-      }
-      .sim-app .sim-divider {
-        height: 1px;
-        background: #e4eade;
-        margin: 18px 0;
-      }
-      .sim-app .sim-muted {
-        color: #69766c;
-      }
-      .sim-app a {
-        color: #1f6b50;
-      }
-      .sim-app .sim-stat-grid.four {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-      .sim-app .sim-stat-grid.four dd {
-        font-size: 19px;
-      }
-      .sim-app .square-stage {
-        max-width: 680px;
-        margin: auto;
-      }
-      .sim-app .instruction-line {
-        font-size: 11px;
-        color: #69766c;
-        margin-top: 8px;
-      }
-      .sim-app {
-        max-width: 1360px;
-        width: calc(100% - 64px);
-        padding: 0 0 42px;
-      }
-      .sim-app .sim-controls-panel {
         padding: 0;
         background: transparent;
         border: 0;
         box-shadow: none;
         border-radius: 0;
       }
-      .sim-app .sim-panel-heading {
-        padding: 0;
-        border: 0;
-        background: transparent;
+      .sim-app .sim-card-stack > .sim-panel { box-shadow: var(--sim-shadow); }
+      .sim-stage-panel > .sim-stat-grid { margin: 18px 20px 14px; }
+      .sim-stage-panel canvas {
+        width: 100%;
+        height: auto;
+        background: var(--sim-bg);
+        border: 1px solid var(--sim-border);
+        border-radius: 9px;
+        touch-action: none;
       }
-      .sim-app .sim-toolbar {
-        padding: 0;
-        border: 0;
+      .sim-stage-panel > canvas { width: calc(100% - 40px); margin: 0 20px; }
+      .square-stage { width: calc(100% - 40px); max-width: 680px; margin: 0 auto; }
+      .sim-card-stack .sim-note { padding: 0; border: 0; margin-top: 12px; }
+      .check-control { display: flex; align-items: flex-start; gap: 9px; margin: 12px 0; font-size: 12px; cursor: pointer; }
+      .check-control input { margin: 2px 0 0; }
+      .preset-row { display: flex; flex-wrap: wrap; gap: 7px; }
+      .sim-legend i { background: var(--sim-accent); }
+      .rule-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+      .rule-chip { border: 1px solid var(--sim-border); background: var(--sim-bg); border-radius: var(--sim-radius); padding: 12px; font-size: 12px; }
+      .rule-chip b { display: block; margin-top: 4px; color: var(--sim-ink); font-size: 14px; }
+      .sim-result { margin: 0 20px 14px; padding: 12px 14px; border-radius: 9px; background: var(--sim-accent-soft); color: var(--sim-ink); font-size: 12px; min-height: 43px; }
+      .compact-stat { color: var(--sim-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .sim-divider { height: 1px; margin: 18px 0; background: var(--sim-border); }
+      .sim-muted, .instruction-line { color: var(--sim-muted); }
+      .instruction-line { margin-top: 8px; font-size: 11px; }
+      .sim-stat-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .sim-stat-grid.four dd { font-size: 19px; }
+      .sim-stat dd small { display: inline; }
+      @media (max-width: 820px) {
+        .sim-card-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .sim-card-stack > .full-width { grid-column: 1 / -1; }
       }
-      .sim-app .sim-note {
-        padding: 0;
-        border: 0;
-      }
-      .sim-app .sim-stat dd small {
-        display: inline;
-      }
-      @media (max-width: 1050px) {
-        .sim-app {
-          width: calc(100% - 40px);
-        }
-      }
-      @media (max-width: 900px) {
-        .sim-app .sim-workspace {
-          grid-template-columns: 1fr;
-        }
-        .sim-app .sim-controls-panel {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .sim-app .sim-controls-panel .full-width {
-          grid-column: 1/-1;
-        }
-      }
-      @media (max-width: 600px) {
-        .sim-app {
-          padding: 16px 12px 36px;
-        }
-        .sim-app .sim-panel,
-        .sim-app .sim-stage-panel {
-          padding: 16px;
-        }
-        .sim-app .sim-controls-panel {
-          grid-template-columns: 1fr;
-        }
-        .sim-app .sim-stat {
-          padding: 9px;
-        }
-        .sim-app .sim-stat dd {
-          font-size: 19px;
-        }
-        .sim-app .sim-stat-grid.four {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .sim-app .sim-toolbar {
-          gap: 6px;
-        }
-        .sim-app button {
-          padding: 9px 11px;
-        }
-        .sim-app .sim-panel-heading {
-          align-items: flex-start;
-        }
-        .sim-app .sim-note {
-          font-size: 11px;
-        }
-      }
-      @media (max-width: 600px) {
-        .sim-app {
-          width: calc(100% - 28px);
-          padding: 0 0 36px;
-        }
-        .sim-app .sim-stat dd small {
-          display: block;
-          margin-top: 4px;
-        }
+      @media (max-width: 540px) {
+        .sim-card-stack { grid-template-columns: 1fr; }
+        .sim-stage-panel > .sim-stat-grid { margin: 14px 14px 12px; }
+        .sim-stage-panel > canvas { width: calc(100% - 28px); margin-inline: 14px; }
+        .square-stage { width: calc(100% - 28px); }
+        .sim-result { margin-inline: 14px; }
+        .sim-stat-grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .sim-stat dd small { display: block; margin-top: 4px; }
       }
     </style>
   </head>
-  <body>
+  <body class="websim-page">
     <main class="sim-app sim-app--conway" id="sim-app">
       <div class="sim-workspace">
         <section class="sim-panel sim-stage-panel">
           <div class="sim-panel-heading">
             <h2>세포의 세대 변화</h2>
             <span class="sim-status" id="life-status">준비</span>
-          </div>
-          <div class="sim-toolbar">
-            <button class="primary" id="startBtn">시작</button
-            ><button id="stopBtn" disabled>일시정지</button
-            ><button id="stepBtn">1세대 진행</button
-            ><button id="resetBtn">모두 지우기</button>
           </div>
           <dl class="sim-stat-grid">
             <div class="sim-stat">
@@ -428,6 +82,12 @@
               <dd><span id="life-change">0</span> <small>칸</small></dd>
             </div>
           </dl>
+          <div class="sim-toolbar">
+            <button class="primary" id="startBtn">시작</button
+            ><button id="stopBtn" disabled>일시정지</button
+            ><button id="stepBtn">1세대 진행</button
+            ><button id="resetBtn">모두 지우기</button>
+          </div>
           <canvas
             id="grid"
             width="900"
@@ -435,7 +95,7 @@
             tabindex="0"
             aria-label="라이프 게임 30열 24행 격자. 누르거나 끌어서 세포를 편집합니다. 방향키로 칸을 선택하고 스페이스로 바꿀 수 있습니다."
           ></canvas>
-          <div class="legend">
+          <div class="legend sim-legend">
             <span><i></i>살아 있음</span
             ><span><i style="background: #eef2e9"></i>죽어 있음</span
             ><span><i style="background: #bc8b4a"></i>선택한 칸</span>
@@ -450,8 +110,8 @@
             번 적용한 횟수입니다.
           </p>
         </section>
-        <aside class="sim-controls-panel">
-          <section class="sim-panel">
+        <aside class="sim-controls-panel sim-card-stack">
+          <section class="sim-panel sim-panel-body">
             <h2 class="sim-section-title">시작 패턴</h2>
             <div class="preset-row">
               <button id="blinkerBtn" data-life-pattern="blinker">깜빡이</button
@@ -497,7 +157,7 @@
               패턴에서 새 실험으로 세대가 0이 됩니다.
             </p>
           </section>
-          <section class="sim-panel">
+          <section class="sim-panel sim-panel-body">
             <h2 class="sim-section-title">변하지 않는 두 규칙</h2>
             <div class="rule-pair">
               <div class="rule-chip">

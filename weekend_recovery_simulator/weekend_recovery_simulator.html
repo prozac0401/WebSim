@@ -12,155 +12,113 @@
 <body>
 <div id="weekend-recovery-simulator-app">
 <style>
-
-#weekend-recovery-simulator-app{font-family:"Pretendard","Noto Sans KR",sans-serif;color:#183030}
-#weekend-recovery-simulator-app *{box-sizing:border-box}
-#weekend-recovery-simulator-app .wrs-wrap{max-width:1140px;margin:0 auto;padding:20px;border:1px solid rgba(24,48,48,.12);border-radius:24px;background:
-radial-gradient(circle at 12% 8%,rgba(244,160,64,.18),transparent 40%),
-radial-gradient(circle at 90% 16%,rgba(22,120,122,.18),transparent 45%),
-linear-gradient(155deg,#f6f2ea,#fffaf2);box-shadow:0 24px 40px rgba(24,48,48,.12)}
-#weekend-recovery-simulator-app .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-#weekend-recovery-simulator-app h1{margin:0;font-size:28px}
-#weekend-recovery-simulator-app .sub{margin:8px 0 0;color:#5e7070;font-size:14px;line-height:1.45}
-#weekend-recovery-simulator-app .btn{border:1px solid rgba(24,48,48,.2);background:rgba(255,255,255,.8);padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
-#weekend-recovery-simulator-app .btn.primary{background:#d7efec;border-color:rgba(22,120,122,.35);color:#0c585a}
-#weekend-recovery-simulator-app .status{min-height:18px;margin:10px 0;color:#0f6163;font-size:13px;font-weight:600}
-#weekend-recovery-simulator-app .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:12px}
-#weekend-recovery-simulator-app .card{background:rgba(255,255,255,.86);border:1px solid rgba(24,48,48,.12);border-radius:16px;box-shadow:0 10px 20px rgba(24,48,48,.08)}
-#weekend-recovery-simulator-app .card .body{padding:12px}
-#weekend-recovery-simulator-app h2{margin:0;font-size:14px}
-#weekend-recovery-simulator-app .hint{margin:6px 0 0;color:#5e7070;font-size:12px;line-height:1.38}
-#weekend-recovery-simulator-app .goal-grid{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#weekend-recovery-simulator-app .goal{border:1px solid rgba(24,48,48,.14);background:#fff;border-radius:10px;padding:8px;text-align:left;cursor:pointer}
-#weekend-recovery-simulator-app .goal b{display:block;font-size:13px}
-#weekend-recovery-simulator-app .goal span{display:block;margin-top:2px;font-size:11px;color:#5e7070}
-#weekend-recovery-simulator-app .goal.active{background:#d7efec;border-color:rgba(22,120,122,.4)}
-#weekend-recovery-simulator-app .row{margin-top:10px}
-#weekend-recovery-simulator-app .row-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
-#weekend-recovery-simulator-app .val{color:#0f6668;font-weight:800}
-#weekend-recovery-simulator-app input[type=range]{width:100%;accent-color:#157a7c}
-#weekend-recovery-simulator-app .palette{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#weekend-recovery-simulator-app .chip{border:1px solid rgba(24,48,48,.14);border-left:6px solid #ccc;background:#fff;border-radius:10px;padding:8px;cursor:grab;text-align:left}
-#weekend-recovery-simulator-app .chip .t{display:block;font-size:12px;font-weight:700}
-#weekend-recovery-simulator-app .chip .m{display:block;font-size:11px;color:#5e7070;margin-top:2px}
-#weekend-recovery-simulator-app .chip.sel{outline:2px solid rgba(22,120,122,.45)}
-#weekend-recovery-simulator-app .picked{margin-top:8px;color:#5e7070;font-size:12px}
-#weekend-recovery-simulator-app .ins-empty{margin-top:10px;font-size:12px;color:#5e7070}
-#weekend-recovery-simulator-app .ins-box{margin-top:10px;border:1px solid rgba(24,48,48,.14);border-radius:10px;padding:8px;background:#fff}
-#weekend-recovery-simulator-app .ins-head b{font-size:13px}
-#weekend-recovery-simulator-app .ins-head small{color:#5e7070;font-size:11px}
-#weekend-recovery-simulator-app .ins-row{margin-top:8px}
-#weekend-recovery-simulator-app .ins-row label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
-#weekend-recovery-simulator-app .ins-actions{margin-top:8px;display:flex;gap:6px}
-#weekend-recovery-simulator-app .planner{margin-top:10px;display:grid;grid-template-columns:56px 1fr 1fr;gap:8px}
-#weekend-recovery-simulator-app .axis{position:relative;height:768px;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:rgba(255,255,255,.6)}
-#weekend-recovery-simulator-app .axis span{position:absolute;left:5px;transform:translateY(-50%);font-size:11px;color:#5e7070}
-#weekend-recovery-simulator-app .day{position:relative;border:1px solid rgba(24,48,48,.12);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.72)}
-#weekend-recovery-simulator-app .day .dh{padding:8px 10px;border-bottom:1px solid rgba(24,48,48,.12);font-size:13px;font-weight:800;background:rgba(255,255,255,.8)}
-#weekend-recovery-simulator-app .slots{position:relative;height:768px}
-#weekend-recovery-simulator-app .slot{position:absolute;left:0;right:0;height:24px;border:0;border-bottom:1px dashed rgba(0,0,0,.12);background:transparent;cursor:pointer}
-#weekend-recovery-simulator-app .slot:hover,#weekend-recovery-simulator-app .slot.over{background:rgba(73,160,120,.14)}
-#weekend-recovery-simulator-app .events{position:absolute;top:34px;right:0;bottom:0;left:0;pointer-events:none}
-#weekend-recovery-simulator-app .ev{position:absolute;left:5px;right:5px;padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.15);font-size:11px;line-height:1.25;box-shadow:0 4px 10px rgba(0,0,0,.12);pointer-events:auto;cursor:pointer}
-#weekend-recovery-simulator-app .ev b{display:block;font-size:12px}
-#weekend-recovery-simulator-app .ev.sel{outline:2px solid rgba(22,120,122,.55)}
-#weekend-recovery-simulator-app .rz{position:absolute;left:8px;right:8px;height:6px;border-radius:999px;background:rgba(0,0,0,.18);cursor:ns-resize;touch-action:none;z-index:2}
-#weekend-recovery-simulator-app .rz.top{top:2px}
-#weekend-recovery-simulator-app .rz.bottom{bottom:2px}
-#weekend-recovery-simulator-app .tone-sleep{background:#dde4ff}
-#weekend-recovery-simulator-app .tone-social{background:#ffd9c8}
-#weekend-recovery-simulator-app .tone-travel{background:#d4e6ff}
-#weekend-recovery-simulator-app .tone-alone{background:#d8f2e2}
-#weekend-recovery-simulator-app .tone-chore{background:#f6e5cd}
-#weekend-recovery-simulator-app .tone-rest{background:#def5ef}
-#weekend-recovery-simulator-app .tone-screen{background:#eadff7}
-#weekend-recovery-simulator-app .ana{display:flex;justify-content:space-between;align-items:center}
-#weekend-recovery-simulator-app .badge-score{border:1px solid rgba(22,120,122,.36);background:#d7efec;color:#0c585a;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
-#weekend-recovery-simulator-app canvas{margin-top:10px;width:100%;height:250px;border-radius:10px;border:1px solid rgba(24,48,48,.12);background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(243,250,250,.9))}
-#weekend-recovery-simulator-app .legend{margin-top:6px;font-size:12px;color:#5e7070}
-#weekend-recovery-simulator-app .axes{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#weekend-recovery-simulator-app .ax{border:1px solid rgba(24,48,48,.12);border-radius:9px;padding:8px;background:#fff}
-#weekend-recovery-simulator-app .ax-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
-#weekend-recovery-simulator-app .bar{height:8px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden}
-#weekend-recovery-simulator-app .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#157a7c,#4aa084)}
-#weekend-recovery-simulator-app .badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
-#weekend-recovery-simulator-app .b{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(24,48,48,.12);background:#fff}
-#weekend-recovery-simulator-app .copy{margin-top:9px;border:1px solid rgba(24,48,48,.12);border-radius:10px;padding:10px;background:#fff}
-#weekend-recovery-simulator-app .copy p{margin:0;font-size:13px;line-height:1.45}
-#weekend-recovery-simulator-app .copy p+p{margin-top:6px}
-#weekend-recovery-simulator-app .sugs{margin-top:10px;display:grid;gap:8px}
-#weekend-recovery-simulator-app .s{border:1px solid rgba(24,48,48,.12);border-radius:10px;padding:10px;background:#fff}
-#weekend-recovery-simulator-app .s h3{margin:0;font-size:13px}
-#weekend-recovery-simulator-app .s p{margin:4px 0 0;font-size:12px;color:#5e7070;line-height:1.35}
-#weekend-recovery-simulator-app .s .m{margin-top:6px;font-size:12px;font-weight:800;color:#0d5d5f}
-#weekend-recovery-simulator-app .s .a{margin-top:7px;display:flex;gap:6px}
-#weekend-recovery-simulator-app .empty{font-size:12px;color:#5e7070}
-@media (max-width:1000px){#weekend-recovery-simulator-app .layout{grid-template-columns:1fr}}
-@media (max-width:760px){
-  #weekend-recovery-simulator-app .wrs-wrap{padding:14px;border-radius:16px}
-  #weekend-recovery-simulator-app h1{font-size:22px}
-  #weekend-recovery-simulator-app .planner{grid-template-columns:44px 1fr}
-  #weekend-recovery-simulator-app .day.sun,#weekend-recovery-simulator-app .day.sat{grid-column:2}
-  #weekend-recovery-simulator-app .day.sun{margin-top:8px}
-  #weekend-recovery-simulator-app .axes{grid-template-columns:1fr}
-  #weekend-recovery-simulator-app .palette{grid-template-columns:1fr}
+#weekend-recovery-simulator-app { font-family: var(--sim-font); color: var(--sim-ink); }
+#weekend-recovery-simulator-app .wrs-wrap { padding-bottom: 32px; }
+#weekend-recovery-simulator-app .layout { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(310px, 1fr); gap: 20px; align-items: start; }
+#weekend-recovery-simulator-app .planner-main, #weekend-recovery-simulator-app .analytics-pane { display: grid; gap: 14px; min-width: 0; }
+#weekend-recovery-simulator-app .card { min-width: 0; margin: 0; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-surface); box-shadow: var(--sim-shadow); }
+#weekend-recovery-simulator-app .card .body { padding: 18px; }
+#weekend-recovery-simulator-app h2 { margin: 0; }
+#weekend-recovery-simulator-app .hint { margin: 6px 0 0; color: var(--sim-muted); font-size: 11px; line-height: 1.8; }
+#weekend-recovery-simulator-app .planner-toolbar { justify-content: space-between; gap: 12px; }
+#weekend-recovery-simulator-app .planner-toolbar .sim-note { padding: 0; border: 0; }
+#weekend-recovery-simulator-app .planner-toolbar > div { display: flex; flex-wrap: wrap; gap: 8px; }
+#weekend-recovery-simulator-app .status { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-accent-soft); color: var(--sim-accent); font-size: 12px; font-weight: 650; }
+#weekend-recovery-simulator-app .status:empty { display: none; }
+#weekend-recovery-simulator-app .setup-disclosure, #weekend-recovery-simulator-app .model-details { padding: 14px 18px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-surface); font-size: 12px; line-height: 1.8; }
+#weekend-recovery-simulator-app summary { cursor: pointer; font-weight: 650; }
+#weekend-recovery-simulator-app .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+#weekend-recovery-simulator-app .setup-grid .card { border: 0; background: var(--sim-bg); box-shadow: none; }
+#weekend-recovery-simulator-app .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+#weekend-recovery-simulator-app .goal { display: block; min-width: 0; padding: 8px; text-align: left; }
+#weekend-recovery-simulator-app .goal b { display: block; font-size: 12px; }
+#weekend-recovery-simulator-app .goal span { display: block; margin-top: 2px; color: var(--sim-muted); font-size: 11px; font-weight: 400; }
+#weekend-recovery-simulator-app .row { margin-top: 10px; }
+#weekend-recovery-simulator-app .row-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+#weekend-recovery-simulator-app .val { color: var(--sim-accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+#weekend-recovery-simulator-app .palette { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin-top: 12px; }
+#weekend-recovery-simulator-app .chip { display: block; min-width: 0; padding: 9px; border-left: 4px solid var(--sim-border); text-align: left; cursor: grab; }
+#weekend-recovery-simulator-app .chip .t { display: block; font-size: 12px; font-weight: 700; }
+#weekend-recovery-simulator-app .chip .m { display: block; margin-top: 2px; color: var(--sim-muted); font-size: 10px; font-weight: 400; }
+#weekend-recovery-simulator-app .chip.sel { outline: 2px solid var(--sim-accent); background: var(--sim-accent-soft); }
+#weekend-recovery-simulator-app .picked { margin: 8px 0 0; color: var(--sim-accent); font-size: 12px; }
+#weekend-recovery-simulator-app .ins-empty { margin-top: 10px; color: var(--sim-muted); font-size: 12px; }
+#weekend-recovery-simulator-app .ins-box { margin-top: 10px; padding: 10px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-surface); }
+#weekend-recovery-simulator-app .ins-head b { font-size: 13px; }
+#weekend-recovery-simulator-app .ins-head small { color: var(--sim-muted); font-size: 11px; }
+#weekend-recovery-simulator-app .ins-row { margin-top: 8px; }
+#weekend-recovery-simulator-app .ins-row label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+#weekend-recovery-simulator-app .ins-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#weekend-recovery-simulator-app .planner-scroll { max-height: 640px; overflow: auto; margin-top: 14px; padding: 3px; }
+#weekend-recovery-simulator-app .planner { display: grid; grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+#weekend-recovery-simulator-app .axis { position: relative; height: 768px; margin-top: 34px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-bg); }
+#weekend-recovery-simulator-app .axis span { position: absolute; left: 5px; transform: translateY(-50%); color: var(--sim-muted); font-size: 11px; }
+#weekend-recovery-simulator-app .day { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-surface); }
+#weekend-recovery-simulator-app .day .dh { padding: 8px 10px; border-bottom: 1px solid var(--sim-border); background: var(--sim-bg); font-size: 13px; font-weight: 700; line-height: 17px; }
+#weekend-recovery-simulator-app .slots { position: relative; height: 768px; }
+#weekend-recovery-simulator-app .slot { position: absolute; left: 0; right: 0; height: 24px; min-height: 24px; max-height: 24px; padding: 0; border: 0; border-bottom: 1px dashed var(--sim-border); border-radius: 0; background: transparent; cursor: pointer; }
+#weekend-recovery-simulator-app .slot:hover, #weekend-recovery-simulator-app .slot.over { background: var(--sim-accent-soft); }
+#weekend-recovery-simulator-app .events { position: absolute; top: 34px; right: 0; bottom: 0; left: 0; pointer-events: none; }
+#weekend-recovery-simulator-app .ev { position: absolute; left: 5px; right: 5px; overflow: hidden; padding: 7px; border: 1px solid rgba(23, 46, 39, .15); border-radius: 8px; font-size: 10px; line-height: 1.25; pointer-events: auto; cursor: pointer; }
+#weekend-recovery-simulator-app .ev b { display: block; overflow: hidden; font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+#weekend-recovery-simulator-app .ev.sel { outline: 2px solid var(--sim-accent); }
+#weekend-recovery-simulator-app .rz { position: absolute; left: 8px; right: 8px; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, .18); cursor: ns-resize; touch-action: none; z-index: 2; }
+#weekend-recovery-simulator-app .rz.top { top: 2px; }
+#weekend-recovery-simulator-app .rz.bottom { bottom: 2px; }
+#weekend-recovery-simulator-app .tone-sleep { background: #dde4ff; }
+#weekend-recovery-simulator-app .tone-social { background: #ffd9c8; }
+#weekend-recovery-simulator-app .tone-travel { background: #d4e6ff; }
+#weekend-recovery-simulator-app .tone-alone { background: #d8f2e2; }
+#weekend-recovery-simulator-app .tone-chore { background: #f6e5cd; }
+#weekend-recovery-simulator-app .tone-rest { background: #def5ef; }
+#weekend-recovery-simulator-app .tone-screen { background: #eadff7; }
+#weekend-recovery-simulator-app .ana { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#weekend-recovery-simulator-app .badge-score { padding: 7px 10px; border: 1px solid var(--sim-border); border-radius: 999px; background: var(--sim-accent-soft); color: var(--sim-accent); font-size: 12px; font-weight: 700; white-space: nowrap; }
+#weekend-recovery-simulator-app canvas { width: 100%; height: 180px; margin-top: 12px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: #fbfcf8; }
+#weekend-recovery-simulator-app .legend { margin-top: 6px; color: var(--sim-muted); font-size: 11px; }
+#weekend-recovery-simulator-app .axes { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+#weekend-recovery-simulator-app .ax { padding: 7px 0; }
+#weekend-recovery-simulator-app .ax-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; font-size: 12px; }
+#weekend-recovery-simulator-app .bar { height: 6px; overflow: hidden; border-radius: 999px; background: var(--sim-bg); }
+#weekend-recovery-simulator-app .bar i { display: block; width: 0; height: 100%; background: var(--sim-accent); }
+#weekend-recovery-simulator-app .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+#weekend-recovery-simulator-app .b { padding: 4px 8px; border: 1px solid var(--sim-border); border-radius: 999px; background: var(--sim-surface); font-size: 10px; }
+#weekend-recovery-simulator-app .copy { margin-top: 9px; padding: 12px; border-radius: var(--sim-radius); background: var(--sim-bg); }
+#weekend-recovery-simulator-app .copy p { margin: 0; font-size: 12px; line-height: 1.8; }
+#weekend-recovery-simulator-app .copy p + p { margin-top: 6px; }
+#weekend-recovery-simulator-app .copy p:last-child { color: var(--sim-muted); }
+#weekend-recovery-simulator-app .sugs { display: grid; gap: 8px; margin-top: 10px; }
+#weekend-recovery-simulator-app .s { padding: 10px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-surface); }
+#weekend-recovery-simulator-app .s h3 { margin: 0; font-size: 12px; }
+#weekend-recovery-simulator-app .s p { margin: 4px 0 0; color: var(--sim-muted); font-size: 11px; line-height: 1.8; }
+#weekend-recovery-simulator-app .s .m { margin-top: 6px; color: var(--sim-accent); font-size: 12px; font-weight: 700; }
+#weekend-recovery-simulator-app .s .a { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+#weekend-recovery-simulator-app .empty { color: var(--sim-muted); font-size: 12px; }
+#weekend-recovery-simulator-app .planner-summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 12px 0 16px; padding: 12px 14px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-accent-soft); color: var(--sim-muted); font-size: 12px; }
+#weekend-recovery-simulator-app .planner-summary b { color: var(--sim-accent); font-size: 23px; font-variant-numeric: tabular-nums; }
+#weekend-recovery-simulator-app .planner-summary a { font-size: 11px; }
+#weekend-recovery-simulator-app .planner-summary small { font-size: 10px; }
+@media (max-width: 860px) {
+  #weekend-recovery-simulator-app .layout { grid-template-columns: 1fr; }
+  #weekend-recovery-simulator-app .wrs-wrap { padding-bottom: 24px; }
+  #weekend-recovery-simulator-app .analytics-pane { grid-template-columns: 1fr 1fr; }
+  #weekend-recovery-simulator-app .analytics-pane > .card:first-child { grid-row: span 3; }
 }
-
-#weekend-recovery-simulator-app{font-family:system-ui,"Noto Sans KR",sans-serif;color:#172e27}
-#weekend-recovery-simulator-app .wrs-wrap{max-width:1240px;margin:0 auto;padding:0 20px 32px;border:0;border-radius:0;background:transparent;box-shadow:none}
-#weekend-recovery-simulator-app .layout{grid-template-columns:minmax(0,2.2fr) minmax(310px,1fr);gap:20px;align-items:start}
-#weekend-recovery-simulator-app .planner-main,#weekend-recovery-simulator-app .analytics-pane{display:grid;gap:14px;min-width:0}
-#weekend-recovery-simulator-app .card{border-color:#dce4da;box-shadow:none;border-radius:16px;background:#fff;margin:0}
-#weekend-recovery-simulator-app .card .body{padding:18px}
-#weekend-recovery-simulator-app h2{font-size:14px;line-height:1.5}
-#weekend-recovery-simulator-app .hint,#weekend-recovery-simulator-app .sim-note{font-size:12px;line-height:1.65;color:#69766c}
-#weekend-recovery-simulator-app .planner-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;flex-wrap:wrap}
-#weekend-recovery-simulator-app .btn{border-color:#dce4da;padding:9px 12px;font:600 12px system-ui;border-radius:9px;background:#fff;color:#172e27}
-#weekend-recovery-simulator-app .btn.primary{background:#1f6b50;border-color:#1f6b50;color:#fff}
-#weekend-recovery-simulator-app .btn:disabled{opacity:.4;cursor:default}
-#weekend-recovery-simulator-app .setup-disclosure,#weekend-recovery-simulator-app .model-details{padding:14px 18px;border:1px solid #dce4da;border-radius:14px;background:white;font-size:12px;line-height:1.7}
-#weekend-recovery-simulator-app summary{cursor:pointer;font-weight:650;font-size:13px}
-#weekend-recovery-simulator-app .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-#weekend-recovery-simulator-app .setup-grid .card{border:0;background:#f4f6f1;border-radius:10px}
-#weekend-recovery-simulator-app .goal-grid{gap:6px}.goal{min-width:0}
-#weekend-recovery-simulator-app .goal{padding:8px;border-color:#dce4da;border-radius:8px}
-#weekend-recovery-simulator-app .goal.active{background:#e4eee3;border-color:#7ca78d}
-#weekend-recovery-simulator-app .palette{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}
-#weekend-recovery-simulator-app .chip{border-color:#dce4da;border-left-width:4px;border-radius:9px;padding:9px;min-width:0}
-#weekend-recovery-simulator-app .chip .t{font-size:12px}.chip .m{font-size:10px}
-#weekend-recovery-simulator-app .chip.sel{outline-color:#1f6b50;background:#eef5ed}
-#weekend-recovery-simulator-app .picked{font-size:12px;color:#1f6b50;margin-bottom:0}
-#weekend-recovery-simulator-app .planner-scroll{max-height:640px;overflow:auto;margin-top:14px;padding:3px}
-#weekend-recovery-simulator-app .planner{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:0}
-#weekend-recovery-simulator-app .day.sun,#weekend-recovery-simulator-app .day.sat{grid-column:auto;margin-top:0}
-#weekend-recovery-simulator-app .axis{background:#f4f6f1;border-color:#dce4da;margin-top:34px}
-#weekend-recovery-simulator-app .day{background:#fcfdf9;border-color:#dce4da}
-#weekend-recovery-simulator-app .day .dh{background:#f4f6f1;color:#172e27;line-height:17px}
-#weekend-recovery-simulator-app .slot{border-bottom-color:#e0e7dd}
-#weekend-recovery-simulator-app .ev{box-shadow:none;border-color:rgba(23,46,39,.15);font-size:10px;overflow:hidden;padding:7px 7px}
-#weekend-recovery-simulator-app .ev b{font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-#weekend-recovery-simulator-app .ev.sel{outline-color:#1f6b50}
-#weekend-recovery-simulator-app canvas{height:180px;margin-top:12px;border-color:#dce4da;background:#fbfcf8}
-#weekend-recovery-simulator-app .badge-score{background:#edf4e8;color:#1f6b50;border-color:#c9dcc4;white-space:nowrap;padding:7px 10px;font-size:12px}
-#weekend-recovery-simulator-app .axes{grid-template-columns:1fr;gap:8px}
-#weekend-recovery-simulator-app .ax{padding:7px 0;border:0;border-radius:0}
-#weekend-recovery-simulator-app .bar{height:6px;background:#e8ede5}
-#weekend-recovery-simulator-app .bar i{background:#63956b}
-#weekend-recovery-simulator-app .badges{gap:5px}.b{font-size:10px}
-#weekend-recovery-simulator-app .copy{border:0;background:#f4f6f1;border-radius:10px;padding:12px}
-#weekend-recovery-simulator-app .copy p{font-size:12px;line-height:1.65}
-#weekend-recovery-simulator-app .copy p:last-child{color:#69766c}
-#weekend-recovery-simulator-app .s{border-color:#dce4da;border-radius:11px;background:#fcfdf9}
-#weekend-recovery-simulator-app .s h3{font-size:12px}.s .m{font-size:12px}
-#weekend-recovery-simulator-app input[type=range]{accent-color:#1f6b50}
-#weekend-recovery-simulator-app .status{min-height:18px;margin:10px 0;font-size:12px;color:#1f6b50}
-@media(max-width:860px){#weekend-recovery-simulator-app .layout{grid-template-columns:1fr}#weekend-recovery-simulator-app .wrs-wrap{padding:0 12px 24px}#weekend-recovery-simulator-app .analytics-pane{grid-template-columns:1fr 1fr}#weekend-recovery-simulator-app .analytics-pane>.card:first-child{grid-row:span 3}}
-@media(max-width:560px){#weekend-recovery-simulator-app .analytics-pane{grid-template-columns:1fr}#weekend-recovery-simulator-app .analytics-pane>.card:first-child{grid-row:auto}#weekend-recovery-simulator-app .card .body{padding:13px}#weekend-recovery-simulator-app .setup-grid{grid-template-columns:1fr}#weekend-recovery-simulator-app .palette{grid-template-columns:repeat(2,minmax(0,1fr))}#weekend-recovery-simulator-app .planner{grid-template-columns:38px minmax(0,1fr) minmax(0,1fr);gap:5px}#weekend-recovery-simulator-app .planner-scroll{max-height:580px}#weekend-recovery-simulator-app .planner-toolbar .sim-note{width:100%}#weekend-recovery-simulator-app .ev{left:3px;right:3px;padding:6px 4px}}
-#weekend-recovery-simulator-app .wrs-wrap{max-width:none;padding:0 0 32px}#weekend-recovery-simulator-app .planner-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 16px;padding:12px 14px;background:#f3f7ed;border:1px solid #dce4da;border-radius:10px;font-size:12px;color:#69766c}#weekend-recovery-simulator-app .planner-summary b{font-size:23px;color:#1f6b50;font-variant-numeric:tabular-nums}#weekend-recovery-simulator-app .planner-summary a{color:#1f6b50;font-size:11px}#weekend-recovery-simulator-app .planner-summary small{font-size:10px}#weekend-recovery-simulator-app .planner-toolbar .sim-note{padding:0;border:0}@media(max-width:860px){#weekend-recovery-simulator-app .wrs-wrap{padding:0 0 24px}}
+@media (max-width: 560px) {
+  #weekend-recovery-simulator-app .analytics-pane { grid-template-columns: 1fr; }
+  #weekend-recovery-simulator-app .analytics-pane > .card:first-child { grid-row: auto; }
+  #weekend-recovery-simulator-app .card .body { padding: 13px; }
+  #weekend-recovery-simulator-app .setup-grid { grid-template-columns: 1fr; }
+  #weekend-recovery-simulator-app .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #weekend-recovery-simulator-app .planner { grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr); gap: 5px; }
+  #weekend-recovery-simulator-app .planner-scroll { max-height: 580px; }
+  #weekend-recovery-simulator-app .planner-toolbar .sim-note { width: 100%; }
+  #weekend-recovery-simulator-app .ev { left: 3px; right: 3px; padding: 6px 4px; }
+}
 </style>
 
 <div class="wrs-wrap sim-app sim-app--weekend">
-<div class="planner-toolbar sim-toolbar"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button></div></div>
+<div class="planner-toolbar sim-toolbar sim-panel"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button></div></div>
 <p id="wrs-status" class="status" role="status" aria-live="polite"></p>
 <div class="layout"><main class="planner-main">
 <details class="setup-disclosure"><summary>목표와 시작 조건 조절</summary><div class="setup-grid"><section class="card"><div class="body"><h2>주말 목표</h2><p class="hint">점수에서 각 요소를 얼마나 중시할지 정합니다.</p><div id="wrs-goals" class="goal-grid"></div></div></section><section class="card"><div class="body">

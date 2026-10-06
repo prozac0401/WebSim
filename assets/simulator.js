@@ -25,6 +25,19 @@
   const index = labs.findIndex(lab => lab[0] === folder);
   if (index < 0 || document.querySelector('.lab-topbar')) return;
   const [id, title, category, model, description] = labs[index];
+  // A bundled experiment may contain an older CSS snapshot. Load the current
+  // shared stylesheet as well so published labs always follow the site theme.
+  const styleUrl = new URL('assets/simulator.css', base).href;
+  if (![...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === styleUrl)) {
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = styleUrl;
+    const bundledTheme = document.querySelector('style[data-websim-theme-snapshot]');
+    if (bundledTheme) stylesheet.addEventListener('load', () => {
+      if (bundledTheme.sheet) bundledTheme.sheet.disabled = true;
+    });
+    document.head.append(stylesheet);
+  }
   document.body.classList.add('websim-page', 'lab-page');
   document.body.dataset.lab = id;
   document.documentElement.lang = 'ko';

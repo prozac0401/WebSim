@@ -1,21 +1,22 @@
+@import url("./theme.css");
 :root {
   color-scheme: light;
-  --doc-ink: #172e27;
-  --doc-muted: #69766c;
-  --doc-accent: #1f6b50;
-  --doc-line: #dce4da;
+  --doc-ink: var(--websim-ink);
+  --doc-muted: var(--websim-muted);
+  --doc-accent: var(--websim-accent);
+  --doc-line: var(--websim-line);
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 30px; }
 body.doc-page {
   margin: 0;
-  background: #f4f5f1;
+  background: var(--websim-paper);
   color: var(--doc-ink);
-  font: 15px/1.85 "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 15px/1.85 var(--websim-font);
   overflow-wrap: anywhere;
   word-break: keep-all;
 }
-.doc-shell { width: min(1120px, calc(100% - 64px)); margin: auto; padding: 0 0 38px; }
+.doc-shell { width: min(var(--websim-width), calc(100% - var(--websim-gutter))); margin: auto; padding: 0 0 38px; }
 a { color: var(--doc-accent); text-underline-offset: 4px; }
 a:hover { text-decoration: underline; }
 .doc-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; border-bottom: 1px solid var(--doc-line); min-height: 88px; }
@@ -35,7 +36,7 @@ a:hover { text-decoration: underline; }
 .doc-toc a:hover, .doc-toc a[aria-current="location"] { background: #e5ece3; color: var(--doc-ink); }
 .doc-toc a span { font-size: 10px; color: #879589; font-variant-numeric: tabular-nums; }
 .doc-toc .doc-toc-theory { margin-top: 7px; padding-top: 12px; border-top: 1px solid var(--doc-line); border-radius: 0; color: var(--doc-accent); }
-.doc-content { min-width: 0; background: #fff; border: 1px solid var(--doc-line); border-radius: 18px; padding: 12px 36px 30px; box-shadow: 0 5px 24px #233c2a04; }
+.doc-content { min-width: 0; background: var(--websim-surface); border: 1px solid var(--doc-line); border-radius: var(--websim-radius); padding: 12px 36px 30px; box-shadow: 0 5px 24px #233c2a04; }
 .doc-content h2 { font-size: 22px; line-height: 1.5; letter-spacing: -.7px; margin: 30px 0 12px; }
 .doc-content h2:not(:first-child) { border-top: 1px solid #eef1eb; padding-top: 28px; }
 .doc-content h3 { font-size: 18px; line-height: 1.55; letter-spacing: -.4px; margin-top: 26px; }
@@ -64,11 +65,11 @@ summary { cursor: pointer; font-weight: 700; color: var(--doc-accent); }
 .doc-footer .doc-nav { min-height: 60px; border: 0; gap: 18px; }
 .doc-footer .doc-nav a { font-size: 12px; }
 .doc-footer .doc-nav a:first-child { font-size: 12px; letter-spacing: 0; }
-:focus-visible { outline: 3px solid #6da37c; outline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--websim-focus); outline-offset: 4px; }
 .skip-link { position: fixed; top: -100px; left: 20px; background: var(--doc-ink); color: #fff; padding: 12px 20px; z-index: 10; }
 .skip-link:focus { top: 12px; }
 @media (max-width: 900px) {
-  .doc-shell { width: calc(100% - 40px); }
+  .doc-shell { width: calc(100% - var(--websim-gutter)); }
   .doc-layout { grid-template-columns: 185px minmax(0, 1fr); gap: 22px; }
   .doc-content { padding-inline: 25px; }
 }
@@ -80,7 +81,7 @@ summary { cursor: pointer; font-weight: 700; color: var(--doc-accent); }
   .doc-toc .doc-toc-theory { border: 0; margin: 0; padding-top: 8px; border-radius: 8px; }
 }
 @media (max-width: 540px) {
-  .doc-shell { width: calc(100% - 28px); padding-bottom: 20px; }
+  .doc-shell { width: calc(100% - var(--websim-gutter)); padding-bottom: 20px; }
   .doc-nav { gap: 12px; min-height: 74px; }
   .doc-nav a { font-size: 11px; min-height: 44px; }
   .doc-nav a:first-child { font-size: 18px; }
@@ -101,3 +102,17 @@ summary { cursor: pointer; font-weight: 700; color: var(--doc-accent); }
   .doc-footer .doc-nav { gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Unavailable related articles remain plain, noninteractive text. */
+.doc-nav .blog-pending {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  color: var(--doc-muted);
+  font-size: 13px;
+}
+.doc-footer .doc-nav .blog-pending { font-size: 12px; }
+@media (max-width: 540px) {
+  .doc-nav .blog-pending { min-height: 44px; font-size: 11px; }
+  .doc-footer .doc-nav .blog-pending { font-size: 11px; }
+}

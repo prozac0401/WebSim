@@ -7,7 +7,7 @@
 ## 생활과 도구
 
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
-- [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · [관련 글](https://prozac0401.tistory.com/53)
+- [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · 관련 글 미등록
 
 ## 무리와 사회
 
@@ -21,7 +21,7 @@
 - [생명 게임](conway-game-of-life/conway-game-of-life.html) — 격자 이웃 규칙이 만드는 세대별 무늬 · [사용법](conway-game-of-life/conway-game-of-life_doc.html) · [관련 글](https://prozac0401.tistory.com/16)
 - [랭턴의 개미](langtons_ant_simulator/langtons_ant_simulator.html) — 두 가지 이동 규칙과 반복 무늬 · [사용법](langtons_ant_simulator/langtons_ant_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/35)
 - [울람 나선과 소수](ulam_spiral/ulam_spiral.html) — 숫자 나선에 나타나는 소수 위치 · [사용법](ulam_spiral/ulam_spiral_doc.html) · [관련 글](https://prozac0401.tistory.com/48)
-- [반복해서 만드는 나무와 무늬](fractal_tree_simulator/fractal_tree_simulator.html) — L-System 그리기 규칙과 각도 비교 · [사용법](fractal_tree_simulator/fractal_tree_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/66)
+- [반복해서 만드는 나무와 무늬](fractal_tree_simulator/fractal_tree_simulator.html) — L-System 그리기 규칙과 각도 비교 · [사용법](fractal_tree_simulator/fractal_tree_simulator_doc.html) · 관련 글 미등록
 - [입자 모양 성장 실험 DLA](dla_simulator/standalone.html) — 입자가 붙을 확률과 가지 모양 성장 · [사용법](dla_simulator/dla_simulator_doc.html)
 
 ## 우주와 물리
@@ -34,7 +34,7 @@
 - [포식자와 먹이의 관계](predator_prey_simulator/predator_prey_simulator.html) — 식물·초식동물·육식동물의 수 변화 · [사용법](predator_prey_simulator/predator_prey_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/69)
 - [개미와 땅속 양분](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) — 양분 운반과 식물 변화 · [사용법](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator_doc.html)
 
-주말 회복 플래너, DLA, 개미와 땅속 양분의 관련 블로그 글은 목록에 연결되어 있지 않습니다. 실행 화면과 사용법은 사용할 수 있습니다.
+주말 회복 플래너, QR 코드 만들기, 반복해서 만드는 나무와 무늬, DLA, 개미와 땅속 양분의 관련 블로그 글은 ‘관련 글 미등록’으로 표시합니다. 실행 화면과 사용법은 사용할 수 있습니다.
 
 ## 로컬에서 확인하기
 
