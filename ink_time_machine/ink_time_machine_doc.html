@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="잉크 그림을 섞고 원통을 반대로 돌려 되찾습니다. 확산이 있을 때 달라지는 결과를 비교하세요.">
+  <title>잉크 타임머신 사용법 · WebSim</title>
+  <link rel="stylesheet" href="../assets/docs.css">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <script src="../assets/docs.js" defer></script>
+</head>
+<body class="doc-page">
+  <a class="skip-link" href="#guide">사용법 본문으로</a>
+  <main class="doc-shell">
+    <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="ink_time_machine.html">직접 해보기 →</a><span class="blog-pending">관련 글 미등록</span></nav>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>잉크 타임머신 사용법</h1><p class="doc-lead">길게 늘어난 잉크를 반대로 돌리면 처음 그림이 돌아올까요? 같은 그림으로 확산이 없을 때와 있을 때를 비교합니다.</p></header>
+    <article class="doc-content" id="guide">
+      <h2>처음 세 단계</h2>
+      <ol>
+        <li><strong>하트</strong>를 고르고 확산을 <strong>0</strong>으로 둡니다. <strong>3바퀴 섞기</strong>를 누르면 안쪽 원통이 돌면서 잉크 그림이 가늘고 긴 띠로 늘어납니다.</li>
+        <li><strong>반대로 되돌리기</strong>를 누릅니다. 원통의 누적 회전이 0이 될 때까지 반대로 움직이며, 확산이 없으면 잉크가 처음 위치로 돌아옵니다.</li>
+        <li><strong>처음 그림</strong>을 누르고 확산을 올린 뒤 같은 순서를 반복합니다. 원통은 제자리로 돌아와도 잉크가 남기는 번짐과 복원 오차는 달라집니다.</li>
+      </ol>
+      <h2>그림과 회전 조작</h2>
+      <p><strong>하트·세 방울·줄무늬</strong> 중 하나를 고르거나, 회전하기 전에 색과 브러시 크기를 골라 원통 사이의 공간에 직접 그려 보세요. 마우스나 손가락으로 끌면 잉크를 더할 수 있습니다. 그림 편집은 회전하기 전에 할 수 있으며, <strong>처음 그림</strong>으로 돌아가 다시 편집할 수 있습니다.</p>
+      <p><strong>일시정지</strong>로 현재 모습을 살펴보고, <strong>+¼바퀴·−¼바퀴</strong>로 조금씩 회전시키며 안쪽과 바깥쪽 잉크가 얼마나 다르게 움직이는지 비교하세요. 회전 속도는 원통이 모형 시간 1 t 동안 도는 바퀴 수입니다. <strong>PNG 저장</strong>은 지금 보이는 실험 그림을 이미지로 저장합니다.</p>
+      <blockquote><p><strong>반대로 되돌리기</strong>는 현재 잉크를 반대 방향의 흐름으로 움직이는 실험입니다. <strong>처음 그림</strong>은 저장해 둔 초기 입자 상태를 다시 불러오는 초기화입니다. 확산으로 흐트러진 잉크도 초기화하면 원래 모습으로 돌아오므로, 복원 실험의 결과는 역회전이 끝난 직후에 확인하세요.</p></blockquote>
+      <h2>결과 읽기</h2>
+      <ul>
+        <li><strong>누적 회전</strong>은 안쪽 원통이 처음 위치에서 얼마나 회전했는지를 나타냅니다. 반대로 돌리면 줄어들며, 0은 원통의 시작 위치입니다.</li>
+        <li><strong>복원 오차</strong>는 각 잉크 입자가 자기 시작점에서 떨어진 거리의 제곱평균제곱근(RMS)을 바깥 원통 반경으로 나누어 백분율로 나타낸 값입니다. 0%에 가까울수록 입자들이 처음 위치에 가깝습니다. 그림의 닮은 정도나 복원 성공률을 뜻하지는 않습니다.</li>
+        <li><strong>모형 시간 t</strong>는 실험이 진행된 시간입니다. 역회전 중에도 시간은 앞으로 갑니다. 화면 속 회전 방향만 반대가 됩니다.</li>
+      </ul>
+      <p>섞는 도중 복원 오차가 커지는 것은 자연스럽습니다. 같은 시작 그림, 같은 회전량으로 비교하고 <strong>역회전을 마친 시점의 오차</strong>를 읽으세요. 확산이 있을 때는 무작위 이동 때문에 반복해도 결과가 조금씩 달라질 수 있습니다.</p>
+      <h2>이렇게 비교해 보세요</h2>
+      <ul>
+        <li><strong>확산의 영향:</strong> 확산 0과 높은 값을 비교합니다. 역회전이 잉크의 무작위 이동까지 되돌리는지 관찰하세요.</li>
+        <li><strong>위치의 영향:</strong> 안쪽 원통 가까이와 바깥쪽에 각각 방울을 그립니다. 같은 회전에서 어느 쪽이 더 길게 늘어날까요?</li>
+        <li><strong>속도의 영향:</strong> 확산을 켜고 같은 3바퀴를 서로 다른 속도로 돌립니다. 천천히 돌리면 같은 회전량에 더 많은 모형 시간이 걸려 확산할 시간도 늘어납니다.</li>
+      </ul>
+      <details class="doc-principles">
+        <summary>제작 원리와 학술적 의미</summary>
+        <h3>실제로도 되돌아오는 잉크</h3>
+        <p>점성이 큰 액체를 두 원통 사이에 넣고 안쪽 원통을 천천히 돌리면 액체의 층들이 서로 다른 속도로 움직입니다. 난류가 생기지 않고 확산이 충분히 작으면, 같은 회전량을 반대로 돌렸을 때 늘어난 색 띠가 다시 모일 수 있습니다. <a href="https://sciencedemonstrations.fas.harvard.edu/presentations/reversible-fluid-mixing" target="_blank" rel="noopener noreferrer">Harvard Natural Sciences의 가역적 유체 혼합 실험</a>에서 실제 장치와 현상을 볼 수 있습니다.</p>
+        <h3>이 화면에서 계산하는 흐름</h3>
+        <p>바깥 원통은 고정하고, 바깥 반경을 1, 안쪽 반경을 0.32로 둡니다. 잉크는 흐름을 따라가는 수동 입자로 나타냅니다. 중심에서 거리 r에 있는 입자의 각속도는 안쪽 원통 각속도의 다음 비율입니다.</p>
+        <pre><code>f(r) = (1 / r² − 1) / (1 / 0.32² − 1)
+입자 각속도 = 안쪽 원통 각속도 × f(r)
+0.32 ≤ r ≤ 1</code></pre>
+        <p>이 동심 원통의 Couette 흐름에서는 안쪽 경계가 원통과 함께 회전하고 바깥 경계에서는 회전이 0입니다. 확산이 없다면 입자의 반경이 유지되므로 회전량을 정확히 반대로 더해 원래 위치로 돌아갈 수 있습니다. 화면은 이 정해진 속도장에 따라 입자를 이동시킵니다.</p>
+        <h3>확산과 되돌릴 수 없는 변화</h3>
+        <p>확산을 켜면 회전 이동에 무작위 브라운 운동을 더합니다. 확산 슬라이더의 값 s에 대해 모형 확산 계수는 D = s × 0.00012이며, 단위는 바깥 반경의 제곱/t입니다. 원통 경계 밖으로 나가려는 입자는 경계에서 반사합니다.</p>
+        <p>역회전은 흐름의 방향을 바꿉니다. 이미 일어난 무작위 이동을 취소하지 않으며, 역회전하는 동안에도 새로운 확산이 생깁니다. 따라서 누적 회전이 0이어도 입자가 시작점에 모두 모이지 않습니다.</p>
+        <h3>복원 오차의 정의와 모형의 범위</h3>
+        <pre><code>복원 오차(%) = 100 × √[Σ|현재 위치ᵢ − 초기 위치ᵢ|² / N] / 바깥 반경</code></pre>
+        <p>N은 잉크 입자 수이며 같은 입자의 처음과 현재 위치를 비교합니다. 이 값은 이미지 픽셀의 유사도, 엔트로피 또는 유체 혼합률이 아닙니다. 실험은 정해진 층류 흐름과 입자 확산을 비교하기 위한 단순화된 모형입니다. 유체 전체의 운동, 난류, 입자 사이의 상호작용과 열역학을 계산하지 않으며, 화면의 속도나 확산 값을 실제 액체의 측정값으로 해석하지 않습니다.</p>
+      </details>
+    </article>
+    <footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="ink_time_machine.html">직접 해보기 →</a><span class="blog-pending">관련 글 미등록</span></nav></footer>
+  </main>
+</body>
+</html>

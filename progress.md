@@ -85,3 +85,25 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 
 - 후속 사용자 요청에 따라 검증한 메인 목록·15개 실험실·설명서·공통 자산을 GitHub에 반영합니다.
 - 배포 설정은 `main` 브랜치의 저장소 루트이며, 기존 GitHub Pages 자동 빌드를 사용합니다. 원격과 로컬의 시작 커밋이 같고 `git diff --check`가 통과한 상태에서 진행합니다.
+
+## 2026-10-07 새 실험 3종
+
+- 요청: 잉크 타임머신 → 소리 미로 → 진화하는 탈것 순차 구현, 기존 룩앤필과 직관적 조작 유지.
+- 기존 작업 트리의 선행 디자인 수정을 보존하며 공통 theme/simulator/docs 스타일을 재사용합니다.
+
+- 잉크: Couette 층류, 실제 역회전, 확산, 그림 편집/프리셋/PNG 저장. 확산0 왕복 위치오차 약 1e-12%, 확산8 왕복 약63%로 차이 확인.
+- 소리: 독립 파동 2개, 반사벽/흡수경계, 위치·위상·파장 조절, 상대 RMS 진폭. 같은위상202%, 반대위상4.3%, B끄기100%, 벽틈 반대위상0.6% 확인.
+- 메인 목록, README, 공통 실험 전환 메뉴에 새 3종 등록(18개). 기존 항목 순서/번호 보존.
+
+- 탈것: Matter.js 0.20.0 로컬 번들·MIT 라이선스, 8대 물리경주·10특성 유전자·최고 개체 보존·선택/교차/돌연변이·시드 재현·코스 직접그리기 구현. 첫세대 최장2321.64u, 다음세대 최고개체 유전자 동일 확인.
+
+- 최종 검증: 핵심 모형 node:test 5개 통과. 새3개 × 1440/820/390/360px 화면에서 가로 넘침·중복제목·라벨누락 없음. 모바일 실제 touch 입력, 캔버스 드래그/키보드, PNG저장, 오디오/전체화면 지원 및 미지원, pause/reset/replay, 벽 편집, 코스 적용, 자동 세대 전환 통과.
+- 카탈로그18개 검색·주제필터·새실험 연결, 메뉴18개 경로, 새설명서3개 JS비활성/모바일읽기, 기존 Gravity/Conway/DLA GitHub Pages 하위경로 메뉴 회귀 검증 완료.
+- 최종 Playwright 스킬 client는 세 실험 각각 재실행하여 exit0, 오류파일없음. 병렬 최종 실행에서 런타임 제한을 만나 독립 로컬 서버로 전환 후 개별 재검증 완료.
+- git diff --check, 새 JS 구문검사 통과. 브라우저 상태/스크린샷은 output/playwright/new-labs/에 저장.
+- 구현과 로컬 페이지 반영 완료. 온라인 배포나 커밋은 수행하지 않음; 기존 선행 사용자 수정 보존. 미리보기: http://127.0.0.1:4173/index.html#catalog (로컬서버 PID24604).
+
+### 2026-10-07 — Publish the three new labs
+- User requested reflecting the completed labs on the live site and discovering further ideas. Confirmed the existing public GitHub Pages site deploys the main branch and the previous deployment succeeded.
+- Re-ran `node --test tests/new-labs.test.cjs`: all five tests passed. `git diff --check` passed. Updated README coverage of unavailable related articles.
+- Publish this scoped addition through the existing main-branch Pages deployment; verify the deployed catalog, lab pages, and guides against the committed files. New ideas remain proposals rather than additional implementation.
