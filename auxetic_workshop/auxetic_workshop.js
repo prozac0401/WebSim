@@ -2,7 +2,6 @@
   'use strict';
   const E = window.AuxeticEngine, $ = id => document.getElementById(id);
   const canvas = $('canvas'), ctx = canvas.getContext('2d'), state = E.createState();
-  E.loadPreset(state, 'chiral');
   const C = { green: '#21654f', mint: '#c5d8b8', light: '#dde8cf', ink: '#293d35', muted: '#718077', line: '#bbc8b6', coral: '#bc6661', blue: '#497eaa', bg: '#f5f6f1' };
   canvas.style.touchAction="pan-y";
   let drag = null, view = null, lastSuccess = false, pinned = null, familyFilter = 'all', hingeSignature = '';
@@ -23,7 +22,7 @@
       path(shape.points, shape.closed, target, transform);
       if (ghost) { target.stroke(); return; }
       if (shape.fill) { target.fillStyle = i % 2 ? C.light : C.mint; target.fill(); }
-      target.strokeStyle = shape.role === 'ring' ? C.green : shape.role === 'cut' ? '#aa7757' : shape.role === 'ligament' ? '#548678' : '#73916e';
+      target.strokeStyle = shape.role === 'cut' ? '#aa7757' : shape.role === 'ligament' ? '#548678' : '#73916e';
       target.lineWidth = shape.lineWidth ? Math.max(.8, shape.lineWidth * transform.scale) : shape.fill ? 1.35 : 2.1;
       target.stroke();
     });
@@ -41,16 +40,14 @@
     }
   }
   function initLibrary() {
-    $('structure-count').textContent = `${E.PRESETS.length}가지 구조`;
+    $('structure-count').textContent = `${E.PRESETS.length}개 예제`;
     for (const family of ['all', ...new Set(E.PRESETS.map(p => p.family))]) {
       const button = document.createElement('button'); button.textContent = `${family === 'all' ? '전체' : family} ${family === 'all' ? E.PRESETS.length : E.PRESETS.filter(p => p.family === family).length}`; button.dataset.family = family;
       button.onclick = () => { familyFilter = family; updateGallery(); $('shape-gallery').scrollLeft = 0; };
       $('shape-filters').appendChild(button);
     }
     const groups = new Map();
-    const featured = ['chiral', 'antichiral', 'wave', 'horseshoe', 'spiral', 'petals', 'braid'];
-    const galleryPresets = [...featured.map(id => E.PRESETS.find(p => p.id === id)), ...E.PRESETS.filter(p => !featured.includes(p.id))];
-    for (const preset of galleryPresets) {
+    for (const preset of E.PRESETS) {
       if (!groups.has(preset.family)) { const group = document.createElement('optgroup'); group.label = preset.family; groups.set(preset.family, group); $('preset').appendChild(group); }
       const option = document.createElement('option'); option.value = preset.id; option.textContent = preset.label; groups.get(preset.family).appendChild(option);
       const button = document.createElement('button'); button.className = 'shape-card'; button.dataset.preset = preset.id; button.dataset.family = preset.family;
@@ -151,9 +148,9 @@
     $('mode-chip').textContent = state.locked.length ? '전체 잠김' : result.success ? '목표 달성' : g.response === 'contracting' ? '높이가 줄어드는 구간' : g.response === 'limit' ? '최대 가로 길이' : '함께 펼쳐지는 중';
     $('structure-title').textContent = preset.label; $('structure-family').textContent = preset.family;
     $('structure-description').textContent = preset.description;
-    $('model-note').textContent = preset.mechanism + (plate ? ' 판의 변 길이가 유지되는 회전 모형입니다.' : ' 정해진 기하 규칙으로 펼치는 예시이며, 탄성이나 재료 길이 보존은 계산하지 않습니다.');
+    $('model-note').textContent = preset.mechanism + (plate ? ' 회전 판 5개 예제는 같은 구조에서 판의 비율과 시작 늘림을 바꾼 것입니다.' : ' 정해진 기하 규칙으로 펼치는 예시이며, 탄성이나 재료 길이 보존은 계산하지 않습니다.');
     canvas.setAttribute('aria-label', `${preset.label}. ${preset.description} 양옆 손잡이를 끌어 늘리고 연결점을 누르면 선택됩니다.`);
-    $('mission-help').textContent = state.mission === 'free' ? '① 형상 고르기 → ② 손잡이 당기기 → ③ 현재 모양 기억. 곡선·고리·방사형 구조의 펼침을 비교하세요.' : E.MISSIONS[state.mission].instruction;
+    $('mission-help').textContent = state.mission === 'free' ? '① 형상 고르기 → ② 손잡이 당기기 → ③ 현재 모양 기억. 회전 판·접힘 격자·절개 구조의 펼침을 비교하세요.' : E.MISSIONS[state.mission].instruction;
     $('mission-result').textContent = !result.active ? '자유 실험에서는 목표 창이 표시되지 않습니다.' : result.success ? '✓ 목표 달성! 두 길이가 모두 창의 허용 범위에 들어왔습니다.' : `목표까지 가로 ${result.widthError.toFixed(2)} u · 세로 ${result.heightError.toFixed(2)} u${state.locked.length ? ' · 잠금을 먼저 풀어 주세요.' : ''}`;
     if (result.success && !lastSuccess) message(state.mission === 'turn' ? '성공! 시작보다 가로는 넓어지고 높이는 낮아졌습니다. 판 모양과 회전 구간이 반응을 바꿉니다.' : '성공! 파란 창에 맞췄습니다. 다음 목표에서 연결과 판 모양을 바꿔 보세요.');
     lastSuccess = result.success;

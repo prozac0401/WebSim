@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="고리, 물결, 나선, 꽃잎과 회전하는 판까지 18가지 구조를 펼쳐 보세요. 다양한 형상의 가로·세로 변화와 연결의 움직임을 비교합니다.">
+  <meta name="description" content="회전 판 5개, 접힘 격자 2개, 키리가미 절개 1개로 구성한 8개 예제를 펼쳐 보세요. 가로·세로 변화와 연결의 움직임을 비교합니다.">
   <title>늘리면 넓어지는 구조물 · WebSim</title>
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../assets/simulator.css"><link rel="stylesheet" href="../assets/experiments.css"><link rel="stylesheet" href="auxetic_workshop.css">
@@ -14,7 +14,7 @@
   <div class="library-heading"><div><span class="sim-section-title">SHAPE COLLECTION</span><h2 id="library-title">형상 라이브러리 <span id="structure-count"></span></h2></div><div class="library-scroll"><button id="gallery-prev" aria-label="앞쪽 구조 보기">←</button><button id="gallery-next" aria-label="뒤쪽 구조 보기">→</button></div></div>
   <div id="shape-filters" class="shape-filters" role="group" aria-label="구조 종류"></div>
   <div id="shape-gallery" class="shape-gallery" role="group" aria-label="미리보기에서 구조 선택"></div>
-  <p class="library-help">미리보기를 눌러 선택하세요. 옆으로 넘기면 더 많은 형상이 있습니다.</p>
+  <p class="library-help">미리보기를 눌러 선택하세요. 회전 판 5개 예제는 같은 구조의 판 비율과 시작 늘림을 바꾼 변형입니다.</p>
 </section>
 <div class="sim-workspace">
   <section class="sim-stage-panel">
@@ -28,7 +28,7 @@
       <div class="sim-stat"><span>세로 길이</span><strong id="height-stat">—</strong><small id="height-change">—</small></div>
       <div class="sim-stat"><span id="opening-label">반복 셀의 빈틈</span><strong id="opening-stat">—</strong><small id="angle-stat">—</small></div>
     </div>
-    <p class="sim-note live-message" id="message" role="status">양옆 손잡이를 바깥으로 당겨 보세요. 고리와 연결부가 펼쳐지며 가로·세로가 함께 달라집니다.</p>
+    <p class="sim-note live-message" id="message" role="status">양옆 손잡이를 바깥으로 당겨 보세요. 정사각 판이 회전하며 가로·세로가 함께 넓어집니다.</p>
   </section>
   <aside class="sim-controls-panel">
     <div class="sim-panel-heading"><div><span class="sim-section-title">PULL & DISCOVER</span><h2>연결을 바꾸는 공방</h2></div></div>
@@ -45,6 +45,6 @@
     <p class="sim-helper">모든 부분이 함께 펼쳐지는 모형입니다. <strong>연결 하나만 잠가도 전체가 멈춥니다.</strong> 모양을 정한 뒤 잠금을 시험하세요.</p>
     <label class="comparison-option"><input type="checkbox" id="comparison" checked> 면적 일정 비교막 함께 보기</label>
     <div class="button-row"><button id="pin-reference">현재 모양 기억</button><button id="clear-reference" disabled>기억 지우기</button><button id="save">PNG 저장</button></div>
-    <p class="sim-note" id="reference-note"></p><details class="sim-explainer"><summary>늘어나는 것은 무엇인가요?</summary><p>판의 회전, 오목한 셀의 열림, 고리 사이 연결부의 펼침처럼 형상에 따라 다른 움직임을 비교합니다. 회전 판은 변 길이를 유지합니다. 곡선과 방사형 구조는 함께 펼쳐지는 모습을 정해진 기하 규칙으로 보여 줍니다.</p><p>곡선 구조는 재료의 길이 보존이나 실제 탄성 변형을 계산하지 않는 예시 모형입니다. 산호색 점선은 같은 가로 길이에서 면적을 일정하게 유지하는 비교막입니다. <a href="auxetic_workshop_doc.html">모형과 식 읽기 ↗</a></p></details>
+    <p class="sim-note" id="reference-note"></p><details class="sim-explainer"><summary>늘어나는 것은 무엇인가요?</summary><p>판의 회전, 오목한 셀의 열림, 절개 사이의 펼침을 비교합니다. 회전 판은 변 길이를 유지하며, 다섯 예제는 같은 회전 구조의 비율과 시작 늘림을 달리한 것입니다.</p><p>접힘 격자와 절개 구조는 정해진 기하 규칙으로 펼치는 예시이며, 재료의 길이 보존이나 실제 탄성 변형을 계산하지 않습니다. 산호색 점선은 같은 가로 길이에서 면적을 일정하게 유지하는 비교막입니다. <a href="auxetic_workshop_doc.html">모형과 식 읽기 ↗</a></p></details>
   </aside>
 </div></main></body></html>

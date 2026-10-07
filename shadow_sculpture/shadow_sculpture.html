@@ -11,7 +11,7 @@
 <p class="sim-note live-message" id="message" role="status">안전한 블록 찾기를 누르고, 표시된 블록을 빼 보세요.</p></section>
 <aside class="sim-controls-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">CARVE & DISCOVER</span><h2>두 모습의 조각</h2></div></div>
 <p class="instruction">① 목표 고르기 → ② 층에서 블록 빼기<br>③ 두 그림자가 그대로인지 확인하기</p>
-<label class="sim-control" for="mission">만들 조각<select id="mission"><option value="gate">작은 문과 계단 · 첫 도전</option><option value="tree">나무와 다이아몬드</option><option value="heart">하트와 물결</option><option value="free">자유 조각 · 빈 공간부터</option></select></label>
+<label class="sim-control" for="mission">만들 조각<select id="mission" aria-describedby="mission-help"></select></label><p class="sim-helper" id="mission-help">이름의 앞은 정면, 뒤는 옆면 그림자입니다.</p>
 <h3 class="sim-section-title">편집 도구</h3><div class="button-row" role="group" aria-label="블록 편집 도구"><button data-tool="remove" aria-pressed="true">블록 빼기</button><button data-tool="add" aria-pressed="false">블록 더하기</button><button data-tool="select" aria-pressed="false">선택만</button></div><p class="sim-helper">층 편집판은 위에서 본 모습입니다. 초록은 있는 블록, 작은 점은 목표 그림자 안에서 놓을 수 있는 자리입니다.</p>
 <h3 class="sim-section-title">선택한 칸</h3><div class="selection-card" id="selection-info">x 5 · z 6 · 1층</div>
 <div class="mini-grid"><label class="sim-control" for="cell-x">가로 x<input id="cell-x" type="number" min="1" max="12" value="5"></label><label class="sim-control" for="cell-z">깊이 z<input id="cell-z" type="number" min="1" max="12" value="6"></label></div>

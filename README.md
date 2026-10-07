@@ -33,7 +33,7 @@
 ## 우주와 물리
 
 - [그림자 조각 공방](shadow_sculpture/shadow_sculpture.html) — 두 방향의 그림자를 맞추고, 같은 그림자를 남기는 더 작은 조각을 만듭니다. · [사용법](shadow_sculpture/shadow_sculpture_doc.html)
-- [늘리면 넓어지는 구조물](auxetic_workshop/auxetic_workshop.html) — 고리·물결·나선·꽃잎 등 18가지 형상을 펼치며, 연결과 가로·세로 변화를 비교합니다. · [사용법](auxetic_workshop/auxetic_workshop_doc.html)
+- [늘리면 넓어지는 구조물](auxetic_workshop/auxetic_workshop.html) — 회전 판의 비율·시작값 예제 5종, 접힘 격자 2종, 키리가미 절개로 연결과 가로·세로 변화를 비교합니다. · [사용법](auxetic_workshop/auxetic_workshop_doc.html)
 - [잉크 타임머신](ink_time_machine/ink_time_machine.html) — 섞은 잉크를 반대로 돌려 되살리고, 확산이 남기는 차이를 비교합니다. · [사용법](ink_time_machine/ink_time_machine_doc.html)
 - [소리 미로](sound_maze/sound_maze.html) — 음원과 벽을 옮기고 위상을 바꿔, 조용한 자리를 찾습니다. · [사용법](sound_maze/sound_maze_doc.html)
 - [클릭으로 만드는 우주](cosmic-simulator-single-div/cosmic-simulator-single-div.html) — 천체 생성·이동·합쳐짐 관찰 · [사용법](cosmic-simulator-single-div/cosmic-simulator-single-div_doc.html) · [관련 글](https://prozac0401.tistory.com/56)

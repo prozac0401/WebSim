@@ -69,10 +69,12 @@ function finiteDimensions(g) {
   assert.ok(g.height <= g.maxHeight + 1e-7);
 }
 
-test('eighteen presets expose complete shape metadata, selectable nodes and honest dimensions at every aspect/limit', () => {
-  assert.equal(E.PRESETS.length, 18);
-  assert.equal(new Set(E.PRESETS.map(p => p.id)).size, 18);
-  assert.equal(E.PRESETS.filter(p => p.kind === 'linkage').length, 13);
+test('retained presets expose complete shape metadata, selectable nodes and honest dimensions at every aspect/limit', () => {
+  assert.deepEqual(E.PRESETS.map(p => p.id), ['square', 'tall', 'wide', 'diamond', 'ribbon', 'honeycomb', 'chevron', 'kirigami']);
+  assert.equal(new Set(E.PRESETS.map(p => p.id)).size, 8);
+  assert.equal(E.PRESETS.filter(p => p.kind === 'plate').length, 5);
+  assert.equal(E.PRESETS.filter(p => p.family === '접힘 격자').length, 2);
+  assert.equal(E.PRESETS.filter(p => p.family === '절개와 회전').length, 1);
   for (const preset of E.PRESETS) {
     for (const key of ['label', 'family', 'description', 'mechanism', 'aspectLabel', 'aspectHelp']) assert.ok(preset[key]);
     for (const aspect of [.5, .7, 1, 1.4, 2]) {
@@ -90,7 +92,7 @@ test('eighteen presets expose complete shape metadata, selectable nodes and hone
         for (const path of g.paths) {
           assert.ok(path.points.length >= 2);
           assert.equal(typeof path.closed, 'boolean'); assert.equal(typeof path.fill, 'boolean');
-          assert.ok(['body', 'ring', 'ligament', 'cut'].includes(path.role));
+          assert.ok(['body', 'ligament', 'cut'].includes(path.role));
         }
         assert.ok(E.selectHinge(s, g.hinges.at(-1).id));
         if (preset.kind === 'linkage') {
@@ -105,7 +107,7 @@ test('eighteen presets expose complete shape metadata, selectable nodes and hone
   }
 });
 
-test('new structures widen and grow taller continuously through their whole deployment', () => {
+test('folded grids and cut patterns widen and grow taller continuously through their whole deployment', () => {
   for (const preset of E.PRESETS.filter(p => p.kind === 'linkage')) {
     const s = E.createState(); E.loadPreset(s, preset.id); E.setExtension(s, 0);
     let previous = E.geometry(s);
@@ -139,7 +141,7 @@ function onPath(point, path) {
   });
 }
 
-test('ligament endpoints remain attached to cell outlines or wave/rib paths as structures deploy', () => {
+test('ligament endpoints remain attached to cell outlines or ribs as structures deploy', () => {
   for (const preset of E.PRESETS.filter(p => p.kind === 'linkage')) {
     const s = E.createState(); E.loadPreset(s, preset.id); E.setAspect(s, 1.7);
     for (const fraction of [0, .27, .73, 1]) {
@@ -177,7 +179,7 @@ test('aspect edits retain the chosen structure, proportional deployment and cust
   }
 });
 
-test('new structures have distinct motifs and change internal shape instead of merely scaling', () => {
+test('folded grids and cut patterns have distinct motifs and change internal shape instead of merely scaling', () => {
   const signatures = new Set();
   for (const preset of E.PRESETS.filter(p => p.kind === 'linkage')) {
     const s = E.createState(); E.loadPreset(s, preset.id); E.setExtension(s, 0);
@@ -190,5 +192,5 @@ test('new structures have distinct motifs and change internal shape instead of m
     }
     assert.ok(normalizedChange > .012, `${preset.id}: needs internal shape change`);
   }
-  assert.equal(signatures.size, 13);
+  assert.equal(signatures.size, 3);
 });

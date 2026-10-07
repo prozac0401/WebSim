@@ -1,6 +1,9 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d'),lab=new ShadowSculpture('gate'),N=lab.n;
+  const missions=ShadowSculpture.missions;
+  $('mission').replaceChildren(...missions.map(mission=>new Option(mission.name+(mission.id==='gate'?' · 첫 도전':''),mission.id)),new Option('자유 조각 · 빈 공간부터','free'));
+  $('mission-help').textContent=missions.length+'가지 도전 · 이름의 앞은 정면, 뒤는 옆면 그림자입니다.';
   let selected={x:4,y:0,z:5},tool='select',yaw=-.65,pitch=.48,hintPoint=null,drag=null,layout=null,W=800,H=660,dpr=1,ray=null;
   const inRay=p=>ray&&p.y===ray.y&&p[ray.axis]===ray.cell;
   const message=text=>{$('message').textContent=text;};
