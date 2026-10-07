@@ -62,6 +62,8 @@ DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simula
 
 사회·생태 실험 6종의 경로 균형, 정보 공유, 개체수 보존, 서비스 학습, 인기 선택, 정보 연쇄 검증은 다음 명령으로 실행합니다. 여섯 실험 모두 외부 라이브러리나 빌드 없이 동작하며, 사용법에서 연구 근거와 이 구현의 가정을 구분합니다.
 
+이 여섯 실험의 제목 옆 **효과 켜짐 / 꺼짐**으로 물빛·탐색 흔적·부드러운 전환을 조절할 수 있습니다. 선택은 같은 브라우저에 기억되며 기기의 동작 줄이기 설정을 따릅니다. 시각 효과는 실험의 계산과 난수에 영향을 주지 않습니다.
+
 ```sh
 node --test braess_city/traffic-engine.test.cjs treasure_lab/treasure-engine.test.cjs microbial_commons/microbe-engine.test.cjs reef_market/reef-engine.test.cjs music_worlds/music-engine.test.cjs information_cascade/cascade-engine.test.cjs
 ```
