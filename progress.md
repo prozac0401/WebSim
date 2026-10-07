@@ -1,5 +1,11 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-07 소리 미로 개별 이동
+- User requested independent movement of the target and sound sources. Default to 선택·이동 so A, B and the target can be dragged immediately; keep 관찰 for mobile scrolling and preserve individual coordinate/direction controls.
+- Correct pointer coordinates to marker centers, preserve grab offsets, select the nearest marker when hit regions overlap, and guard the active pointer. Simple selection no longer changes positions or adds undo; a drag records one undo on its first valid move.
+- Updated the canvas hint and guide. Desktop checks passed independent moves, stationary selection, undo, coordinate/direction/keyboard controls, disabled B, wall/boundary rejection, wall editing, fullscreen and reset. Independent 390px real-touch checks passed all 11 cases including nearest selection, multitouch, cancellation and observation scrolling. Browser errors: none; original game client screenshots visually inspected; existing new-labs engine tests: 5/5 passed. Evidence: output/playwright/sound-movement/. No remaining task TODOs; local changes only, unrelated workspace edits preserved.
+- User approved publication. Release these three Sound Maze files and this log through the existing main-branch GitHub Pages deployment, then verify deployed source equality and desktop/mobile interactions at https://prozac0401.github.io/WebSim/sound_maze/sound_maze.html.
+
 ## 2026-10-07 지름길을 닫아라: 다양한 도로망
 - User requested more varied road forms in Braess City. Preserve the classic exact model and add four actual directed networks: river (6 nodes / 8 roads / 4 routes), ring (7 / 10 / 6), grid (9 / 12 / 6), and double Braess (7 / 10 / 9).
 - Added an affine-cost routing engine with stable routes, conserved flow, closed-road exclusion, pairwise potential descent, cached equilibrium solving and atomic rejection of disconnected changes. Both controlled roads A/B can be toggled through canvas taps or accessible buttons.

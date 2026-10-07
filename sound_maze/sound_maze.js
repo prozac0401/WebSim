@@ -3,7 +3,7 @@
   const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
   const NX=120,NY=80,SCALE=7,field=new WaveField(),raster=document.createElement('canvas');raster.width=NX;raster.height=NY;
   const rctx=raster.getContext('2d'),pixels=rctx.createImageData(NX,NY);
-  let objects=[],walls=new Uint8Array(NX*NY),tool='view',selected=0,running=true,enabledB=true,manual=false,last=null,accumulator=0,pointer=null,edits=[],positionEditing=false;
+  let objects=[],walls=new Uint8Array(NX*NY),tool='move',selected=0,running=true,enabledB=true,manual=false,last=null,accumulator=0,pointer=null,edits=[],positionEditing=false;
   function remember(){edits.push({objects:objects.map(p=>({...p})),walls:walls.slice()});if(edits.length>20)edits.shift();}
   let audio=null,osc=null,gain=null,listening=false,goalState='',audioRatio=1;
   const message=text=>{$('message').textContent=text;};
@@ -17,17 +17,20 @@
     if(name==='offset'){objects[0]={x:23,y:18};objects[1]={x:24,y:59};objects[2]={x:94,y:24};}
     if(name==='double-slit')for(let y=5;y<75;y++)if(!(y>=20&&y<=28)&&!(y>=52&&y<=60))for(let x=57;x<=59;x++)walls[y*NX+x]=1;
     if(name==='cove'){objects[2]={x:68,y:40};for(let y=8;y<73;y++)for(let x=35;x<100;x++){const r=Math.hypot(x-68,y-40);if(r>=22&&r<=24&&!(x<52&&y>=31&&y<=49))walls[y*NX+x]=1;}}
-    selected=0;running=true;edits=[];setTool('view');syncPosition();rebuild();
+    selected=0;running=true;edits=[];setTool('move');syncPosition();rebuild();
     message(name==='double-slit'?'두 틈을 지난 파동이 겹칩니다. 위상을 바꾸며 뒤쪽의 줄무늬와 조용한 자리를 찾으세요.':name==='cove'?'열린 고리 안에서 반사와 간섭이 만납니다. 고리 안 목표점의 진폭을 비교해 보세요.':name==='offset'?'두 음원과 목표점의 거리가 다릅니다. 위상과 위치를 조금씩 바꿔 25% 이하를 찾아보세요.':name==='wall'?'벽의 틈으로 파동이 퍼집니다. 벽 너머 목표점을 조용하게 만들어 보세요.':'B의 위상을 조절해 목표점 진폭을 A만 켰을 때의 25% 이하로 줄여 보세요.');
   }
   function canPlace(x,y,index){return x>=5&&x<NX-5&&y>=5&&y<NY-5&&!walls[y*NX+x]&&!objects.some((p,i)=>i!==index&&Math.hypot(p.x-x,p.y-y)<4);}
-  function place(x,y){x=Math.round(x);y=Math.round(y);if(!canPlace(x,y,selected)){message('벽과 다른 표시를 피해 안쪽의 빈 공간에 놓아 주세요.');syncPosition();return;}objects[selected]={x,y};syncPosition();rebuild();}
+  function place(x,y,save=false){x=Math.round(x);y=Math.round(y);if(!canPlace(x,y,selected)){message('벽과 다른 표시를 피해 안쪽의 빈 공간에 놓아 주세요.');syncPosition();return false;}if(objects[selected].x===x&&objects[selected].y===y)return false;if(save)remember();objects[selected]={x,y};syncPosition();rebuild();return true;}
   function setTool(value){tool=value;document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===value)));canvas.style.cursor=value==='view'?'default':value==='move'?'grab':'crosshair';canvas.style.touchAction=value==='view'?'pan-y':'none';}
   function editWall(x,y){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<3||xx>=NX-3||yy<3||yy>=NY-3)continue;if(objects.some(p=>Math.hypot(p.x-xx,p.y-yy)<4))continue;walls[yy*NX+xx]=tool==='wall'?1:0;}}
-  function position(e){const rect=canvas.getBoundingClientRect();return{x:Math.round((e.clientX-rect.left)/rect.width*NX),y:Math.round((e.clientY-rect.top)/rect.height*NY)};}
-  function paint(e){const p=position(e);if(tool==='move'){place(p.x,p.y);}else{if(pointer){const n=Math.max(Math.abs(p.x-pointer.x),Math.abs(p.y-pointer.y));for(let i=0;i<=n;i++){const t=n?i/n:0;editWall(Math.round(pointer.x+(p.x-pointer.x)*t),Math.round(pointer.y+(p.y-pointer.y)*t));}}else editWall(p.x,p.y);rebuild();}pointer=p;}
-  canvas.onpointerdown=e=>{if(e.button!==0)return;canvas.focus({preventScroll:true});pointer=null;const p=position(e),hit=objects.findIndex(v=>Math.hypot(v.x-p.x,v.y-p.y)<5*markerScale());if(hit>=0){selected=hit;syncPosition();}if(tool==='view'){render();return;}if(tool==='move'&&hit<0){message('A · B · 목표점 표시를 잡아 옮겨 주세요. 아래 위치 조절도 사용할 수 있습니다.');return;}remember();canvas.setPointerCapture(e.pointerId);paint(e);};
-  canvas.onpointermove=e=>{if(canvas.hasPointerCapture(e.pointerId))paint(e);};canvas.onpointerup=canvas.onpointercancel=e=>{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);pointer=null;};
+  function position(e){const rect=canvas.getBoundingClientRect();return{x:(e.clientX-rect.left)/rect.width*NX-.5,y:(e.clientY-rect.top)/rect.height*NY-.5};}
+  function hitObject(p){let hit=-1,distance=5*markerScale();objects.forEach((v,i)=>{const d=Math.hypot(v.x-p.x,v.y-p.y);if(d<distance){hit=i;distance=d;}});return hit;}
+  function paint(e){const p=position(e);if(tool==='move'){selected=pointer.index;const moved=place(pointer.object.x+p.x-pointer.start.x,pointer.object.y+p.y-pointer.start.y,!pointer.edited);pointer.edited=pointer.edited||moved;}else{const x=Math.round(p.x),y=Math.round(p.y),n=Math.max(Math.abs(x-pointer.x),Math.abs(y-pointer.y));for(let i=0;i<=n;i++){const t=n?i/n:0;editWall(Math.round(pointer.x+(x-pointer.x)*t),Math.round(pointer.y+(y-pointer.y)*t));}pointer.x=x;pointer.y=y;rebuild();}}
+  canvas.onpointerdown=e=>{if(e.button!==0||pointer)return;canvas.focus({preventScroll:true});const p=position(e),hit=hitObject(p);if(hit>=0){selected=hit;syncPosition();}render();if(tool==='view')return;if(tool==='move'&&hit<0){message('음원 A · 음원 B · 목표점 ◎ 중 옮길 표시를 직접 잡아 끌어 주세요. 옮길 대상을 고른 뒤 위치 슬라이더나 방향 버튼으로도 각각 이동할 수 있습니다.');return;}pointer={id:e.pointerId,index:selected,object:{...objects[selected]},start:p,x:Math.round(p.x),y:Math.round(p.y),edited:false};canvas.setPointerCapture(e.pointerId);if(tool==='move'){canvas.style.cursor='grabbing';}else{remember();paint(e);}};
+  canvas.onpointermove=e=>{if(pointer?.id===e.pointerId&&canvas.hasPointerCapture(e.pointerId))paint(e);};
+  function endPointer(e){if(pointer?.id!==e.pointerId)return;pointer=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);canvas.style.cursor=tool==='view'?'default':tool==='move'?'grab':'crosshair';}
+  canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=endPointer;
   function render(){
     const a=field.a,b=field.b,palette=$('wave-palette').value==='lagoon'?[[49,116,151],[144,90,143]]:[[48,119,94],[193,114,94]];
     $('undo-edit').disabled=!edits.length;document.querySelectorAll('.sim-legend span').forEach((el,i)=>{if(i<2)el.style.color='rgb('+palette[i].join(',')+')';});
