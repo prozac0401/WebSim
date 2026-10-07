@@ -1,0 +1,5 @@
+#microbial-app .micro-info{font-size:12px;line-height:1.8;color:var(--sim-muted);padding:11px 13px;border:1px solid var(--sim-border);border-radius:9px;background:var(--sim-bg)}
+#microbial-app .close-fullscreen{display:none}
+#microbial-app .expanded{position:fixed;inset:0;z-index:10000;margin:0;border:0;border-radius:0;display:grid;place-items:center;background:var(--sim-bg)}
+#microbial-app .expanded canvas{width:auto;height:auto;max-width:100%;max-height:100dvh;object-fit:contain}
+#microbial-app .expanded .close-fullscreen,#microbial-app #stage:fullscreen .close-fullscreen{display:inline-flex;position:absolute;right:12px;top:12px;z-index:1;min-height:44px;min-width:72px}

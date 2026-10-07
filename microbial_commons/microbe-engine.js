@@ -1,0 +1,27 @@
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.MicrobeEngine=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const PRESETS={
+    paradox:{name:'01 · 접시는 줄고, 전체는 늘고',ratios:[.1,.3,.7,.9],cost:.22,benefit:2.2,response:'linear',brief:'한 세대씩 배양하세요. 각 접시의 생산균 비율은 떨어지는데, 전체 비율은 올라갈 수 있습니다. 접시의 개체수도 함께 보세요.'},
+    uniform:{name:'02 · 모두 같은 비율이면?',ratios:[.5,.5,.5,.5],cost:.22,benefit:2.2,response:'linear',brief:'시작 총개체수와 생산균 수는 같습니다. 접시 사이 차이만 없앴습니다. 전체의 방향이 달라지는지 비교하세요.'},
+    saturated:{name:'03 · 적게 만들어도 충분하다면',ratios:[.1,.3,.7,.9],cost:.22,benefit:2.2,response:'saturating',brief:'공동물질이 조금만 있어도 효과가 포화됩니다. 생산균이 많은 접시의 성장 이점이 줄어드는 조건입니다.'},
+    free:{name:'자유 실험 · 분주와 배양',ratios:[.1,.3,.7,.9],cost:.22,benefit:2.2,response:'linear',brief:'비용·공동물질 효과를 바꾸거나, 스포이드로 옮기고 접시를 나눠 보세요. 분주 자체는 개체를 만들거나 없애지 않습니다.'}
+  };
+  function random(state){state.rng=(Math.imul(state.rng,1664525)+1013904223)>>>0;return(state.rng+.5)/4294967296;}
+  const count=d=>d.p+d.n;
+  function totals(s){const p=s.dishes.reduce((v,d)=>v+d.p,0),n=s.dishes.reduce((v,d)=>v+d.n,0);return{p,n,total:p+n,ratio:p+n?p/(p+n):0};}
+  function checkpoint(s){s.epoch++;s.epochStep=0;s.start=totals(s);s.dishes.forEach(d=>{d.startP=d.p;d.startN=d.n;});s.history=[summary(s)];}
+  function create(preset='paradox',seed=73,overrides={}){const p=PRESETS[preset]||PRESETS.paradox;const s={preset,seed:Number(seed)>>>0,rng:Number(seed)>>>0,tick:0,epoch:0,epochStep:0,nextId:5,settings:{cost:p.cost,benefit:p.benefit,response:p.response,capacity:100000,...overrides},dishes:p.ratios.map((r,i)=>({id:i+1,p:Math.round(r*200),n:200-Math.round(r*200),capacity:100000,good:0,birthP:0,birthN:0})),history:[],lastEvent:'접시를 준비했습니다.'};checkpoint(s);return s;}
+  function summary(s){const t=totals(s),rows=s.dishes.map(d=>{const initial=d.startP+d.startN,ratio=count(d)?d.p/count(d):0;return{id:d.id,p:d.p,n:d.n,total:count(d),ratio,startRatio:initial?d.startP/initial:0,weight:t.total?count(d)/t.total:0,good:d.good||0,birthP:d.birthP||0,birthN:d.birthN||0};});const mixed=rows.filter(d=>d.startRatio>0&&d.startRatio<1&&d.total>0);const allDown=mixed.length>0&&mixed.every(d=>d.ratio<d.startRatio-1e-10);return{...t,step:s.epochStep,tick:s.tick,startRatio:s.start?s.start.ratio:t.ratio,meanRatio:rows.length?rows.reduce((v,d)=>v+d.ratio,0)/rows.length:0,allDown,paradox:allDown&&t.ratio>(s.start?s.start.ratio:t.ratio)+1e-10,dishes:rows};}
+  function step(s){
+    for(const d of s.dishes){const total=count(d);d.birthP=0;d.birthN=0;if(!total)continue;d.good=d.p;const share=d.good/total;const effect=s.settings.response==='saturating'?share/(.01+share):share;const rate=.20+s.settings.benefit*effect;let bp=d.p*Math.max(0,rate-s.settings.cost),bn=d.n*rate;const room=Math.max(0,d.capacity-total);const scale=bp+bn>room?room/(bp+bn):1;bp*=scale;bn*=scale;d.birthP=Math.floor(bp);d.birthN=Math.floor(bn);d.p+=d.birthP;d.n+=d.birthN;}
+    s.tick++;s.epochStep++;s.lastEvent='배양 1세대: 공동물질의 성장 이득과 생산 비용으로 새 개체를 계산했습니다.';s.history.push(summary(s));if(s.history.length>61)s.history.shift();return summary(s);
+  }
+  function sample(s,d,amount){const n=clamp(Number.isFinite(Number(amount))?Math.round(amount):0,0,count(d));let p=Math.floor(n*(count(d)?d.p/count(d):0)+random(s));p=clamp(p,Math.max(0,n-d.n),Math.min(n,d.p));return{p,n:n-p};}
+  function transfer(s,fromId,toId,amount){const from=s.dishes.find(d=>d.id===Number(fromId)),to=s.dishes.find(d=>d.id===Number(toId));if(!from||!to||from===to)return false;const moved=sample(s,from,Math.min(Number(amount),Math.max(0,to.capacity-count(to))));if(!moved.p&&!moved.n)return false;from.p-=moved.p;from.n-=moved.n;to.p+=moved.p;to.n+=moved.n;checkpoint(s);s.lastEvent=`${from.id}번 → ${to.id}번: 생산균 ${moved.p}, 비생산균 ${moved.n} 이동. 새 비교 기준을 잡았습니다.`;return moved;}
+  function split(s,id){const d=s.dishes.find(x=>x.id===Number(id));if(!d||count(d)<2||s.dishes.length>=6)return false;const part=sample(s,d,Math.floor(count(d)/2));d.p-=part.p;d.n-=part.n;const capacity=Math.floor(d.capacity/2);d.capacity-=capacity;const added={id:s.nextId++,p:part.p,n:part.n,capacity,good:0,birthP:0,birthN:0};s.dishes.push(added);checkpoint(s);s.lastEvent=`${d.id}번을 나눠 ${added.id}번을 만들었습니다. 개체수와 총 수용량은 보존됩니다.`;return added.id;}
+  function merge(s){if(s.dishes.length<2)return false;const t=totals(s),capacity=s.dishes.reduce((v,d)=>v+d.capacity,0);s.dishes=[{id:1,p:t.p,n:t.n,capacity,good:0,birthP:0,birthN:0}];s.nextId=2;checkpoint(s);s.lastEvent='모두 한 접시로 합쳤습니다. 두 종류의 총개체수는 그대로이고, 접시 사이 차이는 사라졌습니다.';return true;}
+  function mix(s){if(s.dishes.length<2)return false;const t=totals(s),k=s.dishes.length,totalCapacity=s.dishes.reduce((v,d)=>v+d.capacity,0);let p=t.p,n=t.n,spare=totalCapacity-t.total;s.dishes.forEach((d,i)=>{d.p=i===k-1?p:Math.floor(t.p/k);d.n=i===k-1?n:Math.floor(t.n/k);p-=d.p;n-=d.n;const room=i===k-1?spare:Math.floor((totalCapacity-t.total)/k);d.capacity=count(d)+room;spare-=room;});checkpoint(s);s.lastEvent='모든 개체를 섞어 접시에 균등 분배했습니다. 정수 나머지만 마지막 접시에 남습니다.';return true;}
+  function change(s,key,value){if(key==='cost')s.settings.cost=clamp(Number(value),0,.8);if(key==='benefit')s.settings.benefit=clamp(Number(value),0,3);if(key==='response')s.settings.response=value==='saturating'?'saturating':'linear';s.preset='free';checkpoint(s);s.lastEvent='조건 변경 이후를 새 비교 기준으로 잡았습니다. 같은 시작점 비교는 ‘같은 시드 다시’로 하세요.';}
+  return{PRESETS,create,totals,summary,step,transfer,split,merge,mix,change,count};
+});

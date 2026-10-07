@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="발견을 바로 나눌까요, 더 찾아본 뒤 나눌까요? 같은 보물지도에서 세 가지 공유 방식의 탐색과 수확을 비교합니다."><title>보물지도 연구소 · WebSim</title><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/simulator.css"><link rel="stylesheet" href="../assets/experiments.css"><link rel="stylesheet" href="treasure_lab.css"><script src="../assets/simulator.js" defer></script><script src="treasure-engine.js" defer></script><script src="treasure_lab.js" defer></script></head>
+<body class="websim-page"><main class="sim-app experiment-app" id="treasure-app"><noscript>실험을 실행하려면 JavaScript를 켜 주세요. <a href="treasure_lab_doc.html">사용법 읽기</a></noscript><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">COLLECTIVE SEARCH LAB</span><h2>발견을 나누는 타이밍</h2></div><span class="sim-chip" id="day-chip">0 / 100일</span></div>
+<div class="sim-toolbar" id="toolbar"><button class="sim-primary" id="play">세 방식 함께 시작</button><button id="step">하루 진행</button><button id="finish">100일까지</button><button id="reset">같은 조건 다시</button></div>
+<div id="preview"><div class="policy-tabs" role="group" aria-label="지도에서 볼 공유 방식"><button data-policy="instant" aria-pressed="true">즉시 공유</button><button data-policy="periodic" aria-pressed="false">주기적 공유</button><button data-policy="independent" aria-pressed="false">각자 탐색</button></div>
+<div class="experiment-stage" id="stage"><canvas id="canvas" width="800" height="650" tabindex="0" aria-label="보물지도. 칸을 누르면 선택하고, 선택 칸 시추 버튼으로 모든 방식에 같은 시추 지시를 보냅니다." aria-describedby="canvas-help"></canvas><button id="exit-fullscreen" hidden>닫기 ×</button></div><p id="mobile-summary" class="mobile-summary"></p></div>
+<div class="stage-caption" id="canvas-help"><span>지도 선택 → 시추 지시 · 방향키로 칸 이동</span><span>Space 재생 · → 한 칸 · F 전체화면</span></div>
+<div class="dig-row" id="dig-controls"><p id="selected-label">선택한 칸: 10열 2행 · 미발견</p><div class="cell-select"><label for="column">열<select id="column"></select></label><label for="row">행<select id="row"></select></label></div><button id="dig" class="sim-primary">선택 칸 시추 지시</button></div>
+<div class="comparison" aria-label="같은 지도의 세 방식 결과" id="results"></div>
+<p class="sim-note live-message" role="status" id="message">같은 지도, 같은 여섯 탐사대입니다. 세 방식이 동시에 100일 동안 탐색합니다.</p></section>
+<aside class="sim-controls-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">EXPERIMENT SETTINGS</span><h2>어떻게 정보를 나눌까요?</h2></div><span class="sim-chip">같은 지도 비교</span></div>
+<label class="sim-control" for="preset">실험 선택<select id="preset"><option value="hidden">01 · 익숙한 광맥 너머</option><option value="simple">02 · 하나의 넓은 광맥</option><option value="depleting">03 · 자원이 줄어드는 섬</option><option value="free">자유 실험</option></select></label>
+<p class="instruction" id="brief">주기적으로 소식을 나누면 더 좋은 곳을 찾을 수 있을까요? ‘100일까지’를 눌러 세 방식의 결과를 비교해 보세요.</p>
+<div id="mobile-toolbar-home"></div><div id="mobile-preview-home"></div><div id="mobile-dig-home"></div>
+<label class="sim-control" for="terrain">지도 모양<select id="terrain"><option value="hidden">멀리 떨어진 광맥</option><option value="simple">넓은 광맥 하나</option><option value="depleting">여러 광맥 + 자원 고갈</option></select></label>
+<div class="sim-control"><label for="exploration">새 칸을 찾으려는 성향 <output id="exploration-value">35%</output></label><input id="exploration" type="range" min="10" max="90" step="5" value="35"><small>좋은 채굴 장소를 알수록 실제 탐색 확률은 내려갑니다. 높은 성향의 탐사대는 더 자주 새 칸을 찾습니다.</small></div>
+<div class="sim-control"><label for="period">주기적 공유 간격 <output id="period-value">8일</output></label><input id="period" type="range" min="1" max="20" step="1" value="8"><small>‘주기적 공유’에서 발견 기록을 교환하는 간격입니다.</small></div>
+<label class="map-check"><input type="checkbox" id="reveal"> 숨겨진 지형까지 보기 <small>관찰 화면만 바뀝니다</small></label>
+<div class="seed-row"><label class="sim-control" for="seed">지도 번호<input type="number" id="seed" value="4" min="1" max="999999" step="1"></label><button id="new-seed">다른 지도</button></div>
+<p class="sim-helper">조건을 바꾸면 같은 지도 번호에서 0일로 돌아갑니다. 시추 지시는 세 방식의 1번 탐사대에 똑같이 전달됩니다.</p>
+<div class="button-row"><button id="fullscreen">전체화면</button></div>
+<details class="sim-explainer"><summary>어떤 방식이 좋은가요?</summary><p>한 곳을 빨리 함께 활용하면 수확이 늘지만, 아직 못 본 곳을 찾는 일도 필요합니다. 정보 공유가 항상 탐색을 방해하는 것은 아닙니다. 단순한 지도와 복잡한 지도를 같은 방식으로 비교해 보세요.</p><p>시추한 날은 새 장소 조사 비용 때문에 수확량이 25%입니다. 발견한 값을 나누며, 채굴은 각자 합니다. 이는 탐색·활용의 관계를 보기 위한 단순한 모형입니다. <a href="treasure_lab_doc.html">조작·모형·연구 읽기 ↗</a></p></details>
+</aside></div></main></body></html>
