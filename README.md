@@ -8,7 +8,7 @@
 
 - [이상한 카메라](rolling_shutter/rolling_shutter.html) — 줄마다 다른 순간을 찍는 카메라로, 휘어진 사진의 촬영 조건을 찾아봅니다. · [사용법](rolling_shutter/rolling_shutter_doc.html)
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
-- [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · 관련 글 미등록
+- [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG·SVG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · 관련 글 미등록
 
 ## 무리와 사회
 
@@ -62,8 +62,23 @@ DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simula
 
 사회·생태 실험 6종의 경로 균형, 정보 공유, 개체수 보존, 서비스 학습, 인기 선택, 정보 연쇄 검증은 다음 명령으로 실행합니다. 여섯 실험 모두 외부 라이브러리나 빌드 없이 동작하며, 사용법에서 연구 근거와 이 구현의 가정을 구분합니다.
 
-이 여섯 실험의 제목 옆 **효과 켜짐 / 꺼짐**으로 물빛·탐색 흔적·부드러운 전환을 조절할 수 있습니다. 선택은 같은 브라우저에 기억되며 기기의 동작 줄이기 설정을 따릅니다. 시각 효과는 실험의 계산과 난수에 영향을 주지 않습니다.
+모든 실험의 제목 옆 **집중 보기**로 제목과 안내를 접고 실험과 조작에 집중할 수 있습니다. 화면 위 복귀 버튼 또는 Esc로 원래 화면과 스크롤 위치로 돌아옵니다. **효과 켜짐 / 꺼짐**은 물빛·탐색 흔적·부드러운 전환 등 제공되는 장식 효과를 조절합니다. 선택은 같은 브라우저에 기억되며 기기의 동작 줄이기 설정을 따릅니다. 시각 효과는 실험의 계산과 난수에 영향을 주지 않습니다.
 
 ```sh
 node --test braess_city/traffic-engine.test.cjs treasure_lab/treasure-engine.test.cjs microbial_commons/microbe-engine.test.cjs reef_market/reef-engine.test.cjs music_worlds/music-engine.test.cjs information_cascade/cascade-engine.test.cjs
+```
+
+
+## 지도와 관찰 기능 고도화
+
+- 보물지도에는 실제 지형·이동 일수·보급을 계산하는 원정 모드가 있습니다. 기존 정보 공유 모드와 별도로 비교합니다.
+- 산호초에서는 산호가 이동 경로와 관찰 시야를 바꾸고, 포식자 실험에서는 바위·수풀·먹이터가 실제 행동에 영향을 줍니다. 개미 실험은 운반과 확산을 막는 벽을 구분합니다.
+- 음악은 현재 세계를 복제해 추천 유무를 같은 후속 청중으로 비교합니다. 주말 플래너는 일정과 가정을 기억하고 변경 결과를 비교·복원합니다.
+- 패턴·성장 실험에는 생명 게임 도장과 복원, 개미 방문 횟수, 소수 나머지 색상, 프랙털 깊이·그리기 순서, DLA 성장 이력 보기를 추가했습니다. 주거 분리는 선택한 집의 이웃을 읽고, 길 찾기는 도시 편집 전의 탐색 상태로 돌아갈 수 있습니다.
+- 기존 실험에도 대칭 잉크와 한 획 되돌리기, 파동 배치 복원, 차량 설계 읽기, 그림자 겹침 검사, 구조 모양 기억, 촬영 시점 훑기, 개체 이웃 관찰, 위성 경로 미리보기 등을 추가했습니다. 각 사용법에 조작과 해석 범위를 설명합니다.
+
+새 지도 모형은 다음 검사로 확인합니다.
+
+```sh
+node --test treasure_lab/expedition-engine.test.cjs reef_market/reef-engine.test.cjs predator_prey_simulator/predator-engine.test.cjs ant_nitrogen_cycle_simulator/ant-engine.test.cjs music_worlds/music-engine.test.cjs
 ```

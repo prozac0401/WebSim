@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  if (window.WebSimAmbient) return;
   const key = 'websim.ambient';
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
   let preference = 'on';
@@ -41,10 +42,10 @@
 
   const heading = document.querySelector('.lab-heading-row');
   if (heading) {
-    const group = document.createElement('div');
+    const group = heading.querySelector('.lab-appearance') || document.createElement('div');
     group.className = 'lab-appearance';
     const badge = heading.querySelector('.lab-model-badge');
-    if (badge) group.append(badge);
+    if (badge && badge.parentNode !== group) group.append(badge);
     button = document.createElement('button');
     button.type = 'button';
     button.className = 'ambient-toggle';

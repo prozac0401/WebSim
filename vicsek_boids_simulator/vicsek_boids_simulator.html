@@ -56,7 +56,7 @@
   .legend { padding: 12px 14px; }
   .model { width: 100%; }
   .model select { flex: 1; }
-}</style><main class="wrap sim-app sim-app--vicsek"><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><h2>이웃을 따라 움직이는 무리</h2><span id="runStatus" class="hint">실행 중</span></div><div id="status" class="sim-stat-grid"><div class="sim-stat"><div class="k sim-stat-label">전체 방향 정렬도</div><div id="polVal" class="v sim-stat-value">0.00</div></div><div class="sim-stat"><div class="k sim-stat-label">개체 수</div><div id="agentNow" class="v sim-stat-value">320</div></div><div class="sim-stat"><div class="k sim-stat-label">계산 스텝</div><div id="stepNow" class="v sim-stat-value">0</div></div></div><div class="sim-toolbar"><button id="btnPause" class="btn primary">일시정지</button><button id="btnStep" class="btn">1스텝</button><button id="btnReset" class="btn">초기화</button><label class="model">모델<select id="modelSelect"><option value="vicsek">Vicsek · 평균 방향</option><option value="boids">Boids · 세 가지 힘</option></select></label></div><div class="stage"><canvas id="canvas" aria-label="주기적 공간에서 움직이는 개체들의 방향"></canvas></div><div id="legend" class="legend"><span><i class="swatch" style="background:#52836c"></i>개체와 진행 방향</span><span><i class="swatch" style="background:#c99854"></i>선택 이웃 거리</span><span><i class="swatch" style="background:#76ad86"></i>평균 방향</span></div><div class="chart-caption"><strong>전체 방향 정렬도의 변화</strong><span>왼쪽은 과거 → 오른쪽은 현재 · 10스텝마다 기록</span></div><canvas id="polChart" width="760" height="90" aria-label="전체 방향 정렬도의 변화"></canvas><p class="sim-note" id="observation">서로 가까운 개체의 방향만 참고해도 전체가 같은 방향을 향할 수 있습니다.</p></section><aside class="sim-controls-panel"><div class="section"><h3>공통 조건</h3><label class="row sim-control"><span class="label">개체 수</span><input id="nAgents" type="range" min="50" max="800" step="10"><span id="nAgentsVal" class="val"></span></label><label class="row sim-control"><span class="label">한 스텝 이동 거리</span><input id="speed" type="range" min="0.5" max="5" step="0.1"><span id="speedVal" class="val"></span></label><label class="row"><span class="label">초기 배치</span><select id="spawnMode"><option value="uniform">전체 무작위</option><option value="cluster">한 덩어리</option><option value="two">두 덩어리</option></select><span class="val"></span></label><label class="row sim-control"><span class="label">이웃 거리 R (모형 픽셀)</span><input id="radius" type="range" min="8" max="120" step="1"><span id="radiusVal" class="val"></span></label><span class="hint">개체 수와 초기 배치를 바꾸면 새로운 배치가 생깁니다. 공간은 고정된 800 × 520 모형 픽셀이며 화면 크기만 달라집니다.</span></div><div class="section" id="vicsekSection"><h3>Vicsek · 평균 방향과 흔들림</h3><label class="row sim-control"><span class="label">방향 흔들림 η (0–1)</span><input id="vicsekNoise" type="range" min="0" max="1" step="0.01"><span id="vicsekNoiseVal" class="val"></span></label><span class="hint">0이면 방향 오차가 없습니다. 1이면 평균 방향에 최대 ±180°의 흔들림을 줍니다. 반경 R 안의 자신과 이웃을 함께 평균냅니다.</span></div><div class="section" id="boidsSection"><h3>Boids · 분리 / 정렬 / 응집</h3><label class="row sim-control"><span class="label">분리 거리</span><input id="sepDist" type="range" min="4" max="60" step="1"><span id="sepDistVal" class="val"></span></label><label class="row sim-control"><span class="label">분리 힘</span><input id="sepForce" type="range" min="0" max="2" step="0.05"><span id="sepForceVal" class="val"></span></label><label class="row sim-control"><span class="label">정렬 거리</span><input id="aliDist" type="range" min="6" max="140" step="1"><span id="aliDistVal" class="val"></span></label><label class="row sim-control"><span class="label">정렬 힘</span><input id="aliForce" type="range" min="0" max="2" step="0.05"><span id="aliForceVal" class="val"></span></label><label class="row sim-control"><span class="label">응집 거리</span><input id="cohDist" type="range" min="6" max="200" step="1"><span id="cohDistVal" class="val"></span></label><label class="row sim-control"><span class="label">응집 힘</span><input id="cohForce" type="range" min="0" max="2" step="0.05"><span id="cohForceVal" class="val"></span></label><label class="row sim-control"><span class="label">회전 제한 (라디안/스텝)</span><input id="turnRate" type="range" min="0.02" max="0.5" step="0.01"><span id="turnRateVal" class="val"></span></label><span class="hint">분리는 가까운 개체에서 멀어지고, 정렬은 방향을 맞추고, 응집은 이웃 중심으로 향합니다. 거리는 각각 독립적으로 적용됩니다.</span></div><div class="section"><h3>관찰 표시</h3><div class="toggle-grid"><label class="toggle"><input id="tglStatus" type="checkbox" checked>수치 표시</label><label class="toggle"><input id="tglLegend" type="checkbox" checked>범례</label></div><label class="row"><span class="label">개체 선택</span><select id="pickMode"><option value="click">클릭 / 터치</option><option value="hover">마우스 올리기</option></select><span class="val"></span></label><span class="hint">선택한 개체 주변의 반경과 평균 방향을 표시합니다. Boids의 실제 힘은 위의 세 거리로 계산합니다.</span></div><details class="sim-explainer"><summary>정렬도와 모형의 범위</summary><p>정렬도 1은 전체가 같은 방향을 향한다는 뜻입니다. 0에 가까워도 서로 다른 방향의 작은 무리는 존재할 수 있습니다.</p><p>경계를 넘으면 반대편으로 이어집니다. 같은 스텝의 모든 개체가 이전 상태에서 방향을 계산합니다. Boids는 원 논문의 가속도 모형을 고정 속도·회전 제한으로 단순화한 변형입니다.</p><p>표시 FPS: <span id="fpsVal">0</span> · 계산은 30스텝/초로 일정합니다.</p></details></aside></div></main>`;
+}</style><main class="wrap sim-app sim-app--vicsek"><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><h2>이웃을 따라 움직이는 무리</h2><span id="runStatus" class="hint">실행 중</span></div><div id="status" class="sim-stat-grid"><div class="sim-stat"><div class="k sim-stat-label">전체 방향 정렬도</div><div id="polVal" class="v sim-stat-value">0.00</div></div><div class="sim-stat"><div class="k sim-stat-label">개체 수</div><div id="agentNow" class="v sim-stat-value">320</div></div><div class="sim-stat"><div class="k sim-stat-label">계산 스텝</div><div id="stepNow" class="v sim-stat-value">0</div></div></div><div class="sim-toolbar"><button id="btnPause" class="btn primary">일시정지</button><button id="btnStep" class="btn">1스텝</button><button id="btnReset" class="btn">초기화</button><label class="model">모델<select id="modelSelect"><option value="vicsek">Vicsek · 평균 방향</option><option value="boids">Boids · 세 가지 힘</option></select></label></div><div class="stage"><canvas id="canvas" aria-label="주기적 공간에서 움직이는 개체들의 방향"></canvas></div><div id="legend" class="legend"><span><i class="swatch" style="background:#52836c"></i>개체와 진행 방향</span><span><i class="swatch" style="background:#c99854"></i>선택 이웃 거리</span><span><i class="swatch" style="background:#76ad86"></i>평균 방향</span></div><div class="chart-caption"><strong>전체 방향 정렬도의 변화</strong><span>왼쪽은 과거 → 오른쪽은 현재 · 10스텝마다 기록</span></div><canvas id="polChart" width="760" height="90" aria-label="전체 방향 정렬도의 변화"></canvas><p class="sim-note" id="observation">서로 가까운 개체의 방향만 참고해도 전체가 같은 방향을 향할 수 있습니다.</p></section><aside class="sim-controls-panel"><div class="section"><h3>공통 조건</h3><label class="row sim-control"><span class="label">개체 수</span><input id="nAgents" type="range" min="50" max="800" step="10"><span id="nAgentsVal" class="val"></span></label><label class="row sim-control"><span class="label">한 스텝 이동 거리</span><input id="speed" type="range" min="0.5" max="5" step="0.1"><span id="speedVal" class="val"></span></label><label class="row"><span class="label">초기 배치</span><select id="spawnMode"><option value="uniform">전체 무작위</option><option value="cluster">한 덩어리</option><option value="two">두 덩어리</option></select><span class="val"></span></label><label class="row sim-control"><span class="label">이웃 거리 R (모형 픽셀)</span><input id="radius" type="range" min="8" max="120" step="1"><span id="radiusVal" class="val"></span></label><span class="hint">개체 수와 초기 배치를 바꾸면 새로운 배치가 생깁니다. 공간은 고정된 800 × 520 모형 픽셀이며 화면 크기만 달라집니다.</span></div><div class="section" id="vicsekSection"><h3>Vicsek · 평균 방향과 흔들림</h3><label class="row sim-control"><span class="label">방향 흔들림 η (0–1)</span><input id="vicsekNoise" type="range" min="0" max="1" step="0.01"><span id="vicsekNoiseVal" class="val"></span></label><span class="hint">0이면 방향 오차가 없습니다. 1이면 평균 방향에 최대 ±180°의 흔들림을 줍니다. 반경 R 안의 자신과 이웃을 함께 평균냅니다.</span></div><div class="section" id="boidsSection"><h3>Boids · 분리 / 정렬 / 응집</h3><label class="row sim-control"><span class="label">분리 거리</span><input id="sepDist" type="range" min="4" max="60" step="1"><span id="sepDistVal" class="val"></span></label><label class="row sim-control"><span class="label">분리 힘</span><input id="sepForce" type="range" min="0" max="2" step="0.05"><span id="sepForceVal" class="val"></span></label><label class="row sim-control"><span class="label">정렬 거리</span><input id="aliDist" type="range" min="6" max="140" step="1"><span id="aliDistVal" class="val"></span></label><label class="row sim-control"><span class="label">정렬 힘</span><input id="aliForce" type="range" min="0" max="2" step="0.05"><span id="aliForceVal" class="val"></span></label><label class="row sim-control"><span class="label">응집 거리</span><input id="cohDist" type="range" min="6" max="200" step="1"><span id="cohDistVal" class="val"></span></label><label class="row sim-control"><span class="label">응집 힘</span><input id="cohForce" type="range" min="0" max="2" step="0.05"><span id="cohForceVal" class="val"></span></label><label class="row sim-control"><span class="label">회전 제한 (라디안/스텝)</span><input id="turnRate" type="range" min="0.02" max="0.5" step="0.01"><span id="turnRateVal" class="val"></span></label><span class="hint">분리는 가까운 개체에서 멀어지고, 정렬은 방향을 맞추고, 응집은 이웃 중심으로 향합니다. 거리는 각각 독립적으로 적용됩니다.</span></div><div class="section"><h3>관찰 표시</h3><label class="toggle"><input id="headingColors" type="checkbox">진행 방향을 색으로 보기</label><div class="button-row"><button id="nextAgent">다음 개체 관찰</button><button id="clearAgent">관찰 해제</button></div><p class="hint" id="inspectNote">개체를 탭하면 같은 개체를 계속 따라 관찰합니다.</p><div class="toggle-grid"><label class="toggle"><input id="tglStatus" type="checkbox" checked>수치 표시</label><label class="toggle"><input id="tglLegend" type="checkbox" checked>범례</label></div><label class="row"><span class="label">개체 선택</span><select id="pickMode"><option value="click">클릭 / 터치</option><option value="hover">마우스 올리기</option></select><span class="val"></span></label><span class="hint">선택한 개체 주변의 반경과 평균 방향을 표시합니다. Boids의 실제 힘은 위의 세 거리로 계산합니다.</span></div><details class="sim-explainer"><summary>정렬도와 모형의 범위</summary><p>정렬도 1은 전체가 같은 방향을 향한다는 뜻입니다. 0에 가까워도 서로 다른 방향의 작은 무리는 존재할 수 있습니다.</p><p>경계를 넘으면 반대편으로 이어집니다. 같은 스텝의 모든 개체가 이전 상태에서 방향을 계산합니다. Boids는 원 논문의 가속도 모형을 고정 속도·회전 제한으로 단순화한 변형입니다.</p><p>표시 FPS: <span id="fpsVal">0</span> · 계산은 30스텝/초로 일정합니다.</p></details></aside></div></main>`;
 
       // --- Simulator JS (runs after markup is in place) ---
       try{
@@ -143,6 +143,7 @@
         let paused=false;
         let stepOnce=false;
 
+        let pinnedIndex=-1;
         let pick={mode:pickMode.value,x:0,y:0,active:false};
 
         function wrapPos(a){
@@ -276,7 +277,7 @@
 
         function drawAgents(){
           ctx.save();ctx.fillStyle='#52836c';ctx.strokeStyle='rgba(38,68,46,.25)';ctx.lineWidth=.5;
-          for(const a of agents){ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.heading);ctx.beginPath();ctx.moveTo(4.8,0);ctx.lineTo(-3,-2.5);ctx.lineTo(-1.6,0);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}ctx.restore();
+          for(const a of agents){ctx.save();ctx.fillStyle=$("#headingColors").checked?`hsl(${(a.heading*180/Math.PI+360)%360} 34% 42%)`:"#52836c";ctx.translate(a.x,a.y);ctx.rotate(a.heading);ctx.beginPath();ctx.moveTo(4.8,0);ctx.lineTo(-3,-2.5);ctx.lineTo(-1.6,0);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}ctx.restore();
         }
 
         function pickNearest(x,y){
@@ -303,7 +304,7 @@
 
         function drawHeadingVector(){
           if(!pick.active) return;
-          const a=pickNearest(pick.x,pick.y);
+          const a=pick.mode==="click"&&pinnedIndex>=0?agents[pinnedIndex]:pickNearest(pick.x,pick.y);
           if(!a) return;
 
           ctx.save();
@@ -311,13 +312,15 @@
           ctx.lineWidth=2;
           ctx.beginPath(); ctx.arc(a.x,a.y,neighR,0,TAU); ctx.stroke();
 
+          const counts={vicsek:agents.filter(b=>dist2(a,b)<=neighR*neighR).length,separation:agents.filter(b=>b!==a&&dist2(a,b)<=sepD*sepD&&dist2(a,b)>1e-6).length,alignment:agents.filter(b=>b!==a&&dist2(a,b)<=aliD*aliD).length,cohesion:agents.filter(b=>b!==a&&dist2(a,b)<=cohD*cohD).length};
+          $("#inspectNote").textContent=(agents.indexOf(a)+1)+'번을 관찰 중 · '+(model==='vicsek'?'자신 포함 '+counts.vicsek+'마리의 평균 방향':'분리 '+counts.separation+' / 정렬 '+counts.alignment+' / 응집 '+counts.cohesion+'마리 · 주황 원은 관찰용 R');
           const avg=neighborhoodAverageHeading(a);
           ctx.strokeStyle="rgba(83,147,101,.9)";
           ctx.lineWidth=3;
           const len=28;
           ctx.beginPath(); ctx.moveTo(a.x,a.y);
           ctx.lineTo(a.x+Math.cos(avg)*len, a.y+Math.sin(avg)*len);
-          ctx.stroke();
+          if(model==='vicsek')ctx.stroke();
 
           ctx.fillStyle="rgba(255,255,255,.9)";
           ctx.beginPath(); ctx.arc(a.x,a.y,3.6,0,TAU); ctx.fill();
@@ -408,8 +411,11 @@
         canvas.addEventListener("click", (ev)=>{
           if(pick.mode!=="click") return;
           const p=pointerPos(ev);
-          pick.x=p.x; pick.y=p.y; pick.active=true;
+          pick.x=p.x; pick.y=p.y; pick.active=true;pinnedIndex=agents.indexOf(pickNearest(p.x,p.y));
         });
+        canvas.style.touchAction="pan-y";
+        $("#nextAgent").onclick=()=>{pick.mode="click";pickMode.value="click";pinnedIndex=(pinnedIndex+1)%agents.length;pick.active=true;render();};
+        $("#clearAgent").onclick=()=>{pick.active=false;pinnedIndex=-1;$("#inspectNote").textContent="개체를 탭하면 같은 개체를 계속 따라 관찰합니다.";render();};
 
         // main loop
         let lastTime=performance.now();
@@ -460,7 +466,7 @@
           requestAnimationFrame(tick);
         }
 
-        window.render_game_to_text=()=>JSON.stringify({mode:'vicsek-boids',model,paused,tick:modelTick,count:agents.length,order:polarization(),noise_half_width_radians:eta*Math.PI,world:{width:W,height:H},bounded:agents.every(a=>a.x>=0&&a.x<W&&a.y>=0&&a.y<H),agents:agents.map(a=>({x:a.x,y:a.y,heading:a.heading,speed:Math.hypot(a.vx,a.vy)}))});
+        window.render_game_to_text=()=>JSON.stringify({mode:'vicsek-boids',selectedIndex:pick.active?pinnedIndex:null,headingColors:$("#headingColors").checked,model,paused,tick:modelTick,count:agents.length,order:polarization(),noise_half_width_radians:eta*Math.PI,world:{width:W,height:H},bounded:agents.every(a=>a.x>=0&&a.x<W&&a.y>=0&&a.y<H),agents:agents.map(a=>({x:a.x,y:a.y,heading:a.heading,speed:Math.hypot(a.vx,a.vy)}))});
         window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms/STEP_MS+1e-9);i++)step();render();};
         // boot
         resizeCanvas();

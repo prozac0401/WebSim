@@ -25,7 +25,7 @@
         background: var(--sim-bg);
         border: 1px solid var(--sim-border);
         border-radius: 9px;
-        touch-action: none;
+        touch-action: pan-y;
       }
       .sim-stage-panel > canvas { width: calc(100% - 40px); margin: 0 20px; }
       .square-stage { width: calc(100% - 40px); max-width: 680px; margin: 0 auto; }
@@ -93,7 +93,7 @@
               width="800"
               height="800"
               tabindex="0"
-              aria-label="1에서 시작하여 오른쪽, 위쪽, 왼쪽, 아래쪽 순서로 펼치는 정수 나선. 소수는 초록색입니다. 방향키로 이전·다음 숫자를 선택할 수 있습니다."
+              aria-label="1에서 시작하여 오른쪽, 위쪽, 왼쪽, 아래쪽 순서로 펼치는 정수 나선. 색상 모드와 범례로 숫자의 성질을 비교합니다. 방향키로 이전·다음 숫자를 선택할 수 있습니다."
             ></canvas>
           </div>
           <div class="legend sim-legend">
@@ -147,6 +147,7 @@
           </section>
           <section class="sim-panel sim-panel-body">
             <h2 class="sim-section-title">겹쳐 보기</h2>
+            <label class="sim-control" for="ulam-colors">색으로 보는 규칙<select id="ulam-colors"><option value="primes">소수·합성수</option><option value="residues">6으로 나눈 나머지</option></select></label><p class="sim-note" id="ulam-color-note">초록은 소수입니다.</p>
             <label class="check-control"
               ><input id="showLines" type="checkbox" />숫자가 놓인 순서를 선으로
               연결</label
@@ -196,7 +197,9 @@
           prime = new Uint8Array(),
           layout = null,
           selected = 1,
-          lookup = new Map();
+          lookup = new Map(), tapStart=null;
+        const residueColors=['#8c9b91','#21654f','#9e9fbd','#b37849','#8fabc0','#ae5877'];
+        function pointColor(n){return $('ulam-colors').value==='residues'?residueColors[n%6]:n===1?'#bc8b4a':prime[n]?'#1f6b50':'#c7d0c1';}
         function spiral(n) {
           const p = [{ x: 0, y: 0, n: 1 }];
           let x = 0,
@@ -281,7 +284,7 @@
           }
           const p = points[n - 1];
           $("ulam-result").textContent =
-            fmt(n) + " · 좌표 (" + p.x + ", " + p.y + ") · " + text;
+            fmt(n) + " · 좌표 (" + p.x + ", " + p.y + ") · " + text + ($('ulam-colors').value==='residues'?` 6으로 나눈 나머지는 ${n%6}입니다.`:'');
         }
         function draw() {
           ctx.clearRect(0, 0, 800, 800);
@@ -302,18 +305,16 @@
               p.n > 1 &&
               !prime[p.n] &&
               !$("showComposite").checked &&
-              !numbers
+              !numbers && $('ulam-colors').value!=='residues'
             )
               continue;
             const s = screen(p);
-            ctx.fillStyle =
-              p.n === 1 ? "#bc8b4a" : prime[p.n] ? "#1f6b50" : "#c7d0c1";
+            ctx.fillStyle = pointColor(p.n);
             if (numbers) {
               ctx.font = Math.min(24, layout.step * 0.33) + "px system-ui";
               ctx.textAlign = "center";
               ctx.textBaseline = "middle";
-              ctx.fillStyle =
-                p.n === 1 ? "#bc8b4a" : prime[p.n] ? "#1f6b50" : "#889580";
+              ctx.fillStyle = $('ulam-colors').value==='residues'?pointColor(p.n):p.n===1?'#bc8b4a':prime[p.n]?'#1f6b50':'#889580';
               ctx.fillText(p.n, s.x, s.y);
             } else {
               ctx.beginPath();
@@ -368,6 +369,7 @@
         ["showLines", "showComposite", "showNumbers"].forEach(
           (id) => ($(id).onchange = draw),
         );
+        $('ulam-colors').onchange=()=>{app.querySelector('.legend').hidden=$('ulam-colors').value==='residues';$('showComposite').disabled=$('ulam-colors').value==='residues';$('ulam-color-note').replaceChildren();if($('ulam-colors').value==='residues'){for(let i=0;i<6;i++){const chip=document.createElement('span');chip.textContent=`● 나머지 ${i}  `;chip.style.color=residueColors[i];chip.style.display='inline-block';chip.style.marginRight='8px';$('ulam-color-note').append(chip);}const note=document.createElement('span');note.textContent='3보다 큰 소수는 나머지 1·5에만 있지만, 그 색의 모든 수가 소수인 것은 아닙니다. 이 모드에서는 모든 수를 표시합니다.';note.style.display='block';$('ulam-color-note').append(note);}else $('ulam-color-note').textContent='초록은 소수입니다.';draw();result();};
         document.querySelectorAll("[data-ulam-n]").forEach(
           (b) =>
             (b.onclick = () => {
@@ -375,7 +377,9 @@
               render(b.dataset.ulamN);
             }),
         );
-        canvas.addEventListener("pointerdown", (e) => {
+        canvas.addEventListener('pointerdown',e=>{tapStart={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});canvas.addEventListener('pointermove',e=>{if(tapStart&&Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y)>10)tapStart.moved=true;});canvas.addEventListener('pointercancel',()=>tapStart=null);
+        canvas.addEventListener("pointerup", (e) => {
+          const start=tapStart;tapStart=null;if(!start||start.id!==e.pointerId||start.moved||Math.hypot(e.clientX-start.x,e.clientY-start.y)>10)return;
           const s = pointer(e, canvas),
             x = Math.round((s.x - 400) / layout.step + layout.centerX),
             y = Math.round((400 - s.y) / layout.step + layout.centerY),
@@ -421,6 +425,7 @@
               prime: Array.from(prime),
               layout: { ...layout },
               selected,
+              colorMode:$('ulam-colors').value,residue:selected%6,
             };
           },
           spiral,
@@ -429,6 +434,7 @@
           screen,
           render,
         };
+        window.render_game_to_text=()=>JSON.stringify({mode:"ulam",...app._model.state});window.advanceTime=ms=>{};
         render(N);
       })();
     </script>

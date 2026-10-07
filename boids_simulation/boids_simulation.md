@@ -53,3 +53,8 @@ Reynolds의 Boids는 분리·정렬·응집이라는 국소 조향 규칙에서 
 ### 참고 문헌
 
 Reynolds, C. W. (1987). Flocks, Herds, and Schools: A Distributed Behavioral Model. SIGGRAPH ’87, 25–34. [저자의 원 논문](https://www.red3d.com/cwr/papers/1987/boids.html) · [저자의 세 규칙 해설](https://www.red3d.com/cwr/boids/).
+
+
+## 한 개체의 이웃과 방향 색 읽기
+
+새를 탭하거나 ‘다음 개체 관찰’을 누르면 같은 개체를 계속 관찰합니다. 분리·정렬·응집 반경과 각각의 실제 이웃 수를 표시하며 화면 경계를 건너는 주기적 거리도 반영합니다. 방향 색은 진행 각도를 색상환에 대응시킵니다. 같은 색은 비슷한 방향을 뜻하며 힘이나 개체의 종류가 아닙니다. 관찰 표시와 색을 바꿔도 운동 계산은 바뀌지 않습니다.

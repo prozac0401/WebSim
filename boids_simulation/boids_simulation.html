@@ -238,7 +238,7 @@
               ><input id="mouseRepel" type="checkbox" checked />포인터에서
               멀어지기</label
             ><label class="check-control"
-              ><input id="trails" type="checkbox" />지나온 흔적 보이기</label
+              ><input id="heading-colors" type="checkbox" />방향을 색으로 보기</label><div class="button-row"><button id="inspect-next">다음 개체 관찰</button><button id="inspect-clear">관찰 해제</button></div><p class="sim-note" id="inspect-note"></p><label class="check-control"><input id="trails" type="checkbox" />지나온 흔적 보이기</label
             >
             <p class="sim-note">
               초당 60개의 모형 단계를 기준으로 진행합니다. 각 단계는 모든 개체의
@@ -268,6 +268,7 @@
           W = 800,
           H = 500,
           forceLimit = 0.06;
+        let selectedId = null;
         let boids = [],
           nextId = 0,
           running = true,
@@ -469,12 +470,13 @@
           draw();
           buttons();
         }
+        function inspectData(){const a=boids.find(b=>b.id===selectedId);if(!a)return null;const p=params(),counts={separation:0,alignment:0,cohesion:0};for(const b of boids){if(b===a)continue;const d=offset(a,b),r=Math.hypot(d.x,d.y);for(const key of Object.keys(counts))if(r<p[key+'Radius'])counts[key]++;}return{...a,neighbors:counts};}
         function draw() {
-          if ($("trails").checked && running) {
+          if ($("trails").checked && running && window.WebSimAmbient?.enabled!==false) {
             ctx.fillStyle = "rgba(247,249,244,.16)";
             ctx.fillRect(0, 0, W, H);
           } else {
-            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle="#f7f9f4";ctx.fillRect(0, 0, W, H);
           }
           if (mouse && $("mouseRepel").checked) {
             ctx.beginPath();
@@ -494,11 +496,18 @@
             ctx.lineTo(-3, 0);
             ctx.lineTo(-5, 3.5);
             ctx.closePath();
-            ctx.fillStyle = "#1f6b50";
+            ctx.fillStyle = $("heading-colors").checked ? `hsl(${(Math.atan2(b.vy,b.vx)*180/Math.PI+360)%360} 34% 42%)` : "#1f6b50";
             ctx.fill();
             ctx.restore();
           });
         }
+        function drawInspection(){const a=inspectData();if(!a){$('inspect-note').textContent='새를 탭하면 같은 개체를 계속 관찰합니다. 색상 지도는 진행 방향을 나타냅니다.';return;}const p=params();for(const [key,color] of [['separation','#bd7259'],['alignment','#5b819b'],['cohesion','#6e9366']]){ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([3,5]);for(const dx of [-W,0,W])for(const dy of [-H,0,H]){ctx.beginPath();ctx.arc(a.x+dx,a.y+dy,p[key+'Radius'],0,Math.PI*2);ctx.stroke();}}ctx.setLineDash([]);ctx.beginPath();ctx.arc(a.x,a.y,10,0,Math.PI*2);ctx.strokeStyle='#b78137';ctx.lineWidth=2;ctx.stroke();$('inspect-note').textContent=(a.id+1)+'번 · 분리 이웃 '+a.neighbors.separation+' / 정렬 '+a.neighbors.alignment+' / 응집 '+a.neighbors.cohesion+'마리 · 원은 각각의 작용 거리입니다.';}
+        const baseDraw=draw;draw=()=>{baseDraw();drawInspection();};
+        canvas.style.touchAction='pan-y';canvas.tabIndex=0;
+        canvas.addEventListener('click',e=>{const p=pointer(e,canvas);selectedId=boids.reduce((best,b)=>Math.hypot(b.x-p.x,b.y-p.y)<Math.hypot(best.x-p.x,best.y-p.y)?b:best,boids[0]).id;draw();});
+        $('inspect-next').onclick=()=>{const i=boids.findIndex(b=>b.id===selectedId);selectedId=boids[(i+1)%boids.length].id;draw();};
+        $('inspect-clear').onclick=()=>{selectedId=null;draw();};
+        $('heading-colors').onchange=draw;
         function frame(t) {
           const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
           lastTime = t;
@@ -591,6 +600,8 @@
             draw();
           },
         };
+        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'800×500; top-left origin; periodic boundaries',...app._model.state,inspection:inspectData(),headingColors:$('heading-colors').checked});
+        window.advanceTime=ms=>{pause();for(let i=0;i<Math.round(ms*60/1000);i++)tick();stats();draw();};
         values();
         setCount();
         buttons();

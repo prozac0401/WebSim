@@ -9,7 +9,14 @@
   border-radius: var(--sim-radius);
   border: 1px solid var(--sim-border);
   margin: 20px auto;
+  touch-action: pan-y;
 }
+#dla-app .dla-history { margin: 0 20px; padding: 14px; border: 1px solid var(--sim-border); border-radius: 12px; background: var(--sim-accent-soft); }
+#dla-app .dla-history label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; }
+#dla-app .dla-history input { width: 100%; margin: 10px 0; }
+#dla-app .dla-history .sim-note { margin: 9px 0; padding: 0; }
+#dla-app .dla-history-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+#dla-app .dla-history-tools select { flex: 1; min-width: 130px; }
 #dla-app #hud { padding: 0 20px 12px; font-size: 11px; color: var(--sim-muted); }
 #dla-app .dla-seed-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 #dla-app #seed { width: 100%; }
@@ -23,3 +30,6 @@
   #dla-app .sim-stage-panel .sim-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 14px; }
   #dla-app #canvas { width: calc(100% - 28px); margin: 14px auto; }
 }
+
+#dla-app .dla-history .dla-fit-label{justify-content:flex-start;margin-top:12px;}
+#dla-app .dla-fit-label input{width:17px;margin:0;}

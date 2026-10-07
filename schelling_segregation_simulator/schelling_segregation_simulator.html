@@ -119,6 +119,16 @@
   const overlay = document.getElementById('schellingOverlay_v52');
   const legend  = document.getElementById('sLegendTop_v52');
   const statsEl = document.getElementById('sStats_v52');
+  const inspector=document.createElement('div');
+  inspector.className='schelling-inspector';
+  inspector.innerHTML='<strong>이 집은 왜 기준을 충족할까요?</strong><p id="sInspectText" role="status">집을 탭하면 잠시 멈추고 실제 이웃을 셉니다. 황금 테두리는 관찰 범위입니다.</p><div class="schelling-address"><label>가로 칸 <input id="sInspectX" type="number" min="1" value="1"></label><label>세로 칸 <input id="sInspectY" type="number" min="1" value="1"></label><button id="sInspectGo">이 집 살펴보기</button></div>';
+  legend.after(inspector);
+  const inspectorStyle=document.createElement('style');
+  inspectorStyle.textContent='.schelling-inspector{margin:0 20px 18px;padding:16px;border:1px solid #dce4da;border-radius:12px;background:#fafbf6;font-size:12px;line-height:1.7}.schelling-inspector p{margin:7px 0 12px}.schelling-address{display:flex;flex-wrap:wrap;gap:8px;align-items:end}.schelling-address label{display:flex;flex-direction:column;gap:4px}.schelling-address input{width:70px;min-height:38px}.schelling-address button{min-height:38px}';
+  document.head.appendChild(inspectorStyle);
+  canvas.style.touchAction='pan-y';canvas.tabIndex=0;
+  canvas.setAttribute('aria-label','도시의 집을 탭하거나 방향키로 선택하고 Enter로 이웃 기준을 살펴보세요');
+  let inspected=null,tapStart=null;
 
   const el = (id) => document.getElementById(id);
   const ui = {
@@ -220,6 +230,9 @@
 
   function initModel(){
     parseGridSize();
+    inspected=null;
+    document.getElementById('sInspectX').max=state.GW;
+    document.getElementById('sInspectY').max=state.GH;
     resize();
 
     const total = state.GW * state.GH;
@@ -290,6 +303,28 @@
     if (v < 0) return true;
     const frac=neighborFracSame(i,radius); return frac===null || frac>=tol;
   }
+
+  function inspection(i=inspected){
+    if(i===null||!state.gridArr)return null;
+    const [x,y]=xy(i),me=state.gridArr[i],radius=Number(ui.nbr.value),threshold=Number(ui.tol.value)/100;
+    let same=0,other=0,empty=0;
+    for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
+      if(!dx&&!dy)continue;
+      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=state.GW||ny>=state.GH)continue;
+      const v=state.gridArr[idx(nx,ny)];if(v<0)empty++;else if(v===me)same++;else other++;
+    }
+    return {x,y,type:me,same,other,empty,occupied:same+other,fraction:me<0?null:neighborFracSame(i,radius),threshold,satisfied:me<0?null:isSatisfied(i,threshold,radius),radius};
+  }
+  function inspectHouse(i){
+    inspected=clamp(i,0,state.GW*state.GH-1);state.running=false;state.accMs=0;ui.toggle.textContent='이어서 실행';
+    const [x,y]=xy(inspected);document.getElementById('sInspectX').value=x+1;document.getElementById('sInspectY').value=y+1;draw();
+  }
+  document.getElementById('sInspectGo').onclick=()=>inspectHouse(idx(clamp(Math.floor(Number(document.getElementById('sInspectX').value)||1)-1,0,state.GW-1),clamp(Math.floor(Number(document.getElementById('sInspectY').value)||1)-1,0,state.GH-1)));
+  canvas.addEventListener('pointerdown',e=>{tapStart={x:e.clientX,y:e.clientY};});
+  canvas.addEventListener('pointermove',e=>{if(tapStart&&Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y)>10)tapStart=null;});
+  canvas.addEventListener('pointercancel',()=>{tapStart=null;});
+  canvas.addEventListener('pointerup',e=>{if(!tapStart)return;tapStart=null;const rect=canvas.getBoundingClientRect(),ox=Math.floor((state.W-state.GW*state.cell)/2),oy=Math.floor((state.H-state.GH*state.cell)/2),x=Math.floor((e.clientX-rect.left-ox)/state.cell),y=Math.floor((e.clientY-rect.top-oy)/state.cell);if(x>=0&&y>=0&&x<state.GW&&y<state.GH)inspectHouse(idx(x,y));});
+  canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'].includes(e.key))return;e.preventDefault();let [x,y]=xy(inspected??0);x=clamp(x+(e.key==='ArrowRight')-(e.key==='ArrowLeft'),0,state.GW-1);y=clamp(y+(e.key==='ArrowDown')-(e.key==='ArrowUp'),0,state.GH-1);inspectHouse(idx(x,y));});
 
   function evalTarget(type, targetIndex, tol, radius, origin){
     const [x0, y0] = xy(targetIndex);
@@ -462,6 +497,15 @@
       }
     }
 
+    const selected=inspection();
+    if(selected){
+      const {x,y,radius:r}=selected,x0=Math.max(0,x-r),y0=Math.max(0,y-r),x1=Math.min(GW-1,x+r),y1=Math.min(GH-1,y+r);
+      ctx.fillStyle='rgba(244,198,86,.16)';ctx.fillRect(ox+x0*cell,oy+y0*cell,(x1-x0+1)*cell,(y1-y0+1)*cell);
+      ctx.strokeStyle='#aa771f';ctx.lineWidth=2;ctx.strokeRect(ox+x0*cell+1,oy+y0*cell+1,(x1-x0+1)*cell-2,(y1-y0+1)*cell-2);
+      ctx.strokeStyle='#172e27';ctx.lineWidth=2;ctx.strokeRect(ox+x*cell+.5,oy+y*cell+.5,Math.max(1,cell-1),Math.max(1,cell-1));
+      document.getElementById('sInspectText').textContent=`(${x+1}, ${y+1}) ${selected.type<0?'빈집':selected.type===0?'A 집단':'B 집단'} · `+(selected.type<0?'빈집은 기준 충족을 판단하지 않습니다.':selected.occupied===0?'거주하는 이웃이 없어 규칙상 기준 충족입니다. 이웃 평균 계산에서는 제외합니다.':`같은 집단 ${selected.same}명 ÷ 거주 이웃 ${selected.occupied}명 = ${(selected.fraction*100).toFixed(1)}%. 최소 ${Math.round(selected.threshold*100)}% ${selected.satisfied?'이상이므로 기준 충족':'미만이므로 기준 미충족'}입니다.`)+` 빈집 ${selected.empty}칸과 화면 밖은 분모에서 제외합니다. 선택한 집의 현재 상태입니다.`;
+    }else document.getElementById('sInspectText').textContent='집을 탭하면 잠시 멈추고 실제 이웃을 셉니다. 황금 테두리는 관찰 범위입니다.';
+
     if (ui.showOverlay.checked){
       const tolP = parseInt(ui.tol.value,10);
       const vacP = parseInt(ui.vac.value,10);
@@ -585,7 +629,8 @@
 
   window.addEventListener('resize', () => resize());
 
-  window.render_game_to_text=()=>JSON.stringify({mode:'schelling',running:state.running,step:state.step,moves:state.moves,grid:{width:state.GW,height:state.GH},counts:{a:state.gridArr.reduce((n,v)=>n+(v===0),0),b:state.gridArr.reduce((n,v)=>n+(v===1),0),empty:state.empties.length},metrics:state.lastMetrics,minimum_same_group:Number(ui.tol.value)/100});
+  window.render_game_to_text=()=>JSON.stringify({mode:'schelling',running:state.running,step:state.step,moves:state.moves,grid:{width:state.GW,height:state.GH},counts:{a:state.gridArr.reduce((n,v)=>n+(v===0),0),b:state.gridArr.reduce((n,v)=>n+(v===1),0),empty:state.empties.length},metrics:state.lastMetrics,minimum_same_group:Number(ui.tol.value)/100,inspection:inspection()});
+  document.getElementById('schellingWidget_v52')._model={get state(){return {width:state.GW,height:state.GH,grid:Array.from(state.gridArr),inspection:inspection()};},inspectHouse};
   window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms/state.intervalMs);i++)stepOnce();draw();};
   // Start with your requested default: 100ms step-time (already set in HTML)
   syncUI();

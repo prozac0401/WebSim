@@ -115,11 +115,12 @@
   #weekend-recovery-simulator-app .planner-toolbar .sim-note { width: 100%; }
   #weekend-recovery-simulator-app .ev { left: 3px; right: 3px; padding: 6px 4px; }
 }
+#weekend-recovery-simulator-app [hidden]{display:none!important}#weekend-recovery-simulator-app .remembered-note{padding:16px 18px;margin:14px 0;background:var(--sim-accent-soft);border:1px solid var(--sim-border);border-radius:var(--sim-radius);font-size:12px;line-height:1.8}#weekend-recovery-simulator-app .remembered-note strong,#weekend-recovery-simulator-app .remembered-note span,#weekend-recovery-simulator-app .remembered-note small{display:block}#weekend-recovery-simulator-app .remembered-note strong{font-size:15px;color:var(--sim-accent)}#weekend-recovery-simulator-app .remembered-note small{color:var(--sim-muted)}#weekend-recovery-simulator-app .compare-actions button{min-height:44px;width:100%;margin-top:8px}#weekend-recovery-simulator-app.motion-enabled .bar i{transition:width .28s ease}#weekend-recovery-simulator-app .planner-toolbar button{min-height:44px}@media(max-width:560px){#weekend-recovery-simulator-app .planner-toolbar>div{display:grid;width:100%;grid-template-columns:1fr 1fr}#weekend-recovery-simulator-app .planner-toolbar button{font-size:12px;padding:8px 5px}}
 </style>
 
 <div class="wrs-wrap sim-app sim-app--weekend">
-<div class="planner-toolbar sim-toolbar sim-panel"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button></div></div>
-<p id="wrs-status" class="status" role="status" aria-live="polite"></p>
+<div class="planner-toolbar sim-toolbar sim-panel"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button><button type="button" class="btn" id="wrs-remember">현재 계획 기억</button><button type="button" class="btn" id="wrs-restore" disabled>기억한 계획으로 되돌리기</button></div></div>
+<div id="wrs-remembered" class="remembered-note" hidden aria-live="polite"></div><p id="wrs-status" class="status" role="status" aria-live="polite"></p>
 <div class="layout"><main class="planner-main">
 <details class="setup-disclosure"><summary>목표와 시작 조건 조절</summary><div class="setup-grid"><section class="card"><div class="body"><h2>주말 목표</h2><p class="hint">점수에서 각 요소를 얼마나 중시할지 정합니다.</p><div id="wrs-goals" class="goal-grid"></div></div></section><section class="card"><div class="body">
         <h2>시작 조건</h2><p class="hint">일정이 같아도 아래 가정에 따라 계산값이 달라집니다.</p>
@@ -137,7 +138,7 @@
         <div class="ana"><h2>계획 여유 지수</h2><span id="wrs-score" class="badge-score">비교 지수 0</span></div>
         <p class="hint">4축 모두 높을수록 이 모형에서 여유가 큰 방향입니다. 실제 건강·피로의 측정값이 아닙니다.</p>
         <canvas id="wrs-canvas" width="980" height="250" aria-label="현재 계획과 추천안의 회복 여유 비교 곡선"></canvas>
-        <div id="wrs-legend" class="legend">실선: 현재 계획 | 점선: 추천안 미리보기</div>
+        <div class="compare-actions"><button id="wrs-show-remembered" type="button" hidden>기억한 계획과 비교</button><button id="wrs-restore-near" type="button" hidden>기억한 계획으로 되돌리기</button></div><div id="wrs-legend" class="legend">실선: 현재 계획 | 점선: 추천안 미리보기</div>
         <div class="axes">
           <div class="ax"><div class="ax-top"><span>몸 회복</span><b id="ax-body">0</b></div><div class="bar"><i id="bar-body"></i></div></div>
           <div class="ax"><div class="ax-top"><span>사람을 만난 뒤의 여유</span><b id="ax-social">0</b></div><div class="bar"><i id="bar-social"></i></div></div>
@@ -205,6 +206,7 @@
     selectedEvent: null,
     drag: null,
     compare: null,
+    remembered: null,
     metrics: null,
     resizing: null,
     seq: 0
@@ -704,6 +706,7 @@
     const ctx = c.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#fbfcf8"; ctx.fillRect(0, 0, w, h);
     const p = { t: 20, r: 20, b: 28, l: 34 };
     const pw = w - p.l - p.r;
     const ph = h - p.t - p.b;
@@ -731,6 +734,12 @@
       ctx.stroke();
       ctx.setLineDash([]);
     };
+    if (compare) {
+      for (let i=0;i<Math.min(main.length,compare.length)-1;i++) {
+        const x1=p.l+i/Math.max(main.length-1,1)*pw,x2=p.l+(i+1)/Math.max(main.length-1,1)*pw;
+        const yy=v=>p.t+(100-v)/100*ph;ctx.fillStyle=main[i]+main[i+1]>=compare[i]+compare[i+1]?'rgba(82,145,126,.12)':'rgba(191,145,82,.12)';ctx.beginPath();ctx.moveTo(x1,yy(main[i]));ctx.lineTo(x2,yy(main[i+1]));ctx.lineTo(x2,yy(compare[i+1]));ctx.lineTo(x1,yy(compare[i]));ctx.closePath();ctx.fill();
+      }
+    }
     if (compare) plot(compare, "rgba(70,92,135,.55)", true);
     plot(main, "#157a7c", false);
     ctx.font = "11px Pretendard";
@@ -814,6 +823,23 @@
     });
   }
 
+  function rememberPlan() {
+    st.remembered = { events: st.events.map(e => ({ ...e })), goal: st.goal, baseSleep: st.baseSleep, chores: st.chores, anxiety: st.anxiety, gapSlots: st.gapSlots, seq: st.seq, metrics: metrics(st.events) };
+    st.compare = null; status('현재 일정과 목표·시작 조건을 기억했습니다. 한 가지를 바꿔 차이를 살펴보세요.', 2500); renderAnalytics();
+  }
+  function restorePlan() {
+    if (!st.remembered) return;
+    const r = st.remembered;
+    st.events = r.events.map(e => ({ ...e }));
+    for (const key of ['goal', 'baseSleep', 'chores', 'anxiety', 'gapSlots', 'seq']) st[key] = r[key];
+    el.sleep.value=st.baseSleep;el.chores.value=st.chores;el.anx.value=st.anxiety;el.gap.value=st.gapSlots;
+    st.selectedEvent=null;st.selectedTpl=null;st.compare=null;status('기억한 일정과 목표·시작 조건으로 되돌렸습니다.',1800);renderAll();
+  }
+  function rememberedDifference(m) {
+    if (!st.remembered) return null;
+    const r=st.remembered, changed=['goal','baseSleep','chores','anxiety','gapSlots'].filter(key=>st[key]!==r[key]);
+    return {score:m.score-r.metrics.score,axes:Object.fromEntries(Object.keys(m.axes).map(key=>[key,m.axes[key]-r.metrics.axes[key]])),events:st.events.length-r.events.length,changedAssumptions:changed};
+  }
   function textState() {
     const m = st.metrics || metrics(st.events);
     return {
@@ -826,6 +852,7 @@
       goal: st.goal,
       baseline: { base_sleep_hours: st.baseSleep, chores_pressure: st.chores, monday_anxiety: st.anxiety, schedule_margin_minutes: st.gapSlots * SLOT_MIN },
       events: st.events.map((e) => ({ id: e.id, type: e.type, label: TEMPLATES[e.type].label, tone: TEMPLATES[e.type].tone, day: e.day, start_slot: e.start, duration_slots: e.dur, travel_minutes: e.travel, social_strain: e.strain })),
+      remembered: st.remembered ? { score: st.remembered.metrics.score, eventCount: st.remembered.events.length, goal: st.remembered.goal, difference: rememberedDifference(m) } : null,
       current_state: m.score,
       score: m.score,
       axes: m.axes,
@@ -861,8 +888,13 @@
     el.d1.textContent = band(m.score);
     el.d2.textContent = cause(m.dominant);
     el.d3.textContent = essay(m.dominant);
-    draw(m.trace, st.compare ? st.compare.trace : null);
-    el.legend.textContent = st.compare ? `실선: 현재 계획 | 점선: ${st.compare.title} (비교 지수 ${st.compare.score})` : "실선: 현재 계획 | 점선: 추천안 미리보기";
+    const remembered=st.remembered, compared=st.compare || (remembered ? {title:'기억한 계획',score:remembered.metrics.score,trace:remembered.metrics.trace}:null);
+    draw(m.trace, compared ? compared.trace : null);
+    document.getElementById('wrs-restore').disabled=!remembered;
+    document.getElementById('wrs-show-remembered').hidden=!remembered;document.getElementById('wrs-restore-near').hidden=!remembered;
+    const saved=document.getElementById('wrs-remembered');saved.hidden=!remembered;
+    if(remembered){const d=rememberedDifference(m), signed=n=>(n>=0?'+':'')+n;const labels={body:'몸',social:'사람',travel:'이동',pressure:'밀린 일'};saved.innerHTML=`<strong>기억한 계획 ${remembered.metrics.score} → 현재 ${m.score} <b>(${signed(d.score)})</b></strong><span>${Object.keys(d.axes).map(k=>`${labels[k]} ${signed(d.axes[k])}`).join(' · ')} · 활동 ${signed(d.events)}개</span><small>${d.changedAssumptions.length?'목표·시작 조건도 달라졌습니다. 이 차이는 일정 변경만의 효과가 아닙니다.':'같은 목표·시작 조건에서 일정만 비교 중입니다.'} 기억은 이 페이지를 열어 둔 동안 유지됩니다.</small>`;}
+    el.legend.textContent = compared ? `실선: 현재 계획 | 점선: ${compared.title} (비교 지수 ${compared.score})` : "실선: 현재 계획 | 점선: 추천안 미리보기";
     renderSugs(m);
     publish();
   }
@@ -917,6 +949,7 @@
       status(`일정 사이 최소 마진을 ${st.gapSlots * SLOT_MIN}분으로 적용했습니다.`, 1200);
       publish();
     };
+    document.getElementById('wrs-remember').onclick=rememberPlan;document.getElementById('wrs-restore').onclick=restorePlan;document.getElementById('wrs-restore-near').onclick=restorePlan;document.getElementById('wrs-show-remembered').onclick=()=>{st.compare=null;renderAnalytics();};
     el.sample.onclick = loadSample;
     el.clear.onclick = () => { st.events = []; st.selectedEvent = null; st.compare = null; status("계획을 초기화했습니다.", 1200); renderAll(); };
     el.refresh.onclick = () => { st.compare = null; renderAnalytics(); status("추천안을 다시 계산했습니다.", 1200); };
@@ -932,10 +965,12 @@
     renderAnalytics();
   };
 
+  function updateMotion(){document.getElementById('weekend-recovery-simulator-app').classList.toggle('motion-enabled',Boolean(window.WebSimAmbient?.enabled)&&!matchMedia('(prefers-reduced-motion: reduce)').matches);}
+  window.addEventListener('websim:ambient-change',updateMotion);matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',updateMotion);updateMotion();
   renderAxis();
   buildSlots();
   bind();
-  window.addEventListener("resize", () => { if (st.metrics) draw(st.metrics.trace, st.compare ? st.compare.trace : null); });
+  window.addEventListener("resize", () => { if (st.metrics) draw(st.metrics.trace, st.compare ? st.compare.trace : st.remembered ? st.remembered.metrics.trace : null); });
   renderAll();
   status("블록을 배치하면 회복 곡선이 바로 변합니다.", 1800);
 })();

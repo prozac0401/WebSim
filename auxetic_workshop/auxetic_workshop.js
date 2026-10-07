@@ -3,7 +3,8 @@
   const E = window.AuxeticEngine, $ = id => document.getElementById(id);
   const canvas = $('canvas'), ctx = canvas.getContext('2d'), state = E.createState();
   const C = { green: '#21654f', mint: '#c5d8b8', light: '#dde8cf', ink: '#293d35', muted: '#718077', line: '#bbc8b6', coral: '#bc6661', blue: '#497eaa', bg: '#f5f6f1' };
-  let drag = null, view = null, lastSuccess = false;
+  canvas.style.touchAction="pan-y";
+  let drag = null, view = null, lastSuccess = false, pinned = null;
   const signed = n => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)}%`;
   const message = text => { $('message').textContent = text; };
   function roundRect(x, y, w, h, r, fill, stroke) {
@@ -55,6 +56,7 @@
       path(cell.vertices); ctx.fillStyle = cell.sign > 0 ? C.mint : C.light; ctx.fill(); ctx.strokeStyle = '#73916e'; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.fillStyle = 'rgba(33,101,79,.20)'; ctx.beginPath(); ctx.arc(view.cx + cell.x * view.scale, view.cy + cell.y * view.scale, 2.4, 0, Math.PI * 2); ctx.fill();
     }
+    if(pinned&&pinned.aspect===state.aspect){ctx.save();ctx.strokeStyle='#86669e';ctx.lineWidth=1.6;ctx.globalAlpha=.65;ctx.setLineDash([3,4]);for(const cell of pinned.cells){path(cell.vertices);ctx.stroke();}ctx.restore();}
     rectangle(g.referenceWidth, g.referenceHeight, '#9ba898', [4, 7]);
     if ($('comparison').checked) rectangle(g.width, g.comparisonHeight, C.coral, [10, 6], 2);
     if (result.active) rectangle(result.target.width, result.target.height, C.blue, [4, 4], 2.5);
@@ -91,6 +93,8 @@
     $('mission-result').textContent = !result.active ? '자유 실험에서는 목표 창이 표시되지 않습니다.' : result.success ? '✓ 목표 달성! 두 길이가 모두 창의 허용 범위에 들어왔습니다.' : `목표까지 가로 ${result.widthError.toFixed(2)} u · 세로 ${result.heightError.toFixed(2)} u${state.locked.length ? ' · 잠금을 먼저 풀어 주세요.' : ''}`;
     if (result.success && !lastSuccess) message(state.mission === 'turn' ? '성공! 시작보다 가로는 넓어지고 높이는 낮아졌습니다. 판 모양과 회전 구간이 반응을 바꿉니다.' : '성공! 파란 창에 맞췄습니다. 다음 목표에서 연결과 판 모양을 바꿔 보세요.');
     lastSuccess = result.success;
+    $('clear-reference').disabled=!pinned;
+    $('reference-note').textContent=pinned?(pinned.aspect===state.aspect?'보라 점선: 기억한 모양 · 가로 '+pinned.width.toFixed(2)+' / 세로 '+pinned.height.toFixed(2)+' u → 현재 변화 '+signed((g.width/pinned.width-1)*100)+' / '+signed((g.height/pinned.height-1)*100):'판 비율이 달라 기억한 모양을 숨겼습니다. 다시 기억하면 새 비율로 비교합니다.'):'현재 모양을 기억한 뒤 당겨 보세요. 판의 회전과 외곽 변화가 겹쳐 보입니다.';
   }
   function changeExtension(value) {
     const result = E.setExtension(state, value);
@@ -113,6 +117,8 @@
   $('hinge-select').onchange = e => { E.selectHinge(state, e.target.value); message('연결을 선택했습니다. ‘선택 연결 잠그기’ 또는 L 키로 고정하거나 풀 수 있습니다.'); render(); };
   $('toggle-lock').onclick = toggleLock; $('unlock-all').onclick = () => { state.locked = []; message('모든 연결을 풀었습니다. 구조를 다시 움직일 수 있습니다.'); render(); };
   $('comparison').onchange = render;
+  $('pin-reference').onclick=()=>{const g=E.geometry(state);pinned={aspect:state.aspect,width:g.width,height:g.height,cells:g.cells};render();};
+  $('clear-reference').onclick=()=>{pinned=null;render();};
   function point(e) { const rect = canvas.getBoundingClientRect(); return { x: (e.clientX - rect.left) * view.width / rect.width, y: (e.clientY - rect.top) * view.height / rect.height, hit: 24 * view.width / rect.width }; }
   canvas.onpointerdown = e => {
     if (e.button !== 0) return;
@@ -151,7 +157,7 @@
   $('save').onclick = () => { const a = document.createElement('a'); a.download = 'websim-auxetic.png'; a.href = canvas.toDataURL('image/png'); a.click(); message('현재 구조와 비교선을 PNG로 저장했습니다.'); };
   window.render_game_to_text = () => {
     const g = E.geometry(state);
-    return JSON.stringify({ coordinateSystem: 'geometry origin at grid center, x right, y down; plate height 1 u; handle positions in logical canvas pixels', canvas: { width: view.width, height: view.height }, mode: state.mission, aspect: state.aspect, extensionPercentFromClosed: state.extension, maxExtension: E.maxExtension(state.aspect), angleDegrees: g.theta * 180 / Math.PI, dimensions: { width: g.width, height: g.height }, reference: { width: g.referenceWidth, height: g.referenceHeight, definition: state.mission === 'turn' ? 'maximum-height mission start' : 'closed grid' }, strainPercent: { x: g.strainX, y: g.strainY }, openingPercent: g.openingFraction * 100, response: g.response, selectedHinge: state.selected, lockedHinges: [...state.locked], lockModel: 'one shared rotation degree of freedom; any locked hinge blocks all motion', selectedPoint: g.hinges.find(h => h.id === state.selected), handles: { left: { x: view.leftHandle, y: view.cy }, right: { x: view.rightHandle, y: view.cy } }, comparison: $('comparison').checked ? { model: 'constant-area rectangle', height: g.comparisonHeight } : null, mission: E.evaluateMission(state), fullscreen: Boolean(document.fullscreenElement || $('stage').classList.contains('stage-expanded')), time: state.time });
+    return JSON.stringify({ coordinateSystem: 'geometry origin at grid center, x right, y down; plate height 1 u; handle positions in logical canvas pixels', canvas: { width: view.width, height: view.height }, pinnedReference:pinned?{aspect:pinned.aspect,width:pinned.width,height:pinned.height}:null, mode: state.mission, aspect: state.aspect, extensionPercentFromClosed: state.extension, maxExtension: E.maxExtension(state.aspect), angleDegrees: g.theta * 180 / Math.PI, dimensions: { width: g.width, height: g.height }, reference: { width: g.referenceWidth, height: g.referenceHeight, definition: state.mission === 'turn' ? 'maximum-height mission start' : 'closed grid' }, strainPercent: { x: g.strainX, y: g.strainY }, openingPercent: g.openingFraction * 100, response: g.response, selectedHinge: state.selected, lockedHinges: [...state.locked], lockModel: 'one shared rotation degree of freedom; any locked hinge blocks all motion', selectedPoint: g.hinges.find(h => h.id === state.selected), handles: { left: { x: view.leftHandle, y: view.cy }, right: { x: view.rightHandle, y: view.cy } }, comparison: $('comparison').checked ? { model: 'constant-area rectangle', height: g.comparisonHeight } : null, mission: E.evaluateMission(state), fullscreen: Boolean(document.fullscreenElement || $('stage').classList.contains('stage-expanded')), time: state.time });
   };
   window.advanceTime = ms => { if (Number.isFinite(ms) && ms > 0) state.time += ms / 1000; render(); };
   render();

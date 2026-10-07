@@ -1,102 +1,12 @@
-<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>개미와 땅속 양분</title><link rel="stylesheet" href="../assets/simulator.css"><script src="../assets/simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><style>
-.sim-app--ant { padding-bottom: 32px; }
-.sim-app--ant .sim-workspace { grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 20px; }
-.sim-app--ant .sim-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 18px 20px 14px; }
-.sim-app--ant #canvas-mount { padding: 0 20px; }
-.sim-app--ant canvas { width: 100% !important; height: auto !important; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); }
-.sim-app--ant .sim-control { display: grid; grid-template-columns: minmax(0, 1fr) 50px; gap: 8px; margin: 22px 0; }
-.sim-app--ant .sim-control label { grid-column: 1 / -1; margin-bottom: 0; }
-.sim-app--ant .sim-control span { text-align: right; color: var(--sim-accent); font-variant-numeric: tabular-nums; }
-.sim-app--ant .sim-controls-panel > h2 { margin: 0; }
-.sim-app--ant .sim-controls-panel .sim-note { padding: 0; border: 0; margin: 12px 0; }
-.sim-app--ant label.sim-note { display: flex; align-items: center; gap: 8px; }
-.sim-app--ant .balance { margin-top: 16px; padding: 14px; background: var(--sim-bg); border: 1px solid var(--sim-border); border-radius: var(--sim-radius); font-size: 12px; }
-.sim-app--ant .balance h2 { margin: 0 0 8px; }
-.sim-app--ant .balance-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-variant-numeric: tabular-nums; }
-@media (max-width: 820px) {
-  .sim-app--ant .sim-workspace { grid-template-columns: 1fr; }
-  .sim-app--ant .sim-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px; }
-  .sim-app--ant #canvas-mount { padding: 0 14px; }
-}
-@media (max-width: 540px) {
-  .sim-app--ant .sim-panel-heading { flex-direction: column; align-items: flex-start; gap: 6px; }
-}
-</style></head><body><main id="wrapper" class="sim-app sim-app--ant"><div class="sim-workspace"><section class="sim-stage-panel"><div class="sim-panel-heading"><h2>작은 이동이 바꾸는 토양</h2><span id="ant-status" class="sim-status" role="status">실행 중</span></div><div class="sim-stat-grid"><div class="sim-stat"><span class="sim-stat-label">운반 중 개미</span><b id="carrying-count">0</b></div><div class="sim-stat"><span class="sim-stat-label">토양 양분</span><b id="soil-stock">0</b></div><div class="sim-stat"><span class="sim-stat-label">식물 양분</span><b id="plant-stock">0</b></div><div class="sim-stat"><span class="sim-stat-label">모형 시간</span><b id="model-time">0s</b></div></div><div class="sim-toolbar"><button id="startBtn" class="primary">시작</button><button id="stopBtn">일시정지</button><button id="stepBtn">1스텝</button><button id="resetBtn">초기화</button></div><div id="canvas-mount"></div><div id="legend" class="legend sim-legend"><span><i style="background:#8a2be2"></i>양분 패치</span><span><i style="background:#d070d0"></i>운반 중</span><span><i style="background:#9a6239"></i>둥지</span><span><i style="background:#7da66c"></i>식물</span></div><p class="sim-note">양분이 개미를 따라 둥지에 모이고, 주변으로 퍼져 식물에 들어갑니다. 총량은 새 패치를 넣을 때만 늘어납니다.</p></section><aside class="sim-controls-panel"><h2>실험 조건</h2><div class="sim-control"><label for="antCount">개미 수 · 변경하면 새 환경</label><input id="antCount" type="range" min="10" max="500" value="100"><span id="antCountLabel">100</span></div><div class="sim-control"><label for="nutrientAmount">새 양분 패치의 총량 (모형 단위)</label><input id="nutrientAmount" type="range" min="10" max="500" value="50"><span id="nutrientAmountLabel">50</span></div><div class="sim-control"><label for="nutrientInterval">패치 생성 간격 (모형 초)</label><input id="nutrientInterval" type="range" min="1" max="20" value="5"><span id="nutrientIntervalLabel">5</span></div><label class="sim-note"><input id="patchEnabled" type="checkbox" checked> 새 양분 패치 공급</label><p class="sim-note">공급을 끄면 양분의 총량을 유지한 채 이동·분해·흡수만 관찰할 수 있습니다. 1초는 30 계산 스텝입니다.</p><div class="balance"><h2>양분의 행선지</h2><div class="balance-row"><span>패치에 남음</span><b id="food-stock">0</b></div><div class="balance-row"><span>개미가 운반 중</span><b id="carried-stock">0</b></div><div class="balance-row"><span>전체 재고 / 누적 투입</span><b id="balance-total">0 / 0</b></div><div class="balance-row"><span>보존 오차</span><b id="balance-error">0.000</b></div></div><details class="sim-explainer"><summary>생태적 의미와 모형의 범위</summary><p>개미의 국소적인 운반이 토양 자원의 분포를 바꾸는 생태계 공학을 보여 줍니다. 유기물 → 이용 가능한 양분 → 식물 → 유기물로 이동하는 한 종류의 추상 자원입니다.</p><p>탄소·질소를 실제 질량이나 화학종으로 구분하지 않습니다. 질소 고정·질산화·탈질·용탈을 재현하는 생지화학 모형은 아닙니다.</p></details></aside></div></main><script src="p5.min.js"></script><script>
-const GRID=30,CELL=28,W=GRID*CELL,H=W,MAX_TREE_H=3;
-const BLOSSOM_COLORS=['#ffb6c1','#ffc0cb','#ffd1dc','#ffa6c9','#ffccd5'];
-let soil=[],ants=[],foods=[],NX=15,NY=15,running=true,tick=0,simulationTime=0,accumulator=0,nutrientSize=50,nutrientInterval=5000,nextPatch=5000,totalInput=0,lastDrawTime=0;
-const $=id=>document.getElementById(id);
-class SoilCell{
- constructor(x,y){this.x=x;this.y=y;this.org=0;this.nit=0;this.plant=0;this.nest=x===NX&&y===NY;}
- update(){const mineral=this.org*.02;this.org-=mineral;this.nit+=mineral;const uptake=this.nest?0:this.nit*.01;this.nit-=uptake;this.plant+=uptake;const returned=this.plant*.005;this.plant-=returned;this.org+=returned;}
- drawGround(){const x=this.x*CELL,y=this.y*CELL;noStroke();fill('#eef3e8');rect(x,y,CELL,CELL);if(this.org>.05){fill(194,156,91,min(110,this.org*8));rect(x,y,CELL,CELL);}if(this.nit>.05){fill(86,146,90,min(120,this.nit*15));rect(x,y,CELL,CELL);}if(this.nest){fill('#9a6239');ellipse(x+CELL/2,y+CELL/2,CELL*.9,CELL*.9);fill('#71472d');ellipse(x+CELL/2,y+CELL/2,CELL*.42,CELL*.42);}}
- drawPlant(){if(this.plant>.5&&!this.nest)drawTree(this.x,this.y,min(CELL*MAX_TREE_H,CELL*(.5+Math.sqrt(this.plant)*.7)));}
-}
-class Ant{
- constructor(){this.pos=createVector(random(W),random(H));this.carryAmount=0;this.dir=random(TWO_PI);}
- get carry(){return this.carryAmount>0;}
- moveTo(target,speed){const dx=target.x-this.pos.x,dy=target.y-this.pos.y,d=Math.hypot(dx,dy);this.dir=Math.atan2(dy,dx);if(d)this.pos.add(createVector(dx/d,dy/d).mult(min(speed,d)));}
- update(){const nest=createVector(NX*CELL+CELL/2,NY*CELL+CELL/2);if(this.carry){this.moveTo(nest,CELL*.13);if(p5.Vector.dist(this.pos,nest)<3){soil[NX][NY].org+=this.carryAmount;this.carryAmount=0;}}else{let near=null,dist=Infinity;for(const f of foods){const d=p5.Vector.dist(this.pos,f.pos);if(f.amount>0&&d<dist){near=f;dist=d;}}if(near&&dist<5){const take=min(5,near.amount);near.amount-=take;this.carryAmount=take;}else if(near&&dist<80)this.moveTo(near.pos,CELL*.13);else{this.dir+=random(-.4,.4);this.pos.add(createVector(cos(this.dir),sin(this.dir)).mult(CELL*.12));}}if(this.pos.x<0||this.pos.x>=W){this.dir=Math.PI-this.dir;this.pos.x=constrain(this.pos.x,0,W-.01);}if(this.pos.y<0||this.pos.y>=H){this.dir=-this.dir;this.pos.y=constrain(this.pos.y,0,H-.01);}}
- draw(){push();translate(this.pos.x,this.pos.y);rotate(this.dir+HALF_PI);stroke(this.carry?'#d070d0':'#243a2c');strokeWeight(1);for(let i=-1;i<=1;i++){line(-CELL*.14,CELL*.06*i,-CELL*.25,CELL*.12*i);line(CELL*.14,CELL*.06*i,CELL*.25,CELL*.12*i);}noStroke();fill(this.carry?'#d070d0':'#243a2c');ellipse(0,-CELL*.12,CELL*.14);ellipse(0,0,CELL*.18);ellipse(0,CELL*.17,CELL*.22);pop();}
-}
-class Food{constructor(x,y,amount){this.pos=createVector(x,y);this.amount=amount;this.init=amount;}draw(){if(this.amount<=0)return;const size=CELL*(.3+.7*this.amount/this.init);push();translate(this.pos.x,this.pos.y);noStroke();fill(138,43,226,210);beginShape();vertex(0,-size);vertex(size,0);vertex(0,size);vertex(-size,0);endShape(CLOSE);pop();}}
-function addPatch(){const candidates=soil.flat().filter(c=>!c.nest&&c.plant<6);if(!candidates.length)return;const c=random(candidates);foods.push(new Food((c.x+.5)*CELL,(c.y+.5)*CELL,nutrientSize*.7));const neighbors=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const x=c.x+dx,y=c.y+dy;if(x>=0&&y>=0&&x<GRID&&y<GRID)neighbors.push(soil[x][y]);}neighbors.forEach(n=>n.org+=nutrientSize*.3/neighbors.length);totalInput+=nutrientSize;}
-function initWorld(count){soil=Array.from({length:GRID},(_,x)=>Array.from({length:GRID},(_,y)=>new SoilCell(x,y)));ants=Array.from({length:count},()=>new Ant());foods=[];totalInput=0;tick=0;simulationTime=0;accumulator=0;nextPatch=nutrientInterval;for(let i=0;i<3;i++)addPatch();}
-function diffuse(){const next=Array.from({length:GRID},()=>new Float64Array(GRID));for(let x=0;x<GRID;x++)for(let y=0;y<GRID;y++){const c=soil[x][y],neighbors=[];if(x)neighbors.push([x-1,y]);if(x+1<GRID)neighbors.push([x+1,y]);if(y)neighbors.push([x,y-1]);if(y+1<GRID)neighbors.push([x,y+1]);const moved=c.nit*.08;next[x][y]+=c.nit-moved;for(const [nx,ny] of neighbors)next[nx][ny]+=moved/neighbors.length;}for(let x=0;x<GRID;x++)for(let y=0;y<GRID;y++)soil[x][y].nit=next[x][y];}
-function simulate(){tick++;simulationTime=tick*1000/30;if(simulationTime>=nextPatch){if($('patchEnabled').checked)addPatch();nextPatch=simulationTime+nutrientInterval;}soil.flat().forEach(c=>c.update());diffuse();ants.forEach(a=>a.update());foods=foods.filter(f=>f.amount>0);}
-function totals(){const all=soil.flat(),organic=all.reduce((s,c)=>s+c.org,0),available=all.reduce((s,c)=>s+c.nit,0),plant=all.reduce((s,c)=>s+c.plant,0),food=foods.reduce((s,f)=>s+f.amount,0),carried=ants.reduce((s,a)=>s+a.carryAmount,0);return{organic,available,plant,food,carried,total:organic+available+plant+food+carried,input:totalInput};}
-function renderStats(){const t=totals();$('carrying-count').textContent=ants.filter(a=>a.carry).length;$('soil-stock').textContent=(t.organic+t.available).toFixed(1);$('plant-stock').textContent=t.plant.toFixed(1);$('model-time').textContent=(simulationTime/1000).toFixed(1)+'s';$('food-stock').textContent=t.food.toFixed(1);$('carried-stock').textContent=t.carried.toFixed(1);$('balance-total').textContent=t.total.toFixed(1)+' / '+t.input.toFixed(1);$('balance-error').textContent=Math.abs(t.total-t.input).toFixed(6);$('startBtn').disabled=running;$('stopBtn').disabled=!running;}
-function renderWorld(){background('#eef3e8');soil.flat().forEach(c=>c.drawGround());stroke(215,226,210,120);strokeWeight(.6);for(let i=0;i<=GRID;i++){line(i*CELL,0,i*CELL,H);line(0,i*CELL,W,i*CELL);}foods.forEach(f=>f.draw());soil.flat().forEach(c=>c.drawPlant());ants.forEach(a=>a.draw());renderStats();}
-function setup(){createCanvas(W,H).parent('canvas-mount');frameRate(60);initWorld(100);$('startBtn').onclick=()=>{running=true;accumulator=0;lastDrawTime=performance.now();$('ant-status').textContent='실행 중';loop();};$('stopBtn').onclick=()=>{running=false;$('ant-status').textContent='멈춤 · 현재 양분 분포를 유지합니다';noLoop();renderStats();};$('stepBtn').onclick=()=>{running=false;noLoop();simulate();renderWorld();$('ant-status').textContent='1스텝 진행 · 멈춤';};$('resetBtn').onclick=()=>{running=false;noLoop();initWorld(Number($('antCount').value));renderWorld();$('ant-status').textContent='새 환경 · 시작을 눌러 보세요';};$('antCount').oninput=e=>{$('antCountLabel').textContent=e.target.value;};$('antCount').onchange=e=>{running=false;noLoop();initWorld(Number(e.target.value));renderWorld();$('ant-status').textContent='개미 수 변경 · 새 환경에서 멈춤';};$('nutrientAmount').oninput=e=>{nutrientSize=Number(e.target.value);$('nutrientAmountLabel').textContent=e.target.value;};$('nutrientInterval').oninput=e=>{nutrientInterval=Number(e.target.value)*1000;nextPatch=simulationTime+nutrientInterval;$('nutrientIntervalLabel').textContent=e.target.value;};renderWorld();}
-function draw(){const now=performance.now();if(running){accumulator+=lastDrawTime?min(now-lastDrawTime,150):0;while(accumulator>=1000/30){simulate();accumulator-=1000/30;}}lastDrawTime=now;renderWorld();}
-window.render_game_to_text=()=>JSON.stringify({mode:'ant-nutrient',running,tick,ant_count:ants.length,time_seconds:simulationTime/1000,stocks:totals(),nonnegative:soil.flat().every(c=>c.org>=0&&c.nit>=0&&c.plant>=0)&&foods.every(f=>f.amount>=0)&&ants.every(a=>a.carryAmount>=0)});
-window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms*30/1000);i++)simulate();renderWorld();};
-function drawTree(cx,cy,h){
-  const height = min(h, CELL*MAX_TREE_H);
-  push();
-  translate(cx*CELL + CELL/2, cy*CELL + CELL);
-  stroke(139,69,19); strokeWeight(6);
-
-  // trunk
-  line(0, 0, 0, -height);
-
-  // radial branches
-  for (let ang = 0; ang < TWO_PI; ang += PI / 3) {
-    const len = height * 0.6;
-    const bx = len * cos(ang);
-    const by = -height + len * sin(ang);
-    line(0, -height, bx, by);
-  }
-
-  noStroke();
-
-  // deterministic pseudo‑random blossoms without affecting global random()
-  const fract = v => v - Math.floor(v);
-  for (let i = 0; i < 25; i++) {
-    const r1 = fract(Math.sin((i + 1) * 12.9898 + cx * 78.233 + cy * 37.719) * 43758.5453);
-    const ang = TWO_PI * r1;
-    const r2 = fract(Math.sin((i + 1) * 93.9898 + cx * 11.233 + cy * 7.719) * 43758.5453);
-    const rad = map(r2, 0, 1, height * 0.2, height * 0.75);
-    const colIndex = Math.floor(r1 * BLOSSOM_COLORS.length) % BLOSSOM_COLORS.length;
-    const col = BLOSSOM_COLORS[colIndex];
-    drawBlossom(cos(ang) * rad, sin(ang) * rad - height, height * 0.28, col);
-  }
-  pop();
-}
-
-
-function drawBlossom(x, y, size, col){
-  push();
-  translate(x, y);
-  fill(col + 'AA');
-  noStroke();
-  const petals = 5;
-  for (let i = 0; i < petals; i++){
-    const ang = TWO_PI * i / petals;
-    ellipse(cos(ang) * size * 0.6, sin(ang) * size * 0.6, size, size * 0.55);
-  }
-  pop();
-}
-
-
-</script></body></html>
+<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>개미와 땅속 양분 · WebSim</title><link rel="stylesheet" href="../assets/simulator.css"><link rel="stylesheet" href="../assets/experiments.css"><link rel="stylesheet" href="ant_nitrogen_cycle_simulator.css"><script src="../assets/simulator.js" defer></script><script src="ant-engine.js" defer></script><script src="ant_nitrogen_cycle_simulator.js" defer></script><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"></head><body class="websim-page"><main id="wrapper" class="sim-app experiment-app sim-app--ant"><noscript>JavaScript를 켜 주세요. <a href="ant_nitrogen_cycle_simulator_doc.html">사용법 읽기</a></noscript><div class="sim-workspace">
+<section class="sim-stage-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SMALL MOVES, LIVING SOIL</span><h2>벽 하나가 바꾸는 양분의 길</h2></div><span id="ant-status" class="sim-chip">실험 준비</span></div><div class="sim-toolbar"><button id="startBtn" class="sim-primary">시작</button><button id="stopBtn">일시정지</button><button id="stepBtn">1스텝</button><button id="secondBtn">1초</button><button id="resetBtn">같은 시드 다시</button><button id="fullscreen">전체화면</button></div>
+<div class="ant-tools"><label for="tool">지도 도구<select id="tool"><option value="view">보기 · 개미 / 셀 관찰</option><option value="food">양분 놓기 · 탭</option><option value="nest">둥지 옮기기 · 시작 전</option><option value="wall">벽 그리기 · 드래그</option><option value="erase">벽 지우기 · 드래그</option></select></label><label for="wallType">새 벽의 역할<select id="wallType"><option value="1">운반 차단 · 갈색</option><option value="2">확산 차단 · 파랑</option><option value="3">둘 다 차단 · 보라</option></select></label><button id="undo" disabled>편집 취소 ↶</button></div><p class="tool-help" id="tool-help">개미나 셀을 누르면 현재 행동과 양분 이동을 읽습니다. 보기 모드에서는 위아래로 스크롤할 수 있습니다.</p>
+<div id="stage" class="experiment-stage"><canvas id="canvas" width="840" height="840" tabindex="0" aria-label="30 곱하기 30 토양 격자. 둥지, 양분 패치, 개미와 셀 사이 벽을 표시합니다."></canvas><button id="exit-fullscreen" class="close-fullscreen">닫기 ×</button></div>
+<div class="ant-legend"><span><i class="dot food"></i>패치</span><span><i class="dot carry"></i>운반 중</span><span><i class="dot nest"></i>둥지</span><span><i class="line transport"></i>운반 차단</span><span><i class="line diffusion"></i>확산 차단</span><span><i class="line both"></i>둘 다</span></div>
+<section class="ant-observer" aria-label="개체와 셀 관찰"><label for="inspect">살펴보는 대상<select id="inspect"><option value="cell">선택한 셀</option></select></label><p id="entity-info" aria-live="polite"></p></section>
+<div class="sim-stat-grid stage-stats"><div class="sim-stat"><span>운반 중 개미</span><strong id="carrying-count">0</strong></div><div class="sim-stat"><span>토양 양분</span><strong id="soil-stock">0</strong></div><div class="sim-stat"><span>식물 양분</span><strong id="plant-stock">0</strong></div><div class="sim-stat"><span>모형 시간</span><strong id="model-time">0s</strong></div></div><p class="sim-note live-message" id="message" role="status">먼저 양분을 놓거나 벽을 그려 보세요. 초기 둥지를 옮긴 뒤 시작할 수도 있습니다.</p>
+</section><aside class="sim-controls-panel"><div class="sim-panel-heading"><h2>운반과 확산을 나눠 보기</h2></div><label class="sim-control" for="preset">첫 실험<select id="preset"><option value="open">01 · 열린 토양</option><option value="transport">02 · 개미만 돌아가는 울타리</option><option value="diffusion">03 · 양분만 막는 막</option><option value="free">자유 실험</option></select></label><p class="instruction" id="brief"></p>
+<div class="sim-control"><label for="antCount">개미 수 · 다음 초기화에 적용 <output id="antCountLabel">100</output></label><input id="antCount" type="range" min="10" max="500" step="10" value="100"></div><div class="sim-control"><label for="nutrientAmount">새 양분 패치의 총량 <output id="nutrientAmountLabel">50</output></label><input id="nutrientAmount" type="range" min="10" max="500" step="10" value="50"></div><div class="sim-control"><label for="nutrientInterval">자동 공급 간격 · 모형 초 <output id="nutrientIntervalLabel">5</output></label><input id="nutrientInterval" type="range" min="1" max="20" value="5"></div><label class="supply-label"><input id="patchEnabled" type="checkbox" checked> 새 양분 패치 자동 공급</label><p class="sim-helper">공급을 끄면 직접 놓을 때만 총량이 늘어납니다. 1모형 초 = 30계산 스텝. 식물은 자원을 흡수하고 일부를 유기물로 돌려줍니다.</p>
+<details class="coordinate-tools"><summary>정확한 셀 · 키보드로 편집</summary><div class="mini-grid"><label for="cellX">가로 칸 (1–30)<input id="cellX" type="number" min="1" max="30" value="16"></label><label for="cellY">세로 칸 (1–30)<input id="cellY" type="number" min="1" max="30" value="16"></label></div><label for="edgeDirection">편집할 셀의 면<select id="edgeDirection"><option value="right">오른쪽</option><option value="bottom">아래쪽</option><option value="left">왼쪽</option><option value="top">위쪽</option></select></label><button id="applyCell">선택 도구를 이 셀에 적용</button><p>보기·양분·둥지 도구는 셀 안에 적용합니다. 벽 도구는 지정한 한 면을 바꿉니다.</p></details>
+<div class="balance"><h2>양분의 행선지</h2><div><span>패치 / 운반 중</span><b id="food-stock">0 / 0</b></div><div><span>전체 재고 / 누적 투입</span><b id="balance-total">0 / 0</b></div><div><span>보존 오차</span><b id="balance-error">0.000000</b></div><div><span>둥지까지 운반 완료</span><b id="delivered-stock">0</b></div></div>
+<h3 class="sim-section-title">같은 출발점 비교</h3><label class="sim-control" for="seed">시드<input id="seed" type="number" min="1" max="999999" value="73"></label><div class="button-row"><button id="compare">현재 결과 보관</button><button id="save">PNG 저장</button></div><p class="comparison" id="comparison">같은 시간의 결과를 비교하세요. 초기화는 현재 벽·둥지와 시작 전에 직접 놓은 패치를 유지합니다.</p><details class="sim-explainer"><summary>무엇을 재현하나요?</summary><p>한 종류의 추상 자원이 패치→개미→토양→식물 사이를 이동합니다. 벽은 셀 사이 이동만 막으며 자원이나 개미를 삭제하지 않습니다.</p><p>실제 질소 화학종, 페로몬 길찾기, 토양 유체를 예측하는 모형은 아닙니다. <a href="ant_nitrogen_cycle_simulator_doc.html">가정·규칙·사용법 ↗</a></p></details></aside></div></main></body></html>

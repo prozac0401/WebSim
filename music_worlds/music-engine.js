@@ -73,5 +73,18 @@
   function compare(options = {}) {
     return ['independent', 'visible', 'ranked'].map(mode => { const state = run(create(Object.assign({}, options, { mode }))); return { mode, ...stats(state) }; });
   }
-  return { LIMIT, titles, genres, random, create, promote, step, run, leader, stats, compare };
+  function fork(state, worldIndex, songId, horizon = LIMIT - state.listeners) {
+    if (!state.worlds[worldIndex] || !state.songs[songId] || state.listeners >= LIMIT || state.worlds[worldIndex].promotion) return null;
+    // Preserve world id and arrival index: both branches consume exactly the same indexed random draws.
+    const control = JSON.parse(JSON.stringify(state)), promoted = JSON.parse(JSON.stringify(state));
+    const at = state.listeners, length = Math.max(0, Math.min(LIMIT - at, Math.floor(horizon)));
+    promote(promoted, worldIndex, songId);
+    const checkpoints = [];
+    for (let i = 0; i < length; i++) {
+      step(control); step(promoted);
+      checkpoints.push({ at: control.listeners, control: control.worlds[worldIndex].counts[songId], promoted: promoted.worlds[worldIndex].counts[songId] });
+    }
+    return { at, to: control.listeners, world: worldIndex, song: songId, initial: state.worlds[worldIndex].counts[songId], initialExposures: state.worlds[worldIndex].exposures[songId], control, promoted, checkpoints };
+  }
+  return { LIMIT, titles, genres, random, create, promote, step, run, leader, stats, compare, fork };
 });

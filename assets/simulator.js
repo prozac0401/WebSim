@@ -92,6 +92,42 @@
   footer.className = 'lab-footer';
   footer.innerHTML = `<span>WebSim <span aria-hidden="true">/</span> ${model}</span><a href="${helpUrl}">이 실험의 규칙과 근거 읽기 <span aria-hidden="true">↗</span></a>`;
   document.body.append(footer);
+  const appearance = document.createElement('div');
+  appearance.className = 'lab-appearance';
+  appearance.append(heading.querySelector('.lab-model-badge'));
+  const focusButton = document.createElement('button');
+  focusButton.type = 'button';
+  focusButton.className = 'lab-focus-toggle';
+  focusButton.textContent = '집중 보기';
+  focusButton.setAttribute('aria-pressed', 'false');
+  const focusExit = document.createElement('button');
+  focusExit.type = 'button';
+  focusExit.className = 'lab-focus-exit';
+  focusExit.textContent = '전체 화면 구성으로 돌아가기 · Esc';
+  focusExit.hidden = true;
+  let priorScroll = 0;
+  function focusView(value) {
+    if (value) priorScroll = window.scrollY;
+    document.body.classList.toggle('lab-focus', value);
+    focusButton.setAttribute('aria-pressed', String(value));
+    focusExit.hidden = !value;
+    if (value) { window.scrollTo(0, 0); focusExit.focus({ preventScroll: true }); }
+    else { window.scrollTo(0, priorScroll); focusButton.focus({ preventScroll: true }); }
+    window.dispatchEvent(new Event('resize'));
+  }
+  focusButton.addEventListener('click', () => focusView(true));
+  focusExit.addEventListener('click', () => focusView(false));
+  appearance.append(focusButton);
+  heading.querySelector('.lab-heading-row').append(appearance);
+  document.body.prepend(focusExit);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && document.body.classList.contains('lab-focus')) focusView(false);
+  });
+  if (![...document.scripts].some(item => item.src === new URL('assets/ambient.js', base).href)) {
+    const ambient = document.createElement('script');
+    ambient.src = new URL('assets/ambient.js', base).href;
+    document.head.append(ambient);
+  }
   const switcher = header.querySelector('.lab-switcher');
   document.addEventListener('click', event => { if (!switcher.contains(event.target)) switcher.open = false; });
   document.addEventListener('keydown', event => {

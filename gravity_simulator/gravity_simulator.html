@@ -8,7 +8,7 @@
 <div class="sim-stat-grid"><div class="sim-stat"><span>남은 위성</span><strong id="satellite-stat">0</strong></div><div class="sim-stat"><span>모형 시간</span><strong id="time-stat">0 t</strong></div><div class="sim-stat"><span>포획 / 화면 이탈</span><strong id="capture-stat">0 / 0</strong></div><div class="sim-stat"><span>평균 속도</span><strong id="speed-stat">0 u/t</strong></div></div><p id="status-bar" class="sim-note" role="status"></p></section>
 <aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SET THE MOTION</span><h2>실험 조건</h2></div></div><div class="sim-toolbar"><button onclick="orbitExample()">원궤도 예제</button><button onclick="addRandomSatellite()">무작위 위성</button><button onclick="addRandomPlanet()">중력원 추가</button><button onclick="clearSatellites()">위성 지우기</button></div>
 <label class="sim-control" for="speed-mult">재생 속도 <output id="speed-mult-value">1.0</output> ×<input id="speed-mult" type="range" min="0.5" max="3" step="0.1" value="1"></label><label class="sim-control" for="gravity-strength">중력 강도 <output id="gravity-value">1.0</output> ×<input id="gravity-strength" type="range" min="0.5" max="2" step="0.1" value="1"></label><label class="sim-control" for="random-satellite-count">한 번에 추가할 위성 <output id="random-count-value">20</output>개<input id="random-satellite-count" type="range" min="1" max="50" value="20"></label>
-<h3 class="sim-section-title">보이는 정보</h3><div class="sim-toolbar"><button id="collision-btn" onclick="toggleCollision()">충돌: 켜짐</button><button id="orbit-btn" onclick="toggleOrbit()">궤도: 켜짐</button><button id="velocity-btn" onclick="toggleVelocity()">방향: 켜짐</button></div>
+<div class="button-row"><button id="edit-gravity" aria-pressed="false">발사·이동 켜기</button><button id="undo-launch" disabled>마지막 발사 지우기</button></div><p class="sim-note" id="launch-note">발사·이동을 켜고 끌면 보라 점선으로 예상 경로를 미리 볼 수 있습니다.</p><details class="sim-explainer"><summary>숫자로 위성 발사하기</summary><label class="sim-control" for="launch-x">가로 위치 <output id="launch-x-value">530 u</output><input id="launch-x" type="range" min="20" max="680" value="530"></label><label class="sim-control" for="launch-y">세로 위치 <output id="launch-y-value">350 u</output><input id="launch-y" type="range" min="20" max="680" value="350"></label><label class="sim-control" for="launch-angle">발사 방향 · 0° 오른쪽, 90° 아래 <output id="launch-angle-value">90°</output><input id="launch-angle" type="range" min="0" max="359" value="90"></label><label class="sim-control" for="launch-speed">발사 속도 <output id="launch-speed-value">20 u/t</output><input id="launch-speed" type="range" min="0" max="60" value="20"></label><div class="button-row"><button id="preview-launch">경로 미리보기</button><button id="launch-input">이 조건으로 발사</button></div></details><h3 class="sim-section-title">보이는 정보</h3><div class="sim-toolbar"><button id="collision-btn" onclick="toggleCollision()">충돌: 켜짐</button><button id="orbit-btn" onclick="toggleOrbit()">궤도: 켜짐</button><button id="velocity-btn" onclick="toggleVelocity()">방향: 켜짐</button></div>
 <p class="sim-note">빈 공간에서 끌어 놓으면 시작점에서 드래그 방향으로 발사됩니다. 긴 드래그는 빠른 속도입니다. 중력원은 끌어서 옮기고 두 번 눌러 삭제할 수 있습니다.</p><p class="sim-note">u와 t는 모형의 거리·시간 단위입니다. 검은 원은 고정된 중력원과 포획 경계이며, 빛·시공간을 계산하는 블랙홀 모형은 아닙니다.</p><p class="sim-note">먼 곳에서는 거리가 두 배가 되면 인력이 약 ¼이 됩니다. 중심 가까이서는 수치 발산을 줄이는 완화 길이 10 u를 적용합니다.</p></aside></div></main>    <script>
         const canvas = document.getElementById('sim-canvas');
         const ctx = canvas.getContext('2d');
@@ -18,6 +18,7 @@
         let width, height;
         let planets = [];
         let satellites = [];
+        let editing=false, lastLaunch=null, forecastPoints=[],draft=false;
         let dragging = false;
         let dragStart = null;
         let dragCurrent = null;
@@ -89,6 +90,7 @@
         }
         
         function handleMouseDown(e) {
+            if(!editing)return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
             const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
@@ -130,6 +132,7 @@
         }
         
         function handleMouseMove(e) {
+            if(!editing)return;
             if (!dragging) {
                 // 마우스 호버 커서 변경
                 const rect = canvas.getBoundingClientRect();
@@ -189,18 +192,21 @@
         }
         
         function handleTouchStart(e) {
+            if(!editing)return;
             e.preventDefault();
             const touch = e.touches[0];
             handleMouseDown({clientX: touch.clientX, clientY: touch.clientY});
         }
         
         function handleTouchMove(e) {
+            if(!editing)return;
             e.preventDefault();
             const touch = e.touches[0];
             handleMouseMove({clientX: touch.clientX, clientY: touch.clientY});
         }
         
         function handleTouchEnd(e) {
+            if(!editing)return;
             e.preventDefault();
             const touch = e.changedTouches[0];
             handleMouseUp({clientX: touch.clientX, clientY: touch.clientY});
@@ -221,7 +227,7 @@
         }
         
         function hideDragIndicator() {
-            dragCurrent = null;
+            dragCurrent = null;draft=false;
             dragIndicator.style.opacity = '0';
         }
         
@@ -239,7 +245,7 @@
                 id: Date.now() + Math.random()
             };
             
-            satellites.push(newSatellite);
+            satellites.push(newSatellite);lastLaunch=newSatellite.id;document.getElementById("undo-launch").disabled=false;
             
             updateStatus();
         }
@@ -391,6 +397,7 @@
         }
         
         function resetSim() {
+            lastLaunch=null;forecastPoints=[];dragging=false;hideDragIndicator();document.getElementById("undo-launch").disabled=true;
             satellites = [];
             simRunning = false;
             simTime = 0;
@@ -418,6 +425,7 @@
         }
         
         function updateStatus() {
+            document.getElementById("undo-launch").disabled=!satellites.some(s=>s.id===lastLaunch);
             let totalSpeed = 0;
             for (const satellite of satellites) {
                 totalSpeed += Math.sqrt(satellite.vx ** 2 + satellite.vy ** 2);
@@ -488,8 +496,7 @@
         }
         
         function draw() {
-            // 배경 그리기 (투명/기본 배경)
-            ctx.clearRect(0, 0, width, height);
+            const paper=ctx.createRadialGradient(width/2,height/2,0,width/2,height/2,width*.7);paper.addColorStop(0,"#fbfcfa");paper.addColorStop(1,"#edf2e8");ctx.fillStyle=paper;ctx.fillRect(0,0,width,height);
             
             // 블랙홀 그리기
             for (const planet of planets) {
@@ -515,7 +522,7 @@
                 ctx.fill();
                 
                 // 어크리션 디스크 효과 (회전하는 링)
-                const time = Date.now() * 0.001;
+                const time = (window.WebSimAmbient?.now() || 0) * 0.001;
                 for (let i = 0; i < 8; i++) {
                     const angle = (time + i * Math.PI / 4) % (Math.PI * 2);
                     const ringRadius = planet.radius * (1.5 + i * 0.2);
@@ -587,7 +594,8 @@
                     ctx.stroke();
                 }
             }
-            if (!dragging || dragMode !== 'satellite' || !dragStart || !dragCurrent) return;
+            if ((!dragging&&!draft) || dragMode !== 'satellite' || !dragStart || !dragCurrent) return;
+            drawForecast(dragStart,dragCurrent);
             const angle = Math.atan2(dragCurrent.y - dragStart.y, dragCurrent.x - dragStart.x);
             ctx.strokeStyle = '#1f6b50'; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.moveTo(dragStart.x, dragStart.y); ctx.lineTo(dragCurrent.x, dragCurrent.y);
@@ -595,6 +603,17 @@
             ctx.moveTo(dragCurrent.x, dragCurrent.y);
             ctx.lineTo(dragCurrent.x - 12 * Math.cos(angle + 0.4), dragCurrent.y - 12 * Math.sin(angle + 0.4)); ctx.stroke();
         }
+        function forecast(start,end){const s={x:start.x,y:start.y,vx:(end.x-start.x)*.1,vy:(end.y-start.y)*.1},points=[{x:s.x,y:s.y}];let outcome='10 t 뒤',elapsed=0;for(let i=0;i<1200;i++){const old={x:s.x,y:s.y},a=acceleration(s.x,s.y);s.vx+=a.ax*FIXED_DT/2;s.vy+=a.ay*FIXED_DT/2;s.x+=s.vx*FIXED_DT;s.y+=s.vy*FIXED_DT;const b=acceleration(s.x,s.y);s.vx+=b.ax*FIXED_DT/2;s.vy+=b.ay*FIXED_DT/2;elapsed=(i+1)*FIXED_DT;const hit=collisionEnabled&&planets.some(p=>{const dx=s.x-old.x,dy=s.y-old.y,t=Math.max(0,Math.min(1,((p.x-old.x)*dx+(p.y-old.y)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(old.x+t*dx-p.x,old.y+t*dy-p.y)<=p.radius+2;});if(i%4===3||hit)points.push({x:s.x,y:s.y});if(hit){outcome='포획 예상';break;}if(s.x < -100||s.x>width+100||s.y < -100||s.y>height+100){outcome='화면 이탈 예상';break;}}return{points,outcome,elapsed};}
+        function drawForecast(start,end){const f=forecast(start,end);forecastPoints=f.points;ctx.save();ctx.strokeStyle='#8a6fa0';ctx.setLineDash([5,5]);ctx.lineWidth=2;ctx.beginPath();f.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.restore();document.getElementById('launch-note').textContent='발사 속도 '+(Math.hypot(end.x-start.x,end.y-start.y)*.1).toFixed(1)+' u/t · '+f.outcome+' ('+f.elapsed.toFixed(1)+' t) · 현재 중력원이 그대로일 때';}
+        document.getElementById('edit-gravity').onclick=function(){editing=!editing;this.setAttribute('aria-pressed',String(editing));this.textContent=editing?'발사·이동 켜짐':'발사·이동 켜기';canvas.style.touchAction=editing?'none':'pan-y';dragging=false;hideDragIndicator();};
+        document.getElementById('undo-launch').onclick=function(){satellites=satellites.filter(s=>s.id!==lastLaunch);lastLaunch=null;this.disabled=true;updateStatus();draw();};
+        function launchInput(){const x=Number(document.getElementById('launch-x').value),y=Number(document.getElementById('launch-y').value),angle=Number(document.getElementById('launch-angle').value)*Math.PI/180,speed=Number(document.getElementById('launch-speed').value);return[{x,y},{x:x+Math.cos(angle)*speed*10,y:y+Math.sin(angle)*speed*10}];}
+        document.getElementById('preview-launch').onclick=()=>{pauseSim();const [a,b]=launchInput();dragStart=a;dragCurrent=b;dragMode='satellite';draft=true;draw();};
+        document.getElementById('launch-input').onclick=()=>{const [a,b]=launchInput();launchSatellite(a,b);hideDragIndicator();draw();};
+        for(const id of ['launch-x','launch-y','launch-angle','launch-speed'])document.getElementById(id).addEventListener('input',()=>{document.getElementById(id+'-value').textContent=document.getElementById(id).value+(id==='launch-angle'?'°':id==='launch-speed'?' u/t':' u');});
+        canvas.style.touchAction='pan-y';
+        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'700×700 u; origin top-left; x right; y down',running:simRunning,time:simTime,editing,planets:planets.map(p=>({x:p.x,y:p.y,mass:p.mass,radius:p.radius})),satellites:satellites.map(s=>({x:s.x,y:s.y,vx:s.vx,vy:s.vy})),captured:capturedCount,escaped:escapedCount,forecast:forecastPoints,canRemoveLaunch:satellites.some(s=>s.id===lastLaunch)});
+        window.advanceTime=ms=>{pauseSim();for(let i=0;i<Math.round(ms/1000/FIXED_DT);i++)physics(FIXED_DT);updateStatus();draw();};
         function stepSim(){pauseSim();for(let i=0;i<12;i++) physics(FIXED_DT);updateStatus();draw();}
         function loop(timestamp) {
             if(previousFrame===null) previousFrame=timestamp;

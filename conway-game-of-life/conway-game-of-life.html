@@ -25,7 +25,7 @@
         background: var(--sim-bg);
         border: 1px solid var(--sim-border);
         border-radius: 9px;
-        touch-action: none;
+        touch-action: pan-y;
       }
       .sim-stage-panel > canvas { width: calc(100% - 40px); margin: 0 20px; }
       .square-stage { width: calc(100% - 40px); max-width: 680px; margin: 0 auto; }
@@ -86,14 +86,14 @@
             <button class="primary" id="startBtn">시작</button
             ><button id="stopBtn" disabled>일시정지</button
             ><button id="stepBtn">1세대 진행</button
-            ><button id="resetBtn">모두 지우기</button>
+            ><button id="resetBtn">모두 지우기</button><button id="life-undo" disabled>되돌리기</button>
           </div>
           <canvas
             id="grid"
             width="900"
             height="720"
             tabindex="0"
-            aria-label="라이프 게임 30열 24행 격자. 누르거나 끌어서 세포를 편집합니다. 방향키로 칸을 선택하고 스페이스로 바꿀 수 있습니다."
+            aria-label="라이프 게임 30열 24행 격자. 탭으로 관찰합니다. 그리기 모드에서 누르거나 끌어 세포를 편집합니다. 방향키로 칸을 선택하고 스페이스로 바꿀 수 있습니다."
           ></canvas>
           <div class="legend sim-legend">
             <span><i></i>살아 있음</span
@@ -105,7 +105,7 @@
             세대에 돌아옵니다.
           </div>
           <p class="sim-note">
-            누르거나 끌면 <strong>자동 진행이 멈추고</strong> 격자를 편집합니다.
+            관찰 모드에서는 탭으로 칸을 살펴봅니다. <strong>그리기·도장 모드</strong>로 바꾸면 격자를 편집합니다.
             방향키로 칸 선택 · Space로 세포 변경. 세대는 격자 전체에 규칙을 한
             번 적용한 횟수입니다.
           </p>
@@ -113,6 +113,8 @@
         <aside class="sim-controls-panel sim-card-stack">
           <section class="sim-panel sim-panel-body">
             <h2 class="sim-section-title">시작 패턴</h2>
+            <label class="sim-control" for="life-tool">격자 조작<select id="life-tool"><option value="observe">관찰 · 스크롤 가능</option><option value="draw">세포 그리기 · 드래그</option><option value="stamp">도장 찍기 · 탭</option></select></label>
+            <label class="sim-control" for="life-stamp">더할 도장<select id="life-stamp"><option value="glider">글라이더</option><option value="blinker">깜빡이</option><option value="block">고정 블록</option><option value="pentomino">R 펜토미노</option></select></label><div class="preset-row"><button id="life-rotate">도장 회전 · 0°</button><button id="life-place">선택 칸에 도장</button></div><p class="sim-note">도장은 현재 무늬 위에 더합니다. 모서리 밖은 잘립니다. 되돌리기는 최근 30회 편집·세대를 복원합니다.</p>
             <div class="preset-row">
               <button id="blinkerBtn" data-life-pattern="blinker">깜빡이</button
               ><button data-life-pattern="block">고정 블록</button
@@ -204,6 +206,11 @@
           painting = false,
           paintValue = 0,
           previousCell = null;
+        const history=[];
+        let rotation=0, tapStart=null;
+        const stamps={glider:[[0,-1],[1,0],[-1,1],[0,1],[1,1]],blinker:[[-1,0],[0,0],[1,0]],block:[[0,0],[1,0],[0,1],[1,1]],pentomino:[[0,-1],[1,-1],[-1,0],[0,0],[0,1]]};
+        function remember(){history.push({cells:cells.slice(),generation,births,deaths,selected:selected?{...selected}:null});if(history.length>30)history.shift();$('life-undo').disabled=false;}
+        function stamp(){pause();remember();selected=selected||{x:Math.floor(cols/2),y:Math.floor(rows/2)};for(const p of stamps[$('life-stamp').value]){let [dx,dy]=p;for(let r=0;r<rotation;r++)[dx,dy]=[-dy,dx];const x=selected.x+dx,y=selected.y+dy;if(x>=0&&x<cols&&y>=0&&y<rows)cells[index(x,y)]=1;}births=deaths=0;stats();draw();$('life-result').textContent='기존 세포 위에 도장을 더했습니다. 회전한 글라이더들을 만나게 해 보세요.';}
         function index(x, y) {
           return y * cols + x;
         }
@@ -289,6 +296,7 @@
           return { cells: next, births: born, deaths: died };
         }
         function step() {
+          remember();
           const next = evolve(
             cells,
             cols,
@@ -353,7 +361,8 @@
             );
           }
         }
-        function pattern(name) {
+        function pattern(name, keepHistory=true) {
+          if(keepHistory)remember();
           pause();
           cells = new Uint8Array(cols * rows);
           generation = 0;
@@ -435,7 +444,9 @@
           draw();
         }
         canvas.addEventListener("pointerdown", (e) => {
+          if($('life-tool').value!=='draw'){tapStart={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};return;}
           pause();
+          remember();
           painting = true;
           const p = cellAt(e);
           paintValue = 1 - cells[index(p.x, p.y)];
@@ -446,6 +457,7 @@
             "현재 세대를 직접 편집했습니다. 이어서 규칙을 적용할 수 있습니다.";
         });
         canvas.addEventListener("pointermove", (e) => {
+          if(tapStart&&Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y)>10)tapStart.moved=true;
           if (!painting) return;
           const p = cellAt(e);
           paintLine(previousCell, p);
@@ -455,8 +467,8 @@
           painting = false;
           previousCell = null;
         };
-        canvas.addEventListener("pointerup", end);
-        canvas.addEventListener("pointercancel", end);
+        canvas.addEventListener("pointerup",e=>{if(tapStart&&tapStart.id===e.pointerId&&!tapStart.moved&&Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y)<=10){selected=cellAt(e);if($('life-tool').value==='stamp')stamp();else{details();draw();}}tapStart=null;end();});
+        canvas.addEventListener("pointercancel",()=>{tapStart=null;end();});
         window.addEventListener("blur", end);
         canvas.addEventListener("keydown", (e) => {
           const d = {
@@ -484,7 +496,7 @@
               x: Math.floor(cols / 2),
               y: Math.floor(rows / 2),
             };
-            cells[index(selected.x, selected.y)] ^= 1;
+            if($('life-tool').value==='stamp'){stamp();return;}remember();cells[index(selected.x, selected.y)] ^= 1;
             births = deaths = 0;
             stats();
             draw();
@@ -502,6 +514,9 @@
           draw();
         };
         $("resetBtn").onclick = () => pattern("blank");
+        $('life-tool').onchange=()=>{end();canvas.style.touchAction=$('life-tool').value==='draw'?'none':'pan-y';};
+        $('life-rotate').onclick=()=>{rotation=(rotation+1)%4;$('life-rotate').textContent=`도장 회전 · ${rotation*90}°`;};$('life-place').onclick=stamp;
+        $('life-undo').onclick=()=>{const old=history.pop();if(!old)return;pause();({cells,generation,births,deaths,selected}=old);stats();draw();$('life-undo').disabled=!history.length;$('life-result').textContent='이전 편집 또는 한 세대 전으로 복원했습니다.';};
         document
           .querySelectorAll("[data-life-pattern]")
           .forEach((b) => (b.onclick = () => pattern(b.dataset.lifePattern)));
@@ -510,6 +525,7 @@
             $("speedSlider").value + " 세대/초";
         };
         $("life-size").onchange = () => {
+          history.length=0;$('life-undo').disabled=true;
           [cols, rows] = $("life-size").value.split(",").map(Number);
           canvas.setAttribute(
             "aria-label",
@@ -518,9 +534,10 @@
               rows +
               "행 라이프 게임 격자. 방향키로 칸 선택, 스페이스로 세포 변경.",
           );
-          pattern("blank");
+          pattern("blank",false);
         };
         $("life-boundary").onchange = () => {
+          history.length=0;$('life-undo').disabled=true;
           pause();
           generation = 0;
           births = deaths = 0;
@@ -554,6 +571,7 @@
               births,
               deaths,
               selected,
+              undoDepth:history.length,tool:$('life-tool').value,stamp:$('life-stamp').value,rotation,
             };
           },
           evolve,
@@ -572,7 +590,8 @@
             draw();
           },
         };
-        pattern("blinker");
+        window.render_game_to_text=()=>JSON.stringify({mode:"life",...app._model.state});window.advanceTime=ms=>{if(running){for(let n=0;n<Math.floor(ms*Number($("speedSlider").value)/1000);n++)step();stats();draw();}};
+        pattern("blinker",false);
         requestAnimationFrame(frame);
       })();
     </script>

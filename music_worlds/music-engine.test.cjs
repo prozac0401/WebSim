@@ -29,3 +29,23 @@ test('end boundary is stable and comparison is reproducible', () => {
   assert.equal(E.step(s), false); assert.equal(E.promote(s, 0, 0), false); assert.deepEqual(E.stats(s), before);
   assert.deepEqual(E.compare({ seed: 51 }), E.compare({ seed: 51 }));
 });
+test('intervention fork clones the precise state without changing the live experiment', () => {
+  const s = E.run(E.create({ mode: 'visible' }), 37), before = structuredClone(s);
+  const f = E.fork(s, 2, 4); assert.deepEqual(s, before); assert.equal(f.at, 37); assert.equal(f.to, 400);
+  const natural = E.run(structuredClone(s)); assert.deepEqual(f.control, natural);
+  const manual = structuredClone(s); E.promote(manual, 2, 4); E.run(manual); assert.deepEqual(f.promoted, manual);
+  for (const i of [0, 1, 3]) assert.deepEqual(f.control.worlds[i], f.promoted.worlds[i]);
+  assert.deepEqual(f, E.fork(s, 2, 4));
+});
+test('fork holds audience taste fixed and guarantees exposure for only the next twenty arrivals', () => {
+  const s = E.run(E.create({ mode: 'independent' }), 9), f = E.fork(s, 1, 6, 20);
+  assert.equal(f.promoted.worlds[1].exposures[6] - f.initialExposures, 20);
+  assert.equal(f.promoted.worlds[1].promotion, null); assert.equal(f.checkpoints.length, 20);
+  assert.deepEqual(f.promoted.worlds[1].last.taste, f.control.worlds[1].last.taste);
+  assert.equal(f.promoted.listeners, f.control.listeners);
+});
+test('fork rejects overlapping promotions and horizon exhaustion, truncates late promotion', () => {
+  const s = E.run(E.create(), 395); const f = E.fork(s, 0, 0);
+  assert.equal(f.to, 400); assert.equal(f.checkpoints.length, 5); assert.equal(f.promoted.interventions.at(-1).listeners, 5);
+  E.promote(s, 0, 0); assert.equal(E.fork(s, 0, 1), null); E.run(s); assert.equal(E.fork(s, 1, 1), null);
+});

@@ -7,18 +7,18 @@
  <section class="sim-stage-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">LIVE PREVIEW</span><h2>내용을 담은 작은 무늬</h2></div><span class="qr-chip">PNG · 선명한 정수 픽셀</span></div>
  <div class="qr-display" id="qr-display"><div class="placeholder">내용을 입력해 주세요.</div></div>
  <div class="sim-stat-grid"><div class="sim-stat"><span>자동 선택 버전</span><strong id="qr-version">—</strong></div><div class="sim-stat"><span>코드 격자</span><strong id="qr-modules">—</strong></div><div class="sim-stat"><span>한 칸 크기</span><strong id="qr-pitch">—</strong></div></div>
- <p id="qr-status" class="sim-note" role="status" aria-live="polite"></p><div class="sim-toolbar"><button class="sim-primary" id="download-btn" onclick="QRGen.downloadQRCode()" style="display:none">PNG 다운로드</button></div>
+ <p id="qr-status" class="sim-note" role="status" aria-live="polite"></p><div class="sim-toolbar"><button class="sim-primary" id="download-btn" onclick="QRGen.downloadQRCode()" style="display:none">PNG 다운로드</button><button id="svg-download" disabled>SVG 다운로드</button><button id="copy-qr" disabled>이미지 복사</button></div>
  <p class="sim-note">코드 바깥에는 네 칸 이상의 빈 여백이 함께 저장됩니다. 저장한 그림을 휴대폰으로 읽고 내용을 확인하세요.</p></section>
  <aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">CREATE & SHARE</span><h2>공유할 내용</h2></div></div>
  <label class="sim-control" for="qr-text">텍스트 또는 URL<textarea id="qr-text" maxlength="800" rows="5" placeholder="https://… 또는 원하는 텍스트">https://prozac0401.tistory.com</textarea></label><div class="qr-count" id="char-counter"></div>
  <div class="qr-options"><label class="sim-control" for="qr-size">저장 크기<select id="qr-size"><option value="256">256 × 256px</option><option value="300" selected>300 × 300px</option><option value="350">350 × 350px</option><option value="400">400 × 400px</option><option value="600">600 × 600px</option><option value="1000">1000 × 1000px</option></select></label><label class="sim-control" for="error-correction">오류 보정<select id="error-correction"><option value="L">L · 약 7%</option><option value="M" selected>M · 약 15%</option><option value="Q">Q · 약 25%</option><option value="H">H · 약 30%</option></select></label></div>
  <div class="qr-options"><label class="sim-control" for="fg-color">코드 색<div class="qr-color"><input id="fg-color" type="color" value="#000000"><span>#000000</span></div></label><label class="sim-control" for="bg-color">배경 색<div class="qr-color"><input id="bg-color" type="color" value="#ffffff"><span>#ffffff</span></div></label></div>
- <p class="sim-note">보정 비율은 전체 코드워드에 대한 복원 비율입니다. 무늬의 같은 비율을 가려도 읽힌다는 보장은 아닙니다. 입력이 길수록 격자가 촘촘해집니다.</p><p class="sim-note">입력한 내용이 그대로 코드에 저장됩니다. 웹주소는 https://를 포함해 넣고, 배포 전 도착 주소를 확인하세요.</p></aside>
+ <div class="button-row" role="group" aria-label="QR 색 조합"><button data-qr-palette="#000000,#ffffff">검정 · 흰색</button><button data-qr-palette="#174d3c,#f7faed">숲 · 종이</button><button data-qr-palette="#343955,#fcf7ed">밤 · 크림</button></div><p class="sim-note">SVG는 크게 확대해도 칸이 선명합니다. 색 조합은 코드 내용과 보정 수준을 바꾸지 않습니다.</p><p class="sim-note">보정 비율은 전체 코드워드에 대한 복원 비율입니다. 무늬의 같은 비율을 가려도 읽힌다는 보장은 아닙니다. 입력이 길수록 격자가 촘촘해집니다.</p><p class="sim-note">입력한 내용이 그대로 코드에 저장됩니다. 웹주소는 https://를 포함해 넣고, 배포 전 도착 주소를 확인하세요.</p></aside>
 </div></main><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous"></script>
 <script>
 window.QRGen = (function() {
     'use strict';
-    var generatedCanvas = null;
+    var generatedCanvas = null, generatedSvg = null, generatedInfo = null;
     var timer = null;
     function $(id) { return document.getElementById(id); }
     function luminance(hex) {
@@ -56,7 +56,7 @@ window.QRGen = (function() {
     function queueGeneration() {
         clearTimeout(timer);
         // Immediately invalidate an older image while the new input is pending.
-        generatedCanvas = null;
+        generatedCanvas = null;generatedSvg=null;generatedInfo=null;$("svg-download").disabled=$("copy-qr").disabled=true;
         $('download-btn').style.display = 'none';
         timer = setTimeout(generate,100);
     }
@@ -68,7 +68,7 @@ window.QRGen = (function() {
         var size = Number($('qr-size').value);
         var fg = $('fg-color').value;
         var bg = $('bg-color').value;
-        generatedCanvas = null;
+        generatedCanvas = null;generatedSvg=null;generatedInfo=null;$("svg-download").disabled=$("copy-qr").disabled=true;
         display.innerHTML = '';
         $('download-btn').style.display = 'none';
         $('char-counter').textContent = Array.from(text).length + '자 · ' + new TextEncoder().encode(text).length + ' UTF-8 bytes';
@@ -110,6 +110,10 @@ window.QRGen = (function() {
             }
             display.appendChild(canvas);
             generatedCanvas = canvas;
+            var path='';for(var r=0;r<count;r++)for(var c=0;c<count;c++)if(model.isDark(r,c))path+='M'+(c+4)+' '+(r+4)+'h1v1h-1z';
+            generatedSvg='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+modules+' '+modules+'" shape-rendering="crispEdges"><title>QR code</title><path fill="'+bg+'" d="M0 0h'+modules+'v'+modules+'H0z"/><path fill="'+fg+'" d="'+path+'"/></svg>';
+            generatedInfo={version:model.typeNumber,modules:count,pitch,quietZone:4,size,level,foreground:fg,background:bg,darkModules:path.split('M').length-1};
+            $('svg-download').disabled=$('copy-qr').disabled=false;
             $('qr-version').textContent='V'+model.typeNumber;
             $('qr-modules').textContent=count+' × '+count;
             $('qr-pitch').textContent=pitch+'px / 칸';
@@ -143,6 +147,11 @@ window.QRGen = (function() {
                 if(span) span.textContent=this.value;
             });
         });
+        $('svg-download').onclick=()=>{if(!generatedSvg)return;const url=URL.createObjectURL(new Blob([generatedSvg],{type:'image/svg+xml'})),a=document.createElement('a');a.href=url;a.download='qrcode.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+        $('copy-qr').onclick=async()=>{if(!generatedCanvas)return;try{if(!navigator.clipboard?.write||!window.ClipboardItem)throw new Error('unavailable');const blob=await new Promise(resolve=>generatedCanvas.toBlob(resolve,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);$('qr-status').textContent='QR 이미지를 복사했습니다. 문서나 메시지에 붙여 넣으세요.';}catch{$('qr-status').textContent='이 브라우저에서는 이미지 복사를 사용할 수 없습니다. PNG 다운로드로 저장해 주세요.';}};
+        document.querySelectorAll('[data-qr-palette]').forEach(button=>button.onclick=()=>{const colors=button.dataset.qrPalette.split(',');['fg-color','bg-color'].forEach((id,i)=>{$(id).value=colors[i];$(id).parentNode.querySelector('span').textContent=colors[i];});queueGeneration();});
+        window.render_game_to_text=()=>JSON.stringify({mode:'qr',ready:!!generatedCanvas,characters:Array.from($('qr-text').value).length,bytes:new TextEncoder().encode($('qr-text').value).length,code:generatedInfo});
+        window.advanceTime=()=>{clearTimeout(timer);generate();};
         generate();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);

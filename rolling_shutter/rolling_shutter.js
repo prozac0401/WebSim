@@ -5,7 +5,7 @@
   let settings = {...E.DEFAULTS}, mission = E.MISSIONS[0], progress = 1, running = false, scanned = false;
   let manual = false, last = null, queued = false, snapshot, globalPhoto, reference, score = null;
   let photoCanvas, globalCanvas, referenceCanvas, differenceCanvas, instantCanvas;
-  let expanded = false, currentInstantTime = 0;
+  let expanded = false, currentInstantTime = 0, scanPanel=null;
   const completed = new Set();
   try { JSON.parse(localStorage.getItem('websim.camera.solved.v1') || '[]').filter(id => E.MISSIONS.some(m => m.id === id)).forEach(id => completed.add(id)); } catch (_) {}
   const message = text => { $('message').textContent = text; };
@@ -80,6 +80,9 @@
     if (progress >= 1) { running=false; message('촬영 완료. 위와 아래가 서로 다른 시각에 기록된 한 장의 사진입니다.'); }
   }
   function syncStats() {
+    $('scan-scrub').value=String(Math.round(progress*100));$('scrub-value').textContent=Math.round(progress*100)+'%';
+    const row=Math.min(SIZE-1,Math.floor((settings.direction==='down'?progress:1-progress)*SIZE)),startMs=E.rowStart(row,SIZE,settings)*1000;
+    $('row-time').textContent='위에서 '+(row+1)+'번째 줄 · 노출 '+startMs.toFixed(1)+'–'+(startMs+settings.exposure).toFixed(1)+' ms · 사진의 줄을 탭해 보세요.';
     const previouslySolved=!!mission&&completed.has(mission.id);
     const currentlySolved=previouslySolved&&score!==null&&score>=96;
     $('score-stat').textContent=score===null?'자유 실험':score.toFixed(1)+'%';
@@ -117,6 +120,7 @@
     if(compare==='instant') {instantCanvas=toCanvas(E.render(settings,192,192,'instant',currentInstantTime),instantCanvas);left=instantCanvas;title='실제 순간 모습';subtitle='모든 점이 같은 시각 · t = '+(currentInstantTime*1000).toFixed(0)+' ms';}
     if(compare==='global'){left=globalCanvas;title='글로벌 셔터 사진';subtitle='모든 줄을 동시에 노출 · 같은 노출 길이';}
     const x1=portrait?30:narrow?20:26,y1=narrow?52:68,size=portrait?400:narrow?200:410,x2=portrait?30:narrow?240:464,y2=portrait?558:y1;
+    scanPanel={x:x2,y:y2,size};
     drawPanel(left||globalCanvas,x1,y1,size,narrow?({'instant':'순간 모습','global':'글로벌 사진','reference':'기준 사진'}[compare]):title,narrow?(compare==='reference'?'추리할 사진':compare==='global'?'모든 줄을 동시에':'t = '+(currentInstantTime*1000).toFixed(0)+' ms'):subtitle,false,narrow);
     drawPanel(photoCanvas,x2,y2,size,narrow?'내 사진 · 롤링':'내 롤링 셔터 사진',narrow?(settings.direction==='down'?'위 → 아래':'아래 → 위'):(settings.direction==='down'?'위에서 아래로 · 줄마다 다른 시각':'아래에서 위로 · 줄마다 다른 시각'),true,narrow);
     const footerY=portrait?986:narrow?274:507;
@@ -127,6 +131,10 @@
     syncStats();
   }
   $('capture').onclick=start; $('pause').onclick=togglePause; $('step').onclick=step;
+  function scrub(value){running=false;scanned=true;progress=Math.max(0,Math.min(1,value));draw();}
+  $('scan-scrub').oninput=e=>scrub(Number(e.target.value)/100);
+  canvas.style.touchAction='pan-y';
+  canvas.addEventListener('click',e=>{if(!scanPanel)return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height,p=scanPanel;if(x<p.x||x>p.x+p.size||y<p.y||y>p.y+p.size)return;const fraction=(y-p.y)/p.size;scrub(settings.direction==='down'?fraction:1-fraction);});
   $('reset').onclick=()=>{if(!mission)settings={...E.DEFAULTS};chooseMission($('mission').value);};
   $('mission').onchange=()=>chooseMission($('mission').value);
   $('comparison').onchange=draw; $('difference').onchange=draw;

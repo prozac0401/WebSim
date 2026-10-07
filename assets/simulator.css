@@ -290,3 +290,16 @@ body.websim-page {
   .lab-footer { flex-direction: column; gap: 9px; margin-top: 25px; padding-bottom: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .sim-app button, .sim-button { transition: none; } }
+
+.lab-appearance{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+.ambient-toggle,.lab-focus-toggle,.lab-focus-exit{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:7px 12px;border:1px solid var(--sim-border);border-radius:99px;background:var(--sim-surface);color:var(--sim-muted);font:600 11px/1.4 var(--sim-font);cursor:pointer;white-space:nowrap}
+.ambient-toggle svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.ambient-toggle[aria-pressed=true]{color:var(--sim-accent);background:#f3f7ef;border-color:#ccdccc}
+.ambient-toggle:hover:not(:disabled),.lab-focus-toggle:hover,.lab-focus-exit:hover{border-color:var(--sim-accent)}
+.ambient-toggle:focus-visible,.lab-focus-toggle:focus-visible,.lab-focus-exit:focus-visible{outline:3px solid #a8c6b3;outline-offset:3px}
+.ambient-toggle:disabled{cursor:default;color:var(--sim-muted)}
+.lab-focus-exit{position:fixed;top:10px;right:max(16px,calc((100vw - var(--websim-width))/2));z-index:5000;box-shadow:0 3px 18px #1c312416;min-height:44px;color:var(--sim-accent)}
+.lab-focus-exit[hidden]{display:none}
+.lab-focus>.lab-topbar,.lab-focus>.lab-heading,.lab-focus>.lab-footer{display:none}
+.lab-focus>.sim-app{padding-top:66px;margin-bottom:24px}
+@media(max-width:540px){.lab-appearance{justify-content:flex-start;gap:7px}.ambient-toggle,.lab-focus-toggle{min-height:44px}}
