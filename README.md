@@ -12,7 +12,7 @@
 
 ## 무리와 사회
 
-- [지름길을 닫아라](braess_city/braess_city.html) — 도로를 열고 닫으며, 각자의 빠른 선택이 도시 전체의 통근 시간을 어떻게 바꾸는지 비교합니다. · [사용법](braess_city/braess_city_doc.html)
+- [지름길을 닫아라](braess_city/braess_city.html) — 원형·강과 다리·순환도로·격자·두 지름길의 다섯 도시에서 도로를 열고 닫고, 경로 재선택과 같은 조건의 개폐 결과를 비교합니다. · [사용법](braess_city/braess_city_doc.html)
 - [보물지도 연구소](treasure_lab/treasure_lab.html) — 탐사대를 보내고 발견을 공유하는 시점을 바꾸며, 새 보물을 찾는 일과 이미 찾은 보물을 활용하는 일을 비교합니다. · [사용법](treasure_lab/treasure_lab_doc.html)
 - [인기곡의 평행우주](music_worlds/music_worlds.html) — 같은 곡으로 여러 음악 시장을 시작하고, 인기 정보와 추천 노출이 서로 다른 성공을 만드는지 비교합니다. · [사용법](music_worlds/music_worlds_doc.html)
 - [줄 선 쪽이 정답일까?](information_cascade/information_cascade.html) — 나만의 힌트와 앞사람의 선택으로 답을 고른 뒤, 숨은 정보를 공개하고 순서를 바꿔 다시 실험합니다. · [사용법](information_cascade/information_cascade_doc.html)
@@ -65,7 +65,7 @@ DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simula
 모든 실험의 제목 옆 **집중 보기**로 제목과 안내를 접고 실험과 조작에 집중할 수 있습니다. 화면 위 복귀 버튼 또는 Esc로 원래 화면과 스크롤 위치로 돌아옵니다. **효과 켜짐 / 꺼짐**은 물빛·탐색 흔적·부드러운 전환 등 제공되는 장식 효과를 조절합니다. 선택은 같은 브라우저에 기억되며 기기의 동작 줄이기 설정을 따릅니다. 시각 효과는 실험의 계산과 난수에 영향을 주지 않습니다.
 
 ```sh
-node --test braess_city/traffic-engine.test.cjs treasure_lab/treasure-engine.test.cjs microbial_commons/microbe-engine.test.cjs reef_market/reef-engine.test.cjs music_worlds/music-engine.test.cjs information_cascade/cascade-engine.test.cjs
+node --test braess_city/traffic-engine.test.cjs braess_city/road-network.test.cjs treasure_lab/treasure-engine.test.cjs microbial_commons/microbe-engine.test.cjs reef_market/reef-engine.test.cjs music_worlds/music-engine.test.cjs information_cascade/cascade-engine.test.cjs
 ```
 
 
