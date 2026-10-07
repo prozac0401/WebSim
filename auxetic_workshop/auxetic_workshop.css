@@ -1,0 +1,10 @@
+/* Local canvas/mission additions; typography, panels and controls use the shared lab theme. */
+#auxetic-app .comparison-option{display:flex;align-items:center;gap:9px;margin:20px 0 12px;font-size:12px;cursor:pointer}
+#auxetic-app #mission-result{min-height:38px;margin:-6px 0 18px;color:var(--sim-accent)}
+#auxetic-app #lock-count{color:var(--sim-muted);font-size:10px;font-weight:500}
+#auxetic-app .stage-expanded{position:fixed;inset:0;z-index:10000;margin:0;display:grid;place-items:center;background:var(--sim-bg);border:0;border-radius:0}
+#auxetic-app .stage-expanded canvas{width:auto;height:auto;max-width:100%;max-height:100dvh;object-fit:contain}
+#auxetic-app #stage:fullscreen canvas{max-height:100dvh}
+#auxetic-app .fullscreen-exit{display:none}
+#auxetic-app .stage-expanded .fullscreen-exit,#auxetic-app #stage:fullscreen .fullscreen-exit{display:inline-flex;position:absolute;right:12px;top:12px;z-index:1;min-height:44px;min-width:72px;background:var(--sim-surface)}
+#auxetic-app .sim-stat small{font-size:10px}

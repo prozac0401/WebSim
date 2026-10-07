@@ -1,11 +1,12 @@
 # WebSim
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 18개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 21개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
 ## 생활과 도구
 
+- [이상한 카메라](rolling_shutter/rolling_shutter.html) — 줄마다 다른 순간을 찍는 카메라로, 휘어진 사진의 촬영 조건을 찾아봅니다. · [사용법](rolling_shutter/rolling_shutter_doc.html)
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
 - [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · 관련 글 미등록
 
@@ -27,6 +28,8 @@
 
 ## 우주와 물리
 
+- [그림자 조각 공방](shadow_sculpture/shadow_sculpture.html) — 두 방향의 그림자를 맞추고, 같은 그림자를 남기는 더 작은 조각을 만듭니다. · [사용법](shadow_sculpture/shadow_sculpture_doc.html)
+- [늘리면 넓어지는 구조물](auxetic_workshop/auxetic_workshop.html) — 잡아당길 때 옆으로도 넓어지는 구조를 만들고, 목표 크기에 맞춰 봅니다. · [사용법](auxetic_workshop/auxetic_workshop_doc.html)
 - [잉크 타임머신](ink_time_machine/ink_time_machine.html) — 섞은 잉크를 반대로 돌려 되살리고, 확산이 남기는 차이를 비교합니다. · [사용법](ink_time_machine/ink_time_machine_doc.html)
 - [소리 미로](sound_maze/sound_maze.html) — 음원과 벽을 옮기고 위상을 바꿔, 조용한 자리를 찾습니다. · [사용법](sound_maze/sound_maze_doc.html)
 - [클릭으로 만드는 우주](cosmic-simulator-single-div/cosmic-simulator-single-div.html) — 천체 생성·이동·합쳐짐 관찰 · [사용법](cosmic-simulator-single-div/cosmic-simulator-single-div_doc.html) · [관련 글](https://prozac0401.tistory.com/56)
@@ -37,7 +40,7 @@
 - [포식자와 먹이의 관계](predator_prey_simulator/predator_prey_simulator.html) — 식물·초식동물·육식동물의 수 변화 · [사용법](predator_prey_simulator/predator_prey_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/69)
 - [개미와 땅속 양분](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator.html) — 양분 운반과 식물 변화 · [사용법](ant_nitrogen_cycle_simulator/ant_nitrogen_cycle_simulator_doc.html)
 
-주말 회복 플래너, QR 코드 만들기, 반복해서 만드는 나무와 무늬, DLA, 개미와 땅속 양분, 잉크 타임머신, 소리 미로, 진화하는 탈것의 관련 블로그 글은 ‘관련 글 미등록’으로 표시합니다. 실행 화면과 사용법은 사용할 수 있습니다.
+주말 회복 플래너, QR 코드 만들기, 반복해서 만드는 나무와 무늬, DLA, 개미와 땅속 양분, 잉크 타임머신, 소리 미로, 진화하는 탈것, 그림자 조각 공방, 늘리면 넓어지는 구조물, 이상한 카메라의 관련 블로그 글은 ‘관련 글 미등록’으로 표시합니다. 실행 화면과 사용법은 사용할 수 있습니다.
 
 ## 로컬에서 확인하기
 
@@ -48,3 +51,5 @@ DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simula
 실험 화면은 조작, 관찰 지표, 규칙 설명을 가까이 배치한 반응형 실험실입니다. 실행·멈춤·단일 단계로 변화를 비교하고, 설명서에서 원 논문·저자 자료와 이 구현의 가정을 확인하세요. 시간·거리·양분 등의 단위, 경계 조건, 수치 근사, 지표의 정의를 함께 밝혔습니다. 주말 플래너의 점수는 설정한 가정 안에서 계획을 비교하는 지수입니다.
 
 새 실험의 파동 간섭·측정 조건·차량 주행·유전 보존·시드 재현성은 `node --test tests/new-labs.test.cjs`로 검사할 수 있습니다. 새 실험은 별도 빌드나 외부 CDN 없이 실행되며, 탈것의 Matter.js 0.20.0과 MIT 라이선스는 해당 폴더의 `vendor/`에 포함되어 있습니다.
+
+그림자 투영·최소 블록, 회전 구조의 연결·변형, 시간차 촬영·사진 비교 검증은 `node --test shadow_sculpture/shadow-engine.test.cjs auxetic_workshop/auxetic-engine.test.cjs rolling_shutter/shutter-engine.test.cjs`로 실행합니다. 세 실험은 외부 라이브러리나 빌드 없이 동작합니다.

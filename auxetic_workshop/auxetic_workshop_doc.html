@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="늘리면 넓어지는 구조물의 조작과 미션, 회전 직사각형의 기하학, 연결 잠금의 의미를 설명합니다."><title>늘리면 넓어지는 구조물 사용법 · WebSim</title><link rel="stylesheet" href="../assets/docs.css"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><script src="../assets/docs.js" defer></script></head>
+<body class="doc-page"><a class="skip-link" href="#guide">사용법 본문으로</a><main class="doc-shell">
+<nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="auxetic_workshop.html">직접 해보기 →</a><span class="blog-pending">관련 글 미등록</span></nav>
+<header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>늘리면 넓어지는 구조물 사용법</h1><p class="doc-lead">가로로 당겼는데 세로까지 커집니다. 판 자체가 늘어나는 대신 연결점에서 회전하도록 만들어, 모양이 전체의 움직임을 어떻게 바꾸는지 살펴보세요.</p></header>
+<article class="doc-content" id="guide">
+<h2>처음 세 단계</h2><ol><li><strong>정사각형</strong> 구조의 양옆 손잡이를 바깥으로 끌어 보세요. 가로와 세로가 함께 커지지만 초록 판의 변 길이는 그대로입니다. <strong>조금 더 늘리기</strong>나 <strong>닫힘 대비 가로 늘림</strong> 슬라이더로도 조작할 수 있습니다.</li><li>연결점 하나를 누르고 <strong>선택 연결 잠그기</strong>를 누릅니다. 다시 당겨도 움직이지 않습니다. 잠금을 풀면 같은 위치에서 이어서 움직입니다.</li><li><strong>긴 직사각형</strong>을 불러오고 조금씩 더 당깁니다. 가로가 넓어지면서 세로가 줄어드는 구간을 찾아보세요. 판 모양과 현재 회전 각도가 반응을 결정합니다.</li></ol>
+<h2>세 가지 목표</h2><ul><li><strong>01 · 창에 꼭 맞추기:</strong> 가로 6.50 u, 세로 5.20 u인 파란 창에 정사각형 격자를 맞춥니다. 두 길이가 각각 0.065 u 이내이면 달성입니다.</li><li><strong>02 · 잠긴 연결 풀기:</strong> 이미 잠겨 있는 산호색 연결을 선택해 풉니다. 모든 잠금을 풀고 가로 6.25 u, 세로 5.00 u인 창에 맞추세요. 허용 오차는 각 길이 0.065 u입니다.</li><li><strong>03 · 더 넓게, 더 낮게:</strong> 세로로 긴 판이 가장 높은 상태에서 시작합니다. 가로를 더 늘려 약 5.38 u × 4.18 u인 창에 맞춥니다. 허용 오차는 각 길이 0.045 u입니다. 이 미션의 회색 기준선과 변화율은 <strong>완전히 닫힌 모습이 아니라 미션의 시작 상태</strong>를 기준으로 합니다.</li></ul>
+<p>미션에서는 판 모양이 고정됩니다. 자유 실험으로 돌아가면 가로/세로 비를 0.50~2.00으로 바꿀 수 있습니다. 구조 불러오기는 자유 실험으로 전환하며, 판 모양 변경은 기존 잠금을 풀고 닫힌 상태를 새 기준으로 정합니다. <strong>다시 시작</strong>은 현재 미션 또는 불러온 구조를 처음 상태로 되돌립니다. 직접 조절한 구조에서는 정사각형 기본 구조로 돌아갑니다.</p>
+<h2>연결 선택과 조작</h2><p>연결점은 초록색 점입니다. 선택한 점에는 흰 테두리가, 잠긴 점에는 산호색 ×가 표시됩니다. 화면을 누르기 어려우면 <strong>선택한 연결</strong> 목록에서 행·열로 고른 뒤 잠금 버튼을 누르세요. 잠긴 점은 여전히 현재 모양의 같은 꼭짓점에 남습니다.</p><ul><li><strong>손잡이:</strong> 양옆 손잡이를 끌어 가로 길이를 바꿉니다. 좌우가 대칭으로 움직입니다.</li><li><strong>키보드:</strong> 실험 화면에 초점을 두고 ← / →는 닫힘 대비 가로 늘림을 1%p, Shift와 함께 누르면 5%p 바꿉니다. L은 선택한 연결의 잠금을 바꿉니다. 나머지 조작은 Tab으로 버튼·목록·슬라이더에 접근합니다.</li><li><strong>전체화면:</strong> 버튼 또는 F로 열고 Esc로 나옵니다. 브라우저 전체화면이 지원되지 않으면 화면을 채우는 보기로 전환합니다.</li><li><strong>PNG 저장:</strong> 현재 구조·목표 창·비교선을 그림으로 저장합니다.</li></ul>
+<h2>숫자와 비교선 읽기</h2><p><strong>가로·세로 길이</strong>는 실제로 그린 모든 판의 바깥 꼭짓점 범위입니다. u는 모형의 길이 단위이며 판 하나의 세로 길이를 1 u로 정했습니다. <strong>기준 대비 변화</strong>는 회색 기준 외곽과 비교한 길이 변화율입니다. 자유 실험과 첫 두 미션은 완전히 닫힌 격자, 세 번째 미션은 최대 높이 상태가 기준입니다.</p><p><strong>닫힘 대비 가로 늘림</strong> 슬라이더는 모든 모드에서 닫힌 격자의 가로 길이를 기준으로 합니다. 세 번째 미션에서 이 슬라이더가 약 78.9%로 시작해도, 시작 기준의 가로·세로 변화는 모두 0%입니다. 두 숫자는 기준이 다릅니다.</p><p><strong>반복 셀의 빈틈</strong>은 반복 격자의 면적 중 판이 차지하지 않는 비율입니다. 재료가 변형된 정도나 강도가 아닙니다. 화면에 표시된 판 회전 각도는 정렬된 상태에서 각 판이 돌아간 각도이며 이웃 판은 반대 방향으로 돕니다.</p><p><strong>산호색 점선</strong>은 같은 가로 길이에서 면적을 일정하게 유지하는 사각 비교막입니다. 가로를 늘리면 높이가 줄어드는 비교 사례입니다. 특정 고무나 금속의 실제 반응을 나타내지 않습니다. 파란 창은 미션 목표이며, 목표 오차는 현재 길이와 목표 길이의 절댓값 차이입니다.</p>
+<h2>더 살펴볼 실험</h2><ul><li><strong>잠금 두 개:</strong> 서로 다른 연결 둘을 잠근 뒤 하나만 풀어 보세요. 남은 하나가 여전히 전체 움직임을 막습니다.</li><li><strong>판의 비율:</strong> 자유 실험에서 0.50, 1.00, 2.00을 비교하세요. 가로로 늘릴 수 있는 최대 범위와 세로의 반응이 달라집니다.</li><li><strong>회전 끝:</strong> 슬라이더를 끝까지 옮기세요. 판이 회전할 수 있는 다른 기하학적 배치가 있더라도, 이 실험은 가로 길이가 계속 증가하는 구간의 끝에서 멈춥니다.</li></ul>
+<details class="doc-principles"><summary>제작 원리와 학술적 의미</summary>
+<h3>회전하는 강체 단위와 오제틱 거동</h3><p>오제틱(auxetic) 구조는 당기는 방향에 수직인 방향으로도 커지는 거동을 보입니다. 이 화면은 꼭짓점 힌지로 연결된 강체 판이 번갈아 회전하는 기구학적 모형입니다. 정사각형 격자는 가로·세로가 같은 비율로 커집니다. 직사각형에서는 변의 비와 회전 구간에 따라 반응이 달라집니다.</p>
+<h3>실제로 그리는 기하</h3><p>각 판은 가로 a, 세로 b = 1인 직사각형입니다. 5열 × 4행의 판을 배치하며, 이웃한 판의 회전은 +θ와 −θ로 번갈아 나타납니다. 가로로 이웃한 판의 오른쪽·왼쪽 끝 꼭짓점, 세로로 이웃한 판의 아래·위 끝 꼭짓점이 정확히 같은 위치가 되도록 판 중심의 간격을 계산합니다.</p><pre><code>가로 중심 간격 dx = a cos θ + b sin θ
+세로 중심 간격 dy = a sin θ + b cos θ
+격자 가로 W = 5 dx       격자 세로 H = 4 dy
+닫힘 대비 가로 늘림 εx = W / (5a) − 1
+반복 셀 빈틈 비율 = 1 − ab / (dx dy)</code></pre><p>크기와 빈틈 수치는 위 식에 맞춰 그린 같은 판들에서 나옵니다. 슬라이더로 정한 W에서 θ를 역산하므로 손잡이와 숫자 조작은 같은 기하를 만듭니다.</p><pre><code>φ = atan2(b, a)
+θ = φ − acos[a(1 + εx) / √(a² + b²)]
+0 ≤ θ ≤ φ
+최대 가로 늘림 = √(a² + b²) / a − 1</code></pre><p>이 구간에서 가로는 단조롭게 증가합니다. 높이의 변화 방향은 d(dy)/dθ = a cos θ − b sin θ로 결정됩니다. a &lt; b일 때 θ = atan(a/b)에서 높이가 최대이며, 그 뒤에는 더 당겨도 높이가 감소합니다. 세 번째 미션은 이 최대 높이를 출발점으로 삼습니다.</p>
+<h3>잠금이 전체에 작용하는 이유</h3><p>계산에서 모든 판은 하나의 공통 각도 θ를 공유합니다. 인접한 두 판의 상대 각도 변화는 ±2θ이므로, 내부 힌지 하나의 상대 각도를 고정하면 θ도 고정됩니다. 따라서 어느 연결을 잠그든 구조 전체가 멈춥니다. 잠금은 현재 θ에서 적용되며 구조를 강제로 다른 모양으로 바꾸지 않습니다.</p><p>이것은 균일하게 함께 움직이는 <strong>1자유도 축약 모형</strong>의 제약입니다. 실제 유한 격자의 비균일한 변형이나 경계의 자유도를 모두 계산한 결과가 아닙니다. 연결을 끊거나 일부 영역만 늘리는 기능, 임의의 고정점에서 방향별로 열리는 기능은 제공하지 않습니다.</p>
+<h3>기준과 비교막</h3><pre><code>기준 대비 가로 변화 = 100 × (W / Wref − 1)
+기준 대비 세로 변화 = 100 × (H / Href − 1)
+면적 일정 비교막 높이 = Wref × Href / W</code></pre><p>대부분의 실험에서 Wref = 5a, Href = 4b입니다. 세 번째 미션은 θref = atan(a/b)에서 구한 Wref, Href를 사용합니다. 비교막은 기준 면적을 유지하는 별도의 기하 모형이며, 힘이나 응력에 의한 재료 해석은 아닙니다.</p>
+<h3>범위와 가정</h3><p>판은 두께 없는 변형 불가능한 직사각형, 힌지는 마찰과 탄성이 없는 점 연결입니다. 완전히 닫힌 θ = 0에서는 이웃 판의 변들이 맞닿습니다. 두께·접촉 힘·마찰·중력·관성·좌굴·파손·힘과 변위의 관계는 계산하지 않습니다. 화면에는 시간에 따라 생기는 물리적 운동이 아니라 입력 길이에 대응하는 기하를 즉시 표시합니다. 손잡이를 당기는 속도는 결과에 영향을 주지 않습니다.</p>
+<h3>참고자료</h3><ul><li>Grima, J. N. &amp; Evans, K. E. (2000). <a href="https://www.um.edu.mt/library/oar/handle/123456789/18456" target="_blank" rel="noopener noreferrer">Auxetic behavior from rotating squares</a>. Journal of Materials Science Letters, 19, 1563–1565.</li><li>Grima, J. N., Alderson, A. &amp; Evans, K. E. (2005). <a href="https://onlinelibrary.wiley.com/doi/10.1002/pssb.200460376" target="_blank" rel="noopener noreferrer">Auxetic behaviour from rotating rigid units</a>. Physica Status Solidi B, 242, 561–575.</li></ul>
+</details></article>
+<footer class="doc-footer"><nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="auxetic_workshop.html">직접 해보기 →</a><span class="blog-pending">관련 글 미등록</span></nav></footer>
+</main></body></html>

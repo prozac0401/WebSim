@@ -1,0 +1,16 @@
+#camera-app .camera-compare{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 20px 0;font-size:12px;color:var(--sim-muted)}
+#camera-app .camera-compare select{width:auto;min-height:36px;padding:6px 10px;border:1px solid var(--sim-border);border-radius:8px;background:var(--sim-surface);font:inherit;color:var(--sim-ink)}
+#camera-app .camera-check{display:flex;gap:5px;align-items:center;margin-left:auto}
+#camera-app .camera-check input{accent-color:var(--sim-accent);width:17px;height:17px}
+#camera-app .camera-clue{font-size:12px;line-height:1.8;color:var(--sim-muted);margin:0 0 18px;word-break:keep-all}
+#camera-app .camera-fixed{float:right;font-size:11px;color:var(--sim-muted)}
+#camera-app .sim-control:has(input:disabled),#camera-app .sim-control:has(select:disabled){opacity:.62}
+#camera-app .experiment-stage canvas{cursor:default;display:block}
+#camera-app #stage{position:relative}
+#camera-app #exit-fullscreen{position:absolute;right:12px;top:12px;z-index:2;background:var(--sim-surface)}
+#camera-app .camera-mobile-score{display:none}
+#camera-app #stage.camera-expanded{position:fixed;inset:0;z-index:10000;margin:0;border:0;border-radius:0;background:var(--sim-bg);display:grid;place-items:center}
+#camera-app .camera-expanded canvas{max-width:100%;max-height:100dvh;width:auto;height:auto;object-fit:contain}
+#camera-app .camera-expanded::after{content:'Esc 또는 F · 전체화면 닫기';position:absolute;right:14px;bottom:10px;font-size:12px;color:var(--sim-muted);background:var(--sim-surface);padding:5px 9px;border-radius:8px;pointer-events:none}
+@media(max-width:540px){#camera-app .camera-compare{margin:6px 0 7px;gap:6px}#camera-app .camera-compare>label:first-child{display:none}#camera-app .camera-compare label{font-size:11px}#camera-app .camera-check{margin-left:auto}#camera-app .stage-stats{grid-template-columns:repeat(3,minmax(0,1fr))}#camera-app .sim-control:has(input:disabled),#camera-app .sim-control:has(select:disabled){display:none}#camera-app #camera-preview{position:sticky;top:0;z-index:20;background:var(--sim-surface);padding:5px 0 8px;border-bottom:1px solid var(--sim-border);margin-bottom:16px}#camera-app #camera-preview .experiment-stage{margin:0}#camera-app .camera-mobile-score{display:block;font-size:12px;font-weight:600;color:var(--sim-accent);margin:5px 0 0}#camera-app .camera-compare select{max-width:64%;font-size:12px}#camera-app .sim-controls-panel{overflow:visible}}
+@media(max-width:540px){#camera-app .sim-stage-panel{display:none}#camera-app #camera-toolbar{padding:0 0 12px;gap:6px}#camera-app #camera-toolbar button{font-size:11px;padding:8px 9px}#camera-app #mobile-message-home .sim-note{padding:12px 0;background:transparent;border-top:1px solid var(--sim-border);font-size:12px}}

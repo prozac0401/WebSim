@@ -107,3 +107,19 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 - User requested reflecting the completed labs on the live site and discovering further ideas. Confirmed the existing public GitHub Pages site deploys the main branch and the previous deployment succeeded.
 - Re-ran `node --test tests/new-labs.test.cjs`: all five tests passed. `git diff --check` passed. Updated README coverage of unavailable related articles.
 - Publish this scoped addition through the existing main-branch Pages deployment; verify the deployed catalog, lab pages, and guides against the committed files. New ideas remain proposals rather than additional implementation.
+
+## 2026-10-07 그림자·구조물·카메라 구현
+- User approved implementing and publishing all three newly proposed labs. Reuse existing shared theme, navigation, cards and guides; preserve existing18 experiment numbers.
+- New folders: shadow_sculpture, auxetic_workshop, rolling_shutter. Dedicated engines compute the displayed models; each lab includes concrete missions, mobile controls and readable Korean guides.
+- Catalog/README/common menu expanded to21 entries. Publishing remains the existing GitHub Pages main-branch deployment after model and browser verification.
+
+- Early integration checks: catalog21 entries; Korean search finds each newlab; lifestyle filter3; 390px nooverflow. Existing gravity/ink/DLA retain correct heading and21 menu links under /WebSim/ path.
+- Independent engine checks: shadow gate42→23, tree324→66, heart244→63 with exact preservation of both target projections at minimum. Camera4 initial settings score4–14%, exact target settings score100%, deterministic capture.
+
+- Browser interaction checks: shadow firstmission completed42→23 through19 actual UI edits, brokenprojection/undo restoration, invalidcoordinates, freecreation/keyboard andPNG. Auxetic3 missions achieved actual targetdimensions; hinge/keyboardlocks blockmotion, unlocks restore, realfullscreen/fallback/Escape andPNG passed. Camera4 missions reached100% throughcontrols; pause/step/free/globalcomparison andPNG passed. Browser errors0.
+- Mobile refinement: compact camera preview beside active controls, larger auxetic handles/text, shadow layer controls near editing grid. Final screenshots and regression checks follow.
+
+- Final model tests:19 passed including prior wave/vehicle regressions, exactvoxelprojection/minimality, rigid-panel hinge/length conservation, lock/mission invariants, rolling/global timing and exposure, allphoto missions.
+- Final browser checks:3 labs×1440/820/390/360 (12 layouts), shared21link menu, navigation URLs, 3guides withJavaScriptdisabled, nooverflow/unlabeledinputs/pageerrors. Actualmobile touch: shadowedit/nearbylayer/undo, auxetichandledrag/fallbackclose, cameraimage andsliders onscreen together. Originalskillclient executed andlatest screenshots visuallyreviewed foreachlab.
+- Cross-review fixes: touchclose buttons inside expanded/fullscreen stages; camera previoussuccess record distinguished fromcurrentphoto success afterreset/settingschange.
+- Scope complete; publish these22 files via existingmain Pages workflow, then verify publicfiles/catalog/interaction states. No new externaldependencies. Artifacts:output/playwright/creative-labs/.
