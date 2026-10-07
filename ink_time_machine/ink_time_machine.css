@@ -1,0 +1,9 @@
+.ink-flow-picker{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);gap:8px 20px;padding:16px 20px;border-bottom:1px solid var(--sim-border);background:var(--sim-accent-soft)}
+.ink-flow-picker label{font-size:12px;font-weight:650}
+.ink-flow-picker select{display:block;margin-top:6px;background:var(--sim-surface)}
+.ink-flow-picker p{align-self:center;margin:0;font-size:12px;line-height:1.8;word-break:keep-all;color:var(--sim-accent)}
+.ink-flow-picker small{grid-column:1/-1;color:var(--sim-muted);font-size:11px}
+#ink-app #canvas{display:block}
+#ink-app .sim-toolbar label[for=symmetry]{display:flex;align-items:center;gap:8px;font-size:12px}
+#ink-app #symmetry{width:auto}
+@media(max-width:540px){.ink-flow-picker{grid-template-columns:1fr;padding:14px;gap:10px}.ink-flow-picker p{font-size:12px}.ink-flow-picker small{line-height:1.6}}
