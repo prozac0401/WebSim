@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const E = window.AntEngine, $ = id => document.getElementById(id), canvas = $('canvas'), ctx = canvas.getContext('2d'), stage = $('stage');
-  let state = E.create(), running = false, accumulator = 0, manualClock = false, last = performance.now(), width = 840;
+  let state = E.create(), running = false, accumulator = 0, manualClock = false, last = performance.now(), width = 840, playbackRate = 1;
   let selectedCell = state.nest, selectedAnt = null, undo = null, startingPatches = [], pinned = null, pointer = null, lastPaint = null;
   const clone = value => JSON.parse(JSON.stringify(value));
   const ambient = () => Boolean(window.WebSimAmbient?.enabled);
@@ -96,21 +96,22 @@
   $('tool').onchange = toolChanged;
   $('inspect').onchange = () => { selectedAnt = $('inspect').value === 'cell' ? null : +$('inspect').value; render(); };
   $('undo').onclick = () => { if (!undo) return; stop(); state = undo.state; startingPatches = undo.startingPatches; selectedCell = undo.selectedCell; selectedAnt = undo.selectedAnt; undo = null; selectors(); $('preset').value = state.preset; message('직전 편집을 되돌렸습니다. 편집 전 재고·벽·시드를 복원했습니다.'); render(); };
-  $('startBtn').onclick = () => { $('tool').value = 'view'; toolChanged(); undo = null; running = true; last = performance.now(); render(); };
+  $('playback-speed').onchange = () => { playbackRate = Number($('playback-speed').value) || 1; accumulator = 0; last = performance.now(); render(); };
+  $('startBtn').onclick = () => { $('tool').value = 'view'; toolChanged(); undo = null; accumulator = 0; running = true; last = performance.now(); render(); };
   $('stopBtn').onclick = () => { stop(); render(); };
   $('stepBtn').onclick = () => { stop(); simulate(1); render(); };
   $('secondBtn').onclick = () => { stop(); simulate(30); render(); };
   $('resetBtn').onclick = () => reset(); $('preset').onchange = () => reset($('preset').value);
   $('antCount').oninput = () => { $('antCountLabel').textContent = $('antCount').value; };
-  $('nutrientAmount').oninput = () => { undo = null; state.settings.amount = +$('nutrientAmount').value; $('nutrientAmountLabel').textContent = $('nutrientAmount').value; render(); };
-  $('nutrientInterval').oninput = () => { undo = null; state.settings.interval = +$('nutrientInterval').value; state.nextPatch = state.tick + state.settings.interval * 30; $('nutrientIntervalLabel').textContent = $('nutrientInterval').value; render(); };
-  $('patchEnabled').onchange = () => { undo = null; state.settings.supply = $('patchEnabled').checked; render(); };
+  $('nutrientAmount').oninput = () => { stop(); undo = null; state.settings.amount = +$('nutrientAmount').value; $('nutrientAmountLabel').textContent = $('nutrientAmount').value; render(); };
+  $('nutrientInterval').oninput = () => { stop(); undo = null; state.settings.interval = +$('nutrientInterval').value; state.nextPatch = state.tick + state.settings.interval * 30; $('nutrientIntervalLabel').textContent = $('nutrientInterval').value; render(); };
+  $('patchEnabled').onchange = () => { stop(); undo = null; state.settings.supply = $('patchEnabled').checked; render(); };
   $('compare').onclick = () => { pinned = { seed: state.seed, tick: state.tick, walls: Object.keys(state.walls).length, total: E.totals(state), delivered: state.delivered }; render(); };
   $('save').onclick = () => { draw(); const a = document.createElement('a'); a.download = `ant-soil-${state.seed}-${state.tick}.png`; a.href = canvas.toDataURL('image/png'); a.click(); };
   async function fullscreen() { if (document.fullscreenElement) await document.exitFullscreen(); else if (stage.classList.contains('expanded')) stage.classList.remove('expanded'); else { try { await stage.requestFullscreen(); } catch { stage.classList.add('expanded'); } } resize(); }
   $('fullscreen').onclick = fullscreen; $('exit-fullscreen').onclick = fullscreen;
   document.addEventListener('fullscreenchange', resize);
-  document.addEventListener('keydown', event => { if (/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); fullscreen(); } if (event.key === 'Escape' && stage.classList.contains('expanded')) { stage.classList.remove('expanded'); resize(); } if (event.code === 'Space') { event.preventDefault(); (running ? $('stopBtn') : $('startBtn')).click(); } if (event.key === 'ArrowRight') { event.preventDefault(); $('stepBtn').click(); } });
+  document.addEventListener('keydown', event => { if (/^(INPUT|SELECT|TEXTAREA|BUTTON|A)$/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); fullscreen(); } if (event.key === 'Escape' && stage.classList.contains('expanded')) { stage.classList.remove('expanded'); resize(); } if (event.code === 'Space') { event.preventDefault(); (running ? $('stopBtn') : $('startBtn')).click(); } if (event.key === 'ArrowRight') { event.preventDefault(); $('stepBtn').click(); } });
   function resize() { width = Math.max(200, Math.round(canvas.getBoundingClientRect().width || 840)); const dpr = Math.min(2, window.devicePixelRatio || 1); canvas.width = Math.round(width * dpr); canvas.height = canvas.width; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); render(); }
   function line(x1, y1, x2, y2, color, size = 1) { ctx.strokeStyle = color; ctx.lineWidth = size; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
   function circle(x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
@@ -147,7 +148,7 @@
   }
   function render() {
     draw(); const t = E.totals(state);
-    $('startBtn').disabled = running; $('stopBtn').disabled = !running; $('undo').disabled = !undo; $('ant-status').textContent = running ? '실행 중' : state.tick ? '멈춤' : '실험 준비';
+    $('startBtn').disabled = running; $('stopBtn').disabled = !running; $('undo').disabled = !undo; $('ant-status').textContent = running ? '연속 재생 · '+playbackRate+'×' : state.tick ? '멈춤' : '실험 준비';
     $('carrying-count').textContent = state.ants.filter(a => a.carryAmount > 0).length; $('soil-stock').textContent = (t.organic + t.available).toFixed(1); $('plant-stock').textContent = t.plant.toFixed(1); $('model-time').textContent = `${(state.tick / 30).toFixed(1)}s`;
     $('food-stock').textContent = `${format(t.food)} / ${format(t.carried)}`; $('balance-total').textContent = `${format(t.total)} / ${format(t.input)}`; $('balance-error').textContent = Math.abs(t.error).toFixed(6); $('delivered-stock').textContent = format(state.delivered); $('brief').textContent = E.PRESETS[state.preset].brief;
     if (selectedAnt === null) {
@@ -158,8 +159,8 @@
     }
     if (pinned) $('comparison').textContent = `보관: 시드 ${pinned.seed} · ${(pinned.tick / 30).toFixed(1)}초 · 벽 ${pinned.walls}면 · 투입 ${format(pinned.total.input)} · 식물 ${format(pinned.total.plant)} · 운반 완료 ${format(pinned.delivered)}. 현재: 시드 ${state.seed} · ${(state.tick / 30).toFixed(1)}초 · 벽 ${Object.keys(state.walls).length}면 · 투입 ${format(t.input)} · 식물 ${format(t.plant)} · 운반 완료 ${format(state.delivered)}.${state.tick !== pinned.tick ? ' 시간이 다릅니다. 같은 시간에서 비교하세요.' : ''}`;
   }
-  window.render_game_to_text = () => JSON.stringify({ mode: 'ant-nutrient', coordinates: '30×30 cells; origin top-left, x right, y down; canvas units CSS px; cell indices 0-based', running, tick: state.tick, seed: state.seed, ant_count: state.ants.length, time_seconds: state.tick / 30, tool: $('tool').value, touch_action: getComputedStyle(canvas).touchAction, canvas: { width, height: width }, nest: state.nest, walls: state.walls, stocks: E.totals(state), delivered: state.delivered, selectedCell, selectedAnt, selected: selectedAnt === null ? E.inspectCell(state, selectedCell) : state.ants[selectedAnt], foods: state.foods, ants: state.ants.map(a => ({ id: a.id, x: a.x, y: a.y, carry: a.carryAmount, mode: a.mode, goal: a.goal })), canUndo: Boolean(undo), startingPatches, ambient: ambient(), nonnegative: state.soil.every(c => c.org >= 0 && c.nit >= 0 && c.plant >= 0) && state.foods.every(f => f.amount >= 0) && state.ants.every(a => a.carryAmount >= 0) });
-  function advance(ms) { if (running) { accumulator += ms; while (accumulator + 1e-7 >= 1000 / 30) { simulate(1); accumulator -= 1000 / 30; } } }
+  window.render_game_to_text = () => JSON.stringify({ mode: 'ant-nutrient', coordinates: '30×30 cells; origin top-left, x right, y down; canvas units CSS px; cell indices 0-based', running, playbackRate, tick: state.tick, seed: state.seed, ant_count: state.ants.length, time_seconds: state.tick / 30, tool: $('tool').value, touch_action: getComputedStyle(canvas).touchAction, canvas: { width, height: width }, nest: state.nest, walls: state.walls, stocks: E.totals(state), delivered: state.delivered, selectedCell, selectedAnt, selected: selectedAnt === null ? E.inspectCell(state, selectedCell) : state.ants[selectedAnt], foods: state.foods, ants: state.ants.map(a => ({ id: a.id, x: a.x, y: a.y, carry: a.carryAmount, mode: a.mode, goal: a.goal })), canUndo: Boolean(undo), startingPatches, ambient: ambient(), nonnegative: state.soil.every(c => c.org >= 0 && c.nit >= 0 && c.plant >= 0) && state.foods.every(f => f.amount >= 0) && state.ants.every(a => a.carryAmount >= 0) });
+  function advance(ms) { if (running) { accumulator += ms * playbackRate; while (accumulator + 1e-7 >= 1000 / 30) { simulate(1); accumulator -= 1000 / 30; } } }
   window.advanceTime = ms => { manualClock = true; advance(Math.max(0, +ms || 0)); render(); };
   function frame(now) { if (!manualClock) advance(Math.min(100, now - last)); last = now; if (running) render(); else if (ambient()) draw(); requestAnimationFrame(frame); }
   window.addEventListener('resize', resize); window.addEventListener('websim:ambient-change', render);

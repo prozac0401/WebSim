@@ -48,3 +48,26 @@ test('unobserved resource values cannot affect planning or public route preview'
   E.step(a); E.step(b);
   assert.deepEqual(a.worlds.map(w => w.agents.map(x => ({ cell: x.cell, target: x.target, route: x.route }))), b.worlds.map(w => w.agents.map(x => ({ cell: x.cell, target: x.target, route: x.route }))));
 });
+
+for (const kind of ['meander', 'ring']) {
+  test(kind + ' has valid starts, reachable prospects, reproducible 60-day policies and no hidden planning advantage', () => {
+    const a = E.create({ expeditionMap: kind }), b = E.create({ expeditionMap: kind });
+    assert.deepEqual(a.worlds.map(w => w.agents.map(x => [x.cell, x.budget])), Array(3).fill(a.worlds[0].agents.map(x => [x.cell, x.budget])));
+    for (const w of a.worlds) for (const agent of w.agents) assert.equal(a.terrain[agent.cell], 'plain');
+    for (const target of a.prospects) { const p = E.preview(a, 0, 0, target); assert(p.reachable); assert.equal(p.days, p.path.slice(1).reduce((n, i) => n + E.costOf(a.terrain[i]), 0)); }
+    const hidden = structuredClone(a), known = new Set(Object.keys(a.worlds[0].visited).map(Number));
+    hidden.field = hidden.field.map((v, i) => known.has(i) ? v : v + 10000);
+    E.step(a); E.step(hidden);
+    assert.deepEqual(a.worlds.map(w => w.agents.map(x => x.target)), hidden.worlds.map(w => w.agents.map(x => x.target)));
+    E.run(a); E.run(b); assert.deepEqual(a, b); assert.equal(a.day, 60);
+    assert(a.worlds.every(w => w.agents.every(x => x.budget === 0 && Number.isFinite(E.costOf(a.terrain[x.cell])))));
+  });
+}
+test('new geography changes routes and exposes only three bridges or four ring passes', () => {
+  const river = E.create(), meander = E.create({ expeditionMap: 'meander' }), ring = E.create({ expeditionMap: 'ring' });
+  assert.equal(meander.terrain.filter(v => v === 'bridge').length, 3);
+  assert.equal(ring.terrain.filter(v => v === 'pass').length, 4);
+  assert.notEqual(E.preview(river, 0, 0, 66).days, E.preview(meander, 0, 0, 66).days);
+  const intoRing = E.preview(ring, 0, 0, 55); assert(intoRing.path.some(i => ring.terrain[i] === 'pass'));
+  assert.notEqual(E.preview(river, 0, 0, 55).days, intoRing.days);
+});

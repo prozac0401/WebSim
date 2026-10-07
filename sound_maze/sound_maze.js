@@ -15,8 +15,10 @@
     $('phase').value=0;$('phase-value').textContent='0°';$('wavelength').value=24;$('wavelength-value').textContent='24칸';
     if(name==='wall')for(let y=7;y<74;y++)if(y<34||y>46)for(let x=57;x<60;x++)walls[y*NX+x]=1;
     if(name==='offset'){objects[0]={x:23,y:18};objects[1]={x:24,y:59};objects[2]={x:94,y:24};}
+    if(name==='double-slit')for(let y=5;y<75;y++)if(!(y>=20&&y<=28)&&!(y>=52&&y<=60))for(let x=57;x<=59;x++)walls[y*NX+x]=1;
+    if(name==='cove'){objects[2]={x:68,y:40};for(let y=8;y<73;y++)for(let x=35;x<100;x++){const r=Math.hypot(x-68,y-40);if(r>=22&&r<=24&&!(x<52&&y>=31&&y<=49))walls[y*NX+x]=1;}}
     selected=0;running=true;edits=[];setTool('view');syncPosition();rebuild();
-    message(name==='offset'?'두 음원과 목표점의 거리가 다릅니다. 위상과 위치를 조금씩 바꿔 25% 이하를 찾아보세요.':name==='wall'?'벽의 틈으로 파동이 퍼집니다. 벽 너머 목표점을 조용하게 만들어 보세요.':'B의 위상을 조절해 목표점 진폭을 A만 켰을 때의 25% 이하로 줄여 보세요.');
+    message(name==='double-slit'?'두 틈을 지난 파동이 겹칩니다. 위상을 바꾸며 뒤쪽의 줄무늬와 조용한 자리를 찾으세요.':name==='cove'?'열린 고리 안에서 반사와 간섭이 만납니다. 고리 안 목표점의 진폭을 비교해 보세요.':name==='offset'?'두 음원과 목표점의 거리가 다릅니다. 위상과 위치를 조금씩 바꿔 25% 이하를 찾아보세요.':name==='wall'?'벽의 틈으로 파동이 퍼집니다. 벽 너머 목표점을 조용하게 만들어 보세요.':'B의 위상을 조절해 목표점 진폭을 A만 켰을 때의 25% 이하로 줄여 보세요.');
   }
   function canPlace(x,y,index){return x>=5&&x<NX-5&&y>=5&&y<NY-5&&!walls[y*NX+x]&&!objects.some((p,i)=>i!==index&&Math.hypot(p.x-x,p.y-y)<4);}
   function place(x,y){x=Math.round(x);y=Math.round(y);if(!canPlace(x,y,selected)){message('벽과 다른 표시를 피해 안쪽의 빈 공간에 놓아 주세요.');syncPosition();return;}objects[selected]={x,y};syncPosition();rebuild();}

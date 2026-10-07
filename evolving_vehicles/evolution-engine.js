@@ -36,7 +36,7 @@
     }
     reset(config = {}) {
       this.seed = Math.round(finite(config.seed, this.seed ?? 42)) >>> 0;
-      this.terrain = ['flat', 'rolling', 'steps', 'custom'].includes(config.terrain) ? config.terrain : (this.terrain || 'rolling');
+      this.terrain = ['flat', 'rolling', 'steps', 'valley', 'dunes', 'ripple', 'custom'].includes(config.terrain) ? config.terrain : (this.terrain || 'rolling');
       if (this.terrain === 'custom' && config.points) this._customPoints = this._normalizePoints(config.points);
       this._random = randomGenerator(this.seed);
       this.generation = 1;
@@ -68,6 +68,9 @@
         const ramp = clamp((x - 260) / 160, 0, 1);
         if (this.terrain === 'rolling') y += ramp * (36 * Math.sin((x - 260) * 0.007 + offset) + 13 * Math.sin((x - 260) * 0.021));
         if (this.terrain === 'steps' && x > 300) y -= Math.floor(((x - 300) % 640) / 160) * 17;
+        if (this.terrain === 'valley') y += ramp * (70 * Math.exp(-Math.pow((x - 1100) / 470, 2)) - 90 * Math.exp(-Math.pow((x - 2050) / 400, 2)));
+        if (this.terrain === 'dunes') y -= ramp * 85 * Math.pow(Math.sin(Math.max(0, x - 260) * Math.PI / 780), 2);
+        if (this.terrain === 'ripple') y += ramp * (13 * Math.sin((x - 260) * Math.PI / 95) - 28 * Math.sin((x - 260) * Math.PI / 1200));
         points.push({ x, y });
       }
       return points;

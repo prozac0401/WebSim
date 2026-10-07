@@ -87,7 +87,7 @@
             </div>
           </dl>
           <div class="sim-toolbar">
-            <button class="primary" id="startBtn">시작</button
+            <button class="primary" id="startBtn">자동 재생</button
             ><button id="pauseBtn" disabled>일시정지</button
             ><button id="stepBtn">한 칸 진행</button
             ><button id="resetBtn">초기화</button>
@@ -258,7 +258,7 @@
             : steps
               ? "일시정지"
               : "준비";
-          $("startBtn").textContent = steps ? "계속 진행" : "시작";
+          $("startBtn").textContent = steps ? "이어서 재생" : "자동 재생";
         }
         function pause() {
           running = false;

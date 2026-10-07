@@ -18,6 +18,7 @@ let params: Params = {
   seed: 1,
 };
 let running = false;
+let playbackDelay = 100;
 let loopTimer: ReturnType<typeof setTimeout> | null = null;
 
 function resetCluster() {
@@ -82,7 +83,7 @@ function loop() {
   loopTimer = null;
   if (!running) return;
   calculateBatch(params.particleBatch, true);
-  if (running) loopTimer = setTimeout(loop, 0);
+  if (running) loopTimer = setTimeout(loop, playbackDelay);
 }
 
 self.onmessage = (e: MessageEvent) => {
@@ -107,6 +108,9 @@ self.onmessage = (e: MessageEvent) => {
     if (loopTimer !== null) { clearTimeout(loopTimer); loopTimer = null; }
     resetCluster();
     (postMessage as any)({ type: 'reset' });
+  } else if (data.type === 'playbackDelay') {
+    playbackDelay = Math.max(0, Math.min(1000, Number(data.ms) || 0));
+    if (running && loopTimer !== null) { clearTimeout(loopTimer); loopTimer = setTimeout(loop, playbackDelay); }
   } else if (data.type === 'setBatch') {
     params.particleBatch = data.batch;
   }

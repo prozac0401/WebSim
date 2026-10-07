@@ -85,7 +85,7 @@
             </div>
           </dl>
           <div class="sim-toolbar">
-            <button class="primary" id="aco-start-btn">시작</button
+            <button class="primary" id="aco-start-btn">자동 재생</button
             ><button id="aco-stop-btn" disabled>일시정지</button
             ><button id="aco-step-btn">1세대 진행</button
             ><button id="aco-reset-btn">기록 초기화</button><button id="aco-undo" disabled>배치 되돌리기</button>
@@ -206,7 +206,7 @@
             </div>
             <div class="preset-row">
               <button id="aco-random-btn">새 무작위 배치</button
-              ><button id="aco-circle-btn">원형 배치</button>
+              ><button id="aco-circle-btn">원형 배치</button><button id="aco-sunflower-btn">해바라기 나선</button><button id="aco-islands-btn">세 섬 배치</button>
             </div>
             <p class="sim-note">
               새 배치는 탐색 기록도 지웁니다. <strong>기록 초기화</strong>는
@@ -311,7 +311,7 @@
             : generation
               ? "일시정지"
               : "준비";
-          $("aco-start-btn").textContent = generation ? "계속 탐색" : "시작";
+          $("aco-start-btn").textContent = generation ? "이어서 재생" : "자동 재생";
         }
         function reset() {
           pause();
@@ -338,6 +338,10 @@
                 x: 400 + 320 * Math.cos(a),
                 y: 250 + 190 * Math.sin(a),
               });
+            } else if(kind==='sunflower'){
+              const a=i*Math.PI*(3-Math.sqrt(5)),r=30+180*Math.sqrt(i/Math.max(1,n-1));cities.push({x:400+1.55*r*Math.cos(a),y:250+r*Math.sin(a)});
+            } else if(kind==='islands'){
+              const centers=[[180,145],[595,155],[405,365]],group=i%3,j=Math.floor(i/3),count=Math.ceil((n-group)/3),a=j*Math.PI*(3-Math.sqrt(5)),r=count===1?0:25+45*Math.sqrt(j/Math.max(1,count-1));cities.push({x:centers[group][0]+r*Math.cos(a),y:centers[group][1]+r*Math.sin(a)});
             } else {
               let c,
                 tries = 0;
@@ -356,6 +360,8 @@
           }
           selected = 0;
           reset();
+          if(kind==='sunflower')$('aco-result').textContent='황금각으로 퍼진 도시입니다. 나선처럼 보이는 선호와 짧은 왕복 경로가 같은지 비교해 보세요.';
+          if(kind==='islands')$('aco-result').textContent='도시가 세 섬처럼 모여 있습니다. 섬 안의 순서와 섬 사이 연결을 함께 최적화해야 합니다.';
         }
         function tour(p, rng = Math.random) {
           const n = cities.length,
@@ -526,7 +532,7 @@
         $('aco-edit').onchange=()=>{drag=null;canvas.style.touchAction=$('aco-edit').checked?'none':'pan-y';};
         $('aco-undo').onclick=()=>{const previous=editHistory.pop();if(!previous)return;pause();({cities,tau,dist,bestPath,bestDistance,generation,latestPaths,lastSettings,selected}=previous);$('aco-cityNumber').value=cities.length;updateValues();refresh();draw();$('aco-undo').disabled=!editHistory.length;$('aco-result').textContent='편집 전 도시와 그때까지 찾은 경로·페로몬을 함께 복원했습니다.';};
         $("aco-random-btn").onclick = () => layout("random");
-        $("aco-circle-btn").onclick = () => layout("circle");
+        $("aco-circle-btn").onclick = () => layout("circle");$("aco-sunflower-btn").onclick=()=>layout("sunflower");$("aco-islands-btn").onclick=()=>layout("islands");
         controls.forEach((id) =>
           $(id).addEventListener("input", () => {
             updateValues();

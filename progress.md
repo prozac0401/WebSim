@@ -1,5 +1,15 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-07 단계별 애니메이션 재생
+- User requested continuous animation for every simulator with steps. Audit the existing play/pause controls, add discoverable playback and rates where absent, preserve exact single-step controls and model rules, and deploy after browser verification.
+- Ownership: ecology4 (Microbe/Reef/Ant/Predator), social4 (Braess/Treasure/Music/Cascade), patterns7 (including new Fractal progression), root physics/flocks plus shared playback styling and integration. Existing rates are retained without duplicate controls; static tools do not need a timeline.
+- Root adds model-independent playback rates to Boids, Vicsek, Cosmic and Rolling Shutter. Fixed integration/step sizes remain unchanged; one-step actions stop playback, and pause/rate changes clear stale elapsed time. Gravity and Evolving Vehicles already provide continuous playback and rate controls and will be checked.
+- User additionally requested more interesting terrain, shape and picture presets. Extend existing preset collections with distinct visible behavior: pattern group owns Life/Fractal/ACO, social owns expedition maps, ecology owns Reef/Predator/Ant maps; root owns Ink/Wave/Vehicle/Auxetic/Vicsek/Gravity scenes. Retain previous choices and validate bounds, routes, reset and model invariants.
+- Completed 30 new presets: root15 + patterns7 + ecology6 + expedition2. Continuous playback and distinct playback speed now cover all20 labs with step controls; Ink/Sound are already continuous, and five static tools need no timeline. Independent inventory loaded all20 at390px with no page errors, duplicate IDs or missing controls.
+- Final model/regression suite95/95 passed; DLA3/3 and build passed, with dist/standalone SHA256 `38F0B10D758E62892AABA1CD19E3DCF817D5CBE8B3230BB7F487CF5A811DA6E6`. Owners verified desktop/mobile playback, exact single steps, pause/resume, completion and effects-disabled behavior. Preset checks cover paths/resources, pattern periods, hinged geometry, seeded vehicle equality and finite movement.
+- Root browser checks passed12 playback combinations (1440/390/360), all15 new presets, selected-preset gravity reset and circle description, automatic vehicle generations and fractional cosmic playback. Independent review found the gravity reset/description mismatches; both were fixed and the final runtime check passed. Gravity trajectories now sample by distance to retain the flower/ring drawing while leaving physics unchanged.
+- Original game client was run for changed scenes in each group and the latest captures were visually reviewed. Evidence is under `output/playwright/step-playback/`. Local implementation is complete; publish and verify public source/27-page smoke next.
+
 ## 2026-03-08 작업 로그
 - `develop-web-game` 스킬 지침 확인.
 - 루트 구조 및 기존 시뮬레이터 패턴 확인 (`시뮬레이터.html`, `*_doc.html`, `*.md`).

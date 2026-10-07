@@ -7,6 +7,8 @@
   let photoCanvas, globalCanvas, referenceCanvas, differenceCanvas, instantCanvas;
   let expanded = false, currentInstantTime = 0, scanPanel=null;
   const completed = new Set();
+  const playbackRate=()=>Number($("playback-speed").value);
+  $("playback-speed").onchange=()=>{last=null;};
   try { JSON.parse(localStorage.getItem('websim.camera.solved.v1') || '[]').filter(id => E.MISSIONS.some(m => m.id === id)).forEach(id => completed.add(id)); } catch (_) {}
   const message = text => { $('message').textContent = text; };
   function toCanvas(image, old) {
@@ -161,8 +163,8 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded){fullscreen();}if((e.key.toLowerCase()==='f')&&!['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)){e.preventDefault();fullscreen();}});
   canvas.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();togglePause();}if(e.key==='ArrowRight'){e.preventDefault();step();}});
   canvas.addEventListener('dblclick',()=>{if(expanded)fullscreen();});
-  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'image origin top-left, x right, y down; positive angle clockwise; phase 0 points orange blade right',mission:mission?.id||'free',settings:{...settings},editable:mission?.editable||FIELDS,comparison:$('comparison').value,scorePercent:score===null?null:Number(score.toFixed(3)),successThreshold:96,completed:[...completed],running,scanProgress:Number(progress.toFixed(3)),instantTimeMs:Number((currentInstantTime*1000).toFixed(2)),firstRowStartMs:E.rowStart(0,SIZE,settings)*1000,lastRowStartMs:E.rowStart(SIZE-1,SIZE,settings)*1000,exposureSamples:snapshot?.samples,photographTimeOrigin:0});
-  window.advanceTime=ms=>{manual=true;if(running)update(Math.max(0,Number(ms)||0));draw();};
-  function frame(now){if(!manual&&running&&last!==null){update(Math.min(100,now-last));draw();}last=now;requestAnimationFrame(frame);}
+  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'image origin top-left, x right, y down; positive angle clockwise; phase 0 points orange blade right',mission:mission?.id||'free',settings:{...settings},editable:mission?.editable||FIELDS,comparison:$('comparison').value,scorePercent:score===null?null:Number(score.toFixed(3)),successThreshold:96,completed:[...completed],running,playbackRate:playbackRate(),scanProgress:Number(progress.toFixed(3)),instantTimeMs:Number((currentInstantTime*1000).toFixed(2)),firstRowStartMs:E.rowStart(0,SIZE,settings)*1000,lastRowStartMs:E.rowStart(SIZE-1,SIZE,settings)*1000,exposureSamples:snapshot?.samples,photographTimeOrigin:0});
+  window.advanceTime=ms=>{manual=true;if(running)update(Math.max(0,Number(ms)||0)*playbackRate());draw();};
+  function frame(now){if(!manual&&running&&last!==null){update(Math.min(100,now-last)*playbackRate());draw();}last=now;requestAnimationFrame(frame);}
   chooseMission('bend');layout();requestAnimationFrame(frame);
 })();

@@ -11,6 +11,8 @@
     open: { name: '01 · 열린 토양', brief: '벽 없이 시작합니다. 양분을 직접 놓고 한 개미의 운반을 따라가 보세요.', mask: 0 },
     transport: { name: '02 · 개미만 돌아가는 울타리', brief: '같은 위치의 울타리가 개미의 통행만 막습니다. 아래쪽 틈으로 돌아갈 수 있고, 양분은 그대로 확산합니다.', mask: 1 },
     diffusion: { name: '03 · 양분만 막는 막', brief: '개미는 지나가지만 토양 양분의 확산만 막습니다. 같은 시드의 운반 장벽과 비교해 보세요.', mask: 2 },
+    maze: { name: '04 · 엇갈린 미로', brief: '위·아래로 번갈아 열린 세 벽이 통행과 확산을 함께 막습니다. 돌아가는 운반 경로와 벽 앞의 양분 분포를 관찰하세요.', mask: 3 },
+    branches: { name: '05 · 가지형 운반망', brief: '여섯 구역이 두 칸 너비의 중앙 통로로 이어집니다. 개미는 출입구에 모이지만, 토양 양분은 운반벽을 가로질러 확산합니다.', mask: 1 },
     free: { name: '자유 실험', brief: '셀 사이의 선을 그려 통행과 확산을 각각 바꿉니다. 벽 안의 자원은 사라지지 않습니다.', mask: 0 }
   };
   function random(s) { s.rng = (Math.imul(s.rng, 1664525) + 1013904223) >>> 0; return s.rng / 4294967296; }
@@ -25,6 +27,8 @@
     settings.count = Math.max(10, Math.min(500, Math.round(settings.count) || 100));
     const s = { seed, rng: seed, preset, settings, tick: 0, nest: Number.isInteger(options.nest) && options.nest >= 0 && options.nest < 900 ? options.nest : 465, walls: {}, revision: 0, soil: Array.from({ length: 900 }, () => ({ org: 0, nit: 0, plant: 0 })), ants: [], foods: [], nextFoodId: 1, nextPatch: settings.interval * 30, totalInput: 0, manualInput: 0, deliveries: 0, delivered: 0, lastEvent: '같은 출발점에서 실험을 시작합니다.' };
     if (options.walls) s.walls = { ...options.walls };
+    else if (preset === 'maze') { for (const [x, gap] of [[6,4],[13,24],[20,4]]) for (let y=0;y<SIZE;y++) if (Math.abs(y-gap)>1) s.walls[key(y*SIZE+x,y*SIZE+x+1)]=3; }
+    else if (preset === 'branches') { for (let y=0;y<SIZE;y++) if (![4,5,14,15,24,25].includes(y)) for(const x of [13,15]) s.walls[key(y*SIZE+x,y*SIZE+x+1)]=1; for(const y of [9,19]) for(let x=0;x<SIZE;x++) if(x!==14&&x!==15) s.walls[key(y*SIZE+x,(y+1)*SIZE+x)]=1; }
     else if (PRESETS[preset].mask) for (let y = 0; y < 24; y++) s.walls[key(y * SIZE + 10, y * SIZE + 11)] = PRESETS[preset].mask;
     for (let id = 0; id < settings.count; id++) {
       const cell = Math.floor(random(s) * 900);

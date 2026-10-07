@@ -10,7 +10,17 @@
   function geography(kind) {
     return Array.from({ length: COLS * ROWS }, (_, cell) => {
       const x = cell % COLS, y = Math.floor(cell / COLS);
-      if (kind === 'passes') {
+      if (kind === 'meander') {
+        // A continuous S-shaped river: the elbows span three cells, with three crossings.
+        if ((y === 3 || y === 6) && x >= 5 && x <= 7) return 'river';
+        const riverX = y >= 4 && y <= 5 ? 7 : 5;
+        if (x === riverX) return [1, 4, 7].includes(y) ? 'bridge' : 'river';
+        if (x === 9 && y >= 3 && y <= 5) return y === 4 ? 'pass' : 'mountain';
+      } else if (kind === 'ring') {
+        // Four cardinal passes pierce a diamond-shaped mountain ring.
+        const dx = Math.abs(x - 7), dy = Math.abs(y - 4);
+        if (dx + dy === 3) return dx === 0 || dy === 0 ? 'pass' : 'mountain';
+      } else if (kind === 'passes') {
         if (x === 6) return y === 2 || y === 7 ? 'pass' : 'mountain';
         if (x === 7 && y > 2 && y < 7) return 'mountain';
       } else {

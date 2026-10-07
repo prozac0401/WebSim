@@ -10,7 +10,7 @@
 <div class="fleet" id="fleet" role="group" aria-label="관찰할 탈것 선택"></div><p class="sim-note live-message" role="status" id="message">경주를 시작해 어떤 바퀴와 몸체가 이 코스에서 유리한지 살펴보세요.</p></section>
 <aside class="sim-controls-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SELECT & EVOLVE</span><h2>코스와 세대</h2></div></div>
 <p class="instruction">① 8대 경주 → ② 최고 개체 보존 → ③ 다음 세대<br>형태가 달라져도 반드시 더 멀리 가는 것은 아닙니다.</p>
-<label class="sim-control" for="terrain">코스<select id="terrain"><option value="rolling">완만한 언덕</option><option value="flat">평지</option><option value="steps">울퉁불퉁한 길</option><option value="custom" disabled>내가 그린 코스</option></select><small>코스를 바꾸면 세대와 기록을 새로 시작합니다.</small></label>
+<label class="sim-control" for="terrain">코스<select id="terrain"><option value="rolling">완만한 언덕</option><option value="flat">평지</option><option value="steps">울퉁불퉁한 길</option><option value="valley">긴 골짜기와 오르막</option><option value="dunes">세 개의 모래언덕</option><option value="ripple">촘촘한 물결길</option><option value="custom" disabled>내가 그린 코스</option></select><small>코스를 바꾸면 세대와 기록을 새로 시작합니다.</small></label>
 <div class="button-row"><button id="draw">코스 그리기</button><button id="apply" hidden>그린 코스 적용</button><button id="cancel" hidden>그리기 취소</button><button id="undo-course" hidden>한 획 되돌리기</button></div>
 <div class="sim-control"><label for="mutation">돌연변이 확률 <output id="mutation-value">20%</output></label><input id="mutation" type="range" min="5" max="50" step="5" value="20"><small>다음 세대의 몸체·바퀴·모터 각 특성이 달라질 확률입니다. 최고 개체 하나는 그대로 남깁니다.</small></div>
 <label class="sim-control" for="speed">재생 속도<select id="speed"><option value="1">1배 · 움직임 관찰</option><option value="2">2배</option><option value="4">4배 · 세대 빠르게 비교</option></select></label>

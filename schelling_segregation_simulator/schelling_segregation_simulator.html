@@ -83,7 +83,7 @@
 
       <!-- default: 100ms -->
       <div class="schelling-row">
-        <label>스텝별 시간</label>
+        <label>재생 간격 · 짧을수록 빠름</label>
         <input type="range" id="sInterval_v52" min="20" max="1200" step="10" value="100">
         <span class="schelling-val" id="sIntervalVal_v52">100ms</span>
       </div>
@@ -228,7 +228,10 @@
     legend.style.display  = ui.showLegend.checked ? 'flex' : 'none';
   }
 
+  function pausePlayback(){state.running=false;state.accMs=0;ui.toggle.textContent='자동 재생';}
+  function complete(){return state.lastMetrics.unhappy===0||state.empties.length===0;}
   function initModel(){
+    pausePlayback();
     parseGridSize();
     inspected=null;
     document.getElementById('sInspectX').max=state.GW;
@@ -436,6 +439,7 @@
     const M = computeMetrics(tol, radius);
     state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ, isolated:M.isolated, measured:M.measured};
 
+    if(complete())pausePlayback();
     state.segHist.push(M.seg);
     state.satHist.push(M.satRate);
     if (state.segHist.length > 240) state.segHist.shift();
@@ -522,7 +526,7 @@
     const countA=state.gridArr.reduce((n,v)=>n+(v===0),0),countB=state.gridArr.reduce((n,v)=>n+(v===1),0),total=countA+countB;
     const baseline=total?((countA/total)**2+(countB/total)**2):0;
     document.getElementById('sBaseline').textContent=`현재 집단 비율의 무작위 혼합 기준은 약 ${(baseline*100).toFixed(0)}%입니다. 같은 집단 비율을 이 기준과 함께 읽어 보세요.`;
-    document.getElementById('sRunStatus').textContent=state.running?'실행 중':'멈춤';
+    document.getElementById('sRunStatus').textContent=state.running?'자동 재생 중':complete()?'완료 · 이동 없음':'멈춤';ui.toggle.disabled=complete();
     document.getElementById('sObservation').textContent=state.empties.length===0?'빈집이 없어 이사할 수 없습니다. 기준을 못 채운 주민이 있어도 배치가 멈출 수 있습니다.':state.lastMetrics.unhappy===0?'모든 주민이 자신의 최소 비율을 충족했습니다. 이웃의 집단 구성이 섞여 있는지는 별도의 지표입니다.':`기준을 못 채운 주민 ${state.lastMetrics.unhappy}명이 있습니다. 개인의 이동 규칙이 도시 전체의 무늬를 어떻게 바꾸는지 보세요.`;
     // sparkline
     const sW = spark.getBoundingClientRect().width;
@@ -561,7 +565,7 @@
 
     if (state.running){
       state.accMs += Math.min(dt,250);
-      while (state.accMs >= state.intervalMs){
+      while (state.running && state.accMs >= state.intervalMs){
         state.accMs -= state.intervalMs;
         stepOnce();
       }
@@ -596,19 +600,20 @@
   ui.vac.addEventListener('input', onAnyInput);
   ui.mix.addEventListener('input', onAnyInput);
   ui.tol.addEventListener('input', () => {
+    pausePlayback();
     syncUI();
     const M = computeMetrics(Number(ui.tol.value) / 100, Number(ui.nbr.value));
     state.lastMetrics = {sat: M.satRate, seg: M.seg, unhappy: M.unhappy, occ: M.occ, isolated:M.isolated, measured:M.measured};
     draw();
   });
-  ui.k.addEventListener('input', onAnyInput);
+  ui.k.addEventListener('input', () => {pausePlayback();syncUI();});
   ui.batch.addEventListener('input', onAnyInput);
   ui.interval.addEventListener('input', onAnyInput);
 
   ui.vac.addEventListener('change', initModel);
   ui.mix.addEventListener('change', initModel);
   ui.nbr.addEventListener('change', () => { syncUI(); initModel(); });
-  ui.rule.addEventListener('change', () => syncUI());
+  ui.rule.addEventListener('change', () => {pausePlayback();syncUI();});
 
   ui.showOverlay.addEventListener('change', syncUI);
   ui.showUnhappy.addEventListener('change', syncUI);
@@ -616,8 +621,8 @@
   ui.showLegend.addEventListener('change', syncUI);
 
   ui.toggle.addEventListener('click', () => {
-    state.running = !state.running;
-    ui.toggle.textContent = state.running ? '일시정지' : '이어서 실행';
+    state.running = !state.running&&!complete();state.accMs=0;
+    ui.toggle.textContent = state.running ? '일시정지' : '자동 재생';
   });
 
   ui.stepBtn.addEventListener('click', () => { state.running = false;state.accMs=0;ui.toggle.textContent = '이어서 실행'; stepOnce(); draw(); });
@@ -629,9 +634,9 @@
 
   window.addEventListener('resize', () => resize());
 
-  window.render_game_to_text=()=>JSON.stringify({mode:'schelling',running:state.running,step:state.step,moves:state.moves,grid:{width:state.GW,height:state.GH},counts:{a:state.gridArr.reduce((n,v)=>n+(v===0),0),b:state.gridArr.reduce((n,v)=>n+(v===1),0),empty:state.empties.length},metrics:state.lastMetrics,minimum_same_group:Number(ui.tol.value)/100,inspection:inspection()});
+  window.render_game_to_text=()=>JSON.stringify({mode:'schelling',running:state.running,completed:complete(),intervalMs:state.intervalMs,step:state.step,moves:state.moves,grid:{width:state.GW,height:state.GH},counts:{a:state.gridArr.reduce((n,v)=>n+(v===0),0),b:state.gridArr.reduce((n,v)=>n+(v===1),0),empty:state.empties.length},metrics:state.lastMetrics,minimum_same_group:Number(ui.tol.value)/100,inspection:inspection()});
   document.getElementById('schellingWidget_v52')._model={get state(){return {width:state.GW,height:state.GH,grid:Array.from(state.gridArr),inspection:inspection()};},inspectHouse};
-  window.advanceTime=ms=>{for(let i=0;i<Math.floor(ms/state.intervalMs);i++)stepOnce();draw();};
+  window.advanceTime=ms=>{if(!state.running)return;for(let i=0;i<Math.floor(ms/state.intervalMs)&&state.running;i++)stepOnce();draw();};
   // Start with your requested default: 100ms step-time (already set in HTML)
   syncUI();
   initModel();

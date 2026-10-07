@@ -8,6 +8,8 @@
   const colors = ['#517849', '#bf8a49', '#637db0', '#a97894', '#49968d', '#a0a447'];
   const presets = { hidden: { seed: 4, terrain: 'hidden', exploration: 35, period: 8 }, simple: { seed: 7319, terrain: 'simple', exploration: 50, period: 8 }, depleting: { seed: 61, terrain: 'depleting', exploration: 65, period: 8 } };
   let state, policy = 'instant', selected = 21, running = false, elapsed = 0, last = 0, geometry;
+  let playbackRate = 1, manualClock = false;
+  function playback(value) { running = value; elapsed = 0; last = performance.now(); }
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const motionEnabled = () => Boolean(window.WebSimAmbient?.enabled) && !reducedMotion.matches;
   let inkClock = 0, trails = [], discoveries = [], miniHits = [], pointerStart = null;
@@ -24,16 +26,16 @@
   }
   function runWithInk(count) { for (let i = 0; i < count && stepWithInk(); i++); }
   const previewHome = $('preview').parentNode, toolbarHome = $('toolbar').parentNode;
-  const brief = { hidden: '익숙한 광맥 너머에도 보물이 있습니다. ‘100일까지’를 눌러 공유 간격과 총수확의 관계를 비교해 보세요.', simple: '넓은 광맥 하나가 있는 지도입니다. 좋은 장소를 빨리 나누면 어떤 이점이 있는지 확인해 보세요.', depleting: '같은 곳을 계속 채굴하면 자원이 줄어듭니다. 가장 좋은 장소를 아는 것만으로 충분할까요?', free: '조건을 직접 조합해 보세요. 지도 번호가 같으면 지형과 탐색에 쓰는 난수를 그대로 재현합니다.' };
+  const brief = { hidden: '익숙한 광맥 너머에도 보물이 있습니다. ‘자동 재생’을 눌러 발견과 수확이 쌓이는 과정을 비교해 보세요.', simple: '넓은 광맥 하나가 있는 지도입니다. 좋은 장소를 빨리 나누면 어떤 이점이 있는지 확인해 보세요.', depleting: '같은 곳을 계속 채굴하면 자원이 줄어듭니다. 가장 좋은 장소를 아는 것만으로 충분할까요?', free: '조건을 직접 조합해 보세요. 지도 번호가 같으면 지형과 탐색에 쓰는 난수를 그대로 재현합니다.' };
   function config() { return { seed: Number($('seed').value) || 1, terrain: $('terrain').value, exploration: Number($('exploration').value) / 100, period: Number($('period').value), expeditionMap: $('expedition-map').value, budget: Number($('supply').value) }; }
-  function reset() { running = false; elapsed = 0; E = expedition() ? window.TreasureExpedition : window.TreasureLab; state = E.create(config()); resetInk(); $('message').textContent = expedition() ? '같은 지형과 보급으로 원정을 시작합니다. 후보지 ?를 고르면 경로와 보급 비용을 먼저 볼 수 있습니다.' : '세 방식이 같은 조건으로 출발합니다. 지도에서 칸을 골라 다음 날의 시추 위치를 지정할 수도 있습니다.'; sync(); }
+  function reset() { playback(false); E = expedition() ? window.TreasureExpedition : window.TreasureLab; state = E.create(config()); resetInk(); $('message').textContent = expedition() ? '같은 지형과 보급으로 원정을 시작합니다. 후보지 ?를 고르면 경로와 보급 비용을 먼저 볼 수 있습니다.' : '세 방식이 같은 조건으로 출발합니다. 지도에서 칸을 골라 다음 날의 시추 위치를 지정할 수도 있습니다.'; sync(); }
   function applyPreset() { const p = presets[$('preset').value]; if (p) { $('seed').value = p.seed; $('terrain').value = p.terrain; $('exploration').value = p.exploration; $('period').value = p.period; } $('brief').textContent = brief[$('preset').value]; reset(); }
   function current() { return state.worlds[E.policies.indexOf(policy)]; }
   function message() {
     if (state.day === E.DAYS) { const best = E.summary(state).sort((a, b) => b.total - a.total)[0]; $('message').textContent = `${E.DAYS}일 완료. 이 지도에서는 ${E.labels[best.policy]}의 수확이 가장 많습니다. 지시 개입 ${state.interventions.length}회. 다른 지도나 성향에서도 같은 결과인지 비교해 보세요.`; }
     else if (state.day) { const w = current(); $('message').textContent = `${E.labels[policy]} · 1번 탐사대: ${w.agents[0].action}. ${w.agents[0].cell % E.COLS + 1}열 ${Math.floor(w.agents[0].cell / E.COLS) + 1}행에서 ${Math.round(w.agents[0].earned)} 수확. ${policy === 'independent' ? '기록은 각자 간직합니다.' : `마지막 기록 공유 ${w.lastShared}일.`}`; }
   }
-  function next(n = 1) { runWithInk(n); if (state.day >= E.DAYS) running = false; message(); sync(); }
+  function next(n = 1) { runWithInk(n); if (state.day >= E.DAYS) playback(false); message(); sync(); }
   function sync() {
     const isTrip = expedition();
     $('exploration-help').textContent = isTrip ? '목표를 새로 정할 때 미지 후보를 검토할 확률입니다. 나머지에는 기억한 채굴값과 이동 비용을 비교합니다.' : '좋은 채굴 장소를 알수록 실제 탐색 확률은 내려갑니다. 높은 성향의 탐사대는 더 자주 새 칸을 찾습니다.';
@@ -44,7 +46,7 @@
     if (isTrip || $('knowledge-only').checked) $('reveal').checked = false;
     $('brief').textContent = isTrip ? '강은 다리로, 산맥은 고개로 돌아갈 수 있습니다. ?는 미조사 후보지입니다. 지점을 고르고 보급 비용을 확인한 뒤 원정을 지시하세요.' : brief[$('preset').value];
     $('finish').textContent = `${E.DAYS}일까지`; $('dig').textContent = isTrip ? `${selectedAgent + 1}번 탐사대 원정 지시` : '1번 탐사대 시추 지시';
-    $('play').textContent = state.day === E.DAYS ? '실험 완료' : running ? '일시정지' : state.day ? '이어서 진행' : '세 방식 함께 시작'; $('play').disabled = state.day === E.DAYS; $('step').disabled = state.day === E.DAYS; $('finish').disabled = state.day === E.DAYS; $('dig').disabled = state.day === E.DAYS;
+    $('play').textContent = state.day === E.DAYS ? '실험 완료' : running ? '일시정지' : '자동 재생'; $('play').setAttribute('aria-pressed', String(running)); $('play').disabled = state.day === E.DAYS; $('step').disabled = state.day === E.DAYS; $('finish').disabled = state.day === E.DAYS; $('dig').disabled = state.day === E.DAYS;
     $('day-chip').textContent = `${state.day} / ${E.DAYS}일`; $('exploration-value').textContent = `${$('exploration').value}%`; $('period-value').textContent = `${$('period').value}일`;
     document.querySelectorAll('[data-policy]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.policy === policy)));
     const w = current(), value = evidence(w)[selected];
@@ -175,7 +177,8 @@
     else { stage.classList.add('expanded'); $('exit-fullscreen').hidden = false; if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {}); }
     draw();
   }
-  $('play').onclick = () => { running = !running; elapsed = 0; sync(); }; $('step').onclick = () => { running = false; next(); }; $('finish').onclick = () => { running = false; next(E.DAYS); }; $('reset').onclick = reset;
+  $('play').onclick = () => { if (state.day < E.DAYS) playback(!running); sync(); }; $('step').onclick = () => { playback(false); next(); }; $('finish').onclick = () => { playback(false); next(E.DAYS); }; $('reset').onclick = reset;
+  $('playback-speed').onchange = () => { playbackRate = Number($('playback-speed').value); playback(running); sync(); };
   $('preset').onchange = applyPreset;
   $('lab-mode').onchange = reset;
   $('expedition-map').onchange = reset; $('supply').onchange = reset;
@@ -188,7 +191,7 @@
   $('column').innerHTML = Array.from({ length: E.COLS }, (_, i) => `<option value="${i}">${i + 1}</option>`).join(''); $('row').innerHTML = Array.from({ length: E.ROWS }, (_, i) => `<option value="${i}">${i + 1}</option>`).join('');
   for (const id of ['column', 'row']) $(id).onchange = () => { selected = Number($('row').value) * E.COLS + Number($('column').value); sync(); };
   document.querySelectorAll('[data-policy]').forEach(b => b.onclick = () => { policy = b.dataset.policy; message(); sync(); });
-  $('dig').onclick = () => { if (E.order(state, selected, selectedAgent)) { $('message').textContent = expedition() ? `세 방식의 ${selectedAgent + 1}번 탐사대에 같은 목표를 보냈습니다. 이동·채굴 보급이 가능한 방식에서 실행하며, 원정 도중 새 지시는 경로를 바꿉니다.` : `세 방식의 1번 탐사대가 다음 날 ${selected % E.COLS + 1}열 ${Math.floor(selected / E.COLS) + 1}행을 시추합니다. 다시 누르면 예약 위치가 바뀝니다.`; sync(); } };
+  $('dig').onclick = () => { if (E.order(state, selected, selectedAgent)) { playback(false); $('message').textContent = expedition() ? `세 방식의 ${selectedAgent + 1}번 탐사대에 같은 목표를 보냈습니다. 이동·채굴 보급이 가능한 방식에서 실행하며, 원정 도중 새 지시는 경로를 바꿉니다.` : `세 방식의 1번 탐사대가 다음 날 ${selected % E.COLS + 1}열 ${Math.floor(selected / E.COLS) + 1}행을 시추합니다. 다시 누르면 예약 위치가 바뀝니다.`; sync(); } };
   canvas.addEventListener('pointerdown', event => { pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId }; });
   canvas.addEventListener('pointercancel', () => { pointerStart = null; });
   canvas.addEventListener('pointermove', event => { if (pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 9) pointerStart = null; });
@@ -203,15 +206,17 @@
   canvas.addEventListener('keydown', event => { const offsets = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -E.COLS, ArrowDown: E.COLS }; if (event.key in offsets) { event.preventDefault(); event.stopPropagation(); selected = Math.max(0, Math.min(107, selected + offsets[event.key])); sync(); } if (event.key === 'Enter') { event.preventDefault(); $('dig').click(); } });
   $('fullscreen').onclick = () => toggleFull(); $('exit-fullscreen').onclick = () => toggleFull(true);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { $('stage').classList.remove('expanded'); $('exit-fullscreen').hidden = true; } draw(); });
-  document.addEventListener('keydown', event => { if (/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFull(); } if (event.key === 'Escape') toggleFull(true); if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); if (state.day < E.DAYS) { running = !running; sync(); } } });
+  document.addEventListener('keydown', event => { if (/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFull(); } if (event.key === 'Escape') toggleFull(true); if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); if (state.day < E.DAYS) { playback(!running); sync(); } } });
   window.addEventListener('resize', responsive);
-  function advance(ms) { if (!running) return; elapsed += ms; let changed = false; while (elapsed >= 260 && state.day < E.DAYS) { stepWithInk(); elapsed -= 260; changed = true; } if (state.day >= E.DAYS) running = false; if (changed) { message(); sync(); } }
+  function advance(ms) { if (!running) return; elapsed += ms * playbackRate; let changed = false; while (elapsed + 1e-7 >= 500 && state.day < E.DAYS) { stepWithInk(); elapsed -= 500; changed = true; } if (state.day >= E.DAYS) playback(false); if (changed) { message(); sync(); } }
   function advanceInk(ms) { if (!motionEnabled()) return; inkClock += ms; const active = discoveries.length; discoveries = discoveries.filter(p => inkClock - p.born < 1050); if (active) draw(); }
   function motionChanged() { if (!motionEnabled()) discoveries = []; draw(); }
   window.addEventListener('websim:ambient-change', motionChanged); reducedMotion.addEventListener('change', motionChanged);
-  window.advanceTime = ms => { const dt = Math.max(0, ms); advance(dt); advanceInk(dt); return Promise.resolve(); };
-  window.render_game_to_text = () => JSON.stringify({ coordinates: '12 columns × 9 rows, origin top-left; zero-based cell = row*12+column', mode: expedition() ? 'expedition' : 'sharing', day: state.day, running, config: state.config, visiblePolicy: policy, selectedAgent, knowledgeOnly: $('knowledge-only').checked, selectedCell: selected, scheduledDig: state.order, interventions: state.interventions, results: E.summary(state), agents: current().agents.map(a => ({ id: a.id + 1, cell: a.cell, action: a.action, earned: Math.round(a.earned), knownCells: Object.keys(a.known).length, budget: a.budget, target: a.target, route: a.route, reason: a.reason })), routePreview: expedition() ? E.preview(state, E.policies.indexOf(policy), selectedAgent, selected) : null, publicTerrain: state.terrain, visibleResources: evidence(current()), revealed: $('reveal').checked, art: { motion: motionEnabled(), discoveryRipples: discoveries.length, comparisonMinimaps: miniHits.length, visibleMap: geometry, choiceHistory: trails[E.policies.indexOf(policy)] } });
-  function frame(time) { if (last) { const dt = Math.min(100, time - last); advance(dt); advanceInk(dt); } last = time; requestAnimationFrame(frame); }
-  if (new URLSearchParams(location.search).get('mode') === 'expedition') $('lab-mode').value = 'expedition';
+  window.advanceTime = ms => { manualClock = true; const dt = Math.max(0, Number(ms) || 0); advance(dt); advanceInk(dt); return Promise.resolve(); };
+  window.render_game_to_text = () => JSON.stringify({ coordinates: '12 columns × 9 rows, origin top-left; zero-based cell = row*12+column', mode: expedition() ? 'expedition' : 'sharing', day: state.day, running, playbackRate, stepIntervalMs: 500 / playbackRate, config: state.config, visiblePolicy: policy, selectedAgent, knowledgeOnly: $('knowledge-only').checked, selectedCell: selected, scheduledDig: state.order, interventions: state.interventions, results: E.summary(state), agents: current().agents.map(a => ({ id: a.id + 1, cell: a.cell, action: a.action, earned: Math.round(a.earned), knownCells: Object.keys(a.known).length, budget: a.budget, target: a.target, route: a.route, reason: a.reason })), routePreview: expedition() ? E.preview(state, E.policies.indexOf(policy), selectedAgent, selected) : null, publicTerrain: state.terrain, visibleResources: evidence(current()), revealed: $('reveal').checked, art: { motion: motionEnabled(), discoveryRipples: discoveries.length, comparisonMinimaps: miniHits.length, visibleMap: geometry, choiceHistory: trails[E.policies.indexOf(policy)] } });
+  function frame(time) { if (last && !manualClock) { const dt = Math.min(100, time - last); advance(dt); advanceInk(dt); } last = time; requestAnimationFrame(frame); }
+  const query = new URLSearchParams(location.search);
+  if (query.get('mode') === 'expedition') $('lab-mode').value = 'expedition';
+  if ([...$('expedition-map').options].some(option => option.value === query.get('map'))) $('expedition-map').value = query.get('map');
   applyPreset(); responsive(); requestAnimationFrame(frame);
 })();

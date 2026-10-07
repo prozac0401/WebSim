@@ -112,7 +112,7 @@
   $('extension').oninput = e => changeExtension(Number(e.target.value));
   $('aspect').oninput = e => { E.setAspect(state, e.target.value); message('판의 모양을 바꿨습니다. 연결 잠금을 풀고 닫힌 구조를 기준으로 새로 비교합니다.'); render(); };
   $('mission').onchange = e => loadMission(e.target.value);
-  $('preset').onchange = e => { E.loadPreset(state, e.target.value); lastSuccess = false; message('새 구조를 불러왔습니다. 조금 더 당긴 뒤 세로 길이가 어느 방향으로 바뀌는지 보세요.'); render(); };
+  $('preset').onchange = e => { E.loadPreset(state, e.target.value); lastSuccess = false; message(({diamond:'거의 활짝 열린 꽃창입니다. 조금 밀어 마름모 사이 빈틈이 닫히는 모습을 보세요.',ribbon:'기울어진 긴 판들이 리본처럼 엮입니다. 당길 때 세로 길이도 함께 살펴보세요.'}[e.target.value])||'새 구조를 불러왔습니다. 조금 더 당긴 뒤 세로 길이가 어느 방향으로 바뀌는지 보세요.'); render(); };
   $('reset').onclick = () => { if (state.mission !== 'free') loadMission(state.mission); else { const currentPreset = state.preset; E.loadPreset(state, currentPreset === 'custom' ? 'square' : currentPreset); lastSuccess = false; message('구조와 잠금, 기준선을 다시 시작 상태로 돌렸습니다.'); render(); } };
   $('hinge-select').onchange = e => { E.selectHinge(state, e.target.value); message('연결을 선택했습니다. ‘선택 연결 잠그기’ 또는 L 키로 고정하거나 풀 수 있습니다.'); render(); };
   $('toggle-lock').onclick = toggleLock; $('unlock-all').onclick = () => { state.locked = []; message('모든 연결을 풀었습니다. 구조를 다시 움직일 수 있습니다.'); render(); };

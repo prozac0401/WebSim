@@ -52,3 +52,5 @@ test('automatic supply uses model steps and stops without changing conserved sto
   for (let i = 0; i < 90; i++) E.step(s); near(s.totalInput, 120); s.settings.supply = false;
   for (let i = 0; i < 90; i++) E.step(s); near(s.totalInput, 120); near(E.totals(s).total, 120);
 });
+
+test('maze and branching maps connect every cell, retain seeded initial populations and conserve resources',()=>{const open=E.create({seed:73,settings:{count:20,supply:false}});for(const preset of['maze','branches']){const a=E.create({seed:73,preset,settings:{count:20,supply:false}}),b=E.create({seed:73,preset,settings:{count:20,supply:false}});assert.deepEqual(a.ants,open.ants);assert.deepEqual(a.foods,open.foods);assert.equal(E.totals(a).input,E.totals(open).input);assert.ok(Object.keys(a.walls).length>50);assert.ok(Object.values(a.walls).every(mask=>mask===(preset==='maze'?3:1)));for(let cell=0;cell<900;cell++)assert.ok(E.path(a,cell,a.nest).length>0,'connected cell '+cell);assert.ok(E.path(a,0,29).length>E.path(open,0,29).length);for(let i=0;i<180;i++){E.step(a);E.step(b);}assert.ok(Math.abs(E.totals(a).error)<1e-7);assert.deepEqual(a,b);}});

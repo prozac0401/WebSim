@@ -48,7 +48,7 @@
     return true;
   }
   function loadPreset(state, name) {
-    const preset = { square: [1, 20], tall: [.5, 105], wide: [1.8, 10] }[name] || [1, 20];
+    const preset = { square: [1, 20], tall: [.5, 105], wide: [1.8, 10], diamond: [1, 40], ribbon: [.7, 60] }[name] || [1, 20];
     Object.assign(state, { aspect: preset[0], extension: preset[1], referenceTheta: 0, selected: 'h-1-2', locked: [], mission: 'free', preset: name, time: 0 });
   }
   function loadMission(state, name) {

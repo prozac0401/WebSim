@@ -4,6 +4,8 @@
   const names = ['위쪽 길', '아래쪽 길', '지름길 경유'], colors = ['#21654f', '#548bab', '#b9763c'];
   const presets = { paradox: { demand: 4000, open: true, brief: '모두 지름길로 몰려 출근에 80분. 가운데 도로를 닫으면 얼마나 달라질까요?' }, quiet: { demand: 1000, open: false, brief: '차가 적은 도시입니다. 지름길을 열고 경로 재선택을 끝까지 지켜보세요. 닫는 것이 항상 답일까요?' }, busy: { demand: 10000, open: true, brief: '차가 아주 많습니다. 열린 지름길에 차가 없다면? 닫아 보고 왜 시간이 그대로인지 경로 비용을 비교하세요.' }, free: { demand: 4000, open: true, brief: '수요와 도로 시간을 조절하세요. 같은 조건의 열기·닫기 비교로, 지름길이 도움이 되는 경계를 찾아보세요.' } };
   let c, flows, running = false, elapsed = 0, previous = null, selected = -1, compared = false, changed = false, W = 900, H = 540, nodes, completed = new Set(), lastFrame = 0, pointerStart = null;
+  let playbackRate = 1, manualClock = false, steps = 0;
+  function playback(value) { running = value; elapsed = 0; lastFrame = performance.now(); }
   const ambientEnabled = () => window.WebSimAmbient?.enabled === true;
   const appearanceTime = () => window.WebSimAmbient?.now?.() || 0;
   const fmt = n => Math.round(n).toLocaleString('ko-KR'), minutes = n => `${n.toFixed(1)}분`;
@@ -12,18 +14,18 @@
   function equilibrium() { return E.equilibrium(c); }
   function current() { return E.costs(c, flows); }
   function syncControls() { for (const k of ['demand', 'fixed', 'shortcut']) $(k).value = c[k]; }
-  function reset() { const preset = presets[$('mission').value]; c = E.config({ ...preset, fixed: 45, shortcut: 0 }); flows = equilibrium().flows; previous = null; running = false; compared = false; changed = false; selected = -1; elapsed = 0; $('mission-brief').textContent = preset.brief; syncControls(); $('message').textContent = preset.brief; update(); }
+  function reset() { const preset = presets[$('mission').value]; c = E.config({ ...preset, fixed: 45, shortcut: 0 }); flows = equilibrium().flows; previous = null; playback(false); steps = 0; compared = false; changed = false; selected = -1; elapsed = 0; $('mission-brief').textContent = preset.brief; syncControls(); $('message').textContent = preset.brief; update(); }
   function toggle() {
     remember(); c.open = !c.open; changed = true; compared = true;
     if (!c.open) { flows[0] += flows[2] / 2; flows[1] += flows[2] / 2; flows[2] = 0; }
-    running = current().gap >= .015;
+    playback(current().gap >= .015);
     $('message').textContent = running ? '새 도로가 열렸습니다. 운전자들이 더 빠른 경로로 옮기는 과정을 지켜보세요.' : '갈 수 있는 경로가 바뀌었습니다. 같은 수요에서 통근 시간이 어떻게 달라졌는지 비교하세요.';
     update();
   }
-  function step() { const result = E.step(c, flows); flows = result.flows; if (result.settled) running = false; else $('message').textContent = `${names[result.from]}에서 ${names[result.to]}로 약 ${fmt(result.moved)}대가 옮겼습니다. 경로를 옮길 이득이 없어질 때까지 이어집니다.`; update(); }
+  function step() { const result = E.step(c, flows); flows = result.flows; steps++; if (result.gap < .015) { flows = equilibrium().flows; playback(false); } else $('message').textContent = `${names[result.from]}에서 ${names[result.to]}로 약 ${fmt(result.moved)}대가 옮겼습니다. 경로를 옮길 이득이 없어질 때까지 이어집니다.`; update(); }
   function update() {
     const result = current(), settled = result.gap < .015;
-    $('toggle-road').textContent = c.open ? '지름길 닫기' : '지름길 열기'; $('toggle-road').setAttribute('aria-pressed', String(!c.open)); $('play').textContent = running ? '일시정지' : '자동 실행';
+    $('toggle-road').textContent = c.open ? '지름길 닫기' : '지름길 열기'; $('toggle-road').setAttribute('aria-pressed', String(!c.open)); $('play').textContent = running ? '일시정지' : settled ? '자동 재생 · 완료' : '자동 재생'; $('play').disabled = settled; $('step').disabled = settled; $('play').setAttribute('aria-pressed', String(running));
     $('status-chip').textContent = settled ? '경로 선택 완료' : `경로 조정 중 · 차이 ${result.gap.toFixed(1)}분`;
     $('time-stat').textContent = minutes(result.average); $('shortcut-stat').textContent = `${Math.round(flows[2] / c.demand * 100)}%`;
     const delta = previous ? result.average - E.costs(previous.c, previous.flows).average : null;
@@ -84,12 +86,13 @@
     const top = mobile ? 388 : 442, pad = mobile ? 14 : 25, boxW = (W-pad*3)/2;
     for(let i=0;i<2;i++) {const open=i===1, eq=E.equilibrium({...c,open}),x=pad+i*(boxW+pad);ctx.fillStyle=open===c.open?'#e7f0e5':'#fff';ctx.beginPath();ctx.roundRect(x,top,boxW,mobile?74:76,9);ctx.fill();ctx.textAlign='left';ctx.fillStyle='#62706a';ctx.font=`${mobile?11:12}px system-ui,sans-serif`;ctx.fillText(open?'지름길 열기 · 선택 완료':'지름길 닫기 · 선택 완료',x+12,top+19);ctx.fillStyle='#21654f';ctx.font=`700 ${mobile?20:25}px system-ui,sans-serif`;ctx.fillText(compared?minutes(eq.average):'직접 바꿔 보기',x+12,top+47);}
   }
-  function advance(ms) { if(running){elapsed+=Math.max(0,ms);while(elapsed>=500&&running){elapsed-=500;step();}} if(ambientEnabled()||running)draw(); }
-  function restore(){ if(!previous)return;const back=previous;previous=snapshot();c={...back.c};flows=back.flows.slice();compared=back.compared;running=false;changed=false;syncControls();$('message').textContent='변경 전 도로와 차량 배치를 복원했습니다.';update(); }
+  function advance(ms) { if(running){elapsed+=Math.max(0,ms)*playbackRate;while(elapsed+1e-7>=500&&running){elapsed-=500;step();}} if(ambientEnabled()||running)draw(); }
+  function restore(){ if(!previous)return;const back=previous;previous=snapshot();c={...back.c};flows=back.flows.slice();compared=back.compared;playback(false);steps=0;changed=false;syncControls();$('message').textContent='변경 전 도로와 차량 배치를 복원했습니다.';update(); }
   async function fullscreen() { if(document.fullscreenElement){await document.exitFullscreen();return;} if(stage.classList.contains('expanded')){stage.classList.remove('expanded');$('exit-fullscreen').hidden=true;resize();return;}try{await stage.requestFullscreen();}catch{stage.classList.add('expanded');} $('exit-fullscreen').hidden=false;resize(); }
-  $('toggle-road').onclick=toggle;$('play').onclick=()=>{running=!running;update();};$('step').onclick=()=>{running=false;step();};$('reset').onclick=reset;$('mission').onchange=reset;$('restore').onclick=restore;
-  $('compare').onclick=()=>{if(!previous)remember();compared=true;flows=equilibrium().flows;running=false;$('message').textContent='수요와 모든 도로 시간을 고정하고, 지름길 개폐만 바꾼 두 결과입니다. 두 숫자는 각 경우의 경로 선택이 끝난 뒤의 통근 시간입니다.';update();};
-  for(const k of ['demand','fixed','shortcut']) {$(k).addEventListener('focus',()=>remember());$(k).addEventListener('pointerdown',()=>remember());$(k).oninput=()=>{const oldDemand=c.demand;c[k]=Number($(k).value);if(k==='demand')flows=flows.map(f=>f*c.demand/oldDemand);changed=false;running=true;$('mission').value='free';$('mission-brief').textContent=presets.free.brief;update();};}
+  $('toggle-road').onclick=toggle;$('play').onclick=()=>{if(current().gap<.015)return;playback(!running);update();};$('step').onclick=()=>{playback(false);if(current().gap>=.015)step();};$('reset').onclick=reset;$('mission').onchange=reset;$('restore').onclick=restore;
+  $('playback-speed').onchange=()=>{playbackRate=Number($('playback-speed').value);playback(running);update();};
+  $('compare').onclick=()=>{if(!previous)remember();compared=true;flows=equilibrium().flows;playback(false);$('message').textContent='수요와 모든 도로 시간을 고정하고, 지름길 개폐만 바꾼 두 결과입니다. 두 숫자는 각 경우의 경로 선택이 끝난 뒤의 통근 시간입니다.';update();};
+  for(const k of ['demand','fixed','shortcut']) {$(k).addEventListener('focus',()=>remember());$(k).addEventListener('pointerdown',()=>remember());$(k).oninput=()=>{const oldDemand=c.demand;c[k]=Number($(k).value);if(k==='demand')flows=flows.map(f=>f*c.demand/oldDemand);changed=false;playback(current().gap>=.015);$('mission').value='free';$('mission-brief').textContent=presets.free.brief;update();};}
   document.querySelectorAll('[data-route]').forEach(button=>button.onclick=()=>{selected=selected===+button.dataset.route?-1:+button.dataset.route;update();});
   canvas.addEventListener('pointerdown',event=>{if(event.isPrimary&&event.button===0)pointerStart={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false};});
   canvas.addEventListener('pointermove',event=>{if(pointerStart&&Math.hypot(event.clientX-pointerStart.x,event.clientY-pointerStart.y)>10)pointerStart.moved=true;});
@@ -98,6 +101,6 @@
   window.addEventListener('websim:ambient-change',draw);
   $('fullscreen').onclick=fullscreen;$('exit-fullscreen').onclick=fullscreen;document.addEventListener('fullscreenchange',()=>{$('exit-fullscreen').hidden=!document.fullscreenElement&&!stage.classList.contains('expanded');resize();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&stage.classList.contains('expanded')){fullscreen();return;}if(/INPUT|SELECT|TEXTAREA/.test(event.target.tagName))return;if(event.key.toLowerCase()==='f'){event.preventDefault();fullscreen();}else if(event.code==='Space'&&event.target.tagName!=='BUTTON'){event.preventDefault();$('play').click();}else if(event.key==='ArrowRight'){event.preventDefault();$('step').click();}});
-  window.render_game_to_text=()=>JSON.stringify({coordinates:'origin top-left, x right, y down',mission:$('mission').value,config:c,flows:flows.map(Math.round),...current(),running,compared,previous:previous?{config:previous.c,average:E.costs(previous.c,previous.flows).average}:null,selectedRoute:selected,effectsEnabled:ambientEnabled(),roadChanges:previous?$('edge-changes').textContent:null,completed:[...completed],message:$('message').textContent});
-  window.advanceTime=advance;new ResizeObserver(resize).observe(stage);reset();resize();requestAnimationFrame(function frame(t){const dt=lastFrame?Math.min(100,t-lastFrame):0;lastFrame=t;advance(dt);requestAnimationFrame(frame);});
+  window.render_game_to_text=()=>JSON.stringify({coordinates:'origin top-left, x right, y down',mission:$('mission').value,config:c,flows:flows.map(Math.round),...current(),running,playbackRate,stepIntervalMs:500/playbackRate,steps,compared,previous:previous?{config:previous.c,average:E.costs(previous.c,previous.flows).average}:null,selectedRoute:selected,effectsEnabled:ambientEnabled(),roadChanges:previous?$('edge-changes').textContent:null,completed:[...completed],message:$('message').textContent});
+  window.advanceTime=ms=>{manualClock=true;advance(Number(ms)||0);};new ResizeObserver(resize).observe(stage);reset();resize();requestAnimationFrame(function frame(t){const dt=lastFrame?Math.min(100,t-lastFrame):0;lastFrame=t;if(!manualClock)advance(dt);requestAnimationFrame(frame);});
 })();

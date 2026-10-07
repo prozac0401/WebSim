@@ -17,7 +17,11 @@
     if(kind==='heart') { for(let i=0;i<4800;i++){const x=(random()*2-1)*1.15,y=(random()*2-1)*1.15;if((x*x+y*y-1)**3-x*x*y**3<=0)add(.59+x*.19,-y*.19,0);} }
     if(kind==='drops') for(let c=0;c<3;c++) {const a=(c*2*Math.PI/3)-.25;dot(.62*Math.cos(a),.62*Math.sin(a),c,.085,1100);}
     if(kind==='stripes') for(let c=0;c<4;c++)for(let i=0;i<850;i++)add(.4+random()*.43,(c-1.5)*.09+(random()-.5)*.035,c);
-    message(kind==='blank'?'고리 안을 클릭하거나 끌어 잉크를 그려 주세요.':'그림이 준비됐습니다. 3바퀴 섞은 뒤 반대로 되돌려 보세요.');render();
+    if(kind==='rosette')for(let i=0;i<480;i++){const a=i/480*Math.PI*2,r=.67+.18*Math.cos(6*a);dot(r*Math.cos(a),r*Math.sin(a),Math.floor(i/80)%4,.012,10);}
+    if(kind==='galaxy')for(let arm=0;arm<4;arm++)for(let i=0;i<250;i++){const t=i/249,a=arm*Math.PI/2+t*Math.PI*1.6,r=.38+.53*t;dot(r*Math.cos(a),r*Math.sin(a),arm,.008+.012*t,5);}
+    if(kind==='sunburst')for(let ray=0;ray<24;ray++)for(let i=0;i<30;i++){const a=ray*Math.PI/12+.035*Math.sin(i/29*Math.PI),r=.4+i/29*(ray%2?.4:.54);dot(r*Math.cos(a),r*Math.sin(a),ray%4,.009,5);}
+    const description={rosette:'꽃잎의 안쪽과 바깥쪽이 서로 다르게 감깁니다. 섞었다 되돌려 꽃이 다시 피는지 보세요.',galaxy:'네 나선팔이 감기며 띠가 됩니다. 확산을 조금 켜면 되돌아온 그림은 어떻게 달라질까요?',sunburst:'24개의 빛살이 서로 다른 속도로 휘어집니다. 대칭이 풀렸다 돌아오는 과정을 관찰하세요.'};
+    message(description[kind]||(kind==='blank'?'고리 안을 클릭하거나 끌어 잉크를 그려 주세요.':'그림이 준비됐습니다. 3바퀴 섞은 뒤 반대로 되돌려 보세요.'));render();
   }
   function rotate(delta,dt) {
     const diffusion=Number($('diffusion').value)*.00012, noise=Math.sqrt(2*diffusion*dt);
@@ -85,7 +89,7 @@
   const fullscreen=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen?.();}else if(typeof $('stage').requestFullscreen==='function'){await $('stage').requestFullscreen();}else{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}}catch{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}};$('fullscreen').onclick=fullscreen;
   canvas.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();moveTo(turns+(e.key==='ArrowLeft'?-.25:.25));}if(e.code==='Space'){e.preventDefault();pause();}if(e.key.toLowerCase()==='f')fullscreen();};
   $('save').onclick=()=>{const a=document.createElement('a');a.download='websim-ink.png';a.href=canvas.toDataURL('image/png');a.click();message('현재 잉크 그림을 PNG로 저장했습니다.');};
-  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'center (0,0), x right, y down; inner radius .32, outer radius 1',mode:running?'running':target===null?'ready':'paused',drawing,undo:strokes.length,symmetry:Number($('symmetry').value),palette:$('palette').value,turns,time,diffusion:Number($('diffusion').value),particles:particles.length,errorPercent:error(),target,sample:particles.slice(0,3)});
+  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'center (0,0), x right, y down; inner radius .32, outer radius 1',preset:$('preset').value,mode:running?'running':target===null?'ready':'paused',drawing,undo:strokes.length,symmetry:Number($('symmetry').value),palette:$('palette').value,turns,time,diffusion:Number($('diffusion').value),particles:particles.length,errorPercent:error(),target,sample:particles.slice(0,3)});
   window.advanceTime=ms=>{manual=true;for(let t=0;t<ms/1000-1e-9;t+=DT)update(Math.min(DT,ms/1000-t));render();};
   function frame(now){if(!manual&&last!==null&&running){accumulator+=Math.min((now-last)/1000,.1);while(accumulator>=DT){update(DT);accumulator-=DT;}render();}last=now;requestAnimationFrame(frame);}preset('heart');requestAnimationFrame(frame);
 })();

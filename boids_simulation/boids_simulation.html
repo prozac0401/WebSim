@@ -87,7 +87,7 @@
             ><button id="boids-pause">일시정지</button
             ><button id="boids-step">1단계 진행</button
             ><button id="boids-reset">새 무리로 초기화</button
-            ><span class="compact-stat" id="fps">— FPS</span>
+            ><label class="sim-playback" for="playback-speed">재생 속도<select id="playback-speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label><span class="compact-stat" id="fps">— FPS</span>
           </div>
           <canvas
             id="canvas"
@@ -451,8 +451,8 @@
         function buttons() {
           $("boids-start").disabled = running;
           $("boids-pause").disabled = !running;
-          $("boids-status").textContent = running ? "진행 중" : "일시정지";
-          $("boids-start").textContent = stepCount ? "계속 진행" : "시작";
+          $("boids-status").textContent = running ? "자동 재생 중" : "일시정지";
+          $("boids-start").textContent = stepCount ? "이어서 재생" : "자동 재생";
         }
         function pause() {
           running = false;
@@ -512,7 +512,7 @@
           const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
           lastTime = t;
           if (running) {
-            accumulator += dt;
+            accumulator += dt * Number($("playback-speed").value);
             while (accumulator >= 1000 / 60) {
               tick();
               accumulator -= 1000 / 60;
@@ -544,6 +544,7 @@
           accumulator = 0;
           buttons();
         };
+        $("playback-speed").onchange = () => { accumulator=0; lastTime=0; };
         $("boids-pause").onclick = pause;
         $("boids-step").onclick = () => {
           pause();
@@ -600,7 +601,7 @@
             draw();
           },
         };
-        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'800×500; top-left origin; periodic boundaries',...app._model.state,inspection:inspectData(),headingColors:$('heading-colors').checked});
+        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'800×500; top-left origin; periodic boundaries',...app._model.state,inspection:inspectData(),headingColors:$('heading-colors').checked,playbackRate:Number($("playback-speed").value)});
         window.advanceTime=ms=>{pause();for(let i=0;i<Math.round(ms*60/1000);i++)tick();stats();draw();};
         values();
         setCount();

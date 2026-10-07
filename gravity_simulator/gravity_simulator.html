@@ -3,11 +3,11 @@
 #gravity-app .gravity-stage{position:relative;background:radial-gradient(ellipse at center,#fbfcfa,#edf2e8);border:1px solid var(--websim-line);border-radius:14px;overflow:hidden}#gravity-app canvas{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;cursor:crosshair}#gravity-app #drag-indicator{position:absolute;pointer-events:none;border:2px dashed var(--websim-accent);border-radius:50%;opacity:0}#gravity-app .gravity-chip{font-size:11px;color:var(--websim-muted)}@media(max-width:600px){#gravity-app .gravity-chip{display:none}}
 #gravity-app .sim-stage-panel .sim-stat-grid{margin:18px 20px;grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:600px){#gravity-app .sim-stage-panel .sim-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}#gravity-app .gravity-stage{max-width:640px;width:calc(100% - 40px);margin:20px auto}</style></head><body><main id="gravity-app" class="sim-app sim-app--gravity-app">
 <div class="sim-workspace"><section class="sim-stage-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">ORBIT LAB</span><h2>초기 속도가 만드는 경로</h2></div><span class="gravity-chip">뉴턴 중력 · 시험 입자</span></div>
-<div class="sim-toolbar"><button class="sim-primary" id="start-btn" onclick="startSim()">시작</button><button class="sim-primary" id="pause-btn" onclick="pauseSim()" style="display:none">일시정지</button><button onclick="stepSim()">한 단계 · 0.1 t</button><button onclick="resetSim()">초기화</button></div><div class="gravity-stage"><canvas id="sim-canvas" aria-label="중력원과 위성의 경로" width="700" height="700"></canvas><div id="drag-indicator"></div></div>
+<div class="sim-toolbar"><button class="sim-primary" id="start-btn" onclick="startSim()">자동 재생</button><button class="sim-primary" id="pause-btn" onclick="pauseSim()" style="display:none">일시정지</button><button onclick="stepSim()">한 단계 · 0.1 t</button><button onclick="resetScene()">초기화</button></div><div class="gravity-stage"><canvas id="sim-canvas" aria-label="중력원과 위성의 경로" width="700" height="700"></canvas><div id="drag-indicator"></div></div>
 
 <div class="sim-stat-grid"><div class="sim-stat"><span>남은 위성</span><strong id="satellite-stat">0</strong></div><div class="sim-stat"><span>모형 시간</span><strong id="time-stat">0 t</strong></div><div class="sim-stat"><span>포획 / 화면 이탈</span><strong id="capture-stat">0 / 0</strong></div><div class="sim-stat"><span>평균 속도</span><strong id="speed-stat">0 u/t</strong></div></div><p id="status-bar" class="sim-note" role="status"></p></section>
 <aside class="sim-controls-panel sim-panel"><div class="sim-panel-heading"><div><span class="sim-section-title">SET THE MOTION</span><h2>실험 조건</h2></div></div><div class="sim-toolbar"><button onclick="orbitExample()">원궤도 예제</button><button onclick="addRandomSatellite()">무작위 위성</button><button onclick="addRandomPlanet()">중력원 추가</button><button onclick="clearSatellites()">위성 지우기</button></div>
-<label class="sim-control" for="speed-mult">재생 속도 <output id="speed-mult-value">1.0</output> ×<input id="speed-mult" type="range" min="0.5" max="3" step="0.1" value="1"></label><label class="sim-control" for="gravity-strength">중력 강도 <output id="gravity-value">1.0</output> ×<input id="gravity-strength" type="range" min="0.5" max="2" step="0.1" value="1"></label><label class="sim-control" for="random-satellite-count">한 번에 추가할 위성 <output id="random-count-value">20</output>개<input id="random-satellite-count" type="range" min="1" max="50" value="20"></label>
+<label class="sim-control" for="orbit-preset">궤도 그림<select id="orbit-preset"><option value="circle">한 개의 원궤도</option><option value="rings">겹겹의 역회전 고리</option><option value="petals">다섯 장의 타원 꽃잎</option><option value="binary">두 중력원 사이의 곡선</option></select><small id="orbit-preset-note">모양을 고른 뒤 자동 재생을 눌러 궤적이 그려지는 모습을 보세요.</small></label><label class="sim-control" for="speed-mult">재생 속도 <output id="speed-mult-value">1.0</output> ×<input id="speed-mult" type="range" min="0.5" max="3" step="0.1" value="1"></label><label class="sim-control" for="gravity-strength">중력 강도 <output id="gravity-value">1.0</output> ×<input id="gravity-strength" type="range" min="0.5" max="2" step="0.1" value="1"></label><label class="sim-control" for="random-satellite-count">한 번에 추가할 위성 <output id="random-count-value">20</output>개<input id="random-satellite-count" type="range" min="1" max="50" value="20"></label>
 <div class="button-row"><button id="edit-gravity" aria-pressed="false">발사·이동 켜기</button><button id="undo-launch" disabled>마지막 발사 지우기</button></div><p class="sim-note" id="launch-note">발사·이동을 켜고 끌면 보라 점선으로 예상 경로를 미리 볼 수 있습니다.</p><details class="sim-explainer"><summary>숫자로 위성 발사하기</summary><label class="sim-control" for="launch-x">가로 위치 <output id="launch-x-value">530 u</output><input id="launch-x" type="range" min="20" max="680" value="530"></label><label class="sim-control" for="launch-y">세로 위치 <output id="launch-y-value">350 u</output><input id="launch-y" type="range" min="20" max="680" value="350"></label><label class="sim-control" for="launch-angle">발사 방향 · 0° 오른쪽, 90° 아래 <output id="launch-angle-value">90°</output><input id="launch-angle" type="range" min="0" max="359" value="90"></label><label class="sim-control" for="launch-speed">발사 속도 <output id="launch-speed-value">20 u/t</output><input id="launch-speed" type="range" min="0" max="60" value="20"></label><div class="button-row"><button id="preview-launch">경로 미리보기</button><button id="launch-input">이 조건으로 발사</button></div></details><h3 class="sim-section-title">보이는 정보</h3><div class="sim-toolbar"><button id="collision-btn" onclick="toggleCollision()">충돌: 켜짐</button><button id="orbit-btn" onclick="toggleOrbit()">궤도: 켜짐</button><button id="velocity-btn" onclick="toggleVelocity()">방향: 켜짐</button></div>
 <p class="sim-note">빈 공간에서 끌어 놓으면 시작점에서 드래그 방향으로 발사됩니다. 긴 드래그는 빠른 속도입니다. 중력원은 끌어서 옮기고 두 번 눌러 삭제할 수 있습니다.</p><p class="sim-note">u와 t는 모형의 거리·시간 단위입니다. 검은 원은 고정된 중력원과 포획 경계이며, 빛·시공간을 계산하는 블랙홀 모형은 아닙니다.</p><p class="sim-note">먼 곳에서는 거리가 두 배가 되면 인력이 약 ¼이 됩니다. 중심 가까이서는 수치 발산을 줄이는 완화 길이 10 u를 적용합니다.</p></aside></div></main>    <script>
         const canvas = document.getElementById('sim-canvas');
@@ -412,14 +412,14 @@
         
         function startSim() {
             if (satellites.length > 0) {
-                simRunning = true;
+                simRunning = true;accumulator=0;previousFrame=null;
                 document.getElementById('start-btn').style.display = 'none';
                 document.getElementById('pause-btn').style.display = 'inline-flex';
             }
         }
         
         function pauseSim() {
-            simRunning = false;
+            simRunning = false;accumulator=0;previousFrame=null;
             document.getElementById('start-btn').style.display = 'inline-flex';
             document.getElementById('pause-btn').style.display = 'none';
         }
@@ -480,8 +480,9 @@
                 }
                 if(absorbed) continue;
                 // 궤도 추적
-                satellite.orbit.push({ x: satellite.x, y: satellite.y });
-                if (satellite.orbit.length > 800) satellite.orbit.shift();
+                const lastPoint=satellite.orbit.at(-1);
+                if(!lastPoint||Math.hypot(satellite.x-lastPoint.x,satellite.y-lastPoint.y)>=2) satellite.orbit.push({ x: satellite.x, y: satellite.y });
+                if (satellite.orbit.length > 2000) satellite.orbit.shift();
                 
                 // 경계 체크
                 if (satellite.x < -100 || satellite.x > width + 100 || 
@@ -493,6 +494,7 @@
             }
             
             simTime += dt;
+            if(!satellites.length) pauseSim();
         }
         
         function draw() {
@@ -618,11 +620,22 @@
         function loop(timestamp) {
             if(previousFrame===null) previousFrame=timestamp;
             const elapsed=Math.min((timestamp-previousFrame)/1000,0.1);previousFrame=timestamp;
-            if(simRunning){accumulator+=elapsed*Number(document.getElementById('speed-mult').value);while(accumulator>=FIXED_DT){physics(FIXED_DT);accumulator-=FIXED_DT;}}
+            if(simRunning){accumulator+=elapsed*Number(document.getElementById('speed-mult').value);while(accumulator>=FIXED_DT&&simRunning){physics(FIXED_DT);accumulator-=FIXED_DT;}}
             else accumulator=0;
             draw();updateStatus();animationId=requestAnimationFrame(loop);
         }
-        function orbitExample(){resetSim();const p=planets[0],r=180;const mu=p.mass*Number(document.getElementById('gravity-strength').value);const v=Math.sqrt(mu*r*r/Math.pow(r*r+SOFTENING*SOFTENING,1.5));satellites.push({x:p.x+r,y:p.y,vx:0,vy:v,orbit:[],color:'#1f6b50',id:Date.now()});updateStatus();}
+        function orbitExample(){document.getElementById("orbit-preset").value="circle";document.getElementById("orbit-preset-note").textContent="하나의 중력원 주위를 도는 원궤도입니다. 자동 재생으로 같은 거리를 유지하는지 보세요.";resetSim();const p=planets[0],r=180;const mu=p.mass*Number(document.getElementById('gravity-strength').value);const v=Math.sqrt(mu*r*r/Math.pow(r*r+SOFTENING*SOFTENING,1.5));satellites.push({x:p.x+r,y:p.y,vx:0,vy:v,orbit:[],color:'#1f6b50',id:Date.now()});updateStatus();}
+        function resetScene(){loadOrbitPreset(document.getElementById('orbit-preset').value);}
+        function loadOrbitPreset(kind){
+            if(kind==='circle'){orbitExample();return;}resetSim();showOrbit=true;document.getElementById('orbit-btn').textContent='궤도: 켜짐';document.getElementById('orbit-btn').setAttribute('aria-pressed','true');
+            const strength=Number(document.getElementById('gravity-strength').value),colors=['#21654f','#9271a3','#c28251','#548bab','#b86569'];
+            function satellite(r,a,factor,index,center=planets[0]){const v=Math.sqrt(center.mass*strength*r*r/Math.pow(r*r+SOFTENING*SOFTENING,1.5))*factor;satellites.push({x:center.x+r*Math.cos(a),y:center.y+r*Math.sin(a),vx:-Math.sin(a)*v,vy:Math.cos(a)*v,orbit:[],color:colors[index%colors.length],id:1000+index});}
+            if(kind==='rings')for(let i=0;i<4;i++)satellite(95+i*52,i*Math.PI/2,i%2?-1:1,i);
+            if(kind==='petals')for(let i=0;i<5;i++)satellite(240,i*Math.PI*2/5,.67,i);
+            if(kind==='binary'){planets=[{x:255,y:350,mass:11000,radius:20,color:'#000'},{x:445,y:350,mass:11000,radius:20,color:'#000'}];for(let i=0;i<4;i++)satellites.push({x:350,y:95+i*24,vx:9.8,vy:0,orbit:[],color:colors[i],id:1000+i});}
+            document.getElementById('orbit-preset-note').textContent={rings:'안쪽과 바깥쪽의 한 바퀴 시간이 다릅니다. 이웃한 고리는 반대 방향으로 돕니다.',petals:'다섯 방향에서 느리게 출발해 타원 궤적을 그립니다. 중심 가까이 휘는 꽃잎을 보세요.',binary:'두 중력원은 고정되어 있습니다. 출발 위치가 조금 다른 위성들의 곡선이 갈라지는지 살펴보세요.'}[kind];updateStatus();draw();
+        }
+        document.getElementById('orbit-preset').onchange=e=>loadOrbitPreset(e.target.value);
         // 초기화
         init();
         orbitExample();

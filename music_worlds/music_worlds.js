@@ -3,8 +3,10 @@
   const E = window.MusicWorlds, $ = id => document.getElementById(id), canvas = $('canvas'), ctx = canvas.getContext('2d');
   const palette = ['#597e50', '#c08f4b', '#627ca5', '#a3738e', '#5e9b8b', '#ab784d', '#8c9d4f', '#8b88b0'];
   const names = { ranked: '인기순 노출', visible: '인기 숫자 공개', independent: '인기 숨김' };
-  const briefs = { ranked: '몇 번의 초기 선택이 나중의 노출을 바꿉니다. 먼저 ‘10명씩 입장’을 눌러 네 세계의 출발을 비교해 보세요.', visible: '곡을 접할 기회는 무작위로 주어지지만 인기 숫자는 볼 수 있습니다. 숫자만 보여도 선택이 달라질까요?', independent: '청중은 다른 사람의 선택을 모릅니다. 기본 매력과 개인 취향만으로 네 세계의 결과가 얼마나 비슷해질까요?', free: '노출 방식, 인기에 끌리는 정도, 곡의 매력 차이를 직접 조합해 보세요.' };
+  const briefs = { ranked: '몇 번의 초기 선택이 나중의 노출을 바꿉니다. 먼저 ‘자동 재생’이나 ‘한 명 입장’을 눌러 네 세계의 출발을 비교해 보세요.', visible: '곡을 접할 기회는 무작위로 주어지지만 인기 숫자는 볼 수 있습니다. 숫자만 보여도 선택이 달라질까요?', independent: '청중은 다른 사람의 선택을 모릅니다. 기본 매력과 개인 취향만으로 네 세계의 결과가 얼마나 비슷해질까요?', free: '노출 방식, 인기에 끌리는 정도, 곡의 매력 차이를 직접 조합해 보세요.' };
   let state, running = false, elapsed = 0, last = 0, selectedWorld = 0, selectedSong = 0, hitAreas = [], comparison = null;
+  let playbackRate = 1, manualClock = false;
+  function playback(value) { running = value; elapsed = 0; last = performance.now(); }
   let forkResult = null, forkView = false;
   function forkSummary() {
     if (!forkResult) return null;
@@ -22,14 +24,14 @@
   }
   const previewHome = $('preview').parentNode, toolbarHome = $('toolbar').parentNode;
   function config() { return { seed: Number($('seed').value) || 1, mode: $('mode').value, influence: Number($('influence').value) / 100, spread: Number($('spread').value) / 100 }; }
-  function reset() { running = false; elapsed = 0; state = E.create(config()); resetVisuals(); comparison = null; forkResult = null; forkView = false; $('benchmark').hidden = true; $('fork-result').hidden = true; $('message').textContent = '같은 여덟 곡과 청중 취향으로 출발합니다. 세계마다 먼저 접하는 곡과 순간 판단에 다른 우연이 작용합니다.'; sync(); }
+  function reset() { playback(false); state = E.create(config()); resetVisuals(); comparison = null; forkResult = null; forkView = false; $('benchmark').hidden = true; $('fork-result').hidden = true; $('message').textContent = '같은 여덟 곡과 청중 취향으로 출발합니다. 세계마다 먼저 접하는 곡과 순간 판단에 다른 우연이 작용합니다.'; sync(); }
   function applyPreset() { const mode = $('preset').value; if (mode !== 'free') { $('mode').value = mode; $('influence').value = 80; $('spread').value = 45; } $('brief').textContent = briefs[mode]; reset(); }
   function songLabel(id) { return `${String.fromCharCode(65 + id)} · ${E.titles[id]}`; }
-  function next(n = 10) { forkView = false; E.run(state, n); if (state.listeners >= E.LIMIT) running = false; if (state.listeners === E.LIMIT) $('message').textContent = `400명 완료. 네 세계에서 ${E.stats(state).differentLeaders}종류의 1위가 나왔습니다. 진열 방식을 바꾸거나 다른 실험 번호에서도 비교해 보세요.`; sync(); }
+  function next(n = 1) { forkView = false; E.run(state, n); if (state.listeners >= E.LIMIT) playback(false); if (state.listeners === E.LIMIT) $('message').textContent = `400명 완료. 네 세계에서 ${E.stats(state).differentLeaders}종류의 1위가 나왔습니다. 진열 방식을 바꾸거나 다른 실험 번호에서도 비교해 보세요.`; sync(); }
   function sync() {
     targetVisuals();
     const stats = E.stats(state); $('mode-chip').textContent = names[state.config.mode];
-    $('play').textContent = state.listeners === E.LIMIT ? '실험 완료' : running ? '일시정지' : state.listeners ? '이어서 진행' : '네 세계 함께 시작'; $('play').disabled = state.listeners === E.LIMIT; $('step').disabled = state.listeners === E.LIMIT; $('finish').disabled = state.listeners === E.LIMIT;
+    $('play').textContent = state.listeners === E.LIMIT ? '실험 완료' : running ? '일시정지' : '자동 재생'; $('play').setAttribute('aria-pressed', String(running)); $('play').disabled = state.listeners === E.LIMIT; $('step').disabled = state.listeners === E.LIMIT; $('finish').disabled = state.listeners === E.LIMIT;
     $('visitors').textContent = `${state.listeners} / ${E.LIMIT}명`; $('leaders').textContent = state.listeners ? `${stats.differentLeaders}곡` : '—'; $('concentration').textContent = state.listeners ? `${Math.round(stats.concentration * 100)}%` : '—';
     $('influence-value').textContent = (Number($('influence').value) / 100).toFixed(2); $('spread-value').textContent = `${$('spread').value}%`; $('influence').disabled = state.config.mode === 'independent';
     $('world').value = selectedWorld; $('song').value = selectedSong;
@@ -118,31 +120,32 @@
     draw();
   }
   $('song').innerHTML = E.titles.map((_, id) => `<option value="${id}">${songLabel(id)}</option>`).join('');
-  $('play').onclick = () => { forkView = false; running = !running; elapsed = 0; sync(); }; $('step').onclick = () => { running = false; next(); }; $('finish').onclick = () => { running = false; next(E.LIMIT); }; $('reset').onclick = reset; $('preset').onchange = applyPreset;
+  $('play').onclick = () => { forkView = false; if (state.listeners < E.LIMIT) playback(!running); sync(); }; $('step').onclick = () => { playback(false); next(); }; $('finish').onclick = () => { playback(false); next(E.LIMIT); }; $('reset').onclick = reset; $('preset').onchange = applyPreset;
+  $('playback-speed').onchange = () => { playbackRate = Number($('playback-speed').value); playback(running); sync(); };
   for (const id of ['mode', 'influence', 'spread', 'seed']) $(id).onchange = () => { $('preset').value = 'free'; $('brief').textContent = briefs.free; reset(); };
   for (const id of ['influence', 'spread']) $(id).oninput = () => { $(`${id}-value`).textContent = id === 'influence' ? (Number($(id).value) / 100).toFixed(2) : `${$(id).value}%`; };
   $('new-seed').onclick = () => { $('seed').value = 1 + Math.floor(Math.random() * 999998); reset(); };
   $('world').onchange = () => { selectedWorld = Number($('world').value); sync(); }; $('song').onchange = () => { selectedSong = Number($('song').value); sync(); };
   $('song-list').addEventListener('click', event => { const b = event.target.closest('[data-song]'); if (b) { selectedSong = Number(b.dataset.song); sync(); } });
   document.querySelectorAll('[data-world]').forEach(b => b.onclick = () => { selectedWorld = Number(b.dataset.world); sync(); });
-  $('promote').onclick = () => { if (E.promote(state, selectedWorld, selectedSong)) { $('message').textContent = `세계 ${selectedWorld + 1}의 다음 ${Math.min(20, E.LIMIT - state.listeners)}명에게 ${songLabel(selectedSong)}을 노출합니다. 다른 세계의 노출은 바뀌지 않습니다.`; sync(); } };
+  $('promote').onclick = () => { if (E.promote(state, selectedWorld, selectedSong)) { playback(false); $('message').textContent = `세계 ${selectedWorld + 1}의 다음 ${Math.min(20, E.LIMIT - state.listeners)}명에게 ${songLabel(selectedSong)}을 노출합니다. 다른 세계의 노출은 바뀌지 않습니다.`; sync(); } };
   $('fork').onclick = () => {
     const result = E.fork(state, selectedWorld, selectedSong); if (!result) return;
-    running = false; forkResult = result; forkView = true;
+    playback(false); forkResult = result; forkView = true;
     const s = forkSummary(); $('fork-result').hidden = false;
     $('fork-result').innerHTML = `<strong>${s.at}명째에서 갈라진 세계 ${s.world} · ${songLabel(s.song)}</strong><table><thead><tr><th>400명 결과</th><th>그대로</th><th>${Math.min(20, E.LIMIT - s.at)}명 추천</th></tr></thead><tbody><tr><td>이 곡 선택</td><td>${s.control.choices}명</td><td>${s.promoted.choices}명</td></tr><tr><td>이 곡 노출</td><td>${s.control.exposures}회</td><td>${s.promoted.exposures}회</td></tr><tr><td>최종 1위</td><td>${songLabel(s.control.leader)}</td><td>${songLabel(s.promoted.leader)}</td></tr></tbody></table><p>선택 변화 <b>${s.delta >= 0 ? '+' : ''}${s.delta}명</b>. 같은 출발 상태·취향·순간 판단 난수에서 추천 여부만 바꿨습니다. 노출 기회가 늘어도 선택은 늘지 않을 수 있습니다. 옅은 그래프 배경은 추천 기간입니다.</p>`;
     $('message').textContent = `분기 비교를 계산했습니다. 원래 네 세계는 ${state.listeners}명에서 멈춰 있습니다.`; sync();
   };
-  $('live-view').onclick = () => { forkView = false; sync(); }; $('fork-view').onclick = () => { forkView = true; sync(); };
-  $('compare').onclick = () => { comparison = E.compare(state.config); $('benchmark').innerHTML = '<table><thead><tr><th>진열 방식</th><th>1위 종류</th><th>1위 점유율</th></tr></thead><tbody>' + comparison.map(r => `<tr><td>${names[r.mode]}</td><td>${r.differentLeaders}곡</td><td>${Math.round(r.concentration * 100)}%</td></tr>`).join('') + '</tbody></table><p>같은 번호·곡·청중으로 각 400명까지 계산한 결과입니다. 플레이어 노출 개입은 제외합니다. 1위 동률은 곡 문자 순서로 표시합니다.</p>'; $('benchmark').hidden = false; };
+  $('live-view').onclick = () => { forkView = false; sync(); }; $('fork-view').onclick = () => { playback(false); forkView = true; sync(); };
+  $('compare').onclick = () => { playback(false); sync(); comparison = E.compare(state.config); $('benchmark').innerHTML = '<table><thead><tr><th>진열 방식</th><th>1위 종류</th><th>1위 점유율</th></tr></thead><tbody>' + comparison.map(r => `<tr><td>${names[r.mode]}</td><td>${r.differentLeaders}곡</td><td>${Math.round(r.concentration * 100)}%</td></tr>`).join('') + '</tbody></table><p>같은 번호·곡·청중으로 각 400명까지 계산한 결과입니다. 플레이어 노출 개입은 제외합니다. 1위 동률은 곡 문자 순서로 표시합니다.</p>'; $('benchmark').hidden = false; };
   canvas.addEventListener('pointerdown', event => { pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId }; });
   canvas.addEventListener('pointercancel', () => { pointerStart = null; });
   canvas.addEventListener('pointermove', event => { if (pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 9) pointerStart = null; });
   canvas.addEventListener('pointerup', event => { if (!pointerStart || pointerStart.id !== event.pointerId) return; pointerStart = null; const r = canvas.getBoundingClientRect(), x = (event.clientX - r.left) * canvas.width / r.width, y = (event.clientY - r.top) * canvas.height / r.height; const hit = hitAreas.find(a => x >= a.x && x <= a.x + a.width && y >= a.y && y < a.y + a.height); if (hit) { selectedWorld = hit.world; selectedSong = hit.song; sync(); } });
   $('fullscreen').onclick = () => toggleFull(); $('exit-fullscreen').onclick = () => toggleFull(true);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { $('stage').classList.remove('expanded'); $('exit-fullscreen').hidden = true; } draw(); });
-  document.addEventListener('keydown', event => { if (/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFull(); } if (event.key === 'Escape') toggleFull(true); if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); if (state.listeners < E.LIMIT) { running = !running; sync(); } } });
-  function advance(ms) { if (!running) return; elapsed += ms; let changed = false; while (elapsed >= 300 && state.listeners < E.LIMIT) { E.run(state, 5); elapsed -= 300; changed = true; } if (state.listeners >= E.LIMIT) { running = false; $('message').textContent = `400명 완료. ${E.stats(state).differentLeaders}종류의 1위가 나왔습니다. 같은 조건을 다시 돌리면 같은 결과가 나옵니다.`; } if (changed) sync(); }
+  document.addEventListener('keydown', event => { if (/INPUT|SELECT|TEXTAREA/.test(event.target.tagName)) return; if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFull(); } if (event.key === 'Escape') toggleFull(true); if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); if (state.listeners < E.LIMIT) { forkView = false; playback(!running); sync(); } } });
+  function advance(ms) { if (!running) return; elapsed += ms * playbackRate; let changed = false; while (elapsed + 1e-7 >= 500 && state.listeners < E.LIMIT) { E.step(state); elapsed -= 500; changed = true; } if (state.listeners >= E.LIMIT) { playback(false); $('message').textContent = `400명 완료. ${E.stats(state).differentLeaders}종류의 1위가 나왔습니다. 같은 조건을 다시 돌리면 같은 결과가 나옵니다.`; } if (changed) sync(); }
   function advanceVisuals(ms) {
     if (!motionEnabled() || !easing) return;
     const weight = 1 - Math.exp(-ms / 100); let pending = false;
@@ -155,9 +158,9 @@
   }
   function motionChanged() { targetVisuals(); draw(); }
   window.addEventListener('websim:ambient-change', motionChanged); reducedMotion.addEventListener('change', motionChanged);
-  window.advanceTime = ms => { const dt = Math.max(0, ms); advance(dt); advanceVisuals(dt); return Promise.resolve(); };
-  window.render_game_to_text = () => JSON.stringify({ coordinates: 'desktop worlds in a 2×2 grid; mobile selected world; fork plot x=arrival index y=chosen-song cumulative selections', config: state.config, running, listenersPerWorld: state.listeners, selectedWorld: selectedWorld + 1, selectedSong, songs: state.songs.map(s => ({ ...s, quality: Math.round(s.quality * 100) })), worlds: state.worlds.map(w => ({ world: w.id + 1, counts: w.counts, exposures: w.exposures, promotion: w.promotion, last: w.last, leaderHistory: w.history })), statistics: E.stats(state), interventions: state.interventions, comparison, forkView, fork: forkSummary(), art: { motion: motionEnabled(), easing, displayRows, targetRows, displayCounts } });
+  window.advanceTime = ms => { manualClock = true; const dt = Math.max(0, Number(ms) || 0); advance(dt); advanceVisuals(dt); return Promise.resolve(); };
+  window.render_game_to_text = () => JSON.stringify({ coordinates: 'desktop worlds in a 2×2 grid; mobile selected world; fork plot x=arrival index y=chosen-song cumulative selections', config: state.config, running, playbackRate, stepIntervalMs: 500 / playbackRate, listenersPerWorld: state.listeners, selectedWorld: selectedWorld + 1, selectedSong, songs: state.songs.map(s => ({ ...s, quality: Math.round(s.quality * 100) })), worlds: state.worlds.map(w => ({ world: w.id + 1, counts: w.counts, exposures: w.exposures, promotion: w.promotion, last: w.last, leaderHistory: w.history })), statistics: E.stats(state), interventions: state.interventions, comparison, forkView, fork: forkSummary(), art: { motion: motionEnabled(), easing, displayRows, targetRows, displayCounts } });
   window.addEventListener('resize', responsive);
-  function frame(time) { if (last) { const dt = Math.min(100, time - last); advance(dt); advanceVisuals(dt); } last = time; requestAnimationFrame(frame); }
+  function frame(time) { if (last && !manualClock) { const dt = Math.min(100, time - last); advance(dt); advanceVisuals(dt); } last = time; requestAnimationFrame(frame); }
   applyPreset(); responsive(); requestAnimationFrame(frame);
 })();
