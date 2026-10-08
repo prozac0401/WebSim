@@ -33,3 +33,28 @@
   #vehicle-app .fleet canvas{height:70px}
   #vehicle-app .vehicle-legend{padding-inline:14px}
 }
+
+#vehicle-app #design-preview{display:block;width:100%;height:auto;margin:-5px 0 10px;border-radius:8px;background:linear-gradient(#f5f7f6,#e9ede9)}
+#vehicle-app .road-legend{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0 20px 16px;font-size:11px;color:var(--sim-muted)}
+#vehicle-app .road-legend span{display:flex;align-items:center;gap:5px}
+#vehicle-app .road-legend i{display:block;width:19px;height:9px;border:1px solid;border-radius:3px}
+#vehicle-app .road-legend b{font-weight:400;opacity:.5}
+#vehicle-app .vehicle-legend{align-items:center}
+#vehicle-app .vehicle-legend button{font-size:11px;padding:6px 10px}
+#vehicle-app .live-telemetry{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--sim-border);padding-top:15px;margin-top:16px}
+#vehicle-app .live-telemetry span{display:block;font-size:10px;color:var(--sim-muted);margin-bottom:5px}
+#vehicle-app .live-telemetry strong{font-size:12px;font-variant-numeric:tabular-nums}
+#vehicle-app .race-results{margin:0 20px 18px;padding:16px;border:1px solid var(--sim-border);border-radius:10px;background:var(--sim-bg)}
+#vehicle-app .results-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#vehicle-app .results-heading h3{font-size:13px;margin:0}
+#vehicle-app .results-heading strong{font-size:12px;color:var(--sim-accent)}
+#vehicle-app .race-results p{font-size:11px;line-height:1.7;color:var(--sim-muted);margin:8px 0 13px;word-break:keep-all}
+#vehicle-app .results-scroll{overflow-x:auto}
+#vehicle-app .race-results table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;text-align:left}
+#vehicle-app .race-results th,#vehicle-app .race-results td{padding:9px 4px;border-bottom:1px solid var(--sim-border);white-space:nowrap}
+#vehicle-app .race-results tbody th{font-weight:500}
+#vehicle-app .race-results td:last-child{text-align:right}
+#vehicle-app .race-results td small{display:block;font-size:9px;color:var(--sim-muted);margin-top:3px}
+#vehicle-app .race-progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#vehicle-app .race-progress progress{flex:1;min-width:100px;accent-color:var(--sim-accent)}
+@media(max-width:540px){#vehicle-app .race-results{margin-inline:14px;padding:12px}#vehicle-app .road-legend{margin-inline:14px;gap:8px}#vehicle-app .race-results th,#vehicle-app .race-results td{font-size:10px}}

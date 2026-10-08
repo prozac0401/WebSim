@@ -29,7 +29,7 @@ test('wave stepping is independent of rendering batch size', () => {
   assert.deepEqual(first.a,second.a);assert.deepEqual(first.sample(),second.sample());
 });
 
-function finish(lab,dt=1/120){for(let i=0;i<Math.ceil(12/dt)+1&&!lab.complete;i++)lab.step(dt);assert.ok(lab.complete);}
+function finish(lab,dt=1/120){for(let i=0;i<Math.ceil(lab.duration/dt)+1&&!lab.complete;i++)lab.step(dt);assert.ok(lab.complete);}
 test('vehicles physically advance and elite genomes survive exactly', () => {
   const lab=new EvolutionLab({seed:42,terrain:'rolling'});
   assert.equal(lab.nextGeneration(),false);finish(lab);
