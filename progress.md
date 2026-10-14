@@ -1,5 +1,11 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-15 코너 회전율 반복 및 푸른 하늘
+- User reports remaining straight/turn oscillation after the earlier C2 interpolation, and adds a blue-sky request. Reproduced repeated curvature pulses on Everland 2530–2645m: knot continuity alone did not eliminate the longer polygon-scale ripple. Replaced point-clipped planar Gaussian with progressive local cubic fits at 10/14/18m, smoothly constrained over 10m. The same 0.4m planar/0.025m vertical bounds, shared car/line tangent, original physics and recorded altitude remain unchanged.
+- Follow camera now averages direction from positions around the car, narrows its window for tight bends, limits anticipation to four metres and retains a critically damped heading spring. The sky is blue toward the top, pale at the physical projected horizon, with ground below; top-down views do not paint blue ground.
+- Regression QA uses the actual application animation loop at 30 Hz over Everland 2490–2598m, before/after, instead of the manual-time hook that snaps the camera. Evidence: output/playwright/corner-flow/. Public deployment remains authorized; user attachment is excluded.
+- Full regression suite:109/109 pass, including explicit comparison with the prior deployed filter, 30/60Hz and irregular-frame camera motion, tight hairpins, all11 circuits, original physics outcomes and actual shared-line geometry bounds. Camera integration follows a linearly moving angular target so irregular frame duration does not introduce a new angular-velocity pulse.
+
 ## 2026-10-15 차량 상단 현재 속도
 - Replaced floating entrant numbers with each car's current speed in integer km/h, matching the existing timing table. Expanded label width, spacing, edge bounds and selection radius for the longer text; vehicle IDs and timing-table numbers remain available for selection. Public deployment remains authorized. User attachment remains untracked and excluded from the release.
 - Verification: 25 existing camera/scene checks pass. Browser QA confirms 0 km/h at rest, live speed matching each car, readable 390px mobile labels and selecting another vehicle through its speed label. Desktop/mobile screenshots were opened and checked; no browser errors. Evidence: output/playwright/speed-labels/.

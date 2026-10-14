@@ -8,6 +8,37 @@ const races = circuits.map(circuit => new TrackRace({ circuit, vehicleIds: ['g80
 const turn = angle => Math.atan2(Math.sin(angle), Math.cos(angle));
 const rms = values => Math.sqrt(values.reduce((sum, value) => sum + value * value, 0) / values.length);
 
+// Frozen planar recipe from deployed e778fbb. Its frame-scale angle test passed
+// while a long corner still alternated between weak and strong turning. Keep
+// this baseline independent of the new fit so that regressions cannot be hidden
+// by changing a metadata label or by testing only mathematical continuity.
+function deployedCurvature(race) {
+  const subdivisions = DrivingPose.info(race).subdivisions, n = race.pathPoints.length * subdivisions;
+  const spacing = race.track.length / n, wrap = i => (i % n + n) % n;
+  const original = Array.from({length:n},(_,i) => {
+    const index = Math.floor(i/subdivisions), t = i/subdivisions-index;
+    const a = race.pathPoints[index], b = race.pathPoints[(index+1)%race.pathPoints.length];
+    return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};
+  });
+  const rounding = Math.max(...original.map((p,i)=>Math.hypot(original[wrap(i-1)].x-2*p.x+original[wrap(i+1)].x,original[wrap(i-1)].y-2*p.y+original[wrap(i+1)].y)/6));
+  const limit = Math.max(0,Math.min(.24,.4-rounding-.01)), radius = Math.min(Math.ceil(18/spacing),Math.floor((n-1)/2));
+  const weights = Array.from({length:radius*2+1},(_,j)=>Math.exp(-.5*((j-radius)*spacing/6)**2)), total = weights.reduce((a,b)=>a+b,0);
+  const controls = original.map((p,i)=>{
+    let dx=0,dy=0;
+    weights.forEach((w,j)=>{const q=original[wrap(i+j-radius)];dx+=w*q.x;dy+=w*q.y;});
+    dx=dx/total-p.x;dy=dy/total-p.y;
+    const gain=Math.min(1,limit/Math.max(Math.hypot(dx,dy),1e-12));
+    return {x:p.x+dx*gain,y:p.y+dy*gain};
+  });
+  return distance=>{
+    const u=((distance%race.track.length+race.track.length)%race.track.length)/spacing,i=Math.floor(u),t=u-i;
+    const first=[-.5*(1-t)**2,1.5*t*t-2*t,-1.5*t*t+t+.5,.5*t*t],second=[1-t,3*t-2,1-3*t,t];
+    let dx=0,dy=0,ddx=0,ddy=0;
+    for(let j=0;j<4;j++){const p=controls[wrap(i+j-1)];dx+=first[j]*p.x;dy+=first[j]*p.y;ddx+=second[j]*p.x;ddy+=second[j]*p.y;}
+    return (dx*ddy-dy*ddx)/Math.hypot(dx,dy)**3;
+  };
+}
+
 test('all 11 course curves remain continuously bounded within 40 cm of the original scoring path', () => {
   assert.equal(races.length, 11);
   for (const race of races) {
@@ -75,6 +106,40 @@ test('gentle-corner heading jitter drops on every real course without a delayed 
     assert.ok(ratio < .15, race.circuit.id + ': angular second-difference RMS reduction, got ' + ratio);
     assert.ok(Math.max(...smoothSteps) < Math.max(...rawSteps) * .3, race.circuit.id + ': eliminate segment heading snaps');
     reports.push({ id: race.circuit.id, angularJitterRatio: +ratio.toFixed(4), maximumRawDegreesPerHalfMetre: +(Math.max(...rawSteps) * 180 / Math.PI).toFixed(3), maximumSmoothDegreesPerHalfMetre: +(Math.max(...smoothSteps) * 180 / Math.PI).toFixed(3) });
+  }
+  t.diagnostic(JSON.stringify(reports));
+});
+
+test('Everland long gentle corner no longer repeats weak-turn/strong-turn phases every 20–40 metres',t=>{
+  const race=races.find(r=>r.circuit.id==='everland'),before=deployedCurvature(race),old=[],next=[];
+  for(let s=2530;s<=2600;s++){old.push(-before(s));next.push(-DrivingPose.sample(race,s).curvature);}
+  const cv=k=>{const mean=k.reduce((a,b)=>a+b,0)/k.length;return rms(k.map(v=>v-mean))/mean;};
+  const oldCV=cv(old),newCV=cv(next);
+  assert.ok(oldCV>.3,'the captured baseline must reproduce the reported long-corner problem');
+  assert.ok(newCV<.05&&newCV<oldCV*.15,'turn-rate variation remains below 5%, not merely C2 at knots');
+  assert.ok(Math.min(...next)>.0037&&Math.max(...next)<.0043,'a sustained ~250 m radius bend must not straighten or reverse');
+  const phases=k=>{const mean=k.reduce((a,b)=>a+b,0)/k.length;let state=0,cycles=0;for(const value of k){if(value>mean*1.35)state=1;else if(value<mean*.65&&state){cycles++;state=0;}}return cycles;};
+  assert.ok(phases(old)>=2,'baseline contains repeated turns and apparent straights');assert.equal(phases(next),0);
+  t.diagnostic(JSON.stringify({distanceM:[2530,2600],beforeCV:oldCV,afterCV:newCV,beforeCycles:phases(old),afterCycles:phases(next)}));
+});
+
+test('20–40 metre curvature ripple decreases against the deployed algorithm on every real track',t=>{
+  const reports=[];
+  for(const race of races){
+    const before=deployedCurvature(race),n=Math.floor(race.track.length/2),wrap=i=>(i%n+n)%n;
+    const old=Array.from({length:n},(_,i)=>before(i*2)),next=Array.from({length:n},(_,i)=>DrivingPose.sample(race,i*2).curvature);
+    const average=(values,i,radius)=>{let sum=0;for(let j=-radius;j<=radius;j++)sum+=values[wrap(i+j)];return sum/(radius*2+1);};
+    const oldResidual=[],newResidual=[];
+    for(let i=0;i<n;i++){
+      // Select the same physical bends for both algorithms with the baseline's
+      // 82 m turn average, then measure the faster 42 m curvature modulation.
+      const bend=Math.abs(average(old,i,20));if(bend<.0008||bend>.007)continue;
+      oldResidual.push(old[i]-average(old,i,10));newResidual.push(next[i]-average(next,i,10));
+    }
+    assert.ok(oldResidual.length>100,race.circuit.id+': actual gentle bends');
+    const ratio=rms(newResidual)/rms(oldResidual);
+    assert.ok(ratio<.8,race.circuit.id+': reduce metre-scale ripple, ratio '+ratio);
+    reports.push({id:race.circuit.id,curvatureRippleRatio:+ratio.toFixed(4)});
   }
   t.diagnostic(JSON.stringify(reports));
 });

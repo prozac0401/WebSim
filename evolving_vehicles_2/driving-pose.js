@@ -8,6 +8,7 @@
   const cache = new WeakMap();
   const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .24, SIGMA_M = 6;
   const MAX_ELEVATION_DEVIATION_M = .025, MAX_ELEVATION_CONTROL_SHIFT_M = .012;
+  const PLANAR_SCALES_M = [10, 14, 18], LIMIT_TRANSITION_M = 10;
   const mod = (n, d) => ((n % d) + d) % d;
   const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -30,6 +31,65 @@
       }
     }
     return { planar, vertical };
+  }
+
+  // A weighted local cubic fit retains constants, tangents and the quadratic
+  // part of a circular arc. Ordinary Gaussian position smoothing pulls every
+  // corner inward; clipping that shrinkage point by point copies the polygon's
+  // alternating straight/turn curvature straight back into the visible path.
+  function planarFit(points, spacing, sigma) {
+    const count = points.length, radius = Math.min(Math.ceil(3 * sigma / spacing), Math.floor((count - 1) / 2));
+    const gaussian = [], offsetsSquared = [];
+    let m0 = 0, m2 = 0, m4 = 0;
+    for (let j = -radius; j <= radius; j++) {
+      const squared = (j * spacing) ** 2, w = Math.exp(-.5 * squared / (sigma * sigma));
+      gaussian.push(w); offsetsSquared.push(squared); m0 += w; m2 += w * squared; m4 += w * squared * squared;
+    }
+    const denominator = m0 * m4 - m2 * m2;
+    if (denominator < 1e-20) return points.map(p => ({ x: p.x, y: p.y }));
+    const weights = gaussian.map((w, j) => w * (m4 - m2 * offsetsSquared[j]) / denominator);
+    return points.map((_p, i) => {
+      let x = 0, y = 0;
+      for (let j = 0; j < weights.length; j++) {
+        const p = points[mod(i + j - radius, count)], w = weights[j]; x += w * p.x; y += w * p.y;
+      }
+      return { x, y };
+    });
+  }
+
+  function smoothPlanar(original, spacing, shiftLimit) {
+    const count = original.length, radius = Math.min(Math.ceil(LIMIT_TRANSITION_M / spacing), Math.floor((count - 1) / 2));
+    const weights = Array.from({ length: radius * 2 + 1 }, (_, j) => Math.exp(-.5 * ((j - radius) / Math.max(radius / 2, 1)) ** 2));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let controls = original.map(p => ({ ...p }));
+    for (const sigma of PLANAR_SCALES_M) {
+      const target = planarFit(original, spacing, sigma);
+      // Largest blend along each current->target segment that stays in the
+      // original point's displacement disk. The disk is convex, so any smaller
+      // blend remains within the same proved 40 cm whole-curve bound.
+      const limits = controls.map((p, i) => {
+        const dx = target[i].x - p.x, dy = target[i].y - p.y;
+        const x = p.x - original[i].x, y = p.y - original[i].y;
+        const a = dx * dx + dy * dy, b = 2 * (x * dx + y * dy), c = x * x + y * y - shiftLimit * shiftLimit;
+        return a < 1e-20 ? 1 : Math.max(0, Math.min(1, (-b + Math.sqrt(Math.max(0, b * b - 4 * a * c))) / (2 * a)));
+      });
+      const lower = limits.map((value, i) => {
+        for (let j = -radius; j <= radius; j++) value = Math.min(value, limits[mod(i + j, count)]);
+        return value;
+      });
+      const gains = lower.map((_value, i) => {
+        let sum = 0;
+        for (let j = 0; j < weights.length; j++) sum += weights[j] * lower[mod(i + j - radius, count)];
+        // Each contributing minimum includes i. Positive averaging is thus
+        // <= limits[i], and tapers the constraint instead of clipping each knot.
+        return Math.min(limits[i], sum / total);
+      });
+      controls = controls.map((p, i) => ({ x: p.x + (target[i].x - p.x) * gains[i],
+        y: p.y + (target[i].y - p.y) * gains[i], z: p.z }));
+    }
+    // Larger scales build on the already smoothed smaller-scale fit. A tight
+    // hairpin therefore retains a smooth fallback, rather than the raw polygon.
+    return controls;
   }
 
   function create(race) {
@@ -61,16 +121,18 @@
     const radius = Math.min(Math.ceil(3 * SIGMA_M / spacing), Math.floor((count - 1) / 2));
     const weights = Array.from({ length: radius * 2 + 1 }, (_, j) => Math.exp(-.5 * ((j - radius) * spacing / SIGMA_M) ** 2));
     const total = weights.reduce((a, b) => a + b, 0);
-    const controls = original.map((p, i) => {
-      let x = 0, y = 0, z = 0;
-      weights.forEach((w, j) => { const q = original[mod(i + j - radius, count)]; x += w * q.x; y += w * q.y; z += w * q.z; });
-      x = x / total - p.x; y = y / total - p.y; z = z / total - p.z;
-      const scale = Math.min(1, shiftLimit / Math.max(Math.hypot(x, y), 1e-12));
-      return { x: p.x + x * scale, y: p.y + y * scale, z: p.z + Math.max(-elevationShiftLimit, Math.min(elevationShiftLimit, z)) };
+    const controls = smoothPlanar(original, spacing, shiftLimit);
+    controls.forEach((p, i) => {
+      let z = 0;
+      weights.forEach((w, j) => { z += w * original[mod(i + j - radius, count)].z; });
+      z = z / total - original[i].z;
+      p.z = original[i].z + Math.max(-elevationShiftLimit, Math.min(elevationShiftLimit, z));
     });
     const bound = deviationBound(controls, original);
     const result = { source: points, length, spacing, controls, hasElevation: !!race.track.hasElevation,
-      info: Object.freeze({ method: 'periodic-c2-b-spline', smoothingSigmaM: SIGMA_M, subdivisions,
+      info: Object.freeze({ method: 'periodic-c2-b-spline', planarMethod: 'progressive-local-cubic-fit',
+        planarScalesM: Object.freeze(PLANAR_SCALES_M.slice()), constraintTransitionM: LIMIT_TRANSITION_M,
+        smoothingSigmaM: SIGMA_M, subdivisions,
         maximumDeviationM: MAX_DEVIATION_M, deviationBoundM: bound.planar,
         maximumElevationDeviationM: MAX_ELEVATION_DEVIATION_M, elevationDeviationBoundM: bound.vertical }), drawnPath: null };
     cache.set(race, result); return result;

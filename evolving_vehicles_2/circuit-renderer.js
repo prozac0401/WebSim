@@ -286,28 +286,46 @@
     resetPan(){this.recenter();}
     _followGoal(car){
       const sample=distance=>root.DrivingPose?.sample(this.race,distance)||this.race.sample(distance);
-      const p=sample(car.distance),speed=Math.max(0,Number(car.speed)||0),lookAhead=clamp(10+speed*.22,10,20),ahead=sample(car.distance+lookAhead);
-      // The car and rig share the same continuous visual path. Look farther
-      // around the upcoming bend rather than reacting to individual segments.
-      const chord=Math.hypot(ahead.x-p.x,ahead.y-p.y)>.001?Math.atan2(ahead.y-p.y,ahead.x-p.x):p.angle;
-      const tangent=Number.isFinite(p.angle)?p.angle:chord;
-      const bend=Math.atan2(Math.sin(chord-tangent),Math.cos(chord-tangent));
-      return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading:tangent+bend*.65,distance:car.distance};
+      const p=sample(car.distance),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
+      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
+      // Estimate bend size from chords, not the instantaneous spline curvature.
+      // The neighbouring chords also see a tight bend before a wide filter
+      // could accidentally average across its return leg.
+      const probes=[sample(car.distance-2*desired),sample(car.distance-desired),p,sample(car.distance+desired),sample(car.distance+2*desired)];
+      const directions=probes.slice(1).map((q,i)=>Math.atan2(q.y-probes[i].y,q.x-probes[i].x));
+      const curvature=Math.max(...directions.slice(1).map((angle,i)=>Math.abs(wrap(angle-directions[i]))))/desired;
+      const sigma=desired/Math.sqrt(1+(desired*curvature/.55)**2),anticipation=Math.min(4,speed*.1)/Math.sqrt(1+(18*curvature)**2);
+      // A Gaussian derivative of positions averages the whole local road
+      // direction. Retaining any raw tangent here reintroduces the short
+      // straight/turn pulses even when the position curve itself is C2.
+      // The window is centred near the car, with at most four metres of lead;
+      // it smooths gentle bends without looking far around a hairpin.
+      let dx=0,dy=0;
+      const samples=Math.max(6,Math.ceil(3*sigma/2));
+      for(let i=1;i<=samples;i++){
+        const u=3*i/samples,weight=u*Math.exp(-.5*u*u),offset=u*sigma;
+        const a=sample(car.distance+anticipation-offset),b=sample(car.distance+anticipation+offset);
+        dx+=(b.x-a.x)*weight;dy+=(b.y-a.y)*weight;
+      }
+      const tangent=Number.isFinite(p.angle)?p.angle:directions[1];
+      // Degenerate loops must never put the chase camera in front of the car.
+      const heading=Math.hypot(dx,dy)>.001&&dx*Math.cos(tangent)+dy*Math.sin(tangent)>0?Math.atan2(dy,dx):tangent;
+      return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading,distance:car.distance};
     }
     _followPose(car){
-      if(!this._followState||this._followState.id!==car.id)this._followState={...this._followGoal(car),headingVelocity:0};
+      if(!this._followState||this._followState.id!==car.id){const goal=this._followGoal(car);this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};}
       return this._followState;
     }
     advanceCamera(seconds,{watch=this.watch,snap=false}={}){
       if(this.mode!=='follow'||!this.race)return false;
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return false;
       const goal=this._followGoal(car);
-      if(!this._followState||this._followState.id!==car.id){this._followState={...goal,headingVelocity:0};return true;}
+      if(!this._followState||this._followState.id!==car.id){this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};return true;}
       const previous=this._followState;
       if(snap){
         const angle=Math.atan2(Math.sin(goal.heading-previous.heading),Math.cos(goal.heading-previous.heading));
         const changed=['x','y','z'].some(key=>Math.abs(goal[key]-previous[key])>1e-10)||Math.abs(angle)>1e-10||Math.abs(previous.headingVelocity)>1e-10;
-        if(changed)this._followState={...goal,headingVelocity:0};return changed;
+        if(changed)this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};return changed;
       }
       const dt=Number.isFinite(seconds)?clamp(seconds,0,.25):0;if(!dt)return false;
       const pose=this._followState,before={...pose};
@@ -315,13 +333,17 @@
       // make the car slide across the frame and can cut across hairpins.
       pose.x=goal.x;pose.y=goal.y;pose.z=goal.z;
       const travel=Math.abs(goal.distance-pose.distance)/dt,physicalSpeed=Math.max(0,Number(car.speed)||0);
-      const playback=physicalSpeed>.5?travel/physicalSpeed:1,omega=12*Math.sqrt(clamp(playback,1,16));
-      const error=Math.atan2(Math.sin(pose.heading-goal.heading),Math.cos(pose.heading-goal.heading));
-      const velocity=pose.headingVelocity||0,j=velocity+omega*error,decay=Math.exp(-omega*dt);
-      // Exact critically damped spring step. Angular velocity survives a bend
-      // transition; there is no hard angular-lag clamp or straight/turn mode.
-      pose.heading=pose.heading-error+(error+j*dt)*decay;
-      pose.headingVelocity=(velocity-omega*j*dt)*decay;pose.distance=goal.distance;
+      const playback=physicalSpeed>.5?travel/physicalSpeed:1,omega=9.5*Math.sqrt(clamp(playback,1,16));
+      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
+      const moving=physicalSpeed>.5&&travel>1e-8;
+      const targetStep=moving?wrap(goal.heading-(pose.goalHeading??pose.heading)):0,targetRate=targetStep/dt;
+      const error=wrap(pose.heading-(goal.heading-targetStep))+2*targetRate/omega;
+      const velocity=(pose.headingVelocity||0)-targetRate,j=velocity+omega*error,decay=Math.exp(-omega*dt);
+      // Exact critically damped spring with a linearly moving angular target.
+      // Treating each new target as an instantaneous step creates a visible
+      // velocity pulse when frame durations vary, even on a perfect circle.
+      pose.heading=pose.heading-error+targetStep+(error+j*dt)*decay;
+      pose.headingVelocity=targetRate+(velocity-omega*j*dt)*decay;pose.distance=goal.distance;pose.goalHeading=goal.heading;
       const remaining=Math.atan2(Math.sin(goal.heading-pose.heading),Math.cos(goal.heading-pose.heading));
       if(Math.abs(remaining)<1e-6&&Math.abs(pose.headingVelocity)<1e-5){pose.heading+=remaining;pose.headingVelocity=0;}
       return ['x','y','z','heading','headingVelocity'].some(key=>Math.abs(pose[key]-before[key])>1e-10);
@@ -480,7 +502,11 @@
       return mesh;
     }
     _background(camera){
-      const ctx=this.ctx,w=this.width,h=this.height,gradient=ctx.createLinearGradient(0,0,0,h);gradient.addColorStop(0,'#b8cfda');gradient.addColorStop(.5,'#e1e9e6');gradient.addColorStop(1,'#c4c8bd');ctx.fillStyle=gradient;ctx.fillRect(0,0,w,h);
+      const ctx=this.ctx,w=this.width,h=this.height;
+      ctx.fillStyle='#c4c8bd';ctx.fillRect(0,0,w,h);
+      // Keep the blue sky above the camera's actual horizon when orbiting.
+      const horizon=clamp(camera.cy-camera.f*Math.tan(camera.pitch),0,h);
+      if(horizon>0){const sky=ctx.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5ea9e8');sky.addColorStop(.55,'#8ac6f0');sky.addColorStop(1,'#d9ecfa');ctx.fillStyle=sky;ctx.fillRect(0,0,w,horizon);}
       if(this.environment?.stats.features)return;
       const b=this.race.track.bounds,span=Math.max(b.width,b.height)*1.1,center=camera.target;
       const grid=this.mode==='follow'?10:Math.pow(10,Math.floor(Math.log10(Math.max(b.width,b.height)/7)));

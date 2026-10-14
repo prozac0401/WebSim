@@ -235,7 +235,7 @@ test('corner heading carries angular velocity instead of clamping or reversing i
   near(r._followState.heading, 0); near(r._followState.headingVelocity, 0);
 });
 
-test('camera uses the shared visual path and lengthens corner anticipation with speed', t => {
+test('camera averages the shared path around the car with limited speed-based anticipation', t => {
   const previous = global.DrivingPose, samples = [];
   t.after(() => { if (previous === undefined) delete global.DrivingPose; else global.DrivingPose = previous; });
   global.DrivingPose = { sample(race, distance) {
@@ -246,9 +246,90 @@ test('camera uses the shared visual path and lengthens corner anticipation with 
   const { renderer: r } = fixture(), car = r.race.cars[0];
   car.speed = 0;
   const slow = r._followGoal(car);
-  near(slow.x, 700); near(slow.y, 900); near(slow.z, 30.8); near(samples.at(-1) - car.distance, 10);
+  near(slow.x, 700); near(slow.y, 900); near(slow.z, 30.8); near(slow.heading, 0);
+  assert.ok(samples.some(s=>s<car.distance)&&samples.some(s=>s>car.distance),'average both sides of the current position');
   car.speed = 50;
   const fast = r._followGoal(car);
-  near(samples.at(-1) - car.distance, 20);
-  assert.ok(fast.heading > slow.heading && fast.heading < .15, 'look ahead gradually around the path bend');
+  assert.ok(fast.heading > slow.heading && fast.heading < 4/80, 'anticipation remains under four metres of arc');
+});
+
+const wrap = angle => Math.atan2(Math.sin(angle), Math.cos(angle));
+const rms = values => Math.sqrt(values.reduce((sum,value)=>sum+value*value,0)/values.length);
+function legacyFollowGoal(car) {
+  const sample=distance=>global.DrivingPose?.sample(this.race,distance)||this.race.sample(distance);
+  const p=sample(car.distance),ahead=sample(car.distance+Math.max(10,Math.min(20,10+(car.speed||0)*.22)));
+  const chord=Math.atan2(ahead.y-p.y,ahead.x-p.x);
+  return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading:p.angle+wrap(chord-p.angle)*.65,distance:car.distance};
+}
+function chase(r, speed, start, framePattern, duration, collectAfter=0) {
+  const car=r.race.cars[0];car.speed=speed;car.distance=start;r.setView('follow');r._interactionCamera();
+  const frames=[],checkpoints=[];let elapsed=0,index=0,previous=r._followState.heading;
+  while(elapsed<duration-1e-9){
+    const checkpoint=Math.min(duration,Math.floor(elapsed+1e-8)+1);
+    const dt=Math.min(framePattern[index++%framePattern.length],checkpoint-elapsed);
+    elapsed+=dt;car.distance=start+elapsed*speed;r.advanceCamera(dt);
+    const heading=r._followState.heading;
+    if(elapsed>collectAfter)frames.push({heading,rate:wrap(heading-previous)/dt,distance:car.distance});
+    if(Math.abs(elapsed-checkpoint)<1e-8)checkpoints.push(heading);
+    previous=heading;
+  }
+  return {frames,checkpoints};
+}
+
+test('millimetre-scale path ripples do not produce repeated straight/turn camera pulses', t => {
+  const sample=s=>{
+    const radius=250,k=2*Math.PI/10;
+    return {x:radius*Math.sin(s/radius),y:radius*(1-Math.cos(s/radius))+.008*Math.sin(k*s),elevation:10,
+      angle:Math.atan2(Math.sin(s/radius)+.008*k*Math.cos(k*s),Math.cos(s/radius))};
+  };
+  const results=[];
+  for(const pattern of [[1/30],[1/60],[1/120,1/45,1/80,1/28]]){
+    const {renderer:a}=fixture(),{renderer:b}=fixture();a.race.sample=sample;b.race.sample=sample;b._followGoal=legacyFollowGoal;
+    const current=chase(a,100/3.6,-60,pattern,8,3),legacy=chase(b,100/3.6,-60,pattern,8,3);
+    const changes=frames=>frames.slice(1).map((v,i)=>v.rate-frames[i].rate);
+    const ratio=rms(changes(current.frames))/rms(changes(legacy.frames));
+    assert.ok(ratio<.15,'remove short direction pulses at every cadence, ratio '+ratio);
+    assert.ok(current.frames.every(f=>f.rate>.06&&f.rate<.15),'continue turning through a gentle bend');
+    results.push({pattern,ratio,checkpoints:current.checkpoints});
+  }
+  for(const result of results.slice(1))result.checkpoints.forEach((heading,i)=>{
+    assert.ok(Math.abs(wrap(heading-results[0].checkpoints[i]))<.0025,'camera follows elapsed time across fixed/variable frame rates');
+  });
+  t.diagnostic(JSON.stringify(results.map(({pattern,ratio})=>({pattern,angularRippleRatio:+ratio.toFixed(5)}))));
+});
+
+test('tight hairpins keep a rearward direction without excessive early rotation or heading flips', () => {
+  for(const radius of [6,12,25]){
+    const {renderer:r}=fixture(),car=r.race.cars[0],length=Math.PI*radius;car.speed=radius*.8;
+    r.race.sample=s=>s<0?{x:s,y:0,elevation:10,angle:0}:s>length?{x:-(s-length),y:radius*2,elevation:10,angle:Math.PI}:
+      {x:radius*Math.sin(s/radius),y:radius*(1-Math.cos(s/radius)),elevation:10,angle:s/radius};
+    let previous=null;
+    for(let s=-40;s<length+40;s+=.25){
+      car.distance=s;const goal=r._followGoal(car),actual=r.race.sample(s);
+      assert.ok(Math.abs(wrap(goal.heading-actual.angle))<.3,'remain behind the car on radius '+radius+' at '+s);
+      if(s<=-20)assert.ok(Math.abs(goal.heading)<.025,'do not rotate around an unseen return leg');
+      if(previous!==null)assert.ok(Math.abs(wrap(goal.heading-previous))<.09,'no hairpin heading flip');
+      previous=goal.heading;
+    }
+  }
+});
+
+test('Everland reported gentle corner maintains steady angular velocity at 30/60 Hz and uneven frames', t => {
+  const previous=global.DrivingPose;
+  t.after(()=>{if(previous===undefined)delete global.DrivingPose;else global.DrivingPose=previous;});
+  global.DrivingPose=require('./driving-pose.js');
+  const TrackRace=require('./race-engine.js'),circuit=require('./circuits.js').find(c=>c.id==='everland');
+  const reports=[];
+  for(const pattern of [[1/30],[1/60],[1/120,1/45,1/80,1/28]]){
+    const {renderer:r}=fixture();r.race=new TrackRace({circuit,vehicleIds:['g80'],racingLine:true,laps:1});
+    const run=chase(r,100/3.6,2490,pattern,6.1),frames=run.frames.filter(f=>f.distance>=2530&&f.distance<=2645);
+    const rates=frames.map(f=>Math.abs(f.rate)),minimum=Math.min(...rates),maximum=Math.max(...rates);
+    assert.ok(minimum>.065&&maximum<.155,'reported corner must neither straighten nor suddenly tighten: '+minimum+'..'+maximum);
+    assert.ok(maximum/minimum<1.65,'reported corner turn-rate range: '+maximum/minimum);
+    reports.push({pattern,minimum,maximum,checkpoints:run.checkpoints});
+  }
+  for(const report of reports.slice(1))report.checkpoints.forEach((heading,i)=>{
+    assert.ok(Math.abs(wrap(heading-reports[0].checkpoints[i]))<.006,'real corner camera is stable across frame cadence');
+  });
+  t.diagnostic(JSON.stringify(reports.map(({pattern,minimum,maximum})=>({pattern,minDegreesPerSecond:+(minimum*180/Math.PI).toFixed(3),maxDegreesPerSecond:+(maximum*180/Math.PI).toFixed(3)}))));
 });
