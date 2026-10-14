@@ -12,8 +12,8 @@
   const copy = value => JSON.parse(JSON.stringify(value));
   const COLORS = ['#21654f', '#c58042', '#597bac', '#ad6675', '#7b7d43', '#765a97', '#399197', '#986c50'];
   const GENES = {
-    width: [92, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
-    rearRadius: [7, 15], frontRadius: [7, 15], wheelBase: [0.56, 0.71], axleY: [0.30, 0.42],
+    width: [80, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
+    rearRadius: [6, 15], frontRadius: [6, 15], wheelBase: [0.56, 0.75], axleY: [0.30, 0.42],
     motorSpeed: [0.22, 0.38], motorTorque: [0.10, 0.32],
     bodyStyle: [0, 5.999999], powertrainPosition: [-0.38, 0.38], drivetrain: [0, 2.999999]
   };
@@ -25,22 +25,24 @@
   // Clockwise silhouettes. Concave cabins/decks are triangulated, not replaced
   // with a convex hull, so the painted silhouette is also the collision shape.
   const STYLES = [
-    { id: 'buggy', label: '오프로더', points: [[-.5,.35],[-.5,-.43],[-.475,-.70],[-.43,-.77],[.10,-.77],[.22,-.25],[.46,-.22],[.5,-.12],[.5,.35]] },
-    { id: 'coupe', label: '스포츠 쿠페', points: [[-.5,.35],[-.5,-.04],[-.475,-.19],[-.42,-.29],[-.36,-.50],[-.26,-.69],[-.15,-.79],[-.055,-.81],[.035,-.77],[.13,-.61],[.255,-.31],[.36,-.23],[.47,-.17],[.5,-.04],[.5,.35]] },
-    { id: 'van', label: '마이크로버스', points: [[-.5,.35],[-.5,-.48],[-.48,-.67],[-.43,-.77],[-.34,-.80],[.31,-.80],[.4,-.73],[.46,-.56],[.50,-.28],[.50,.35]] },
-    { id: 'pickup', label: '전기 픽업', points: [[-.5,.35],[-.5,-.23],[-.29,-.44],[-.07,-.81],[.40,-.13],[.50,-.08],[.50,.35]] },
-    { id: 'racer', label: '슈퍼카', points: [[-.5,.35],[-.5,-.17],[-.43,-.27],[-.29,-.29],[-.19,-.64],[.04,-.66],[.29,-.09],[.5,.12],[.5,.35]] },
-    { id: 'rover', label: '유틸리티 SUV', points: [[-.5,.35],[-.5,-.62],[-.455,-.77],[.13,-.77],[.245,-.25],[.46,-.20],[.5,-.09],[.5,.35]] }
+    { id: 'ray', label: '기아 레이', points: [[-.5,.25],[-.5,-.58],[-.478,-.72],[-.43,-.79],[.11,-.79],[.20,-.73],[.335,-.25],[.465,-.23],[.5,-.13],[.5,.20],[.38,.35],[-.38,.35]] },
+    { id: 'avante', label: '현대 아반떼', points: [[-.5,.16],[-.5,-.19],[-.475,-.29],[-.355,-.31],[-.20,-.74],[-.11,-.80],[.075,-.79],[.125,-.72],[.265,-.29],[.46,-.24],[.50,-.10],[.5,.16],[.38,.35],[-.38,.35]] },
+    { id: 'staria', label: '현대 스타리아', points: [[-.5,.16],[-.5,-.57],[-.481,-.72],[-.423,-.79],[.025,-.81],[.16,-.75],[.275,-.57],[.385,-.32],[.472,-.07],[.5,.09],[.5,.16],[.38,.35],[-.38,.35]] },
+    { id: 'musso_ev', label: 'KGM 무쏘 EV', points: [[-.5,.16],[-.5,-.36],[-.191,-.36],[-.188,-.70],[-.143,-.79],[.11,-.79],[.25,-.27],[.463,-.245],[.5,-.125],[.5,.16],[.38,.35],[-.38,.35]] },
+    { id: 'ioniq5', label: '현대 아이오닉 5', points: [[-.5,.16],[-.5,-.16],[-.442,-.28],[-.337,-.76],[-.284,-.81],[.105,-.79],[.285,-.28],[.463,-.24],[.5,-.105],[.5,.16],[.38,.35],[-.38,.35]] },
+    { id: 'santafe', label: '현대 싼타페', points: [[-.5,.16],[-.5,-.67],[-.463,-.79],[.13,-.79],[.273,-.29],[.463,-.255],[.5,-.13],[.5,.16],[.38,.35],[-.38,.35]] }
   ];
-  // Production-car proportion envelopes apply to every generation. Evolution
-  // explores plausible dimensions rather than making giant-wheel toy shapes.
+  // Korean-market reference silhouettes, at roughly 0.023 world units per mm
+  // of length. Height is a body scale: roof-to-axle height plus tire radius gives
+  // the total vehicle height. These shape envelopes apply to every generation;
+  // motor, mass distribution and drivetrain remain independent experiment genes.
   const STARTING_PROPORTIONS = [
-    { width: [96,114], heightRatio: [.28,.33], wheelRatio: [.095,.115], wheelBase: [.59,.66] },
-    { width: [98,116], heightRatio: [.205,.24], wheelRatio: [.083,.100], wheelBase: [.57,.65] },
-    { width: [98,118], heightRatio: [.34,.40], wheelRatio: [.077,.095], wheelBase: [.59,.68] },
-    { width: [112,124], heightRatio: [.235,.275], wheelRatio: [.083,.100], wheelBase: [.61,.69] },
-    { width: [104,120], heightRatio: [.185,.22], wheelRatio: [.083,.097], wheelBase: [.58,.65] },
-    { width: [98,118], heightRatio: [.29,.34], wheelRatio: [.095,.115], wheelBase: [.60,.68] }
+    { width: [80,86], heightRatio: [.332,.350], wheelRatio: [.079,.088], wheelBase: [.688,.714] },
+    { width: [106,114], heightRatio: [.192,.209], wheelRatio: [.067,.075], wheelBase: [.563,.592] },
+    { width: [118,124], heightRatio: [.258,.279], wheelRatio: [.070,.078], wheelBase: [.610,.636] },
+    { width: [116,122], heightRatio: [.220,.240], wheelRatio: [.071,.081], wheelBase: [.596,.625] },
+    { width: [103,111], heightRatio: [.220,.240], wheelRatio: [.077,.087], wheelBase: [.630,.659] },
+    { width: [108,116], heightRatio: [.236,.258], wheelRatio: [.076,.086], wheelBase: [.570,.598] }
   ];
   const SURFACES = {
     asphalt: { id: 'asphalt', label: '포장도로', grip: .95, rollingResistance: .012 },
@@ -189,8 +191,8 @@
         });
         return genomes;
       }
-      const base = { ...genomes[0], width: 108, height: 33, rearRadius: 11, frontRadius: 11,
-        wheelBase: .64, axleY: .34, roofLeft: 0, roofRight: 0, bodyStyle: 0,
+      const base = { ...genomes[0], width: 108, height: 25, rearRadius: 8.8, frontRadius: 8.8,
+        wheelBase: .645, axleY: .34, roofLeft: 0, roofRight: 0, bodyStyle: 4,
         motorSpeed: .32, motorTorque: .22, powertrainPosition: 0, drivetrain: 2 };
       if (this.initialExperiment === 'drive') return genomes.map((_, i) => ({ ...base, drivetrain: i % DRIVETRAINS.length }));
       const gene = this.initialExperiment === 'power' ? 'motorTorque' : 'powertrainPosition';

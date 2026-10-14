@@ -2,7 +2,7 @@
  * Drawing is presentation-only; no random values or physical state are changed. */
 (function (root) {
   'use strict';
-  const STYLE_IDS = ['buggy', 'coupe', 'van', 'pickup', 'racer', 'rover'];
+  const STYLE_IDS = ['ray', 'avante', 'staria', 'musso_ev', 'ioniq5', 'santafe'];
   const TAU = Math.PI * 2;
   function trace(ctx, points) {
     ctx.beginPath();
@@ -20,8 +20,8 @@
     const d = vehicle.design, g = vehicle.genome;
     const live = options.live !== false, engineering = options.engineering === true;
     const style = typeof d.style === 'number' ? d.style : STYLE_IDS.indexOf(d.style);
-    const rugged = style === 0 || style === 5, metallic = style === 3;
-    const base = metallic ? '#a3afb5' : vehicle.color;
+    const rugged = style === 3 || style === 5, metallic = style === 4;
+    const base = vehicle.color;
     const w = g.width, h = g.height;
     const P = (x, y) => ({ x: d.frame.x + w * (x + (y < -.4 ? (x < 0 ? g.roofLeft : g.roofRight) * .35 : 0)), y: d.frame.y + h * y });
     const c = Math.cos(vehicle.body.angle), s = Math.sin(vehicle.body.angle);
@@ -69,7 +69,7 @@
     };
     // The underbody and wheel wells are shaded separately from painted metal.
     ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    line([[-.44,.32],[.44,.32]], '#172027', 1.4);
+    line([[-.34,.32],[.34,.32]], '#172027', 1.4);
     for (const wheel of wheels) {
       ctx.beginPath();ctx.arc(wheel.axle.x,wheel.axle.y,wheel.r+1.15,0,TAU);
       ctx.fillStyle='#11191e';ctx.fill();
@@ -90,112 +90,152 @@
     line([[-.48,.14],[.48,.14]], '#ffffff22', .45);
     line([[-.49,.30],[.49,.30]], '#101b2670', .8);
     if (style === 0) {
-      // Upright short-wheelbase utility: separate hardtop, flat hood and exposed hinges.
-      poly([[-.51,-.82],[.13,-.82],[.225,-.28],[-.51,-.28]], '#353c40');
-      poly([[-.49,-.74],[.095,-.74],[.205,-.30],[-.49,-.30]], '#42494b');
-      glass([[-.438,-.66],[-.18,-.66],[-.18,-.31],[-.443,-.31]]);
-      glass([[-.133,-.66],[.069,-.66],[.163,-.31],[-.133,-.31]]);
-      line([[-.162,-.73],[-.162,.28]],seam,.65);
-      line([[.185,-.26],[.195,.28],[-.16,.28]],seam,.60);
-      handle(-.103,-.13,.059);
-      for (const y of [-.13,.15]) poly([[.161,y],[.191,y],[.191,y+.05],[.161,y+.05]],bright,seam,.25);
-      poly([[.238,-.245],[.452,-.215],[.478,-.16],[.236,-.18]],blend(base,255,.35),seam,.35);
-      line([[.243,-.125],[.452,-.105]],bright,.40);
-      poly([[.21,-.14],[.245,-.14],[.245,-.095],[.21,-.095]],'#202b30');
-      lamp([[.464,-.09],[.497,-.07],[.497,.045],[.464,.025]],'#e8e3cd');
-      lamp([[-.497,-.05],[-.478,-.05],[-.478,.11],[-.497,.11]],'#b6413e');
-      poly([[-.52,.19],[-.43,.19],[-.43,.29],[-.52,.29]],'#263139');
-      poly([[.435,.18],[.52,.18],[.52,.28],[.435,.28]],'#273138');
-      line([[-.16,.28],[.19,.28]],'#a2a8a7',.75);
+      // Kia Ray: tall city-car cabin, short bonnet, and adjacent sliding-door handles.
+      poly([[-.48,-.715],[.165,-.715],[.31,-.20],[-.47,-.15]],'#202d33');
+      glass([[-.443,-.663],[-.348,-.667],[-.348,-.193],[-.446,-.184]]);
+      glass([[-.320,-.671],[-.032,-.669],[-.032,-.190],[-.319,-.19]]);
+      glass([[.006,-.669],[.146,-.662],[.277,-.199],[.006,-.19]]);
+      line([[-.335,-.727],[-.335,-.15],[-.324,.03],[-.278,.287],[-.018,.287],[-.018,-.713]],seam,.50);
+      line([[.286,-.19],[.306,.281],[-.018,.281]],seam,.48);
+      line([[-.476,-.05],[-.333,-.05]],'#243940',.95);
+      line([[-.474,-.044],[-.333,-.044]],bright,.3);
+      handle(-.086,-.077,.052); handle(.005,-.077,.052);
+      poly([[-.253,.19],[.222,.19],[.246,.26],[-.244,.26]],blend(base,255,.12));
+      line([[-.253,.263],[.247,.263]],bright,.5);
+      line([[.324,-.223],[.47,-.202]],bright,.7);
+      lamp([[.454,-.203],[.49,-.179],[.493,.052],[.468,.048],[.456,-.015]],'#344149');
+      line([[.469,-.168],[.485,-.156],[.486,.026],[.472,.026]],'#e8f3ee',.7);
+      lamp([[-.494,-.398],[-.48,-.395],[-.48,.037],[-.496,.037]],'#b63839');
+      line([[-.487,-.351],[-.487,-.105]],'#f38377',.38);
+      poly([[.465,.188],[.507,.18],[.507,.299],[.452,.299]],'#25343b');
+      poly([[-.505,.251],[-.452,.251],[-.452,.303],[-.505,.303]],'#324046');
     } else if (style === 1) {
-      // Rear-engine fastback: continuous roof arc, teardrop glazing and rounded fenders.
-      glass([[-.314,-.445],[-.237,-.626],[-.148,-.711],[-.079,-.728],[-.087,-.322],[-.29,-.322]]);
-      glass([[-.054,-.73],[.019,-.688],[.102,-.56],[.205,-.317],[-.053,-.317]]);
-      line([[-.065,-.733],[-.066,-.31]],'#242b2e',1.15);
-      line([[-.06,-.275],[-.07,.21],[.205,.21],[.23,-.25]],seam,.4);
-      handle(-.025,-.17,.047);
-      line([[.21,-.267],[.377,-.205],[.465,-.15]],bright,.6);
-      line([[-.46,-.18],[-.365,-.294]],bright,.7);
-      for(let i=0;i<6;i++) line([[-.441+i*.014,-.218-i*.016],[-.423+i*.014,-.168-i*.017]],seam,.43);
-      lamp([[.42,-.19],[.472,-.16],[.488,-.077],[.45,-.10]],'#e8eee9');
-      lamp([[-.495,-.065],[-.458,-.08],[-.453,-.028],[-.497,-.016]],'#bc363d');
-      line([[-.492,.15],[-.411,.145]],'#19232d',1.0);
-      line([[.423,.14],[.494,.17]],'#1d2a32',1.05);
-      line([[-.21,.265],[.207,.265]],bright,.4);
+      // Eighth-generation Avante: a three-box sedan, long bonnet and upright H-edge tail.
+      glass([[-.315,-.338],[-.203,-.641],[-.179,-.635],[-.214,-.341]]);
+      glass([[-.177,-.682],[-.104,-.728],[-.020,-.725],[-.025,-.321],[-.193,-.321]]);
+      glass([[.007,-.724],[.074,-.715],[.115,-.666],[.23,-.314],[.003,-.314]]);
+      line([[-.021,-.753],[-.029,-.30]],'#202d35',1.0);
+      line([[-.192,-.30],[-.218,.236],[-.049,.274],[-.04,-.29]],seam,.45);
+      line([[-.04,.274],[.214,.274],[.244,-.268]],seam,.45);
+      // The sculpted lower faces are metal reflections, rather than racing air intakes.
+      poly([[-.216,-.048],[-.038,.152],[.202,-.078],[.178,.237],[-.16,.237]],blend(base,255,.17));
+      line([[-.388,-.153],[-.22,-.163],[-.04,.105],[.214,-.14],[.44,-.169]],bright,.55);
+      line([[-.207,.253],[.204,.253]],'#1a2b3560',.55);
+      handle(-.160,-.200,.054,false);handle(.01,-.20,.054,false);
+      line([[-.48,-.284],[-.355,-.287]],bright,.60);
+      line([[.284,-.259],[.458,-.214]],bright,.65);
+      lamp([[.44,-.224],[.491,-.096],[.482,-.053],[.448,-.134]],'#d9e8e5');
+      line([[.443,-.19],[.470,-.12]],'#fbfff0',.5);
+      lamp([[-.498,-.249],[-.475,-.248],[-.475,.031],[-.497,.051]],'#953b40');
+      line([[-.488,-.223],[-.488,.018]],'#f1736c',.7);
+      poly([[.448,.061],[.503,.046],[.503,.19],[.445,.14]],'#1f3039');
+      line([[-.497,.201],[-.443,.214]],'#c94948',.65);
+      line([[-.209,.297],[.235,.297]],'#a4b6bb',.45);
     } else if (style === 2) {
-      // Forward-control classic bus: pale roof, five windows and a restrained chrome belt.
-      poly([[-.52,-.9],[.52,-.9],[.52,-.14],[-.52,-.14]],'#e7e6da');
-      line([[-.48,-.72],[.35,-.73]],'#fffef0',.75);
-      for (const x of [-.43,-.23,-.03]) glass([[x,-.61],[x+.159,-.61],[x+.159,-.25],[x,-.25]]);
-      glass([[.185,-.614],[.306,-.614],[.389,-.49],[.43,-.25],[.185,-.25]]);
-      line([[.15,-.69],[.15,.29]],'#676f70',.55);
-      line([[-.054,-.19],[-.054,.27],[.142,.27]],seam,.4);
-      line([[.168,-.16],[.442,-.14],[.45,.28],[.168,.28]],seam,.45);
-      line([[-.495,-.15],[.492,-.15]],'#f4f4e8',.8);
-      line([[-.495,-.125],[.492,-.125]],'#75817e',.3);
-      handle(.185,-.046,.047);handle(-.028,-.039,.040);
-      for(let i=0;i<5;i++) line([[-.474+i*.025,.01],[-.462+i*.025,.01]],'#405b5b',.5);
-      lamp([[.472,-.02],[.499,-.006],[.499,.085],[.472,.075]],'#ecead5');
-      lamp([[-.499,.015],[-.482,.015],[-.482,.13],[-.499,.13]],'#b84235');
-      poly([[-.516,.235],[-.431,.235],[-.431,.29],[-.516,.29]],'#d4d8d2','#798486',.35);
-      poly([[.443,.233],[.516,.233],[.516,.29],[.443,.29]],'#d4d8d2','#798486',.35);
+      // Staria Lounge: one smooth roof-to-nose arc and exceptionally deep panoramic glass.
+      poly([[-.465,-.724],[.074,-.72],[.178,-.655],[.28,-.474],[.363,-.207],[.379,-.107],[-.472,-.104]],'#182731');
+      glass([[-.438,-.677],[-.259,-.683],[-.26,-.165],[-.44,-.162]]);
+      glass([[-.230,-.687],[.051,-.679],[.055,-.163],[-.23,-.163]]);
+      glass([[.086,-.66],[.161,-.61],[.25,-.438],[.344,-.16],[.086,-.16]]);
+      // Slim ventilation window inset within the second-row glazing.
+      line([[-.173,-.605],[.002,-.604],[.002,-.248],[-.174,-.248],[-.173,-.605]],'#809aa16b',.35);
+      line([[-.25,-.752],[-.255,.285],[.061,.285],[.066,-.73]],seam,.45);
+      line([[.086,-.145],[.324,-.139],[.39,.28],[.086,.28],[.086,-.145]],seam,.45);
+      handle(.005,-.063,.039,false);handle(.088,-.063,.044,false);
+      line([[-.474,-.057],[-.272,-.057]],'#172a33',.6);
+      line([[-.442,.179],[.357,.179]],bright,.42);
+      line([[-.253,.297],[.322,.297]],'#a4b4b6',.8);
+      lamp([[.414,-.187],[.469,-.056],[.469,-.033],[.414,-.162]],'#eff9ef');
+      poly([[.465,.018],[.496,.054],[.504,.25],[.467,.249]],'#172a36');
+      for(let i=0;i<4;i++)line([[.470,.04+i*.047],[.496,.065+i*.044]],'#b7c6c8',.65);
+      lamp([[-.498,-.524],[-.479,-.519],[-.479,.197],[-.498,.197]],'#953a43');
+      for(let i=0;i<9;i++)line([[-.495,-.45+i*.066],[-.482,-.45+i*.066]],'#f08078',.45);
+      line([[-.452,-.756],[.031,-.777]],bright,.5);
     } else if (style === 3) {
-      // Folded stainless pickup: a single roof peak, dark continuous glass, long bed.
-      poly([[-.5,-.23],[-.29,-.44],[-.07,-.81],[.4,-.13],[-.14,-.13]],'#bec8cc');
-      poly([[-.5,-.20],[-.28,-.398],[-.18,-.205],[-.16,.02],[-.5,.06]],'#7b8b92');
-      glass([[-.238,-.395],[-.069,-.737],[.30,-.20],[-.187,-.20]]);
-      line([[.054,-.554],[.054,-.203]],'#1c2931',.85);
-      line([[-.178,-.17],[-.192,.28],[.048,.28],[.048,-.17]],'#5d6f79',.46);
-      line([[.067,-.17],[.067,.28],[.305,.28],[.31,-.17]],'#5d6f79',.46);
-      handle(-.155,-.081,.041,false);handle(.096,-.081,.044,false);
-      poly([[-.5,.07],[.5,.07],[.5,.11],[-.5,.11]],'#e0e4e2');
-      line([[-.485,.285],[.475,.285]],'#1c2b32',1.05);
-      lamp([[.417,-.103],[.501,-.066],[.501,-.034],[.417,-.07]],'#f7f4e4');
-      lamp([[-.501,-.19],[-.484,-.191],[-.484,-.087],[-.501,-.087]],'#c84537');
-      line([[.429,.196],[.495,.2]],'#1c292f',1.2);
+      // Musso EV: a separate open cargo bed, upright four-door cab and broad cladding.
+      poly([[-.505,-.382],[-.19,-.382],[-.19,-.304],[-.505,-.304]],'#25383e');
+      line([[-.491,-.338],[-.197,-.338]],'#6a7b7c',.55);
+      poly([[-.193,-.75],[-.158,-.75],[-.156,-.279],[-.193,-.279]],'#293c42');
+      poly([[-.190,-.726],[-.178,-.727],[-.176,-.327],[-.188,-.34]],'#b4bfc0');
+      glass([[-.142,-.691],[.001,-.702],[.001,-.302],[-.151,-.302]]);
+      glass([[.034,-.702],[.087,-.697],[.119,-.659],[.208,-.309],[.034,-.303]]);
+      line([[.017,-.729],[.017,-.291]],'#253039',1.3);
+      line([[-.157,-.283],[-.159,.281],[.017,.281],[.017,-.278]],seam,.5);
+      line([[.017,.281],[.231,.281],[.245,-.256]],seam,.5);
+      handle(-.124,-.201,.045,false);handle(.055,-.201,.047,false);
+      line([[-.187,-.145],[-.187,.301]],seam,.65);
+      line([[-.477,-.269],[-.206,-.269]],bright,.45);
+      poly([[-.176,.204],[.24,.204],[.24,.334],[-.176,.334]],'#2a3a41');
+      line([[-.162,.252],[.218,.252]],'#a6b1b1',.6);
+      line([[.266,-.246],[.453,-.218]],bright,.55);
+      lamp([[.431,-.225],[.486,-.149],[.486,-.09],[.431,-.171]],'#dae7e4');
+      for(let i=0;i<3;i++)line([[.438+i*.017,-.194+i*.022],[.44+i*.017,-.155+i*.021]],'#fafff4',.45);
+      poly([[.461,-.002],[.503,.001],[.504,.288],[.452,.255]],'#25343c');
+      lamp([[-.5,-.285],[-.478,-.285],[-.478,.138],[-.5,.14]],'#bd453f');
+      line([[-.490,-.25],[-.49,.104]],'#ff967c',.6);
+      poly([[-.508,.243],[-.447,.243],[-.447,.313],[-.508,.313]],'#28373e');
     } else if (style === 4) {
-      // Low mid-engine wedge: angular glass, deep side intake and five-hole alloy wheels.
-      glass([[-.229,-.31],[-.161,-.569],[.02,-.582],[.185,-.226],[-.208,-.226]]);
-      line([[-.143,-.52],[-.116,-.23]],'#242f33',.8);
-      line([[-.177,-.211],[.183,-.211],[.22,.19],[-.134,.19],[-.177,-.211]],seam,.5);
-      poly([[-.31,-.047],[-.132,-.047],[-.185,.173],[-.386,.173]],'#15242c',bright,.35);
-      poly([[-.274,-.017],[-.173,-.017],[-.211,.126],[-.334,.126]],'#334752');
-      line([[-.4,.23],[.473,.23]],'#111e26',1.4);
-      handle(.053,-.124,.047);
-      for(let i=0;i<6;i++) line([[-.467+i*.027,-.205],[-.443+i*.027,-.088]],'#23313b',.65);
-      poly([[.295,-.038],[.386,.054],[.388,.102],[.304,.033]],blend(base,255,.28),seam,.35);
-      lamp([[.442,.12],[.498,.17],[.498,.205],[.442,.159]],'#e7ebdc');
-      lamp([[-.499,-.061],[-.472,-.061],[-.472,.036],[-.499,.036]],'#b43c38');
-      line([[.247,-.081],[.459,.122]],bright,.7);
+      // Ioniq 5: long wheelbase, angular hatch, pixel lamps and diagonal door surfacing.
+      poly([[-.448,-.34],[-.327,-.743],[-.278,-.751],[.096,-.737],[.257,-.289]],'#22343e');
+      glass([[-.408,-.341],[-.313,-.682],[-.256,-.683],[-.244,-.331]]);
+      glass([[-.228,-.691],[-.052,-.694],[-.052,-.321],[-.214,-.323]]);
+      glass([[-.023,-.695],[.082,-.687],[.225,-.306],[-.023,-.316]]);
+      line([[-.039,-.72],[-.039,-.305]],'#1e2c34',1.1);
+      line([[-.232,-.298],[-.26,.263],[-.046,.263],[-.038,-.293]],seam,.5);
+      line([[-.046,.263],[.233,.263],[.25,-.286]],seam,.45);
+      poly([[-.246,-.073],[.047,.214],[.238,-.10],[.236,.277],[-.248,.277]],blend(base,255,.24));
+      line([[-.246,-.081],[.044,.222],[.242,-.129]],bright,.8);
+      line([[-.462,-.204],[-.262,-.238]],bright,.6);
+      handle(-.196,-.206,.055,false);handle(.006,-.21,.055,false);
+      poly([[-.5,-.20],[-.427,-.20],[-.427,-.067],[-.5,-.064]],'#25343b');
+      poly([[.438,-.211],[.5,-.105],[.5,-.018],[.438,-.124]],'#293a42');
+      for(let i=0;i<3;i++){
+        poly([[-.490+i*.018,-.18],[-.478+i*.018,-.18],[-.478+i*.018,-.096],[-.490+i*.018,-.096]],'#f18874');
+        poly([[.447+i*.016,-.17+i*.025],[.458+i*.016,-.15+i*.025],[.458+i*.016,-.099+i*.025],[.447+i*.016,-.119+i*.025]],'#e8fff3');
+      }
+      poly([[-.234,.267],[.234,.267],[.255,.331],[-.26,.331]],'#a8b5b6');
+      for(let i=0;i<8;i++)line([[-.197+i*.05,.281],[-.181+i*.05,.314]],'#60767d',.35);
+      poly([[.441,.188],[.503,.188],[.503,.316],[.436,.271]],'#233640');
+      line([[-.344,-.754],[-.449,-.292]],'#24363e',.7);
     } else {
-      // Long utility wagon: white roof cap, alpine lights and clear upright door seams.
-      poly([[-.52,-.83],[.14,-.83],[.173,-.62],[-.52,-.62]],'#e2e2d6');
-      for(const x of [-.405,-.225]) poly([[x,-.714],[x+.128,-.714],[x+.128,-.653],[x,-.653]],'#344b56','#adbcb8',.25);
-      glass([[-.436,-.531],[-.197,-.531],[-.197,-.254],[-.436,-.254]]);
-      glass([[-.153,-.531],[.092,-.531],[.161,-.254],[-.153,-.254]]);
-      line([[-.177,-.60],[-.177,.283]],seam,.65);
-      line([[.188,-.214],[.20,.28],[-.174,.28]],seam,.55);
-      handle(-.126,-.119,.05);
-      for(const y of [-.16,.14])poly([[.167,y],[.195,y],[.195,y+.045],[.167,y+.045]],blend(base,255,.16),seam,.3);
-      poly([[.251,-.245],[.46,-.19],[.477,-.13],[.251,-.178]],blend(base,255,.32),seam,.35);
-      for(let i=0;i<4;i++)line([[.277+i*.020,-.19],[.277+i*.020,-.134]],seam,.4);
-      line([[-.466,-.19],[.462,-.19]],bright,.55);
-      lamp([[.465,-.065],[.499,-.055],[.499,.044],[.465,.04]],'#e9e6d2');
-      lamp([[-.498,-.008],[-.478,-.008],[-.478,.099],[-.498,.099]],'#b53c3b');
-      poly([[.44,.19],[.52,.19],[.52,.28],[.44,.28]],'#263339');
-      line([[-.15,.294],[.196,.294]],'#b0b6b4',.9);
+      // Santa Fe: square extended roof, large quarter glass and horizontal H lighting.
+      poly([[-.474,-.72],[.115,-.72],[.244,-.262],[-.479,-.262]],'#23333b');
+      glass([[-.445,-.669],[-.254,-.672],[-.254,-.301],[-.452,-.301]]);
+      glass([[-.223,-.676],[-.05,-.676],[-.05,-.301],[-.223,-.301]]);
+      glass([[-.016,-.676],[.092,-.672],[.201,-.307],[-.016,-.301]]);
+      line([[-.239,-.735],[-.239,-.269]],'#1c2d35',1.1);
+      line([[-.034,-.731],[-.034,-.275]],'#1c2d35',1.1);
+      line([[-.221,-.271],[-.227,.273],[-.034,.273],[-.034,-.271]],seam,.5);
+      line([[-.034,.273],[.223,.273],[.237,-.263]],seam,.5);
+      handle(-.187,-.185,.049,false);handle(.004,-.185,.049,false);
+      poly([[-.481,.20],[.482,.20],[.482,.343],[-.481,.343]],'#293a41');
+      line([[-.235,.276],[.23,.276]],'#94a2a6',.6);
+      line([[-.463,-.228],[.454,-.228]],bright,.50);
+      // Roof rails and the square rear quarter distinguish the long SUV from the pickup.
+      line([[-.417,-.759],[.075,-.759]],'#26363d',1.1);
+      line([[-.398,-.76],[-.398,-.711]],'#26363d',.7);
+      line([[.053,-.76],[.053,-.712]],'#26363d',.7);
+      poly([[.422,-.238],[.497,-.121],[.497,-.019],[.422,-.129]],'#22353d');
+      line([[.432,-.205],[.432,-.14],[.481,-.064],[.481,-.129]],'#e9f4e9',.8);
+      line([[.432,-.174],[.481,-.097]],'#e9f4e9',.7);
+      poly([[.454,.025],[.503,.025],[.504,.20],[.454,.178]],'#22323a');
+      lamp([[-.499,.011],[-.476,.011],[-.476,.141],[-.499,.141]],'#af393d');
+      line([[-.491,.035],[-.491,.118]],'#f07670',.6);
+      line([[.277,-.266],[.463,-.231]],bright,.55);
     }
     ctx.restore();
     // Fine contour and the high point of each metal fender catch the sky light.
     trace(ctx,d.outline);ctx.strokeStyle=blend(base,0,.58);ctx.lineWidth=.5;ctx.stroke();
     for (const wheel of wheels) {
       const a=wheel.axle;
-      ctx.beginPath();ctx.arc(a.x,a.y,wheel.r+.82,Math.PI+0.05,TAU-.05);
-      ctx.strokeStyle=rugged||metallic?'#263238':blend(base,0,.4);ctx.lineWidth=rugged?1.25:.55;ctx.stroke();
+      ctx.beginPath();
+      if(rugged){const r=wheel.r;ctx.moveTo(a.x-r*1.1,a.y+r*.05);ctx.lineTo(a.x-r*1.1,a.y-r*.55);ctx.lineTo(a.x-r*.59,a.y-r*1.12);ctx.lineTo(a.x+r*.57,a.y-r*1.12);ctx.lineTo(a.x+r*1.1,a.y-r*.54);ctx.lineTo(a.x+r*1.1,a.y+r*.05);}
+      else ctx.arc(a.x,a.y,wheel.r+.82,Math.PI+0.05,TAU-.05);
+      ctx.strokeStyle=rugged||metallic?'#263238':blend(base,0,.4);ctx.lineWidth=rugged?1.10:.55;ctx.stroke();
       if(!rugged&&!metallic){ctx.beginPath();ctx.arc(a.x,a.y,wheel.r+1.55,Math.PI+.14,TAU-.14);ctx.strokeStyle=bright;ctx.lineWidth=.35;ctx.stroke();}
     }
     // Mirror and its stalk remain a small, functional detail.
-    const mirrorX = style===2?.391:style===3?.215:style===4?.165:style===1?.16:.163;
+    const mirrorX = [ .237, .192, .286, .178, .19, .17 ][style];
     line([[mirrorX,-.285],[mirrorX+.027,-.256]],'#24323a',.65);
     poly([[mirrorX+.018,-.32],[mirrorX+.062,-.313],[mirrorX+.067,-.251],[mirrorX+.023,-.251]],metallic?'#293740':blend(base,0,.18),'#1c2c34',.35);
     for (const wheel of wheels) drawWheel(ctx,wheel,style);
@@ -210,36 +250,42 @@
     ctx.restore();
   }
   function drawWheel(ctx,wheel,style) {
-    const {p,r,angle}=wheel, rugged=style===0||style===5;
+    const {p,r,angle}=wheel, rugged=style===3||style===5;
     ctx.save();ctx.translate(p.x,p.y);
     const rubber=ctx.createLinearGradient(-r,-r,r,r);rubber.addColorStop(0,'#41484c');rubber.addColorStop(.36,'#1a2025');rubber.addColorStop(1,'#0e141a');
     ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.fillStyle=rubber;ctx.fill();ctx.strokeStyle='#11181e';ctx.lineWidth=.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(0,0,r*.86,0,TAU);ctx.strokeStyle='#4d555a';ctx.lineWidth=.32;ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,r*.88,0,TAU);ctx.strokeStyle='#4d555a';ctx.lineWidth=.26;ctx.stroke();
     ctx.save();ctx.rotate(angle);
-    ctx.strokeStyle='#60676b';ctx.lineWidth=.3;
-    for(let i=0;i<(rugged?32:40);i++){const a=i*TAU/(rugged?32:40);ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.945,Math.sin(a)*r*.945);ctx.lineTo(Math.cos(a+.025)*r*.993,Math.sin(a+.025)*r*.993);ctx.stroke();}
-    const rr=r*(rugged?.63:style===2?.59:.70);
+    ctx.strokeStyle='#60676b';ctx.lineWidth=.26;
+    for(let i=0;i<40;i++){const a=i*TAU/40;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.957,Math.sin(a)*r*.957);ctx.lineTo(Math.cos(a+.020)*r*.993,Math.sin(a+.020)*r*.993);ctx.stroke();}
+    const rr=r*[.68,.77,.72,.73,.78,.77][style];
     const rim=ctx.createLinearGradient(-rr,-rr,rr,rr);rim.addColorStop(0,'#edf0ef');rim.addColorStop(.35,'#aebbc1');rim.addColorStop(.6,'#596976');rim.addColorStop(1,'#d8dedd');
-    ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#080f17';ctx.lineWidth=.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(0,0,rr*.82,0,TAU);ctx.fillStyle='#28333e';ctx.fill();
-    ctx.beginPath();ctx.arc(0,0,rr*.68,0,TAU);ctx.fillStyle='#677078';ctx.fill();ctx.strokeStyle='#a2abad';ctx.lineWidth=.25;ctx.stroke();
-    if(style===2){
-      ctx.beginPath();ctx.arc(0,0,rr*.72,0,TAU);ctx.fillStyle='#e8e8dc';ctx.fill();
-      const hub=ctx.createRadialGradient(-rr*.15,-rr*.20,0,0,0,rr*.45);hub.addColorStop(0,'#f4f8f5');hub.addColorStop(.6,'#a9b5ba');hub.addColorStop(1,'#3f515e');
-      ctx.beginPath();ctx.arc(0,0,rr*.46,0,TAU);ctx.fillStyle=hub;ctx.fill();
-    } else if(style===4){
-      ctx.beginPath();ctx.arc(0,0,rr*.86,0,TAU);ctx.fillStyle=rim;ctx.fill();
-      for(let i=0;i<5;i++){const a=i*TAU/5;ctx.beginPath();ctx.arc(Math.cos(a)*rr*.57,Math.sin(a)*rr*.57,rr*.20,0,TAU);ctx.fillStyle='#182632';ctx.fill();}
-    } else {
-      const spokes=style===3?6:rugged?5:10;
-      for(let i=0;i<spokes;i++){
-        const a=i*TAU/spokes;ctx.save();ctx.rotate(a);ctx.beginPath();
-        ctx.moveTo(-rr*.1,-rr*.15);ctx.lineTo(-rr*(style===3?.20:.115),-rr*.88);ctx.lineTo(rr*.1,-rr*.86);ctx.lineTo(rr*.13,-rr*.1);ctx.closePath();
-        ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#d9e0df';ctx.lineWidth=.16;ctx.stroke();ctx.restore();
+    ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#080f17';ctx.lineWidth=.4;ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,rr*.88,0,TAU);ctx.fillStyle='#202d37';ctx.fill();
+    ctx.beginPath();ctx.arc(0,0,rr*.66,0,TAU);ctx.fillStyle='#5b6770';ctx.fill();ctx.strokeStyle='#a2abad';ctx.lineWidth=.2;ctx.stroke();
+    const count=[8,5,6,5,5,12][style];
+    for(let i=0;i<count;i++){
+      ctx.save();ctx.rotate(i*TAU/count);
+      if(style===4){
+        // Ioniq 5's graphic aero wheel uses angular, swept silver edges.
+        ctx.beginPath();ctx.moveTo(-rr*.08,-rr*.16);ctx.lineTo(-rr*.33,-rr*.88);ctx.lineTo(rr*.16,-rr*.84);ctx.lineTo(rr*.32,-rr*.52);ctx.lineTo(rr*.13,-rr*.16);ctx.closePath();
+        ctx.fillStyle='#293841';ctx.fill();ctx.strokeStyle='#c3cecf';ctx.lineWidth=.42;ctx.stroke();
+        ctx.beginPath();ctx.moveTo(-rr*.30,-rr*.85);ctx.lineTo(-rr*.01,-rr*.31);ctx.strokeStyle='#ecf1ee';ctx.lineWidth=.35;ctx.stroke();
+      }else if(style===3){
+        ctx.beginPath();ctx.moveTo(-rr*.12,-rr*.14);ctx.lineTo(-rr*.23,-rr*.89);ctx.lineTo(rr*.25,-rr*.81);ctx.lineTo(rr*.11,-rr*.10);ctx.closePath();
+        ctx.fillStyle=rim;ctx.fill();ctx.beginPath();ctx.moveTo(-rr*.02,-rr*.34);ctx.lineTo(-rr*.035,-rr*.72);ctx.strokeStyle='#354751';ctx.lineWidth=rr*.075;ctx.stroke();
+      }else{
+        const split=style===1||style===5, branches=split?[-1,1]:[0];
+        for(const branch of branches){
+          const top=branch*(style===5?.082:.14)*rr;
+          ctx.beginPath();ctx.moveTo(branch*rr*.03-rr*.045,-rr*.14);ctx.lineTo(top-rr*.046,-rr*.90);ctx.lineTo(top+rr*.052,-rr*.90);ctx.lineTo(branch*rr*.04+rr*.06,-rr*.13);ctx.closePath();
+          ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#d9e0df';ctx.lineWidth=.13;ctx.stroke();
+        }
       }
+      ctx.restore();
     }
-    ctx.beginPath();ctx.arc(0,0,rr*.24,0,TAU);ctx.fillStyle='#71828b';ctx.fill();ctx.strokeStyle='#d6dddd';ctx.lineWidth=.35;ctx.stroke();
-    for(let i=0;i<5;i++){const a=i*TAU/5;ctx.beginPath();ctx.arc(Math.cos(a)*rr*.13,Math.sin(a)*rr*.13,Math.max(.18,r*.022),0,TAU);ctx.fillStyle='#d5dedf';ctx.fill();}
+    ctx.beginPath();ctx.arc(0,0,rr*.22,0,TAU);ctx.fillStyle='#617681';ctx.fill();ctx.strokeStyle='#d6dddd';ctx.lineWidth=.3;ctx.stroke();
+    for(let i=0;i<5;i++){const a=i*TAU/5;ctx.beginPath();ctx.arc(Math.cos(a)*rr*.12,Math.sin(a)*rr*.12,Math.max(.15,r*.018),0,TAU);ctx.fillStyle='#d5dedf';ctx.fill();}
     ctx.restore();ctx.restore();
   }
   function drawThumbnail(ctx,vehicle,options={}) {

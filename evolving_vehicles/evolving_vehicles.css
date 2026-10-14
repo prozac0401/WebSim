@@ -58,3 +58,7 @@
 #vehicle-app .race-progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #vehicle-app .race-progress progress{flex:1;min-width:100px;accent-color:var(--sim-accent)}
 @media(max-width:540px){#vehicle-app .race-results{margin-inline:14px;padding:12px}#vehicle-app .road-legend{margin-inline:14px;gap:8px}#vehicle-app .race-results th,#vehicle-app .race-results td{font-size:10px}}
+
+#vehicle-app .vehicle-reference-note{margin:0 0 14px;font-size:10px;line-height:1.7;color:var(--sim-muted);word-break:keep-all}
+#vehicle-app .design-heading h3{flex-shrink:0}
+#vehicle-app #design-style{text-align:right;line-height:1.45}

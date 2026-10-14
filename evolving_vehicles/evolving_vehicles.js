@@ -76,7 +76,7 @@
     canvas.style.touchAction=editing?'none':'pan-y';$('undo-course').disabled=!strokes.length;
     const specimen=watch<0?lab.best:lab.vehicles[watch],gene=specimen.genome,design=specimen.design;
     $('genome-note').textContent=specimen.id+'번 '+design.styleLabel+' · '+design.driveLabel+' · 몸체 '+gene.width.toFixed(0)+' × '+gene.height.toFixed(0)+' u · 뒤/앞 바퀴 '+gene.rearRadius.toFixed(1)+' / '+gene.frontRadius.toFixed(1)+' u';
-    $('design-title').textContent=specimen.id+'번 설계';$('design-style').textContent=design.styleLabel;
+    $('design-title').textContent=specimen.id+'번 설계';$('design-style').textContent=design.styleLabel;$('design-preview').setAttribute('aria-label',design.styleLabel+'의 외형을 참고한 차량 측면 디자인');
     $('power-stat').textContent=(design.peakPower*10000).toFixed(1);$('mass-stat').textContent=design.totalMass.toFixed(1);
     $('specific-power-stat').textContent=(design.powerToWeight*10000).toFixed(1);$('engine-mass-stat').textContent=design.powertrainMass.toFixed(1);
     $('drive-stat').textContent=design.driveLabel;const [rearShare,frontShare]=design.driveShares;
