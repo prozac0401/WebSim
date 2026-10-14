@@ -146,7 +146,7 @@ test('performance grades compare factory PS per kg and do not reward torque with
   const base = lab.genomes[0];
   lab.genomes = [
     { ...base, powerMultiplier: 1, torqueMultiplier: 1 },
-    { ...base, powerMultiplier: 1, torqueMultiplier: 1, powertrainPosition: .30, drivetrain: 0 },
+    { ...base, powerMultiplier: 1, torqueMultiplier: 1, powertrainPosition: .30 },
     { ...base, powerMultiplier: 1.6, torqueMultiplier: 1 },
     { ...base, powerMultiplier: 1.6, torqueMultiplier: 1.6 }
   ];
@@ -169,7 +169,7 @@ test('PS and Nm drive the physical motor curve in explicit length, mass and time
   const u = EvolutionLab.UNITS, torqueUnit = u.massPerKg * u.lengthPerMetre ** 2 / 1e6;
   near(lab.engine.gravity.scale, 9.81 * 23 / 1e6);
   for (const vehicle of lab.vehicles) {
-    const spec = EvolutionLab.SPECS[vehicle.design.style], g = vehicle.genome;
+    const spec = EvolutionLab.specForGenome(vehicle.genome), g = vehicle.genome;
     const reduction = g.gearRatio;
     near(2 * g.motorTorque / torqueUnit / reduction / u.efficiency, vehicle.design.torqueNm);
     near(g.motorSpeed / u.baseSeconds * reduction * 30 / Math.PI, vehicle.design.rpmLimitRpm);
@@ -242,27 +242,32 @@ test('comparison trials replay deterministically and preserve every elite gene t
   }
 });
 
-test('drive comparison varies only the driven axles and keeps power, mass and balance equal', () => {
+test('drive comparison uses actual IONIQ 5 RWD and AWD factory variants', () => {
   const lab = new EvolutionLab({ seed: 42, terrain: 'rolling', surface: 'snow', initialExperiment: 'drive' });
-  assert.deepEqual(lab.vehicles.map(vehicle => vehicle.design.driveType), ['fwd', 'rwd', 'awd', 'fwd', 'rwd', 'awd', 'fwd', 'rwd']);
-  const first = lab.vehicles[0];
+  assert.deepEqual(lab.vehicles.map(vehicle => vehicle.design.driveType), ['rwd', 'awd', 'rwd', 'awd', 'rwd', 'awd', 'rwd', 'awd']);
+  const [rwd, awd] = lab.vehicles;
+  near(rwd.design.massKg, 2025); near(rwd.design.powerPs, 229); near(rwd.design.torqueNm, 350);
+  near(awd.design.massKg, 2130); near(awd.design.powerPs, 325); near(awd.design.torqueNm, 605);
+  assert.ok(awd.body.mass > rwd.body.mass && awd.body.inertia > rwd.body.inertia);
+  assert.ok(awd.genome.motorTorque > rwd.genome.motorTorque);
   for (const vehicle of lab.vehicles) {
-    assert.deepEqual(without(vehicle.genome, 'drivetrain'), without(first.genome, 'drivetrain'));
-    for (const key of ['totalMass', 'peakPower', 'powerToWeight', 'frontLoad', 'rearLoad']) near(vehicle.design[key], first.design[key]);
-    near(vehicle.body.mass, first.body.mass); near(vehicle.body.inertia, first.body.inertia);
-    assert.deepEqual(vehicle.design.centerOfMass, first.design.centerOfMass);
+    const spec = EvolutionLab.specForGenome(vehicle.genome);
+    near(vehicle.genome.powerMultiplier, 1); near(vehicle.genome.torqueMultiplier, 1);
+    near(vehicle.design.referencePowerToWeight, spec.powerPs / spec.curbMassKg);
+    near(vehicle.design.performanceRatio, 1);
+    assert.equal(vehicle.design.factoryVariant, spec.variant);
+    assert.equal(vehicle.design.referenceDrive, vehicle.design.driveType);
     near(vehicle.design.driveShares.reduce((sum, share) => sum + share, 0), 1);
   }
-  for (const initialExperiment of ['power', 'balance']) {
+  for (const initialExperiment of ['power', 'balance', 'character']) {
     const comparison = new EvolutionLab({ seed: 42, initialExperiment });
-    assert.ok(comparison.vehicles.every(vehicle => vehicle.design.driveType === EvolutionLab.SPECS.ioniq5.factoryDrive));
+    assert.ok(comparison.vehicles.every(vehicle => vehicle.design.driveType === 'rwd'));
   }
   const evolution = new EvolutionLab({ seed: 42, population: 16 });
   assert.ok(evolution.vehicles.every(vehicle => vehicle.design.driveType === EvolutionLab.SPECS[vehicle.design.style].factoryDrive));
   finish(lab);
-  for (let i = 3; i < lab.vehicles.length; i++) near(lab.vehicles[i].score, lab.vehicles[i % 3].score);
-  assert.ok(Math.max(...lab.vehicles.map(v => v.score)) - Math.min(...lab.vehicles.map(v => v.score)) > 100,
-    'the drive allocation must affect actual travel with identical rated output');
+  for (let i = 2; i < lab.vehicles.length; i++) near(lab.vehicles[i].score, lab.vehicles[i % 2].score);
+  assert.ok(EvolutionLab.compareVehicles(awd, rwd) < 0, 'the factory AWD variant should retain traction on snow');
 });
 
 test('implicit motors preserve the rated budget, passive axles and equal opposite chassis reaction', () => {
@@ -282,7 +287,7 @@ test('implicit motors preserve the rated budget, passive axles and equal opposit
         const share = vehicle.design.driveShares[i];
         if (!share) near(wheel.torque, 0);
         assert.ok(Math.abs(wheel.torque) <= 2 * vehicle.genome.motorTorque * share + 1e-10);
-        const units = EvolutionLab.UNITS, spec = EvolutionLab.SPECS[vehicle.design.style];
+        const units = EvolutionLab.UNITS;
         const unitTorque = units.massPerKg * units.lengthPerMetre ** 2 / 1e6;
         const actualRatedWheelTorque = vehicle.design.torqueNm * vehicle.genome.gearRatio * units.efficiency * unitTorque;
         assert.ok(Math.abs(wheel.torque) <= actualRatedWheelTorque * share + 1e-10);
@@ -296,39 +301,40 @@ test('implicit motors preserve the rated budget, passive axles and equal opposit
   }
 });
 
-test('weight distribution interacts with the driven axle through actual traction on a hill', () => {
-  const lab = new EvolutionLab({ population: 4, seed: 42, terrain: 'rolling', surface: 'snow', initialExperiment: 'drive' });
+test('weight distribution interacts with legal front- and rear-driven models through traction on a hill', () => {
+  const lab = new EvolutionLab({ population: 4, seed: 42, terrain: 'rolling', surface: 'snow' });
   const base = lab.genomes[0];
-  lab.genomes = [0, 1].flatMap(drivetrain => [-.32, .32].map(powertrainPosition => ({ ...base, drivetrain, powertrainPosition })));
+  lab.genomes = ['santafe', 'ioniq5'].flatMap(id => [-.32, .32].map(powertrainPosition => ({ ...base,
+    bodyStyle: EvolutionLab.STYLES.findIndex(style => style.id === id),
+    drivetrain: id === 'santafe' ? 0 : 1, powerMultiplier: 1, torqueMultiplier: 1, powertrainPosition })));
   lab.restartTrial();
-  for (const vehicle of lab.vehicles) {
-    near(vehicle.design.totalMass, lab.vehicles[0].design.totalMass);
-    near(vehicle.design.peakPower, lab.vehicles[0].design.peakPower);
-  }
-  finish(lab);
   const [frontDriveRearHeavy, frontDriveFrontHeavy, rearDriveRearHeavy, rearDriveFrontHeavy] = lab.vehicles;
-  assert.ok(EvolutionLab.compareVehicles(frontDriveFrontHeavy, frontDriveRearHeavy) < 0,
-    'front drive should lose traction when its driven axle is lightly loaded');
-  assert.ok(EvolutionLab.compareVehicles(rearDriveRearHeavy, rearDriveFrontHeavy) < 0,
-    'rear drive should benefit from moving mass toward its driven axle');
+  for (const [first, second] of [[frontDriveRearHeavy, frontDriveFrontHeavy], [rearDriveRearHeavy, rearDriveFrontHeavy]]) {
+    near(first.design.totalMass, second.design.totalMass);
+    near(first.design.peakPower, second.design.peakPower);
+  }
+  assert.equal(frontDriveRearHeavy.design.driveType, 'fwd');
+  assert.equal(rearDriveRearHeavy.design.driveType, 'rwd');
+  finish(lab);
   for (const [better, worse] of [[frontDriveFrontHeavy, frontDriveRearHeavy], [rearDriveRearHeavy, rearDriveFrontHeavy]]) {
+    assert.ok(EvolutionLab.compareVehicles(better, worse) < 0, 'loading the driven axle must improve traction');
     if (worse.finished) assert.ok(better.finishTime + .5 < worse.finishTime);
     else assert.ok(better.score > worse.score + 100);
   }
 });
 
-test('drivetrain mutation selects another discrete layout while preserving the exact elite', () => {
+test('drivetrain mutation chooses the other legal factory variant while preserving the exact elite', () => {
   const lab = new EvolutionLab({ population: 16, seed: 42, mutation: 1, initialExperiment: 'drive' });
   lab.genomes = lab.genomes.map(genome => ({ ...genome, drivetrain: 1 }));
-  lab.restartTrial();
-  lab._finish();
+  lab.restartTrial(); lab._finish();
   const elite = structuredClone(lab.vehicles[0].genome);
+  // A centred random draw leaves all continuous genes, including body style,
+  // unchanged while still exercising drivetrain crossover and mutation.
+  lab._random = () => .5;
   assert.ok(lab.nextGeneration());
   assert.deepEqual(lab.genomes[0], elite);
-  assert.ok(lab.genomes.slice(1).every(genome => genome.drivetrain === 0 || genome.drivetrain === 2));
-  assert.equal(new Set(lab.genomes.slice(1).map(genome => genome.drivetrain)).size, 2);
+  assert.ok(lab.vehicles.slice(1).every(vehicle => vehicle.design.style === 'ioniq5' && vehicle.design.driveType === 'awd'));
 });
-
 
 test('material changes preserve genomes and course geometry while changing only road physics', () => {
   const baseline = new EvolutionLab({ seed: 42, terrain: 'rolling', surface: 'asphalt' });
@@ -396,10 +402,10 @@ test('snow and sand create repeatable traction losses while AWD retains a usable
   const asphalt = finish(new EvolutionLab({ seed: 42, terrain: 'rolling', surface: 'asphalt', population: 3, initialExperiment: 'drive' }), 1);
   for (const surface of ['snow', 'sand']) {
     const lab = finish(new EvolutionLab({ seed: 42, terrain: 'rolling', surface, population: 3, initialExperiment: 'drive' }), 1);
-    const [fwd, rwd, awd] = lab.vehicles;
+    const [rwd, awd] = lab.vehicles;
     assert.ok(awd.finished);
-    assert.ok(awd.finishTime > asphalt.vehicles[2].finishTime + 1);
-    for (const singleAxle of [fwd, rwd]) {
+    assert.ok(awd.finishTime > asphalt.vehicles[1].finishTime + 1);
+    for (const singleAxle of [rwd]) {
       assert.ok(EvolutionLab.compareVehicles(awd, singleAxle) < 0);
       if (!singleAxle.finished) assert.ok(awd.score > singleAxle.score + 500);
     }
@@ -425,7 +431,7 @@ test('evolution preserves factory geometry and never selects output below the fa
   const lab = new EvolutionLab({ seed: 42, mutation: 1, population: 16 });
   for (let generation = 0; generation < 12; generation++) {
     for (const vehicle of lab.vehicles) {
-      const { genome, design } = vehicle, spec = EvolutionLab.SPECS[design.style];
+      const { genome, design } = vehicle, spec = EvolutionLab.specForGenome(genome);
       near(genome.width, spec.lengthMm * .023);
       near(genome.wheelBase, spec.wheelbaseMm / spec.lengthMm);
       near(genome.rearRadius, spec.rearTireRadiusMm * .023);
@@ -547,4 +553,98 @@ test('saved custom terrain stretches to the 500 metre finish and restores withou
   lab.reset({ initialExperiment: 'evolution', terrain: 'custom' });
   assert.deepEqual(lab._customPoints, saved);
   assert.deepEqual(lab.terrainPoints, originalTerrain);
+});
+
+
+test('every model rejects impossible drivetrains at creation and replay while retaining each legal variant', () => {
+  const driveIds = ['fwd', 'rwd', 'awd'];
+  for (const { id } of EvolutionLab.STYLES) {
+    const lab = new EvolutionLab({ startingStyle: id, population: 2, terrain: 'flat' });
+    const base = { ...lab.genomes[0], powerMultiplier: 1, torqueMultiplier: 1 };
+    const spec = EvolutionLab.SPECS[id], allowed = EvolutionLab.allowedDrivesFor(id);
+    assert.ok(allowed.includes(spec.factoryDrive));
+    assert.deepEqual(allowed, driveIds.filter(drive => Object.hasOwn(spec.driveVariants, drive)));
+    for (const drivetrain of [0, 1, 2, -1, 3, 999, undefined, NaN, Infinity]) {
+      const requested = driveIds[drivetrain];
+      const expected = allowed.includes(requested) ? requested : spec.factoryDrive;
+      lab.genomes = [{ ...base, drivetrain }, { ...base, drivetrain }];
+      lab.restartTrial();
+      const vehicle = lab.vehicles[0];
+      assert.equal(vehicle.design.driveType, expected, id + ' must reject ' + requested);
+      assert.equal(driveIds[vehicle.genome.drivetrain], expected);
+      assert.equal(vehicle.design.factoryDrive, expected);
+      assert.equal(vehicle.design.referenceDrive, expected);
+      assert.deepEqual(vehicle.design.allowedDrives, allowed);
+      const result = { genome: structuredClone(vehicle.genome), mass: vehicle.design.massKg, power: vehicle.design.powerPs };
+      lab.restartTrial();
+      assert.deepEqual(lab.vehicles[0].genome, result.genome);
+      near(lab.vehicles[0].design.massKg, result.mass); near(lab.vehicles[0].design.powerPs, result.power);
+    }
+  }
+  assert.deepEqual(EvolutionLab.allowedDrivesFor('santafe'), ['fwd', 'awd']);
+  assert.deepEqual(EvolutionLab.allowedDrivesFor('ioniq5'), ['rwd', 'awd']);
+  assert.deepEqual(EvolutionLab.allowedDrivesFor('staria'), ['fwd']);
+  assert.deepEqual(EvolutionLab.allowedDrivesFor('porter2'), ['rwd']);
+});
+
+test('factory variants supply their own mass, power, torque, inertia and motor envelope', () => {
+  for (const { id } of EvolutionLab.STYLES) {
+    const lab = new EvolutionLab({ startingStyle: id, population: 2 });
+    const base = lab.genomes[0];
+    for (const drive of EvolutionLab.allowedDrivesFor(id)) {
+      const reference = { ...EvolutionLab.SPECS[id], ...EvolutionLab.SPECS[id].driveVariants[drive] };
+      lab.genomes = [{ ...base, drivetrain: ['fwd', 'rwd', 'awd'].indexOf(drive), powerMultiplier: 1, torqueMultiplier: 1 }];
+      lab.restartTrial();
+      const vehicle = lab.vehicles[0], d = vehicle.design, g = vehicle.genome;
+      const extraMass = reference.curbMassKg * (.03 * (g.powerMultiplier - 1) + .02 * (g.torqueMultiplier - 1));
+      near(d.massKg, reference.curbMassKg + (reference.conversionMassKg || 0) + extraMass);
+      near(d.factoryPowerPs, reference.powerPs); near(d.factoryTorqueNm, reference.torqueNm);
+      near(d.powerPs, reference.powerPs * g.powerMultiplier); near(d.torqueNm, reference.torqueNm * g.torqueMultiplier);
+      near(d.referencePowerToWeight, reference.powerPs / (reference.curbMassKg + (reference.conversionMassKg || 0)));
+      assert.equal(d.factoryVariant, reference.variant);
+      assert.ok(vehicle.body.inertia > 0 && Number.isFinite(vehicle.body.inertia));
+      const resolved = EvolutionLab.specForGenome(g);
+      near(EvolutionLab.motorEnvelope(resolved, g.powerMultiplier, g.torqueMultiplier, 0).torqueNm, d.torqueNm);
+      vehicle.body.angularVelocity = 0; vehicle.body.torque = 0;
+      vehicle.wheels.forEach(wheel => { wheel.angularVelocity = 0; wheel.torque = 0; });
+      lab._applyDrive(vehicle);
+      const unit = EvolutionLab.UNITS;
+      const torqueUnit = unit.massPerKg * unit.lengthPerMetre ** 2 / 1e6;
+      const actualTorque = vehicle.wheels.reduce((sum, wheel) => sum + wheel.torque, 0) / torqueUnit;
+      assert.ok(actualTorque > 0 && actualTorque <= d.torqueNm * g.gearRatio * unit.efficiency + 1e-7);
+      for (const [i, wheel] of vehicle.wheels.entries()) {
+        const share = d.driveShares[i], step = (1000 / 120) * (1000 / 60);
+        const nextSpeed = step * wheel.torque * (wheel.inverseInertia + vehicle.body.inverseInertia);
+        const rpm = nextSpeed / unit.baseSeconds * g.gearRatio * 30 / Math.PI;
+        const requested = EvolutionLab.motorEnvelope(resolved, g.powerMultiplier, g.torqueMultiplier, rpm).torqueNm
+          * g.gearRatio * unit.efficiency * torqueUnit * share;
+        near(wheel.torque, requested, 2 * g.motorTorque / 2 ** 19 + 1e-10);
+      }
+    }
+  }
+});
+
+test('crossover and many generations of maximum mutation cannot invent a factory drivetrain', () => {
+  const observedStyles = new Set(), observedDrives = new Set();
+  for (const seed of [1, 42, 999]) {
+    const lab = new EvolutionLab({ seed, population: 16, mutation: 1 });
+    for (let generation = 0; generation < 20; generation++) {
+      for (const vehicle of lab.vehicles) {
+        const { design, genome } = vehicle;
+        const allowed = EvolutionLab.allowedDrivesFor(design.style);
+        assert.ok(allowed.includes(design.driveType), design.style + '/' + design.driveType);
+        observedStyles.add(design.style); observedDrives.add(design.driveType);
+        const spec = EvolutionLab.specForGenome(genome);
+        near(design.factoryPowerPs, spec.powerPs); near(design.factoryTorqueNm, spec.torqueNm);
+        near(design.curbMassKg, spec.curbMassKg);
+        near(genome.width, spec.lengthMm * .023);
+      }
+      lab._finish();
+      const elite = structuredClone(lab.best.genome);
+      assert.ok(lab.nextGeneration());
+      assert.deepEqual(lab.genomes[0], elite);
+    }
+  }
+  assert.equal(observedStyles.size, 15);
+  assert.deepEqual([...observedDrives].sort(), ['awd', 'fwd', 'rwd']);
 });

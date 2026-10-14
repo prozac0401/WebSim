@@ -1,4 +1,4 @@
-/* Korean-market reference configurations. One named configuration per body; reviewed 2026-10-14. PS is metric horsepower; kgf m to Nm uses 9.80665. */
+/* Verified Korean-market configurations. Drivetrain variants match the named engine, trim, wheel size and year; reviewed 2026-10-14. PS is metric horsepower. */
 (function(root){ const specs = {
   "ray": {
     "variant": "1.0 가솔린 4AT · 15인치",
@@ -12,7 +12,11 @@
     "rearTireRadiusMm": 278,
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.kia.com/kr/vehicles/ray/specification",
-    "sourceNote": ""
+    "sourceNote": "",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "morning": {
     "variant": "1.0 가솔린 GT-Line 4AT · 16인치",
@@ -26,7 +30,11 @@
     "rearTireRadiusMm": 290.95,
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.kia.com/kr/vehicles/morning/specification",
-    "sourceNote": ""
+    "sourceNote": "",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "k5": {
     "variant": "2.0 가솔린 6AT · 18인치·빌트인 캠",
@@ -40,7 +48,11 @@
     "rearTireRadiusMm": 334.35,
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.kia.com/kr/vehicles/k5/specification",
-    "sourceNote": ""
+    "sourceNote": "",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "carnival": {
     "variant": "1.6 터보 하이브리드 9인승 · 18인치",
@@ -54,7 +66,11 @@
     "rearTireRadiusMm": 369.6,
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.kia.com/kr/vehicles/carnival/specification",
-    "sourceNote": "출력·토크는 제조사 시스템 합산값."
+    "sourceNote": "출력·토크는 제조사 시스템 합산값.",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "musso_ev": {
     "variant": "전기 2WD · 17인치",
@@ -67,9 +83,19 @@
     "frontTireRadiusMm": 362.9,
     "rearTireRadiusMm": 362.9,
     "factoryDrive": "fwd",
-    "sourceUrl": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
-    "sourceNote": "2026-10-14 현재 공식 쇼룸 API technical data/공차중량 표.",
-    "powertrainType": "electric"
+    "sourceUrl": "https://www.kg-mobility.com/attached/contents/display/file/200000200010012/20260228234258004_JNYcqu.pdf#page=2",
+    "sourceNote": "2026년 3월 공식 가격표 PDF 2쪽(인쇄 7쪽), 17인치 2WD/AWD 제원. 2026-10-14 확인.",
+    "powertrainType": "electric",
+    "driveVariants": {
+      "fwd": {},
+      "awd": {
+        "variant": "전기 AWD · 17인치",
+        "curbMassKg": 2275,
+        "powerPs": 414,
+        "torqueNm": 678.62
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "torres": {
     "variant": "1.5 가솔린 터보 2WD 8AT · 18인치",
@@ -82,8 +108,16 @@
     "frontTireRadiusMm": 357.85,
     "rearTireRadiusMm": 357.85,
     "factoryDrive": "fwd",
-    "sourceUrl": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
-    "sourceNote": "2026-10-14 현재 공식 쇼룸 API technical data/공차중량 표."
+    "sourceUrl": "https://www.kg-mobility.com/attached/contents/display/file/2000001000100010011/20260529155803866_yvKDug.pdf#page=17",
+    "sourceNote": "2026년 6월 공식 카탈로그 PDF 17쪽, 가솔린 1.5 터보 8AT 18인치 2WD/AWD 제원. 2026-10-14 확인.",
+    "driveVariants": {
+      "fwd": {},
+      "awd": {
+        "variant": "1.5 가솔린 터보 AWD 8AT · 18인치",
+        "curbMassKg": 1610
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "porter2": {
     "variant": "2.5 LPG 터보 자동5단 · 초장축 슈퍼캡 2WD · 범퍼가드",
@@ -97,7 +131,12 @@
     "rearTireRadiusMm": 281.3,
     "factoryDrive": "rwd",
     "sourceUrl": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
-    "sourceNote": "145R13C 뒤 타이어는 단면비 미표기: 80% 가정 반지름. 무적재 공차중량."
+    "sourceNote": "145R13C 뒤 타이어는 단면비 미표기: 80% 가정 반지름. 무적재 공차중량.",
+    "driveVariants": {
+      "rwd": {}
+    },
+    "driveVerificationDate": "2026-10-14",
+    "driveAvailabilityNote": "기준 LPG 터보 5단 자동변속기는 2WD 후륜 사양입니다. 4WD 수동변속기 사양과 구분합니다."
   },
   "avante": {
     "variant": "2027 올 뉴 아반떼 스마트스트림 가솔린2.0 IVT,18인치",
@@ -112,7 +151,11 @@
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/catalog/spec/avante-27fc-spec.pdf",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
-    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "staria": {
     "variant": "2026 더 뉴 스타리아 라운지7인승 LPG3.5 2WD 자동8단,18인치",
@@ -127,7 +170,12 @@
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/html/homepage/model/staria-lounge-26pe_intro.content",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
-    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14",
+    "driveAvailabilityNote": "현재 기준인 LPG 3.5 라운지 7인승은 전륜 2WD입니다. 과거 디젤 AWD 사양을 섞지 않습니다."
   },
   "ioniq5": {
     "variant": "2027 아이오닉5 Long Range2WD,20인치",
@@ -143,7 +191,17 @@
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/catalog/spec/ioniq5-27my-spec.pdf",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
     "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
-    "powertrainType": "electric"
+    "powertrainType": "electric",
+    "driveVariants": {
+      "rwd": {},
+      "awd": {
+        "variant": "2027 아이오닉5 Long Range AWD · 20인치",
+        "curbMassKg": 2130,
+        "powerPs": 325,
+        "torqueNm": 605
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "santafe": {
     "variant": "2026 싼타페 캘리그래피 2.5 터보 2WD 5인승 · 21인치·루프랙",
@@ -158,7 +216,15 @@
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/html/homepage/model/santafe-26my_intro.content",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
-    "sourceNote": "캘리그래피 21인치·루프랙 적용 기준."
+    "sourceNote": "캘리그래피 21인치·루프랙 적용 기준.",
+    "driveVariants": {
+      "fwd": {},
+      "awd": {
+        "variant": "2026 싼타페 캘리그래피 2.5 터보 AWD 5인승 · 21인치·루프랙",
+        "curbMassKg": 1930
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "grandeur": {
     "variant": "2027 더 뉴 그랜저 가솔린2.5 2WD 자동8단,20인치",
@@ -173,7 +239,12 @@
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/catalog/spec/grandeur-27fl-spec.pdf",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
-    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
+    "driveVariants": {
+      "fwd": {}
+    },
+    "driveVerificationDate": "2026-10-14",
+    "driveAvailabilityNote": "기준 가솔린 2.5는 전륜만 적용합니다. 가솔린 3.5의 AWD 사양과 구분합니다."
   },
   "g80": {
     "variant": "G80 기본모델 가솔린2.5터보 2WD 자동8단,20인치(스포츠패키지미적용)",
@@ -188,7 +259,15 @@
     "factoryDrive": "rwd",
     "sourceUrl": "https://www.genesis.com/kr/ko/models/luxury-sedan-genesis/g80/specs.html",
     "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
-    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
+    "driveVariants": {
+      "rwd": {},
+      "awd": {
+        "variant": "G80 기본모델 가솔린2.5터보 AWD 자동8단 · 20인치(스포츠패키지미적용)",
+        "curbMassKg": 1920
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "rexton_tow": {
     "variant": "2020 G4 렉스턴 · 2.2 LET 디젤 5인승 4WD 7AT · 18인치",
@@ -216,7 +295,20 @@
     "conversionPosition": -0.28,
     "sourceUrl": "https://m.kg-mobility.com/showroom/total_price/__icsFiles/afieldfile/2019/11/05/Total_price_2019_11_up_1.pdf",
     "conversionSourceUrl": "https://etrucks.co.kr/m/special/detail.php?idx=1442",
-    "sourceNote": "원차: 2020 G4 5인승4WD 출고 제원. 4TRONIC을 AWD로 단순화. 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 튜닝은 실제 인증값이 아닌 중장비 사양 모형 가정. 참고 개조 제품2270kg와 구분. 한계4500rpm도 모형 가정."
+    "sourceNote": "원차: 2020 G4 5인승 2WD/4WD 출고 제원. 선택 구동 사양의 공차중량에 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 튜닝을 더합니다. 개조 수치는 실제 인증값이 아닌 모형 가정이며 참고 개조 제품2270kg와 구분합니다. 한계4500rpm도 모형 가정.",
+    "driveVariants": {
+      "rwd": {
+        "variant": "2020 G4 렉스턴 · 2.2 LET 디젤 5인승 2WD 7AT · 18인치",
+        "curbMassKg": 2060,
+        "driveNote": "후륜 2WD 원차 기준에 같은 견인장비와 기본 튜닝을 적용합니다."
+      },
+      "awd": {
+        "driveLabel": "사륜 · 4WD",
+        "driveSystem": "part-time-4wd",
+        "driveNote": "4TRONIC의 4WD 선택 상태를 모형의 사륜으로 표현합니다. 2H·4H·4L 전환은 재현하지 않습니다."
+      }
+    },
+    "driveVerificationDate": "2026-10-14"
   },
   "starex_tow": {
     "variant": "2017 전기형 그랜드 스타렉스 외관 · 2.5 VGT 디젤 밴 3인승 2WD 5AT 기준 · 16인치",
@@ -244,6 +336,11 @@
     "conversionPosition": -0.28,
     "sourceUrl": "https://www.hyundai.com/kr/ko/vehicles/grand-starex/20my/specifications.html",
     "conversionSourceUrl": "https://8949truck.my1.kr/truck/50674/",
-    "sourceNote": "외관: 실제2017 전기형 개조차 참고. 2060kg 등 기준 제원은 공식2020MY 3인승밴2WD5AT를 준용한 추정으로 2017 실측값이 아님. 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 및 한계4500rpm은 모형 가정."
+    "sourceNote": "외관: 실제2017 전기형 개조차 참고. 2060kg 등 기준 제원은 공식2020MY 3인승밴2WD5AT를 준용한 추정으로 2017 실측값이 아님. 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 및 한계4500rpm은 모형 가정.",
+    "driveVariants": {
+      "rwd": {}
+    },
+    "driveVerificationDate": "2026-10-14",
+    "driveAvailabilityNote": "준용한 2020MY 3인승 밴 5AT 제원은 후륜 2WD입니다. 왜건 4WD 사양과 구분합니다."
   }
 }; root.VehicleSpecs=Object.freeze(specs); if(typeof module!=='undefined'&&module.exports)module.exports=root.VehicleSpecs; })(typeof window!=='undefined'?window:globalThis);

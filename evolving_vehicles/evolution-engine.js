@@ -24,6 +24,26 @@
     { id: 'rwd', label: '후륜', shares: [1, 0] },
     { id: 'awd', label: '사륜', shares: [.5, .5] }
   ];
+  function allowedDrivesFor(styleId) {
+    const spec = VEHICLE_SPECS[styleId];
+    if (!spec) throw new Error('Missing vehicle specification: ' + styleId);
+    const allowed = DRIVETRAINS.filter(drive => spec.driveVariants
+      ? Object.prototype.hasOwnProperty.call(spec.driveVariants, drive.id)
+      : drive.id === spec.factoryDrive).map(drive => drive.id);
+    if (!allowed.length) throw new Error('Missing factory drivetrain variants: ' + styleId);
+    return allowed;
+  }
+  function specForGenome(genome) {
+    const style = STYLES[Math.floor(clamp(finite(genome.bodyStyle, 0), 0, STYLES.length - 1e-6))];
+    const base = VEHICLE_SPECS[style.id], allowedDrives = allowedDrivesFor(style.id);
+    const requested = DRIVETRAINS[Math.floor(finite(genome.drivetrain, -1))]?.id;
+    const referenceDrive = allowedDrives.includes(requested) ? requested
+      : allowedDrives.includes(base.factoryDrive) ? base.factoryDrive : allowedDrives[0];
+    // A drivetrain variant is a named factory reference, including its own
+    // curb mass and output. The default model's ratings cannot stand in for it.
+    return { ...base, ...base.driveVariants?.[referenceDrive], factoryDrive: referenceDrive,
+      referenceDrive, baseFactoryDrive: base.factoryDrive, allowedDrives };
+  }
   // Clockwise silhouettes. Concave cabins/decks are triangulated, not replaced
   // with a convex hull, so the painted silhouette is also the collision shape.
   const STYLES = [
@@ -55,7 +75,7 @@
     if (style === 'porter2') return { front: .59, unit: .30 };
     if (style === 'musso_ev') return { front: .52, unit: 0 };
     if (style === 'ioniq5') return { front: .49, unit: 0 };
-    return { front: spec.factoryDrive === 'fwd' ? .58 : .50, unit: .25 };
+    return { front: (spec.baseFactoryDrive || spec.factoryDrive) === 'fwd' ? .58 : .50, unit: .25 };
   }
   function powertrainMassFor(spec, powerMultiplier, torqueMultiplier) {
     // The reference curb mass includes the factory drivetrain. Hardware for
@@ -189,7 +209,7 @@
     }
     _constrainGenome(genome) {
       genome.bodyStyle = clamp(finite(genome.bodyStyle, 0), 0, STYLES.length - 1e-6);
-      const style = STYLES[Math.floor(genome.bodyStyle)], spec = VEHICLE_SPECS[style.id];
+      const style = STYLES[Math.floor(genome.bodyStyle)], spec = specForGenome(genome);
       if (!spec) throw new Error('Missing vehicle specification: ' + style.id);
       const scale = UNITS.lengthPerMetre / 1000;
       genome.width = spec.lengthMm * scale;
@@ -204,7 +224,7 @@
       genome.powerMultiplier = clamp(finite(genome.powerMultiplier, 1), spec.baseTune?.power || 1, GENES.powerMultiplier[1]);
       genome.torqueMultiplier = clamp(finite(genome.torqueMultiplier, 1), spec.baseTune?.torque || 1, GENES.torqueMultiplier[1]);
       genome.powertrainPosition = clamp(finite(genome.powertrainPosition, 0), ...GENES.powertrainPosition);
-      genome.drivetrain = Math.floor(clamp(finite(genome.drivetrain, 2), 0, DRIVETRAINS.length - 1e-6));
+      genome.drivetrain = DRIVETRAINS.findIndex(drive => drive.id === spec.referenceDrive);
       const reduction = this.initialExperiment === 'character' ? 12 : spec.gearRatio || UNITS.reduction;
       genome.gearRatio = reduction;
       const torqueNm = spec.torqueNm * genome.torqueMultiplier;
@@ -248,7 +268,10 @@
           - powertrainMassFor(spec, genome.powerMultiplier, genome.torqueMultiplier));
         return genome;
       });
-      if (this.initialExperiment === 'drive') return genomes.map((_, i) => this._constrainGenome({ ...base, drivetrain: i % DRIVETRAINS.length }));
+      if (this.initialExperiment === 'drive') {
+        const variants = allowedDrivesFor('ioniq5').map(id => DRIVETRAINS.findIndex(drive => drive.id === id));
+        return genomes.map((_, i) => this._constrainGenome({ ...base, drivetrain: variants[i % variants.length] }));
+      }
       const gene = this.initialExperiment === 'power' ? 'powerMultiplier' : 'powertrainPosition';
       const [low, high] = GENES[gene];
       return genomes.map((_, i) => this._constrainGenome({ ...base, [gene]: low + (high - low) * i / (this.population - 1) }));
@@ -273,7 +296,7 @@
         return M.Bodies.fromVertices(this.startX + centroid.x, y + centroid.y, [triangle], bodyOptions, false, .01, 0);
       });
       const body = M.Body.create({ ...bodyOptions, parts });
-      const spec = VEHICLE_SPECS[style.id];
+      const spec = specForGenome(genome);
       const shellMass = spec.curbMassKg * .72 * UNITS.massPerKg;
       // Larger torque and speed ratings need heavier motors and batteries.
       // This cost lives in Matter mass/inertia, never in a fitness penalty.
@@ -340,7 +363,7 @@
       const performanceRatio = powerToWeight / referencePowerToWeight;
       const motor = motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, 0);
       const design = { style: style.id, styleLabel: style.label,
-        driveType: drivetrain.id, driveLabel: drivetrain.label, driveShares: [...drivetrain.shares],
+        driveType: drivetrain.id, driveLabel: spec.driveLabel || drivetrain.label, driveSystem: spec.driveSystem || drivetrain.id, driveShares: [...drivetrain.shares],
         outline: outline.map(p => ({ x: p.x - center.x, y: p.y - center.y })),
         shellCenterOfMass: { x: massShellCenter.x - center.x, y: massShellCenter.y - center.y },
         estimatedFactoryFrontLoad: balance.front,
@@ -352,6 +375,7 @@
         gearRatio: genome.gearRatio, rpmLimitRpm: motor.redlineRpm, torquePowerCrossoverRpm: motor.crossoverRpm,
         achievablePowerPs: motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, motor.redlineRpm * .95).powerPs,
         factoryPowerPs: spec.powerPs, factoryTorqueNm: spec.torqueNm, factoryDrive: spec.factoryDrive,
+        factoryVariant: spec.variant, referenceDrive: spec.referenceDrive, allowedDrives: [...spec.allowedDrives],
         lengthMm: spec.lengthMm, heightMm: spec.heightMm, wheelbaseMm: spec.wheelbaseMm,
         powerToWeight, referencePowerToWeight, performanceRatio, rearLoad: 1 - frontLoad, frontLoad, centerOfMass };
       const telemetry = { speed: 0, speedKmH: 0, engineRpm: 0, wheelTorqueNm: 0, tractiveForceN: 0, deliveredPowerPs: 0, limitingFactor: 'torque', slip: [0, 0], contact: [false, false], load: [1 - frontLoad, frontLoad], surface: this.surfaceAt(this.startX).id, status: 'ready' };
@@ -436,7 +460,7 @@
     }
     _applyDrive(vehicle) {
       if (!vehicle.alive) return;
-      const spec = VEHICLE_SPECS[vehicle.design.style], genome = vehicle.genome;
+      const genome = vehicle.genome, spec = specForGenome(genome);
       const reduction = genome.gearRatio;
       const step = (1000 / 120) * (1000 / 60), t = vehicle.telemetry;
       const forceUnit = UNITS.massPerKg * UNITS.lengthPerMetre / 1e6;
@@ -557,13 +581,22 @@
       const offspring = [copy(ranked[0].genome)]; // Exact elite, without mutation.
       while (offspring.length < this.population) {
         const mother = this._select(ranked), father = this._select(ranked), child = {};
+        let mutateDrive = false;
         for (const [name, range] of Object.entries(GENES)) {
           let value = this._random() < 0.5 ? mother[name] : father[name];
           if (this._random() < this.mutation) {
-            if (name === 'drivetrain') value = (Math.floor(finite(value, 2)) + 1 + Math.floor(this._random() * 2)) % DRIVETRAINS.length;
+            if (name === 'drivetrain') mutateDrive = true;
             else value += (this._random() + this._random() - 1) * (range[1] - range[0]) * 0.45;
           }
           child[name] = clamp(value, range[0], range[1]);
+        }
+        // Resolve body-style crossover/mutation first, then choose only a drive
+        // sold for that final model. Single-layout cars never mutate their axle.
+        const selected = specForGenome(child);
+        const alternatives = selected.allowedDrives.filter(id => id !== selected.referenceDrive);
+        if (mutateDrive && alternatives.length) {
+          const id = alternatives[Math.floor(this._random() * alternatives.length)];
+          child.drivetrain = DRIVETRAINS.findIndex(drive => drive.id === id);
         }
         offspring.push(this._constrainGenome(child));
       }
@@ -573,6 +606,8 @@
       return true;
     }
   }
+  EvolutionLab.specForGenome = specForGenome;
+  EvolutionLab.allowedDrivesFor = allowedDrivesFor;
   EvolutionLab.motorEnvelope = motorEnvelope;
   EvolutionLab.UNITS = UNITS;
   EvolutionLab.SPECS = VEHICLE_SPECS;
