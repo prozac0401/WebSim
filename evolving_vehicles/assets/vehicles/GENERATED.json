@@ -7,7 +7,8 @@
     "Generated image files are copied unchanged from image_gen output; image geometry is calibrated independently.",
     "Original manufacturer photographs remain in SOURCES.json and official paint variants in PAINTS.json.",
     "Tow-truck bodywork, orange/white finish, equipment details and mass assumptions are simulation interpretations, not certified conversion specifications.",
-    "K5 orange color aims at Seoul SC1956 Kkotdam Hwangto (sRGB 209,111,21). The AI edit preserves the model and composition but is not pixel-identical to its input."
+    "K5 orange color aims at Seoul SC1956 Kkotdam Hwangto (sRGB 209,111,21). The AI edit preserves the model and composition but is not pixel-identical to its input.",
+    "Porter II blue and white display sprites reconstruct the official side-view specification photograph. They are generated interpretations, not manufacturer original photos. Original quarter-view references are retained separately."
   ],
   "assets": [
     {
@@ -184,6 +185,119 @@
       "notes": "Rendered separately in Canvas so users can select or remove the taxi livery; original corporate telephone numbers are omitted.",
       "sha256": "6141178de85236daeac75ff771c0a4c226300bf07c6a21bcf997939c7e4a8728",
       "bytes": 891768
+    },
+    {
+      "id": "porter2-side-blue",
+      "file": "porter2-side.png",
+      "kind": "generated photographic orthographic side reconstruction",
+      "vehicle": "Hyundai Porter II extra-long Supercab 2WD",
+      "sources": [
+        {
+          "page": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-side-w.jpg",
+          "detail": "Official side-profile proportion reference: 5155mm length, 1970mm height, 2640mm wheelbase"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/side-w/porter2-26my-well-side.png",
+          "detail": "Official transparent true side profile"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png",
+          "detail": "Original factory paint/material reference, not camera reference"
+        }
+      ],
+      "inputFiles": [
+        "porter2.png"
+      ],
+      "prompt": "Use case: precise photographic vehicle asset reconstruction for a 2D driving simulator.\nCreate ONE realistic Hyundai PORTER II extra-long-wheelbase SUPERCAB open-bed light truck, in PERFECT ORTHOGRAPHIC SIDE PROFILE FACING RIGHT, on truly transparent background.\nReference 1 (official Hyundai specification image) is the authoritative geometry: reproduce that exact truck's cabin silhouette, narrow rear quarter window, door shape, sloping windscreen, mirror, long low drop-side bed, underbody and wheel design. Mirror the reference's direction so the cab/front is on the RIGHT and open cargo bed/rear on the LEFT. Remove all dimension lines, labels, white background and ground shadow. Reference 2 is the official tiny transparent side profile of this same truck: confirms the exact side silhouette. Reference 3 is only the PAINT/material reference: copy its rich metallic Onyx Blue ZV cabin AND cargo-bed paint, authentic reflections, dark horizontal side molding and factory alloy wheels. Do NOT copy reference3's angled camera.\nDimensional proportions must be faithful to the full-size real vehicle: total body length 5155mm, height 1970mm, wheelbase 2640mm. Wheelbase should be about 51.2% of overall body length. Front overhang around1140mm, rear overhang around1375mm. Front tire radius327mm, rear tire radius281mm; the rear wheel is slightly smaller and its axle sits lower, both tire bottoms on one horizontal ground line. Cab occupies about40% of overall length at right, bed remaining60% to left. Supercab with a narrow rear side window, NOT double cab. Exactly TWO visible near-side wheels. No far-side tires, no foreshortening, no front grille/front face or rear end face visible, no view down into the cargo bed, no tilted camera. Preserve factory side vents, seams, door handle, amber side marker and natural dark glass. This must look like a real photographic catalogue asset, not a drawing/toy/stylized render.\nClean unmarked body: NO decals, Korean lettering, company names, phone numbers, plate text, labels, taxi lamps or added accessories. No environment, floor, cast shadow, dimension arrows or background. Whole truck uncut, a wide landscape canvas with small clear margins, approximately2000x900px. Maintain transparent alpha. The vehicle's image height should be approximately38.2% of its image length, matching the official specification. Photorealistic crisp detail with soft neutral studio lighting.",
+      "originalOutput": "exec-c3b333db-f619-40fd-8cae-c04af9c6566f.png",
+      "geometry": {
+        "width": 1870,
+        "height": 841,
+        "bounds": [
+          50,
+          87,
+          1789,
+          686
+        ],
+        "bodyBottom": 690,
+        "rear": {
+          "x": 492,
+          "y": 667,
+          "r": 106,
+          "rimRatio": 0.65
+        },
+        "front": {
+          "x": 1427,
+          "y": 660,
+          "r": 115,
+          "rimRatio": 0.66
+        }
+      },
+      "alphaRange": [
+        0,
+        255
+      ],
+      "sha256": "6abbdde3893cee2396c18bea0a0edeeffcd1225e8e16dc4bf4d0e2ddcae29c47",
+      "bytes": 1185064,
+      "notes": "Generated side reconstruction replaces the perspective-bearing display asset. Original manufacturer reference PNGs remain unchanged. Factory physical dimensions and drivetrain data are unchanged."
+    },
+    {
+      "id": "porter2-side-white",
+      "file": "colors/porter2-yaw-side.png",
+      "kind": "generated photographic orthographic side reconstruction",
+      "vehicle": "Hyundai Porter II extra-long Supercab 2WD",
+      "sources": [
+        {
+          "page": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-side-w.jpg",
+          "detail": "Official side-profile proportion reference: 5155mm length, 1970mm height, 2640mm wheelbase"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/side-w/porter2-26my-well-side.png",
+          "detail": "Official transparent true side profile"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/vr360/M575/exterior/YAW/001.png",
+          "detail": "Original factory paint/material reference, not camera reference"
+        }
+      ],
+      "inputFiles": [
+        "porter2-side.png",
+        "colors/porter2-yaw.png"
+      ],
+      "prompt": "Precise automotive paint edit. Input1 is the EDIT TARGET: the just-created true side-profile Hyundai Porter II Supercab flatbed truck facing RIGHT. Input2 is a color/material REFERENCE ONLY: manufacturer Creamy White paint on the same model; do NOT copy its angled camera.\nChange ONLY all blue painted exterior panels of input1 (cabin, cargo bed side, bulkhead/bed guard and body-colored mirror) to factory Creamy White YAW, a slightly warm clean glossy white. Preserve photorealistic reflections, subtle body curvature and seams. Keep black horizontal side molding, dark tinted glass, underbody, tires, silver alloy rims, chrome, lamps, mirrors and all hardware exactly as in input1. This is a matched alternate paint sprite: preserve identical side-view camera, orientation, exact body silhouette, wheel center coordinates, front/rear wheel sizes, relative cab/bed length, canvas size, scale, position and transparent margins. Keep the supercab narrow rear window. No text or decals of any language, no added items, no ground shadow. Genuinely transparent alpha background. Render one high-quality photographic PNG with the same framing as input1.",
+      "originalOutput": "exec-281708e5-2f65-4b39-a4a4-47d3c1c063b9.png",
+      "geometry": {
+        "width": 1870,
+        "height": 841,
+        "bounds": [
+          50,
+          87,
+          1789,
+          686
+        ],
+        "bodyBottom": 690,
+        "rear": {
+          "x": 492,
+          "y": 667,
+          "r": 106,
+          "rimRatio": 0.65
+        },
+        "front": {
+          "x": 1427,
+          "y": 660,
+          "r": 115,
+          "rimRatio": 0.66
+        }
+      },
+      "alphaRange": [
+        0,
+        255
+      ],
+      "sha256": "29b6b778a976f5cfed19cfeeb18b9d77133b04e3becc676bcd0e2738769cdb2c",
+      "bytes": 1083249,
+      "notes": "Generated side reconstruction replaces the perspective-bearing display asset. Original manufacturer reference PNGs remain unchanged. Factory physical dimensions and drivetrain data are unchanged."
     }
   ]
 }

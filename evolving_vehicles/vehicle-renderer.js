@@ -178,49 +178,36 @@
       // Historic white stone-guardian badge; the orange car photo is a separate paint.
       const bh = p.h * .88, bw = bh * .73, bx = p.x + p.w * .04, by = p.y + p.h * .05;
       if (haechiBadge.complete && haechiBadge.naturalWidth) ctx.drawImage(haechiBadge, 106, 174, 822, 1124, bx, by, bw, bh);
-      label(ctx, '해치택시', bx + bw + unit * .061, by + bh * .38, unit * .023, '#293b41', 700);
-      label(ctx, 'HAECHI SEOUL', bx + bw + unit * .061, by + bh * .72, unit * .0085, '#293b41', 600);
+      label(ctx, 'HAECHI SEOUL', bx + bw + unit * .061, by + bh * .50, unit * .0085, '#293b41', 600);
     } else if (id === 'tow_service') {
       const tx = p.x + p.w * .53, ty = p.y + p.h * .49;
-      label(ctx, '긴급 견인', tx, ty, unit * .025, '#26343c', 800);
-      label(ctx, 'ROAD ASSISTANCE', tx, ty + unit * .023, unit * .0085, '#435059', 600);
+      label(ctx, 'ROAD ASSISTANCE', tx, ty, unit * .0085, '#435059', 600);
     } else if (id === 'premium_taxi') {
       ctx.fillStyle = '#d7bb76'; ctx.fillRect(p.x, p.y + p.h * .77, p.w, unit * .0035);
       ctx.fillRect(p.x, p.y + p.h * .86, p.w, unit * .0013);
-      label(ctx, '모범', cx, cy, unit * .032, '#e2c78c', 700);
-      label(ctx, 'PREMIUM TAXI', cx, cy + unit * .026, unit * .010, '#d6bb80', 600);
+      label(ctx, 'PREMIUM TAXI', cx, cy, unit * .010, '#d6bb80', 600);
     } else if (id === 'kakao_taxi') {
       ctx.fillStyle = '#f7d444';
       for (const offset of [.02, .18]) {
         const stripeX = p.x + p.w * offset;
         ctx.beginPath(); ctx.moveTo(stripeX, p.y); ctx.lineTo(stripeX + unit * .037, p.y); ctx.lineTo(stripeX + unit * .08, p.y + p.h); ctx.lineTo(stripeX + unit * .043, p.y + p.h); ctx.closePath(); ctx.fill();
       }
-      const wordX = p.x + p.w * .73, wordY = p.y + p.h * .40;
-      ctx.font = '700 ' + unit * .032 + 'px "Malgun Gothic", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const darkPaint = /블랙|블루|그린|버건디|레드|마린/.test(view.appearance.colorLabel);
-      ctx.strokeStyle = darkPaint ? '#20242b' : '#f3f3ee'; ctx.lineWidth = unit * .0005; ctx.strokeText('카카오 T', wordX, wordY); ctx.fillStyle = darkPaint ? '#f4f3e9' : '#20242b'; ctx.fillText('카카오 T', wordX, wordY);
     } else if (id === 'personal_taxi' || id === 'ev_taxi' || id === 'van_taxi') {
       const ev = id === 'ev_taxi', van = id === 'van_taxi';
       const primary = ev ? '#209994' : van ? '#235a82' : '#df792b';
       ctx.fillStyle = primary; ctx.fillRect(p.x, p.y + p.h * .77, p.w, unit * .009);
       ctx.fillStyle = ev ? '#164b69' : '#265b87'; ctx.fillRect(p.x, p.y + p.h * .77 + unit * .011, p.w, unit * .003);
-      ctx.fillStyle = '#edf2eee8'; ctx.fillRect(cx - unit * .073, cy - unit * .022, unit * .146, unit * .046);
-      label(ctx, ev ? '전기택시' : van ? '대형택시' : '개인택시', cx, cy, unit * .028, '#235275', 700);
     } else if (id === 'delivery') {
       ctx.fillStyle = '#e0a946'; ctx.fillRect(p.x, p.y + p.h * .78, p.w, unit * .009);
       const size = unit * .028, bx = p.x + p.w * .13, by = cy - size * .42;
       ctx.fillStyle = '#f7eac9'; ctx.fillRect(bx, by, size, size * .82); ctx.strokeStyle = '#3b5356'; ctx.lineWidth = unit * .0015; ctx.strokeRect(bx, by, size, size * .82);
       ctx.beginPath(); ctx.moveTo(bx + size * .5, by); ctx.lineTo(bx + size * .5, by + size * .35); ctx.stroke();
-      ctx.fillStyle = '#f2ead6ed'; ctx.fillRect(cx - unit * .073, cy - unit * .024, unit * .146, unit * .048);
-      label(ctx, view.appearance.style === 'porter2' ? '용달 · 이삿짐' : '동네배송', cx, cy, unit * (view.appearance.style === 'porter2' ? .020 : .029), '#334e54', 700);
     } else if (id === 'camping') {
       ctx.strokeStyle = '#dbc7a4'; ctx.lineWidth = unit * .0022;
       ctx.beginPath(); ctx.moveTo(p.x + p.w * .04, cy + unit * .018); ctx.lineTo(p.x + p.w * .12, cy - unit * .023); ctx.lineTo(p.x + p.w * .20, cy + unit * .018);
       ctx.moveTo(p.x + p.w * .16, cy - unit * .008); ctx.lineTo(p.x + p.w * .21, cy - unit * .032); ctx.lineTo(p.x + p.w * .30, cy + unit * .018);
       ctx.strokeStyle = '#34483e'; ctx.lineWidth = unit * .0045; ctx.stroke(); ctx.strokeStyle = '#e3d1ad'; ctx.lineWidth = unit * .002; ctx.stroke();
-      ctx.font = '700 ' + unit * .027 + 'px "Malgun Gothic", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.strokeStyle = '#34483e'; ctx.lineWidth = unit * .002; ctx.strokeText('주말캠프', cx + unit * .018, cy);
-      label(ctx, '주말캠프', cx + unit * .018, cy, unit * .027, '#eadabd', 700);
-      label(ctx, 'WEEKEND OUTDOOR', cx + unit * .018, cy + unit * .025, unit * .0095, '#d9c9aa', 500);
+      label(ctx, 'WEEKEND OUTDOOR', cx + unit * .018, cy, unit * .0095, '#d9c9aa', 500);
     }
     ctx.restore(); drawRoofSign(ctx, view, geo);
   }

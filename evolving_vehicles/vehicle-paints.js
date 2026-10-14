@@ -250,13 +250,38 @@
     {
       "id": "factory",
       "label": "오닉스 블루",
-      "file": "assets/vehicles/porter2.png"
+      "file": "assets/vehicles/porter2-side.png",
+      "generated": true
     },
     {
       "id": "yaw",
       "label": "크리미 화이트",
       "hex": "#e8e9e5",
-      "file": "assets/vehicles/colors/porter2-yaw.png"
+      "file": "assets/vehicles/colors/porter2-yaw-side.png",
+      "generated": true,
+      "artwork": {
+        "width": 1870,
+        "height": 841,
+        "bounds": [
+          50,
+          87,
+          1789,
+          686
+        ],
+        "bodyBottom": 690,
+        "rear": {
+          "x": 492,
+          "y": 667,
+          "r": 106,
+          "rimRatio": 0.65
+        },
+        "front": {
+          "x": 1427,
+          "y": 660,
+          "r": 115,
+          "rimRatio": 0.66
+        }
+      }
     }
   ],
   "rexton_tow": [
