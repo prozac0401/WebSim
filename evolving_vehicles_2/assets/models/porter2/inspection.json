@@ -1,0 +1,25 @@
+{
+  "id": "porter2",
+  "bounds": {
+    "min": [
+      -2.559,
+      -1.043,
+      0
+    ],
+    "max": [
+      2.555,
+      1.043,
+      1.97
+    ]
+  },
+  "triangles": 55844,
+  "primitives": 32,
+  "runtimeBytes": 1366152,
+  "source": {
+    "kind": "photo-reference",
+    "label": "현대 공식 도면·사진 기반 정밀 제작",
+    "url": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+    "configuration": "Korea Porter II LPG extra-long super cab, 5155 mm with bumper guard, 2640 mm wheelbase, 1740 × 1970 mm; 2860 × 1630 × 355 mm drop-side bed. Official photographic white trim; simulated engines may differ.",
+    "limitations": "Independently authored curved mesh measured from official dimension drawings, with calibrated front/side/rear photo UVs. Not manufacturer CAD, scan or multi-view photogrammetry. Roof, unseen underbody and cargo interior are inferred; opposite side reuses the available side reference."
+  }
+}

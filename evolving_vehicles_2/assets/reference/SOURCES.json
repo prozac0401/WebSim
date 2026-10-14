@@ -1,0 +1,482 @@
+{
+  "retrievedAt": "2026-10-14",
+  "purpose": "Unmodified manufacturer reference images for custom 3D mesh modeling. Images are copyrighted by the manufacturer; no open asset redistribution license is claimed. These are reference images, not manufacturer 3D mesh files.",
+  "assets": [
+    {
+      "id": "avante",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/001.png",
+      "file": "avante-1.png",
+      "bytes": 71556,
+      "sha256": "0964c1d877bcf0a7fd3a89fc7a02a4c2a803ae93f2feffb7f4425b120de9cf2a"
+    },
+    {
+      "id": "avante",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "frame": 13,
+      "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/013.png",
+      "file": "avante-13.png",
+      "bytes": 91199,
+      "sha256": "6379f6afecb903dbafa11f215d660672c3b29334d1f9880125e0d8272055c556"
+    },
+    {
+      "id": "avante",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "frame": 25,
+      "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/025.png",
+      "file": "avante-25.png",
+      "bytes": 58771,
+      "sha256": "e7fed982445e6362afec73d0ff55113e956ec6c5069c5f95b781d75590313972"
+    },
+    {
+      "id": "avante",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "frame": 49,
+      "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/049.png",
+      "file": "avante-49.png",
+      "bytes": 88370,
+      "sha256": "2dc2637632e3a791608fa05e0d17ad26940a33ee4356ea2a78925061fccb9446"
+    },
+    {
+      "id": "carnival",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_01.png",
+      "file": "carnival-1.png",
+      "bytes": 160724,
+      "sha256": "37b6313225f848ecacd2a6f2932c00c617320e683480fecc44540b46bddb704d"
+    },
+    {
+      "id": "carnival",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_13.png",
+      "file": "carnival-13.png",
+      "bytes": 130472,
+      "sha256": "d373920a2b2100bbc8fad3cc938c31109b2e1e04e191ae2289840fa77f69f3e5"
+    },
+    {
+      "id": "carnival",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_25.png",
+      "file": "carnival-25.png",
+      "bytes": 122807,
+      "sha256": "5d5fbcc9f790525ce6d2c90947a11b122d9252e429032f8fcee8ce3883c92bbb"
+    },
+    {
+      "id": "carnival",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_49.png",
+      "file": "carnival-49.png",
+      "bytes": 140957,
+      "sha256": "eb8ecfad249490dc1cf16a259f7fd9e224771f540691cfdfed7b15ca3972b3fb"
+    },
+    {
+      "id": "g80",
+      "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
+      "view": "front",
+      "url": "https://dams.hyundai-autoever.com/v1/openapi/hmg-presigned-url/50534b313031303030303030303030303039323034/genesis-g80-2027-exterior-detail-grille-large.png",
+      "file": "g80-front.png",
+      "bytes": 629946,
+      "sha256": "08dddfa202f20b90ca5117d6133b6dc472c592e07e3dd7c3b28c81cb24bbaab9"
+    },
+    {
+      "id": "g80",
+      "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
+      "view": "rear",
+      "url": "https://dams.hyundai-autoever.com/v1/openapi/hmg-presigned-url/50534b313031303030303030303030303039323038/genesis-g80-2027-exterior-detail-muffler-large.png",
+      "file": "g80-rear.png",
+      "bytes": 576882,
+      "sha256": "60b7f0e741009787adb4969fd67a20ba0e6ff024c8e30a106d71623ba349a381"
+    },
+    {
+      "id": "g80",
+      "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
+      "view": "three-quarter",
+      "url": "https://dams.hyundai-autoever.com/v1/openapi/hmg-presigned-url/50534b313031303030303030303030303133343536/models/g80/2027/exterior-color/standard/genesis-g80-standard-uyuni-white-uyh-large.png",
+      "file": "g80-three-quarter.png",
+      "bytes": 160816,
+      "sha256": "f6b3df3b97d318ca1378fdac5a7d943100a99901349565845494498ac7c6fac5"
+    },
+    {
+      "id": "grandeur",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/001.png",
+      "file": "grandeur-1.png",
+      "bytes": 67982,
+      "sha256": "67e0947aeb039d1dc4aefdc8a066885050e968f74280e67befae418e6468cd9a"
+    },
+    {
+      "id": "grandeur",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "frame": 13,
+      "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/013.png",
+      "file": "grandeur-13.png",
+      "bytes": 83067,
+      "sha256": "75eae55d712f825655e56bb2aed15e5d2b052f6bd6883dce2cff6123f66f64d3"
+    },
+    {
+      "id": "grandeur",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "frame": 25,
+      "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/025.png",
+      "file": "grandeur-25.png",
+      "bytes": 43952,
+      "sha256": "0fcf62050cc19d3d79c08a0f05ec93d35f150b0feb01b464ffdaf5d6d3373c2d"
+    },
+    {
+      "id": "grandeur",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "frame": 49,
+      "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/049.png",
+      "file": "grandeur-49.png",
+      "bytes": 75570,
+      "sha256": "e72cbc6f0a654e11abcd9c87168e8bdce1c874e1e1b9f86a6d683c4fb457cd53"
+    },
+    {
+      "id": "ioniq5",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/C5G/001.png",
+      "file": "ioniq5-1.png",
+      "bytes": 93196,
+      "sha256": "8eb180ad051ffd0796baeec25995970bf51c2278b47f29a1632c1a734f9d1812"
+    },
+    {
+      "id": "ioniq5",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "frame": 13,
+      "url": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/C5G/013.png",
+      "file": "ioniq5-13.png",
+      "bytes": 107058,
+      "sha256": "d057ce9bf6aa86d6bd189b8eab690dc9cbf37674f547a595fcba582595a49d91"
+    },
+    {
+      "id": "ioniq5",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "frame": 25,
+      "url": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/C5G/025.png",
+      "file": "ioniq5-25.png",
+      "bytes": 53467,
+      "sha256": "c4df739d5ff28f6845b48eef6b3e9ef5b19bb7deb7f5ff13f6b5b25be1dc2541"
+    },
+    {
+      "id": "ioniq5",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "frame": 49,
+      "url": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/C5G/049.png",
+      "file": "ioniq5-49.png",
+      "bytes": 92597,
+      "sha256": "66b348df75f5ae4dc73202d838eef55f65c382301594091fb7fa4f91bdea0953"
+    },
+    {
+      "id": "k5",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_01.png",
+      "file": "k5-1.png",
+      "bytes": 131424,
+      "sha256": "9fa96143438f1ca200ebf0eb23c7dda8d20d10bb9f239b0d2d36ded13580f690"
+    },
+    {
+      "id": "k5",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_13.png",
+      "file": "k5-13.png",
+      "bytes": 115604,
+      "sha256": "4cdbd5b9df97002b75bcbfa77eed43fe829315875dd71166d0a2c67ddb412ab0"
+    },
+    {
+      "id": "k5",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_25.png",
+      "file": "k5-25.png",
+      "bytes": 110359,
+      "sha256": "dc5b16baadbdc5920181c4d25410bc8c424a2e21cc4eef4d35ec264fbaee76ff"
+    },
+    {
+      "id": "k5",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_49.png",
+      "file": "k5-49.png",
+      "bytes": 121833,
+      "sha256": "d0cf72ae41011deddce91e6a95a2a8044f02779f185147864c30720e6d6fe960"
+    },
+    {
+      "id": "morning",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_01.png",
+      "file": "morning-1.png",
+      "bytes": 117886,
+      "sha256": "fdbf55304ae1f4c1ef8592f9bc847dd40377a4f66a142c1eec7cf4657716df5e"
+    },
+    {
+      "id": "morning",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_13.png",
+      "file": "morning-13.png",
+      "bytes": 110821,
+      "sha256": "23760547ae7b9b968acde507ee33f9366b90faf639433341bfe3ffa1cac3d539"
+    },
+    {
+      "id": "morning",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_25.png",
+      "file": "morning-25.png",
+      "bytes": 105338,
+      "sha256": "0147b75f5dbaad59f2ba7e06757eb01d5ea88e23cca68cdb492db88300f5ef93"
+    },
+    {
+      "id": "morning",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_49.png",
+      "file": "morning-49.png",
+      "bytes": 112228,
+      "sha256": "69eb5e34349c7e885a14b82aae4202da430a089470562da9e595d1c0129a91eb"
+    },
+    {
+      "id": "porter2",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png",
+      "file": "porter2-1.png",
+      "bytes": 70640,
+      "sha256": "dec4eb9f0724155daf3e77c62ef6b5c09d70f92a86bfd78d0523c03101861e50"
+    },
+    {
+      "id": "ray",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_01.png",
+      "file": "ray-1.png",
+      "bytes": 174389,
+      "sha256": "d6617b19654772b7e995cb2aa4254b549f70a4eaa732078a3bfd5b3ec4de9fa0"
+    },
+    {
+      "id": "ray",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_13.png",
+      "file": "ray-13.png",
+      "bytes": 155279,
+      "sha256": "624bd81bbe3c8ee22279afac725b276fc5435bdd9a5e5c08bc778ecbc9e4ad2d"
+    },
+    {
+      "id": "ray",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_25.png",
+      "file": "ray-25.png",
+      "bytes": 148629,
+      "sha256": "a77e1bf77fa2a4cbf66ac1729db88e357ea2761883903235569f16775d25774b"
+    },
+    {
+      "id": "ray",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_49.png",
+      "file": "ray-49.png",
+      "bytes": 154905,
+      "sha256": "67050464fb7d9e5e752ea2acc4b676c23e8cdcb4b24988b44b99679e3cd942ab"
+    },
+    {
+      "id": "santafe",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/RS2/001.png",
+      "file": "santafe-1.png",
+      "bytes": 87730,
+      "sha256": "341a832e3432f89d5c19d71720b3d6155e91543541333266a7a2a70fa12f31e0"
+    },
+    {
+      "id": "santafe",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "frame": 13,
+      "url": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/RS2/013.png",
+      "file": "santafe-13.png",
+      "bytes": 92274,
+      "sha256": "9c21860ac5d20796d4fd7e6ac16cf39a3da1a3e96e88bc45bbbdf7deddddb75c"
+    },
+    {
+      "id": "santafe",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "frame": 25,
+      "url": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/RS2/025.png",
+      "file": "santafe-25.png",
+      "bytes": 47237,
+      "sha256": "5e49f85d39e009bb024c49bc5ac2e7acef24ca002cdd72b3690c9d915ff0d6ed"
+    },
+    {
+      "id": "santafe",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "frame": 49,
+      "url": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/RS2/049.png",
+      "file": "santafe-49.png",
+      "bytes": 88890,
+      "sha256": "820fada10ca23752572e8acb684233ea8326585f08536baab6440f49738278e3"
+    },
+    {
+      "id": "staria",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "frame": 1,
+      "url": "https://www.hyundai.com/contents/vr360/US31/exterior/YAC/001.png",
+      "file": "staria-1.png",
+      "bytes": 73150,
+      "sha256": "40b8ba40c045198bd6c915ea98e1fc86d19d137527568360ce6ee5c949395315"
+    },
+    {
+      "id": "staria",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "frame": 13,
+      "url": "https://www.hyundai.com/contents/vr360/US31/exterior/YAC/013.png",
+      "file": "staria-13.png",
+      "bytes": 81406,
+      "sha256": "3b0593238fba96de538fe81213cf4cbde33e22e1b2623f49edce5b5e30245617"
+    },
+    {
+      "id": "staria",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "frame": 25,
+      "url": "https://www.hyundai.com/contents/vr360/US31/exterior/YAC/025.png",
+      "file": "staria-25.png",
+      "bytes": 46129,
+      "sha256": "7e07755e0e6493d18b747e0be664b859bad5c9b0f3da5c04372f0a4eb71793c4"
+    },
+    {
+      "id": "staria",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "frame": 49,
+      "url": "https://www.hyundai.com/contents/vr360/US31/exterior/YAC/049.png",
+      "file": "staria-49.png",
+      "bytes": 81255,
+      "sha256": "b5b0c14d5a94d36889db7d04302da6cffdae11a55d1e404bf3fd4b4eb266a8d3"
+    },
+    {
+      "id": "ray",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_61.png",
+      "file": "ray-61.png",
+      "bytes": 147705,
+      "sha256": "2bc71c00a846f0d0e5b3e39b5ddcb2de85eb1f5d2d2e09f19b3b454c501f23cd"
+    },
+    {
+      "id": "morning",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_61.png",
+      "file": "morning-61.png",
+      "bytes": 109391,
+      "sha256": "219a13f1ddb0f4ea222f6fc18880a3c9e26bd1c2a579eb6e9e98538d4596dbfb"
+    },
+    {
+      "id": "k5",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_61.png",
+      "file": "k5-61.png",
+      "bytes": 116586,
+      "sha256": "3269dee64ef2ba4d34454bdff21213468822f5abb3022092d25a24aabbc62f2e"
+    },
+    {
+      "id": "carnival",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_61.png",
+      "file": "carnival-61.png",
+      "bytes": 138276,
+      "sha256": "6af98458e689fba13596dfc191434cae4c6ee434c7a608204eb7b68569d141d6"
+    },
+    {
+      "id": "musso_ev",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "frame": 1,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306578_Ee1AlU_1.png",
+      "file": "musso_ev-1.png",
+      "bytes": 531275,
+      "sha256": "eb7012226888b8863f46e63c9625e081bd96bc289e06fb9bfbdcc3a02c4ae2d6"
+    },
+    {
+      "id": "musso_ev",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "frame": 6,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_G1aC4x_6.png",
+      "file": "musso_ev-6.png",
+      "bytes": 372176,
+      "sha256": "4202e9705c2139b191ef1c80a78497b340d9b64040b4f7754ed5820c361847e0"
+    },
+    {
+      "id": "musso_ev",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "frame": 19,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306660_CcxtFp_19.png",
+      "file": "musso_ev-19.png",
+      "bytes": 535366,
+      "sha256": "aaed80f0e47f6de5145885d5cf500515cf8f4a546cafafbac71e2316515b7499"
+    },
+    {
+      "id": "musso_ev",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "frame": 28,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306595_lNosp4_28.png",
+      "file": "musso_ev-28.png",
+      "bytes": 563115,
+      "sha256": "6ec26d25778dc735c3f619f6cc2b3a20600538695ed56c3b7a145bf2f5e5ed26"
+    },
+    {
+      "id": "torres",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "frame": 1,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846208_my2zpH_1.png",
+      "file": "torres-1.png",
+      "bytes": 1002074,
+      "sha256": "1610206f7d6513267d17f72c16cf32833b00bc7c26ce2e2b7202f094a94dddd6"
+    },
+    {
+      "id": "torres",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "frame": 6,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845474_oII6oI_6.png",
+      "file": "torres-6.png",
+      "bytes": 721957,
+      "sha256": "e898a36f1019357b3ad4fda563d17f4c770a3385f9dbc3156da3a8b9d5f9a15c"
+    },
+    {
+      "id": "torres",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "frame": 19,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845768_jgLqMM_19.png",
+      "file": "torres-19.png",
+      "bytes": 1014798,
+      "sha256": "2128f0b13b74f4a0d48772910f41ef7049f1fb1465eb5b1a02f083d6d87a549a"
+    },
+    {
+      "id": "torres",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "frame": 28,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846093_mv3pbe_28.png",
+      "file": "torres-28.png",
+      "bytes": 1044399,
+      "sha256": "8b3f11a88d686c4ed8b822ced394067cb3b83202c1ef5c812974223226d5498d"
+    }
+  ]
+}

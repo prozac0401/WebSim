@@ -1,0 +1,262 @@
+{
+  "retrievedAt": "2026-10-14T13:16:24.878Z",
+  "id": "musso_ev",
+  "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+  "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+  "frames": 36,
+  "frameStepDegrees": 10,
+  "assets": [
+    {
+      "frame": 1,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306578_Ee1AlU_1.png",
+      "description": "ULTRA-MARINE-(BBE)_00",
+      "bytes": 531275,
+      "sha256": "eb7012226888b8863f46e63c9625e081bd96bc289e06fb9bfbdcc3a02c4ae2d6"
+    },
+    {
+      "frame": 2,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306398_BT1Gxn_2.png",
+      "description": "ULTRA-MARINE-(BBE)_01",
+      "bytes": 490851,
+      "sha256": "126348b21184793c751c5c77dfd67916ed714e557a57150b79496bcb87f598ca"
+    },
+    {
+      "frame": 3,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_Kw3Ptq_3.png",
+      "description": "ULTRA-MARINE-(BBE)_02",
+      "bytes": 440698,
+      "sha256": "2844dea9d3ef155116a184a47e2e03dad7832e34bed5c8b19eabd5487aa51037"
+    },
+    {
+      "frame": 4,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306282_ZFWsOE_4.png",
+      "description": "ULTRA-MARINE-(BBE)_03",
+      "bytes": 369543,
+      "sha256": "93e68d2dc7d8e98e4926b6f717232b1ddd64f8b89e1308e4c8aac2c160d5d623"
+    },
+    {
+      "frame": 5,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306271_YGRY2n_5.png",
+      "description": "ULTRA-MARINE-(BBE)_04",
+      "bytes": 324212,
+      "sha256": "4e30a0f40692bf019cf993a23c37bfba5d6cdcd3d23864986e19b41420b23e95"
+    },
+    {
+      "frame": 6,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_G1aC4x_6.png",
+      "description": "ULTRA-MARINE-(BBE)_05",
+      "bytes": 372176,
+      "sha256": "4202e9705c2139b191ef1c80a78497b340d9b64040b4f7754ed5820c361847e0"
+    },
+    {
+      "frame": 7,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306683_eyXYg5_7.png",
+      "description": "ULTRA-MARINE-(BBE)_06",
+      "bytes": 446226,
+      "sha256": "2669649edbfda419b42720d9a3a46ce3f4245e6d1b9e25888f473052d4c0dcdc"
+    },
+    {
+      "frame": 8,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306404_5xR5SB_8.png",
+      "description": "ULTRA-MARINE-(BBE)_07",
+      "bytes": 502747,
+      "sha256": "d805fb534e6086337d5741d7766036d854b5c35e77b65133ec3a03ce00755a3c"
+    },
+    {
+      "frame": 9,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306556_PzLp7m_9.png",
+      "description": "ULTRA-MARINE-(BBE)_08",
+      "bytes": 546708,
+      "sha256": "96c9b187afe191bfe731ed555e9a7c52208f227e3450de02dbff7224266c7694"
+    },
+    {
+      "frame": 10,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306327_0LwayA_10.png",
+      "description": "ULTRA-MARINE-(BBE)_09",
+      "bytes": 575558,
+      "sha256": "e7869fc482a33b00cf079a4000b48896ed96d94ef6e29e578f604c76c4595e82"
+    },
+    {
+      "frame": 11,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_ESJ0jk_11.png",
+      "description": "ULTRA-MARINE-(BBE)_10",
+      "bytes": 587992,
+      "sha256": "248875a8f083586aa1778624958139e210b9498e19dfcda466ed17088f9fefe5"
+    },
+    {
+      "frame": 12,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_DIx0wN_12.png",
+      "description": "ULTRA-MARINE-(BBE)_11",
+      "bytes": 583193,
+      "sha256": "2f43b94371758ebd3b8aea27e8cf82a0afd8a59b31961d698e1e1cca4603adfd"
+    },
+    {
+      "frame": 13,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306246_B4pILw_13.png",
+      "description": "ULTRA-MARINE-(BBE)_12",
+      "bytes": 567004,
+      "sha256": "41bf08f08ff9dc8211bcaaafbb2452d5d015a50fa0410dd5886b8b1225d3f35a"
+    },
+    {
+      "frame": 14,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306673_npMjRQ_14.png",
+      "description": "ULTRA-MARINE-(BBE)_13",
+      "bytes": 555281,
+      "sha256": "b73475016979405d02230b6e2f216eb13f4c54c6bdde001782e01779451635fe"
+    },
+    {
+      "frame": 15,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306612_dtQ1be_15.png",
+      "description": "ULTRA-MARINE-(BBE)_14",
+      "bytes": 545325,
+      "sha256": "08bed2471f9bb15cb621dd27f22797263eca096b26b7039ba0efba730b87bf25"
+    },
+    {
+      "frame": 16,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_pqLiMM_16.png",
+      "description": "ULTRA-MARINE-(BBE)_15",
+      "bytes": 554987,
+      "sha256": "5667ae1e2c365fc72fc997b78c4fbb56eac25d9abe0c666b62038cd6bb464006"
+    },
+    {
+      "frame": 17,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306463_j8zN20_17.png",
+      "description": "ULTRA-MARINE-(BBE)_16",
+      "bytes": 562745,
+      "sha256": "7a6c50dc0ed3dc81162b8d28a929b0548aa4855050a52841cf2f5eee0e465ec4"
+    },
+    {
+      "frame": 18,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306324_QV6Ncy_18.png",
+      "description": "ULTRA-MARINE-(BBE)_17",
+      "bytes": 557594,
+      "sha256": "7279cf80c3762201e9b41ea9324d0a05dd4af55da980e2c8c241336913028b7e"
+    },
+    {
+      "frame": 19,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306660_CcxtFp_19.png",
+      "description": "ULTRA-MARINE-(BBE)_18",
+      "bytes": 535366,
+      "sha256": "aaed80f0e47f6de5145885d5cf500515cf8f4a546cafafbac71e2316515b7499"
+    },
+    {
+      "frame": 20,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306497_aDXrHX_20.png",
+      "description": "ULTRA-MARINE-(BBE)_19",
+      "bytes": 495658,
+      "sha256": "6361ce466d63dddc48f605b8a481008bde814378d89219c490ef42f630d41a1c"
+    },
+    {
+      "frame": 21,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306399_eokZ1r_21.png",
+      "description": "ULTRA-MARINE-(BBE)_20",
+      "bytes": 439689,
+      "sha256": "cb11c3d8c50fcf8dca106a17cd4a9b3f3fc104b127758a60b335daa635f6ae1d"
+    },
+    {
+      "frame": 22,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306511_exxzSv_22.png",
+      "description": "ULTRA-MARINE-(BBE)_21",
+      "bytes": 359302,
+      "sha256": "faa7a7e1e6392bdbcd670621deb55c38ce6f78786a94e4b03463c02df2bdb2fb"
+    },
+    {
+      "frame": 23,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306234_ttb3Te_23.png",
+      "description": "ULTRA-MARINE-(BBE)_22",
+      "bytes": 302712,
+      "sha256": "13674d1aaf8bb3ea6cf951b0b96ea3443fa18d46a4c68fae744b14734121e1cc"
+    },
+    {
+      "frame": 24,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_Jq9rGP_24.png",
+      "description": "ULTRA-MARINE-(BBE)_23",
+      "bytes": 358341,
+      "sha256": "bce609e87bfa16d09722e13421f532be5cbec550620a53e73f95035db469dc5a"
+    },
+    {
+      "frame": 25,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306645_cAD9Bg_25.png",
+      "description": "ULTRA-MARINE-(BBE)_24",
+      "bytes": 438582,
+      "sha256": "91cc79fefa399b979ba142370d4ffbc4773072d454e01790183373169f982ed8"
+    },
+    {
+      "frame": 26,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306405_LHIec1_26.png",
+      "description": "ULTRA-MARINE-(BBE)_25",
+      "bytes": 497036,
+      "sha256": "630bf74a638fa59d9fe0b223fb884ab3a288c5cf046f4404076d7f592708abf3"
+    },
+    {
+      "frame": 27,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306517_EIn6ot_27.png",
+      "description": "ULTRA-MARINE-(BBE)_26",
+      "bytes": 538351,
+      "sha256": "4fe7383b8388fe2ac1410476a9cbfb57d88423375a5927fce3c86198b4ef213b"
+    },
+    {
+      "frame": 28,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306595_lNosp4_28.png",
+      "description": "ULTRA-MARINE-(BBE)_27",
+      "bytes": 563115,
+      "sha256": "6ec26d25778dc735c3f619f6cc2b3a20600538695ed56c3b7a145bf2f5e5ed26"
+    },
+    {
+      "frame": 29,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306461_StXWtt_29.png",
+      "description": "ULTRA-MARINE-(BBE)_28",
+      "bytes": 569309,
+      "sha256": "29074749e724177efd7a309ce96c7d42025e38e30c0fd9b96dcbfc39910b6b15"
+    },
+    {
+      "frame": 30,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_IBXXKE_30.png",
+      "description": "ULTRA-MARINE-(BBE)_29",
+      "bytes": 560084,
+      "sha256": "178fcb9a9b1e60e7c891272b2f9ba7036e160c6895d66bd114556dce42e98084"
+    },
+    {
+      "frame": 31,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306309_lqDbWW_31.png",
+      "description": "ULTRA-MARINE-(BBE)_30",
+      "bytes": 547444,
+      "sha256": "03d73f8331bcf177edfcdef1708d4af340a02ec30fd4e119a1e7d9b800154e0f"
+    },
+    {
+      "frame": 32,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306322_Pyln1a_32.png",
+      "description": "ULTRA-MARINE-(BBE)_31",
+      "bytes": 549530,
+      "sha256": "f6bcda8b8342ae59207ce254f30cfad76bb0763c40c462b2420e45c822a96273"
+    },
+    {
+      "frame": 33,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306133_mxjK5j_33.png",
+      "description": "ULTRA-MARINE-(BBE)_32",
+      "bytes": 555636,
+      "sha256": "bf0ef3b360942df8c49830885ce306cf3404c254c2599beddcf3a6b2be48a32e"
+    },
+    {
+      "frame": 34,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306688_g8fJ77_34.png",
+      "description": "ULTRA-MARINE-(BBE)_33",
+      "bytes": 567897,
+      "sha256": "cc3bbb90c2d855944305848d8d3de3bdb71192c8dbd33fee5bd741dd894009a7"
+    },
+    {
+      "frame": 35,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306463_Y0QQf0_35.png",
+      "description": "ULTRA-MARINE-(BBE)_34",
+      "bytes": 571113,
+      "sha256": "5006bc5b594ac20170aca49a32a73acba304a0927cc5cf630d25678fe37ede42"
+    },
+    {
+      "frame": 36,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306605_UEg03J_36.png",
+      "description": "ULTRA-MARINE-(BBE)_35",
+      "bytes": 559609,
+      "sha256": "f9e618461d19ba2a1418a97c8c820858c65c55c9a8c8ac4ae6117f4b1120ce49"
+    }
+  ]
+}

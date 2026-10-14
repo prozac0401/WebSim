@@ -1,0 +1,150 @@
+{
+  "id": "k5",
+  "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+  "records": [
+    {
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_01.png",
+      "sha256": "9fa96143438f1ca200ebf0eb23c7dda8d20d10bb9f239b0d2d36ded13580f690",
+      "bytes": 131424
+    },
+    {
+      "frame": 4,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_04.png",
+      "sha256": "1362d95e1954144de37878e64fcae870d5bcea0ccd894ba154eae3519ccfe2a8",
+      "bytes": 131898
+    },
+    {
+      "frame": 7,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_07.png",
+      "sha256": "490e51311425040b2f5187a824b57249bb64004d8f7e9ff83e53faa8e0ea99cd",
+      "bytes": 136202
+    },
+    {
+      "frame": 10,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_10.png",
+      "sha256": "be2220eea16a2e899c7badd87d4c32a02680cf261cf18c83a091ea6784530e9f",
+      "bytes": 128862
+    },
+    {
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_13.png",
+      "sha256": "4cdbd5b9df97002b75bcbfa77eed43fe829315875dd71166d0a2c67ddb412ab0",
+      "bytes": 115604
+    },
+    {
+      "frame": 16,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_16.png",
+      "sha256": "ebe063be1f87257ea6d060f9ce2c4a585b57756a0804d33be7a269c49d5622df",
+      "bytes": 96444
+    },
+    {
+      "frame": 19,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_19.png",
+      "sha256": "8eb4b1d48e253a1d2646f0de8078e71da596d2e908a871887f41488a61803519",
+      "bytes": 70849
+    },
+    {
+      "frame": 22,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_22.png",
+      "sha256": "358d2683befe1ff3a92f42cdc85a2b27ead9ee677c646c88f6200d3ca3e3c88f",
+      "bytes": 87693
+    },
+    {
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_25.png",
+      "sha256": "dc5b16baadbdc5920181c4d25410bc8c424a2e21cc4eef4d35ec264fbaee76ff",
+      "bytes": 110359
+    },
+    {
+      "frame": 28,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_28.png",
+      "sha256": "28b552e81bded42801bf671ccfa287b8c2974412e324e44d939338a230232259",
+      "bytes": 124471
+    },
+    {
+      "frame": 31,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_31.png",
+      "sha256": "f4acfca4f3af004f31382970cf1dfa0bcd6159989ca773692fafea9e4079cce7",
+      "bytes": 133665
+    },
+    {
+      "frame": 34,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_34.png",
+      "sha256": "27ccd604caf8e7cf78090de33d43bb1f505ba666e0e55fb669a3877b74426ec0",
+      "bytes": 133150
+    },
+    {
+      "frame": 37,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_37.png",
+      "sha256": "a12d12895d0c4af0eb6d740ac6cefd22823270ce39e468ab4bdf8aa58d73a511",
+      "bytes": 129405
+    },
+    {
+      "frame": 40,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_40.png",
+      "sha256": "61b2d3663634b9abaa114f6f353ae68a3f27b2b68978ecc0eaea6adb6fc98377",
+      "bytes": 140337
+    },
+    {
+      "frame": 43,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_43.png",
+      "sha256": "e96c6baa534f11f8496976c4541c0dba566e2489d5b30b6e7de0be0b4573854e",
+      "bytes": 141205
+    },
+    {
+      "frame": 46,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_46.png",
+      "sha256": "57eb34f9788501e7a61a6332ee24b4756ff6e9677e5fd1b5c3feffe082914a98",
+      "bytes": 132751
+    },
+    {
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_49.png",
+      "sha256": "d0cf72ae41011deddce91e6a95a2a8044f02779f185147864c30720e6d6fe960",
+      "bytes": 121833
+    },
+    {
+      "frame": 52,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_52.png",
+      "sha256": "6b1f5b3b12b7aa5a67328ce39ce4616a77fed22d8269db95cb8e2457405aeaa0",
+      "bytes": 108207
+    },
+    {
+      "frame": 55,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_55.png",
+      "sha256": "3ff08c2b0e0528410b3b42757398f70384f2183dddcf71e25b7389a2b229fc90",
+      "bytes": 82162
+    },
+    {
+      "frame": 58,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_58.png",
+      "sha256": "7560f3d29cb15ea0588cc9403676f8098500d27f1120617b49f449d7771825d3",
+      "bytes": 99460
+    },
+    {
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_61.png",
+      "sha256": "3269dee64ef2ba4d34454bdff21213468822f5abb3022092d25a24aabbc62f2e",
+      "bytes": 116586
+    },
+    {
+      "frame": 64,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_64.png",
+      "sha256": "89f995b0c5a5026ab4635de707bc44f12669eb43db4e003ec4389673adce9f69",
+      "bytes": 127987
+    },
+    {
+      "frame": 67,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_67.png",
+      "sha256": "c935f12b46f540d91d41d8539facb20f7f62435128aa9b454c62024b017b6ca2",
+      "bytes": 136957
+    },
+    {
+      "frame": 70,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_70.png",
+      "sha256": "7afa10c3fb37df14169878470ed3b457b663e86b1e75faa7e9ce9d92f6a97965",
+      "bytes": 141454
+    }
+  ]
+}

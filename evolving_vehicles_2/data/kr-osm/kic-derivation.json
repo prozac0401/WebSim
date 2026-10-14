@@ -1,0 +1,20 @@
+{
+  "source": "korea-raceways.raw.json",
+  "sourceTimestamp": "2026-10-14T05:52:02Z",
+  "permanentWay": 234764328,
+  "gpExtensionWay": 234764539,
+  "branchIndex": 36,
+  "rejoinIndex": 49,
+  "rejoinGapM": 0.9785484911895797,
+  "extensionEnd": [
+    126.4113064,
+    34.7383024
+  ],
+  "permanentRejoin": [
+    126.4112988,
+    34.7383086
+  ],
+  "operation": "Replace permanent shortcut between exact GP branch coordinate and bounded nearest rejoin vertex with entire GP extension; preserve original coordinates and add only the recorded junction gap segment.",
+  "pocheonWay": 1559045138,
+  "pocheonOperation": "Copy the closed main way without alteration; exclude shortcut and pit-like auxiliary ways."
+}

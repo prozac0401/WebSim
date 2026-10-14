@@ -1,0 +1,878 @@
+{
+  "retrievedAt": "2026-10-14",
+  "purpose": "Unmodified official 60-frame turntable photographs for calibrated silhouette reconstruction. These are copyrighted manufacturer photographs, not manufacturer 3D mesh files. No open redistribution license is claimed.",
+  "models": [
+    {
+      "id": "avante",
+      "code": "FN01",
+      "color": "SAW",
+      "page": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "assets": [
+        {
+          "frame": 1,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/001.png",
+          "file": "avante/turntable/001.png",
+          "bytes": 71556,
+          "sha256": "0964c1d877bcf0a7fd3a89fc7a02a4c2a803ae93f2feffb7f4425b120de9cf2a"
+        },
+        {
+          "frame": 2,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/002.png",
+          "file": "avante/turntable/002.png",
+          "bytes": 79024,
+          "sha256": "0f53a38073d6e210b9c442f0a450a37aa0477580f6fa24ba1feb5095e18caaee"
+        },
+        {
+          "frame": 3,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/003.png",
+          "file": "avante/turntable/003.png",
+          "bytes": 82848,
+          "sha256": "0a07f921dd090905a27e7b8c0ac4ee8554eab97a2bf13d3dd1ea6161eb97b0cb"
+        },
+        {
+          "frame": 4,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/004.png",
+          "file": "avante/turntable/004.png",
+          "bytes": 85631,
+          "sha256": "aeabf020f45187eb8b321dfdb950c5cc9a5c9570fa4956fbfae4b817c9621b90"
+        },
+        {
+          "frame": 5,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/005.png",
+          "file": "avante/turntable/005.png",
+          "bytes": 87297,
+          "sha256": "8874177e70fe2732817dac9134c991bc86f1ab354a050bab931e793a6a93166b"
+        },
+        {
+          "frame": 6,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/006.png",
+          "file": "avante/turntable/006.png",
+          "bytes": 89097,
+          "sha256": "8ad2139bcaf18ccf5ee34fb814df95394713f5735f3692dedf8b3cfa639a5621"
+        },
+        {
+          "frame": 7,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/007.png",
+          "file": "avante/turntable/007.png",
+          "bytes": 90462,
+          "sha256": "417dc0651430b63c4d5d97a6e15fd47e4cce8ff876306f42bfb5353ff6101add"
+        },
+        {
+          "frame": 8,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/008.png",
+          "file": "avante/turntable/008.png",
+          "bytes": 91272,
+          "sha256": "465307329c906ff8a24ad3cf4e5d8789f805f63f906a45703840862accba0921"
+        },
+        {
+          "frame": 9,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/009.png",
+          "file": "avante/turntable/009.png",
+          "bytes": 92358,
+          "sha256": "ca3cc4dd5b61403ae9e426e84e5af02d4b3bc0b5f644de64e19a64c05914c01a"
+        },
+        {
+          "frame": 10,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/010.png",
+          "file": "avante/turntable/010.png",
+          "bytes": 93773,
+          "sha256": "3349e1cf942d3fab72dc9d4ddb55e519b97c7ba8364f8d83f6977afe685b1785"
+        },
+        {
+          "frame": 11,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/011.png",
+          "file": "avante/turntable/011.png",
+          "bytes": 91467,
+          "sha256": "87a6f2424d9bd120224aeffd1ead6761c438baa7ae2c182122d129fe4f312162"
+        },
+        {
+          "frame": 12,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/012.png",
+          "file": "avante/turntable/012.png",
+          "bytes": 89087,
+          "sha256": "7078a1019d4a3d5829e7933f9e6332d45a366af4159ea5020fbc8e8828b4b720"
+        },
+        {
+          "frame": 13,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/013.png",
+          "file": "avante/turntable/013.png",
+          "bytes": 91199,
+          "sha256": "6379f6afecb903dbafa11f215d660672c3b29334d1f9880125e0d8272055c556"
+        },
+        {
+          "frame": 14,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/014.png",
+          "file": "avante/turntable/014.png",
+          "bytes": 90421,
+          "sha256": "05e8f38d603e1e5a53ee21b9b231660ceafbaef48a036c8590c9a1a5bad8978d"
+        },
+        {
+          "frame": 15,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/015.png",
+          "file": "avante/turntable/015.png",
+          "bytes": 91229,
+          "sha256": "bccfb1a4338a970bebb2d3b4e15bcf2a9efe216a5c04d7866d3c3871f73f8d5c"
+        },
+        {
+          "frame": 16,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/016.png",
+          "file": "avante/turntable/016.png",
+          "bytes": 91023,
+          "sha256": "3d90c8eb8d02e49e58ef1f187e777d029f18b88b93c7850e85c25bdeebbd04ad"
+        },
+        {
+          "frame": 17,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/017.png",
+          "file": "avante/turntable/017.png",
+          "bytes": 89984,
+          "sha256": "721022cceecac94453b6f38ec3e4d893e41ce882718689887014c92a30fd3587"
+        },
+        {
+          "frame": 18,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/018.png",
+          "file": "avante/turntable/018.png",
+          "bytes": 88188,
+          "sha256": "8c3420720ead0e4dd886d1447d3ffb2094d45aa47814bc298329a3092d4fbede"
+        },
+        {
+          "frame": 19,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/019.png",
+          "file": "avante/turntable/019.png",
+          "bytes": 86333,
+          "sha256": "c6b35392807db0727a24b44c39d7dbc8a2308f66a63eb27d6fb1e179db833218"
+        },
+        {
+          "frame": 20,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/020.png",
+          "file": "avante/turntable/020.png",
+          "bytes": 83672,
+          "sha256": "8939e49ae2c7bd1f9f1dc98a3dd20e048c8752ec5a2522519f016bfdd8c0934a"
+        },
+        {
+          "frame": 21,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/021.png",
+          "file": "avante/turntable/021.png",
+          "bytes": 77782,
+          "sha256": "cae856e4509e10691bb10feec37a73e0f54f59e91c5b914428ecd74c2d66fc92"
+        },
+        {
+          "frame": 22,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/022.png",
+          "file": "avante/turntable/022.png",
+          "bytes": 75015,
+          "sha256": "e71084f8c18c6e2796dd56c36916234dfb05fa8ef885444468b0f4a32bd900c6"
+        },
+        {
+          "frame": 23,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/023.png",
+          "file": "avante/turntable/023.png",
+          "bytes": 69335,
+          "sha256": "b0a31b74db8c42a7af1415ba352c9ef6a8a918c784b3c689d71da47c45e9e808"
+        },
+        {
+          "frame": 24,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/024.png",
+          "file": "avante/turntable/024.png",
+          "bytes": 65469,
+          "sha256": "e3fe4b856bb3e2fe16de307ea3e8817f06a3681b24de3f0b654cf3e880d901b9"
+        },
+        {
+          "frame": 25,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/025.png",
+          "file": "avante/turntable/025.png",
+          "bytes": 58771,
+          "sha256": "e7fed982445e6362afec73d0ff55113e956ec6c5069c5f95b781d75590313972"
+        },
+        {
+          "frame": 26,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/026.png",
+          "file": "avante/turntable/026.png",
+          "bytes": 52260,
+          "sha256": "48eb0917f67295580ca44a34e270a99cada2b55cb318461543c1deffd17608c6"
+        },
+        {
+          "frame": 27,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/027.png",
+          "file": "avante/turntable/027.png",
+          "bytes": 48973,
+          "sha256": "96c98a8a9167a71c4cab1d0de5dcf4f675e43f60db7633f454c55a8b216615c0"
+        },
+        {
+          "frame": 28,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/028.png",
+          "file": "avante/turntable/028.png",
+          "bytes": 52652,
+          "sha256": "c4c5d3e700437cd5178aa3bc1914c8f16a382a3f2dc9d14ab83980d9abb49bc1"
+        },
+        {
+          "frame": 29,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/029.png",
+          "file": "avante/turntable/029.png",
+          "bytes": 58196,
+          "sha256": "59f24298ffa5ddff981f0d793a5e2b806c073e01d3c3799ca0fc54d176a16f8e"
+        },
+        {
+          "frame": 30,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/030.png",
+          "file": "avante/turntable/030.png",
+          "bytes": 63360,
+          "sha256": "2e1c272b10e27fd8ddde8ecab5e91703c36b993776f35b38741129c3fe86cad7"
+        },
+        {
+          "frame": 31,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/031.png",
+          "file": "avante/turntable/031.png",
+          "bytes": 69358,
+          "sha256": "5aac0e0631b7ae7f884f402293fe98d5b100f59f16c00268541fb669f651ce79"
+        },
+        {
+          "frame": 32,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/032.png",
+          "file": "avante/turntable/032.png",
+          "bytes": 74799,
+          "sha256": "5898f69176f16514418af220aa5fa52472c9f561ba23813ac3f8167f237f3b12"
+        },
+        {
+          "frame": 33,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/033.png",
+          "file": "avante/turntable/033.png",
+          "bytes": 79475,
+          "sha256": "5bdd12e1a225a328f7a5857fea1ab08305d73ec94627c035a93239611576bb8a"
+        },
+        {
+          "frame": 34,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/034.png",
+          "file": "avante/turntable/034.png",
+          "bytes": 82938,
+          "sha256": "dc86e39984ba354ebf53fe76bb5ab0c3684d80878079b857f6eca5d31dd320de"
+        },
+        {
+          "frame": 35,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/035.png",
+          "file": "avante/turntable/035.png",
+          "bytes": 85474,
+          "sha256": "8c61a6c6fcedf059904a2b98d2058a0fbcbbf6878ec7a508e2ae141e5b12857f"
+        },
+        {
+          "frame": 36,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/036.png",
+          "file": "avante/turntable/036.png",
+          "bytes": 86662,
+          "sha256": "fe0839c14fa6a8eafa2e98ad4e6b021026b5387a22eb0cc8733a96afd85a75cc"
+        },
+        {
+          "frame": 37,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/037.png",
+          "file": "avante/turntable/037.png",
+          "bytes": 88812,
+          "sha256": "f67ae15dc2686268f56cfb1673ed5aee31a011723b3768078c8ea37e1ff58f53"
+        },
+        {
+          "frame": 38,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/038.png",
+          "file": "avante/turntable/038.png",
+          "bytes": 90901,
+          "sha256": "e019bfd80339489bb9fed3a22eb329d66061b85c46609541e9f266c8da4e923a"
+        },
+        {
+          "frame": 39,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/039.png",
+          "file": "avante/turntable/039.png",
+          "bytes": 91332,
+          "sha256": "cf851b8b227fbe11b33a541ca84f670d79d846f031e09a0cadaa2414624354d0"
+        },
+        {
+          "frame": 40,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/040.png",
+          "file": "avante/turntable/040.png",
+          "bytes": 92593,
+          "sha256": "9b9e0596dd0f5e5027d45ddcfd015f3b9a2ad6d5d72fee6a178d1102b9ed7292"
+        },
+        {
+          "frame": 41,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/041.png",
+          "file": "avante/turntable/041.png",
+          "bytes": 90457,
+          "sha256": "a9b81f6a1f8242d90f4b40a85c584a9df8996f7b854ace5852ad72224fb3dc20"
+        },
+        {
+          "frame": 42,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/042.png",
+          "file": "avante/turntable/042.png",
+          "bytes": 87783,
+          "sha256": "05207c1b53d5b62652aa3eb866ec885b0b03a09c1928cb32ae61de14377e84c5"
+        },
+        {
+          "frame": 43,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/043.png",
+          "file": "avante/turntable/043.png",
+          "bytes": 90697,
+          "sha256": "d69bc1d7483762682b93c19d9786e401e0ab38be1c0f36b4b9afccfd0623db5a"
+        },
+        {
+          "frame": 44,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/044.png",
+          "file": "avante/turntable/044.png",
+          "bytes": 94037,
+          "sha256": "15f0ef0512e71a7326828fd52c4afeac8508d7dde968b809570dd8c7abb44357"
+        },
+        {
+          "frame": 45,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/045.png",
+          "file": "avante/turntable/045.png",
+          "bytes": 92241,
+          "sha256": "753ed8be78d63e738e70e8de0684990df7cf3f3a747941302cfb626389785522"
+        },
+        {
+          "frame": 46,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/046.png",
+          "file": "avante/turntable/046.png",
+          "bytes": 93887,
+          "sha256": "db006b06d903b60911815755d88754587e44b92e247f3facb6212b2d0268476b"
+        },
+        {
+          "frame": 47,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/047.png",
+          "file": "avante/turntable/047.png",
+          "bytes": 90627,
+          "sha256": "2540a888b9b14df0a8e13d5f4f6697d1e23b7c98b2aa094586106c3122fb2dda"
+        },
+        {
+          "frame": 48,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/048.png",
+          "file": "avante/turntable/048.png",
+          "bytes": 89897,
+          "sha256": "c16396f80d31b9faab47ecd626934a629c560449611f745a9b83a7924a4b3146"
+        },
+        {
+          "frame": 49,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/049.png",
+          "file": "avante/turntable/049.png",
+          "bytes": 88370,
+          "sha256": "2dc2637632e3a791608fa05e0d17ad26940a33ee4356ea2a78925061fccb9446"
+        },
+        {
+          "frame": 50,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/050.png",
+          "file": "avante/turntable/050.png",
+          "bytes": 86364,
+          "sha256": "48be285e54116324180f06886d1be68b288e6417f383ac93515298f814fa1d72"
+        },
+        {
+          "frame": 51,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/051.png",
+          "file": "avante/turntable/051.png",
+          "bytes": 82557,
+          "sha256": "3ff1e001d13634bbb93eee0bcf9203b0fc13a4ac17dc3d36fbff1c600ccde611"
+        },
+        {
+          "frame": 52,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/052.png",
+          "file": "avante/turntable/052.png",
+          "bytes": 77869,
+          "sha256": "8434b0984009f5ea9cbbfd6ecfb4d6f85ee0ad4038649876b4c024deafe99adc"
+        },
+        {
+          "frame": 53,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/053.png",
+          "file": "avante/turntable/053.png",
+          "bytes": 72618,
+          "sha256": "5f4f31ef0eb1ca9545d7754bd557b01035766591c5178601d814ec6b73c60256"
+        },
+        {
+          "frame": 54,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/054.png",
+          "file": "avante/turntable/054.png",
+          "bytes": 66243,
+          "sha256": "7669bafb155ed29746a66fac1b6129e522e80ffacdcf5c7d5cec71c04f279e9d"
+        },
+        {
+          "frame": 55,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/055.png",
+          "file": "avante/turntable/055.png",
+          "bytes": 61159,
+          "sha256": "87bc08b971e0e4fa089886d2948af2d60dda7e094a01443cb20cdfe4aa3e6af3"
+        },
+        {
+          "frame": 56,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/056.png",
+          "file": "avante/turntable/056.png",
+          "bytes": 56709,
+          "sha256": "8aeb12bf69910127e3e83914f65e59e91ad0d438d9cf20b9e419a8542ef0d0ce"
+        },
+        {
+          "frame": 57,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/057.png",
+          "file": "avante/turntable/057.png",
+          "bytes": 52398,
+          "sha256": "b41f6b910f6a62a2acf4c90b1fe8a14027e6bc8674512561aa94bcdec335aff7"
+        },
+        {
+          "frame": 58,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/058.png",
+          "file": "avante/turntable/058.png",
+          "bytes": 55709,
+          "sha256": "5a74868ecd97bb256113664e69622f8f41e0d51a0c914fe36f39d9de41748d2f"
+        },
+        {
+          "frame": 59,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/059.png",
+          "file": "avante/turntable/059.png",
+          "bytes": 60939,
+          "sha256": "e6b2527d78a72d55ad2d28be4927a0d786ce405659dd6bb3d3103cc16838e678"
+        },
+        {
+          "frame": 60,
+          "url": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/060.png",
+          "file": "avante/turntable/060.png",
+          "bytes": 66214,
+          "sha256": "22c5bcdb885536316dfcb447304b8b6e745b5a698fb34c115fda03374dd16fb0"
+        }
+      ]
+    },
+    {
+      "id": "grandeur",
+      "code": "GN11",
+      "color": "WBP",
+      "page": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "assets": [
+        {
+          "frame": 1,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/001.png",
+          "file": "grandeur/turntable/001.png",
+          "bytes": 67982,
+          "sha256": "67e0947aeb039d1dc4aefdc8a066885050e968f74280e67befae418e6468cd9a"
+        },
+        {
+          "frame": 2,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/002.png",
+          "file": "grandeur/turntable/002.png",
+          "bytes": 72230,
+          "sha256": "5edad0dc284f82b283fd0f51e4c175b2095da5c3367cdc54b7d92725dda068d2"
+        },
+        {
+          "frame": 3,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/003.png",
+          "file": "grandeur/turntable/003.png",
+          "bytes": 74311,
+          "sha256": "e5cbe99c1d650e95e6238f4a386660d2efb1aa56c5b8d5ca89ecc15cbca28276"
+        },
+        {
+          "frame": 4,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/004.png",
+          "file": "grandeur/turntable/004.png",
+          "bytes": 78336,
+          "sha256": "6242003228cec695ae537490ab78742e506200e1629896869192611af31edefe"
+        },
+        {
+          "frame": 5,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/005.png",
+          "file": "grandeur/turntable/005.png",
+          "bytes": 78216,
+          "sha256": "c448bde1a0843c82a492b4b9d4e6445cbc0c4e8ebccc0b86fdbddfe079caab5b"
+        },
+        {
+          "frame": 6,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/006.png",
+          "file": "grandeur/turntable/006.png",
+          "bytes": 80405,
+          "sha256": "964d9b918ca0e235eca37babb4201ba201062f2f40043680d78f4c01ced25b44"
+        },
+        {
+          "frame": 7,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/007.png",
+          "file": "grandeur/turntable/007.png",
+          "bytes": 83264,
+          "sha256": "cb62e30b034a14ed2c6eb55ab23cbfc00078c2c879b06d31e4b256d7026b23aa"
+        },
+        {
+          "frame": 8,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/008.png",
+          "file": "grandeur/turntable/008.png",
+          "bytes": 83873,
+          "sha256": "b59f9a4dcc8f7d5cb62a9bc0ec97b4f592c782796af75322d2326a4acd867275"
+        },
+        {
+          "frame": 9,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/009.png",
+          "file": "grandeur/turntable/009.png",
+          "bytes": 83986,
+          "sha256": "c083bdef88bc4494387b0de19f5b4f68accd8d8f1b4316a4b2b5690da60a1cf6"
+        },
+        {
+          "frame": 10,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/010.png",
+          "file": "grandeur/turntable/010.png",
+          "bytes": 82898,
+          "sha256": "cdf2c32f323a70ab1d71b409244c6cdc78f608a33011502ded4f25b2bd5b8b70"
+        },
+        {
+          "frame": 11,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/011.png",
+          "file": "grandeur/turntable/011.png",
+          "bytes": 83054,
+          "sha256": "f351fd036afb744b3e280925c21a320115f929021aca54bed1d21878b518317a"
+        },
+        {
+          "frame": 12,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/012.png",
+          "file": "grandeur/turntable/012.png",
+          "bytes": 83313,
+          "sha256": "f96f16341619c073e71dc9e918c9d9a4a4fe96b0a3d70b6e0c50b87c3670880c"
+        },
+        {
+          "frame": 13,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/013.png",
+          "file": "grandeur/turntable/013.png",
+          "bytes": 83067,
+          "sha256": "75eae55d712f825655e56bb2aed15e5d2b052f6bd6883dce2cff6123f66f64d3"
+        },
+        {
+          "frame": 14,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/014.png",
+          "file": "grandeur/turntable/014.png",
+          "bytes": 82868,
+          "sha256": "bacbc988e0a86ea94e1d4beff657c6600082536c96275c7e78a335b05442aa21"
+        },
+        {
+          "frame": 15,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/015.png",
+          "file": "grandeur/turntable/015.png",
+          "bytes": 82627,
+          "sha256": "eb139654bf5d7a220771485b2c2a83dfb9a874175daf54dc5048448d3b5e5a36"
+        },
+        {
+          "frame": 16,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/016.png",
+          "file": "grandeur/turntable/016.png",
+          "bytes": 81551,
+          "sha256": "5c59393009affe70d7bc3dd167accdc05ea8ef15c921ad816fcfe59ddc35d253"
+        },
+        {
+          "frame": 17,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/017.png",
+          "file": "grandeur/turntable/017.png",
+          "bytes": 78982,
+          "sha256": "422e9a5f88fba54b594d6daf1dfbc890b107b222130abda88bf117722ee580fd"
+        },
+        {
+          "frame": 18,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/018.png",
+          "file": "grandeur/turntable/018.png",
+          "bytes": 76973,
+          "sha256": "13d4aa58b1ef6633ab07f024478693b1192f71e0dcbb663e3821fbb42fc2e8cf"
+        },
+        {
+          "frame": 19,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/019.png",
+          "file": "grandeur/turntable/019.png",
+          "bytes": 74405,
+          "sha256": "07a581488af6e690827cde8668f60a84b731c7c9eda08777c5dcb59c80ba99f0"
+        },
+        {
+          "frame": 20,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/020.png",
+          "file": "grandeur/turntable/020.png",
+          "bytes": 69846,
+          "sha256": "b1005197b3074824f231acbfd3249112607abcc6941bdce343174328f675caa5"
+        },
+        {
+          "frame": 21,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/021.png",
+          "file": "grandeur/turntable/021.png",
+          "bytes": 65812,
+          "sha256": "6560bdc33b6d7b91ba13b05efd6512ea64657b64f58f0487b20e587a3e39acca"
+        },
+        {
+          "frame": 22,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/022.png",
+          "file": "grandeur/turntable/022.png",
+          "bytes": 59636,
+          "sha256": "3f20cded668510081efbb3919336c3170aab2ef268cbc6d7de6ff769034a789c"
+        },
+        {
+          "frame": 23,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/023.png",
+          "file": "grandeur/turntable/023.png",
+          "bytes": 54046,
+          "sha256": "50bbbff18295cc19188d41bbe60039005b04b4133437d2bf17dda480f511e1a7"
+        },
+        {
+          "frame": 24,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/024.png",
+          "file": "grandeur/turntable/024.png",
+          "bytes": 49715,
+          "sha256": "bece82f0634db52258f715b05cc3b15af729272f1b8d4de7289a19d4392c29fd"
+        },
+        {
+          "frame": 25,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/025.png",
+          "file": "grandeur/turntable/025.png",
+          "bytes": 43952,
+          "sha256": "0fcf62050cc19d3d79c08a0f05ec93d35f150b0feb01b464ffdaf5d6d3373c2d"
+        },
+        {
+          "frame": 26,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/026.png",
+          "file": "grandeur/turntable/026.png",
+          "bytes": 39676,
+          "sha256": "6b4a542c947d5cb541273e3897221d862aac9a420c39ddee6f1c1cf89a1997b5"
+        },
+        {
+          "frame": 27,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/027.png",
+          "file": "grandeur/turntable/027.png",
+          "bytes": 44143,
+          "sha256": "3bfd9b1f3e685379bc2b4b91e2079548ac3e4eff3abf0a4f12a400d819ce4404"
+        },
+        {
+          "frame": 28,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/028.png",
+          "file": "grandeur/turntable/028.png",
+          "bytes": 49390,
+          "sha256": "1ffa8c84cd09ae0f3e58c931224d2514fcd38f75d0eb7800515abc908d9339fc"
+        },
+        {
+          "frame": 29,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/029.png",
+          "file": "grandeur/turntable/029.png",
+          "bytes": 54829,
+          "sha256": "86d2e358fc531b7b2ed0488cf1990873e4fc5e26835890f10b2434c1d3db2f12"
+        },
+        {
+          "frame": 30,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/030.png",
+          "file": "grandeur/turntable/030.png",
+          "bytes": 60381,
+          "sha256": "3af956bcd55f5ca874c4ac4153270ca1aa58dff48b444810e33bec859cbfe8f4"
+        },
+        {
+          "frame": 31,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/031.png",
+          "file": "grandeur/turntable/031.png",
+          "bytes": 65150,
+          "sha256": "c0be128451b634d0c9d714b053fac3168ccb6a688d07cb932f3ec8695421ef1b"
+        },
+        {
+          "frame": 32,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/032.png",
+          "file": "grandeur/turntable/032.png",
+          "bytes": 70740,
+          "sha256": "69de32676145e26c974485d50bb3d264291e946ea2ab3e78ddf4b95d2b8e5201"
+        },
+        {
+          "frame": 33,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/033.png",
+          "file": "grandeur/turntable/033.png",
+          "bytes": 74237,
+          "sha256": "588db71c9b7593b798d794492ee247102899a81a4b1a95e594faa99dcf5dae62"
+        },
+        {
+          "frame": 34,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/034.png",
+          "file": "grandeur/turntable/034.png",
+          "bytes": 77722,
+          "sha256": "6bf6a5b3c5b8e731154e8364ed1fdfe2412f989a2fe6df3ff0ccac91d9891321"
+        },
+        {
+          "frame": 35,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/035.png",
+          "file": "grandeur/turntable/035.png",
+          "bytes": 77852,
+          "sha256": "4fe1f4747dca5c27272b9cb9c17a5ba74361c8970ffc706113ce269c5a30d10a"
+        },
+        {
+          "frame": 36,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/036.png",
+          "file": "grandeur/turntable/036.png",
+          "bytes": 79780,
+          "sha256": "f6b364196246b41bfa43aeab6d9546104807a45dbb5ea3bfac2db559fe162213"
+        },
+        {
+          "frame": 37,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/037.png",
+          "file": "grandeur/turntable/037.png",
+          "bytes": 81894,
+          "sha256": "9d76ab40553cbb350166cb0559b9ed788d4b124e099e962cb8f6e1ee7af71a50"
+        },
+        {
+          "frame": 38,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/038.png",
+          "file": "grandeur/turntable/038.png",
+          "bytes": 82978,
+          "sha256": "92b198fb5ef98d6d3c56fdd44198e18338084a6f4678e8e3c39bcc6bdfcbd24f"
+        },
+        {
+          "frame": 39,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/039.png",
+          "file": "grandeur/turntable/039.png",
+          "bytes": 83506,
+          "sha256": "ad4263a4a4689b0587f93823cab6c99d325ef2ee2631d5d698f73471df1f2bf3"
+        },
+        {
+          "frame": 40,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/040.png",
+          "file": "grandeur/turntable/040.png",
+          "bytes": 82257,
+          "sha256": "c04e7210e3f5c8c03580038beee5139df2e7d9d211c7ef50e700891d0971a1d6"
+        },
+        {
+          "frame": 41,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/041.png",
+          "file": "grandeur/turntable/041.png",
+          "bytes": 81991,
+          "sha256": "310241b6752f3d3ffdfe8a749b062d2cfbda87dbd09d1f56f6e2743f6830c386"
+        },
+        {
+          "frame": 42,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/042.png",
+          "file": "grandeur/turntable/042.png",
+          "bytes": 82300,
+          "sha256": "20ee498441d32fe10e0e2ac27891c50ae0738f25ae5ab13ebc8515701e3ceab4"
+        },
+        {
+          "frame": 43,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/043.png",
+          "file": "grandeur/turntable/043.png",
+          "bytes": 82924,
+          "sha256": "7c7259e2289199847b3785098b8e662f594a01c16babc0f0391a6fe248e6019f"
+        },
+        {
+          "frame": 44,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/044.png",
+          "file": "grandeur/turntable/044.png",
+          "bytes": 83698,
+          "sha256": "397bad488c6c7a8e4f9e7a28162a282ecd5eed46f5dfea57a11f0cb8f26fb031"
+        },
+        {
+          "frame": 45,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/045.png",
+          "file": "grandeur/turntable/045.png",
+          "bytes": 81553,
+          "sha256": "1e60f77e5a03d618c6a979bf75d6c6a4033a0c14392c429b94a6e0b0a2d061ef"
+        },
+        {
+          "frame": 46,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/046.png",
+          "file": "grandeur/turntable/046.png",
+          "bytes": 80174,
+          "sha256": "ecf61dc529fb5f44b1805461b705a54680a816cf7d50c1e47d3515a6c3ffa87a"
+        },
+        {
+          "frame": 47,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/047.png",
+          "file": "grandeur/turntable/047.png",
+          "bytes": 77780,
+          "sha256": "f0637f72665677fdf38be40c537b965aaa25ab7b23e4a5cb4a00189c07d129b1"
+        },
+        {
+          "frame": 48,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/048.png",
+          "file": "grandeur/turntable/048.png",
+          "bytes": 77037,
+          "sha256": "649d26ce07fc4f90c957abaa34a6a4fa95a43e49cf64693dc2889eb8d34f921a"
+        },
+        {
+          "frame": 49,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/049.png",
+          "file": "grandeur/turntable/049.png",
+          "bytes": 75570,
+          "sha256": "e72cbc6f0a654e11abcd9c87168e8bdce1c874e1e1b9f86a6d683c4fb457cd53"
+        },
+        {
+          "frame": 50,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/050.png",
+          "file": "grandeur/turntable/050.png",
+          "bytes": 71032,
+          "sha256": "93e28ec2b0708067e44061883c665b06defd7853237d1f1728b7531124760a2a"
+        },
+        {
+          "frame": 51,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/051.png",
+          "file": "grandeur/turntable/051.png",
+          "bytes": 68419,
+          "sha256": "fc1f901fb7410743812ea4b5a03f5b03cdc80a07d1c68c177d5b96164f166c77"
+        },
+        {
+          "frame": 52,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/052.png",
+          "file": "grandeur/turntable/052.png",
+          "bytes": 63893,
+          "sha256": "deb8fe666800fbb9c37bbae93425ebea9ff6fd1937114b4ba38b0c560d147920"
+        },
+        {
+          "frame": 53,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/053.png",
+          "file": "grandeur/turntable/053.png",
+          "bytes": 60329,
+          "sha256": "1f146c7fb7b76baa97029780c01e57c714a7e9d2fefd02c97d2750df4f79ff3a"
+        },
+        {
+          "frame": 54,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/054.png",
+          "file": "grandeur/turntable/054.png",
+          "bytes": 54902,
+          "sha256": "ba201dd5ad7de49a1678a912bdddb756c09b9e3ed9ffc9b6df700440f90a7b40"
+        },
+        {
+          "frame": 55,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/055.png",
+          "file": "grandeur/turntable/055.png",
+          "bytes": 49536,
+          "sha256": "8c08478ba09aa5a2e7d684f114ddcf74170ad5102ee7a82eca2dc49fba0ce462"
+        },
+        {
+          "frame": 56,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/056.png",
+          "file": "grandeur/turntable/056.png",
+          "bytes": 44539,
+          "sha256": "8b6a08f9a958da4e0503e0c17690b657fed2eb402cba554b59f77c119c47281c"
+        },
+        {
+          "frame": 57,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/057.png",
+          "file": "grandeur/turntable/057.png",
+          "bytes": 49192,
+          "sha256": "a24d2a1d206321150d96287d8769dbf6b4ed3c293bfc92fc152d584670b34f05"
+        },
+        {
+          "frame": 58,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/058.png",
+          "file": "grandeur/turntable/058.png",
+          "bytes": 55283,
+          "sha256": "b07164c11529a07a6757334a71f4c0429f5a648513ce12ab5d6e7f9aca7309e1"
+        },
+        {
+          "frame": 59,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/059.png",
+          "file": "grandeur/turntable/059.png",
+          "bytes": 59709,
+          "sha256": "738d204c2dccc87839da20333b2621c9d6991ae2d24f2b3f134e261c66bc1907"
+        },
+        {
+          "frame": 60,
+          "url": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/060.png",
+          "file": "grandeur/turntable/060.png",
+          "bytes": 63983,
+          "sha256": "e1a234463aa5b76a69dfc1634ffd1a90b3f715636a9b8e36c8f0c61ebe4fadda"
+        }
+      ]
+    },
+    {
+      "id": "porter2",
+      "code": "M575",
+      "color": "ZV",
+      "frames": 1,
+      "page": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "assets": [
+        {
+          "frame": 1,
+          "url": "https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png",
+          "file": "porter2/turntable/001.png",
+          "bytes": 70640,
+          "sha256": "dec4eb9f0724155daf3e77c62ef6b5c09d70f92a86bfd78d0523c03101861e50"
+        }
+      ]
+    }
+  ]
+}

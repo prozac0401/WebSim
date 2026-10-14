@@ -1,0 +1,2576 @@
+{
+  "id": "staria",
+  "source": {
+    "kind": "manufacturer-mesh",
+    "label": "Hyundai STARIA Lounge · 공식 3D 외관",
+    "url": "https://www.hyundai.com/au/en/cars/people-movers-and-commercial/staria",
+    "configuration": "Official Staria Lounge Hybrid exterior, chosen to match the Korean Lounge reference; excludes diesel bumpers, headlights and wheels."
+  },
+  "bounds": {
+    "min": [
+      -2.6298506259918213,
+      -1.1450186967849731,
+      0
+    ],
+    "max": [
+      2.6311323642730713,
+      1.1215405464172363,
+      1.99028480052948
+    ]
+  },
+  "triangles": 115476,
+  "primitives": [
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.489776611328125,
+          -0.8307383060455322,
+          0.45861390233039856
+        ],
+        "max": [
+          2.6057212352752686,
+          0.8304311633110046,
+          0.7995580434799194
+        ]
+      },
+      "triangles": 236,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "RoughDark",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.283304452896118,
+          -0.8321731686592102,
+          0.34601789712905884
+        ],
+        "max": [
+          2.606419563293457,
+          0.8321736454963684,
+          0.8065075278282166
+        ]
+      },
+      "triangles": 5988,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.623194456100464,
+          -0.9975577592849731,
+          0.3139973282814026
+        ],
+        "max": [
+          2.614001989364624,
+          0.9975645542144775,
+          0.9982219934463501
+        ]
+      },
+      "triangles": 267,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "BlackSemiGloss",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.6225411891937256,
+          -0.7494080066680908,
+          0.32185643911361694
+        ],
+        "max": [
+          2.5848567485809326,
+          0.7498648762702942,
+          0.7974527478218079
+        ]
+      },
+      "triangles": 110,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.6267476081848145,
+          -0.8363032341003418,
+          0.22211112082004547
+        ],
+        "max": [
+          2.6160800457000732,
+          0.8365863561630249,
+          0.7793137431144714
+        ]
+      },
+      "triangles": 2430,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "ChromeSemigloss",
+      "color": [
+        0.6542866182628561,
+        0.6553612740630443,
+        0.6719350168597485
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.6298506259918213,
+          -0.9857356548309326,
+          0.2407623827457428
+        ],
+        "max": [
+          2.618678331375122,
+          0.9859881401062012,
+          1.008683443069458
+        ]
+      },
+      "triangles": 1851,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.309237003326416,
+          -0.8303689360618591,
+          0.5488941073417664
+        ],
+        "max": [
+          2.494575023651123,
+          0.8303693532943726,
+          0.7983089685440063
+        ]
+      },
+      "triangles": 260,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "Glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.22,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.310220241546631,
+          -0.8185089230537415,
+          0.35126882791519165
+        ],
+        "max": [
+          2.5852553844451904,
+          0.8185093998908997,
+          0.7978010773658752
+        ]
+      },
+      "triangles": 88,
+      "name": "VARIANTGROUP_HYBRID_BODYKIT",
+      "materialName": "BLACKSEMIGLOSS Trim",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.4693548679351807,
+          -0.10070086270570755,
+          0.919437825679779
+        ],
+        "max": [
+          2.545567274093628,
+          0.11146078258752823,
+          0.9897439479827881
+        ]
+      },
+      "triangles": 485,
+      "name": "HYBRID_BODYKIT_DECALS",
+      "materialName": "ChromeSemigloss",
+      "color": [
+        0.6542866182628561,
+        0.6553612740630443,
+        0.6719350168597485
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.100681781768799,
+          -0.9596764445304871,
+          0.5313377976417542
+        ],
+        "max": [
+          2.5993857383728027,
+          0.9596768021583557,
+          0.5847703218460083
+        ]
+      },
+      "triangles": 489,
+      "name": "HYBRID_BODYKIT_DECALS",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5007946491241455,
+          -0.949898898601532,
+          0.17602397501468658
+        ],
+        "max": [
+          2.1457791328430176,
+          0.9500433802604675,
+          1.8376222848892212
+        ]
+      },
+      "triangles": 422,
+      "name": "STARIA_COMMON",
+      "materialName": "RoughDark",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.17436480522155762,
+          -1.1447174549102783,
+          1.1266721487045288
+        ],
+        "max": [
+          1.7709839344024658,
+          1.1215405464172363,
+          1.838924765586853
+        ]
+      },
+      "triangles": 1029,
+      "name": "STARIA_COMMON",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.2669970393180847,
+          -0.9289922714233398,
+          1.1011717319488525
+        ],
+        "max": [
+          1.8736205101013184,
+          0.9289921522140503,
+          1.8212257623672485
+        ]
+      },
+      "triangles": 395,
+      "name": "STARIA_COMMON",
+      "materialName": "Window",
+      "color": [
+        0.045,
+        0.065,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.25581228733062744,
+          -0.9975575804710388,
+          0.9897398948669434
+        ],
+        "max": [
+          1.5800427198410034,
+          0.9975573420524597,
+          1.8296856880187988
+        ]
+      },
+      "triangles": 403,
+      "name": "STARIA_COMMON",
+      "materialName": "BlackSemiGloss",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7244198322296143,
+          -1.144522786140442,
+          0.2611149400472641
+        ],
+        "max": [
+          1.8638968467712402,
+          1.1206293106079102,
+          1.4449527263641357
+        ]
+      },
+      "triangles": 668,
+      "name": "STARIA_COMMON",
+      "materialName": "Chrome",
+      "color": [
+        0.861174103503947,
+        0.861174103503947,
+        0.861174103503947
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5582973957061768,
+          -0.9774637222290039,
+          0.2285352200269699
+        ],
+        "max": [
+          2.5124030113220215,
+          0.9777587056159973,
+          1.8840972185134888
+        ]
+      },
+      "triangles": 1278,
+      "name": "STARIA_COMMON",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7619601488113403,
+          -0.9322483539581299,
+          0.20139558613300323
+        ],
+        "max": [
+          2.5281870365142822,
+          0.9319854378700256,
+          0.9904724359512329
+        ]
+      },
+      "triangles": 9027,
+      "name": "STARIA_COMMON",
+      "materialName": "ChromeSemigloss",
+      "color": [
+        0.6542866182628561,
+        0.6553612740630443,
+        0.6719350168597485
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.392063856124878,
+          -1.1450186967849731,
+          0.31675922870635986
+        ],
+        "max": [
+          2.417109727859497,
+          1.120954990386963,
+          1.940178394317627
+        ]
+      },
+      "triangles": 8307,
+      "name": "STARIA_COMMON",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.40293288230896,
+          -1.1445226669311523,
+          0.22856588661670685
+        ],
+        "max": [
+          2.1446425914764404,
+          1.1198254823684692,
+          1.4379210472106934
+        ]
+      },
+      "triangles": 1687,
+      "name": "STARIA_COMMON",
+      "materialName": "Trim",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.002004861831665,
+          -1.144569754600525,
+          1.300116777420044
+        ],
+        "max": [
+          1.192908763885498,
+          1.1208198070526123,
+          1.3355307579040527
+        ]
+      },
+      "triangles": 63,
+      "name": "STARIA_COMMON",
+      "materialName": "Glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.22,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1115522384643555,
+          -0.03740795701742172,
+          1.925315022468567
+        ],
+        "max": [
+          -1.9308110475540161,
+          0.03731606528162956,
+          1.99028480052948
+        ]
+      },
+      "triangles": 441,
+      "name": "ANTENNA_STARIA26",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.279763340950012,
+          -0.7271193861961365,
+          1.7654974460601807
+        ],
+        "max": [
+          0.831369161605835,
+          0.7262618541717529,
+          1.9835426807403564
+        ]
+      },
+      "triangles": 5696,
+      "name": "BASEROOF",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3086315393447876,
+          -0.9754000306129456,
+          0.2525591254234314
+        ],
+        "max": [
+          2.1751348972320557,
+          0.9753389358520508,
+          1.284502625465393
+        ]
+      },
+      "triangles": 428,
+      "name": "STOCK_OCCLUDER",
+      "materialName": "RoughDark.001",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2139737606048584,
+          -0.7240256667137146,
+          1.784508228302002
+        ],
+        "max": [
+          0.7857059240341187,
+          0.7241713404655457,
+          1.939070463180542
+        ]
+      },
+      "triangles": 372,
+      "name": "STOCK_ROOFRACK",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.243918538093567,
+          -0.9499334096908569,
+          0.1994607299566269
+        ],
+        "max": [
+          1.295880913734436,
+          0.9499335289001465,
+          0.42586734890937805
+        ]
+      },
+      "triangles": 294,
+      "name": "STOCK_SIDESTEP",
+      "materialName": "RoughDark",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3041337728500366,
+          -0.9833871722221375,
+          0.24398736655712128
+        ],
+        "max": [
+          1.4233403205871582,
+          0.9834578037261963,
+          0.6815820932388306
+        ]
+      },
+      "triangles": 667,
+      "name": "STOCK_SIDESTEP",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4146920442581177,
+          -0.44625723361968994,
+          1.8314532041549683
+        ],
+        "max": [
+          0.5881494879722595,
+          0.44633999466896057,
+          1.9855178594589233
+        ]
+      },
+      "triangles": 365,
+      "name": "VARIANTGROUP_SUNROOF",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3208379745483398,
+          -0.3416713774204254,
+          1.814619779586792
+        ],
+        "max": [
+          0.4983057379722595,
+          0.34156256914138794,
+          1.9136842489242554
+        ]
+      },
+      "triangles": 186,
+      "name": "VARIANTGROUP_SUNROOF",
+      "materialName": "R2T",
+      "color": [
+        0.6082630251481526,
+        0.6399914938629206,
+        0.6774863323427418
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2032692432403564,
+          0.7432720065116882,
+          1.134333610534668
+        ],
+        "max": [
+          0.16902625560760498,
+          0.9453462958335876,
+          1.8595222234725952
+        ]
+      },
+      "triangles": 246,
+      "name": "ACC_CGA52APH90.001",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2014014720916748,
+          0.7396456599235535,
+          1.1337664127349854
+        ],
+        "max": [
+          0.16672170162200928,
+          0.9504602551460266,
+          1.861093521118164
+        ]
+      },
+      "triangles": 107,
+      "name": "ACC_CGA52APH90.001",
+      "materialName": "Darker Window",
+      "color": [
+        0.045,
+        0.065,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0451226234436035,
+          0.8554829955101013,
+          1.4385862350463867
+        ],
+        "max": [
+          -1.0063725709915161,
+          0.8841345906257629,
+          1.5347568988800049
+        ]
+      },
+      "triangles": 34,
+      "name": "ACC_CGA52APH90.001",
+      "materialName": "INTERIOR",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0813770294189453,
+          -0.930234968662262,
+          1.1641050577163696
+        ],
+        "max": [
+          0.06464803218841553,
+          -0.7645580768585205,
+          1.7954683303833008
+        ]
+      },
+      "triangles": 204,
+      "name": "ACC_CGA52APH91.001",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2014014720916748,
+          -0.9498843550682068,
+          1.1337664127349854
+        ],
+        "max": [
+          0.16672170162200928,
+          -0.7390697598457336,
+          1.861093521118164
+        ]
+      },
+      "triangles": 108,
+      "name": "ACC_CGA52APH91.001",
+      "materialName": "Darker Window",
+      "color": [
+        0.045,
+        0.065,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2032692432403564,
+          -0.9453785419464111,
+          1.134333610534668
+        ],
+        "max": [
+          0.16902625560760498,
+          -0.7433042526245117,
+          1.8595222234725952
+        ]
+      },
+      "triangles": 50,
+      "name": "ACC_CGA52APH91.001",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0451226234436035,
+          -0.8855985999107361,
+          1.4385862350463867
+        ],
+        "max": [
+          -1.0063725709915161,
+          -0.8569470047950745,
+          1.5347568988800049
+        ]
+      },
+      "triangles": 34,
+      "name": "ACC_CGA52APH91.001",
+      "materialName": "INTERIOR",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.381601333618164,
+          -0.8925890326499939,
+          1.1625044345855713
+        ],
+        "max": [
+          -2.1518598794937134,
+          0.8925905227661133,
+          1.324238657951355
+        ]
+      },
+      "triangles": 195,
+      "name": "STARIA_WINDOWFRAME",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3822402954101562,
+          -0.8900402784347534,
+          1.1595711708068848
+        ],
+        "max": [
+          -2.1514161825180054,
+          0.8900417685508728,
+          1.1665263175964355
+        ]
+      },
+      "triangles": 151,
+      "name": "STARIA_WINDOWFRAME",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.204989790916443,
+          -0.9289876222610474,
+          1.1540699005126953
+        ],
+        "max": [
+          -1.1936526894569397,
+          0.9289868474006653,
+          1.8605084419250488
+        ]
+      },
+      "triangles": 185,
+      "name": "STARIAWINDOW",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2054580450057983,
+          -0.931689977645874,
+          1.154115080833435
+        ],
+        "max": [
+          -1.21347576379776,
+          0.9316892027854919,
+          1.8616985082626343
+        ]
+      },
+      "triangles": 185,
+      "name": "STARIAWINDOW",
+      "materialName": "Darker Window",
+      "color": [
+        0.045,
+        0.065,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8154219388961792,
+          -0.9692834615707397,
+          0.10748991370201111
+        ],
+        "max": [
+          -1.3183535933494568,
+          0.9692834615707397,
+          0.6040849685668945
+        ]
+      },
+      "triangles": 3578,
+      "name": "STARIA_HYBRID_WHEELSBACK",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8130658864974976,
+          -0.9636167287826538,
+          0.11809903383255005
+        ],
+        "max": [
+          -1.320785939693451,
+          0.9636167287826538,
+          0.5934362411499023
+        ]
+      },
+      "triangles": 154,
+      "name": "STARIA_HYBRID_WHEELSBACK",
+      "materialName": "Silver ",
+      "color": [
+        0.7190018323129799,
+        0.7470448350770537,
+        0.7883189612781097
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8148226737976074,
+          -0.9377630352973938,
+          0.1091877818107605
+        ],
+        "max": [
+          -1.3160564303398132,
+          0.9377630352973938,
+          0.6052060723304749
+        ]
+      },
+      "triangles": 1587,
+      "name": "STARIA_HYBRID_WHEELSBACK",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6451317071914673,
+          -0.9714186787605286,
+          0.27626991271972656
+        ],
+        "max": [
+          -1.4885660409927368,
+          0.9714186787605286,
+          0.4352077841758728
+        ]
+      },
+      "triangles": 1257,
+      "name": "STARIA_HYBRID_WHEELSBACK",
+      "materialName": "Chrome",
+      "color": [
+        0.861174103503947,
+        0.861174103503947,
+        0.861174103503947
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.9249964952468872,
+          -0.9842884540557861,
+          0
+        ],
+        "max": [
+          -1.2072712779045105,
+          0.9842884540557861,
+          0.7138795852661133
+        ]
+      },
+      "triangles": 1596,
+      "name": "STARIA_HYBRID_WHEELSBACK",
+      "materialName": "Tire",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.4619885683059692,
+          -0.9692834615707397,
+          0.10748991370201111
+        ],
+        "max": [
+          1.9590568542480469,
+          0.9692834615707397,
+          0.6040849685668945
+        ]
+      },
+      "triangles": 3578,
+      "name": "STARIA_HYBRID_WHEELSFRONT",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.4643446207046509,
+          -0.9636167287826538,
+          0.11809903383255005
+        ],
+        "max": [
+          1.9566245079040527,
+          0.9636167287826538,
+          0.5934362411499023
+        ]
+      },
+      "triangles": 154,
+      "name": "STARIA_HYBRID_WHEELSFRONT",
+      "materialName": "Silver ",
+      "color": [
+        0.7190018323129799,
+        0.7470448350770537,
+        0.7883189612781097
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.462587833404541,
+          -0.9377630352973938,
+          0.1091877818107605
+        ],
+        "max": [
+          1.9613540172576904,
+          0.9377630352973938,
+          0.6052060723304749
+        ]
+      },
+      "triangles": 1587,
+      "name": "STARIA_HYBRID_WHEELSFRONT",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6322788000106812,
+          -0.9714186787605286,
+          0.27626991271972656
+        ],
+        "max": [
+          1.788844347000122,
+          0.9714186787605286,
+          0.4352077841758728
+        ]
+      },
+      "triangles": 1257,
+      "name": "STARIA_HYBRID_WHEELSFRONT",
+      "materialName": "Chrome",
+      "color": [
+        0.861174103503947,
+        0.861174103503947,
+        0.861174103503947
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.3524140119552612,
+          -0.9842884540557861,
+          0
+        ],
+        "max": [
+          2.070139169692993,
+          0.9842884540557861,
+          0.7138795852661133
+        ]
+      },
+      "triangles": 1596,
+      "name": "STARIA_HYBRID_WHEELSFRONT",
+      "materialName": "Tire",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.18852883577346802,
+          -0.8096927404403687,
+          0.5434063673019409
+        ],
+        "max": [
+          1.7698156833648682,
+          0.8075322508811951,
+          1.7976937294006348
+        ]
+      },
+      "triangles": 2823,
+      "name": "COCKPIT",
+      "materialName": "STARIA_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.8863644599914551,
+          -0.8096927404403687,
+          0.8805912137031555
+        ],
+        "max": [
+          1.7698156833648682,
+          0.8075322508811951,
+          1.7980060577392578
+        ]
+      },
+      "triangles": 535,
+      "name": "COCKPIT",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.2852128744125366,
+          -0.902289867401123,
+          1.2209932804107666
+        ],
+        "max": [
+          1.5696616172790527,
+          0.9008310437202454,
+          1.4777013063430786
+        ]
+      },
+      "triangles": 44,
+      "name": "COCKPIT",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9990818500518799,
+          -0.2213389128446579,
+          0.6168544292449951
+        ],
+        "max": [
+          1.419182538986206,
+          0.2198798656463623,
+          0.9462331533432007
+        ]
+      },
+      "triangles": 78,
+      "name": "CONSOLESTORAGE_STARIA",
+      "materialName": "STARIA_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9990818500518799,
+          -0.2213389128446579,
+          0.6168544292449951
+        ],
+        "max": [
+          1.419182538986206,
+          0.2198798656463623,
+          0.9462331533432007
+        ]
+      },
+      "triangles": 78,
+      "name": "CONSOLESTORAGE_STARIA",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.036430150270462036,
+          -0.7249071002006531,
+          0.46087780594825745
+        ],
+        "max": [
+          0.7775958776473999,
+          0.8885661363601685,
+          1.6295130252838135
+        ]
+      },
+      "triangles": 1878,
+      "name": "INT_COMBINED.001",
+      "materialName": "STARIALOAD_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5203194618225098,
+          -0.927581787109375,
+          0.45361030101776123
+        ],
+        "max": [
+          1.6798686981201172,
+          0.9258344769477844,
+          1.924445390701294
+        ]
+      },
+      "triangles": 2735,
+      "name": "INT_STARIA",
+      "materialName": "STARIA_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.4818527698516846,
+          -0.927581787109375,
+          0.45361030101776123
+        ],
+        "max": [
+          1.6798686981201172,
+          0.9261371493339539,
+          1.9241867065429688
+        ]
+      },
+      "triangles": 2150,
+      "name": "INT_STARIA",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3159265518188477,
+          -0.6149472594261169,
+          0.6349473595619202
+        ],
+        "max": [
+          -2.262229323387146,
+          0.613490104675293,
+          1.3648102283477783
+        ]
+      },
+      "triangles": 36,
+      "name": "REARMESH",
+      "materialName": "MESH",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 35131
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.33856201171875,
+          -0.6924002170562744,
+          0.5941365361213684
+        ],
+        "max": [
+          -2.259853959083557,
+          0.6908993124961853,
+          1.4504649639129639
+        ]
+      },
+      "triangles": 598,
+      "name": "REARMESH",
+      "materialName": "STARIA_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7892483472824097,
+          -0.6694899201393127,
+          0.7350801229476929
+        ],
+        "max": [
+          -1.0249500274658203,
+          0.6680317521095276,
+          1.5437989234924316
+        ]
+      },
+      "triangles": 934,
+      "name": "VARIANTGROUP_STARIA_8SEAT",
+      "materialName": "STARIALOAD_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.979541540145874,
+          -0.7273008227348328,
+          0.5871293544769287
+        ],
+        "max": [
+          -0.11084899306297302,
+          0.7258426547050476,
+          1.5761185884475708
+        ]
+      },
+      "triangles": 1712,
+      "name": "VARIANTGROUP_STARIA_7SEAT",
+      "materialName": "HYBRID_INT",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.45881568640470505,
+          -0.9392463564872742,
+          1.1704096794128418
+        ],
+        "max": [
+          0.058171212673187256,
+          0.9392463564872742,
+          1.7915279865264893
+        ]
+      },
+      "triangles": 478,
+      "name": "VARIANTGROUP_LOUNGE_WINDOWS",
+      "materialName": "INTERIOR",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2028095722198486,
+          -0.9462406039237976,
+          1.1350935697555542
+        ],
+        "max": [
+          0.16929709911346436,
+          0.9462406039237976,
+          1.858811616897583
+        ]
+      },
+      "triangles": 479,
+      "name": "VARIANTGROUP_LOUNGE_WINDOWS",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.621743679046631,
+          -0.2542612850666046,
+          0.5119259059429169
+        ],
+        "max": [
+          2.6311323642730713,
+          0.2813723087310791,
+          0.6370940208435059
+        ]
+      },
+      "triangles": 150,
+      "name": "VARIANTGROUP_LOUNGE_LICENSEPLATE",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.621819257736206,
+          -0.24756453931331635,
+          0.5152064859867096
+        ],
+        "max": [
+          2.6247222423553467,
+          0.27467551827430725,
+          0.633628249168396
+        ]
+      },
+      "triangles": 20,
+      "name": "VARIANTGROUP_LOUNGE_LICENSEPLATE",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.624586820602417,
+          -0.21104282140731812,
+          0.5383535623550415
+        ],
+        "max": [
+          2.624586820602417,
+          0.24969342350959778,
+          0.5980973839759827
+        ]
+      },
+      "triangles": 575,
+      "name": "Text.012",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5885114669799805,
+          -0.2666667699813843,
+          0.8761985301971436
+        ],
+        "max": [
+          -2.54443097114563,
+          0.2689668834209442,
+          0.9973210692405701
+        ]
+      },
+      "triangles": 150,
+      "name": "BODYTYPE_LOUNGE_LICENSEPLATE",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.581353187561035,
+          -0.2599700391292572,
+          0.8793541789054871
+        ],
+        "max": [
+          -2.545389413833618,
+          0.26227009296417236,
+          0.9922192692756653
+        ]
+      },
+      "triangles": 20,
+      "name": "BODYTYPE_LOUNGE_LICENSEPLATE",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5757927894592285,
+          -0.21594876050949097,
+          0.9004575610160828
+        ],
+        "max": [
+          -2.558624267578125,
+          0.20428670942783356,
+          0.9521742463111877
+        ]
+      },
+      "triangles": 575,
+      "name": "Text.011",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.608797788619995,
+          -0.8870121836662292,
+          0.4614223837852478
+        ],
+        "max": [
+          -2.208505630493164,
+          0.8870102763175964,
+          1.9360918998718262
+        ]
+      },
+      "triangles": 3366,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "YAC",
+      "color": [
+        0.9426869821630504,
+        0.9426869821630504,
+        0.9426869821630504
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5820553302764893,
+          -0.766004741191864,
+          1.0344467163085938
+        ],
+        "max": [
+          -2.369182825088501,
+          0.7660037875175476,
+          1.8672306537628174
+        ]
+      },
+      "triangles": 317,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.487332582473755,
+          -0.015942692756652832,
+          1.8010283708572388
+        ],
+        "max": [
+          -2.421297550201416,
+          0.4811427891254425,
+          1.83793044090271
+        ]
+      },
+      "triangles": 116,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "Trim",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.60127329826355,
+          -0.23937606811523438,
+          1.055755853652954
+        ],
+        "max": [
+          -2.5839855670928955,
+          0.24884727597236633,
+          1.1799875497817993
+        ]
+      },
+      "triangles": 513,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "Chrome",
+      "color": [
+        0.861174103503947,
+        0.861174103503947,
+        0.861174103503947
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5988991260528564,
+          -0.04296228289604187,
+          0.7678357362747192
+        ],
+        "max": [
+          -2.5560529232025146,
+          0.04296131804585457,
+          0.7893218398094177
+        ]
+      },
+      "triangles": 98,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "BlackSemiGloss",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5760629177093506,
+          -0.1721389889717102,
+          1.0356428623199463
+        ],
+        "max": [
+          -2.4153542518615723,
+          0.4759688675403595,
+          1.8992944955825806
+        ]
+      },
+      "triangles": 170,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "CheckerWhite",
+      "color": [
+        0.9309860224998314,
+        0.9309860224998314,
+        0.9309860224998314
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5866501331329346,
+          -0.8186290264129639,
+          0.46981143951416016
+        ],
+        "max": [
+          -2.22161602973938,
+          0.8186278939247131,
+          1.913156270980835
+        ]
+      },
+      "triangles": 728,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "INTERIOR",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.567944288253784,
+          -0.15808537602424622,
+          1.8810008764266968
+        ],
+        "max": [
+          -2.5627710819244385,
+          0.1580859124660492,
+          1.8991450071334839
+        ]
+      },
+      "triangles": 40,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "REDGLASS",
+      "color": [
+        0.6271289741874172,
+        0,
+        0.0521747390127956
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 0.22,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5976040363311768,
+          -0.7534911036491394,
+          1.0502232313156128
+        ],
+        "max": [
+          -2.3841612339019775,
+          0.753490149974823,
+          1.8694026470184326
+        ]
+      },
+      "triangles": 112,
+      "name": "BODYTYPE_LIFTBACK_COMMON",
+      "materialName": "Darker Window",
+      "color": [
+        0.045,
+        0.065,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.255614995956421,
+          -0.8312957286834717,
+          0.5193666517734528
+        ],
+        "max": [
+          2.4456257820129395,
+          0.8312960863113403,
+          0.8348327875137329
+        ]
+      },
+      "triangles": 607,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "RoughDark",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.0096728801727295,
+          -0.8811894655227661,
+          0.5483814477920532
+        ],
+        "max": [
+          2.4387552738189697,
+          0.8811897039413452,
+          1.040298342704773
+        ]
+      },
+      "triangles": 2496,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.0184710025787354,
+          -0.8808229565620422,
+          0.5442124605178833
+        ],
+        "max": [
+          2.483081102371216,
+          0.8808231949806213,
+          1.0316227674484253
+        ]
+      },
+      "triangles": 1526,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "Chrome",
+      "color": [
+        0.861174103503947,
+        0.861174103503947,
+        0.861174103503947
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.274576187133789,
+          -0.8581877946853638,
+          0.5004212856292725
+        ],
+        "max": [
+          2.453968048095703,
+          0.8581880927085876,
+          0.8353136777877808
+        ]
+      },
+      "triangles": 190,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.35345721244812,
+          -0.7349622249603271,
+          0.6860051155090332
+        ],
+        "max": [
+          2.3556110858917236,
+          0.7349625825881958,
+          0.6870819926261902
+        ]
+      },
+      "triangles": 2,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "ChromeSemigloss",
+      "color": [
+        0.6542866182628561,
+        0.6553612740630443,
+        0.6719350168597485
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.3319804668426514,
+          -0.8312480449676514,
+          0.7522113919258118
+        ],
+        "max": [
+          2.3457841873168945,
+          0.83124840259552,
+          0.7761642932891846
+        ]
+      },
+      "triangles": 16,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "R2T",
+      "color": [
+        0.6082630251481526,
+        0.6399914938629206,
+        0.6774863323427418
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.3559041023254395,
+          -0.7670037150382996,
+          0.5455901026725769
+        ],
+        "max": [
+          2.4813971519470215,
+          0.767004132270813,
+          0.803318440914154
+        ]
+      },
+      "triangles": 59,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "CHROME_ATLAS.002",
+      "color": [
+        0.8709644004114262,
+        0.8709673424196708,
+        0.8709671825282248
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.00994873046875,
+          -0.8829505443572998,
+          0.5627380609512329
+        ],
+        "max": [
+          2.448082208633423,
+          0.8829508423805237,
+          1.0448572635650635
+        ]
+      },
+      "triangles": 1123,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "Glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.22,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.1604700088500977,
+          -0.8331584930419922,
+          1.0089622139930725
+        ],
+        "max": [
+          2.4351377487182617,
+          0.8331587910652161,
+          1.0268664360046387
+        ]
+      },
+      "triangles": 135,
+      "name": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+      "materialName": "CheckerMat",
+      "color": [
+        0.9572051574536801,
+        0.9572051574536801,
+        0.9572051574536801
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5000100135803223,
+          -0.8832057118415833,
+          0.7142655849456787
+        ],
+        "max": [
+          -2.3326427936553955,
+          0.8832047581672668,
+          1.7861896753311157
+        ]
+      },
+      "triangles": 978,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "BlackGloss",
+      "color": [
+        0.10415703180679979,
+        0.10415703180679979,
+        0.10415703180679979
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.5048837661743164,
+          -0.888354480266571,
+          0.7150661945343018
+        ],
+        "max": [
+          -2.3040003776550293,
+          0.8883535265922546,
+          1.8114619255065918
+        ]
+      },
+      "triangles": 360,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "Glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.22,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.4872536659240723,
+          -0.865894615650177,
+          0.7386741638183594
+        ],
+        "max": [
+          -2.402250051498413,
+          0.8658936619758606,
+          0.8659679889678955
+        ]
+      },
+      "triangles": 646,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "Trim",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 94647
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.4893884658813477,
+          -0.8654957413673401,
+          0.8659935593605042
+        ],
+        "max": [
+          -2.3389041423797607,
+          0.8654947876930237,
+          1.781579613685608
+        ]
+      },
+      "triangles": 18653,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "ChromeSemigloss",
+      "color": [
+        0.6542866182628561,
+        0.6553612740630443,
+        0.6719350168597485
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.48952579498291,
+          -0.8654957413673401,
+          0.8664162755012512
+        ],
+        "max": [
+          -2.339463949203491,
+          0.8654947876930237,
+          1.781579613685608
+        ]
+      },
+      "triangles": 5038,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "CheckerWhite",
+      "color": [
+        0.9309860224998314,
+        0.9309860224998314,
+        0.9309860224998314
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.4874520301818848,
+          -0.8657853603363037,
+          0.7707405090332031
+        ],
+        "max": [
+          -2.4172589778900146,
+          0.8657844066619873,
+          0.8675730228424072
+        ]
+      },
+      "triangles": 364,
+      "name": "BODYTYPE_PREMIUM",
+      "materialName": "TrimRed",
+      "color": [
+        1,
+        0,
+        0.08992696388360989
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    }
+  ],
+  "sourceBounds": {
+    "min": [
+      -1.1451231241226196,
+      -0.023223876953125,
+      -2.282768726348877
+    ],
+    "max": [
+      1.1215405464172363,
+      1.967060923576355,
+      2.9794960021972656
+    ]
+  },
+  "selectedGroups": [
+    "VARIANTGROUP_HYBRID_BODYKIT",
+    "STARIA_COMMON",
+    "STOCK_ROOFRACK",
+    "STOCK_SIDESTEP",
+    "VARIANTGROUP_SUNROOF",
+    "VARIANTGROUP_STARIA_WINDOWS",
+    "VARIANTGROUP_HYBRIDPREMIUM_WHEELS",
+    "VARIANTGROUP_STARIA_INT",
+    "VARIANTGROUP_STARIA_8SEAT",
+    "VARIANTGROUP_STARIA_7SEAT",
+    "VARIANTGROUP_LOUNGE_WINDOWS",
+    "VARIANTGROUP_LOUNGE_LICENSEPLATE",
+    "BODYTYPE_LOUNGE_LICENSEPLATE",
+    "BODYTYPE_LIFTBACK_COMMON",
+    "VARIANTGROUP_HYBRID_HEADLIGHTS",
+    "BODYTYPE_PREMIUM"
+  ],
+  "validation": {
+    "length": 5.260982990264893,
+    "widthIncludingMirrors": 2.2665592432022095,
+    "height": 1.99028480052948,
+    "frontLampPositiveX": true,
+    "rearNegativeX": true,
+    "finiteVertices": true,
+    "validIndices": true
+  },
+  "textureCount": 2,
+  "textureBytes": 129778
+}

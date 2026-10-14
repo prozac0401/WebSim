@@ -1,0 +1,130 @@
+{
+  "lightPositions": [
+    {
+      "x": "-10",
+      "y": "1",
+      "z": "0",
+      "intensity": "1"
+    },
+    {
+      "x": "10",
+      "y": "1",
+      "z": "0",
+      "intensity": "1"
+    },
+    {
+      "x": "0",
+      "y": "1",
+      "z": "10",
+      "intensity": "1"
+    },
+    {
+      "x": "0",
+      "y": "1",
+      "z": "-10",
+      "intensity": "1"
+    }
+  ],
+  "options": [
+    {
+      "name": "STARIA Diesel",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "STARIA Diesel"
+      },
+      "visibleObjs": [
+        "stariaBodykit",
+        "stariaHeadlights",
+        "stariaWheels",
+        "stariaCommon",
+        "sidestep",
+        "staria22Grille",
+        "stariaLicenseplate",
+        "bodytypeStariaLicenseplate",
+        "bodytypeStariaLiftback",
+        "staria5seat",
+        "bodytypeLiftbackCommon",
+        "stariaInt",
+        "stariaWindows",
+        "staria8seat"
+      ]
+    },
+    {
+      "name": "STARIA Petrol",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "STARIA Petrol"
+      },
+      "visibleObjs": [
+        "stariaBodykit",
+        "stariaHeadlights",
+        "stariaWheels",
+        "stariaCommon",
+        "sidestep",
+        "staria22Grille",
+        "stariaLicenseplate",
+        "bodytypeStariaLicenseplate",
+        "bodytypeStariaLiftback",
+        "staria5seat",
+        "bodytypeLiftbackCommon",
+        "stariaInt",
+        "stariaWindows",
+        "staria8seat"
+      ]
+    },
+    {
+      "name": "Staria Lounge Hybrid",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "Staria Lounge Hybrid"
+      },
+      "visibleObjs": [
+        "hybridBodykit",
+        "stariaCommon",
+        "roofrack",
+        "sidestep",
+        "sunroof",
+        "stariaWindows",
+        "hybridpremiumWheels",
+        "stariaInt",
+        "staria8seat",
+        "staria7seat",
+        "loungeWindows",
+        "loungeLicenseplate",
+        "bodytypeLoungeLicenseplate",
+        "bodytypeLiftbackCommon",
+        "hybridHeadlights",
+        "bodytypePremium"
+      ]
+    }
+  ],
+  "objectNames": {
+    "bodytypeLoungeLicenseplate": "BODYTYPE_LOUNGE_LICENSEPLATE",
+    "loungeLicenseplate": "VARIANTGROUP_LOUNGE_LICENSEPLATE",
+    "bodytypeHybridpremium": "BODYTYPE_HYBRIDPREMIUM",
+    "loungeWindows": "VARIANTGROUP_LOUNGE_WINDOWS",
+    "hybridBodykit": "VARIANTGROUP_HYBRID_BODYKIT",
+    "stariaCommon": "STARIA_COMMON",
+    "roofrack": "STOCK_ROOFRACK",
+    "sidestep": "STOCK_SIDESTEP",
+    "sunroof": "VARIANTGROUP_SUNROOF",
+    "hybridHeadlights": "VARIANTGROUP_HYBRID_HEADLIGHTS",
+    "hybridLicenseplate": "VARIANTGROUP_HYBRID_LICENSEPLATE",
+    "stariaWindows": "VARIANTGROUP_STARIA_WINDOWS",
+    "hybridpremiumWheels": "VARIANTGROUP_HYBRIDPREMIUM_WHEELS",
+    "bodytypeLiftbackCommon": "BODYTYPE_LIFTBACK_COMMON",
+    "bodytypePremium": "BODYTYPE_PREMIUM",
+    "bodytypeHybridLicenseplate": "BODYTYPE_HYBRID_LICENSEPLATE",
+    "stariaInt": "VARIANTGROUP_STARIA_INT",
+    "staria7seat": "VARIANTGROUP_STARIA_7SEAT",
+    "staria8seat": "VARIANTGROUP_STARIA_8SEAT",
+    "stariaBodykit": "VARIANTGROUP_STARIA_BODYKIT",
+    "staria22Grille": "STARIA_22_GRILLE",
+    "stariaHeadlights": "VARIANTGROUP_STARIA_HEADLIGHTS",
+    "stariaLicenseplate": "VARIANTGROUP_STARIA_LICENSEPLATE",
+    "stariaWheels": "VARIANTGROUP_STARIA_WHEELS",
+    "bodytypeStariaLiftback": "BODYTYPE_STARIA_LIFTBACK",
+    "bodytypeStariaLicenseplate": "BODYTYPE_STARIA_LICENSEPLATE",
+    "staria5seat": "VARIANTGROUP_STARIA_5SEAT"
+  }
+}

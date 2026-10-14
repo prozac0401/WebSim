@@ -1,0 +1,569 @@
+{
+  "checkedAt": "2026-10-14",
+  "rights": "Original geometry and textures remain copyrighted by their manufacturers, campaign producers and original rightsholders. Public browser access is not an open license or proof of redistribution permission. Assets are used in the requested local simulator; no external publication or purchase was performed.",
+  "acquisition": "Normal publicly linked browser assets; no login, paywall, CAPTCHA or authorization bypass.",
+  "models": [
+    {
+      "id": "carnival",
+      "kind": "manufacturer-mesh",
+      "publisher": "Kia India",
+      "page": "https://www.kia.com/in/our-vehicles/carnival/showroom.html",
+      "viewer": "https://www.kia.com/in/vr/showroom/index.html",
+      "scene": "https://www.kia.com/in/vr/showroom/static/models/car6/pc6.html",
+      "configuration": "India Carnival Limousine facelift KA4, exterior6 scene; current body and original 18-inch wheels. RHD market trim differs from Korean Noblesse hybrid.",
+      "sourceTriangles": 535303,
+      "conversion": "Original node hierarchy and active car entity transforms, mapped materials and original diffuse/emissive textures. Ground shadow/helper and fully transparent cover are excluded. Closed doors retained. Paint and glazing adjusted for the simulator renderer."
+    },
+    {
+      "id": "morning",
+      "kind": "dealer-mesh",
+      "publisher": "Edenauto Kia / Metasense",
+      "page": "https://www.meta-sense.fr/en/nos-projets/kia-x-edenauto",
+      "viewer": "https://kia-picanto-2024.meta-sense.fr/",
+      "configuration": "2024 European Picanto Edenauto campaign default model; exact sales trim unconfirmed. Original parts contain both GT-Line and Baseline names. European wheels and badges can differ from Korean Morning.",
+      "sourceTriangles": 440803,
+      "conversion": "GLB scene with 00_OPEN animation at time zero to retain closed doors. Source node transforms, materials and textures preserved; carpaint remains adjustable and glazing tinted for the exterior renderer. Explicit Int_ cabin nodes hidden behind opaque glazing omitted, reducing runtime from 413643 to 262394 triangles without changing exterior bounds."
+    },
+    {
+      "id": "k5",
+      "kind": "photo-reconstruction",
+      "publisher": "Kia Korea",
+      "page": "https://www.kia.com/kr/vehicles/k5/features",
+      "configuration": "Korean K5 facelift Noblesse, Snow White Pearl, 24 sampled views from the 72-frame official 360-degree exterior viewer.",
+      "sourceManifest": "../reference/turntable/k5/SOURCES.json",
+      "conversion": "Camera calibrated to 12 measured wheel-hub positions with 1.44-pixel RMS. Intersected 24 silhouettes into an indexed 3D hull with dynamic projected photo textures. Inferred roof surface and ground cleanup. This is reconstructed geometry, not manufacturer CAD or an original downloadable mesh."
+    }
+  ],
+  "research": [
+    {
+      "id": "k5",
+      "url": "https://www.kia.com/us/en/k5/build",
+      "result": "Build & Price clientlib-bnp uses exterior PNG frame sequences, including EightFrameImage and 04.png/36.png. No downloadable car mesh found."
+    },
+    {
+      "id": "k5",
+      "url": "https://www.kia.ca/en/shopping-tools/build-and-price",
+      "result": "Public frontend and page inspected. Image-based model configuration; no usable K5 mesh found."
+    },
+    {
+      "id": "k5",
+      "url": "https://www.kia.cn/vehicles/allnewk5/",
+      "result": "Public page scripts and embedded gallery inspected; vehicle photos/video and gallery iframe, no mesh path found. China K5 body dimensions also differ."
+    },
+    {
+      "id": "k5",
+      "url": "https://storage.googleapis.com/gbv/kia/pr/index.html",
+      "result": "Official Kia Puerto Rico linked showroom is krpano photo panorama, not a car mesh."
+    },
+    {
+      "id": "morning",
+      "url": "https://www.kia.com/de/angebote/konfigurator/",
+      "result": "Official configurator client library implements reel_img photo viewer; actual mesh obtained separately from Edenauto campaign."
+    },
+    {
+      "id": "morning",
+      "url": "https://kia.com.pe/showroom-virtual/",
+      "result": "Kia Peru virtual showroom uses krpano photo panorama."
+    },
+    {
+      "id": "ray",
+      "url": "https://www.kia.com/kr/vehicles/ray/features",
+      "result": "Official 360 viewer uses PNG frames, used for independent photo reconstruction by the main task."
+    },
+    {
+      "id": "ray",
+      "url": "https://sketchfab.com/models/461fa5d096454befa81fbc1c7999b163/embed",
+      "result": "Ray 2024 by teenlin3 listed as free download; no unauthenticated downloadable original asset acquired. Viewer asset extraction not attempted."
+    },
+    {
+      "id": "ray",
+      "url": "https://www.thingiverse.com/thing:4796193",
+      "result": "Older 1:24 Ray print by kimgooni, secondary listing says CC Attribution. Origin responded HTTP 403; no bypass or download attempted."
+    },
+    {
+      "id": "k5",
+      "url": "https://www.3dcadbrowser.com/3d-model/kia-k5-2019",
+      "result": "Download requires an account/upload credits or paid account; not acquired. Older body variant."
+    }
+  ],
+  "records": [
+    {
+      "model": "carnival",
+      "file": "carnival/config.zip",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/pc6.json.bin",
+      "bytes": 221381,
+      "sha256": "864e9cb91d3d4f1aa605f1dbaf51537fcccb8d9d83949ed30962349e8a4a0d4e"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/config.json",
+      "url": null,
+      "derivedFrom": "config.zip:pc6.json",
+      "bytes": 13967377,
+      "sha256": "403b760b07c367fcd4ef31d1071728f096e4c85246c02ea13a7a12aa33f54ff8"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/scene.json",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/2089243.json",
+      "bytes": 54040,
+      "sha256": "505c2195593b55aae6d3ff5b2ebb8ff233928f04671dc9183a4170ea0093c4fe"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/KA4-1115-model.zip",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/204040690/1/KA4%201115%20(2).json.bin",
+      "bytes": 10928978,
+      "sha256": "e507ded02679563fad7fd4dda5c03e92ff2e3eff5f8dd58205bc8381b511dc82"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/model.json",
+      "url": null,
+      "derivedFrom": "KA4-1115-model.zip:KA4 1115 (2).json",
+      "bytes": 36902413,
+      "sha256": "de7a46ec79fedcc82e106229c43e7ce3ef809f1d1fadeb4b4b57ff832a928a00"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/153164232-press.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/153164232/1/press.jpg",
+      "bytes": 915,
+      "sha256": "93c9fe32996fcd644d06b734e5ad2171981128dffb2aaa9cd95af94866b2a9a6"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532264-rear stop.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532264/1/rear%20stop.jpg",
+      "bytes": 1397,
+      "sha256": "db772e1ae8e35cef3be8e57c377890d0a0d49e3682a9035082d3091cebff6545"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532266-foot rest.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532266/1/foot%20rest.jpg",
+      "bytes": 3195,
+      "sha256": "76e0ed76d22047a6cbc3c7a22c0018c851f577205d2a1efa1be48ed2fb19de1a"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532272-charge.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532272/1/charge.jpg",
+      "bytes": 8602,
+      "sha256": "8426ff3bab1b787b92927ee0f784540fcb76a03bb52832e46477d608f30a3daf"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532273-stop.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532273/1/stop.jpg",
+      "bytes": 4625,
+      "sha256": "c9f15c0a14a3e45afd2d99448a65b1fa478c2fdcd7e1d155b4393c58ee37da23"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532281-leather_brown.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532281/1/leather_brown.jpg",
+      "bytes": 10464,
+      "sha256": "d5173151ff3c01a73d3ae3c68695f3092a81f87ce65776255fcef30c6343849c"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532283-driving btn.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532283/1/driving%20btn.jpg",
+      "bytes": 32263,
+      "sha256": "18751c65b65c4405d99344b9d80c5d937f9a2f44f605431814e8ad280356a2ea"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532287-kia_logo.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532287/1/kia_logo.jpg",
+      "bytes": 922,
+      "sha256": "848fff0ae35b3eec508c361ae89a53f847e2eea55699c9f656f687aa97bbbb1e"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532290-dr btn2.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532290/1/dr%20btn2.jpg",
+      "bytes": 13616,
+      "sha256": "ff2f528e0e7e14ab523211ffdfe1b9feeb535f205a18cb3956fe91b75df6c394"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532292-fog.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532292/1/fog.jpg",
+      "bytes": 4841,
+      "sha256": "b41ca20c52992f6aa4c75924642bd0db7b9cf99c3284796f3a9c5948cd552e2a"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532293-dr leather brown.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532293/1/dr%20leather%20brown.jpg",
+      "bytes": 5164,
+      "sha256": "7543fb57d22f80de8a71efbd0bb9cf77946ed4904c9fdfc1d5ec78426511d377"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532294-audio.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532294/1/audio.jpg",
+      "bytes": 7513,
+      "sha256": "bef240f5b1d55d96d5a913dc295e8ab4d47c0749f8b4c2f12f1f2cff937bc134"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532295-tire_tile.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532295/1/tire_tile.jpg",
+      "bytes": 739,
+      "sha256": "dcdd84da1a792b8fbc8013a67eb472341abf42b64c2735184e297059169678d7"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532298-dr btn3.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532298/1/dr%20btn3.jpg",
+      "bytes": 16256,
+      "sha256": "3b4803534d851ff6aeefeab2a1649b067dd42e7b313f55d9e6255a234222a2cf"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532299-rear ref2.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532299/1/rear%20ref2.jpg",
+      "bytes": 7887,
+      "sha256": "a16f64ebc4edb0fe1c0eaa3d5fafa50ce41782fe1d0b704e4046a5853fff4e5b"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532304-start.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532304/1/start.jpg",
+      "bytes": 6654,
+      "sha256": "f60dc7c9be3f706e8d88606d3c58403cf59e68485c5410006513b135cfa648d5"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532305-dr btn1.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532305/1/dr%20btn1.jpg",
+      "bytes": 22751,
+      "sha256": "39b3bba59560b2cd4b6dc3a9c58e34c7b612f91852c9cf72e2ddd76fd03827b5"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532307-ap spkr.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532307/1/ap%20spkr.jpg",
+      "bytes": 15513,
+      "sha256": "284ea9d845a48887d148cc9874c56ab6f434ca406b50ff394cf8fe9ff1f17433"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532308-dr leather brown2.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532308/1/dr%20leather%20brown2.jpg",
+      "bytes": 5342,
+      "sha256": "030b9d0318943974c4490d37e6a558e9a063b05334c6b042da3ac9cd7330922a"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532309-side lamp.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532309/1/side%20lamp.jpg",
+      "bytes": 6485,
+      "sha256": "964531047ec8420291e8ff3302841bad22bfa7e4f7b5467b38528786a6999c21"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532311-dr spkr 1.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532311/1/dr%20spkr%201.jpg",
+      "bytes": 14232,
+      "sha256": "faa6ff25cca7c4c932a1a9151dddeff31ad7f366880982c59e1e662e13df1f55"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532313-pedal.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532313/1/pedal.jpg",
+      "bytes": 9555,
+      "sha256": "0b148a667fd2884c457e1e0760523ba30c5dcf3d3562a5ac90f0b4fa9009a074"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532318-cp spkr.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532318/1/cp%20spkr.jpg",
+      "bytes": 25917,
+      "sha256": "bb891cb635bc341dc61199113ed4326295b9513baa421d131f40f53d3e5a47fc"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532321-seat net.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532321/1/seat%20net.jpg",
+      "bytes": 46129,
+      "sha256": "88f8d8dc5095e0ad43d222fa1317c9134dec0ed03a98e32a856caceed35321e8"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532322-dash spkr1.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532322/1/dash%20spkr1.jpg",
+      "bytes": 17378,
+      "sha256": "d2409ff190080ef34c576120cd8ec443a2ec4b141b51666bc298ff2794429eb6"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532327-leather_brown_dot.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532327/1/leather_brown_dot.jpg",
+      "bytes": 11175,
+      "sha256": "4b2a7beba538592fb0adde1a88ff58c80b68529687bd1689f97291e3cb64fb61"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532328-headlamp_off.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532328/1/headlamp_off.jpg",
+      "bytes": 884,
+      "sha256": "e6c7545d1f30031d71fbf0f3cc2f3847b893b9c67cc440c346558b288afb58b1"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532332-lcd.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532332/1/lcd.jpg",
+      "bytes": 13376,
+      "sha256": "38e701eb669415d27289bb2728f83ed601febf525219ffbe12f4aa2abe6ad195"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532339-tire_side.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532339/1/tire_side.jpg",
+      "bytes": 7814,
+      "sha256": "773b94545817c3845192c89cd46ed35d92711cdd367742cf3998747dd235abbe"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532345-console.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532345/1/console.jpg",
+      "bytes": 27182,
+      "sha256": "04421bbb638b01336986a73646304f3177ce27bd931f2b8b793754e2f9cf72a1"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532352-brake_disk.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532352/1/brake_disk.jpg",
+      "bytes": 17172,
+      "sha256": "97fdee84b3e427212ac08ec81f171b6d5cc5a897dc9056e9f06b54be6343b12c"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199532367-str wheel.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199532367/1/str%20wheel.jpg",
+      "bytes": 18652,
+      "sha256": "adc82b3cfa5e226304a8598683f394882f41f61008870d3e9ae4b9303dc28847"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199550372-nameplate.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199550372/1/nameplate.jpg",
+      "bytes": 4148,
+      "sha256": "f7f38c045fed93ce695f910dffba1e98dfab891ff187f1cacd59d708bd7599d6"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199550375-shadow.png",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199550375/1/shadow.png",
+      "bytes": 40461,
+      "sha256": "cc20095ecce9ab5cb1c595b0c81080835d0834a0449a4d35a654d3504b2bd6e3"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199550382-Seatbelt.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199550382/1/Seatbelt.jpg",
+      "bytes": 4065,
+      "sha256": "34faadbc114b8cfb385d6aaa93024bc79b890441fc28e863f88f48fb37ef0e08"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199550474-RL line off.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199550474/1/RL%20line%20off.jpg",
+      "bytes": 1394,
+      "sha256": "18b3e55ae66e624c9c2d6c98761ebe3616f9eed17de28e0ddbb372c4ae89062c"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199550475-RL off.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199550475/1/RL%20off.jpg",
+      "bytes": 7239,
+      "sha256": "b031dab161563b0022858915d64bafc74e22aac3e8df76244e5ca113076cfe0c"
+    },
+    {
+      "model": "carnival",
+      "file": "carnival/textures/199560347-drl_off.jpg",
+      "url": "https://www.kia.com/in/vr/showroom/static/models/car6/files/assets/199560347/1/drl_off.jpg",
+      "bytes": 1958,
+      "sha256": "be2e83a259bd0a3b8d00c1d22beea6806db80db5a80f50049eec5ca18b88595e"
+    },
+    {
+      "model": "morning",
+      "file": "morning/picanto.glb",
+      "url": "https://kia-picanto-2024.meta-sense.fr/models/picanto.glb",
+      "bytes": 39203012,
+      "sha256": "790eb3e1d9187996e2de4237e23cf73c377f16801f7bc7c298906f5de3f87511"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/1.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_01.png",
+      "bytes": 131424,
+      "sha256": "9fa96143438f1ca200ebf0eb23c7dda8d20d10bb9f239b0d2d36ded13580f690"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/4.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_04.png",
+      "bytes": 131898,
+      "sha256": "1362d95e1954144de37878e64fcae870d5bcea0ccd894ba154eae3519ccfe2a8"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/7.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_07.png",
+      "bytes": 136202,
+      "sha256": "490e51311425040b2f5187a824b57249bb64004d8f7e9ff83e53faa8e0ea99cd"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/10.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_10.png",
+      "bytes": 128862,
+      "sha256": "be2220eea16a2e899c7badd87d4c32a02680cf261cf18c83a091ea6784530e9f"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/13.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_13.png",
+      "bytes": 115604,
+      "sha256": "4cdbd5b9df97002b75bcbfa77eed43fe829315875dd71166d0a2c67ddb412ab0"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/16.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_16.png",
+      "bytes": 96444,
+      "sha256": "ebe063be1f87257ea6d060f9ce2c4a585b57756a0804d33be7a269c49d5622df"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/19.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_19.png",
+      "bytes": 70849,
+      "sha256": "8eb4b1d48e253a1d2646f0de8078e71da596d2e908a871887f41488a61803519"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/22.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_22.png",
+      "bytes": 87693,
+      "sha256": "358d2683befe1ff3a92f42cdc85a2b27ead9ee677c646c88f6200d3ca3e3c88f"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/25.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_25.png",
+      "bytes": 110359,
+      "sha256": "dc5b16baadbdc5920181c4d25410bc8c424a2e21cc4eef4d35ec264fbaee76ff"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/28.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_28.png",
+      "bytes": 124471,
+      "sha256": "28b552e81bded42801bf671ccfa287b8c2974412e324e44d939338a230232259"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/31.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_31.png",
+      "bytes": 133665,
+      "sha256": "f4acfca4f3af004f31382970cf1dfa0bcd6159989ca773692fafea9e4079cce7"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/34.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_34.png",
+      "bytes": 133150,
+      "sha256": "27ccd604caf8e7cf78090de33d43bb1f505ba666e0e55fb669a3877b74426ec0"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/37.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_37.png",
+      "bytes": 129405,
+      "sha256": "a12d12895d0c4af0eb6d740ac6cefd22823270ce39e468ab4bdf8aa58d73a511"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/40.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_40.png",
+      "bytes": 140337,
+      "sha256": "61b2d3663634b9abaa114f6f353ae68a3f27b2b68978ecc0eaea6adb6fc98377"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/43.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_43.png",
+      "bytes": 141205,
+      "sha256": "e96c6baa534f11f8496976c4541c0dba566e2489d5b30b6e7de0be0b4573854e"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/46.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_46.png",
+      "bytes": 132751,
+      "sha256": "57eb34f9788501e7a61a6332ee24b4756ff6e9677e5fd1b5c3feffe082914a98"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/49.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_49.png",
+      "bytes": 121833,
+      "sha256": "d0cf72ae41011deddce91e6a95a2a8044f02779f185147864c30720e6d6fe960"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/52.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_52.png",
+      "bytes": 108207,
+      "sha256": "6b1f5b3b12b7aa5a67328ce39ce4616a77fed22d8269db95cb8e2457405aeaa0"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/55.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_55.png",
+      "bytes": 82162,
+      "sha256": "3ff08c2b0e0528410b3b42757398f70384f2183dddcf71e25b7389a2b229fc90"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/58.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_58.png",
+      "bytes": 99460,
+      "sha256": "7560f3d29cb15ea0588cc9403676f8098500d27f1120617b49f449d7771825d3"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/61.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_61.png",
+      "bytes": 116586,
+      "sha256": "3269dee64ef2ba4d34454bdff21213468822f5abb3022092d25a24aabbc62f2e"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/64.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_64.png",
+      "bytes": 127987,
+      "sha256": "89f995b0c5a5026ab4635de707bc44f12669eb43db4e003ec4389673adce9f69"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/67.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_67.png",
+      "bytes": 136957,
+      "sha256": "c935f12b46f540d91d41d8539facb20f7f62435128aa9b454c62024b017b6ca2"
+    },
+    {
+      "model": "k5",
+      "file": "../reference/turntable/k5/70.png",
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_70.png",
+      "bytes": 141454,
+      "sha256": "7afa10c3fb37df14169878470ed3b457b663e86b1e75faa7e9ce9d92f6a97965"
+    }
+  ]
+}

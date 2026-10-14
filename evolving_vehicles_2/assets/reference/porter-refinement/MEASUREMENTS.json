@@ -1,0 +1,43 @@
+{
+  "basis": "2026 domestic Porter II LPG 2WD Extra Long Super Cab with bumper guard",
+  "sourcePdf": "porter2-catalog-eng.pdf",
+  "sourcePageOneBased": 11,
+  "dimensionsMm": {
+    "overallLength": 5155,
+    "lengthWithoutBumperGuard": 5100,
+    "width": 1740,
+    "height": 1970,
+    "wheelbase": 2640,
+    "frontOverhangWithGuard": 1240,
+    "rearOverhang": 1275,
+    "frontTread": 1485,
+    "rearTread": 1320,
+    "cargoLength": 2860,
+    "cargoWidth": 1630,
+    "cargoWallHeight": 355,
+    "cargoFloorHeight": 780
+  },
+  "wheelFitment": {
+    "front": "195/70 R15C, single",
+    "rear": "145 R13C, dual"
+  },
+  "currentSimulatorMatches": {
+    "lengthMm": 5155,
+    "heightMm": 1970,
+    "wheelbaseMm": 2640,
+    "curbMassKg": 1705,
+    "powerPs": 159
+  },
+  "frontImageEstimates": {
+    "source": "pip-porter2-24my-specifications-front-w.jpg",
+    "method": "Approximate image pixel proportions against published overall height; these are inferred component dimensions, not manufacturer measurements.",
+    "windscreenTopZ": 1.87,
+    "windscreenBottomZ": 1.27,
+    "windscreenTopWidth": 1.28,
+    "windscreenBottomWidth": 1.48,
+    "lampTopZ": 1.04,
+    "lampBottomZ": 0.65,
+    "unit": "meters"
+  },
+  "variantDifference": "Electric uses a 2810mm wheelbase, 5105mm length and 800mm cargo floor. Those values belong to a different configuration. Overseas H100 chassis, cab and fascia can differ."
+}

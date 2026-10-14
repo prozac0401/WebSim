@@ -1,0 +1,9 @@
+{
+  "downloadedAt": "2026-10-14T05:53:29.523Z",
+  "endpoint": "https://overpass-api.de/api/interpreter",
+  "query": "[out:json][timeout:60];way[\"highway\"=\"raceway\"](33,124,39,132);out tags geom;",
+  "source": "OpenStreetMap contributors",
+  "license": "ODbL-1.0",
+  "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "attributionUrl": "https://www.openstreetmap.org/copyright"
+}

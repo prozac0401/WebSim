@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-14",
+  "modelIds": ["torres", "musso_ev"],
+  "status": "calibrated-official-photo-reconstruction-with-authored-fallback",
+  "manufacturerMeshImported": false,
+  "scope": "Torres J100 petrol SUV and Musso EV O100 electric pickup. Torres EVX and diesel Musso are different bodies and were not substituted.",
+  "findings": [
+    {"url":"https://www.kg-mobility.com/", "evidence":"Public Vue application uses img360/imgList image-frame arrays and CompRotateImage for exterior rotations; inspected bundle did not expose a reusable exterior GLB/GLTF."},
+    {"url":"https://www.kgm-motors.co.uk/configurator/", "evidence":"Public apps.min.js implements the exterior with ImageScrubber and 360 image frame elements; no exterior mesh located."},
+    {"url":"https://www.kgm.de/konfigurator/musso-ev", "evidence":"Public PHP/JavaScript configurator renders static images/<model>/colors/cars/<color image> resources."},
+    {"url":"https://www.kgm.ch/konfigurator/", "evidence":"Public configurator presents image-based exterior selections."},
+    {"url":"https://www.kgm.be/fr/configurator/musso-ev", "evidence":"Public Next.js configurator and its page bundles inspected; no reusable exterior GLB/GLTF located."},
+    {"url":"https://kgm.com.au/models/configurator?code=notinit&modelID=51&src=byo&step=grade", "evidence":"Public Next.js configurator and page bundles inspected; image-based trim/exterior interface with no reusable exterior mesh located."},
+    {"url":"https://kgm.ie/kgm-musso-ev/", "evidence":"Car360Viewer loads colour/frame PNGs from wp-content/uploads/2025/10/. This is photographic rotation, not 3D geometry."},
+    {"url":"https://3dmodels.org/es/3d-models/ssangyong-torres-2023/", "evidence":"Commercial mesh listing; not purchased or imported."}
+  ],
+  "referenceManifest":"../reference/SOURCES.json",
+  "referenceFiles":["../reference/torres-1.png","../reference/torres-6.png","../reference/torres-19.png","../reference/torres-28.png","../reference/musso_ev-1.png","../reference/musso_ev-6.png","../reference/musso_ev-19.png","../reference/musso_ev-28.png"],
+  "reconstruction": {
+    "builder":"../../build-kgm-reconstruction.py",
+    "fetcher":"../../fetch-kgm-turntables.mjs",
+    "runtimes":["torres-runtime.js","musso_ev-runtime.js"],
+    "calibrations":["torres/calibration.json","musso_ev/calibration.json"],
+    "inspections":["torres/inspection.json","musso_ev/inspection.json"],
+    "turntableManifests":["../reference/turntable/torres/sources.json","../reference/turntable/musso_ev/sources.json"],
+    "framesPerVehicle":36,
+    "method":"Factory wheelbase and manually inspected wheel-hub pixels fit a perspective camera and a 10-degree turntable. The intersection of all alpha silhouettes produces a volumetric mesh. Adjacent calibrated official photographs are projected onto the exterior at runtime. Unseen roof/hood surfaces, roof rails, hood loops, underbody and the open pickup bed are inferred and explicitly separate.",
+    "calibrationRmsPixels":{"torres":1.922044271283485,"musso_ev":1.064331735869666},
+    "fallback":"../../kgm-refined.js"
+  },
+  "limits":"Dimensions follow the shared vehicle specification. This is calibrated photographic reconstruction with inferred unobserved surfaces, not imported manufacturer geometry, factory CAD or a measured scan. Source exterior trim and wheel style can differ from the simulated powertrain. The independently authored kgm-refined.js body remains the Canvas/asset-loading fallback. No photo/mesh redistribution license is claimed. Public web sources can change. Unsuccessful mesh searches do not establish that no mesh exists elsewhere."
+}

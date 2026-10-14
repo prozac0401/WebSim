@@ -1,0 +1,262 @@
+{
+  "retrievedAt": "2026-10-14T13:16:22.967Z",
+  "id": "torres",
+  "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+  "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+  "frames": 36,
+  "frameStepDegrees": 10,
+  "assets": [
+    {
+      "frame": 1,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846208_my2zpH_1.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 000",
+      "bytes": 1002074,
+      "sha256": "1610206f7d6513267d17f72c16cf32833b00bc7c26ce2e2b7202f094a94dddd6"
+    },
+    {
+      "frame": 2,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846130_uomR2m_2.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 001",
+      "bytes": 935164,
+      "sha256": "0b78c7ffdf9f38426da400fe5f6430690deee02331c8d48e00b3231b4a0a8070"
+    },
+    {
+      "frame": 3,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845912_HZzfN6_3.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 002",
+      "bytes": 842395,
+      "sha256": "92e98dafe8200a3d03f36f462a480fcf4a75fa2d37fef11b5c973895fdfd6ca1"
+    },
+    {
+      "frame": 4,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846073_9mPX5h_4.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 003",
+      "bytes": 723114,
+      "sha256": "7a0922ebfdd7167890ee46917ac8f67dd060b63556705b859d7e5af34f24e5d9"
+    },
+    {
+      "frame": 5,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845728_2p096u_5.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 004",
+      "bytes": 657960,
+      "sha256": "76e7c26ea47f1df7839f086668b4944270637a187c88292e548028c41d338154"
+    },
+    {
+      "frame": 6,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845474_oII6oI_6.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 005",
+      "bytes": 721957,
+      "sha256": "e898a36f1019357b3ad4fda563d17f4c770a3385f9dbc3156da3a8b9d5f9a15c"
+    },
+    {
+      "frame": 7,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846141_0Vh87t_7.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 006",
+      "bytes": 835445,
+      "sha256": "9f7453942f7b32563a44f6d836904e9ac138b301b1eedca5f59c050c5942c9c9"
+    },
+    {
+      "frame": 8,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845845_hTKy19_8.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 007",
+      "bytes": 919785,
+      "sha256": "90d19f0e72fdc67aeb11a11343f85d38e5027e95b176df57d56fa877808dcd6e"
+    },
+    {
+      "frame": 9,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846007_akN64G_9.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 008",
+      "bytes": 977391,
+      "sha256": "3c649f1987e592d9327248c3d0a787cfea5cd59ee220e65b95c10239e633b17a"
+    },
+    {
+      "frame": 10,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845926_L87wp1_10.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 009",
+      "bytes": 1016107,
+      "sha256": "e0ae17a1b48765f43a70eaaefbf0ea2e781ac0cffd802d7b3fd10f509480fb3e"
+    },
+    {
+      "frame": 11,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845918_27164b_11.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 010",
+      "bytes": 1033995,
+      "sha256": "8c600de65c551450236056c733ac33e9706936d02497888d087f9312d7fc568b"
+    },
+    {
+      "frame": 12,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_wcA43x_12.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 011",
+      "bytes": 1036232,
+      "sha256": "7a5a3ee03494741b4b8e72843d6f8b7a7fa52c1bb13685051ad21465930c25d9"
+    },
+    {
+      "frame": 13,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845728_zGyfS6_13.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 012",
+      "bytes": 1032864,
+      "sha256": "3fb3cebebec1e492af186ad139acf40ded263a29cfd1bfe5369b9d639f0be40f"
+    },
+    {
+      "frame": 14,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845790_HsARx5_14.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 013",
+      "bytes": 1029383,
+      "sha256": "ecdfe7a6243af45d49dbf6da9dc927b2b7c921a23f88570c77d3fe9e5d623170"
+    },
+    {
+      "frame": 15,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_m9ey1e_15.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 014",
+      "bytes": 1042906,
+      "sha256": "cfe0e8663833353d36a70f0046d3dd92ea3284aede1bff4fb7ae7249b65215be"
+    },
+    {
+      "frame": 16,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_HwaPuW_16.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 015",
+      "bytes": 1053284,
+      "sha256": "6e322979ca067976e205c57f9a067f85e24a717eb651d2e55a04ab7679b3aba1"
+    },
+    {
+      "frame": 17,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845916_2cUKM8_17.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 016",
+      "bytes": 1057930,
+      "sha256": "bbdbd4507cad64b8dd1b91a297aed0b97574ded6fa8599e3dfc462e3a555f50c"
+    },
+    {
+      "frame": 18,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845697_838kdC_18.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 017",
+      "bytes": 1049253,
+      "sha256": "6744bbe267c7ce3fd7dba3389fce4a3ebb2dd75cd35b51c9ed4dc476af68d697"
+    },
+    {
+      "frame": 19,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845768_jgLqMM_19.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 018",
+      "bytes": 1014798,
+      "sha256": "2128f0b13b74f4a0d48772910f41ef7049f1fb1465eb5b1a02f083d6d87a549a"
+    },
+    {
+      "frame": 20,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845474_0fUd4R_20.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 019",
+      "bytes": 954562,
+      "sha256": "4da128d463a8ce321207facbe8e89ecf525788f6689c14efca0c365ebe68e151"
+    },
+    {
+      "frame": 21,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_DEvUUB_21.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 020",
+      "bytes": 860253,
+      "sha256": "7f585e5f0667e765d3e3b97d6aa4727cf8646827ee0e5ad6d2edfe31e4bd8c62"
+    },
+    {
+      "frame": 22,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845769_GYAQFd_22.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 021",
+      "bytes": 733665,
+      "sha256": "06e427f57394f57e505c0ef005c5a6bf5745970c3fb58e0c929cac346d0916e3"
+    },
+    {
+      "frame": 23,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845730_b0Mlx1_23.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 022",
+      "bytes": 647413,
+      "sha256": "ae77a27d3b5d82500bc231096f102f72e58b6f0534b07c700e1734ff66a14cc6"
+    },
+    {
+      "frame": 24,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_jiwPL1_24.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 023",
+      "bytes": 736646,
+      "sha256": "e2dd82c43df13b250f7838be0d5fdd9e933da9b8aa5d1f0802dceab8dc8303b9"
+    },
+    {
+      "frame": 25,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845943_aK3DI1_25.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 024",
+      "bytes": 867226,
+      "sha256": "bae608c4f20ce35aec4c22d65a816825dc5c22636e8b09708c6f2bf97d962895"
+    },
+    {
+      "frame": 26,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845908_8JzlyM_26.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 025",
+      "bytes": 953556,
+      "sha256": "b945ff622173acd05366712b7ab505cdf39b65342f3a5ca02a53ff6f6f52be63"
+    },
+    {
+      "frame": 27,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846054_tsw4wR_27.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 026",
+      "bytes": 1012667,
+      "sha256": "d06e029d7ee418093df1687d4e3ee734ba850a35430da8a006653032bd91d679"
+    },
+    {
+      "frame": 28,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846093_mv3pbe_28.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 027",
+      "bytes": 1044399,
+      "sha256": "8b3f11a88d686c4ed8b822ced394067cb3b83202c1ef5c812974223226d5498d"
+    },
+    {
+      "frame": 29,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846089_gamjlX_29.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 028",
+      "bytes": 1049195,
+      "sha256": "75c80bb2912f6b85def9eedeb1169a6d47597e511fb4716b3cb88b4aa62e5992"
+    },
+    {
+      "frame": 30,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846058_D5BfgI_30.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 029",
+      "bytes": 1045124,
+      "sha256": "47af1d27eb3f43a7cfafa2bc626194ad0531c6d4d49f5b1c63440c1a92fd2893"
+    },
+    {
+      "frame": 31,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846172_8fWPq9_31.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 030",
+      "bytes": 1034379,
+      "sha256": "0bc7750274a81be0f6f1fe4095f0b8d17cda7596cc184e5a23651961e920476c"
+    },
+    {
+      "frame": 32,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845734_zOa8DR_32.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 031",
+      "bytes": 1038422,
+      "sha256": "5f5eff20c398287246a42af2d4e8d38162dd8c7dfc136cb9d295226c6293ad44"
+    },
+    {
+      "frame": 33,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845473_Qyj1hN_33.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 032",
+      "bytes": 1054574,
+      "sha256": "bc44ba4b3e9fbd488610cc9a074329b2e6d6e577a02bd1aa65c2e0b40b9dd523"
+    },
+    {
+      "frame": 34,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846195_DXdqd1_34.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 033",
+      "bytes": 1064424,
+      "sha256": "6c4ed3c039bcdb75ea03377fb028e6830234b218cd41ba70c00aabac834c7a02"
+    },
+    {
+      "frame": 35,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845889_B5zgyp_35.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 034",
+      "bytes": 1063842,
+      "sha256": "bba899e5fb411b3695e6d4e5d32cfe8ce4dc02c027e65c1a37b70848e2450b6a"
+    },
+    {
+      "frame": 36,
+      "url": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084846076_2ZR6Co_36.png",
+      "description": "LATTE GREIGE_EBL ONE TONE 035",
+      "bytes": 1043875,
+      "sha256": "0b25a259f3e553acb79f91f259665f809727fb2f75c27b583a46656364c50f07"
+    }
+  ]
+}

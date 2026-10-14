@@ -1,0 +1,190 @@
+{
+  "checkedAt": "2026-10-14",
+  "rights": "Hyundai Motor Company and original rightsholders. Official publicly accessible references for local model reconstruction. No open license or redistribution permission claimed.",
+  "records": [
+    {
+      "file": "porter2-catalog-eng.pdf",
+      "url": "https://www.hyundai.com/content/dam/hyundai/kr/ko/data/vehicles/catalog/en/porter2-catalog-eng.pdf",
+      "bytes": 2851867,
+      "sha256": "5d64c637e67f8b625502337314390862f346e9eadc6625ac5fab76b9df4b3308"
+    },
+    {
+      "file": "porter2-intro.html",
+      "url": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "bytes": 653388,
+      "sha256": "51401c912fc63c5141f0046df6ba0fb038f8ea697921fd2ad0aca95b4ce8fc69"
+    },
+    {
+      "file": "porter2-intro.content",
+      "url": "https://www.hyundai.com/contents/repn-car/html/homepage/model/porter2-26my_intro.content",
+      "bytes": 93092,
+      "sha256": "a3ea81e65b22bbb05d5f03ba421448ac6ecdc6edcf597138c8ff30799bc205c5"
+    },
+    {
+      "file": "porter2-catalog-ko.pdf",
+      "url": "https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf",
+      "bytes": 2892898,
+      "sha256": "85ab3d9972339a130d7affee4a11b702227cbf7ce47b47848c54ebab1843b36d"
+    },
+    {
+      "file": "porter2-side.png",
+      "url": "https://www.hyundai.com/contents/repn-car/side-w/porter2-26my-well-side.png",
+      "bytes": 11882,
+      "sha256": "f83babb759ca58cab4dae8d53fc0caf5a169e2f343054706afb978bc10016846"
+    },
+    {
+      "file": "porter2-front-quarter.png",
+      "url": "https://www.hyundai.com/contents/repn-car/side-45/porter2-26my-45side.png",
+      "bytes": 29031,
+      "sha256": "ae81690449152a118d3554eb0ba912b32af22c2d030fd74632c07d5bf1eb31fb"
+    },
+    {
+      "file": "porter2_design.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_design.jpg",
+      "bytes": 212774,
+      "sha256": "2556b69518e1187f0924ca2876fba4461253dd401d2757b881509ecc1f5e1b5f"
+    },
+    {
+      "file": "porter2_design_bumper_guard.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_design_bumper_guard.jpg",
+      "bytes": 101584,
+      "sha256": "a296758764b03541435b5781f0c95ffdadcc0aa381ab47bceb7d173912de5a64"
+    },
+    {
+      "file": "porter2_design_clear_type_headlamp.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_design_clear_type_headlamp.jpg",
+      "bytes": 137137,
+      "sha256": "693f3fdd887c935181706188854ce21bde749345c4b4d528c9f4f52014c544e5"
+    },
+    {
+      "file": "porter2_design_body_color_outside_mirror.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_design_body_color_outside_mirror.jpg",
+      "bytes": 64221,
+      "sha256": "771b696a4636e0f9bb84c60c3f1012980e0b63d1cbda06e3e537bf05708bbb22"
+    },
+    {
+      "file": "porter2_line_up_super_long_axis_super_caps_smart.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_line_up_super_long_axis_super_caps_smart.jpg",
+      "bytes": 63244,
+      "sha256": "ef1bf638ed031170488bac8c0f791a8b2326fde0c3cecd03bbe8f73ff50815d5"
+    },
+    {
+      "file": "porter2_line_up_super_long_axis_super_cap_premium.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_line_up_super_long_axis_super_cap_premium.jpg",
+      "bytes": 65192,
+      "sha256": "e590e31dec14a65b896908692b584186a1dbb6b3634c6e0f8d8d591423964200"
+    },
+    {
+      "file": "porter2_features_rear_guard.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_features_rear_guard.jpg",
+      "bytes": 62372,
+      "sha256": "673e9f0ce2d0bb02b455c8a56484b25ba6e11e4c90da8330ff92b30059fe03d0"
+    },
+    {
+      "file": "porter2_features_loadbox_brim_cover.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_features_loadbox_brim_cover.jpg",
+      "bytes": 52563,
+      "sha256": "f49b031e7e54dce59b508c7913f46b90d8514350a431a42dec3d3ff8d8c1a3de"
+    },
+    {
+      "file": "porter2_hga_plastic-loader-cover.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_hga_plastic-loader-cover.jpg",
+      "bytes": 95249,
+      "sha256": "635a45802723a33b3ae563f0783d0ed7e2f4182dd8c3689162acc93ef27100b0"
+    },
+    {
+      "file": "pip-porter2-24my-specifications-front-w.jpg",
+      "url": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-front-w.jpg",
+      "bytes": 20206,
+      "sha256": "39251b80cfef253054f4e661f502c2fdc1e09a3d063ea0337beeee9408f16129"
+    },
+    {
+      "file": "pip-porter2-24my-specifications-side-w.jpg",
+      "url": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-side-w.jpg",
+      "bytes": 22182,
+      "sha256": "05e3846f7e6aefe236a85d3132280ac8f7fb2fee59aca04e48f347da1214b26b"
+    },
+    {
+      "file": "pip-porter2-24my-specifications-back-w.jpg",
+      "url": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-back-w.jpg",
+      "bytes": 19814,
+      "sha256": "2d910eeb65b13a10d5bf22b8ae5f5a5e00d5af8fe10dd9828e939b638966d5ea"
+    },
+    {
+      "file": "porter2_gallery_exterior_side_view.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_gallery_exterior_side_view.jpg",
+      "bytes": 141518,
+      "sha256": "817356d9b2b04d0b2440f82294f5c9854751b331d0127adc61111e0ca53fa388"
+    },
+    {
+      "file": "porter2_gallery_exterior_side_view_02.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_gallery_exterior_side_view_02.jpg",
+      "bytes": 158237,
+      "sha256": "d33145dc53c93a18a16dd4d87c58602ee6ee844e92773a0a950ea6d1d2fe680b"
+    },
+    {
+      "file": "porter2_gallery_exterior_front_view.jpg",
+      "url": "https://www.hyundai.com/static/images/model/porter2/26my/porter2_gallery_exterior_front_view.jpg",
+      "bytes": 165960,
+      "sha256": "85aa42183173b885eb1c0655e5f0161e9e4e5a17eef41fcda3c71f819f03e49e"
+    },
+    {
+      "file": "h100-nigeria.html",
+      "url": "https://www.hyundai.com/ng/en/find-a-car/h-100/exterior",
+      "bytes": 368038,
+      "sha256": "436e95df4409c73ab8c36693dd086dd84ac50918c6af82f8229b36bab4282a92",
+      "note": "Saved research page only. Export H100 body/trim and dimensions are not treated as the domestic 2026 Porter II specification. No mesh acquired."
+    },
+    {
+      "file": "h100-philippines.html",
+      "url": "https://www.hyundai.com/ph/en/find-a-car/h-100/exterior",
+      "bytes": 257905,
+      "sha256": "b307c9a6403862a1cc53127889f170850390d6697d5aa3d5945491b5ec681733",
+      "note": "Saved research page only. Export H100 imagery is not a replacement for the domestic LPG Super Cab references. No mesh acquired."
+    },
+    {
+      "file": "h100-worldwide.html",
+      "url": "https://www.hyundai.com/worldwide/en/commercial/h100/highlights",
+      "bytes": 96647,
+      "sha256": "48e540c29f3051eb164af92d412597b4d8cb21a2d06c2446d3781bce69fbb346",
+      "note": "Saved research page only. Static export H100 photographs found; no original 3D mesh acquired."
+    }
+  ],
+  "derived": [
+    {
+      "file": "porter2-dimensions-page11.png",
+      "source": "porter2-catalog-eng.pdf",
+      "pageOneBased": 11,
+      "method": "Poppler rasterization, scale-to 2600; no geometry alteration"
+    },
+    {
+      "file": "MEASUREMENTS.json",
+      "source": "porter2-catalog-eng.pdf",
+      "pageOneBased": 11,
+      "method": "Manufacturer dimension table transcribed for 2WD extra-long Super Cab with bumper guard. Separately labelled windscreen/lamp proportions are image estimates, not measured manufacturer coordinates."
+    }
+  ],
+  "research": [
+    {
+      "url": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "finding": "The official page loads porter2-26my_intro.content, which exposes current domestic exterior photographs, lamp and bumper close-ups, lineup photographs and front/side/rear dimension diagrams. The previous description of a single available official view was incomplete."
+    },
+    {
+      "url": "https://sketchfab.com/3d-models/hyundai-porter-truck-8e68a159b9f54ce9a7d8472e616794a6",
+      "downloadEndpoint": "https://sketchfab.com/v3/models/8e68a159b9f54ce9a7d8472e616794a6/download",
+      "finding": "jjj0605 Hyundai Porter Truck candidate; listing identifies CC Attribution and approximately 32.7k triangles. The normal download API returned HTTP 401, Authentication credentials were not provided. No source file acquired and no authentication restriction bypassed. Body year/trim compatibility has not been validated."
+    },
+    {
+      "url": "https://www.cgtrader.com/3d-models/vehicle/truck/hyundai-porter-h100-2024",
+      "finding": "Paid Porter/H100 2024 candidate. Not purchased or acquired; not included in the simulator."
+    },
+    {
+      "url": "https://www.3dcadbrowser.com/3d-model/hyundai-h100-porter-chassis",
+      "finding": "H100 chassis candidate subject to the site's account/credit/download terms. Not acquired and not included."
+    },
+    {
+      "url": "https://hyundai.com.br/veiculos/hr.html",
+      "finding": "Official export HR page investigated as a possible configurator route. No reusable original mesh acquired. Export body and domestic 2026 LPG Super Cab equivalence was not established."
+    }
+  ]
+}

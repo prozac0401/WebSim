@@ -1,0 +1,4097 @@
+{
+  "id": "morning",
+  "source": {
+    "kind": "dealer-mesh",
+    "label": "Kia Picanto · 딜러 공개 3D 외관",
+    "url": "https://kia-picanto-2024.meta-sense.fr/",
+    "configuration": "2024 Kia Picanto exterior from Edenauto launch campaign by Metasense. Exact sales trim is unconfirmed; source parts include both GT-Line and Baseline names. Default 00_OPEN time-zero closed doors; original European wheels and badges differ from Korean Morning. Explicitly named Int_ cabin meshes hidden by opaque glazing are omitted for race performance."
+  },
+  "bounds": {
+    "min": [
+      -1.7988417148590088,
+      -0.9511741399765015,
+      0
+    ],
+    "max": [
+      1.7988417148590088,
+      0.9507062435150146,
+      1.503981590270996
+    ]
+  },
+  "triangles": 262394,
+  "primitives": [
+    {
+      "name": "Ext_Picanto_Base_Wheel_FL_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.992942214012146,
+          0.6646830439567566,
+          0.174049511551857
+        ],
+        "max": [
+          1.2214772701263428,
+          0.7543920874595642,
+          0.4096086323261261
+        ]
+      },
+      "triangles": 1118,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_FR_brushedmetal__discbrake001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9854819774627686,
+          -0.7576161623001099,
+          0.17365294694900513
+        ],
+        "max": [
+          1.2146121263504028,
+          -0.6924341320991516,
+          0.4100051820278168
+        ]
+      },
+      "triangles": 2824,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_FR_caliper_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.1592179536819458,
+          -0.7749050855636597,
+          0.21879805624485016
+        ],
+        "max": [
+          1.2354180812835693,
+          -0.7040584683418274,
+          0.36721330881118774
+        ]
+      },
+      "triangles": 4138,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_FR_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9894561767578125,
+          -0.7544515132904053,
+          0.174049511551857
+        ],
+        "max": [
+          1.2179439067840576,
+          -0.6646056771278381,
+          0.4096086323261261
+        ]
+      },
+      "triangles": 1120,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_FL_caliper_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.1656838655471802,
+          0.6589134931564331,
+          0.21879807114601135
+        ],
+        "max": [
+          1.2418842315673828,
+          0.7297599911689758,
+          0.36721330881118774
+        ]
+      },
+      "triangles": 4104,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RR_brushedmetal__discbrake001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4073781967163086,
+          -0.7279940843582153,
+          0.17365223169326782
+        ],
+        "max": [
+          -1.1710259914398193,
+          -0.7234800457954407,
+          0.41000446677207947
+        ]
+      },
+      "triangles": 2634,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RR_caliper_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4204901456832886,
+          -0.7499340176582336,
+          0.2736360728740692
+        ],
+        "max": [
+          -1.3176803588867188,
+          -0.6988131403923035,
+          0.40818318724632263
+        ]
+      },
+      "triangles": 2023,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RR_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4069836139678955,
+          -0.741555392742157,
+          0.1740487813949585
+        ],
+        "max": [
+          -1.1714204549789429,
+          -0.6819425821304321,
+          0.4096079170703888
+        ]
+      },
+      "triangles": 1118,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_FL_brushedmetal__discbrake001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9962973594665527,
+          0.6924340128898621,
+          0.17365294694900513
+        ],
+        "max": [
+          1.2254276275634766,
+          0.7576161623001099,
+          0.4100051820278168
+        ]
+      },
+      "triangles": 2676,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RL_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4069836139678955,
+          0.6819425821304321,
+          0.1740487813949585
+        ],
+        "max": [
+          -1.1714204549789429,
+          0.7415553331375122,
+          0.4096079170703888
+        ]
+      },
+      "triangles": 1118,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RL_caliper_brushedmetal001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4204901456832886,
+          0.6988131403923035,
+          0.2736360728740692
+        ],
+        "max": [
+          -1.3176803588867188,
+          0.7499340176582336,
+          0.40818318724632263
+        ]
+      },
+      "triangles": 2016,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Wheel_RL_brushedmetal__discbrake001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4073781967163086,
+          0.7234801054000854,
+          0.17365223169326782
+        ],
+        "max": [
+          -1.1710259914398193,
+          0.7279940843582153,
+          0.41000446677207947
+        ]
+      },
+      "triangles": 2504,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Door_Catch_aluminiumbrushed001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.044661521911621,
+          -0.7161402702331543,
+          0.6673653721809387
+        ],
+        "max": [
+          -0.2381938397884369,
+          0.7161402702331543,
+          0.7208026647567749
+        ]
+      },
+      "triangles": 4296,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_mudgaurds_rear_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.9227306246757507,
+          -0.731931746006012,
+          0.15419214963912964
+        ],
+        "max": [
+          -0.9190207123756409,
+          0.731931746006012,
+          0.21638314425945282
+        ]
+      },
+      "triangles": 268,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Fin_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2556482553482056,
+          -0.03966914489865303,
+          1.436639666557312
+        ],
+        "max": [
+          -1.0843827724456787,
+          0.03966914489865303,
+          1.503981590270996
+        ]
+      },
+      "triangles": 490,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Fin_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2433539628982544,
+          -0.04146571084856987,
+          1.4316191673278809
+        ],
+        "max": [
+          -1.080594778060913,
+          0.041465699672698975,
+          1.452910304069519
+        ]
+      },
+      "triangles": 120,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_2021_WindowMask_plasticshiny1001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.4139477014541626,
+          -0.14457233250141144,
+          1.2963032722473145
+        ],
+        "max": [
+          0.46449923515319824,
+          -0.004471678752452135,
+          1.3241599798202515
+        ]
+      },
+      "triangles": 16,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_2021_WindowMask_plasticshiny001",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.1796766221523285,
+          -0.6901141405105591,
+          0.9002752900123596
+        ],
+        "max": [
+          1.1629692316055298,
+          0.6900495886802673,
+          1.3848766088485718
+        ]
+      },
+      "triangles": 1216,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Gear_Stick_alumbrushed__gearstick001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.20844250917434692,
+          -0.028306065127253532,
+          0.6367812752723694
+        ],
+        "max": [
+          0.2608534097671509,
+          0.025906013324856758,
+          0.7198867797851562
+        ]
+      },
+      "triangles": 784,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Gear_Stick_plasticdiffuse__leather001",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.20497742295265198,
+          -0.031229013577103615,
+          0.657991886138916
+        ],
+        "max": [
+          0.2637936770915985,
+          0.028459452092647552,
+          0.715200662612915
+        ]
+      },
+      "triangles": 439,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_glasstinted001",
+      "materialName": "Glass_clear",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.18251213431358337,
+          -0.6895629167556763,
+          0.9081858396530151
+        ],
+        "max": [
+          1.1647708415985107,
+          0.6895627379417419,
+          1.3891812562942505
+        ]
+      },
+      "triangles": 256,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Interior_Boot_Static_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6822590827941895,
+          -0.6265800595283508,
+          0.6694801449775696
+        ],
+        "max": [
+          -1.2885637283325195,
+          0.6265800595283508,
+          1.4196125268936157
+        ]
+      },
+      "triangles": 544,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_Interior_Boot_Static_rubber001",
+      "materialName": "Rubber",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7397997379302979,
+          -0.5387647747993469,
+          0.6952235102653503
+        ],
+        "max": [
+          -1.3846405744552612,
+          0.5387647747993469,
+          1.3653087615966797
+        ]
+      },
+      "triangles": 2170,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GLS_roof_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2965682744979858,
+          -0.5163646936416626,
+          1.373989224433899
+        ],
+        "max": [
+          0.28761008381843567,
+          0.5161059498786926,
+          1.4827905893325806
+        ]
+      },
+      "triangles": 2119,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_glassclear1001",
+      "materialName": "Rearlight",
+      "color": [
+        0.4108182147450064,
+        0.1388173339990715,
+        0.1388173339990715
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 0.82,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.735062837600708,
+          -0.7402960062026978,
+          0.7305747866630554
+        ],
+        "max": [
+          -1.4742212295532227,
+          0.7402960062026978,
+          1.0585498809814453
+        ]
+      },
+      "triangles": 1189,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chrome__squares1001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7224838733673096,
+          -0.7054928541183472,
+          0.7830460071563721
+        ],
+        "max": [
+          -1.6489289999008179,
+          0.7054928541183472,
+          0.9961634278297424
+        ]
+      },
+      "triangles": 100,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chromered2001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6434932947158813,
+          -0.7321521639823914,
+          0.790745735168457
+        ],
+        "max": [
+          -1.5045125484466553,
+          -0.7104129791259766,
+          0.9768303632736206
+        ]
+      },
+      "triangles": 63,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chromered__linepattern001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6434932947158813,
+          0.7104129791259766,
+          0.790745735168457
+        ],
+        "max": [
+          -1.5045125484466553,
+          0.7321521639823914,
+          0.9768303632736206
+        ]
+      },
+      "triangles": 63,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chrome001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6933462619781494,
+          -0.6908275485038757,
+          0.7580051422119141
+        ],
+        "max": [
+          -1.6545331478118896,
+          0.6908275485038757,
+          0.976791501045227
+        ]
+      },
+      "triangles": 953,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chrome__squares001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6880900859832764,
+          -0.6777467131614685,
+          0.7594921588897705
+        ],
+        "max": [
+          -1.6658775806427002,
+          0.6777467131614685,
+          0.8849434852600098
+        ]
+      },
+      "triangles": 61,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_chromered001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7275201082229614,
+          -0.73557448387146,
+          0.7387909889221191
+        ],
+        "max": [
+          -1.4865729808807373,
+          0.73557448387146,
+          1.0499404668807983
+        ]
+      },
+      "triangles": 5367,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_GTL_taillights_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7016923427581787,
+          -0.7377755045890808,
+          0.730023980140686
+        ],
+        "max": [
+          -1.4775738716125488,
+          0.7377755045890808,
+          1.0539460182189941
+        ]
+      },
+      "triangles": 908,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GLS_Bumper_Rear_blackpaint001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7988417148590088,
+          -0.5996692180633545,
+          0.2375713735818863
+        ],
+        "max": [
+          -1.630811333656311,
+          0.5996692180633545,
+          0.39873117208480835
+        ]
+      },
+      "triangles": 1594,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GLS_Bumper_Rear_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.777382731437683,
+          -0.3385113477706909,
+          0.3712063133716583
+        ],
+        "max": [
+          -1.745253324508667,
+          0.3385113477706909,
+          0.3952820599079132
+        ]
+      },
+      "triangles": 438,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GLS_Bumper_Rear_plasticdiffuse__pattern001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7747753858566284,
+          -0.332275390625,
+          0.37467968463897705
+        ],
+        "max": [
+          -1.766263484954834,
+          0.33138057589530945,
+          0.39180949330329895
+        ]
+      },
+      "triangles": 37,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTL_aluminiumbrushed1001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6984200477600098,
+          -0.3589469790458679,
+          0.7296429872512817
+        ],
+        "max": [
+          1.728632926940918,
+          0.3589469790458679,
+          0.7584633231163025
+        ]
+      },
+      "triangles": 594,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperfront_GTL_blackpaint1001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6769055128097534,
+          -0.36096253991127014,
+          0.7003587484359741
+        ],
+        "max": [
+          1.73259437084198,
+          0.36096253991127014,
+          0.7650042772293091
+        ]
+      },
+      "triangles": 1208,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_grill_plasticdiffuse__back1001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6033143997192383,
+          -0.6982205510139465,
+          0.3118402659893036
+        ],
+        "max": [
+          1.6155176162719727,
+          0.6982205510139465,
+          0.45859184861183167
+        ]
+      },
+      "triangles": 35,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_lowergrill_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.7242101430892944,
+          -0.46030303835868835,
+          0.2515779435634613
+        ],
+        "max": [
+          1.779123067855835,
+          0.46030303835868835,
+          0.3887370824813843
+        ]
+      },
+      "triangles": 5586,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_grill_plasticdiffuse__linepattern001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6393308639526367,
+          -0.45457664132118225,
+          0.2524227201938629
+        ],
+        "max": [
+          1.774694561958313,
+          0.45457664132118225,
+          0.5952543616294861
+        ]
+      },
+      "triangles": 200,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_aluminiumbrushedShape001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.723069190979004,
+          -0.4906083643436432,
+          0.2873477339744568
+        ],
+        "max": [
+          1.7848223447799683,
+          0.4906083643436432,
+          0.5513707995414734
+        ]
+      },
+      "triangles": 804,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_grill_plasticdiffuse__back001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.7260202169418335,
+          -0.5117253661155701,
+          0.2829165458679199
+        ],
+        "max": [
+          1.7413240671157837,
+          0.5117253661155701,
+          0.4167317748069763
+        ]
+      },
+      "triangles": 44,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_blackpaint001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.7260202169418335,
+          -0.541828989982605,
+          0.25361043214797974
+        ],
+        "max": [
+          1.7861065864562988,
+          0.541828989982605,
+          0.5291971564292908
+        ]
+      },
+      "triangles": 1235,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_grill_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.5717302560806274,
+          -0.7241030931472778,
+          0.24528951942920685
+        ],
+        "max": [
+          1.7825815677642822,
+          0.7241030931472778,
+          0.6010546088218689
+        ]
+      },
+      "triangles": 5268,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTS_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.2629774808883667,
+          -0.7938903570175171,
+          0.19724468886852264
+        ],
+        "max": [
+          1.7861019372940063,
+          0.7938903570175171,
+          0.7481632828712463
+        ]
+      },
+      "triangles": 3299,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_Wheelarches_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.753296136856079,
+          -0.7982047200202942,
+          0.17374512553215027
+        ],
+        "max": [
+          1.7498213052749634,
+          0.7990626096725464,
+          0.6400430202484131
+        ]
+      },
+      "triangles": 821,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_blackpaint001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.1897557973861694,
+          -0.708301305770874,
+          0.5566965937614441
+        ],
+        "max": [
+          1.7136770486831665,
+          0.708301305770874,
+          0.8720158934593201
+        ]
+      },
+      "triangles": 4614,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_glassclear001",
+      "materialName": "Glass_clear",
+      "color": [
+        0.23749939192384104,
+        0.23749939192384104,
+        0.23749939192384104
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 0.13,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.178989052772522,
+          -0.7131467461585999,
+          0.5540907382965088
+        ],
+        "max": [
+          1.737768530845642,
+          0.7131467461585999,
+          0.8808698654174805
+        ]
+      },
+      "triangles": 1138,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_chrome__square001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.533167839050293,
+          -0.6862947940826416,
+          0.5727999210357666
+        ],
+        "max": [
+          1.5838098526000977,
+          0.6862947940826416,
+          0.7865845561027527
+        ]
+      },
+      "triangles": 53,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_filler_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.190565586090088,
+          -0.7072427868843079,
+          0.5544466972351074
+        ],
+        "max": [
+          1.726433277130127,
+          0.7072427868843079,
+          0.885937511920929
+        ]
+      },
+      "triangles": 342,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_details_blackpaint001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.4283522367477417,
+          -0.7076427340507507,
+          0.5924131274223328
+        ],
+        "max": [
+          1.63428795337677,
+          0.7076427340507507,
+          0.7908316850662231
+        ]
+      },
+      "triangles": 12640,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_chrome__squares001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.3579225540161133,
+          -0.6903947591781616,
+          0.7316964268684387
+        ],
+        "max": [
+          1.7080357074737549,
+          0.6903947591781616,
+          0.8406000137329102
+        ]
+      },
+      "triangles": 164,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_chrome__linepatterns001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.5168946981430054,
+          -0.6668012142181396,
+          0.5964418649673462
+        ],
+        "max": [
+          1.5660185813903809,
+          0.6668012142181396,
+          0.7589788436889648
+        ]
+      },
+      "triangles": 142,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0442301034927368,
+          -0.6967029571533203,
+          0.5428324937820435
+        ],
+        "max": [
+          1.69803786277771,
+          0.6967029571533203,
+          0.8910593390464783
+        ]
+      },
+      "triangles": 450,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_headlights_GTL_chrome001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.3573851585388184,
+          -0.6928972601890564,
+          0.7300184369087219
+        ],
+        "max": [
+          1.7096699476242065,
+          0.6928972601890564,
+          0.8417183756828308
+        ]
+      },
+      "triangles": 2729,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Baseline_Trim_side_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6101183891296387,
+          -0.8008008599281311,
+          0.17545878887176514
+        ],
+        "max": [
+          0.8142232894897461,
+          0.8008008599281311,
+          1.45555579662323
+        ]
+      },
+      "triangles": 7385,
+      "textureBytes": 0
+    },
+    {
+      "name": "LightsMain__rear002",
+      "materialName": "Lights_red",
+      "color": [
+        0.9370245149517904,
+        0.35423201216283207,
+        0
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7234976291656494,
+          -0.7054928541183472,
+          0.7830467820167542
+        ],
+        "max": [
+          -1.649965763092041,
+          0.7054928541183472,
+          0.9961644411087036
+        ]
+      },
+      "triangles": 77,
+      "textureBytes": 0
+    },
+    {
+      "name": "LightsMain__rear001",
+      "materialName": "Lights_white",
+      "color": [
+        0.9370245149517904,
+        0.9370245149517904,
+        0.9370245149517904
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.361196517944336,
+          -0.6913778781890869,
+          0.5725436210632324
+        ],
+        "max": [
+          1.7067885398864746,
+          0.6913778781890869,
+          0.8399271368980408
+        ]
+      },
+      "triangles": 85,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_2021_interior_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2912365198135376,
+          -0.7880854606628418,
+          0.2574169933795929
+        ],
+        "max": [
+          0.7618885636329651,
+          0.7880854606628418,
+          1.4080742597579956
+        ]
+      },
+      "triangles": 3741,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2960294485092163,
+          -0.7173882126808167,
+          0.894586443901062
+        ],
+        "max": [
+          1.150470495223999,
+          0.7173882126808167,
+          1.4545948505401611
+        ]
+      },
+      "triangles": 7152,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_carpaint__sensor001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4856793880462646,
+          0.7528602480888367,
+          0.7024085521697998
+        ],
+        "max": [
+          -1.320631742477417,
+          0.7951685190200806,
+          0.86102294921875
+        ]
+      },
+      "triangles": 98,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_glassclear1001",
+      "materialName": "Rearlight",
+      "color": [
+        0.4108182147450064,
+        0.1388173339990715,
+        0.1388173339990715
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 0.82,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7347781658172607,
+          -0.7050443291664124,
+          0.4314030706882477
+        ],
+        "max": [
+          -1.7117036581039429,
+          0.7050443291664124,
+          0.6029079556465149
+        ]
+      },
+      "triangles": 753,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_plasticdiffuse001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.789667010307312,
+          -0.1787470579147339,
+          0.5874454975128174
+        ],
+        "max": [
+          -1.754331111907959,
+          0.17952844500541687,
+          0.5997836589813232
+        ]
+      },
+      "triangles": 319,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_carpaint__sensor001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.798473834991455,
+          -0.46545395255088806,
+          0.6038832068443298
+        ],
+        "max": [
+          -1.7801294326782227,
+          0.46545395255088806,
+          0.6301153898239136
+        ]
+      },
+      "triangles": 96,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_blackpaint001",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7370014190673828,
+          -0.7136754989624023,
+          0.4164350628852844
+        ],
+        "max": [
+          -1.699953317642212,
+          0.7136754989624023,
+          0.6108199954032898
+        ]
+      },
+      "triangles": 3267,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_plasticdiffuse__grillrear001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7248940467834473,
+          -0.6703317165374756,
+          0.5229536890983582
+        ],
+        "max": [
+          -1.7210935354232788,
+          0.6703317165374756,
+          0.6041347980499268
+        ]
+      },
+      "triangles": 32,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_lowerlight_chromered__square001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7209864854812622,
+          -0.7048782706260681,
+          0.4563663899898529
+        ],
+        "max": [
+          -1.7114109992980957,
+          0.7048782706260681,
+          0.6018161177635193
+        ]
+      },
+      "triangles": 109,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_lowerlight_chrome001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.731286883354187,
+          -0.7089726328849792,
+          0.42748600244522095
+        ],
+        "max": [
+          -1.700104832649231,
+          0.7089726328849792,
+          0.6068258881568909
+        ]
+      },
+      "triangles": 1560,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_lowerlight_chrome__square001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7251986265182495,
+          -0.676906406879425,
+          0.4363976716995239
+        ],
+        "max": [
+          -1.709749698638916,
+          0.676906406879425,
+          0.5366586446762085
+        ]
+      },
+      "triangles": 74,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7976983785629272,
+          -0.7970144748687744,
+          0.24258679151535034
+        ],
+        "max": [
+          -1.4755374193191528,
+          0.7970147728919983,
+          0.7886976003646851
+        ]
+      },
+      "triangles": 4608,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GTline_Bumper_Rear_chrome001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7876149415969849,
+          -0.1764114946126938,
+          0.5887320041656494
+        ],
+        "max": [
+          -1.7576104402542114,
+          0.1771928369998932,
+          0.5940228700637817
+        ]
+      },
+      "triangles": 20,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTL_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.639168381690979,
+          -0.7973156571388245,
+          0.18479794263839722
+        ],
+        "max": [
+          1.4810255765914917,
+          0.7973156571388245,
+          1.060420036315918
+        ]
+      },
+      "triangles": 2200,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_bumperFront_GTL_hood_front_carpaint001",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0178638696670532,
+          -0.6916120052337646,
+          0.7560182213783264
+        ],
+        "max": [
+          1.7291849851608276,
+          0.6911861300468445,
+          1.0016027688980103
+        ]
+      },
+      "triangles": 1177,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_Base_filler_plasticdiffuseShape001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.620284914970398,
+          -0.7940678000450134,
+          0.26108694076538086
+        ],
+        "max": [
+          1.7641122341156006,
+          0.7940678000450134,
+          1.0009338855743408
+        ]
+      },
+      "triangles": 1038,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_plasticshiny__plates001",
+      "materialName": "Plates",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.7916944026947021,
+          -0.22768554091453552,
+          0.40409788489341736
+        ],
+        "max": [
+          1.7988417148590088,
+          0.22768554091453552,
+          0.5004299283027649
+        ]
+      },
+      "triangles": 117,
+      "textureBytes": 14559
+    },
+    {
+      "name": "Ext_KIA_Logo_front_aluminiumbrushed001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6794071197509766,
+          -0.0939493477344513,
+          0.7855039834976196
+        ],
+        "max": [
+          1.7131965160369873,
+          0.07701839506626129,
+          0.8120163083076477
+        ]
+      },
+      "triangles": 740,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Wheel_Resized_tyres001",
+      "materialName": "Tyres",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5809370279312134,
+          0.6124281287193298,
+          0.0004193634958937764
+        ],
+        "max": [
+          -0.997469425201416,
+          0.7972274422645569,
+          0.5836580991744995
+        ]
+      },
+      "triangles": 1726,
+      "textureBytes": 2802918
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse__back001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4906851053237915,
+          0.6115283966064453,
+          0.09034642577171326
+        ],
+        "max": [
+          -1.087721347808838,
+          0.7876397371292114,
+          0.4933115839958191
+        ]
+      },
+      "triangles": 612,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse001",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4864318370819092,
+          0.7722637057304382,
+          0.09460034966468811
+        ],
+        "max": [
+          -1.0919744968414307,
+          0.8012403249740601,
+          0.4890577793121338
+        ]
+      },
+      "triangles": 3392,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Kia_Logo_blackpaint001",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3179174661636353,
+          0.7959585189819336,
+          0.26296067237854004
+        ],
+        "max": [
+          -1.260488510131836,
+          0.7982180118560791,
+          0.3206968605518341
+        ]
+      },
+      "triangles": 270,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_chromebright001",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3404512405395508,
+          0.7690876126289368,
+          0.2405809760093689
+        ],
+        "max": [
+          -1.237955093383789,
+          0.7945536375045776,
+          0.3430770933628082
+        ]
+      },
+      "triangles": 1964,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_aluminiumbrushed001",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4800405502319336,
+          0.8000698685646057,
+          0.10099172592163086
+        ],
+        "max": [
+          -1.0983657836914062,
+          0.8013502359390259,
+          0.48266634345054626
+        ]
+      },
+      "triangles": 621,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Kia_Logo_blackpaint002",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.317917823791504,
+          -0.7842037677764893,
+          0.26296117901802063
+        ],
+        "max": [
+          -1.2604888677597046,
+          -0.7819442749023438,
+          0.3206973671913147
+        ]
+      },
+      "triangles": 270,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Wheel_Resized_tyres002",
+      "materialName": "Tyres",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5809369087219238,
+          -0.783213198184967,
+          0
+        ],
+        "max": [
+          -0.9974693059921265,
+          -0.59841388463974,
+          0.5832387208938599
+        ]
+      },
+      "triangles": 1726,
+      "textureBytes": 2802918
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_aluminiumbrushed002",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4800405502319336,
+          -0.787335991859436,
+          0.10099170356988907
+        ],
+        "max": [
+          -1.0983657836914062,
+          -0.7860556244850159,
+          0.48266634345054626
+        ]
+      },
+      "triangles": 621,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_chromebright002",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3404512405395508,
+          -0.7805393934249878,
+          0.2405809760093689
+        ],
+        "max": [
+          -1.237955093383789,
+          -0.7550733685493469,
+          0.3430770933628082
+        ]
+      },
+      "triangles": 1964,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse002",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4864318370819092,
+          -0.7872260808944702,
+          0.09460026770830154
+        ],
+        "max": [
+          -1.0919744968414307,
+          -0.7582494616508484,
+          0.489057719707489
+        ]
+      },
+      "triangles": 3392,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse__back002",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4906851053237915,
+          -0.7736254930496216,
+          0.09034646302461624
+        ],
+        "max": [
+          -1.087721347808838,
+          -0.5975141525268555,
+          0.49331164360046387
+        ]
+      },
+      "triangles": 612,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Kia_Logo_blackpaint003",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0771090984344482,
+          0.7959585189819336,
+          0.26296067237854004
+        ],
+        "max": [
+          1.1345380544662476,
+          0.7982180118560791,
+          0.3206968605518341
+        ]
+      },
+      "triangles": 270,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Kia_Logo_blackpaint004",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0771087408065796,
+          -0.7842037677764893,
+          0.26296117901802063
+        ],
+        "max": [
+          1.134537696838379,
+          -0.7819442749023438,
+          0.3206973671913147
+        ]
+      },
+      "triangles": 270,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Wheel_Resized_tyres003",
+      "materialName": "Tyres",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.8140895366668701,
+          0.6124281287193298,
+          0.0004193634958937764
+        ],
+        "max": [
+          1.3975571393966675,
+          0.7972274422645569,
+          0.5836580991744995
+        ]
+      },
+      "triangles": 1726,
+      "textureBytes": 2802918
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_Wheel_Resized_tyres004",
+      "materialName": "Tyres",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.8140896558761597,
+          -0.783213198184967,
+          0
+        ],
+        "max": [
+          1.397557258605957,
+          -0.59841388463974,
+          0.5832387208938599
+        ]
+      },
+      "triangles": 1726,
+      "textureBytes": 2802918
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_aluminiumbrushed003",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9149860143661499,
+          0.8000698685646057,
+          0.10099172592163086
+        ],
+        "max": [
+          1.2966607809066772,
+          0.8013502359390259,
+          0.48266634345054626
+        ]
+      },
+      "triangles": 621,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_aluminiumbrushed004",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9149860143661499,
+          -0.787335991859436,
+          0.10099170356988907
+        ],
+        "max": [
+          1.2966607809066772,
+          -0.7860556244850159,
+          0.48266634345054626
+        ]
+      },
+      "triangles": 621,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_chromebright003",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0545753240585327,
+          0.7690876126289368,
+          0.2405809760093689
+        ],
+        "max": [
+          1.1570714712142944,
+          0.7945536375045776,
+          0.3430770933628082
+        ]
+      },
+      "triangles": 1964,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_chromebright004",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.0545753240585327,
+          -0.7805393934249878,
+          0.2405809760093689
+        ],
+        "max": [
+          1.1570714712142944,
+          -0.7550733685493469,
+          0.3430770933628082
+        ]
+      },
+      "triangles": 1964,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse003",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9085947275161743,
+          0.7722637057304382,
+          0.09460034966468811
+        ],
+        "max": [
+          1.3030520677566528,
+          0.8012403249740601,
+          0.4890577793121338
+        ]
+      },
+      "triangles": 3392,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse004",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.9085947275161743,
+          -0.7872260808944702,
+          0.09460026770830154
+        ],
+        "max": [
+          1.3030520677566528,
+          -0.7582494616508484,
+          0.489057719707489
+        ]
+      },
+      "triangles": 3392,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse__back003",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.904341459274292,
+          0.6115283966064453,
+          0.09034642577171326
+        ],
+        "max": [
+          1.3073053359985352,
+          0.7876397371292114,
+          0.4933115839958191
+        ]
+      },
+      "triangles": 612,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_14inch_DynamicPlusline_plasticdiffuse__back004",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.904341459274292,
+          -0.7736254930496216,
+          0.09034646302461624
+        ],
+        "max": [
+          1.3073053359985352,
+          -0.5975141525268555,
+          0.49331164360046387
+        ]
+      },
+      "triangles": 612,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7632439136505127,
+          -0.6098235249519348,
+          0.6834957003593445
+        ],
+        "max": [
+          -1.2974497079849243,
+          0.6098235249519348,
+          1.4243015050888062
+        ]
+      },
+      "triangles": 5929,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_1",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7067251205444336,
+          -0.028730034828186035,
+          0.7137843370437622
+        ],
+        "max": [
+          -1.6597179174423218,
+          0.028729986399412155,
+          0.7396366000175476
+        ]
+      },
+      "triangles": 256,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7703975439071655,
+          -0.5592033267021179,
+          0.9388989210128784
+        ],
+        "max": [
+          -1.4438457489013672,
+          0.5592033267021179,
+          1.2860171794891357
+        ]
+      },
+      "triangles": 5018,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_3",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6812257766723633,
+          -0.3437098562717438,
+          0.766472339630127
+        ],
+        "max": [
+          -1.5831384658813477,
+          0.343709796667099,
+          1.0746145248413086
+        ]
+      },
+      "triangles": 1224,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_4",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7464765310287476,
+          -0.6286339163780212,
+          1.0177066326141357
+        ],
+        "max": [
+          -1.4215302467346191,
+          0.6286336779594421,
+          1.3375663757324219
+        ]
+      },
+      "triangles": 2162,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_5",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7657687664031982,
+          -0.08140533417463303,
+          0.7368082404136658
+        ],
+        "max": [
+          -1.7304108142852783,
+          0.4798193573951721,
+          0.8965767025947571
+        ]
+      },
+      "triangles": 3461,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_6",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7671401500701904,
+          -0.5524371862411499,
+          0.9545273780822754
+        ],
+        "max": [
+          -1.46338951587677,
+          0.5524398684501648,
+          1.3692436218261719
+        ]
+      },
+      "triangles": 3071,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_7",
+      "materialName": "Glass_tinted",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7499065399169922,
+          -0.6273308992385864,
+          1.0181329250335693
+        ],
+        "max": [
+          -1.4265204668045044,
+          0.6273306608200073,
+          1.3425984382629395
+        ]
+      },
+      "triangles": 374,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_8",
+      "materialName": "Rubber",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.6844054460525513,
+          -0.48959460854530334,
+          0.7448899745941162
+        ],
+        "max": [
+          -1.6575531959533691,
+          0.48959457874298096,
+          0.7740081548690796
+        ]
+      },
+      "triangles": 96,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_9",
+      "materialName": "Rearlight",
+      "color": [
+        0.4108182147450064,
+        0.1388173339990715,
+        0.1388173339990715
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 0.82,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.771132230758667,
+          -0.5552988052368164,
+          0.9507425427436829
+        ],
+        "max": [
+          -1.4755803346633911,
+          0.5552987456321716,
+          1.3680657148361206
+        ]
+      },
+      "triangles": 1094,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh220_10",
+      "materialName": "Lights_red",
+      "color": [
+        0.9370245149517904,
+        0.35423201216283207,
+        0
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7637687921524048,
+          -0.5494043231010437,
+          0.98357754945755
+        ],
+        "max": [
+          -1.7292643785476685,
+          0.5494043231010437,
+          0.9992035627365112
+        ]
+      },
+      "triangles": 138,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3694850206375122,
+          -0.9499320387840271,
+          0.26897871494293213
+        ],
+        "max": [
+          0.742626965045929,
+          -0.5094898343086243,
+          1.4003286361694336
+        ]
+      },
+      "triangles": 5885,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_1",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.25667181611061096,
+          -0.7251845598220825,
+          0.5580853223800659
+        ],
+        "max": [
+          0.41211044788360596,
+          -0.5711474418640137,
+          0.7304196953773499
+        ]
+      },
+      "triangles": 1201,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3834632635116577,
+          -0.951168417930603,
+          0.3373972773551941
+        ],
+        "max": [
+          0.7310951352119446,
+          -0.5398308038711548,
+          1.411399483680725
+        ]
+      },
+      "triangles": 8244,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_3",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.21932438015937805,
+          -0.7191720604896545,
+          0.32425421476364136
+        ],
+        "max": [
+          0.6797628998756409,
+          -0.5668935775756836,
+          0.9917471408843994
+        ]
+      },
+      "triangles": 5198,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_4",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5280522704124451,
+          -0.9506759643554688,
+          0.965053915977478
+        ],
+        "max": [
+          0.6356374621391296,
+          -0.8664774894714355,
+          0.9877679944038391
+        ]
+      },
+      "triangles": 198,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_5",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3337717354297638,
+          -0.9497429728507996,
+          0.6616540551185608
+        ],
+        "max": [
+          0.6353603601455688,
+          -0.6166182160377502,
+          1.0008258819580078
+        ]
+      },
+      "triangles": 1460,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_6",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5324097275733948,
+          -0.9475528001785278,
+          0.938830554485321
+        ],
+        "max": [
+          0.6199731230735779,
+          -0.7589969635009766,
+          1.0564967393875122
+        ]
+      },
+      "triangles": 268,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_7",
+      "materialName": "Glass_clear",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.33690905570983887,
+          -0.9511741399765015,
+          0.9026897549629211
+        ],
+        "max": [
+          0.6360891461372375,
+          -0.5529813766479492,
+          1.3895630836486816
+        ]
+      },
+      "triangles": 251,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_8",
+      "materialName": "Glass_tinted",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3369148373603821,
+          -0.6999282240867615,
+          0.9107800722122192
+        ],
+        "max": [
+          0.617362380027771,
+          -0.5503991842269897,
+          1.3895639181137085
+        ]
+      },
+      "triangles": 81,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_9",
+      "materialName": "Icons",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.16453155875205994,
+          -0.6260451078414917,
+          0.7241969108581543
+        ],
+        "max": [
+          0.17499929666519165,
+          -0.6135949492454529,
+          0.7247716188430786
+        ]
+      },
+      "triangles": 4,
+      "textureBytes": 976662
+    },
+    {
+      "name": "Mesh222",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.36917808651924133,
+          0.507202684879303,
+          0.26895976066589355
+        ],
+        "max": [
+          0.7426161170005798,
+          0.949436366558075,
+          1.4057577848434448
+        ]
+      },
+      "triangles": 6449,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_1",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.25656285881996155,
+          0.5701056122779846,
+          0.5578793883323669
+        ],
+        "max": [
+          0.41223281621932983,
+          0.7230991125106812,
+          0.7303016185760498
+        ]
+      },
+      "triangles": 1223,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.38316208124160767,
+          0.5406876802444458,
+          0.3373083174228668
+        ],
+        "max": [
+          0.7311617732048035,
+          0.9507008194923401,
+          1.411041259765625
+        ]
+      },
+      "triangles": 10624,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_3",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.21905750036239624,
+          0.5660076141357422,
+          0.32419919967651367
+        ],
+        "max": [
+          0.679928183555603,
+          0.7183192372322083,
+          0.9914618730545044
+        ]
+      },
+      "triangles": 4883,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_4",
+      "materialName": "Plastic_shiny",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5275958776473999,
+          0.86623215675354,
+          0.9650647640228271
+        ],
+        "max": [
+          0.6353573799133301,
+          0.9502081871032715,
+          0.9877768754959106
+        ]
+      },
+      "triangles": 198,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_5",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3336982727050781,
+          0.6156716346740723,
+          0.661369264125824
+        ],
+        "max": [
+          0.635083794593811,
+          0.9492756724357605,
+          1.000529408454895
+        ]
+      },
+      "triangles": 1657,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_6",
+      "materialName": "Chrome",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5319550037384033,
+          0.7586206197738647,
+          0.9387997984886169
+        ],
+        "max": [
+          0.6196417808532715,
+          0.9470847249031067,
+          1.0564664602279663
+        ]
+      },
+      "triangles": 286,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_7",
+      "materialName": "Glass_clear",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.33661288022994995,
+          0.5504866242408752,
+          0.902644693851471
+        ],
+        "max": [
+          0.6358085870742798,
+          0.9507062435150146,
+          1.3892171382904053
+        ]
+      },
+      "triangles": 258,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_8",
+      "materialName": "Glass_tinted",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3366134762763977,
+          0.5479044914245605,
+          0.9107314348220825
+        ],
+        "max": [
+          0.6174694895744324,
+          0.698745608329773,
+          1.389216661453247
+        ]
+      },
+      "triangles": 76,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_9",
+      "materialName": "Icons",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.1652836799621582,
+          0.5974282026290894,
+          0.7171480655670166
+        ],
+        "max": [
+          0.3321209251880646,
+          0.6294463276863098,
+          0.7300407290458679
+        ]
+      },
+      "triangles": 86,
+      "textureBytes": 976662
+    },
+    {
+      "name": "Mesh223",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.291006088256836,
+          -0.7953587770462036,
+          0.2805819809436798
+        ],
+        "max": [
+          -0.2964426279067993,
+          -0.5068820714950562,
+          1.4030046463012695
+        ]
+      },
+      "triangles": 5149,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_1",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0764374732971191,
+          -0.7208735942840576,
+          0.6273054480552673
+        ],
+        "max": [
+          -0.5393009781837463,
+          -0.5737593173980713,
+          0.7766264081001282
+        ]
+      },
+      "triangles": 1175,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2626498937606812,
+          -0.7151665687561035,
+          0.3639666736125946
+        ],
+        "max": [
+          -0.33132123947143555,
+          -0.5357245206832886,
+          1.4116066694259644
+        ]
+      },
+      "triangles": 3503,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_3",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2241506576538086,
+          -0.7106600403785706,
+          0.34699222445487976
+        ],
+        "max": [
+          -0.38887977600097656,
+          -0.5718682408332825,
+          1.0851120948791504
+        ]
+      },
+      "triangles": 2280,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_4",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2606806755065918,
+          -0.7183797359466553,
+          0.7134959101676941
+        ],
+        "max": [
+          -0.33388471603393555,
+          -0.6156717538833618,
+          1.1111085414886475
+        ]
+      },
+      "triangles": 2427,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_5",
+      "materialName": "Glass_tinted",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2475382089614868,
+          -0.7068239450454712,
+          0.9867795705795288
+        ],
+        "max": [
+          -0.3693239092826843,
+          -0.5380615592002869,
+          1.4042121171951294
+        ]
+      },
+      "triangles": 231,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_6",
+      "materialName": "Icons",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.6676108837127686,
+          -0.6195195913314819,
+          0.7791815996170044
+        ],
+        "max": [
+          -0.6572052836418152,
+          -0.6071015000343323,
+          0.7797796726226807
+        ]
+      },
+      "triangles": 4,
+      "textureBytes": 976662
+    },
+    {
+      "name": "Mesh224",
+      "materialName": "Car_paint",
+      "color": [
+        0.347242931982469,
+        0.39578024327404393,
+        0.4070543522159759
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.291006088256836,
+          0.5068820714950562,
+          0.2805819809436798
+        ],
+        "max": [
+          -0.2964426279067993,
+          0.7953587770462036,
+          1.4030046463012695
+        ]
+      },
+      "triangles": 5208,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_1",
+      "materialName": "Paint_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0764374732971191,
+          0.5737592577934265,
+          0.6273054480552673
+        ],
+        "max": [
+          -0.5393009781837463,
+          0.7208736538887024,
+          0.7766264081001282
+        ]
+      },
+      "triangles": 1178,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2626498937606812,
+          0.5357245802879333,
+          0.3639666736125946
+        ],
+        "max": [
+          -0.33132123947143555,
+          0.7151665091514587,
+          1.4116066694259644
+        ]
+      },
+      "triangles": 3470,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_3",
+      "materialName": "Plastic_leather",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2241506576538086,
+          0.5718682408332825,
+          0.34699222445487976
+        ],
+        "max": [
+          -0.3890589773654938,
+          0.7106600403785706,
+          1.0851120948791504
+        ]
+      },
+      "triangles": 2386,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_4",
+      "materialName": "Aluminium_brushed",
+      "color": [
+        0.7297400528407231,
+        0.7297400528407231,
+        0.7297400528407231
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2606806755065918,
+          0.615671694278717,
+          0.7134959101676941
+        ],
+        "max": [
+          -0.33388471603393555,
+          0.7183796763420105,
+          1.1111085414886475
+        ]
+      },
+      "triangles": 2425,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_5",
+      "materialName": "Glass_tinted",
+      "color": [
+        0.055,
+        0.075,
+        0.09
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": false,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2475382089614868,
+          0.5380615592002869,
+          0.9867795705795288
+        ],
+        "max": [
+          -0.3693239092826843,
+          0.7061198949813843,
+          1.4042121171951294
+        ]
+      },
+      "triangles": 254,
+      "textureBytes": 0
+    },
+    {
+      "name": "Ext_Picanto_GT_Line_plasticshiny__plates002",
+      "materialName": "Plate edenauto",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.7884132862091064,
+          -0.229679137468338,
+          0.4469972848892212
+        ],
+        "max": [
+          -1.7701382637023926,
+          0.229679137468338,
+          0.546131432056427
+        ]
+      },
+      "triangles": 113,
+      "textureBytes": 48242
+    }
+  ],
+  "sourceBounds": {
+    "min": [
+      -0.9507062435150146,
+      -0.0021469425410032272,
+      -1.9478996992111206
+    ],
+    "max": [
+      0.9511741399765015,
+      1.5018346309661865,
+      1.649783730506897
+    ]
+  },
+  "sourceTriangles": 440803
+}

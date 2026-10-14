@@ -1,0 +1,152 @@
+{
+  "acquired": "2026-10-14",
+  "license": "Manufacturer copyright; no open-source or redistribution license claimed. Public configurator assets retrieved through ordinary published URLs for the user-authorized local simulator. Not obtained from authenticated, paywalled, or game-ripped sources.",
+  "sourcePages": {
+    "g80": "https://www.genesisinteractive.ca/en/visualizer/my26/g80/25t-advanced-awd",
+    "ioniq5": "https://www.hyundai.com/au/en/cars/eco/ioniq5",
+    "santafe": "https://www.hyundai.com/au/en/cars/suvs/santa-fe",
+    "staria": "https://www.hyundai.com/au/en/cars/people-movers-and-commercial/staria"
+  },
+  "files": [
+    {
+      "model": "g80",
+      "name": "config.json",
+      "url": "https://playcanv.as/apps/3d65a2f0/config.json",
+      "bytes": 1112078,
+      "sha256": "bf95cd0ad9a91106b82bbe4682704bfb7391668d332fbd44ed342066e88f2a4b"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Body_Paint_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670023/1/G80_25T_Body_Paint_Draco.glb",
+      "bytes": 13863736,
+      "sha256": "151652c2c5b6b0ffbfd446f92286c3a955ffd113ed3489daebd023627e805b9e"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Body_Trims_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670051/1/G80_25T_Body_Trims_Draco.glb",
+      "bytes": 6005428,
+      "sha256": "8a5fa7481d2a3d7f55636cf58c0f0df04fc0025b0f017f626120de5f12db0d23"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Dummy_Int_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291669877/1/G80_25T_Dummy_Int_Draco.glb",
+      "bytes": 3684184,
+      "sha256": "80266f4904624120693c18419b850b029b26ad8860c2aafb0ad0b8eabcfa6cab"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Glasses_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670029/1/G80_25T_Glasses_Draco.glb",
+      "bytes": 830276,
+      "sha256": "54e7836572871ce9662af3370dfaf20c4e2915c3cdf7c31bf67b4c7e4d7daa3f"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Lights_Front_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670031/1/G80_25T_Lights_Front_Draco.glb",
+      "bytes": 2369368,
+      "sha256": "293b64018db06d9cabaf911ac955f514757f33a5862e20431408e2ba91d0b511"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Lights_Front_Glass.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670022/1/G80_25T_Lights_Front_Glass.glb",
+      "bytes": 1152540,
+      "sha256": "8cc85b456c398ce67371d2a14c99f89a9cfe41b31d91fcb2a83b8772505f3fc7"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Lights_Rear_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670036/1/G80_25T_Lights_Rear_Draco.glb",
+      "bytes": 1666356,
+      "sha256": "b68f571460d47c1c72f0168cfc754d3b95c4365c861ec5485cece2f88d423cdf"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Lights_Rear_Glass.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670045/1/G80_25T_Lights_Rear_Glass.glb",
+      "bytes": 1420580,
+      "sha256": "621a9f081bcb990d12207c78afb814636aaa3546d8689f03dd51cc19d01c1e69"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Logo_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291669869/1/G80_25T_Logo_Draco.glb",
+      "bytes": 715184,
+      "sha256": "352d77bed8e50180f2dc5eda6b306f01340228c9790ac8eb40f942b87dfc98fc"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Tire_Sets_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291670005/1/G80_25T_Tire_Sets_Draco.glb",
+      "bytes": 10709508,
+      "sha256": "292e295155fcedf25f59d9fee77d48eb2695e8c4c15cbb9a76f63597693f8919"
+    },
+    {
+      "model": "g80",
+      "name": "G80_25T_Wipers_Draco.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291669886/1/G80_25T_Wipers_Draco.glb",
+      "bytes": 441588,
+      "sha256": "de0d6323b9cbeb36f2a577ebcf826d0bb49a7c95354e31ab6801a344f3f9da97"
+    },
+    {
+      "model": "g80",
+      "name": "scene.json",
+      "url": "https://playcanv.as/apps/3d65a2f0/2505891.json",
+      "bytes": 116351,
+      "sha256": "c76cbceacc816e9320f90293651678237f898f5cc9f3db7dc597cb7e1b080a1c"
+    },
+    {
+      "model": "ioniq5",
+      "name": "config.json",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/cgi/ioniq5/IONIQ5-2026.json",
+      "bytes": 2439,
+      "sha256": "1c82108fda95c6781b2d7bf42f5fbd9c014ffdc9fa2902185fba1c4d0dc7bee6"
+    },
+    {
+      "model": "ioniq5",
+      "name": "IONIQ5-7.glb",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/cgi/ioniq5/IONIQ5-7.glb",
+      "bytes": 3111644,
+      "sha256": "7f94cf9afa5f361e20ae37cef1d3d5d53b146b49ef983665c3b83bf555f1cc69"
+    },
+    {
+      "model": "santafe",
+      "name": "config.json",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/cgi/santa-fe-my26/spinner/santa-fe-ice-2.json",
+      "bytes": 2039,
+      "sha256": "16e7da93cdfccfb3587807c09026e738324d25e4b5df346e0680630159aa8b14"
+    },
+    {
+      "model": "santafe",
+      "name": "SantaFe-2.glb",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/cgi/santa-fe-my26/spinner/SantaFe-2.glb",
+      "bytes": 5385460,
+      "sha256": "8b3587025a9bd163293dda5835472e68fda71b0970db7318badd74445d4c09d7"
+    },
+    {
+      "model": "staria",
+      "name": "config.json",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/models/staria/cgi/staria-20260615.json",
+      "bytes": 3524,
+      "sha256": "8bc854f8ea5424c3d7d3a0fb65e6803933c22d1ebb49e8b71677d79eadf23879"
+    },
+    {
+      "model": "staria",
+      "name": "STARIA_SPINNER_06122026.glb",
+      "url": "https://www.hyundai.com/content/dam/hyundai/au/en/models/staria/cgi/STARIA_SPINNER_06122026.glb",
+      "bytes": 6812416,
+      "sha256": "f51db2840e02f01dd2f28301a661c83780c9bc753abe43ad0eed833157b589c3"
+    },
+    {
+      "model": "g80",
+      "name": "logos.glb",
+      "url": "https://playcanv.as/apps/3d65a2f0/files/assets/291671657/1/logos.glb",
+      "bytes": 107756,
+      "sha256": "7077e2992401e303b535585fb8dcf1ef183044b1232f81f5135a45fba0001e76"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+(async () => {
+'use strict';
+await window.ManufacturerModels?.load('g80');
+const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=RaceCircuits,canvas=$('canvas');
+let population=[],race,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='',autoDelay=0;
+const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
+const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','top'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
+const currentCircuit=()=>circuits.find(c=>c.id===$('circuit').value)||circuits[0];
+const watching=()=>race.cars.find(c=>c.id===watch)||race.cars[0];
+const tell=text=>{$('message').textContent=text;};
+const fTime=value=>{if(!Number.isFinite(value)||value<=0)return '—';const ms=Math.round(value*1000);return String(Math.floor(ms/60000)).padStart(2,'0')+':'+String(Math.floor(ms/1000)%60).padStart(2,'0')+'.'+String(ms%1000).padStart(3,'0');};
+const seedValue=()=>{const v=Math.round(Number($('seed').value));return Number.isFinite(v)?Math.max(1,Math.min(2147483646,v)):31415;};
+$('vehicle-source').before(document.querySelector('.slope-readout'));
+for(const [label,list] of [
+ ['국내 · 자동차 경주장',circuits.filter(c=>c.countryCode==='KR'&&c.category!=='드라이빙 체험'&&c.category!=='운영 확인 필요')],
+ ['국내 · 드라이빙 체험',circuits.filter(c=>c.countryCode==='KR'&&c.category==='드라이빙 체험')],
+ ['국내 · 운영 확인 필요',circuits.filter(c=>c.countryCode==='KR'&&c.category==='운영 확인 필요')],
+ ['해외 · 그랑프리 서킷',circuits.filter(c=>c.countryCode!=='KR')]
+]){const group=document.createElement('optgroup');group.label=label;list.forEach(c=>group.append(new Option(c.name+' · '+(c.lengthM/1000).toFixed(3)+' km',c.id)));if(list.length)$('circuit').append(group);}
+$('circuit').value='everland';
+$('circuit-quick').replaceChildren(...[...$('circuit').children].map(g=>g.cloneNode(true)));
+vehicles.forEach(v=>$('vehicle-model').append(new Option(v.name,v.id)));$('vehicle-model').value='g80';
+function experiment(note){
+ generation=1;history=[];$('seed').value=seedValue();
+ population=E.createPopulation({vehicleId:$('vehicle-model').value,count:Number($('population-size').value),seed:seedValue(),budget:Number($('budget').value)});
+ prepareRace(note||'한 차종의 출고 사양과 튜닝을 추첨했습니다. 레이스 또는 빠른 평가로 첫 세대를 비교하세요.');
+}
+function prepareRace(note,keepWatch=false){
+ running=false;fast=false;recorded=false;lastFrame=null;lastUI=-1;autoDelay=0;
+ population=population.map((p,i)=>({...p,color:palette[i%palette.length]}));
+ race=new TrackRace({circuit:currentCircuit(),entrants:population,laps:Number($('laps').value),surface:$('surface').value});
+ if(!keepWatch||!race.cars.some(c=>c.id===watch))watch=race.cars[0].id;
+ inspectorKey='';imageId='';renderer.setRace(race);renderer.setView(camera);
+ const c=currentCircuit();$('circuit-quick').value=c.id;$('circuit-title').textContent=c.name;
+ $('circuit-subtitle').textContent=c.country+' / '+c.nameEn+' / 지도 '+(c.lengthM/1000).toFixed(3)+' km';
+ $('circuit-description').textContent=[c.description,c.sourceNote].filter(Boolean).join(' ');
+ $('map-source').href=c.sourceUrl;$('map-source').textContent=c.attribution||c.source;
+ $('map-license').href=c.licenseUrl||(c.countryCode==='KR'?'data/LICENSE.ODbL-1.0.txt':'data/LICENSE.f1-circuits.txt');
+ $('map-license').textContent=c.license||(c.countryCode==='KR'?'ODbL 1.0':'MIT');
+ $('standings').replaceChildren();
+ for(const car of race.cars){
+  const row=document.createElement('tr');row.dataset.car=car.id;
+  const td=document.createElement('td'),button=document.createElement('button');button.type='button';button.dataset.watch=car.id;
+  button.innerHTML='<span class="rank"></span><span class="car-dot"></span><span class="driver-name"></span><span class="car-race-number"></span>';
+  button.querySelector('.car-dot').style.background=car.color;button.querySelector('.driver-name').textContent=car.entrant.variantLabel;
+  button.querySelector('.car-race-number').textContent='#'+String(car.index+1).padStart(2,'0');
+  button.setAttribute('aria-label',String(car.index+1)+'번 '+car.entrant.variantLabel+' 관찰');
+  button.addEventListener('click',()=>selectCar(car.id));td.append(button);row.append(td);
+  for(let i=0;i<4;i++)row.append(document.createElement('td'));$('standings').append(row);
+ }
+ updateElevation();updateUI();draw();if(note)tell(note);
+ const modelId=race.cars[0]?.vehicleId,currentRace=race;
+ if(!ManufacturerModels.has(modelId)&&ManufacturerModels.canLoad(modelId)){
+  ManufacturerModels.load(modelId).then(loaded=>{if(race===currentRace){if(loaded)renderer.clearVehicleModels();draw();}});draw();
+ }
+}
+function selectCar(id){watch=id;inspectorKey='';updateUI();draw();}
+function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const text=renderer.getModelInfo().label;if($('exterior-source').textContent!==text)$('exterior-source').textContent=text;}}
+function setCamera(mode){camera=mode;renderer.setView(mode);['overview','follow','top'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===mode)));draw();}
+function updateElevation(){
+ const t=race.track,points=t.racingLine?.points||t.points;$('elevation-plot').hidden=!t.hasElevation;
+ if(!t.hasElevation){$('elevation-range').textContent='고도 데이터 없음';return;}
+ const low=t.elevationMin,high=t.elevationMax,range=Math.max(2,high-low);
+ const coords=[...points,points[0]].map((p,i)=>(i/points.length*1000).toFixed(2)+','+(82-(p.z-low)/range*74).toFixed(2)),line='M'+coords.join(' L');
+ $('elevation-line').setAttribute('d',line);$('elevation-area').setAttribute('d',line+' L1000,90 L0,90 Z');
+ $('elevation-range').textContent=low.toFixed(0)+'–'+high.toFixed(0)+' m';$('elevation-gain').textContent='누적 상승 '+t.elevationGainM.toFixed(0)+' m';
+ $('elevation-distance').textContent='주행선 '+(t.length/1000).toFixed(3)+' km';
+ $('elevation-note').innerHTML='<a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM · Open-Meteo · 90 m 해상도</a> · 거리 기준 평활화. 실제 노면·교량 높이와 다를 수 있습니다.';
+}
+function updateTuning(car){
+ const p=car.entrant,spec=car.spec,key=p.uid+':'+generation+':'+JSON.stringify(p.levels);if(inspectorKey===key)return;inspectorKey=key;
+ const q=E.quote({vehicleId:p.vehicleId,variantId:p.variantId,levels:p.levels,budget:p.budget});
+ $('tuning-generation').textContent=generation+'세대';$('budget-used').textContent=q.cost+' / '+p.budget+' 크레딧';
+ $('credit-summary').textContent='사양 보정 전용 예산 · '+E.CATEGORIES.map(c=>c.label+' '+(q.credits[c.id]||0)).join(' / ');
+ $('tuning-controls').replaceChildren();
+ E.CATEGORIES.forEach(category=>{
+  const id=category.id,row=document.createElement('div');row.className='tune-row';
+  const label=document.createElement('label');label.className='tune-label';label.htmlFor='tune-'+id;
+  const title=document.createElement('span');title.textContent=category.label;const select=document.createElement('select');select.id='tune-'+id;
+  for(let level=0;level<=q.maxLevels[id];level++){
+   const n=E.quote({vehicleId:p.vehicleId,variantId:p.variantId,levels:{...p.levels,[id]:level},budget:p.budget});
+   const option=new Option(level+'단계 · '+n.costByCategory[id]+' P',String(level));option.disabled=!n.valid;select.append(option);
+  }
+  select.value=p.levels[id];select.addEventListener('change',()=>editTuning(car.id,id,Number(select.value)));
+  label.append(title,select);row.append(label);const meter=document.createElement('div');meter.className='tune-meter';
+  for(let i=0;i<q.maxLevels[id];i++){const pip=document.createElement('i');if(i<p.levels[id])pip.className='active';meter.append(pip);}row.append(meter);
+  const note=document.createElement('small');note.textContent='비용 '+q.costByCategory[id]+' · 보정 사용 '+(q.creditUsed[id]||0)+' / '+(q.credits[id]||0)+' · 최대 '+q.maxLevels[id]+'단계';row.append(note);$('tuning-controls').append(row);
+ });
+ const factory=p.factorySpec||p.baseSpec||{},dist=spec.frontWeightFraction??.5;
+ const traits=[['엔진 / 모터',spec.engine||p.engine||p.variantLabel],['배기량',spec.displacementCc?spec.displacementCc.toLocaleString('ko-KR')+' cc':'전기 모터'],['앞 : 뒤 무게배분',Math.round(dist*100)+' : '+Math.round((1-dist)*100)+' (모형)'],['무게중심 높이',((spec.cgHeightM??.55)*100).toFixed(0)+' cm (모형)'],['출고 → 현재 출력',Math.round(factory.powerPs||p.factoryPowerPs||spec.powerPs)+' → '+Math.round(car.powerPs)+' PS'],['최고속도 한계',(car.theoreticalTopSpeed*3.6).toFixed(0)+' km/h (모형)'],['튜닝 단계',E.CATEGORIES.map(c=>p.levels[c.id]).join(' / ')],['보존 / 변이',({initial:'초기 추첨',elite:'최고 세팅 보존',offspring:'교배 · 돌연변이',immigrant:'새 사양 유입'}[p.lineage?.kind] || '직접 튜닝')]];
+ $('vehicle-traits').replaceChildren();traits.forEach(([k,v])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=k;dd.textContent=v;$('vehicle-traits').append(dt,dd);});
+}
+function editTuning(carId,id,level){
+ const index=race.cars.findIndex(c=>c.id===carId),old=population[index],levels={...old.levels,[id]:level};
+ const q=E.quote({vehicleId:old.vehicleId,variantId:old.variantId,levels,budget:old.budget});
+ if(!q.valid){inspectorKey='';updateUI();tell('예산 또는 이 사양의 최대 단계를 넘습니다.');return;}
+ population[index]=E.createEntrant({...old,levels,generation:1,lineage:{kind:'manual',parents:[]}});generation=1;history=[];
+ prepareRace('선택 차량의 튜닝을 적용했습니다. 현재 구성을 기준으로 새 진화 실험을 시작합니다.',true);
+}
+function historyUI(){
+ $('generation-stat').textContent=generation;$('make-summary').textContent=vehicles.find(v=>v.id===$('vehicle-model').value).name+' · '+population.length+'대';
+ const valid=history.filter(h=>Number.isFinite(h.best)),champion=valid.reduce((a,b)=>!a||b.best<a.best?b:a,null);
+ $('champion-time').textContent=champion?fTime(champion.best):'—';
+ $('improvement-stat').textContent=champion&&valid[0]?((valid[0].best-champion.best)/valid[0].best*100).toFixed(2)+'%':'—';
+ document.querySelector('.history-chart').classList.toggle('has-history',valid.length>0);
+ if(valid.length){
+  const min=Math.min(...valid.map(h=>h.best)),max=Math.max(...valid.map(h=>h.best)),range=Math.max(.5,max-min);
+  const coords=valid.map((h,i)=>(10+i/Math.max(1,valid.length-1)*780).toFixed(2)+','+(8+(h.best-min)/range*48).toFixed(2));
+  $('history-path').setAttribute('d','M'+coords.join(' L')+(valid.length===1?' l12,0':''));
+  $('history-caption').textContent='1–'+history.at(-1).generation+'세대 · 전체 평가 거리 완주 시간 · 최고 '+champion.generation+'세대 / '+champion.variantLabel+' / 단계 '+E.CATEGORIES.map(c=>champion.levels[c.id]).join('·');
+ }else{$('history-path').setAttribute('d','');$('history-caption').textContent=history.length?'완주 기록이 없습니다. 다음 세대에서 세팅을 다시 탐색합니다.':'첫 세대를 평가하면 기록 변화가 나타납니다.';}
+}
+function finishGeneration(){
+ if(recorded||!race.finished)return;recorded=true;fast=false;running=false;
+ const best=race.standings().find(c=>c.finished),record={generation,best:best?.finishTime??null,variantLabel:best?.entrant.variantLabel||'',levels:{...best?.entrant.levels},uid:best?.entrant.uid,finishers:race.cars.filter(c=>c.finished).length};
+ const index=history.findIndex(h=>h.generation===generation);if(index<0)history.push(record);else history[index]=record;autoDelay=1;
+ tell(best?generation+'세대 평가 완료 · #'+(best.index+1)+' '+best.entrant.variantLabel+' · '+fTime(best.finishTime)+' — 우수 세팅을 보존하고 다음 세대를 만들 수 있습니다.':'이번 세대는 완주 차량이 없습니다. 주행 거리를 기준으로 다음 세대를 선발합니다.');
+}
+function nextGeneration(auto=false){
+ if(!race.finished)return;finishGeneration();
+ const next=E.breed(population,race.standings(),{seed:(seedValue()+Math.imul(generation+1,104729))>>>0,generation:generation+1});generation++;population=next;
+ prepareRace(generation+'세대 · 우수 세팅 보존 + 교배·돌연변이로 새 튜닝을 만들었습니다.');
+ if(auto){running=true;updateUI();}
+}
+function updateUI(){
+ if(!race)return;const order=race.standings(),car=watching(),leader=order[0],spec=car.spec,p=car.entrant;
+ $('start').textContent=race.finished?'↺ 같은 세대 재주행':running?'Ⅱ 일시정지':race.time>0?'▶ 계속 달리기':'▶ 레이스 시작';
+ $('start').setAttribute('aria-pressed',String(running));$('step').disabled=race.finished;$('evaluate').disabled=race.finished||fast;$('evaluate').textContent=fast?'평가 중…':'이번 세대 빠른 평가';
+ $('next-generation').disabled=!race.finished;$('race-status').textContent=race.finished?'세대 평가 완료':fast?'빠른 평가 중':running?'● 레이스 진행 중':race.time>0?'일시정지':'출발 준비';
+ $('time-stat').textContent=race.time>0?fTime(race.time):'00:00.000';$('lap-stat').textContent=Math.min(race.laps,leader.lap+1)+' / '+race.laps;
+ $('best-stat').textContent=fTime(Math.min(...race.cars.map(c=>c.bestLap||Infinity)));$('finish-stat').textContent=race.cars.filter(c=>c.finished).length+' / '+race.cars.length;
+ const focus=$('standings').contains(document.activeElement)?document.activeElement:null;
+ order.forEach((c,i)=>{const row=$('standings').querySelector('[data-car="'+c.id+'"]');row.classList.toggle('selected',c.id===car.id);row.querySelector('button').setAttribute('aria-pressed',String(c.id===car.id));row.querySelector('.rank').textContent=i+1;row.children[1].textContent=(c.speed*3.6).toFixed(0)+' km/h';row.children[2].textContent=c.dnf?'중단':c.finished?'완주':Math.min(race.laps,c.lap+1)+' / '+race.laps;row.children[3].textContent=fTime(c.bestLap);row.children[4].textContent=c.dnf?c.distance.toFixed(0)+' m':c.finished?fTime(c.finishTime):i===0?'LEADER':'+'+Math.max(0,leader.distance-c.distance).toFixed(0)+' m';if($('standings').children[i]!==row)$('standings').insertBefore(row,$('standings').children[i]||null);});
+ if(focus&&document.activeElement!==focus)focus.focus({preventScroll:true});
+ $('watch-number').textContent=String(car.index+1).padStart(2,'0');$('watch-name').textContent=vehicles.find(v=>v.id===car.vehicleId).name;$('drive-stat').textContent={fwd:'전륜',rwd:'후륜',awd:'사륜'}[spec.factoryDrive]||spec.factoryDrive;
+ $('trim-stat').textContent=p.variantLabel;$('velocity-stat').textContent=(car.speed*3.6).toFixed(0);
+ const phase=car.dnf?'dnf':car.finished?'finished':race.time===0?'ready':car.phase;
+ $('phase-stat').textContent={ready:'출발 준비',finished:'완주',dnf:'주행 중단',accelerating:'가속 중',braking:'감속 중',cornering:'코너링',cruising:'속도 유지'}[phase]||'주행 중';$('phase-stat').dataset.phase=phase;
+ $('car-progress').style.width=(car.finished?100:(car.distance%race.track.length)/race.track.length*100)+'%';$('power-stat').textContent=Math.round(car.powerPs)+' PS';$('mass-stat').textContent=Math.round(car.massKg).toLocaleString('ko-KR')+' kg';$('torque-stat').textContent=Math.round(car.torqueNm)+' Nm';$('last-lap-stat').textContent=fTime(car.lapTimes.at(-1));
+ const pos=race.sample(car.distance);$('elevation-stat').textContent=pos.elevation==null?'—':pos.elevation.toFixed(1)+' m';$('grade-stat').textContent=race.track.hasElevation?(pos.grade>=0?'+':'−')+Math.abs(pos.grade*100).toFixed(1)+'%':'—';
+ const cursor=car.finished?1000:(car.distance%race.track.length)/race.track.length*1000;$('elevation-cursor').setAttribute('x1',cursor);$('elevation-cursor').setAttribute('x2',cursor);
+ $('vehicle-source').href=spec.sourceUrl||VehicleSpecs[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
+ if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId],[x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
+ updateTuning(car);historyUI();
+}
+function simulate(seconds){let remaining=seconds;while(remaining>1e-7&&!race.finished){const step=Math.min(remaining,1);race.step(step);remaining-=step;}if(race.finished)finishGeneration();}
+function toggle(){fast=false;if(race.finished)prepareRace('같은 세대와 같은 튜닝으로 다시 달립니다.',true);running=!running;lastFrame=null;autoDelay=0;updateUI();}
+function frame(timestamp){
+ const before=race.time;
+ const delta=lastFrame===null?0:Math.min((timestamp-lastFrame)/1000,.1);lastFrame=timestamp;
+ if(!manual){if(fast)simulate(12);else if(running)simulate(delta*Number($('speed').value));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=delta;if(autoDelay<=0)nextGeneration(true);}}
+ if(Math.abs(lastUI-race.time)>.12||race.finished&&lastUI!==race.time){updateUI();lastUI=race.time;}
+ const cameraMoved=renderer.advanceCamera(delta,{watch,snap:fast||manual});
+ if(running||fast||before!==race.time||cameraMoved)draw();requestAnimationFrame(frame);
+}
+async function fullscreen(){
+ try{if(document.fullscreenElement)await document.exitFullscreen();else if($('stage').classList.contains('fullscreen-fallback'))$('stage').classList.remove('fullscreen-fallback');else if($('stage').requestFullscreen)await $('stage').requestFullscreen();else $('stage').classList.add('fullscreen-fallback');}catch(_){$('stage').classList.toggle('fullscreen-fallback');}renderer.resize();draw();
+}
+$('start').addEventListener('click',toggle);
+$('step').addEventListener('click',()=>{running=false;fast=false;autoDelay=0;simulate(1);renderer.advanceCamera(0,{watch,snap:true});updateUI();draw();});
+$('reset').addEventListener('click',()=>prepareRace('같은 세대의 출고 사양과 튜닝으로 다시 배치했습니다.',true));
+$('evaluate').addEventListener('click',()=>{if(race.finished)return;running=false;fast=true;lastFrame=null;updateUI();});
+$('next-generation').addEventListener('click',()=>nextGeneration(false));$('auto-evolve').addEventListener('change',()=>{if($('auto-evolve').checked&&race.finished)autoDelay=1;});
+for(const id of ['vehicle-model','population-size','budget','seed','circuit','laps','surface'])$(id).addEventListener('change',()=>experiment('조건을 바꾸어 1세대부터 새 실험을 시작합니다.'));
+$('circuit-quick').addEventListener('change',()=>{$('circuit').value=$('circuit-quick').value;experiment('서킷을 바꾸어 새 실험을 시작합니다.');});
+$('reroll').addEventListener('click',()=>{$('seed').value=(seedValue()+104729)%2147483646||1;experiment('새 시드로 출고 사양과 튜닝 조합을 추첨했습니다.');});
+$('speed').addEventListener('change',()=>{lastFrame=null;});
+['overview','follow','top'].forEach(id=>$(id).addEventListener('click',()=>setCamera(id)));
+$('zoom-in').addEventListener('click',()=>{renderer.zoom(1.4);draw();});$('zoom-out').addEventListener('click',()=>{renderer.zoom(1/1.4);draw();});
+$('orbit-mode').addEventListener('click',()=>renderer.setInteractionMode('orbit'));
+$('pan-mode').addEventListener('click',()=>renderer.setInteractionMode('pan'));
+$('recenter').addEventListener('click',()=>renderer.recenter());
+$('show-line').addEventListener('change',draw);$('fullscreen').addEventListener('click',fullscreen);
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&document.fullscreenElement){event.preventDefault();document.exitFullscreen().catch(()=>{});}
+ if(event.key==='Escape'&&$('stage').classList.contains('fullscreen-fallback')){$('stage').classList.remove('fullscreen-fallback');renderer.resize();draw();}
+ if(event.target.closest('input,select,textarea,button,a,summary,[contenteditable]')||event.ctrlKey||event.metaKey||event.altKey)return;
+ if(event.code==='Space'){event.preventDefault();toggle();}if(event.key.toLowerCase()==='f'){event.preventDefault();fullscreen();}
+ if(document.activeElement===canvas&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();const dx=event.key==='ArrowLeft'?-25:event.key==='ArrowRight'?25:0,dy=event.key==='ArrowUp'?-18:event.key==='ArrowDown'?18:0;if(event.shiftKey||renderer.getState().interactionMode==='pan')renderer.pan(dx,dy);else renderer.orbit(dx,dy);draw();}
+});
+document.addEventListener('fullscreenchange',()=>{renderer.resize();draw();});document.addEventListener('visibilitychange',()=>{lastFrame=null;});new ResizeObserver(()=>{renderer.resize();draw();}).observe($('stage'));
+window.advanceTime=milliseconds=>{
+ manual=true;let seconds=Math.max(0,Math.min(Number(milliseconds)||0,3600000))/1000;
+ while(seconds>1e-7){const chunk=Math.min(seconds,.25);if(fast||running)simulate(chunk*(fast?256:Number($('speed').value)));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=chunk;if(autoDelay<=0)nextGeneration(true);}else break;seconds-=chunk;}
+ renderer.advanceCamera(0,{watch,snap:true});updateUI();draw();
+};
+window.render_game_to_text=()=>JSON.stringify({
+ mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
+ coordinateSystem:'3D local metres: x east, y south, elevation AMSL. One shared computed racing line; no lateral lanes. Independent ghost races.',
+ circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
+ cars:race.standings().map((c,i)=>{const p=race.sample(c.distance),e=c.entrant;return{id:c.id,uid:e.uid,vehicleId:c.vehicleId,variantId:e.variantId,variantLabel:e.variantLabel,position:i+1,levels:e.levels,credits:e.credits,cost:e.cost,budget:e.budget,maxLevels:e.maxLevels,massKg:c.massKg,powerPs:c.powerPs,drive:c.spec.factoryDrive,frontWeightFraction:c.spec.frontWeightFraction,x:+p.x.toFixed(2),y:+p.y.toFixed(2),elevationM:p.elevation,grade:p.grade,distanceM:+c.distance.toFixed(2),speedKmh:+(c.speed*3.6).toFixed(1),bestLap:c.bestLap,finished:c.finished,finishTime:c.finishTime,dnf:c.dnf};})
+});
+experiment();renderer.resize();draw();requestAnimationFrame(frame);
+})();

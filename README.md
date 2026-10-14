@@ -1,6 +1,6 @@
 # WebSim
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 27개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 28개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
@@ -24,6 +24,7 @@
 ## 패턴과 성장
 
 - [진화하는 탈것](evolving_vehicles/evolving_vehicles.html) — 코스를 달리는 탈것을 선발하고, 다음 세대의 모양과 주행을 비교합니다. · [사용법](evolving_vehicles/evolving_vehicles_doc.html)
+- [진화하는 탈것 2](evolving_vehicles_2/evolving_vehicles_2.html) — 실제 서킷의 3D 지도와 레이싱 라인에서 원메이크 레이스를 열고, 사양별 예산 안에서 튜닝을 세대별로 진화시킵니다. · [사용법](evolving_vehicles_2/evolving_vehicles_2_doc.html)
 - [생명 게임](conway-game-of-life/conway-game-of-life.html) — 격자 이웃 규칙이 만드는 세대별 무늬 · [사용법](conway-game-of-life/conway-game-of-life_doc.html) · [관련 글](https://prozac0401.tistory.com/16)
 - [랭턴의 개미](langtons_ant_simulator/langtons_ant_simulator.html) — 두 가지 이동 규칙과 반복 무늬 · [사용법](langtons_ant_simulator/langtons_ant_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/35)
 - [울람 나선과 소수](ulam_spiral/ulam_spiral.html) — 숫자 나선에 나타나는 소수 위치 · [사용법](ulam_spiral/ulam_spiral_doc.html) · [관련 글](https://prozac0401.tistory.com/48)
@@ -57,6 +58,10 @@ DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simula
 실험 화면은 조작, 관찰 지표, 규칙 설명을 가까이 배치한 반응형 실험실입니다. 실행·멈춤·단일 단계로 변화를 비교하고, 설명서에서 원 논문·저자 자료와 이 구현의 가정을 확인하세요. 시간·거리·양분 등의 단위, 경계 조건, 수치 근사, 지표의 정의를 함께 밝혔습니다. 주말 플래너의 점수는 설정한 가정 안에서 계획을 비교하는 지수입니다.
 
 새 실험의 파동 간섭·측정 조건·차량 주행·유전 보존·시드 재현성은 `node --test tests/new-labs.test.cjs`로 검사할 수 있습니다. 새 실험은 별도 빌드나 외부 CDN 없이 실행되며, 탈것의 Matter.js 0.20.0과 MIT 라이선스는 해당 폴더의 `vendor/`에 포함되어 있습니다.
+
+진화하는 탈것 2는 한 차종의 출고 사양과 튜닝을 비교하는 별도 원메이크 진화 실험입니다. 13개 차체의 31개 확인된 출고 조합에서 엔진·배기량·구동계·중량을 추첨하고, 가속·최고속도·브레이크·다운포스와 그립의 비용 단계 및 사양별 보정 예산으로 세대를 진화시킵니다. 최고 세팅을 보존하고 교배·돌연변이·새 후보로 탐색하며, 고정 시드로 재현할 수 있습니다. [사양과 튜닝 규칙](evolving_vehicles_2/VARIANTS.md)에 제조사 출처와 무게배분·공력 등 추정값을 구분했습니다.
+
+국내 7개 시설의 8개 코스(용인·인제·영암 GP/상설·태백·BMW·HMG·포천)와 해외 3개 코스(몬차·실버스톤·스파)를 포함합니다. 실제 지도는 OSM(ODbL)·f1-circuits(MIT), 고도는 Open-Meteo/Copernicus GLO-90입니다. 회전·확대할 수 있는 3D 도로와 차종별 외형 모형을 표시하고, 도로 폭 안에서 계산한 하나의 레이싱 라인을 모든 차량이 따릅니다. 원본 좌표·고도·라이선스는 [서킷 데이터 안내](evolving_vehicles_2/SOURCES.md)에 있습니다. 90m 지표면 고도를 평활화하며 노면 실측·교량 높이·공식 레코드 라인을 재현하지는 않습니다. `node --test evolving_vehicles_2/race-engine.test.cjs evolving_vehicles_2/tuning-evolution.test.cjs evolving_vehicles_2/data/circuit-data.test.cjs`로 물리·경로·예산·세대 진화를 검증합니다. 충돌 없는 고스트 레이스이며 실제 경기 기록을 예측하지 않습니다.
 
 그림자 투영·최소 블록, 회전 구조의 연결·변형, 시간차 촬영·사진 비교 검증은 `node --test shadow_sculpture/shadow-engine.test.cjs auxetic_workshop/auxetic-engine.test.cjs rolling_shutter/shutter-engine.test.cjs`로 실행합니다. 세 실험은 외부 라이브러리나 빌드 없이 동작합니다.
 

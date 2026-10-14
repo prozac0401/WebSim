@@ -1,0 +1,86 @@
+{
+  "options": [
+    {
+      "name": "IONIQ 5",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "IONIQ 5"
+      },
+      "visibleObjs": [
+        "ExteriorBaseModel",
+        "STOCK_BODYKIT",
+        "STOCK_LIGHTS",
+        "STOCK_MIRROR",
+        "STOCK_ROOF",
+        "STOCK_WHEELS",
+        "STOCK_INTERIOR",
+        "RearDirectionalLight",
+        "LeftAngledLight",
+        "RightAngledLight",
+        "FrontDirectionalLight"
+      ]
+    },
+    {
+      "name": "EPIQ N LINE",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "IONIQ 5 Premium N Line"
+      },
+      "visibleObjs": [
+        "ExteriorBaseModel",
+        "VARIANTGROUP_NLINE_BODYKIT",
+        "STOCK_LIGHTS",
+        "VARIANTGROUP_PREMIUM_MIRROR",
+        "VARIANTGROUP_PREMIUM_ROOF",
+        "VARIANTGROUP_NLINE_WHEEL",
+        "STOCK_INTERIOR",
+        "RearDirectionalLight",
+        "LeftAngledLight",
+        "RightAngledLight",
+        "FrontDirectionalLight",
+        "VARIANTGROUP_PREMIUM_GLASS"
+      ]
+    },
+    {
+      "name": "DYNAMIQ",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "IONIQ 5 Elite"
+      },
+      "visibleObjs": [
+        "ExteriorBaseModel",
+        "STOCK_BODYKIT",
+        "STOCK_LIGHTS",
+        "STOCK_MIRROR",
+        "STOCK_ROOF",
+        "VARIANTGROUP_PREMIUM_WHEEL",
+        "STOCK_INTERIOR",
+        "RearDirectionalLight",
+        "LeftAngledLight",
+        "RightAngledLight",
+        "FrontDirectionalLight"
+      ]
+    }
+  ],
+  "objectNames": {
+    "stockBodyKit": "STOCK_Bodykit",
+    "ExteriorBaseModel": "ExteriorBaseModel",
+    "STOCK_BODYKIT": "STOCK_BODYKIT",
+    "STOCK_LIGHTS": "STOCK_LIGHTS",
+    "STOCK_MIRROR": "STOCK_MIRROR",
+    "STOCK_ROOF": "STOCK_ROOF",
+    "STOCK_WHEELS": "STOCK_WHEELS",
+    "STOCK_INTERIOR": "STOCK_INTERIOR",
+    "VARIANTGROUP_NLINE_BODYKIT": "VARIANTGROUP_NLINE_BODYKIT",
+    "VARIANTGROUP_PREMIUM_MIRROR": "VARIANTGROUP_PREMIUM_MIRROR",
+    "VARIANTGROUP_PREMIUM_ROOF": "VARIANTGROUP_PREMIUM_ROOF",
+    "VARIANTGROUP_NLINE_WHEEL": "VARIANTGROUP_NLINE_WHEEL",
+    "VARIANTGROUP_DSM_MIRROR": "VARIANTGROUP_DSM_MIRROR",
+    "VARIANTGROUP_PREMIUM_WHEEL": "VARIANTGROUP_PREMIUM_WHEEL",
+    "VARIANTGROUP_PREMIUM_GLASS": "VARIANTGROUP_PREMIUM_GLASS",
+    "RearDirectionalLight": "Point001",
+    "LeftAngledLight": "Point004",
+    "RightAngledLight": "Point005",
+    "FrontDirectionalLight": "Point006"
+  }
+}

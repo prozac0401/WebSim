@@ -1,0 +1,29 @@
+{
+  "id": "torres",
+  "vertices": 81866,
+  "triangles": 158548,
+  "bounds": {
+    "min": [
+      -2.4331617755329757,
+      -1.043587908980295,
+      -0.003416184913428326
+    ],
+    "max": [
+      2.28990079495446,
+      1.0279600890176812,
+      1.7356661996364597
+    ]
+  },
+  "source": {
+    "kind": "photo-reconstruction",
+    "label": "공식 360도 사진 재구성 · 실루엣 메시",
+    "url": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+    "calibrationRmsPixels": 1.922044271283485,
+    "frameCount": 36,
+    "configuration": "Korea Torres J100 petrol, Latte Greige exterior; 36 calibrated official views. Smooth roof/hood, hidden underbody and pickup bed inferred; visual trim and wheels may differ from randomly sampled powertrain. Not manufacturer CAD.",
+    "limitations": "Calibrated photographic visual hull, not manufacturer CAD. Unseen roof/underbody and pickup bed inferred. Photo trim can differ from race powertrain."
+  },
+  "stepMeters": 0.022,
+  "textureBytes": 6654064,
+  "runtimeBytes": 9744980
+}

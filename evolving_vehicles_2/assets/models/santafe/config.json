@@ -1,0 +1,91 @@
+{
+  "lightPositions": [
+    {
+      "x": "-10",
+      "y": "1",
+      "z": "0",
+      "intensity": "1"
+    },
+    {
+      "x": "10",
+      "y": "1",
+      "z": "0",
+      "intensity": "1"
+    },
+    {
+      "x": "0",
+      "y": "1",
+      "z": "10",
+      "intensity": "1"
+    },
+    {
+      "x": "0",
+      "y": "1",
+      "z": "-10",
+      "intensity": "1"
+    }
+  ],
+  "options": [
+    {
+      "name": "SANTA FE",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "SANTA FE"
+      },
+      "visibleObjs": [
+        "STOCK_BODY",
+        "VARIANTGROUP_BASE",
+        "EXHAUST_PIPE",
+		"CALLIGRAPHY_SEATS_7"
+      ]
+    },
+    {
+      "name": "SANTA FE Elite",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "SANTA FE Elite"
+      },
+      "visibleObjs": [
+        "STOCK_BODY",
+        "VARIANTGROUP_ELITE",
+        "EXHAUST_PIPE",
+		"CALLIGRAPHY_SEATS_7"
+      ]
+    },
+    {
+      "name": "SANTA FE Calligraphy (7 Seat)",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "santa fe calligraphy - 7 seat"
+      },
+      "visibleObjs": [
+        "STOCK_BODY",
+        "VARIANTGROUP_CALLIGRAPHY",
+        "EXHAUST_PIPE",
+        "CALLIGRAPHY_SEATS_7"
+      ]
+    },
+    {
+      "name": "SANTA FE Calligraphy (6 Seat)",
+      "conditions": {
+        "optionPackToggle": false,
+        "variant": "SANTA FE Calligraphy – 6 Seat"
+      },
+      "visibleObjs": [
+        "STOCK_BODY",
+        "VARIANTGROUP_CALLIGRAPHY",
+        "EXHAUST_PIPE",
+        "CALLIGRAPHY_SEATS_6"
+      ]
+    }
+  ],
+  "objectNames": {
+    "STOCK_BODY": "STOCK_MX5HEV_Base",
+    "VARIANTGROUP_BASE": "VARIANTGROUP_MX5_HHW7L9G1MDD522",
+    "VARIANTGROUP_CALLIGRAPHY": "VARIANTGROUP_MX5_Calligraphy_ALL",
+    "VARIANTGROUP_ELITE": "VARIANTGROUP_MX5_Elite_HHW7L9G1NGG0FQ",
+    "EXHAUST_PIPE": "Object143001",
+    "CALLIGRAPHY_SEATS_6": "VARIANTGROUP_MX5HEV_Calligraphy_6seats_HKW6D5G1GEV1GG02",
+    "CALLIGRAPHY_SEATS_7": "VARIANTGROUP_MX5HEV_Calligraphy_7Seats_HKW7D5G1GEV1GG02"
+  }
+}

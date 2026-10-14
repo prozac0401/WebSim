@@ -1,0 +1,1158 @@
+{
+  "id": "ioniq5",
+  "source": {
+    "kind": "manufacturer-mesh",
+    "label": "Hyundai IONIQ 5 · 공식 3D 외관",
+    "url": "https://www.hyundai.com/au/en/cars/eco/ioniq5",
+    "configuration": "Official 2026 IONIQ 5 stock exterior; excludes N-Line/premium alternative parts."
+  },
+  "bounds": {
+    "min": [
+      -2.328886032104492,
+      -1.063050627708435,
+      0.0029554397333413363
+    ],
+    "max": [
+      2.326265335083008,
+      1.063050627708435,
+      1.638833999633789
+    ]
+  },
+  "triangles": 69110,
+  "primitives": [
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.327080249786377,
+          -0.9378679990768433,
+          0.3535962998867035
+        ],
+        "max": [
+          2.2496795654296875,
+          0.9377411603927612,
+          1.5629615783691406
+        ]
+      },
+      "triangles": 2876,
+      "name": "ExteriorBaseModel",
+      "materialName": "AtlasWhiteMatte",
+      "color": [
+        0.8429420113806525,
+        0.8469433926862064,
+        0.8509432947425813
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2221133708953857,
+          -0.9358242154121399,
+          0.19800765812397003
+        ],
+        "max": [
+          2.2001163959503174,
+          0.9298998713493347,
+          1.4834133386611938
+        ]
+      },
+      "triangles": 808,
+      "name": "ExteriorBaseModel",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2891199588775635,
+          -0.9155643582344055,
+          0.0029554397333413363
+        ],
+        "max": [
+          1.8250877857208252,
+          0.9349666237831116,
+          1.0214155912399292
+        ]
+      },
+      "triangles": 1908,
+      "name": "ExteriorBaseModel",
+      "materialName": "BLACKSEMIGLOSS_ATLAS",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3285133838653564,
+          -0.8350285887718201,
+          0.806270182132721
+        ],
+        "max": [
+          1.9112809896469116,
+          0.8206478953361511,
+          0.9156048893928528
+        ]
+      },
+      "triangles": 198,
+      "name": "ExteriorBaseModel",
+      "materialName": "CHROME_ATLAS",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8532274961471558,
+          -0.8391163945198059,
+          0.6360425353050232
+        ],
+        "max": [
+          2.3122966289520264,
+          0.83732670545578,
+          1.4816054105758667
+        ]
+      },
+      "triangles": 112,
+      "name": "ExteriorBaseModel",
+      "materialName": "CLEARGLASS",
+      "color": [
+        0.9707069250948994,
+        0.9637232846100434,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.24350646138191223,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8463205099105835,
+          -0.39756712317466736,
+          1.4624747037887573
+        ],
+        "max": [
+          -1.8037580251693726,
+          0.3975664973258972,
+          1.481584072113037
+        ]
+      },
+      "triangles": 20,
+      "name": "ExteriorBaseModel",
+      "materialName": "REDREFLECTOR",
+      "color": [
+        0.5529173755372249,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1344549655914307,
+          -0.8256286382675171,
+          1.0145366191864014
+        ],
+        "max": [
+          1.3256076574325562,
+          0.8272924423217773,
+          1.4875465631484985
+        ]
+      },
+      "triangles": 357,
+      "name": "ExteriorBaseModel",
+      "materialName": "WINDOW2",
+      "color": [
+        0.055,
+        0.075,
+        0.085
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3285131454467773,
+          -0.9243287444114685,
+          0.3162689507007599
+        ],
+        "max": [
+          2.306227922439575,
+          0.9243343472480774,
+          1.638833999633789
+        ]
+      },
+      "triangles": 3205,
+      "name": "ExteriorBaseModel",
+      "materialName": "BLACKGLOSS",
+      "color": [
+        0.10816630789566153,
+        0.10816667121049749,
+        0.10816664983907709
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.8061522245407104,
+          -0.8901839256286621,
+          0.7070044875144958
+        ],
+        "max": [
+          2.018895149230957,
+          0.88837069272995,
+          0.824977695941925
+        ]
+      },
+      "triangles": 42,
+      "name": "ExteriorBaseModel",
+      "materialName": "CHROME_TRIM",
+      "color": [
+        0.8344828451225419,
+        0.8344825084895844,
+        0.8344825084895844
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.1381890773773193,
+          -0.10047073662281036,
+          0.820229172706604
+        ],
+        "max": [
+          2.217517375946045,
+          0.0882667601108551,
+          0.8715066909790039
+        ]
+      },
+      "triangles": 1960,
+      "name": "ExteriorBaseModel",
+      "materialName": "Chrome",
+      "color": [
+        0.9313777509311701,
+        0.9313777509311701,
+        0.9313777509311701
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.236469268798828,
+          -0.9299410581588745,
+          0.3449179530143738
+        ],
+        "max": [
+          2.3123655319213867,
+          0.9243677854537964,
+          0.8916666507720947
+        ]
+      },
+      "triangles": 439,
+      "name": "STOCK_BODYKIT",
+      "materialName": "AtlasWhiteMatte",
+      "color": [
+        0.8429420113806525,
+        0.8469433926862064,
+        0.8509432947425813
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3260254859924316,
+          -0.9407599568367004,
+          0.3123655319213867
+        ],
+        "max": [
+          2.314026355743408,
+          0.9408090710639954,
+          0.7321285009384155
+        ]
+      },
+      "triangles": 3908,
+      "name": "STOCK_BODYKIT",
+      "materialName": "BLACKGLOSS",
+      "color": [
+        0.10816630789566153,
+        0.10816667121049749,
+        0.10816664983907709
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.299757957458496,
+          -0.9057080149650574,
+          0.5171270370483398
+        ],
+        "max": [
+          2.3224267959594727,
+          0.9009889960289001,
+          0.8286581635475159
+        ]
+      },
+      "triangles": 490,
+      "name": "STOCK_BODYKIT",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.309370994567871,
+          -0.8343632817268372,
+          0.2063838541507721
+        ],
+        "max": [
+          2.316967010498047,
+          0.8343939185142517,
+          0.7378109693527222
+        ]
+      },
+      "triangles": 364,
+      "name": "STOCK_BODYKIT",
+      "materialName": "BLACKSEMIGLOSS",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.865328073501587,
+          -0.9377195239067078,
+          0.5610160827636719
+        ],
+        "max": [
+          1.8928041458129883,
+          0.9321160912513733,
+          0.5881498456001282
+        ]
+      },
+      "triangles": 27,
+      "name": "STOCK_BODYKIT",
+      "materialName": "CHROME_ATLAS",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.9456207752227783,
+          -0.8422948122024536,
+          0.6357978582382202
+        ],
+        "max": [
+          2.312392234802246,
+          0.8366914987564087,
+          0.7384815216064453
+        ]
+      },
+      "triangles": 150,
+      "name": "STOCK_BODYKIT",
+      "materialName": "CLEARGLASS",
+      "color": [
+        0.9707069250948994,
+        0.9637232846100434,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.24350646138191223,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.306516647338867,
+          -0.5972248315811157,
+          0.4267212152481079
+        ],
+        "max": [
+          -2.2661197185516357,
+          0.5974583625793457,
+          0.45031043887138367
+        ]
+      },
+      "triangles": 57,
+      "name": "STOCK_BODYKIT",
+      "materialName": "REDREFLECTOR",
+      "color": [
+        0.5529173755372249,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.3076343536376953,
+          -0.24778762459754944,
+          0.48877137899398804
+        ],
+        "max": [
+          2.3173141479492188,
+          0.2747288644313812,
+          0.670494794845581
+        ]
+      },
+      "triangles": 21,
+      "name": "STOCK_BODYKIT",
+      "materialName": "WHITEATLAS",
+      "color": [
+        0.9484044657601527,
+        0.9484044657601527,
+        0.9484044657601527
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.9857254028320312,
+          -0.8266394138336182,
+          0.6480857133865356
+        ],
+        "max": [
+          2.3021275997161865,
+          0.8266394138336182,
+          0.7300496101379395
+        ]
+      },
+      "triangles": 8848,
+      "name": "STOCK_BODYKIT",
+      "materialName": "LED",
+      "color": [
+        0.953237536073009,
+        0.953237536073009,
+        0.953237536073009
+      ],
+      "material": 4,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.328886032104492,
+          -0.951162576675415,
+          0.20480036735534668
+        ],
+        "max": [
+          2.326265335083008,
+          0.9455490112304688,
+          0.8912137746810913
+        ]
+      },
+      "triangles": 4327,
+      "name": "STOCK_BODYKIT",
+      "materialName": "CHROME_TRIM",
+      "color": [
+        0.8344828451225419,
+        0.8344825084895844,
+        0.8344825084895844
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          2.1902806758880615,
+          -0.7061106562614441,
+          0.5069643259048462
+        ],
+        "max": [
+          2.284062385559082,
+          0.7061106562614441,
+          0.567625105381012
+        ]
+      },
+      "triangles": 228,
+      "name": "STOCK_BODYKIT",
+      "materialName": "Blackbody",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.100402593612671,
+          -0.8309563398361206,
+          0.3613276481628418
+        ],
+        "max": [
+          1.2308673858642578,
+          0.8309427499771118,
+          1.52420973777771
+        ]
+      },
+      "triangles": 8326,
+      "name": "STOCK_INTERIOR",
+      "materialName": "Interior",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.876068353652954,
+          0.652580201625824,
+          0.7386455535888672
+        ],
+        "max": [
+          1.8859634399414062,
+          0.8347867131233215,
+          0.8062900304794312
+        ]
+      },
+      "triangles": 9,
+      "name": "STOCK_LIGHTS",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2884926795959473,
+          -0.871336817741394,
+          0.691168487071991
+        ],
+        "max": [
+          2.252845048904419,
+          0.8713283538818359,
+          1.0100704431533813
+        ]
+      },
+      "triangles": 1662,
+      "name": "STOCK_LIGHTS",
+      "materialName": "BLACKGLOSS_ATLAS",
+      "color": [
+        0.10816630789566153,
+        0.10816667121049749,
+        0.10816664983907709
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.8801603317260742,
+          -0.8350285887718201,
+          0.6912744641304016
+        ],
+        "max": [
+          2.2457973957061768,
+          0.834682047367096,
+          0.8062828779220581
+        ]
+      },
+      "triangles": 1886,
+      "name": "STOCK_LIGHTS",
+      "materialName": "CHROME_ATLAS",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.293595552444458,
+          -0.8697627782821655,
+          0.7064170241355896
+        ],
+        "max": [
+          2.2286863327026367,
+          0.8697993755340576,
+          1.016390085220337
+        ]
+      },
+      "triangles": 4024,
+      "name": "STOCK_LIGHTS",
+      "materialName": "CLEARGLASS",
+      "color": [
+        0.9707069250948994,
+        0.9637232846100434,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.24350646138191223,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.288510799407959,
+          -0.8350363373756409,
+          0.7274124622344971
+        ],
+        "max": [
+          2.148228406906128,
+          0.8350622653961182,
+          0.9919175505638123
+        ]
+      },
+      "triangles": 3339,
+      "name": "STOCK_LIGHTS",
+      "materialName": "REFRACT",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.274294137954712,
+          -0.7566874623298645,
+          0.9331129789352417
+        ],
+        "max": [
+          -2.1114661693573,
+          0.7567029595375061,
+          0.9917227029800415
+        ]
+      },
+      "triangles": 980,
+      "name": "STOCK_LIGHTS",
+      "materialName": "CHROMEDARK",
+      "color": [
+        0.4359857349878259,
+        0.4359857349878259,
+        0.4359857349878259
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2878661155700684,
+          -0.39256593585014343,
+          0.933203399181366
+        ],
+        "max": [
+          -2.2476634979248047,
+          0.3924974799156189,
+          0.9920217990875244
+        ]
+      },
+      "triangles": 3941,
+      "name": "STOCK_LIGHTS",
+      "materialName": "ChromeLight",
+      "color": [
+        0.46503784615014376,
+        0.46503784615014376,
+        0.46503784615014376
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.2962350845336914,
+          -0.15196558833122253,
+          0.9476850032806396
+        ],
+        "max": [
+          -2.2875595092773438,
+          0.15469397604465485,
+          0.9792096018791199
+        ]
+      },
+      "triangles": 741,
+      "name": "STOCK_LIGHTS",
+      "materialName": "WHITEATLAS",
+      "color": [
+        0.9484044657601527,
+        0.9484044657601527,
+        0.9484044657601527
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5241782665252686,
+          -1.0620975494384766,
+          1.0987811088562012
+        ],
+        "max": [
+          0.6892136931419373,
+          1.0622272491455078,
+          1.1112617254257202
+        ]
+      },
+      "triangles": 30,
+      "name": "STOCK_MIRROR",
+      "materialName": "CLEARGLASS",
+      "color": [
+        0.9707069250948994,
+        0.9637232846100434,
+        1
+      ],
+      "material": 1,
+      "paint": false,
+      "alpha": 0.24350646138191223,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5222150683403015,
+          -1.063050627708435,
+          1.053107500076294
+        ],
+        "max": [
+          0.9041574001312256,
+          1.063050627708435,
+          1.2403315305709839
+        ]
+      },
+      "triangles": 766,
+      "name": "STOCK_MIRROR",
+      "materialName": "BLACKGLOSS_ATLAS",
+      "color": [
+        0.10816630789566153,
+        0.10816667121049749,
+        0.10816664983907709
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5393826961517334,
+          -1.0417314767837524,
+          1.063359260559082
+        ],
+        "max": [
+          0.6726152300834656,
+          1.041731595993042,
+          1.2040905952453613
+        ]
+      },
+      "triangles": 54,
+      "name": "STOCK_MIRROR",
+      "materialName": "CHROME_ATLAS",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5428293943405151,
+          -1.0592116117477417,
+          1.1019482612609863
+        ],
+        "max": [
+          0.6797584295272827,
+          1.0592116117477417,
+          1.108445644378662
+        ]
+      },
+      "triangles": 272,
+      "name": "STOCK_MIRROR",
+      "materialName": "WHITEATLAS",
+      "color": [
+        0.9484044657601527,
+        0.9484044657601527,
+        0.9484044657601527
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5220376253128052,
+          -1.0626906156539917,
+          1.0556620359420776
+        ],
+        "max": [
+          0.7772870063781738,
+          1.0626906156539917,
+          1.2141307592391968
+        ]
+      },
+      "triangles": 474,
+      "name": "STOCK_MIRROR",
+      "materialName": "AtlasWhite",
+      "color": [
+        0.8410157432459751,
+        0.848171001990728,
+        0.8513460020066927
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.36856186389923096,
+          -0.7700416445732117,
+          0.9809300899505615
+        ],
+        "max": [
+          0.61651211977005,
+          0.7700416445732117,
+          1.076458215713501
+        ]
+      },
+      "triangles": 16,
+      "name": "STOCK_MIRROR",
+      "materialName": "Interior",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3140462636947632,
+          -0.634266197681427,
+          1.4476854801177979
+        ],
+        "max": [
+          0.4208378493785858,
+          0.6342759728431702,
+          1.6028945446014404
+        ]
+      },
+      "triangles": 240,
+      "name": "STOCK_ROOF",
+      "materialName": "ShootingStarGray",
+      "color": [
+        0.27341264205464694,
+        0.27251571820259274,
+        0.2706101904862325
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.3061403036117554,
+          -0.6395898461341858,
+          1.453057050704956
+        ],
+        "max": [
+          0.3489697277545929,
+          0.6395941376686096,
+          1.5654433965682983
+        ]
+      },
+      "triangles": 226,
+      "name": "STOCK_ROOF",
+      "materialName": "BLACKSEMIGLOSS_ATLAS",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.9930696487426758,
+          -0.4263864755630493,
+          1.4889309406280518
+        ],
+        "max": [
+          0.10120999813079834,
+          0.4263785481452942,
+          1.5242130756378174
+        ]
+      },
+      "triangles": 52,
+      "name": "STOCK_ROOF",
+      "materialName": "Interior",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.803378939628601,
+          -0.9113516211509705,
+          0.10929670929908752
+        ],
+        "max": [
+          1.7197123765945435,
+          0.9312501549720764,
+          0.6317353844642639
+        ]
+      },
+      "triangles": 8486,
+      "name": "STOCK_WHEELS",
+      "materialName": "BLACKGLOSS",
+      "color": [
+        0.10816630789566153,
+        0.10816667121049749,
+        0.10816664983907709
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8016514778137207,
+          -0.9115404486656189,
+          0.11147807538509369
+        ],
+        "max": [
+          1.717976450920105,
+          0.9314354658126831,
+          0.6223747730255127
+        ]
+      },
+      "triangles": 2419,
+      "name": "STOCK_WHEELS",
+      "materialName": "CHROME",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": 3,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    },
+    {
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8033467531204224,
+          -0.9045381546020508,
+          0.10930107533931732
+        ],
+        "max": [
+          1.7191985845565796,
+          0.9244397282600403,
+          0.6317386031150818
+        ]
+      },
+      "triangles": 822,
+      "name": "STOCK_WHEELS",
+      "materialName": "BLACKBODY",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureBytes": 0
+    }
+  ]
+}

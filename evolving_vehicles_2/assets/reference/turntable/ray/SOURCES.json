@@ -1,0 +1,150 @@
+{
+  "id": "ray",
+  "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+  "records": [
+    {
+      "frame": 1,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_01.png",
+      "sha256": "d6617b19654772b7e995cb2aa4254b549f70a4eaa732078a3bfd5b3ec4de9fa0",
+      "bytes": 174389
+    },
+    {
+      "frame": 4,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_04.png",
+      "sha256": "4172abce68f45f731cf8d86f91fe97882cd3ab03ab5941bfad80fffad064a593",
+      "bytes": 176266
+    },
+    {
+      "frame": 7,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_07.png",
+      "sha256": "166d2823f3ced684d6ff2613a350af17ff36468e1e15f81e70515e33b80e4163",
+      "bytes": 174065
+    },
+    {
+      "frame": 10,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_10.png",
+      "sha256": "81205ac244e16f6f6ea038c446e94531b97fa58a0baba0de2d6bb23a062832a9",
+      "bytes": 171246
+    },
+    {
+      "frame": 13,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_13.png",
+      "sha256": "624bd81bbe3c8ee22279afac725b276fc5435bdd9a5e5c08bc778ecbc9e4ad2d",
+      "bytes": 155279
+    },
+    {
+      "frame": 16,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_16.png",
+      "sha256": "fb996f56ca6bac1c21e84f206ae009e470ef169cf5ba1dbc3b10e0fb5f637c58",
+      "bytes": 125365
+    },
+    {
+      "frame": 19,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_19.png",
+      "sha256": "4f25c39034e009e699af903b5d99f3a57908e36907842181a81d3da29d63d139",
+      "bytes": 94857
+    },
+    {
+      "frame": 22,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_22.png",
+      "sha256": "c8f336e864268ca23d091b1daa062525f8179da3d26838d50489eed21eec6f51",
+      "bytes": 117355
+    },
+    {
+      "frame": 25,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_25.png",
+      "sha256": "a77e1bf77fa2a4cbf66ac1729db88e357ea2761883903235569f16775d25774b",
+      "bytes": 148629
+    },
+    {
+      "frame": 28,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_28.png",
+      "sha256": "130d3534455e8ec9201a882472d28d607b3de14fbc169c3c07901a97b9875b0e",
+      "bytes": 167555
+    },
+    {
+      "frame": 31,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_31.png",
+      "sha256": "f88ae67ea762f9795488b055fa82b6cc9e0e36de362f67f7c9280fc4feb5c84c",
+      "bytes": 166844
+    },
+    {
+      "frame": 34,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_34.png",
+      "sha256": "89db02a1a184cae4a6c86ea5f0b8eb07398e4c6a01b7d30e67cdfc75a34a6cf1",
+      "bytes": 178505
+    },
+    {
+      "frame": 37,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_37.png",
+      "sha256": "62d557aac558b13c3d42c8a0731ea548bbad83fcc3651ce41755f9b5c91638fd",
+      "bytes": 172947
+    },
+    {
+      "frame": 40,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_40.png",
+      "sha256": "5837b1731568d6815467fc75e9b12ad1ee433db2e8ebd3a598d9417bce5feb20",
+      "bytes": 179583
+    },
+    {
+      "frame": 43,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_43.png",
+      "sha256": "d4caca790d688d7fef0a10d5adf29b72898e4551823a57549909f4bfb5113f52",
+      "bytes": 180747
+    },
+    {
+      "frame": 46,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_46.png",
+      "sha256": "1181e1c2bc9ab1d91dbc587ad677d68bb5e7be4c5cf746ee3b0df3b4e3f8ce43",
+      "bytes": 170210
+    },
+    {
+      "frame": 49,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_49.png",
+      "sha256": "67050464fb7d9e5e752ea2acc4b676c23e8cdcb4b24988b44b99679e3cd942ab",
+      "bytes": 154905
+    },
+    {
+      "frame": 52,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_52.png",
+      "sha256": "0c97c5ed116dd7f92b3fd950216fff86fc7b17ec3da81a83a778a6d9ecfca20e",
+      "bytes": 133070
+    },
+    {
+      "frame": 55,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_55.png",
+      "sha256": "56e04cb3806c33cbed9c52246045e3234d74c4b45a3a509b3f6102ea7ae439d3",
+      "bytes": 99386
+    },
+    {
+      "frame": 58,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_58.png",
+      "sha256": "b53afb677eefcd824def1c5ec414e34af9733154613fbc62a5db9422b1faa9f6",
+      "bytes": 123724
+    },
+    {
+      "frame": 61,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_61.png",
+      "sha256": "2bc71c00a846f0d0e5b3e39b5ddcb2de85eb1f5d2d2e09f19b3b454c501f23cd",
+      "bytes": 147705
+    },
+    {
+      "frame": 64,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_64.png",
+      "sha256": "9dc29088ff574ca1f35db7c453c1970a0941523992981d62e632a0624493813b",
+      "bytes": 166890
+    },
+    {
+      "frame": 67,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_67.png",
+      "sha256": "7a877d441ae8c6de5673da71cec66f38d2a845eb60fc85923ec9f2572b400c7a",
+      "bytes": 174914
+    },
+    {
+      "frame": 70,
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_70.png",
+      "sha256": "a61fb1b92150b13cf266a76a0ca89527b9458d6af9493063ce7b0acacf42f514",
+      "bytes": 175538
+    }
+  ]
+}

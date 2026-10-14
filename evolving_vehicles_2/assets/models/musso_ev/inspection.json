@@ -1,0 +1,29 @@
+{
+  "id": "musso_ev",
+  "vertices": 96752,
+  "triangles": 188170,
+  "bounds": {
+    "min": [
+      -2.675872084088168,
+      -1.084111755293188,
+      0.001221237494106294
+    ],
+    "max": [
+      2.512753840137817,
+      1.0737742216108013,
+      1.7584443972579873
+    ]
+  },
+  "source": {
+    "kind": "photo-reconstruction",
+    "label": "공식 360도 사진 재구성 · 실루엣 메시",
+    "url": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+    "calibrationRmsPixels": 1.064331735869666,
+    "frameCount": 36,
+    "configuration": "Korea Musso EV O100 electric pickup, Ultra Marine exterior; 36 calibrated official views. Smooth roof/hood, hidden underbody and pickup bed inferred; visual trim and wheels may differ from randomly sampled powertrain. Not manufacturer CAD.",
+    "limitations": "Calibrated photographic visual hull, not manufacturer CAD. Unseen roof/underbody and pickup bed inferred. Photo trim can differ from race powertrain."
+  },
+  "stepMeters": 0.022,
+  "textureBytes": 7697120,
+  "runtimeBytes": 10915184
+}

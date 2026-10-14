@@ -1,0 +1,129 @@
+{
+  "sourceImages": [
+    "pip-porter2-24my-specifications-front-w.jpg",
+    "pip-porter2-24my-specifications-side-w.jpg",
+    "pip-porter2-24my-specifications-back-w.jpg"
+  ],
+  "sourceManifest": "../../reference/porter-refinement/SOURCES.json",
+  "dimensionsMm": {
+    "lengthMm": 5155,
+    "widthMm": 1740,
+    "heightMm": 1970,
+    "wheelbaseMm": 2640,
+    "frontTireRadiusMm": 327,
+    "rearTireRadiusMm": 281.3
+  },
+  "side": {
+    "imageSize": [
+      760,
+      520
+    ],
+    "frontWheelCenter": [
+      212,
+      309.4
+    ],
+    "rearWheelCenter": [
+      540,
+      315
+    ],
+    "groundY": 350,
+    "pixelsPerMetre": 124.24242424242424,
+    "centerX": 378.1667
+  },
+  "front": {
+    "imageSize": [
+      760,
+      520
+    ],
+    "centerX": 378.5,
+    "groundY": 356,
+    "horizontalPixelsPerMetre": 160.5,
+    "verticalPixelsPerMetre": 155.84,
+    "windshieldObservedPixels": [
+      [
+        260,
+        153
+      ],
+      [
+        500,
+        153
+      ],
+      [
+        481,
+        65
+      ],
+      [
+        278,
+        65
+      ]
+    ],
+    "lampObservedPixels": [
+      [
+        241,
+        250
+      ],
+      [
+        294,
+        250
+      ],
+      [
+        281,
+        205
+      ],
+      [
+        250,
+        193
+      ]
+    ]
+  },
+  "sideOutlinePixels": [
+    [
+      69,
+      300
+    ],
+    [
+      84,
+      213
+    ],
+    [
+      113,
+      193
+    ],
+    [
+      161,
+      151
+    ],
+    [
+      199,
+      123
+    ],
+    [
+      224,
+      115
+    ],
+    [
+      270,
+      112
+    ],
+    [
+      299,
+      117
+    ],
+    [
+      318,
+      137
+    ],
+    [
+      328,
+      292
+    ]
+  ],
+  "method": "Manual dimension-photo landmarks; body loft interpolated in height with a rounded frontal/door transition. Orthographic photographic UV calibration; front image has separate horizontal and vertical calibration to retain its published proportions.",
+  "source": {
+    "kind": "photo-reference",
+    "label": "현대 공식 도면·사진 기반 정밀 제작",
+    "url": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+    "configuration": "Korea Porter II LPG extra-long super cab, 5155 mm with bumper guard, 2640 mm wheelbase, 1740 × 1970 mm; 2860 × 1630 × 355 mm drop-side bed. Official photographic white trim; simulated engines may differ.",
+    "limitations": "Independently authored curved mesh measured from official dimension drawings, with calibrated front/side/rear photo UVs. Not manufacturer CAD, scan or multi-view photogrammetry. Roof, unseen underbody and cargo interior are inferred; opposite side reuses the available side reference."
+  }
+}
