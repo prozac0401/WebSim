@@ -11,12 +11,6 @@
   const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
   const copy = value => JSON.parse(JSON.stringify(value));
   const COLORS = ['#21654f', '#c58042', '#597bac', '#ad6675', '#7b7d43', '#765a97', '#399197', '#986c50'];
-  const GENES = {
-    width: [80, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
-    rearRadius: [6, 15], frontRadius: [6, 15], wheelBase: [0.56, 0.75], axleY: [0.30, 0.42],
-    motorSpeed: [0.22, 0.38], motorTorque: [0.10, 0.32],
-    bodyStyle: [0, 5.999999], powertrainPosition: [-0.38, 0.38], drivetrain: [0, 2.999999]
-  };
   const DRIVETRAINS = [
     { id: 'fwd', label: '전륜', shares: [0, 1] },
     { id: 'rwd', label: '후륜', shares: [1, 0] },
@@ -30,8 +24,20 @@
     { id: 'staria', label: '현대 스타리아', points: [[-.5,.16],[-.5,-.57],[-.481,-.72],[-.423,-.79],[.025,-.81],[.16,-.75],[.275,-.57],[.385,-.32],[.472,-.07],[.5,.09],[.5,.16],[.38,.35],[-.38,.35]] },
     { id: 'musso_ev', label: 'KGM 무쏘 EV', points: [[-.5,.16],[-.5,-.36],[-.191,-.36],[-.188,-.70],[-.143,-.79],[.11,-.79],[.25,-.27],[.463,-.245],[.5,-.125],[.5,.16],[.38,.35],[-.38,.35]] },
     { id: 'ioniq5', label: '현대 아이오닉 5', points: [[-.5,.16],[-.5,-.16],[-.442,-.28],[-.337,-.76],[-.284,-.81],[.105,-.79],[.285,-.28],[.463,-.24],[.5,-.105],[.5,.16],[.38,.35],[-.38,.35]] },
-    { id: 'santafe', label: '현대 싼타페', points: [[-.5,.16],[-.5,-.67],[-.463,-.79],[.13,-.79],[.273,-.29],[.463,-.255],[.5,-.13],[.5,.16],[.38,.35],[-.38,.35]] }
+    { id: 'santafe', label: '현대 싼타페', points: [[-.5,.16],[-.5,-.67],[-.463,-.79],[.13,-.79],[.273,-.29],[.463,-.255],[.5,-.13],[.5,.16],[.38,.35],[-.38,.35]] },
+    { id: 'morning', label: '기아 모닝', points: [[-.5,.18],[-.5,-.04],[-.472,-.285],[-.372,-.716],[-.29,-.79],[-.03,-.82],[.105,-.76],[.296,-.28],[.442,-.18],[.5,-.015],[.5,.18],[.37,.35],[-.37,.35]] },
+    { id: 'k5', label: '기아 K5', points: [[-.5,.17],[-.5,-.165],[-.468,-.28],[-.398,-.275],[-.24,-.65],[-.12,-.80],[.006,-.80],[.105,-.682],[.251,-.292],[.434,-.23],[.5,-.065],[.5,.17],[.365,.35],[-.365,.35]] },
+    { id: 'grandeur', label: '현대 그랜저', points: [[-.5,.16],[-.5,-.19],[-.451,-.282],[-.33,-.327],[-.204,-.701],[-.115,-.78],[.062,-.79],[.142,-.661],[.255,-.292],[.442,-.243],[.5,-.11],[.5,.16],[.37,.35],[-.37,.35]] },
+    { id: 'carnival', label: '기아 카니발', points: [[-.5,.16],[-.5,-.51],[-.437,-.755],[-.372,-.805],[.03,-.803],[.134,-.692],[.289,-.298],[.445,-.26],[.5,-.12],[.5,.16],[.37,.35],[-.37,.35]] },
+    { id: 'g80', label: '제네시스 G80', points: [[-.5,.16],[-.5,-.168],[-.474,-.267],[-.37,-.38],[-.244,-.63],[-.10,-.798],[.021,-.81],[.112,-.695],[.26,-.295],[.403,-.255],[.471,-.18],[.5,-.055],[.5,.16],[.37,.35],[-.37,.35]] },
+    { id: 'torres', label: 'KGM 토레스', points: [[-.5,.17],[-.5,-.16],[-.475,-.35],[-.371,-.735],[-.321,-.785],[.086,-.785],[.157,-.675],[.286,-.32],[.447,-.283],[.5,-.125],[.5,.17],[.37,.35],[-.37,.35]] }
   ];
+  const GENES = {
+    width: [80, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
+    rearRadius: [6, 15], frontRadius: [6, 15], wheelBase: [0.56, 0.75], axleY: [0.30, 0.42],
+    motorSpeed: [0.22, 0.38], motorTorque: [0.10, 0.32],
+    bodyStyle: [0, STYLES.length - 1e-6], powertrainPosition: [-0.38, 0.38], drivetrain: [0, 2.999999]
+  };
   // Korean-market reference silhouettes, at roughly 0.023 world units per mm
   // of length. Height is a body scale: roof-to-axle height plus tire radius gives
   // the total vehicle height. These shape envelopes apply to every generation;
@@ -42,7 +48,13 @@
     { width: [118,124], heightRatio: [.258,.279], wheelRatio: [.070,.078], wheelBase: [.610,.636] },
     { width: [116,122], heightRatio: [.220,.240], wheelRatio: [.071,.081], wheelBase: [.596,.625] },
     { width: [103,111], heightRatio: [.220,.240], wheelRatio: [.077,.087], wheelBase: [.630,.659] },
-    { width: [108,116], heightRatio: [.236,.258], wheelRatio: [.076,.086], wheelBase: [.570,.598] }
+    { width: [108,116], heightRatio: [.236,.258], wheelRatio: [.076,.086], wheelBase: [.570,.598] },
+    { width: [80,86], heightRatio: [.276,.295], wheelRatio: [.077,.086], wheelBase: [.655,.681] },
+    { width: [110,117], heightRatio: [.183,.203], wheelRatio: [.068,.078], wheelBase: [.568,.595] },
+    { width: [113,120], heightRatio: [.181,.199], wheelRatio: [.070,.080], wheelBase: [.561,.586] },
+    { width: [115,122], heightRatio: [.228,.247], wheelRatio: [.071,.080], wheelBase: [.586,.612] },
+    { width: [112,120], heightRatio: [.183,.202], wheelRatio: [.069,.079], wheelBase: [.588,.614] },
+    { width: [104,113], heightRatio: [.233,.255], wheelRatio: [.078,.087], wheelBase: [.556,.584] }
   ];
   const SURFACES = {
     asphalt: { id: 'asphalt', label: '포장도로', grip: .95, rollingResistance: .012 },
@@ -99,6 +111,9 @@
       this.surfaceSegments = this.surface === 'mixed'
         ? ['asphalt', 'gravel', 'snow', 'sand'].map((surface, i) => ({ start: i === 0 ? -300 : 140 + i * 615, end: i === 3 ? this.finishX + 360 : 140 + (i + 1) * 615, ...SURFACES[surface] }))
         : [{ start: -300, end: this.finishX + 360, ...SURFACES[this.surface] }];
+      if (Object.prototype.hasOwnProperty.call(config, 'startingStyle')) {
+        this.startingStyle = STYLES.some(style => style.id === config.startingStyle) ? config.startingStyle : null;
+      } else this.startingStyle ??= null;
       this._random = randomGenerator(this.seed);
       this.generation = 1;
       this.history = [];
@@ -151,7 +166,7 @@
       return this.surfaceSegments.find(segment => x < segment.end) || this.surfaceSegments[this.surfaceSegments.length - 1];
     }
     _constrainGenome(genome) {
-      const shape = STARTING_PROPORTIONS[Math.floor(clamp(genome.bodyStyle, 0, 5.999999))];
+      const shape = STARTING_PROPORTIONS[Math.floor(clamp(genome.bodyStyle, 0, STYLES.length - 1e-6))];
       genome.width = clamp(genome.width, ...shape.width);
       genome.height = clamp(genome.height, genome.width * shape.heightRatio[0], genome.width * shape.heightRatio[1]);
       genome.rearRadius = clamp(genome.rearRadius, genome.width * shape.wheelRatio[0], genome.width * shape.wheelRatio[1]);
@@ -171,7 +186,9 @@
     _initialGenomes() {
       const genomes = Array.from({ length: this.population }, () => this._newGenome());
       if (this.initialExperiment === 'evolution') {
-        const firstStyle = Math.floor(genomes[0].bodyStyle), firstDrive = genomes[0].drivetrain;
+        const selectedStyle = STYLES.findIndex(style => style.id === this.startingStyle);
+        const firstStyle = selectedStyle < 0 ? Math.floor(genomes[0].bodyStyle) : selectedStyle;
+        const firstDrive = genomes[0].drivetrain;
         genomes.forEach((genome, i) => {
           genome.bodyStyle = (firstStyle + i) % STYLES.length + genome.bodyStyle % 1;
           genome.drivetrain = (firstDrive + i) % DRIVETRAINS.length;
@@ -201,7 +218,7 @@
     }
     _makeVehicle(genome, index) {
       const w = genome.width, h = genome.height;
-      const style = STYLES[Math.floor(clamp(finite(genome.bodyStyle, 0), 0, 5.999999))];
+      const style = STYLES[Math.floor(clamp(finite(genome.bodyStyle, 0), 0, STYLES.length - 1e-6))];
       const drivetrain = DRIVETRAINS[Math.floor(clamp(finite(genome.drivetrain, 2), 0, 2.999999))];
       const outline = style.points.map(([x, y]) => ({ x: w * (x + (y < -.4 ? (x < 0 ? genome.roofLeft : genome.roofRight) * .35 : 0)), y: h * y }));
       const shellCenter = M.Vertices.centre(outline);
@@ -453,6 +470,7 @@
       return true;
     }
   }
+  EvolutionLab.STYLES = Object.freeze(STYLES.map(({ id, label }) => Object.freeze({ id, label })));
   EvolutionLab.SURFACES = SURFACES;
   EvolutionLab.compareVehicles = compareVehicles;
   root.EvolutionLab = EvolutionLab;

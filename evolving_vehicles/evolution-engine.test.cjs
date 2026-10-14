@@ -20,9 +20,9 @@ function without(genome, gene) {
   const result = { ...genome }; delete result[gene]; return result;
 }
 
-test('six silhouettes have matching collision outlines and preserve space above the pickup deck', () => {
-  const lab = new EvolutionLab({ seed: 42, terrain: 'flat' });
-  assert.equal(new Set(lab.vehicles.map(vehicle => vehicle.design.style)).size, 6);
+test('all twelve silhouettes have matching collision outlines and preserve space above the pickup deck', () => {
+  const lab = new EvolutionLab({ seed: 42, terrain: 'flat', population: 16 });
+  assert.equal(new Set(lab.vehicles.map(vehicle => vehicle.design.style)).size, 12);
   for (const vehicle of lab.vehicles) {
     const outline = vehicle.design.outline.map(point => world(vehicle.body, point));
     const parts = vehicle.body.parts.slice(1);
@@ -52,7 +52,13 @@ test('Korean showroom silhouettes retain reference length, total height and whee
     staria: ['현대 스타리아', 5255, 1990, 3275],
     musso_ev: ['KGM 무쏘 EV', 5160, 1740, 3150],
     ioniq5: ['현대 아이오닉 5', 4655, 1605, 3000],
-    santafe: ['현대 싼타페', 4830, 1720, 2815]
+    santafe: ['현대 싼타페', 4830, 1720, 2815],
+    morning: ['기아 모닝', 3595, 1485, 2400],
+    k5: ['기아 K5', 4905, 1445, 2850],
+    grandeur: ['현대 그랜저', 5050, 1460, 2895],
+    carnival: ['기아 카니발', 5155, 1775, 3090],
+    g80: ['제네시스 G80', 5005, 1465, 3010],
+    torres: ['KGM 토레스', 4705, 1720, 2680]
   };
   const lab = new EvolutionLab({ seed: 42, population: 16 });
   assert.deepEqual([...new Set(lab.vehicles.map(v => v.design.style))].sort(), Object.keys(references).sort());
@@ -66,10 +72,47 @@ test('Korean showroom silhouettes retain reference length, total height and whee
     assert.ok(Math.abs(genome.wheelBase - wheelbase / length) < .025, design.style);
   }
   const ray = lab.vehicles.find(v => v.design.style === 'ray');
-  assert.ok(lab.vehicles.filter(v => v.design.style !== 'ray').every(v => v.genome.width > ray.genome.width + 15));
+  assert.ok(lab.vehicles.filter(v => !['ray', 'morning'].includes(v.design.style)).every(v => v.genome.width > ray.genome.width + 15));
   for (const initialExperiment of ['power', 'balance', 'drive']) {
     const comparison = new EvolutionLab({ initialExperiment });
     assert.ok(comparison.vehicles.every(v => v.design.style === 'ioniq5'));
+  }
+});
+
+
+test('the style catalogue can start a diverse fleet with any chosen model and survives terrain resets', () => {
+  const ids = EvolutionLab.STYLES.map(style => style.id);
+  assert.equal(ids.length, 12);
+  assert.equal(new Set(ids).size, 12);
+  assert.ok(Object.isFrozen(EvolutionLab.STYLES));
+  for (const [start, startingStyle] of ids.entries()) {
+    const lab = new EvolutionLab({ seed: 42, startingStyle });
+    assert.equal(lab.startingStyle, startingStyle);
+    assert.deepEqual(lab.vehicles.map(v => v.design.style), Array.from({ length: 8 }, (_, i) => ids[(start + i) % ids.length]));
+    assert.equal(new Set(lab.vehicles.map(v => v.design.style)).size, 8);
+    const genomes = structuredClone(lab.genomes);
+    lab.reset({ terrain: 'flat', surface: 'snow' });
+    assert.equal(lab.startingStyle, startingStyle);
+    assert.deepEqual(lab.genomes, genomes);
+    lab.restartTrial();
+    assert.equal(lab.vehicles[0].design.style, startingStyle);
+  }
+  const auto = new EvolutionLab({ seed: 42 });
+  const selected = new EvolutionLab({ seed: 42, startingStyle: 'torres' });
+  selected.reset({ startingStyle: null });
+  assert.equal(selected.startingStyle, null);
+  assert.deepEqual(selected.genomes, auto.genomes);
+  selected.reset({ startingStyle: 'missing-model' });
+  assert.equal(selected.startingStyle, null);
+  assert.deepEqual(selected.genomes, auto.genomes);
+  for (const initialExperiment of ['power', 'balance', 'drive']) {
+    const baseline = new EvolutionLab({ seed: 42, initialExperiment });
+    const comparison = new EvolutionLab({ seed: 42, initialExperiment, startingStyle: 'morning' });
+    assert.equal(comparison.startingStyle, 'morning');
+    assert.deepEqual(comparison.genomes, baseline.genomes);
+    assert.ok(comparison.vehicles.every(v => v.design.style === 'ioniq5'));
+    comparison.reset({ initialExperiment: 'evolution' });
+    assert.equal(comparison.vehicles[0].design.style, 'morning');
   }
 });
 
@@ -336,7 +379,7 @@ test('evolving proportions stay within production-like envelopes and matching ti
     for (const genome of lab.genomes) {
       assert.ok(genome.rearRadius / genome.width >= .067 - 1e-10 && genome.rearRadius / genome.width <= .088 + 1e-10);
       assert.ok(genome.frontRadius / genome.rearRadius >= .98 - 1e-10 && genome.frontRadius / genome.rearRadius <= 1.02 + 1e-10);
-      assert.ok(genome.height / genome.width >= .192 - 1e-10 && genome.height / genome.width <= .350 + 1e-10);
+      assert.ok(genome.height / genome.width >= .181 - 1e-10 && genome.height / genome.width <= .350 + 1e-10);
       assert.ok(Number.isInteger(genome.drivetrain));
     }
     lab._finish();

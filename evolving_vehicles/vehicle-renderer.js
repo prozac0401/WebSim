@@ -2,7 +2,7 @@
  * Drawing is presentation-only; no random values or physical state are changed. */
 (function (root) {
   'use strict';
-  const STYLE_IDS = ['ray', 'avante', 'staria', 'musso_ev', 'ioniq5', 'santafe'];
+  const STYLE_IDS = ['ray', 'avante', 'staria', 'musso_ev', 'ioniq5', 'santafe', 'morning', 'k5', 'grandeur', 'carnival', 'g80', 'torres'];
   const TAU = Math.PI * 2;
   function trace(ctx, points) {
     ctx.beginPath();
@@ -20,7 +20,7 @@
     const d = vehicle.design, g = vehicle.genome;
     const live = options.live !== false, engineering = options.engineering === true;
     const style = typeof d.style === 'number' ? d.style : STYLE_IDS.indexOf(d.style);
-    const rugged = style === 3 || style === 5, metallic = style === 4;
+    const rugged = style === 3 || style === 5 || style === 11, metallic = style === 4;
     const base = vehicle.color;
     const w = g.width, h = g.height;
     const P = (x, y) => ({ x: d.frame.x + w * (x + (y < -.4 ? (x < 0 ? g.roofLeft : g.roofRight) * .35 : 0)), y: d.frame.y + h * y });
@@ -197,7 +197,7 @@
       for(let i=0;i<8;i++)line([[-.197+i*.05,.281],[-.181+i*.05,.314]],'#60767d',.35);
       poly([[.441,.188],[.503,.188],[.503,.316],[.436,.271]],'#233640');
       line([[-.344,-.754],[-.449,-.292]],'#24363e',.7);
-    } else {
+    } else if (style === 5) {
       // Santa Fe: square extended roof, large quarter glass and horizontal H lighting.
       poly([[-.474,-.72],[.115,-.72],[.244,-.262],[-.479,-.262]],'#23333b');
       glass([[-.445,-.669],[-.254,-.672],[-.254,-.301],[-.452,-.301]]);
@@ -223,6 +223,134 @@
       line([[-.491,.035],[-.491,.118]],'#f07670',.6);
       line([[.277,-.266],[.463,-.231]],bright,.55);
     }
+    else if (style === 6) {
+      // Morning: a compact rounded five-door hatch, high rear lamp and a sloping bonnet.
+      glass([[-.400,-.337],[-.321,-.658],[-.305,-.666],[-.288,-.331]]);
+      glass([[-.274,-.698],[-.05,-.747],[-.013,-.738],[-.013,-.311],[-.263,-.325]]);
+      glass([[.018,-.737],[.078,-.696],[.239,-.306],[.017,-.31]]);
+      line([[-.005,-.771],[-.008,-.292]],'#26363b',1.0);
+      line([[-.218,-.302],[-.261,-.059],[-.198,.269],[-.021,.269],[-.013,-.292]],seam,.45);
+      line([[-.021,.269],[.254,.269],[.267,-.268]],seam,.45);
+      handle(-.176,-.187,.059);handle(.027,-.196,.059);
+      line([[-.286,.191],[-.15,.247],[.244,.237]],bright,.55);
+      line([[-.404,-.248],[.239,-.22]],bright,.35);
+      poly([[.393,-.18],[.483,-.036],[.477,.075],[.433,.03]],'#273a42');
+      line([[.402,-.162],[.473,-.058],[.471,.036]],'#e7f8f0',.7);
+      lamp([[-.495,-.234],[-.437,-.265],[-.447,-.043],[-.496,.026]],'#a03644');
+      line([[-.485,-.194],[-.479,-.034]],'#f28578',.55);
+      poly([[.451,.163],[.502,.16],[.496,.258],[.456,.247]],'#29383e');
+      poly([[-.44,.219],[-.38,.258],[-.39,.30],[-.465,.263]],'#2d3c43');
+      line([[.29,-.235],[.442,-.15]],bright,.6);
+    } else if (style === 7) {
+      // K5: flowing fastback glass, a chrome roof arc and angular Star Map lamps.
+      glass([[-.358,-.319],[-.24,-.593],[-.199,-.636],[-.176,-.318]]);
+      glass([[-.171,-.673],[-.105,-.736],[-.039,-.738],[-.023,-.305],[-.151,-.305]]);
+      glass([[-.011,-.74],[.048,-.712],[.105,-.631],[.21,-.312],[.007,-.305]]);
+      line([[-.025,-.755],[-.01,-.296]],'#213039',.95);
+      line([[-.363,-.323],[-.25,-.613],[-.115,-.78],[.006,-.775],[.108,-.66],[.222,-.294]],'#c0cecf',.68);
+      line([[-.186,-.277],[-.224,.249],[-.023,.258],[-.014,-.276]],seam,.42);
+      line([[-.023,.258],[.219,.258],[.23,-.262]],seam,.42);
+      handle(-.137,-.18,.047);handle(.023,-.185,.051);
+      line([[-.414,-.155],[-.202,-.183],[.241,-.193],[.433,-.183]],bright,.47);
+      poly([[-.21,.138],[.21,.107],[.23,.25],[-.231,.25]],blend(base,0,.09));
+      line([[-.207,.247],[.219,.247]],'#b2c3c4',.65);
+      poly([[.421,-.238],[.492,-.092],[.488,.012],[.457,-.036],[.448,-.118]],'#233740');
+      line([[.427,-.202],[.473,-.119],[.46,-.042],[.485,-.005]],'#ecfff2',.7);
+      lamp([[-.499,-.174],[-.436,-.208],[-.431,-.148],[-.477,-.116],[-.447,.026],[-.47,.04]],'#b64243');
+      line([[-.486,-.163],[-.447,-.182],[-.471,-.12],[-.453,.01]],'#f99181',.5);
+      line([[-.497,.197],[-.449,.22]],'#adbfbe',.85);
+      line([[.437,.172],[.49,.12]],'#1f313a',1.05);
+    } else if (style === 8) {
+      // Current Grandeur facelift: a formal three-box cabin, quarter-light and flush trim.
+      glass([[-.286,-.342],[-.212,-.632],[-.18,-.663],[-.182,-.342]]);
+      glass([[-.153,-.691],[-.1,-.724],[-.023,-.737],[-.023,-.326],[-.149,-.326]]);
+      glass([[.009,-.739],[.068,-.727],[.125,-.626],[.21,-.324],[.008,-.324]]);
+      line([[-.3,-.336],[-.222,-.645],[-.112,-.765],[.067,-.765],[.142,-.647],[.224,-.307]],'#c5d3d2',.6);
+      line([[-.168,-.692],[-.168,-.322]],'#1e3038',.95);
+      line([[-.009,-.75],[-.009,-.302]],'#1f3038',1.0);
+      line([[-.169,-.293],[-.19,.258],[-.007,.275],[-.001,-.291]],seam,.4);
+      line([[-.007,.275],[.218,.269],[.232,-.278]],seam,.4);
+      handle(-.132,-.177,.052);handle(.03,-.178,.052);
+      line([[-.455,-.181],[-.219,-.203],[.235,-.213],[.454,-.192]],bright,.55);
+      poly([[-.202,.163],[.196,.164],[.223,.266],[-.214,.266]],blend(base,255,.10));
+      line([[-.218,.286],[.227,.286]],'#c4d1cd',.78);
+      // Thin horizon lamp above the low hidden headlamp array, rather than tall old lamps.
+      lamp([[.427,-.233],[.494,-.104],[.493,-.079],[.427,-.207]],'#ebf8ec');
+      poly([[.445,-.061],[.501,.012],[.501,.15],[.444,.083]],'#25363d');
+      for(let i=0;i<4;i++)line([[.452+i*.011,-.036+i*.015],[.459+i*.011,-.025+i*.015]],'#eef9f0',.45);
+      lamp([[-.499,-.17],[-.435,-.187],[-.435,-.15],[-.499,-.124]],'#c0504d');
+      line([[-.492,-.158],[-.439,-.177]],'#ef9890',.4);
+      line([[-.488,.167],[-.442,.19]],'#bac8c5',.6);
+      line([[.203,-.159],[.257,-.159]],'#b4c8c8',.55);
+    } else if (style === 9) {
+      // Carnival: a long family MPV, sliding-door rail and the bright fin-shaped C-pillar.
+      poly([[-.478,-.529],[-.404,-.74],[.027,-.749],[.255,-.285],[-.472,-.268]],'#20343d');
+      glass([[-.451,-.5],[-.394,-.679],[-.267,-.7],[-.281,-.316],[-.453,-.313]]);
+      glass([[-.241,-.702],[-.034,-.708],[-.034,-.3],[-.244,-.3]]);
+      glass([[-.004,-.708],[.061,-.648],[.217,-.303],[-.004,-.3]]);
+      poly([[-.279,-.72],[-.243,-.72],[-.219,-.278],[-.297,-.278]],'#b8c6c6');
+      for(let i=0;i<5;i++)line([[-.271+i*.006,-.635],[-.247+i*.006,-.322]],'#778e94',.27);
+      line([[-.256,-.275],[-.275,.278],[-.027,.278],[-.023,-.28]],seam,.47);
+      line([[-.023,.278],[.227,.277],[.25,-.268]],seam,.43);
+      handle(-.079,-.18,.046);handle(.006,-.18,.05);
+      line([[-.48,-.116],[-.292,-.115]],'#1a2d36',.8);
+      line([[-.477,-.104],[-.292,-.104]],'#8eaaad',.3);
+      line([[-.476,-.224],[.427,-.223]],bright,.42);
+      poly([[-.261,.203],[.235,.203],[.245,.315],[-.264,.315]],blend(base,0,.22));
+      line([[-.249,.283],[.226,.283]],'#c1cfcd',.95);
+      poly([[.428,-.253],[.493,-.132],[.493,.069],[.464,.04],[.458,-.128]],'#233640');
+      line([[.435,-.22],[.479,-.133],[.48,.043]],'#ecfff2',.8);
+      lamp([[-.498,-.281],[-.455,-.306],[-.455,-.263],[-.482,-.244],[-.482,-.01],[-.499,-.004]],'#c04648');
+      line([[-.49,-.257],[-.49,-.035]],'#f59080',.5);
+      line([[-.409,-.758],[.006,-.765]],'#778e94',.72);
+      poly([[.459,.16],[.503,.173],[.493,.272],[.451,.247]],'#263a42');
+    } else if (style === 10) {
+      // G80: a long bonnet, sweeping parabolic shoulder and the signature twin light bars.
+      glass([[-.356,-.348],[-.254,-.564],[-.194,-.638],[-.172,-.338]]);
+      glass([[-.17,-.674],[-.084,-.744],[-.014,-.749],[-.01,-.324],[-.147,-.324]]);
+      glass([[.017,-.747],[.078,-.711],[.122,-.644],[.217,-.317],[.017,-.324]]);
+      line([[-.366,-.333],[-.255,-.586],[-.1,-.786],[.02,-.785],[.118,-.665],[.232,-.305]],'#bdcece',.67);
+      line([[-.002,-.767],[.004,-.305]],'#273942',.95);
+      line([[-.17,-.292],[-.211,.259],[-.014,.271],[-.004,-.29]],seam,.41);
+      line([[-.014,.271],[.231,.26],[.243,-.281]],seam,.41);
+      handle(-.132,-.162,.051);handle(.03,-.17,.052);
+      line([[-.462,-.092],[-.304,-.155],[-.091,-.202],[.192,-.226],[.434,-.17]],bright,.58);
+      line([[-.221,.261],[.217,.218]],'#b5c8c8',.74);
+      poly([[-.218,.176],[.215,.139],[.228,.215],[-.221,.255]],blend(base,255,.13));
+      for(const y of [-.172,-.04]){
+        lamp([[.415,y],[.485,y+.10],[.488,y+.137],[.416,y+.038]],'#e9f8ee');
+        lamp([[-.497,y+.035],[-.433,y+.018],[-.428,y+.053],[-.497,y+.078]],'#c55150');
+      }
+      // Fender repeat of the two-line lighting motif, behind the front wheel.
+      line([[.181,-.17],[.267,-.17]],'#c0d0cf',.7);
+      line([[.187,-.074],[.266,-.074]],'#b5c9c9',.6);
+      poly([[.458,.153],[.502,.112],[.5,.221],[.458,.247]],'#273a43');
+      line([[-.484,.198],[-.433,.228]],'#c2d0cb',.8);
+    } else if (style === 11) {
+      // Torres: compact rugged SUV, thick angled C-pillar and stepped protective cladding.
+      poly([[-.475,-.357],[-.354,-.73],[.103,-.724],[.253,-.31],[-.47,-.293]],'#21353e');
+      glass([[-.440,-.362],[-.352,-.671],[-.307,-.676],[-.323,-.32]]);
+      glass([[-.271,-.684],[-.049,-.682],[-.049,-.308],[-.266,-.311]]);
+      glass([[-.015,-.682],[.076,-.675],[.213,-.32],[-.015,-.309]]);
+      poly([[-.325,-.735],[-.272,-.739],[-.235,-.28],[-.308,-.285]],blend(base,255,.25));
+      line([[-.299,-.656],[-.279,-.36]],'#c0cdca',.7);
+      line([[-.027,-.73],[-.027,-.292]],'#23373e',1.15);
+      line([[-.249,-.282],[-.265,.217],[-.204,.29],[-.028,.29],[-.027,-.281]],seam,.49);
+      line([[-.028,.29],[.234,.28],[.25,-.278]],seam,.49);
+      handle(-.193,-.194,.052,false);handle(.009,-.193,.053,false);
+      poly([[-.493,.11],[-.399,.103],[-.259,.227],[.237,.227],[.397,.099],[.5,.114],[.5,.347],[-.5,.347]],'#2a3c43');
+      line([[-.229,.278],[.232,.278]],'#b2c1bf',.66);
+      line([[-.459,-.253],[.433,-.252]],bright,.5);
+      line([[-.329,-.748],[.069,-.748]],'#263940',1.1);
+      line([[-.31,-.743],[-.31,-.691]],'#43555a',.75);
+      line([[.051,-.744],[.051,-.695]],'#43555a',.75);
+      lamp([[.426,-.271],[.492,-.139],[.49,-.064],[.426,-.203]],'#dcece5');
+      for(let i=0;i<3;i++)line([[.435+i*.016,-.232+i*.027],[.444+i*.016,-.215+i*.027]],'#fbfff4',.65);
+      poly([[.463,.008],[.503,.008],[.504,.167],[.462,.151]],'#20333c');
+      lamp([[-.499,-.237],[-.481,-.237],[-.481,.062],[-.5,.085]],'#ad3e43');
+      line([[-.49,-.204],[-.49,.021]],'#f68f7f',.7);
+      line([[.293,-.287],[.444,-.255]],bright,.62);
+    }
     ctx.restore();
     // Fine contour and the high point of each metal fender catch the sky light.
     trace(ctx,d.outline);ctx.strokeStyle=blend(base,0,.58);ctx.lineWidth=.5;ctx.stroke();
@@ -235,7 +363,7 @@
       if(!rugged&&!metallic){ctx.beginPath();ctx.arc(a.x,a.y,wheel.r+1.55,Math.PI+.14,TAU-.14);ctx.strokeStyle=bright;ctx.lineWidth=.35;ctx.stroke();}
     }
     // Mirror and its stalk remain a small, functional detail.
-    const mirrorX = [ .237, .192, .286, .178, .19, .17 ][style];
+    const mirrorX = [ .237, .192, .286, .178, .19, .17, .211, .186, .183, .183, .19, .188 ][style];
     line([[mirrorX,-.285],[mirrorX+.027,-.256]],'#24323a',.65);
     poly([[mirrorX+.018,-.32],[mirrorX+.062,-.313],[mirrorX+.067,-.251],[mirrorX+.023,-.251]],metallic?'#293740':blend(base,0,.18),'#1c2c34',.35);
     for (const wheel of wheels) drawWheel(ctx,wheel,style);
@@ -250,7 +378,7 @@
     ctx.restore();
   }
   function drawWheel(ctx,wheel,style) {
-    const {p,r,angle}=wheel, rugged=style===3||style===5;
+    const {p,r,angle}=wheel, rugged=style===3||style===5||style===11;
     ctx.save();ctx.translate(p.x,p.y);
     const rubber=ctx.createLinearGradient(-r,-r,r,r);rubber.addColorStop(0,'#41484c');rubber.addColorStop(.36,'#1a2025');rubber.addColorStop(1,'#0e141a');
     ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.fillStyle=rubber;ctx.fill();ctx.strokeStyle='#11181e';ctx.lineWidth=.5;ctx.stroke();
@@ -258,12 +386,12 @@
     ctx.save();ctx.rotate(angle);
     ctx.strokeStyle='#60676b';ctx.lineWidth=.26;
     for(let i=0;i<40;i++){const a=i*TAU/40;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.957,Math.sin(a)*r*.957);ctx.lineTo(Math.cos(a+.020)*r*.993,Math.sin(a+.020)*r*.993);ctx.stroke();}
-    const rr=r*[.68,.77,.72,.73,.78,.77][style];
+    const rr=r*[.68,.77,.72,.73,.78,.77,.73,.76,.76,.73,.77,.73][style];
     const rim=ctx.createLinearGradient(-rr,-rr,rr,rr);rim.addColorStop(0,'#edf0ef');rim.addColorStop(.35,'#aebbc1');rim.addColorStop(.6,'#596976');rim.addColorStop(1,'#d8dedd');
     ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#080f17';ctx.lineWidth=.4;ctx.stroke();
     ctx.beginPath();ctx.arc(0,0,rr*.88,0,TAU);ctx.fillStyle='#202d37';ctx.fill();
     ctx.beginPath();ctx.arc(0,0,rr*.66,0,TAU);ctx.fillStyle='#5b6770';ctx.fill();ctx.strokeStyle='#a2abad';ctx.lineWidth=.2;ctx.stroke();
-    const count=[8,5,6,5,5,12][style];
+    const count=[8,5,6,5,5,12,4,5,10,4,5,5][style];
     for(let i=0;i<count;i++){
       ctx.save();ctx.rotate(i*TAU/count);
       if(style===4){
@@ -271,13 +399,13 @@
         ctx.beginPath();ctx.moveTo(-rr*.08,-rr*.16);ctx.lineTo(-rr*.33,-rr*.88);ctx.lineTo(rr*.16,-rr*.84);ctx.lineTo(rr*.32,-rr*.52);ctx.lineTo(rr*.13,-rr*.16);ctx.closePath();
         ctx.fillStyle='#293841';ctx.fill();ctx.strokeStyle='#c3cecf';ctx.lineWidth=.42;ctx.stroke();
         ctx.beginPath();ctx.moveTo(-rr*.30,-rr*.85);ctx.lineTo(-rr*.01,-rr*.31);ctx.strokeStyle='#ecf1ee';ctx.lineWidth=.35;ctx.stroke();
-      }else if(style===3){
+      }else if(style===3||style===6||style===9){
         ctx.beginPath();ctx.moveTo(-rr*.12,-rr*.14);ctx.lineTo(-rr*.23,-rr*.89);ctx.lineTo(rr*.25,-rr*.81);ctx.lineTo(rr*.11,-rr*.10);ctx.closePath();
         ctx.fillStyle=rim;ctx.fill();ctx.beginPath();ctx.moveTo(-rr*.02,-rr*.34);ctx.lineTo(-rr*.035,-rr*.72);ctx.strokeStyle='#354751';ctx.lineWidth=rr*.075;ctx.stroke();
       }else{
-        const split=style===1||style===5, branches=split?[-1,1]:[0];
+        const split=[1,5,7,8,10,11].includes(style), branches=split?[-1,1]:[0];
         for(const branch of branches){
-          const top=branch*(style===5?.082:.14)*rr;
+          const top=branch*(style===5||style===8?.082:.14)*rr;
           ctx.beginPath();ctx.moveTo(branch*rr*.03-rr*.045,-rr*.14);ctx.lineTo(top-rr*.046,-rr*.90);ctx.lineTo(top+rr*.052,-rr*.90);ctx.lineTo(branch*rr*.04+rr*.06,-rr*.13);ctx.closePath();
           ctx.fillStyle=rim;ctx.fill();ctx.strokeStyle='#d9e0df';ctx.lineWidth=.13;ctx.stroke();
         }
