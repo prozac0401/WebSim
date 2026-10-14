@@ -68,7 +68,8 @@
     "rearTireRadiusMm": 362.9,
     "factoryDrive": "fwd",
     "sourceUrl": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
-    "sourceNote": "2026-10-14 현재 공식 쇼룸 API technical data/공차중량 표."
+    "sourceNote": "2026-10-14 현재 공식 쇼룸 API technical data/공차중량 표.",
+    "powertrainType": "electric"
   },
   "torres": {
     "variant": "1.5 가솔린 터보 2WD 8AT · 18인치",
@@ -141,7 +142,8 @@
     "factoryDrive": "rwd",
     "sourceUrl": "https://www.hyundai.com/contents/repn-car/catalog/spec/ioniq5-27my-spec.pdf",
     "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
-    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+    "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다.",
+    "powertrainType": "electric"
   },
   "santafe": {
     "variant": "2026 싼타페 캘리그래피 2.5 터보 2WD 5인승 · 21인치·루프랙",
@@ -187,5 +189,61 @@
     "sourceUrl": "https://www.genesis.com/kr/ko/models/luxury-sedan-genesis/g80/specs.html",
     "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
     "sourceNote": "사진의 선택사양과 별도로 명시한 동력계 기준을 적용합니다."
+  },
+  "rexton_tow": {
+    "variant": "2020 G4 렉스턴 · 2.2 LET 디젤 5인승 4WD 7AT · 18인치",
+    "lengthMm": 4850,
+    "heightMm": 1825,
+    "wheelbaseMm": 2865,
+    "curbMassKg": 2170,
+    "powerPs": 187,
+    "torqueNm": 421.686,
+    "frontTireRadiusMm": 381.6,
+    "rearTireRadiusMm": 381.6,
+    "factoryDrive": "awd",
+    "powertrainType": "diesel",
+    "powerRpm": 3800,
+    "torqueRpmRange": [
+      1600,
+      2600
+    ],
+    "redlineRpm": 4500,
+    "baseTune": {
+      "power": 1.25,
+      "torque": 1.2
+    },
+    "conversionMassKg": 350,
+    "conversionPosition": -0.28,
+    "sourceUrl": "https://m.kg-mobility.com/showroom/total_price/__icsFiles/afieldfile/2019/11/05/Total_price_2019_11_up_1.pdf",
+    "conversionSourceUrl": "https://etrucks.co.kr/m/special/detail.php?idx=1442",
+    "sourceNote": "원차: 2020 G4 5인승4WD 출고 제원. 4TRONIC을 AWD로 단순화. 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 튜닝은 실제 인증값이 아닌 중장비 사양 모형 가정. 참고 개조 제품2270kg와 구분. 한계4500rpm도 모형 가정."
+  },
+  "starex_tow": {
+    "variant": "2017 전기형 그랜드 스타렉스 외관 · 2.5 VGT 디젤 밴 3인승 2WD 5AT 기준 · 16인치",
+    "lengthMm": 5150,
+    "heightMm": 1935,
+    "wheelbaseMm": 3200,
+    "curbMassKg": 2060,
+    "powerPs": 175,
+    "torqueNm": 451.106,
+    "frontTireRadiusMm": 353.7,
+    "rearTireRadiusMm": 353.7,
+    "factoryDrive": "rwd",
+    "powertrainType": "diesel",
+    "powerRpm": 3600,
+    "torqueRpmRange": [
+      2000,
+      2250
+    ],
+    "redlineRpm": 4500,
+    "baseTune": {
+      "power": 1.25,
+      "torque": 1.2
+    },
+    "conversionMassKg": 350,
+    "conversionPosition": -0.28,
+    "sourceUrl": "https://www.hyundai.com/kr/ko/vehicles/grand-starex/20my/specifications.html",
+    "conversionSourceUrl": "https://8949truck.my1.kr/truck/50674/",
+    "sourceNote": "외관: 실제2017 전기형 개조차 참고. 2060kg 등 기준 제원은 공식2020MY 3인승밴2WD5AT를 준용한 추정으로 2017 실측값이 아님. 개조 순증350kg·후방위치0.28차체길이·출력25%/토크20% 및 한계4500rpm은 모형 가정."
   }
 }; root.VehicleSpecs=Object.freeze(specs); if(typeof module!=='undefined'&&module.exports)module.exports=root.VehicleSpecs; })(typeof window!=='undefined'?window:globalThis);

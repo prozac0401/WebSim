@@ -1,4 +1,4 @@
-/* Unmodified official paint images. Provenance: assets/vehicles/PAINTS.json. */
+/* Official paints: PAINTS.json. Generated variants and tow conversions: GENERATED.json. */
 (function(root){root.VehiclePaints = {
   "ray": [
     {
@@ -55,6 +55,36 @@
       "label": "오로라 블랙 펄",
       "hex": "#000000",
       "file": "assets/vehicles/colors/k5-abp.png"
+    },
+    {
+      "id": "seoul-orange",
+      "label": "서울 꽃담황토 · 생성 도색",
+      "hex": "#d16f15",
+      "file": "assets/vehicles/colors/k5-seoul-orange.png",
+      "generated": true,
+      "artwork": {
+        "width": 1886,
+        "height": 834,
+        "bounds": [
+          195,
+          190,
+          1498,
+          470
+        ],
+        "bodyBottom": 595,
+        "rear": {
+          "x": 523,
+          "y": 542,
+          "r": 117,
+          "rimRatio": 0.84
+        },
+        "front": {
+          "x": 1445,
+          "y": 538,
+          "r": 116,
+          "rimRatio": 0.84
+        }
+      }
     }
   ],
   "carnival": [
@@ -227,6 +257,22 @@
       "label": "크리미 화이트",
       "hex": "#e8e9e5",
       "file": "assets/vehicles/colors/porter2-yaw.png"
+    }
+  ],
+  "rexton_tow": [
+    {
+      "id": "factory",
+      "label": "화이트 · 오렌지 특장",
+      "file": "assets/vehicles/rexton_tow.png",
+      "generated": true
+    }
+  ],
+  "starex_tow": [
+    {
+      "id": "factory",
+      "label": "화이트 · 오렌지 특장",
+      "file": "assets/vehicles/starex_tow.png",
+      "generated": true
     }
   ]
 }; })(typeof window !== 'undefined' ? window : globalThis);

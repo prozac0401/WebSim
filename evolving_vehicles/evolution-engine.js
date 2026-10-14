@@ -39,7 +39,9 @@
     { id: 'carnival', label: '기아 카니발', points: [[-.5,.16],[-.5,-.51],[-.437,-.755],[-.372,-.805],[.03,-.803],[.134,-.692],[.289,-.298],[.445,-.26],[.5,-.12],[.5,.16],[.37,.35],[-.37,.35]] },
     { id: 'g80', label: '제네시스 G80', points: [[-.5,.16],[-.5,-.168],[-.474,-.267],[-.37,-.38],[-.244,-.63],[-.10,-.798],[.021,-.81],[.112,-.695],[.26,-.295],[.403,-.255],[.471,-.18],[.5,-.055],[.5,.16],[.37,.35],[-.37,.35]] },
     { id: 'torres', label: 'KGM 토레스', points: [[-.5,.17],[-.5,-.16],[-.475,-.35],[-.371,-.735],[-.321,-.785],[.086,-.785],[.157,-.675],[.286,-.32],[.447,-.283],[.5,-.125],[.5,.17],[.37,.35],[-.37,.35]] },
-    { id: 'porter2', label: '현대 포터 II', axleOffset: .044, points: [[-.5,.17],[-.5,-.18],[.10,-.18],[.10,-.72],[.16,-.81],[.32,-.82],[.405,-.72],[.465,-.45],[.5,-.10],[.5,.17],[.39,.35],[-.38,.35]] }
+    { id: 'porter2', label: '현대 포터 II', axleOffset: .044, points: [[-.5,.17],[-.5,-.18],[.10,-.18],[.10,-.72],[.16,-.81],[.32,-.82],[.405,-.72],[.465,-.45],[.5,-.10],[.5,.17],[.39,.35],[-.38,.35]] },
+    { id: 'rexton_tow', label: '렉스턴 렉카', points: [[-.5,.17],[-.5,-.28],[-.32,-.28],[-.32,-.68],[-.26,-.79],[.11,-.79],[.26,-.31],[.455,-.28],[.5,-.13],[.5,.17],[.38,.35],[-.38,.35]] },
+    { id: 'starex_tow', label: '스타렉스 렉카', points: [[-.5,.17],[-.5,-.18],[-.12,-.18],[-.12,-.73],[-.06,-.81],[.16,-.79],[.295,-.56],[.43,-.19],[.485,-.13],[.5,.02],[.5,.17],[.38,.35],[-.38,.35]] }
   ];
   const GENES = {
     width: [80, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
@@ -59,6 +61,19 @@
     // The reference curb mass includes the factory drivetrain. Hardware for
     // extra output adds up to 3% at the limits of this educational model.
     return spec.curbMassKg * (.24 + .03 * (powerMultiplier - 1) + .02 * (torqueMultiplier - 1));
+  }
+  function motorEnvelope(spec, powerMultiplier = 1, torqueMultiplier = 1, engineRpm = 0) {
+    const maxTorque = spec.torqueNm * torqueMultiplier;
+    const maxPower = spec.powerPs * powerMultiplier * UNITS.powerWattsPerPs;
+    const redlineRpm = spec.redlineRpm || (spec.powertrainType === 'electric' ? 14000 : spec.powertrainType === 'diesel' ? 4500 : 6500);
+    const rpm = Math.max(0, finite(engineRpm, 0));
+    const omega = rpm * Math.PI / 30;
+    const crossoverRpm = maxPower / maxTorque * 30 / Math.PI;
+    const powerTorque = omega > 0 ? maxPower / omega : Infinity;
+    const taper = clamp((redlineRpm - rpm) / (redlineRpm * .05), 0, 1);
+    const torqueNm = Math.min(maxTorque, powerTorque) * taper;
+    const limit = taper < 1 ? 'rpm' : powerTorque < maxTorque ? 'power' : 'torque';
+    return { torqueNm, powerPs: torqueNm * omega / UNITS.powerWattsPerPs, limit, redlineRpm, crossoverRpm };
   }
   const SURFACES = {
     asphalt: { id: 'asphalt', label: '포장도로', grip: .95, rollingResistance: .012 },
@@ -108,12 +123,16 @@
       this.reset(config);
     }
     reset(config = {}) {
+      this.initialExperiment = ['power', 'balance', 'drive', 'character'].includes(config.initialExperiment) ? config.initialExperiment : 'evolution';
+      this.finishX = this.initialExperiment === 'character' ? this.startX + 500 * UNITS.lengthPerMetre : 2600;
+      this.duration = this.initialExperiment === 'character' ? 60 : 45;
       this.seed = Math.round(finite(config.seed, this.seed ?? 42)) >>> 0;
       this.terrain = ['flat', 'rolling', 'steps', 'valley', 'dunes', 'ripple', 'custom'].includes(config.terrain) ? config.terrain : (this.terrain || 'rolling');
       if (this.terrain === 'custom' && config.points) this._customPoints = this._normalizePoints(config.points);
       this.surface = [...Object.keys(SURFACES), 'mixed'].includes(config.surface) ? config.surface : (this.surface || 'asphalt');
+      const surfaceLength = (this.finishX - this.startX) / 4;
       this.surfaceSegments = this.surface === 'mixed'
-        ? ['asphalt', 'gravel', 'snow', 'sand'].map((surface, i) => ({ start: i === 0 ? -300 : 140 + i * 615, end: i === 3 ? this.finishX + 360 : 140 + (i + 1) * 615, ...SURFACES[surface] }))
+        ? ['asphalt', 'gravel', 'snow', 'sand'].map((surface, i) => ({ start: i === 0 ? -300 : this.startX + i * surfaceLength, end: i === 3 ? this.finishX + 360 : this.startX + (i + 1) * surfaceLength, ...SURFACES[surface] }))
         : [{ start: -300, end: this.finishX + 360, ...SURFACES[this.surface] }];
       if (Object.prototype.hasOwnProperty.call(config, 'startingStyle')) {
         this.startingStyle = STYLES.some(style => style.id === config.startingStyle) ? config.startingStyle : null;
@@ -125,7 +144,6 @@
       this.best = null;
       this.bestScore = 0;
       this.terrainPoints = this._terrain();
-      this.initialExperiment = ['power', 'balance', 'drive'].includes(config.initialExperiment) ? config.initialExperiment : 'evolution';
       this.genomes = this._initialGenomes();
       this.restartTrial();
       return this;
@@ -141,7 +159,7 @@
       return result;
     }
     _terrain() {
-      if (this.terrain === 'custom' && this._customPoints) return copy(this._customPoints);
+      if (this.terrain === 'custom' && this._customPoints) return this._normalizePoints(this._customPoints);
       const points = [{ x: -300, y: 360 }];
       const offset = (this.seed % 61) * 0.035;
       for (let x = 0; x <= this.finishX + 360; x += 40) {
@@ -183,18 +201,18 @@
       genome.roofRight = 0;
       const roof = Math.min(...style.points.map(point => point[1]));
       genome.height = (spec.heightMm * scale - genome.rearRadius) / (genome.axleY - roof);
-      genome.powerMultiplier = clamp(finite(genome.powerMultiplier, 1), ...GENES.powerMultiplier);
-      genome.torqueMultiplier = clamp(finite(genome.torqueMultiplier, 1), ...GENES.torqueMultiplier);
+      genome.powerMultiplier = clamp(finite(genome.powerMultiplier, 1), spec.baseTune?.power || 1, GENES.powerMultiplier[1]);
+      genome.torqueMultiplier = clamp(finite(genome.torqueMultiplier, 1), spec.baseTune?.torque || 1, GENES.torqueMultiplier[1]);
       genome.powertrainPosition = clamp(finite(genome.powertrainPosition, 0), ...GENES.powertrainPosition);
       genome.drivetrain = Math.floor(clamp(finite(genome.drivetrain, 2), 0, DRIVETRAINS.length - 1e-6));
-      const reduction = spec.gearRatio || UNITS.reduction;
-      const powerWatts = spec.powerPs * genome.powerMultiplier * UNITS.powerWattsPerPs;
+      const reduction = this.initialExperiment === 'character' ? 12 : spec.gearRatio || UNITS.reduction;
+      genome.gearRatio = reduction;
       const torqueNm = spec.torqueNm * genome.torqueMultiplier;
-      // The linear wheel-motor curve peaks at the selected PS after losses.
-      // Its stall torque is capped at the selected geared torque. Half that
-      // torque at half its free speed produces the selected peak wheel power.
+      const envelope = motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, 0);
+      // These derived values expose the geared torque ceiling and RPM ceiling.
+      // Power is evaluated independently by motorEnvelope at the current RPM.
       genome.motorTorque = .5 * torqueNm * reduction * UNITS.efficiency * TORQUE_UNIT;
-      genome.motorSpeed = 4 * powerWatts / (torqueNm * reduction) * UNITS.baseSeconds;
+      genome.motorSpeed = envelope.redlineRpm * Math.PI / 30 / reduction * UNITS.baseSeconds;
       return genome;
     }
     _newGenome() {
@@ -222,6 +240,14 @@
       const factoryDrive = DRIVETRAINS.findIndex(drive => drive.id === VEHICLE_SPECS.ioniq5.factoryDrive);
       const base = this._constrainGenome({ ...genomes[0], bodyStyle: 4,
         powerMultiplier: 1, torqueMultiplier: 1, powertrainPosition: 0, drivetrain: factoryDrive });
+      if (this.initialExperiment === 'character') return genomes.map((_, i) => {
+        const genome = this._constrainGenome({ ...base,
+          powerMultiplier: i % 3 === 1 ? 1.6 : 1, torqueMultiplier: i % 3 === 2 ? 1.6 : 1 });
+        const spec = VEHICLE_SPECS.ioniq5;
+        genome.comparisonBallastKg = Math.max(0, powertrainMassFor(spec, 1.6, 1)
+          - powertrainMassFor(spec, genome.powerMultiplier, genome.torqueMultiplier));
+        return genome;
+      });
       if (this.initialExperiment === 'drive') return genomes.map((_, i) => this._constrainGenome({ ...base, drivetrain: i % DRIVETRAINS.length }));
       const gene = this.initialExperiment === 'power' ? 'powerMultiplier' : 'powertrainPosition';
       const [low, high] = GENES[gene];
@@ -251,7 +277,14 @@
       const shellMass = spec.curbMassKg * .72 * UNITS.massPerKg;
       // Larger torque and speed ratings need heavier motors and batteries.
       // This cost lives in Matter mass/inertia, never in a fitness penalty.
-      const powertrainMass = powertrainMassFor(spec, genome.powerMultiplier, genome.torqueMultiplier) * UNITS.massPerKg;
+      const hardwareMassKg = powertrainMassFor(spec, genome.powerMultiplier, genome.torqueMultiplier);
+      // The character experiment equalizes hardware mass with visible ballast;
+      // ordinary evolution keeps the actual output-dependent hardware mass.
+      const comparisonBallastKg = clamp(finite(genome.comparisonBallastKg, 0), 0, spec.curbMassKg * .03);
+      const powertrainMass = (hardwareMassKg + comparisonBallastKg) * UNITS.massPerKg;
+      const conversionMassKg = Math.max(0, spec.conversionMassKg || 0);
+      const conversionMass = conversionMassKg * UNITS.massPerKg;
+      const conversionUnit = { x: w * (spec.conversionPosition ?? -.28), y: h * .24, width: w * .24, height: h * .20 };
       const axleOffset = w * (style.axleOffset || 0);
       const balance = estimatedFactoryBalance(style.id, spec);
       const referenceMass = spec.curbMassKg * UNITS.massPerKg;
@@ -264,15 +297,16 @@
         y: shellCenter.y
       };
       const unit = { x: w * clamp(finite(genome.powertrainPosition, 0), -.38, .38), y: h * .26, width: w * .20, height: h * .12 };
-      const chassisMass = shellMass + powertrainMass;
-      const center = { x: (shellMass * massShellCenter.x + powertrainMass * unit.x) / chassisMass,
-        y: (shellMass * massShellCenter.y + powertrainMass * unit.y) / chassisMass };
+      const chassisMass = shellMass + powertrainMass + conversionMass;
+      const center = { x: (shellMass * massShellCenter.x + powertrainMass * unit.x + conversionMass * conversionUnit.x) / chassisMass,
+        y: (shellMass * massShellCenter.y + powertrainMass * unit.y + conversionMass * conversionUnit.y) / chassisMass };
       const distance2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
       const shellInertia = M.Vertices.inertia(outline.map(p => ({ x: p.x - shellCenter.x, y: p.y - shellCenter.y })), shellMass);
       // Matter uses an inertia scale of 4 for polygon bodies; apply it to both
       // the distributed shell and the localized powertrain consistently.
       const inertia = 4 * (shellInertia + shellMass * distance2(massShellCenter, center)
-        + powertrainMass * ((unit.width ** 2 + unit.height ** 2) / 12 + distance2(unit, center)));
+        + powertrainMass * ((unit.width ** 2 + unit.height ** 2) / 12 + distance2(unit, center))
+        + conversionMass * ((conversionUnit.width ** 2 + conversionUnit.height ** 2) / 12 + distance2(conversionUnit, center)));
       M.Body.setMass(body, chassisMass);
       M.Body.setCentre(body, { x: this.startX + center.x, y: y + center.y });
       M.Body.setInertia(body, inertia);
@@ -295,15 +329,16 @@
       const centerOfMass = { x: wheels.reduce((sum, wheel, i) => sum + wheel.mass * offsets[i].x, 0) / totalMass,
         y: wheels.reduce((sum, wheel, i) => sum + wheel.mass * offsets[i].y, 0) / totalMass };
       const frontLoad = (centerOfMass.x - offsets[0].x) / (offsets[1].x - offsets[0].x);
-      const peakPower = 2 * genome.motorTorque * genome.motorSpeed / 4;
+      const peakPower = spec.powerPs * genome.powerMultiplier * UNITS.powerWattsPerPs * UNITS.efficiency * TORQUE_UNIT * UNITS.baseSeconds;
       const massKg = totalMass / UNITS.massPerKg;
       const powerPs = spec.powerPs * genome.powerMultiplier, torqueNm = spec.torqueNm * genome.torqueMultiplier;
       const powerToWeight = powerPs / massKg;
       // Appearance grading compares against this exact model at factory output.
       // It adds no thrust, downforce or scoring bonus.
-      const referenceMassKg = (shellMass + wheelMass) / UNITS.massPerKg + powertrainMassFor(spec, 1, 1);
+      const referenceMassKg = (shellMass + wheelMass) / UNITS.massPerKg + powertrainMassFor(spec, 1, 1) + conversionMassKg;
       const referencePowerToWeight = spec.powerPs / referenceMassKg;
       const performanceRatio = powerToWeight / referencePowerToWeight;
+      const motor = motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, 0);
       const design = { style: style.id, styleLabel: style.label,
         driveType: drivetrain.id, driveLabel: drivetrain.label, driveShares: [...drivetrain.shares],
         outline: outline.map(p => ({ x: p.x - center.x, y: p.y - center.y })),
@@ -311,11 +346,15 @@
         estimatedFactoryFrontLoad: balance.front,
         frame: { x: -center.x, y: -center.y }, rearAxle: { ...offsets[0] }, frontAxle: { ...offsets[1] },
         powerUnit: { ...unit, x: unit.x - center.x, y: unit.y - center.y }, shellMass, powertrainMass, wheelMass,
-        totalMass, peakPower, massKg, curbMassKg: spec.curbMassKg, powerPs, torqueNm,
+        totalMass, peakPower, massKg, curbMassKg: spec.curbMassKg, stockMassKg: spec.curbMassKg, powerPs, torqueNm,
+        conversionMassKg, comparisonBallastKg,
+        conversionUnit: { ...conversionUnit, x: conversionUnit.x - center.x, y: conversionUnit.y - center.y },
+        gearRatio: genome.gearRatio, rpmLimitRpm: motor.redlineRpm, torquePowerCrossoverRpm: motor.crossoverRpm,
+        achievablePowerPs: motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, motor.redlineRpm * .95).powerPs,
         factoryPowerPs: spec.powerPs, factoryTorqueNm: spec.torqueNm, factoryDrive: spec.factoryDrive,
         lengthMm: spec.lengthMm, heightMm: spec.heightMm, wheelbaseMm: spec.wheelbaseMm,
         powerToWeight, referencePowerToWeight, performanceRatio, rearLoad: 1 - frontLoad, frontLoad, centerOfMass };
-      const telemetry = { speed: 0, speedKmH: 0, slip: [0, 0], contact: [false, false], load: [1 - frontLoad, frontLoad], surface: this.surfaceAt(this.startX).id, status: 'ready' };
+      const telemetry = { speed: 0, speedKmH: 0, engineRpm: 0, wheelTorqueNm: 0, tractiveForceN: 0, deliveredPowerPs: 0, limitingFactor: 'torque', slip: [0, 0], contact: [false, false], load: [1 - frontLoad, frontLoad], surface: this.surfaceAt(this.startX).id, status: 'ready' };
       return { telemetry, finishTime: null, stopReason: null, _forwardSpeed: 0, _acceleration: 0, id: index + 1, genome: copy(genome), design, body, wheels, joints, score: 0, alive: true, finished: false, color: COLORS[index % COLORS.length], lastProgress: 0, _progressMark: 0 };
     }
     restartTrial() {
@@ -345,6 +384,10 @@
       vehicle.telemetry.status = reason;
       vehicle.telemetry.speed = 0;
       vehicle.telemetry.speedKmH = 0;
+      vehicle.telemetry.engineRpm = 0;
+      vehicle.telemetry.wheelTorqueNm = 0;
+      vehicle.telemetry.tractiveForceN = 0;
+      vehicle.telemetry.deliveredPowerPs = 0;
       vehicle.telemetry.slip = [0, 0];
       vehicle.alive = false;
       for (const body of [vehicle.body, ...vehicle.wheels]) M.Body.setStatic(body, true);
@@ -393,45 +436,63 @@
     }
     _applyDrive(vehicle) {
       if (!vehicle.alive) return;
-      let reaction = 0;
+      const spec = VEHICLE_SPECS[vehicle.design.style], genome = vehicle.genome;
+      const reduction = genome.gearRatio;
       const step = (1000 / 120) * (1000 / 60), t = vehicle.telemetry;
+      const forceUnit = UNITS.massPerKg * UNITS.lengthPerMetre / 1e6;
+      let reaction = 0;
+      t.engineRpm = 0; t.wheelTorqueNm = 0; t.tractiveForceN = 0; t.deliveredPowerPs = 0; t.limitingFactor = 'torque';
       for (let i = 0; i < vehicle.wheels.length; i++) {
         const wheel = vehicle.wheels[i], share = vehicle.design.driveShares[i];
-        const radius = i === 0 ? vehicle.genome.rearRadius : vehicle.genome.frontRadius;
+        const radius = i === 0 ? genome.rearRadius : genome.frontRadius;
         const relativeSpeed = wheel.angularVelocity - vehicle.body.angularVelocity;
-        const stallTorque = 2 * vehicle.genome.motorTorque * share;
-        const invI = wheel.inverseInertia;
-        const motor = stallTorque / vehicle.genome.motorSpeed;
-        const denominator = 1 + motor * step * (invI + vehicle.body.inverseInertia);
-        const a = (stallTorque * (1 - relativeSpeed / vehicle.genome.motorSpeed) - motor * step * wheel.torque * invI) / denominator;
-        const b = motor * step * radius * invI / denominator;
-        let force = 0, limitedTorque = null;
-        if (t.contact[i]) {
-          const slope = Math.atan2(this.groundAt(wheel.position.x + 2) - this.groundAt(wheel.position.x - 2), 4);
-          const tangent = { x: Math.cos(slope), y: Math.sin(slope) };
-          const normalLoad = vehicle.design.totalMass * this.engine.gravity.scale * tangent.x * t.load[i];
-          const surface = this.surfaceAt(wheel.position.x);
-          const groundSpeed = wheel.velocity.x * tangent.x + wheel.velocity.y * tangent.y;
-          const slipSpeed = wheel.angularVelocity * radius - groundSpeed;
-          const supportedMass = Math.max(wheel.mass, vehicle.design.totalMass * t.load[i]);
-          // Solve the tire and DC motor together over this fixed step. The
-          // uncapped force restores rolling contact; Coulomb capacity leaves
-          // excess motor motion as visible wheelspin on a lightly loaded axle.
-          force = (slipSpeed + step * radius * (a + wheel.torque) * invI)
-            / (step * (radius * radius * invI + 1 / supportedMass - radius * b * invI));
-          force = clamp(force, -surface.grip * normalLoad, surface.grip * normalLoad);
-          const proposedTorque = a + b * force;
-          if (Math.abs(proposedTorque) > stallTorque) {
-            limitedTorque = clamp(proposedTorque, -stallTorque, stallTorque);
-            force = clamp((slipSpeed + step * radius * (limitedTorque + wheel.torque) * invI)
-              / (step * (radius * radius * invI + 1 / supportedMass)), -surface.grip * normalLoad, surface.grip * normalLoad);
+        const invI = wheel.inverseInertia, maximum = 2 * genome.motorTorque * share;
+        const slope = Math.atan2(this.groundAt(wheel.position.x + 2) - this.groundAt(wheel.position.x - 2), 4);
+        const tangent = { x: Math.cos(slope), y: Math.sin(slope) };
+        const surface = this.surfaceAt(wheel.position.x);
+        const capacity = t.contact[i] ? surface.grip * vehicle.design.totalMass * this.engine.gravity.scale * tangent.x * t.load[i] : 0;
+        const groundSpeed = wheel.velocity.x * tangent.x + wheel.velocity.y * tangent.y;
+        const slipSpeed = wheel.angularVelocity * radius - groundSpeed;
+        const supportedMass = Math.max(wheel.mass, vehicle.design.totalMass * t.load[i]);
+        const denominator = step * (radius * radius * invI + 1 / supportedMass);
+        const rawForce = torque => t.contact[i]
+          ? (slipSpeed + step * radius * (torque + wheel.torque) * invI) / denominator : 0;
+        const roadForce = torque => clamp(rawForce(torque), -capacity, capacity);
+        const nextRelativeSpeed = torque => relativeSpeed + step * (
+          (torque + wheel.torque - roadForce(torque) * radius) * invI + torque * vehicle.body.inverseInertia);
+        const rpmAt = torque => Math.max(0, nextRelativeSpeed(torque) / UNITS.baseSeconds * reduction * 30 / Math.PI);
+        const requestedTorque = torque => motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, rpmAt(torque)).torqueNm
+          * reduction * UNITS.efficiency * TORQUE_UNIT * share;
+        // Solve the monotone motor envelope and Coulomb tire force together.
+        // This keeps a spinning airborne tire within the same RPM envelope and
+        // prevents a high PS setting from adding torque in the launch plateau.
+        let torque = 0;
+        if (share) {
+          if (requestedTorque(maximum) >= maximum - 1e-12) torque = maximum;
+          else if (requestedTorque(0) > 0) {
+            let low = 0, high = maximum;
+            for (let iteration = 0; iteration < 20; iteration++) {
+              const middle = (low + high) / 2;
+              if (middle < requestedTorque(middle)) low = middle; else high = middle;
+            }
+            torque = (low + high) / 2;
           }
-          M.Body.applyForce(wheel, { x: wheel.position.x - tangent.y * radius, y: wheel.position.y + tangent.x * radius },
-            { x: tangent.x * force, y: tangent.y * force });
         }
-        const torque = limitedTorque ?? clamp(a + b * force, -stallTorque, stallTorque);
+        const force = roadForce(torque), rpm = rpmAt(torque), deliveredSpeed = nextRelativeSpeed(torque);
+        const tractionLimited = Math.abs(rawForce(torque)) > capacity + 1e-9 && t.contact[i];
+        if (t.contact[i]) M.Body.applyForce(wheel, { x: wheel.position.x - tangent.y * radius, y: wheel.position.y + tangent.x * radius },
+          { x: tangent.x * force, y: tangent.y * force });
         wheel.torque += torque;
         reaction += torque;
+        t.tractiveForceN += force / forceUnit;
+        if (share) {
+          const envelope = motorEnvelope(spec, genome.powerMultiplier, genome.torqueMultiplier, rpm);
+          t.engineRpm += rpm * share;
+          t.wheelTorqueNm += torque / TORQUE_UNIT;
+          t.deliveredPowerPs += torque / TORQUE_UNIT * Math.max(0, deliveredSpeed) / UNITS.baseSeconds / UNITS.powerWattsPerPs;
+          if (tractionLimited) t.limitingFactor = 'traction';
+          else if (t.limitingFactor !== 'traction' && (envelope.limit === 'rpm' || t.limitingFactor !== 'rpm')) t.limitingFactor = envelope.limit;
+        }
       }
       vehicle.body.torque -= reaction;
     }
@@ -512,6 +573,7 @@
       return true;
     }
   }
+  EvolutionLab.motorEnvelope = motorEnvelope;
   EvolutionLab.UNITS = UNITS;
   EvolutionLab.SPECS = VEHICLE_SPECS;
   EvolutionLab.STYLES = Object.freeze(STYLES.map(({ id, label }) => Object.freeze({ id, label })));

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "created": "2026-10-14",
+  "generator": "OpenAI built-in image_gen",
+  "generatedImagesAreManufacturerPhotos": false,
+  "notes": [
+    "Generated image files are copied unchanged from image_gen output; image geometry is calibrated independently.",
+    "Original manufacturer photographs remain in SOURCES.json and official paint variants in PAINTS.json.",
+    "Tow-truck bodywork, orange/white finish, equipment details and mass assumptions are simulation interpretations, not certified conversion specifications.",
+    "K5 orange color aims at Seoul SC1956 Kkotdam Hwangto (sRGB 209,111,21). The AI edit preserves the model and composition but is not pixel-identical to its input."
+  ],
+  "assets": [
+    {
+      "id": "k5-seoul-orange",
+      "file": "colors/k5-seoul-orange.png",
+      "kind": "generated photographic paint edit",
+      "inputFiles": [
+        "k5.png"
+      ],
+      "sources": [
+        {
+          "page": "https://www.kia.com/kr/vehicles/k5/features"
+        },
+        {
+          "page": "https://mediahub.seoul.go.kr/archives/163746"
+        },
+        {
+          "page": "https://english.seoul.go.kr/wp-content/uploads/2026/03/seoul_color_10_v2.pdf",
+          "detail": "SC1956 sRGB 209/111/21"
+        }
+      ],
+      "prompt": "Use case: precise-object-edit.\nAsset type: transparent photographic vehicle sprite for a 2D driving simulator.\nInput image 1 is the EDIT TARGET: the manufacturer side-view photograph of a white current Kia K5, facing right.\nChange ONLY the painted metal/body-color exterior panels from white to Seoul's SC1956 Kkotdam Hwangto taxi orange, an orange ochre automotive finish with neutral unlit sRGB 209/111/21 (#D16F15). Preserve the exact realistic studio highlights, reflections, panel creases, gloss and shading rather than applying a flat tint.\nSTRICT INVARIANTS: identical current Kia K5 model and trim, true side camera angle facing right, identical body outline and proportions, doors, windows, mirrors, black trim, lamps, badges, tire/rim design, wheel centers, wheel sizes, ground line, subject position and image framing. Keep all non-painted parts unchanged. Keep the original 1516 by 670 canvas and transparent margins if possible. Preserve actual transparency, not a colored or checkerboard background.\nDo NOT add a taxi roof sign, decals, text, logos, license plate content, people, towing gear, extra wheels, shadows not present in the target, or any other object. Those graphics are added separately by the game. Deliver one clean photorealistic transparent PNG, with the whole car uncut.",
+      "originalOutput": "exec-05734d3c-a6c1-4657-8d44-92685e59a29c.png",
+      "geometry": {
+        "width": 1886,
+        "height": 834,
+        "bounds": [
+          195,
+          190,
+          1498,
+          470
+        ],
+        "bodyBottom": 595,
+        "rear": {
+          "x": 523,
+          "y": 542,
+          "r": 117,
+          "rimRatio": 0.84
+        },
+        "front": {
+          "x": 1445,
+          "y": 538,
+          "r": 116,
+          "rimRatio": 0.84
+        }
+      },
+      "alphaRange": [
+        0,
+        255
+      ],
+      "sha256": "49d29e9f0f8d12757c3f72ccab686afaca8638bfab0aadddb5717cd1f13e65d7",
+      "bytes": 859533
+    },
+    {
+      "id": "rexton_tow",
+      "file": "rexton_tow.png",
+      "kind": "generated photographic interpretation",
+      "vehicle": "2017–2020 SsangYong G4 Rexton four-door recovery conversion",
+      "sources": [
+        {
+          "page": "https://etrucks.co.kr/m/special/detail.php?idx=1442",
+          "image": "https://etrucks.co.kr/data/bbsData/GOODS1_1625624384.png",
+          "detail": "Mbank special-vehicle product photograph; retained two-row cabin and folded underlift"
+        },
+        {
+          "page": "https://m.kg-mobility.com/showroom/total_price/__icsFiles/afieldfile/2019/11/05/Total_price_2019_11_up_1.pdf",
+          "detail": "Official 2020 G4 Rexton stock side image, PDF page 7"
+        }
+      ],
+      "prompt": "Use case: photorealistic vehicle sprite based on actual documented Korean tow-truck conversions.\nCreate ONE transparent-background studio photograph of a 2017–2020 SsangYong G4 Rexton four-door tow-truck conversion in PERFECT true SIDE PROFILE facing RIGHT (front at right, rear at left), camera level with wheel hubs and parallel to the side. Reference 1 is the real Korean G4 Rexton tow conversion: copy its practical engineering layout, retained FOUR doors and two-row enclosed cabin, rear passenger/cargo roof cut immediately behind the second-row doors, short shallow rear equipment deck, close-fitting rear fenders and compact folded black steel underlift at the very back. Reference 2 is the official unconverted G4 Rexton side photograph: faithfully preserve its recognizable generation-specific bonnet, front fender, headlamp, front bumper, mirrors, windshield/cabin shape, side door contours and wheelbase, only changing the rear to the documented conversion.\nMaintain the passenger-car scale: original 2865mm wheelbase, original body about 4850mm long, towing equipment adds only a short rear projection about 250–350mm. Large cabin but NO extended limousine length. Retain the original front and rear axle positions; exactly TWO visible complete wheels, same realistic size and plausible stock alloy rims, round tires with perfectly level bottoms. The folded underlift is a compact sturdy black bracket close against the rear edge, extending no higher than the roof and no lower than the rocker panel, NOT a long crane and NOT an extra axle. Include realistic small rear vertical tail-light tower and one low amber roof warning lightbar.\nPaint the vehicle clean glossy white with tasteful narrow vivid orange high-visibility stripes on the rear equipment panel and rocker, brushed aluminum deck edges, black rubber/steel equipment. No company name, no phone numbers, no license plate text, no people, no background, no cast ground shadow; no toy, cartoon, illustration or plastic render. Photographic metallic reflections, real glass with restrained tint, chrome details and sharp authentic seams. Preserve complete vehicle with generous clear transparent margins on a wide landscape canvas, preferably 1536x768. No front or rear face visible: orthographic-looking true side photograph. Make all equipment mechanically sensible and stowed for driving.",
+      "originalOutput": "exec-61f0a8d3-a6d3-42f0-9b81-cbc062c85986.png",
+      "geometry": {
+        "width": 1774,
+        "height": 887,
+        "bounds": [
+          43,
+          112,
+          1695,
+          675
+        ],
+        "bodyBottom": 709,
+        "rear": {
+          "x": 431,
+          "y": 646,
+          "r": 140,
+          "rimRatio": 0.79
+        },
+        "front": {
+          "x": 1452,
+          "y": 647,
+          "r": 141,
+          "rimRatio": 0.79
+        }
+      },
+      "alphaRange": [
+        0,
+        255
+      ],
+      "sha256": "26c172256c610b740d6d546ab20577a592e6e7ca841c688b18a8fe24fb64d52d",
+      "bytes": 1381291
+    },
+    {
+      "id": "starex_tow",
+      "file": "starex_tow.png",
+      "kind": "generated photographic interpretation",
+      "vehicle": "2017 Hyundai Grand Starex pre-facelift recovery conversion",
+      "sources": [
+        {
+          "page": "https://8949truck.my1.kr/truck/50674/",
+          "image": "https://8949truck.my1.kr/media/goods/202109/ajt2021091423190997_display.jpg",
+          "detail": "Actual 2017 conversion, rear and front photographs identify early teardrop-headlamp generation"
+        }
+      ],
+      "prompt": "Use case: photorealistic vehicle sprite based on a documented Korean converted Hyundai Grand Starex.\nCreate ONE transparent-background realistic studio photograph in PERFECT true SIDE PROFILE facing RIGHT (front at right, rear at left), wheel-hub-level camera parallel to side, all tires round and exactly side-on. The two reference images show the SAME real 2017 Korean Grand Starex tow conversion, rear-three-quarter and front-three-quarter. Faithfully reproduce its recognizable PRE-FACELIFT 2015–2017 Grand Starex generation: short rounded sloping nose, very large swept vertical teardrop headlamp, upright windscreen, chrome horizontal-bar Hyundai grille, curving front wheel arch, high boxy van cabin, original front door plus retained sliding passenger door with large dark window, cut rear cabin immediately behind that sliding door, shallow open rear equipment deck over original rear axle. Reference 2 shows the exact correct front generation; do not replace with a newer Staria or facelift Starex front.\nUse the actual conversion layout from reference 1: black steel compact folded underlift at far rear, upright small rear equipment/light tower behind cabin with round lamps, short aluminum-edged deck, low amber warning lightbar on cabin roof. Keep van's original roughly 3200mm wheelbase, body about 5150mm long and 1925mm high, with only a short rear equipment projection. Exactly TWO visible complete near-side wheels, same normal diameter, stock silver multi-spoke wheels, no other wheels or far-side wheels. Rear tires must not be oversized. Underlift stowed upright close against rear edge, no tall crane, no long towing arm, no lifted vehicle, nothing extending lower than rocker. Both wheel bottoms on same horizontal line.\nA clean practical white-and-orange Korean roadside-recovery finish: glossy white body and cabin, dark graphite bonnet and grille like the actual reference, an orange lower-side band and restrained orange high-visibility accents around the rear equipment panel, black steel towing gear. Keep subtle realistic body wear, authentic metallic and glass reflections, detailed panel seams, true photographic materials. No invented company logo, no text, no phone number, no license plate content, no people, no environment, no ground shadow. This is a genuine-looking full-size converted van, not a cartoon, toy or illustration. Whole car uncut, wide landscape canvas with clear transparent margins, preferably1536x768. True orthographic-looking right-facing side photograph only; no visible front face or rear face.",
+      "originalOutput": "exec-74bb0f01-9736-4e5f-85cf-48ebdb594f07.png",
+      "geometry": {
+        "width": 1774,
+        "height": 887,
+        "bounds": [
+          30,
+          104,
+          1720,
+          716
+        ],
+        "bodyBottom": 745,
+        "rear": {
+          "x": 374,
+          "y": 690,
+          "r": 128,
+          "rimRatio": 0.8
+        },
+        "front": {
+          "x": 1487,
+          "y": 689,
+          "r": 129,
+          "rimRatio": 0.8
+        }
+      },
+      "alphaRange": [
+        0,
+        255
+      ],
+      "sha256": "ebbb6c274c54e015d75e3403a2eaec5db9fb6946d7fd3e0e2f46bad370f7c589",
+      "bytes": 1534884
+    },
+    {
+      "id": "seoul-haechi-badge",
+      "file": "decals/seoul-haechi-badge.png",
+      "kind": "generated historic decal adaptation",
+      "sources": [
+        {
+          "page": "https://www.seoul.go.kr/seoul/haechiSimbol.do",
+          "image": "https://www.seoul.go.kr/res_newseoul/images/seoul/img_symbol1.png",
+          "detail": "Traditional seated Haechi symbol used as visual reference; unmodified reference saved as decals/seoul-haechi.png"
+        },
+        {
+          "page": "https://mediahub.seoul.go.kr/archives/163746",
+          "image": "https://mediahub.seoul.go.kr/wp-content/uploads/2009/10/0025339593_153_002.jpg",
+          "detail": "Historic orange taxi door badge layout"
+        }
+      ],
+      "prompt": "Precise graphic adaptation for a tiny realistic Seoul taxi door decal. Create ONE flat, clean, sharp-edged decal on transparent background. Reference1 shows the exact traditional old Seoul HAECHI mythical guardian symbol; faithfully copy the animal's distinctive seated silhouette, head profile, scrolling mane, paws and internal strokes. Reference2 is the actual orange Seoul Haechi taxi and shows the historic door badge: upright dark muted navy/charcoal panel with a semicircular arched top and a straight flat bottom, containing the old Haechi guardian in white. Reproduce only that badge, front-facing and undistorted, not the taxi itself: tall narrow rounded arch plaque approximately width:height 0.68:1, the white Haechi animal centered with tasteful thin dark internal lines. No HAECHI SEOUL words, no extra letters, no numbers, no additional scenery or objects. The navy plaque must be opaque and the surrounding area genuinely transparent. Large clear graphic isolated with generous transparent margins. This is the traditional stone-guardian symbol, not the modern yellow or pink mascot. Preserve reference1 animal details carefully and give the white icon strong contrast against the navy panel.",
+      "originalOutput": "exec-89b46bad-fb9a-4638-b5ab-0c1db4001b14.png",
+      "geometry": {
+        "width": 1035,
+        "height": 1520,
+        "sourceCrop": [
+          106,
+          174,
+          822,
+          1124
+        ]
+      },
+      "notes": "Rendered separately in Canvas so users can select or remove the taxi livery; original corporate telephone numbers are omitted.",
+      "sha256": "6141178de85236daeac75ff771c0a4c226300bf07c6a21bcf997939c7e4a8728",
+      "bytes": 891768
+    }
+  ]
+}

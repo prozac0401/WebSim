@@ -1,5 +1,5 @@
-/* Official photographic paint variants remain unmodified. Decals and spoilers
- * are Canvas overlays only and never change simulated mass, power or grip. */
+/* Official photos and disclosed generated conversions share calibrated geometry.
+ * Canvas decals and spoilers never change simulated mass, power or grip. */
 (function (root) {
   'use strict';
   const TAU = Math.PI * 2;
@@ -9,6 +9,12 @@
   const failures = new Set((root.EvolutionLab?.STYLES || []).filter(style => !artwork[style.id]).map(style => style.id));
   const paintFailures = new Set();
   let revision = 0;
+  const haechiBadge = new Image();
+  const badgeReady = new Promise(resolve => {
+    haechiBadge.onload = () => { revision++; resolve(true); };
+    haechiBadge.onerror = () => resolve(false);
+    haechiBadge.src = new URL('assets/vehicles/decals/seoul-haechi-badge.png', baseURL).href;
+  });
   const styleOf = vehicle => typeof vehicle === 'string' ? vehicle : vehicle?.design?.style;
   function getColors(style) {
     const colors = root.VehiclePaints?.[style];
@@ -50,7 +56,7 @@
     const selected = getColors(style).find(item => item.id === color) || getColors(style)[0];
     return loadImage(style, selected);
   }
-  const ready = Promise.all(Object.entries(artwork).map(([style, reference]) => loadImage(style, { id: 'factory', file: reference.file })));
+  const ready = Promise.all([badgeReady, ...Object.entries(artwork).map(([style, reference]) => loadImage(style, { id: 'factory', file: reference.file }))]);
   function layout(vehicle, overrides = {}) {
     const appearance = getAppearance(vehicle, overrides), base = artwork[appearance.style];
     if (!base) return null;
@@ -105,6 +111,13 @@
     ctx.fillStyle = '#e4b254c0'; ctx.strokeStyle = '#624819';
     ctx.fillRect(unit.x - unit.width / 2, unit.y - unit.height / 2, unit.width, unit.height);
     ctx.strokeRect(unit.x - unit.width / 2, unit.y - unit.height / 2, unit.width, unit.height);
+    if (d.conversionUnit) {
+      const equipment = d.conversionUnit;
+      ctx.fillStyle = '#985f36a8'; ctx.strokeStyle = '#ffe5bd';
+      ctx.fillRect(equipment.x - equipment.width / 2, equipment.y - equipment.height / 2, equipment.width, equipment.height);
+      ctx.strokeRect(equipment.x - equipment.width / 2, equipment.y - equipment.height / 2, equipment.width, equipment.height);
+      label(ctx, '견인 장비', equipment.x, equipment.y, Math.max(1.8, vehicle.genome.width * .018), '#fff7df', 700);
+    }
     const com = d.centerOfMass;
     ctx.beginPath(); ctx.arc(com.x, com.y, 2, 0, TAU); ctx.fillStyle = '#fff7ca'; ctx.fill(); ctx.strokeStyle = '#39433d'; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(com.x - 3.5, com.y); ctx.lineTo(com.x + 3.5, com.y); ctx.moveTo(com.x, com.y - 3.5); ctx.lineTo(com.x, com.y + 3.5); ctx.stroke();
@@ -129,15 +142,16 @@
     const livery = appearance.liveries.find(item => item.id === appearance.livery);
     if (!livery?.roof) return;
     const { x, y, w, h, placement } = geo;
-    const center = x + placement.roof[0] * w, bottom = y + placement.roof[1] * h;
-    const premium = appearance.livery === 'premium_taxi', kakao = appearance.livery === 'kakao_taxi';
+    const roof = appearance.livery === 'kakao_taxi' ? (placement.kakaoRoof || placement.roof) : placement.roof;
+    const center = x + roof[0] * w, bottom = y + roof[1] * h;
+    const premium = appearance.livery === 'premium_taxi', kakao = appearance.livery === 'kakao_taxi', seoul = appearance.livery === 'seoul_taxi';
     if (kakao && ['staria', 'carnival'].includes(appearance.style)) return;
     const sw = w * (kakao ? .122 : .096), sh = w * (kakao ? .030 : .026), top = bottom - sh;
-    const accent = premium ? '#d4b979' : kakao ? '#f9dd00' : appearance.livery === 'ev_taxi' ? '#249593' : '#296592';
+    const accent = seoul ? '#d98123' : premium ? '#d4b979' : kakao ? '#f9dd00' : appearance.livery === 'ev_taxi' ? '#249593' : '#296592';
     ctx.save();
     ctx.fillStyle = '#27343a'; ctx.fillRect(center - sw * .56, bottom - w * .003, sw * 1.12, w * .005);
     const face = ctx.createLinearGradient(0, top, 0, bottom);
-    face.addColorStop(0, premium ? '#3d4548' : kakao ? '#fff178' : '#ffffff'); face.addColorStop(1, premium ? '#10191d' : kakao ? '#f3cc18' : '#d9e3e8');
+    face.addColorStop(0, seoul ? '#414749' : premium ? '#3d4548' : kakao ? '#fff178' : '#ffffff'); face.addColorStop(1, seoul ? '#181d20' : premium ? '#10191d' : kakao ? '#f3cc18' : '#d9e3e8');
     ctx.beginPath(); ctx.moveTo(center - sw * .49, bottom - w * .003); ctx.lineTo(center - sw * .40, top + w * .002);
     ctx.quadraticCurveTo(center, top - w * .004, center + sw * .40, top + w * .002); ctx.lineTo(center + sw * .49, bottom - w * .003); ctx.closePath();
     ctx.fillStyle = face; ctx.fill(); ctx.strokeStyle = premium ? '#c7aa64' : '#87959e'; ctx.lineWidth = w * .0008; ctx.stroke();
@@ -146,13 +160,13 @@
       ctx.fillStyle = '#233a57'; ctx.fillRect(center - sw * .42, top + sh * .13, sw * .19, sh * .61);
       label(ctx, 'T', center - sw * .323, top + sh * .44, sh * .43, '#ffe92d', 700);
       label(ctx, 'kakao T', center + sw * .09, top + sh * .47, sh * .43, '#233a57', 500);
-    } else label(ctx, 'TAXI', center, top + sh * .48, sh * .50, premium ? '#e4cc91' : '#173d56', 800);
+    } else label(ctx, 'TAXI', center, top + sh * .48, sh * .50, seoul ? '#f8f1dc' : premium ? '#e4cc91' : '#173d56', 800);
     ctx.restore();
   }
   function drawLivery(ctx, view) {
     const geo = decalGeometry(view), id = view.appearance.livery;
     if (!geo || id === 'none') return;
-    const p = id === 'kakao_taxi' ? { x: geo.x + geo.w * .27, y: geo.y + geo.h * .43, w: geo.w * .45, h: geo.h * .37 } : geo.panel;
+    const p = id === 'seoul_taxi' ? { x: geo.x + geo.w * .33, y: geo.y + geo.h * .43, w: geo.w * .32, h: geo.h * .31 } : id === 'kakao_taxi' ? { x: geo.x + geo.w * .27, y: geo.y + geo.h * .43, w: geo.w * .45, h: geo.h * .37 } : geo.panel;
     const unit = geo.w, cx = p.x + p.w * .56, cy = p.y + p.h * .40;
     ctx.save(); ctx.globalAlpha *= .95;
     // Every marking is confined to an opaque door/bed panel, below the glazing.
@@ -160,7 +174,17 @@
     ctx.beginPath(); ctx.rect(p.x, p.y, p.w, p.h);
     for (const wheel of [view.reference.rear, view.reference.front]) { const wx = view.tx + wheel.x * view.sx, wy = view.ty + wheel.y * view.sy, r = wheel.r * view.sy * 1.03; ctx.moveTo(wx + r, wy); ctx.arc(wx, wy, r, 0, TAU); }
     ctx.clip('evenodd');
-    if (id === 'premium_taxi') {
+    if (id === 'seoul_taxi') {
+      // Historic white stone-guardian badge; the orange car photo is a separate paint.
+      const bh = p.h * .88, bw = bh * .73, bx = p.x + p.w * .04, by = p.y + p.h * .05;
+      if (haechiBadge.complete && haechiBadge.naturalWidth) ctx.drawImage(haechiBadge, 106, 174, 822, 1124, bx, by, bw, bh);
+      label(ctx, '해치택시', bx + bw + unit * .061, by + bh * .38, unit * .023, '#293b41', 700);
+      label(ctx, 'HAECHI SEOUL', bx + bw + unit * .061, by + bh * .72, unit * .0085, '#293b41', 600);
+    } else if (id === 'tow_service') {
+      const tx = p.x + p.w * .53, ty = p.y + p.h * .49;
+      label(ctx, '긴급 견인', tx, ty, unit * .025, '#26343c', 800);
+      label(ctx, 'ROAD ASSISTANCE', tx, ty + unit * .023, unit * .0085, '#435059', 600);
+    } else if (id === 'premium_taxi') {
       ctx.fillStyle = '#d7bb76'; ctx.fillRect(p.x, p.y + p.h * .77, p.w, unit * .0035);
       ctx.fillRect(p.x, p.y + p.h * .86, p.w, unit * .0013);
       label(ctx, '모범', cx, cy, unit * .032, '#e2c78c', 700);
@@ -223,7 +247,8 @@
     const geo = decalGeometry(view); if (!geo) return Infinity;
     const livery = view.appearance.liveries.find(item => item.id === view.appearance.livery);
     const hasRoof = livery?.roof && !(view.appearance.livery === 'kakao_taxi' && ['staria', 'carnival'].includes(view.appearance.style));
-    let top = hasRoof ? geo.y + geo.placement.roof[1] * geo.h - geo.w * (view.appearance.livery === 'kakao_taxi' ? .035 : .031) : Infinity;
+    const roof = view.appearance.livery === 'kakao_taxi' ? (geo.placement.kakaoRoof || geo.placement.roof) : geo.placement.roof;
+    let top = hasRoof ? geo.y + roof[1] * geo.h - geo.w * (view.appearance.livery === 'kakao_taxi' ? .035 : .031) : Infinity;
     if (view.appearance.performance && geo.placement.spoiler) top = Math.min(top, geo.y + geo.placement.spoiler[1] * geo.h - geo.w * (geo.placement.roofSpoiler ? .012 : .026));
     return top;
   }

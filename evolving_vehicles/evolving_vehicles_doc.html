@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="국내 차량 13종의 제조사 원본 이미지와 출고 제원으로 진화를 관찰합니다. 외장 색상과 택시 데칼을 선택하고 마력·토크·무게배분·구동방식을 비교하세요.">
+  <meta name="description" content="국내 차량 13종과 개조 렉카 2종의 외형·기준 제원으로 진화를 관찰합니다. 외장 색상과 택시 데칼을 선택하고 마력·토크·무게배분·구동방식을 비교하세요.">
   <title>진화하는 탈것 사용법 · WebSim</title>
   <link rel="stylesheet" href="../assets/docs.css">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
@@ -13,11 +13,11 @@
   <a class="skip-link" href="#guide">사용법 본문으로</a>
   <main class="doc-shell">
     <nav class="doc-nav" aria-label="페이지 이동"><a href="../index.html">← 전체 목록</a><a class="doc-launch" href="evolving_vehicles.html">직접 해보기 →</a><span class="blog-pending">관련 글 미등록</span></nav>
-    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>진화하는 탈것 사용법</h1><p class="doc-lead">출력이 높으면 눈길에서도 빠를까요? 실제 차량 13종의 크기·중량·마력·토크를 기준으로 여덟 대를 같은 코스에서 달리게 합니다. 유리했던 출력·토크·무게배분·구동방식을 물려주며 다음 세대를 만들어 보세요.</p></header>
+    <header class="doc-header"><p class="doc-kicker">WEB SIMULATOR · 사용법</p><h1>진화하는 탈것 사용법</h1><p class="doc-lead">출력이 높으면 눈길에서도 빠를까요? 국내 차량 13종과 개조 렉카 2종의 크기·중량·마력·토크를 기준으로 여덟 대를 같은 코스에서 달리게 합니다. 유리했던 출력·토크·무게배분·구동방식을 물려주며 다음 세대를 만들어 보세요.</p></header>
     <article class="doc-content" id="guide">
       <h2>처음 세 단계</h2>
       <ol>
-        <li><strong>완만한 언덕 · 포장도로</strong>에서 <strong>경주 시작</strong>을 누릅니다. 차량 번호를 골라 실제 차종의 제조사 이미지와 속도, 타이어 미끄럼, 앞뒤 하중을 관찰하세요.</li>
+        <li><strong>완만한 언덕 · 포장도로</strong>에서 <strong>경주 시작</strong>을 누릅니다. 차량 번호를 골라 실제 차종의 외형과 속도, 타이어 미끄럼, 앞뒤 하중을 관찰하세요.</li>
         <li>평가가 끝나면 <strong>다음 세대</strong>를 누릅니다. 완주 기록이 가장 빠른 탈것 하나는 그대로 남고, 나머지는 부모의 특성을 섞고 일부를 바꾸어 만듭니다. 완주한 차가 없으면 가장 멀리 간 탈것을 남깁니다.</li>
         <li>몇 세대를 비교한 뒤 <strong>돌연변이 확률</strong>을 바꿔 보세요. 새로운 조합이 잘 달리는지, 세대별 최고 기록이 어떻게 달라지는지 확인합니다.</li>
       </ol>
@@ -28,8 +28,9 @@
       <h2>코스와 시작 조건</h2>
       <p><strong>평지·완만한 언덕·울퉁불퉁한 길·긴 골짜기와 오르막·세 개의 큰 언덕·촘촘한 물결길</strong> 중 코스를 고릅니다. 코스를 바꾸면 새로운 환경에서 비교할 수 있도록 세대와 기록을 초기화합니다. <strong>코스 그리기</strong>로 직접 지형을 편집하고 <strong>그린 코스 적용</strong>을 누르면 나만의 경주를 시작할 수 있습니다. 편집 화면은 전체 코스를 그리기 쉽도록 가로 방향을 축소해서 보여 줍니다. 코스의 260 u 지점까지는 출발을 위한 평지로 유지되며, 320 u 이후의 높낮이를 그릴 수 있습니다. 그린 코스를 적용하면 세대와 기록도 새로 시작합니다. <strong>그리기 취소</strong>를 누르면 적용하지 않고 돌아갑니다.</p>
       <p><strong>같은 시작 조건으로 비교하기</strong>를 펼치면 <strong>시작 시드</strong>가 있습니다. 시드를 입력한 뒤 <strong>이 시드로 새 실험</strong>을 누르세요. 같은 시드, 같은 코스와 노면, 같은 첫 세대 설계와 출발 차종, 같은 순서의 돌연변이 설정으로 진행하면 같은 실행 환경에서 결과를 재현할 수 있습니다. 시드는 초기 설계와 진화 과정의 무작위 선택에 사용되며, 완만한 언덕의 모양에도 영향을 줍니다.</p>
-      <p><strong>첫 세대 설계</strong>에서 <strong>다양한 설계로 진화</strong>, <strong>같은 차체 · 출력 비교</strong>, <strong>같은 차체 · 무게배분 비교</strong>, <strong>같은 차체 · 구동방식 비교</strong> 중 하나를 고릅니다. 선택하면 시드와 코스, 노면을 유지한 채 1세대부터 새로 시작합니다. 비교용 첫 세대는 아이오닉 5를 참고한 같은 차체 설계에서 한 조건을 다르게 준비합니다. 출력 비교는 1번부터 8번까지 마력을 출고값의 100~160%로 높이며 토크 배율은 100%로 고정합니다. 마력 증가에 따른 모형 튜닝 중량은 함께 늘어납니다. 출력·무게배분 비교에서는 아이오닉 5 기준 사양과 같은 후륜으로 시작합니다. <strong>다음 세대</strong>부터는 구동 방식을 포함한 모든 특성이 교차·변이 대상이 되므로, 한 조건만 비교하려면 첫 경주를 관찰하거나 <strong>같은 세대 다시 보기</strong>를 사용하세요.</p>
-      <p><strong>출발 차종</strong>은 <strong>다양한 설계로 진화</strong>에서 첫 번째 차종을 고르는 기능입니다. <strong>시드에 따라 배치 · 전체 13종</strong>은 시드로 시작 차종을 정하고, 차종을 직접 고르면 그 차종부터 목록 순서대로 서로 다른 여덟 종을 준비합니다. 목록 끝에 이르면 처음으로 돌아옵니다. <strong>전체 차체 목록은 13종, 한 경주의 참가 차량은 8대</strong>입니다. 선택을 바꾸면 같은 시드·코스·노면으로 새 실험을 시작합니다. 같은 차체 비교 실험에서는 출발 차종 대신 공통 비교 차체를 사용하며, 다음 세대에서는 차종도 교차·변이 대상이 됩니다. 다양한 설계의 첫 세대는 각 차종의 출고 구동방식으로 시작하며, 1번 차량은 출고 마력·토크 100%를 유지합니다. 나머지는 허용 범위 안의 튜닝 값으로 시작합니다.</p>
+      <p><strong>첫 세대 설계</strong>에서 <strong>다양한 설계로 진화</strong>, <strong>같은 차체 · 마력형 / 토크형 비교</strong>, <strong>같은 차체 · 출력 비교</strong>, <strong>같은 차체 · 무게배분 비교</strong>, <strong>같은 차체 · 구동방식 비교</strong> 중 하나를 고릅니다. 선택하면 1세대부터 새로 시작합니다. 일반 비교는 시드·코스·노면을 유지하고, 마력형 / 토크형 비교는 출발 조건을 평지·포장도로로 맞춥니다. 그 뒤에는 코스와 노면을 바꿀 수 있습니다. 비교용 첫 세대는 아이오닉 5를 참고한 같은 차체 설계에서 한 조건을 다르게 준비합니다. 출력 비교는 1번부터 8번까지 마력을 출고값의 100~160%로 높이며 토크 배율은 100%로 고정합니다. 마력 증가에 따른 모형 튜닝 중량은 함께 늘어납니다. 출력·무게배분 비교에서는 아이오닉 5 기준 사양과 같은 후륜으로 시작합니다. <strong>다음 세대</strong>부터는 구동 방식을 포함한 모든 특성이 교차·변이 대상이 되므로, 한 조건만 비교하려면 첫 경주를 관찰하거나 <strong>같은 세대 다시 보기</strong>를 사용하세요.</p>
+      <p><strong>출발 차종</strong>은 <strong>다양한 설계로 진화</strong>에서 첫 번째 차종을 고르는 기능입니다. <strong>시드에 따라 배치 · 전체 15종</strong>은 시드로 시작 차종을 정하고, 차종을 직접 고르면 그 차종부터 목록 순서대로 서로 다른 여덟 종을 준비합니다. 목록 끝에 이르면 처음으로 돌아옵니다. <strong>전체 차체 목록은 15종, 한 경주의 참가 차량은 8대</strong>입니다. 선택을 바꾸면 같은 시드·코스·노면으로 새 실험을 시작합니다. 같은 차체 비교 실험에서는 출발 차종 대신 공통 비교 차체를 사용하며, 다음 세대에서는 차종도 교차·변이 대상이 됩니다. 다양한 설계의 첫 세대는 각 차종의 출고 구동방식으로 시작하며, 1번 차량은 출고 마력·토크 100%를 유지합니다. 다만 렉카는 기본 튜닝인 마력 125%·토크 120%와 견인장비 순증 중량 350 kg을 적용해 시작합니다. 나머지는 허용 범위 안의 튜닝 값으로 시작합니다.</p>
+      <p><strong>같은 차체 · 마력형 / 토크형 비교</strong>는 후륜 아이오닉 5의 출고형(마력·토크 100%), 마력형(마력 160%·토크 100%), 토크형(마력 100%·토크 160%)을 반복 배치합니다. 첫 세대는 보정추를 더해 중량과 무게배분도 맞춥니다. 500 m 코스에서 저속 출발과 빠르게 달릴 때의 차이를 살펴보세요. 평지·포장도로에서는 토크형이 초반에 앞서다가 마력형이 속도를 높여 따라잡는 모습을 비교할 수 있습니다. 비교용 감속비는 12, 제한 시간은 60 t입니다. 다음 세대부터는 보정추를 제거하고 일반 진화 규칙을 따릅니다.</p>
       <h2>코스와 별도로 고르는 노면</h2>
       <p><strong>코스</strong>는 언덕과 요철의 높낮이, <strong>노면</strong>은 타이어가 닿는 길의 성질입니다. 같은 언덕을 포장도로·눈길·자갈길·모래길로 바꾸어 비교할 수 있습니다. 노면을 바꾸면 시드와 코스, 첫 세대 설계를 유지하고 1세대부터 시작합니다. 직접 그린 코스에도 적용됩니다.</p>
       <ul>
@@ -44,30 +45,33 @@
       <ul>
         <li><strong>돌연변이 확률:</strong> 다음 세대를 만들 때 각 특성에 무작위 변화를 더할 확률입니다. 20%는 각 진화 특성이 20% 확률로 변한다는 뜻이며, 마력이 반드시 20%씩 커진다는 뜻은 아닙니다. 차체 치수와 타이어 크기는 선택된 차종의 기준 제원으로 유지됩니다. 현재 달리는 탈것은 바뀌지 않습니다.</li>
         <li><strong>이번 경주 최장 거리:</strong> 출발점에서 차체가 오른쪽으로 가장 멀리 이동했던 거리입니다. 뒤로 밀리거나 뒤집혀도 이미 도달한 최고 거리는 남습니다. 바퀴의 회전 수나 이동 경로 전체의 길이는 아닙니다.</li>
-        <li><strong>평가 시간:</strong> 한 세대는 최대 45 t 동안 달립니다. 모든 탈것이 완주하거나 주행을 종료하면 평가가 먼저 끝날 수 있습니다. 거리 23 u가 1 m, 경주 시간 1 t가 시뮬레이션 시간 1초에 대응합니다. 재생 배율에 따라 실제 기다리는 시간은 달라집니다.</li>
+        <li><strong>평가 시간:</strong> 한 세대는 최대 45 t, 마력형 / 토크형 비교는 최대 60 t 동안 달립니다. 모든 탈것이 완주하거나 주행을 종료하면 평가가 먼저 끝날 수 있습니다. 거리 23 u가 1 m, 경주 시간 1 t가 시뮬레이션 시간 1초에 대응합니다. 재생 배율에 따라 실제 기다리는 시간은 달라집니다.</li>
         <li><strong>완주와 순위:</strong> 완주한 차를 먼저 평가하며, 그중 도착 시간이 빠른 차가 앞섭니다. 미완주 차량끼리는 최장 거리로 비교합니다. 평가가 끝나면 결과표에서 완주 대수와 개별 기록을 볼 수 있습니다.</li>
         <li><strong>미완주 사유:</strong> 오랫동안 전진하지 못한 차는 <strong>정체</strong>, 뒤집힌 채 전진하지 못한 차는 <strong>전복</strong>으로 주행을 종료합니다. 제한 시간까지 달렸지만 도착하지 못하면 시간 초과로 남습니다. 다음 세대에서는 이런 결과도 부모 선택에 반영됩니다.</li>
         <li><strong>세대별 최고 기록:</strong> 완주한 차량이 있으면 가장 빠른 완주 시간과 완주 대수를, 없으면 최장 거리를 표시합니다. 최근 다섯 세대가 표시됩니다.</li>
       </ul>
       <p>탈것끼리는 겹쳐 지나갑니다. 서로 밀거나 막아서 얻는 이득 없이 같은 지형에서 각 설계를 비교하기 위한 설정입니다. 새 세대의 모든 탈것이 좋아지는 것은 아닙니다. 부모보다 짧게 달리는 자손도 있으며, 최고 개체 하나를 보존해 지금까지 유리했던 설계를 이어 갑니다.</p>
       <h2>설계 수치와 무게중심 읽기</h2>
-      <p>차량 번호를 누르면 <strong>관찰 중인 설계</strong>에 제조사 이미지, 출고 기준 사양과 현재 설계 수치가 표시됩니다. 차체 사진의 가로세로 비율은 유지합니다. 차체·차축의 물리 형상은 <strong>물리 표시</strong>의 외곽선으로 확인할 수 있습니다. 차종이 바뀌어도 차체를 임의로 납작하게 만들거나 바퀴만 무제한으로 키우지 않으며, 해당 차종의 길이·높이·축거·타이어 크기를 적용합니다.</p>
+      <p>차량 번호를 누르면 <strong>관찰 중인 설계</strong>에 차량 이미지, 출고 기준 사양과 현재 설계 수치가 표시됩니다. 차체 사진의 가로세로 비율은 유지합니다. 차체·차축의 물리 형상은 <strong>물리 표시</strong>의 외곽선으로 확인할 수 있습니다. 차종이 바뀌어도 차체를 임의로 납작하게 만들거나 바퀴만 무제한으로 키우지 않으며, 해당 차종의 길이·높이·축거·타이어 크기를 적용합니다.</p>
       <ul>
-        <li><strong>최고출력 PS·최대토크 N·m:</strong> 선택한 출고 기준값에 각각의 튜닝 배율을 곱한 값입니다. 배율은 100~160%이며 마력과 토크가 별도로 진화합니다. 출력은 유럽식 마력인 PS로 표시하고 1 PS는 약 735.5 W로 환산합니다. 화면 수치는 최대 능력이며 매 순간 쓰는 출력·토크는 아닙니다.</li>
-        <li><strong>현재 중량 kg:</strong> 출고 공차중량과 튜닝 부품의 추가 중량을 합한 값입니다. 출고 마력·토크 100%이면 공차중량 그대로이며, 두 배율이 모두 160%일 때 추가 중량은 공차중량의 3%입니다. 추가 중량은 실측 부품 무게가 아닌 모형 규칙이며 실제 계산에 들어갑니다.</li>
+        <li><strong>최고출력 PS·최대토크 N·m:</strong> 선택한 출고 기준값에 각각의 튜닝 배율을 곱한 값입니다. 배율은 100~160%이며 마력과 토크가 별도로 진화합니다. 개조 렉카의 하한은 기본 튜닝에 맞춰 마력 125%·토크 120%입니다. 출력은 유럽식 마력인 PS로 표시하고 1 PS는 약 735.5 W로 환산합니다. 화면 수치는 최대 능력이며 매 순간 쓰는 출력·토크는 아닙니다.</li>
+        <li><strong>현재 중량 kg:</strong> 출고 공차중량에 튜닝 부품 중량, 렉카 견인장비의 순증 중량, 비교 실험의 보정추를 더한 값입니다. 기본 차량은 출고 마력·토크 100%일 때 공차중량 그대로이며, 두 배율이 모두 160%일 때 추가 중량은 공차중량의 3%입니다. 추가 중량은 실측 부품 무게가 아닌 모형 규칙이며 실제 계산에 들어갑니다.</li>
         <li><strong>질량당 출력 PS/t:</strong> 최고출력을 현재 중량의 톤 값으로 나눈 수치입니다. 여기서 t는 1,000 kg인 톤으로, 경주 시간 표시의 t와 구분합니다. 가속·등판의 단서지만 접지와 자세에 따라 결과가 달라집니다.</li>
         <li><strong>구동방식:</strong> 전륜은 앞축, 후륜은 뒤축, 사륜은 앞뒤에 힘을 나눕니다. 구동방식만 바꾸면 총 출력·토크·질량은 유지됩니다. 화면의 두 바퀴는 앞뒤 차축을 대표하며, <strong>물리 표시</strong>에서 강조된 축이 동력을 받습니다.</li>
         <li><strong>앞 / 뒤 무게배분:</strong> 수평 정지 상태에서 각 차축이 지지할 무게의 추정 비율입니다. 동력장치의 앞뒤 위치와 단순화한 질량 분포로 계산하며 제조사의 실측 배분값은 아닙니다. 출고 기준 앞축 비율은 내연 전륜차 58%, 내연 후륜차 50%, 무쏘 EV 52%, 아이오닉 5 49%, 무적재 포터 59%로 추정합니다. 무게중심이 차축 바깥에 있으면 <strong>앞쪽/뒤쪽으로 기울어짐</strong>을 표시합니다.</li>
       </ul>
       <p><strong>물리 표시</strong>의 동력장치 표시는 옮길 수 있는 무거운 장치의 위치이고 <strong>⊕ 무게중심</strong>은 수평 정지 설계의 전체 질량 중심입니다. 장치를 옮기면 전체 중량이 같아도 질량 중심과 회전 관성, 구동축 하중이 달라집니다. 다양한 설계의 첫 세대에서 1번은 추정 출고 배치 그대로 시작하고, 나머지는 그 위치의 앞뒤로 차체 길이 7% 안에서 동력장치 위치가 달라집니다. 출고 제원을 사용하더라도 이 내부 질량 분포와 동역학은 2차원 근사이므로 실차 가속 기록을 보장하지 않습니다.</p>
+      <h2>마력과 토크의 성격 읽기</h2>
+      <p><strong>회전수별 성능 곡선</strong>을 펼치면 토크와 마력이 각 설정 상한의 몇 %인지 볼 수 있습니다. 토크를 높이면 낮은 회전수에서 바퀴를 미는 힘이 커지고, 마력을 높이면 높은 회전수에서 힘을 더 오래 유지합니다. 단, 노면의 접지 한계를 넘으면 그 차이가 가속 대신 헛돎으로 나타납니다. 두 설정의 전환점을 지나면서 유리한 특성이 달라집니다.</p>
+      <p><strong>환산 동력계 회전수</strong>는 바퀴의 회전과 모형 감속비로 구한 값이며 실제 차의 계기판 회전수가 아닙니다. <strong>바퀴 전달 출력</strong>은 그 순간 바퀴에 전달한 회전 동력입니다. 헛도는 바퀴에도 동력이 들어갈 수 있으므로 이 수치를 차체를 전진시키는 유효 출력과 같게 해석하지 마세요.</p>
       <h2>속도·타이어 미끄럼·접지 하중 읽기</h2>
       <p><strong>현재 속도</strong>는 차체의 오른쪽 방향 속도를 km/h로 환산한 값이며, 뒤로 밀리면 음수가 됩니다. <strong>타이어 미끄럼</strong>은 타이어 표면이 도는 속도와 노면을 따라 이동하는 속도의 차이를 절댓값 비율로 보여 줍니다. 구동 중의 헛돎뿐 아니라 제동 중 타이어가 노면을 미끄러지는 상황도 포함합니다. 앞뒤 값을 따로 읽어 어느 구동축이 힘을 길에 제대로 전달하지 못하는지 비교하세요. 공중에 있는 바퀴의 헛돎 값은 0으로 표시하므로 <strong>접지 상태</strong>와 함께 읽어야 합니다.</p>
       <p><strong>앞 / 뒤 무게배분</strong>은 설계의 수평 정지 기준이고, 주행 중 표시되는 <strong>추정 접지 하중</strong>은 현재 자세·경사·가속과 바퀴 접촉 여부를 반영한 근사이며, 이 추정치는 타이어 힘의 한계와 구름 저항 계산에도 쓰입니다. 충돌 계산이 구한 실제 접촉 반력을 직접 측정한 값은 아닙니다. 바퀴가 하나만 닿아 있으면 그 축에 100%, 둘 다 떠 있으면 하중 없음으로 표시합니다.</p>
       <p><strong>현재 노면</strong>은 관찰 중인 차체 위치의 재질입니다. 복합 노면의 경계에서 앞뒤 바퀴는 서로 다른 재질의 마찰과 저항을 받을 수 있습니다. 눈길에서 헛돎과 가속을, 모래길에서 속도 저하를 보고 같은 차체의 구동 방식·무게배분과 연결해 보세요.</p>
       <section id="factory-specs">
-        <h2>열세 차종의 출고 기준 제원</h2>
-        <p><strong>2026년 10월 14일</strong> 확인한 한국 판매 사양 중 차종마다 한 구성을 정했습니다. 사진은 제조사의 외관 이미지이며 엔진·좌석·선택사양이 표의 구성과 모두 같다는 뜻은 아닙니다. 전장·전고·축거와 타이어 크기는 이 기준으로 고정되고, 차종이 바뀌면 새 차종의 제원이 적용됩니다. 차종 이름을 누르면 제조사 제원을 볼 수 있습니다. 좁은 화면에서는 표를 좌우로 밀어 수치를 확인하세요.</p>
-        <div class="table-scroll" tabindex="0" role="region" aria-label="열세 차종 출고 제원 표, 좁은 화면에서는 가로로 스크롤"><table style="min-width:760px;table-layout:fixed"><caption>길이 단위 mm · 무적재 공차중량 kg · 출력 PS · 토크 N·m</caption><colgroup><col style="width:220px"><col style="width:180px"><col style="width:95px"><col style="width:80px"><col style="width:90px"><col style="width:95px"></colgroup><thead><tr><th scope="col">차종 · 기준 구성</th><th scope="col">전장 / 전고 / 축거</th><th scope="col">중량</th><th scope="col">출력</th><th scope="col">토크</th><th scope="col">출고 구동</th></tr></thead><tbody><tr data-spec-id="ray"><th scope="row"><a href="https://www.kia.com/kr/vehicles/ray/specification" target="_blank" rel="noopener noreferrer">기아 레이</a><br><small>1.0 가솔린 4AT · 15인치</small></th><td>3,595 / 1,700 / 2,520</td><td>1,090</td><td>76</td><td>95.1</td><td>전륜</td></tr>
+        <h2>열다섯 차종의 기준 제원</h2>
+        <p><strong>2026년 10월 14일</strong> 확인한 한국 판매 사양과 과거 제조사 자료 중 차종마다 한 구성을 정했습니다. 기본 13종은 제조사의 외관 이미지이며 엔진·좌석·선택사양이 표의 구성과 모두 같다는 뜻은 아닙니다. 전장·전고·축거와 타이어 크기는 이 기준으로 고정되고, 차종이 바뀌면 새 차종의 제원이 적용됩니다. 렉카 2종은 원차 기준 제원을 아래에 적고 개조 가정은 별도로 설명합니다. 차종 이름을 누르면 제조사 제원을 볼 수 있습니다. 좁은 화면에서는 표를 좌우로 밀어 수치를 확인하세요.</p>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="열다섯 차종 기준 제원 표, 좁은 화면에서는 가로로 스크롤"><table style="min-width:760px;table-layout:fixed"><caption>길이 단위 mm · 무적재 공차중량 kg · 출력 PS · 토크 N·m</caption><colgroup><col style="width:220px"><col style="width:180px"><col style="width:95px"><col style="width:80px"><col style="width:90px"><col style="width:95px"></colgroup><thead><tr><th scope="col">차종 · 기준 구성</th><th scope="col">전장 / 전고 / 축거</th><th scope="col">중량</th><th scope="col">출력</th><th scope="col">토크</th><th scope="col">출고 구동</th></tr></thead><tbody><tr data-spec-id="ray"><th scope="row"><a href="https://www.kia.com/kr/vehicles/ray/specification" target="_blank" rel="noopener noreferrer">기아 레이</a><br><small>1.0 가솔린 4AT · 15인치</small></th><td>3,595 / 1,700 / 2,520</td><td>1,090</td><td>76</td><td>95.1</td><td>전륜</td></tr>
 <tr data-spec-id="avante"><th scope="row"><a href="https://www.hyundai.com/contents/repn-car/catalog/spec/avante-27fc-spec.pdf" target="_blank" rel="noopener noreferrer">현대 아반떼</a><br><small>2027 올 뉴 아반떼 스마트스트림 가솔린2.0 IVT,18인치</small></th><td>4,765 / 1,425 / 2,750</td><td>1,400</td><td>149</td><td>179.5</td><td>전륜</td></tr>
 <tr data-spec-id="staria"><th scope="row"><a href="https://www.hyundai.com/contents/repn-car/html/homepage/model/staria-lounge-26pe_intro.content" target="_blank" rel="noopener noreferrer">현대 스타리아</a><br><small>2026 더 뉴 스타리아 라운지7인승 LPG3.5 2WD 자동8단,18인치</small></th><td>5,255 / 1,990 / 3,275</td><td>2,295</td><td>240</td><td>313.8</td><td>전륜</td></tr>
 <tr data-spec-id="musso_ev"><th scope="row"><a href="https://www.kg-mobility.com/pr/model/show-room/200000100030003" target="_blank" rel="noopener noreferrer">KGM 무쏘 EV</a><br><small>전기 2WD · 17인치</small></th><td>5,160 / 1,740 / 3,150</td><td>2,155</td><td>207</td><td>340.3</td><td>전륜</td></tr>
@@ -79,19 +83,26 @@
 <tr data-spec-id="carnival"><th scope="row"><a href="https://www.kia.com/kr/vehicles/carnival/specification" target="_blank" rel="noopener noreferrer">기아 카니발</a><br><small>1.6 터보 하이브리드 9인승 · 18인치</small></th><td>5,155 / 1,785 / 3,090</td><td>2,155</td><td>245</td><td>366.8</td><td>전륜</td></tr>
 <tr data-spec-id="g80"><th scope="row"><a href="https://www.genesis.com/kr/ko/models/luxury-sedan-genesis/g80/specs.html" target="_blank" rel="noopener noreferrer">제네시스 G80</a><br><small>G80 기본모델 가솔린2.5터보 2WD 자동8단,20인치(스포츠패키지미적용)</small></th><td>5,005 / 1,465 / 3,010</td><td>1,850</td><td>304</td><td>421.7</td><td>후륜</td></tr>
 <tr data-spec-id="torres"><th scope="row"><a href="https://www.kg-mobility.com/pr/model/show-room/200000100010001" target="_blank" rel="noopener noreferrer">KGM 토레스</a><br><small>1.5 가솔린 터보 2WD 8AT · 18인치</small></th><td>4,705 / 1,720 / 2,680</td><td>1,520</td><td>170</td><td>300.1</td><td>전륜</td></tr>
-<tr data-spec-id="porter2"><th scope="row"><a href="https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro" target="_blank" rel="noopener noreferrer">현대 포터 II</a><br><small>2.5 LPG 터보 자동5단 · 초장축 슈퍼캡 2WD · 범퍼가드</small></th><td>5,155 / 1,970 / 2,640</td><td>1,705</td><td>159</td><td>294.2</td><td>후륜</td></tr></tbody></table></div>
+<tr data-spec-id="porter2"><th scope="row"><a href="https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro" target="_blank" rel="noopener noreferrer">현대 포터 II</a><br><small>2.5 LPG 터보 자동5단 · 초장축 슈퍼캡 2WD · 범퍼가드</small></th><td>5,155 / 1,970 / 2,640</td><td>1,705</td><td>159</td><td>294.2</td><td>후륜</td></tr><tr data-spec-id="rexton_tow"><th scope="row"><a href="https://m.kg-mobility.com/showroom/total_price/__icsFiles/afieldfile/2019/11/05/Total_price_2019_11_up_1.pdf" target="_blank" rel="noopener noreferrer">G4 렉스턴 개조 렉카</a><br><small>2020 G4 렉스턴 · 2.2 LET 디젤 5인승 4WD 7AT · 18인치</small></th><td>4,850 / 1,825 / 2,865</td><td>2,170</td><td>187</td><td>421.7</td><td>사륜</td></tr>
+<tr data-spec-id="starex_tow"><th scope="row"><a href="https://www.hyundai.com/kr/ko/vehicles/grand-starex/20my/specifications.html" target="_blank" rel="noopener noreferrer">그랜드 스타렉스 개조 렉카</a><br><small>2017 전기형 그랜드 스타렉스 외관 · 2.5 VGT 디젤 밴 3인승 2WD 5AT 기준 · 16인치 · 후기형 제원 준용 추정</small></th><td>5,150 / 1,935 / 3,200</td><td>2,060 (추정)</td><td>175</td><td>451.1</td><td>후륜</td></tr></tbody></table></div>
         <p>카니발 하이브리드는 제조사가 공개한 시스템 합산 출력·토크, 전기차는 모터 수치, 나머지는 엔진 수치입니다. kgf·m로 공개된 토크는 9.80665를 곱해 N·m로 환산합니다. 포터는 범퍼가드를 포함한 전장과 무적재 중량을 사용하며, 145R13C 뒤 타이어의 미표기 단면비는 80%로 가정합니다. 싼타페와 카니발의 전고는 선택한 구성의 루프랙을 포함합니다.</p>
+      </section>
+      <section id="tow-conversions">
+        <h2>렉스턴·스타렉스 개조 렉카</h2>
+        <p><strong>G4 렉스턴 개조 렉카</strong>는 2020 G4 5인승 4WD를 기준으로, <strong>그랜드 스타렉스 개조 렉카</strong>는 실제 2017년 전기형 개조 사진을 기준으로 구성했습니다. 스타렉스의 중량 2,060 kg과 기준 치수·동력계는 공식 2020MY 3인승 밴 2WD 5AT 자료를 준용하므로 해당 2017 차량의 실측값이 아닙니다. G4의 파트타임 4WD도 모형에서는 고정 50:50 사륜으로 단순화합니다.</p>
+        <p>두 렉카는 승객실 뒤 지붕을 잘라 짧은 데크와 접이식 언더리프트, 경광등을 더한 외형입니다. <strong>기본 마력 125%·토크 120%, 견인장비 순증 350 kg</strong>은 실험용 개조 설정입니다. 순증 중량은 제거한 패널과 추가 견인장비·보강체를 합친 보수적인 중장비 사양 가정으로, 특정 개조업체의 인증 제원이 아닙니다. 참고한 렉스턴 개조 제품의 표기 공차 2,270 kg과도 다릅니다. 실제 차를 뒤에 매달아 견인하는 과정은 계산하지 않습니다.</p>
       </section>
       <section id="appearance-guide">
         <h2>외장 색상·택시 데칼·고성능 외형</h2>
-        <p>차량 번호를 선택한 뒤 <strong>외장 색상</strong>과 <strong>데칼 · 운행 스타일</strong>을 고릅니다. 색상은 같은 차종·각도로 제공된 제조사 원본 중에서 선택합니다. 차종마다 제공 색상이 다르며 G80은 현재 확보한 기본 블루 한 가지입니다. <strong>순정 · 데칼 없음</strong>을 고르면 문양과 택시 표시를 없앨 수 있습니다.</p>
-        <p>차종에 따라 개인택시·모범택시·전기택시·대형택시·<strong>카카오 T 택시</strong>·동네배송·주말 캠핑 스타일을 선택할 수 있습니다. 포터 II에는 열린 적재함이 있는 용달 트럭 외관과 동네배송 표시를 적용할 수 있습니다. 데칼은 문과 차체 위에 그리는 실험용 장식으로, 해당 운송 서비스의 실제 등록 차량이나 공식 사양을 의미하지 않습니다.</p>
-        <p><strong>고성능 개체 외형 자동 표시</strong>를 켜면 해당 차종의 출고 기준보다 <strong>질량당 출력이 20% 이상 높은 개체</strong>에 고성능 포인트가 나타납니다. 어울리는 차종에는 뒤 스포일러도 표시됩니다. 이 기준은 차종별 출고 성능에 대한 상대 비교입니다. <strong>색상·데칼·스포일러는 질량·접지력·공기저항·출력을 바꾸지 않습니다.</strong></p>
-        <p>기본 사진의 출처는 <a href="#design-references">아래 차종별 링크</a>와 <a href="assets/vehicles/SOURCES.json">원본 이미지 출처 목록</a>, 추가 색상의 정확한 이미지 주소는 <a href="assets/vehicles/PAINTS.json">도색 원본 출처 목록</a>에 기록했습니다. 저장된 이미지 파일은 제조사 원본 그대로이며 장식은 화면에서 따로 겹쳐 그립니다. 카카오 T 스타일은 <a href="https://www.kakaomobility.com/service-kakaot/taxi" target="_blank" rel="noopener noreferrer">카카오모빌리티의 공식 택시 소개</a>와 <a href="https://t1.kakaocdn.net/kakaomobility/company_website/contents/v2/10-taxi-blue.png" target="_blank" rel="noopener noreferrer">블루</a>·<a href="https://t1.kakaocdn.net/kakaomobility/company_website/contents/v2/10-taxi-venti.png" target="_blank" rel="noopener noreferrer">벤티 이미지</a>를 참고했습니다.</p>
+        <p>차량 번호를 선택한 뒤 <strong>외장 색상</strong>과 <strong>데칼 · 운행 스타일</strong>을 고릅니다. 기본 색상은 같은 차종·각도로 제공된 제조사 원본 중에서 선택합니다. 서울 택시 주황색과 개조 렉카 외형은 참고 사진을 바탕으로 만든 별도의 생성 이미지입니다. 차종마다 제공 색상이 다르며 G80은 현재 확보한 기본 블루 한 가지입니다. <strong>순정 · 데칼 없음</strong>을 고르면 문양과 택시 표시를 없앨 수 있습니다.</p>
+        <p>차종에 따라 개인택시·모범택시·전기택시·대형택시·<strong>카카오 T 택시</strong>·<strong>서울 해치 택시</strong>·동네배송·주말 캠핑 스타일을 선택할 수 있습니다. 포터 II에는 열린 적재함이 있는 용달 트럭 외관과 동네배송 표시를 적용할 수 있습니다. 데칼은 문과 차체 위에 그리는 실험용 장식으로, 해당 운송 서비스의 실제 등록 차량이나 공식 사양을 의미하지 않습니다.</p>
+        <p><strong>고성능 개체 외형 자동 표시</strong>를 켜면 해당 차종의 출고 기준보다 <strong>질량당 출력이 20% 이상 높은 개체</strong>에 고성능 포인트가 나타납니다. 어울리는 차종에는 뒤 스포일러도 표시됩니다. 일반 차량은 차종별 출고 성능에 대한 상대 비교입니다. 렉카는 견인장비 350 kg을 이미 더한 튜닝 전 상태를 기준으로 삼으므로, 원차 대비 성능 증가율과 다릅니다. <strong>색상·데칼·스포일러는 질량·접지력·공기저항·출력을 바꾸지 않습니다.</strong></p>
+        <p>기본 사진의 출처는 <a href="#design-references">아래 차종별 링크</a>와 <a href="assets/vehicles/SOURCES.json">원본 이미지 출처 목록</a>, 추가 색상의 정확한 이미지 주소는 <a href="assets/vehicles/PAINTS.json">도색 원본 출처 목록</a>에 기록했습니다. 기본 차량과 제조사 제공 색상은 내려받은 원본을 사용하고, 생성한 택시 도색·렉카 이미지와 구분해 출처를 기록했습니다. 데칼 장식은 화면에서 따로 겹쳐 그립니다. 카카오 T 스타일은 <a href="https://www.kakaomobility.com/service-kakaot/taxi" target="_blank" rel="noopener noreferrer">카카오모빌리티의 공식 택시 소개</a>와 <a href="https://t1.kakaocdn.net/kakaomobility/company_website/contents/v2/10-taxi-blue.png" target="_blank" rel="noopener noreferrer">블루</a>·<a href="https://t1.kakaocdn.net/kakaomobility/company_website/contents/v2/10-taxi-venti.png" target="_blank" rel="noopener noreferrer">벤티 이미지</a>를 참고했습니다.</p>
+        <p>서울 해치 택시는 <a href="https://mediahub.seoul.go.kr/archives/163746" target="_blank" rel="noopener noreferrer">서울시의 2010년 도입 디자인</a>과 <a href="https://mediahub.seoul.go.kr/archives/165372" target="_blank" rel="noopener noreferrer">꽃담황토색 택시 소개</a>를 참고합니다. 차체색은 <a href="https://english.seoul.go.kr/wp-content/uploads/2026/03/seoul_color_10_v2.pdf" target="_blank" rel="noopener noreferrer">서울 대표색의 SC1956 꽃담황토색</a>(sRGB 209·111·21)을 기준으로 하고, 옛 해치 문양과 지붕 택시 표시를 적용합니다. 화면의 K5 주황색은 공식 출고 사진이 아닌 생성 도색 이미지입니다.</p>
       </section>
       <section id="design-references">
-        <h2>열세 차종의 제조사 원본 이미지와 출처</h2>
-        <p><strong>2026년 10월 14일</strong> 기준 제조사의 한국 공식 페이지에서 제공하는 13종의 측면 또는 전측면 차량 이미지를 사용합니다. 내려받은 이미지 파일은 색상이나 배경을 수정하지 않은 원본이며 이 실험에 함께 저장되어 있습니다. 차체의 지붕선·창문·램프·휠 디테일을 실제 모델 이미지 그대로 볼 수 있습니다. 차량 번호를 선택하면 해당 설계를 크게 볼 수 있습니다.</p>
+        <h2>제조사 이미지와 개조 차량 외형의 출처</h2>
+        <p><strong>2026년 10월 14일</strong> 기준 제조사의 한국 공식 페이지에서 제공하는 13종의 측면 또는 전측면 차량 이미지를 사용합니다. 이 13종의 기본 이미지 파일은 색상이나 배경을 수정하지 않은 원본이며 이 실험에 함께 저장되어 있습니다. 추가 렉카 2종과 서울 택시 주황색은 실사진을 참고해 생성한 이미지로 구분합니다. 차체의 지붕선·창문·램프·휠 디테일을 실제 모델 이미지 그대로 볼 수 있습니다. 차량 번호를 선택하면 해당 설계를 크게 볼 수 있습니다.</p>
         <ul>
           <li><strong><a href="https://www.kia.com/kr/vehicles/ray/features" target="_blank" rel="noopener noreferrer">기아 레이</a>:</strong> 짧고 높은 박스형 차체, 세워진 뒷면, 큰 옆창과 작은 바퀴를 확인할 수 있습니다. <a href="https://www.kia.com/kr/vehicles/ray/specification" target="_blank" rel="noopener noreferrer">공식 제원</a>에서 길이 대비 높은 차체와 긴 휠베이스를 확인할 수 있습니다. <a class="vehicle-image-source" href="https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_37.png" target="_blank" rel="noopener noreferrer">사용한 원본 이미지</a>.</li>
           <li><strong><a href="https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro" target="_blank" rel="noopener noreferrer">현대 디 올 뉴 아반떼</a>:</strong> 2026년 8월 계약을 시작한 8세대 모델의 긴 보닛, 낮은 세단 지붕선, 볼륨 있는 펜더와 입체적인 옆면을 확인할 수 있습니다. <a href="https://www.hyundaimotorgroup.com/ko/news/hyundai-motor-company-all-new-avante" target="_blank" rel="noopener noreferrer">공식 출시 자료</a>와 <a href="https://www.hyundaimotorgroup.com/ko/infographics/hyundai-motor-company-the-all-new-avante" target="_blank" rel="noopener noreferrer">제원 자료</a>를 기준으로 합니다. <a class="vehicle-image-source" href="https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/042.png" target="_blank" rel="noopener noreferrer">사용한 원본 이미지</a>.</li>
@@ -106,6 +117,8 @@
           <li><strong><a href="https://www.genesis.com/kr/ko/models/g80" target="_blank" rel="noopener noreferrer">제네시스 G80</a>:</strong> 가솔린 모델의 긴 보닛, 뒤로 흐르는 지붕선, 두 줄 램프와 앞 펜더 장식을 확인할 수 있습니다. 공식 모델 페이지의 전장 5,005 / 전고 1,465 / 휠베이스 3,010 mm를 비율 기준으로 삼았습니다. <a class="vehicle-image-source" href="https://dams.hyundai-autoever.com/v1/openapi/hmg-presigned-url/50534b313031303030303030303030303130363133/genesis-g80-standard-side-view-model-thumbnail.png" target="_blank" rel="noopener noreferrer">사용한 원본 이미지</a>.</li>
           <li><strong><a href="https://www.kg-mobility.com/pr/model/show-room/200000100010001" target="_blank" rel="noopener noreferrer">KGM 토레스</a>:</strong> 가솔린 모델의 높은 보닛, 각진 휠 아치, 굵은 뒷기둥과 세워진 뒷면을 확인할 수 있습니다. <a href="https://www.kg-mobility.com/attached/contents/display/file/2000001000100010011/20260331142455287_qaH4sK.pdf" target="_blank" rel="noopener noreferrer">공식 카탈로그</a>의 전장 4,705 / 전고 1,720 / 휠베이스 2,680 mm를 비율 기준으로 삼았습니다. <a class="vehicle-image-source" href="https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845790_HsARx5_14.png" target="_blank" rel="noopener noreferrer">사용한 원본 이미지</a>.</li>
           <li><strong><a href="https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro" target="_blank" rel="noopener noreferrer">현대 포터 II</a>:</strong> 앞쪽에 모인 운전실과 낮고 긴 열린 적재함이 있는 용달 트럭입니다. 오닉스 블루와 크리미 화이트의 <a class="vehicle-image-source" href="https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png" target="_blank" rel="noopener noreferrer">공식 전측면 원본 이미지</a>를 사용합니다. 순수 측면 원본이 제공되지 않아 원근감과 반대쪽 바퀴가 남으며, 사진 속 투영 비율은 실제 축거·앞뒤 타이어 크기와 정확히 일치하지 않습니다.</li>
+          <li><strong>G4 렉스턴 개조 렉카:</strong> <a href="https://etrucks.co.kr/m/special/detail.php?idx=1442" target="_blank" rel="noopener noreferrer">엠뱅크 렉스턴 언더리프트 제품 사진</a>과 <a href="https://m.kg-mobility.com/showroom/total_price/__icsFiles/afieldfile/2019/11/05/Total_price_2019_11_up_1.pdf" target="_blank" rel="noopener noreferrer">제조사의 G4 원차 자료</a>를 바탕으로 생성한 측면 외형입니다. 실제 개조차 사진 자체나 제조사 출고 원본은 아닙니다.</li>
+          <li><strong>그랜드 스타렉스 개조 렉카:</strong> <a href="https://8949truck.my1.kr/truck/50674/" target="_blank" rel="noopener noreferrer">2017년식 언더리프트 판매자의 실제 차량 사진</a>을 바탕으로 생성한 측면 외형입니다. 큰 헤드램프와 가로 그릴, 보존한 슬라이딩 도어와 뒤쪽 견인장비를 표현합니다.</li>
         </ul>
         <p>차체 이미지의 가로세로 비율은 유지하고, 바퀴 이미지는 모형의 앞뒤 차축 위치와 타이어 크기에 맞춰 움직이며 휠 무늬가 회전합니다. 차체 외곽과 사진이 완전히 일치하는 것은 아니며 특히 포터의 전측면 사진은 원근 차이가 있습니다. <strong>출고 치수·공차중량·마력·토크를 기준으로 삼고, 튜닝 배율·무게배분·구동방식을 진화시킵니다.</strong> 차종을 바꾸면 그 차종의 기준 제원을 적용합니다.</p>
       </section>
@@ -119,17 +132,17 @@
         <summary>제작 원리와 학술적 의미</summary>
         <h3>설계를 진화시키는 실험</h3>
         <p>이 실험은 여러 설계를 시험하고, 좋은 결과를 낸 설계의 특성을 선택·교차·변이하는 유전 알고리즘입니다. <a href="https://www.karlsims.com/evolved-virtual-creatures.html" target="_blank" rel="noopener noreferrer">Karl Sims의 Evolved Virtual Creatures</a>는 가상 생물의 형태와 행동을 시뮬레이션에서 진화시키는 연구를 보여 줍니다. 이 화면은 그 주제를 두 바퀴 탈것으로 단순화한 별도의 모형입니다.</p>
-        <p>진화하는 특성은 차종, 마력 배율, 토크 배율, 동력장치의 앞뒤 위치, 구동방식입니다. 차종은 수치 구간에 따라 열세 형태 중 하나로 정하므로 작은 변이가 같은 종류에 머무를 수도 있습니다. 차체 치수와 타이어 반경은 선택된 차종의 제원으로 다시 맞추며 지붕이나 바퀴를 별도로 변형하지 않습니다. 구동방식에 변이가 일어나면 전륜·후륜·사륜 중 현재와 다른 방식으로 바뀝니다. 한 경주 안에서는 설계가 그대로 유지됩니다.</p>
+        <p>진화하는 특성은 차종, 마력 배율, 토크 배율, 동력장치의 앞뒤 위치, 구동방식입니다. 차종은 수치 구간에 따라 열다섯 형태 중 하나로 정하므로 작은 변이가 같은 종류에 머무를 수도 있습니다. 차체 치수와 타이어 반경은 선택된 차종의 제원으로 다시 맞추며 지붕이나 바퀴를 별도로 변형하지 않습니다. 구동방식에 변이가 일어나면 전륜·후륜·사륜 중 현재와 다른 방식으로 바뀝니다. 한 경주 안에서는 설계가 그대로 유지됩니다.</p>
         <h3>차체와 바퀴의 물리</h3>
         <p>Matter.js의 2차원 강체 물리로 차체와 두 바퀴, 지면의 충돌을 계산합니다. 충돌에는 각 차종의 외곽을 단순화한 다각형을 작은 볼록 조각으로 나눠 결합해 사용합니다. 이 물리 형상은 제조사 이미지와 별개이며 <strong>물리 표시</strong>의 외곽선으로 확인할 수 있습니다. 이미지 속 창문·램프·거울·휠 아치 자체가 충돌 형상이 되는 것은 아닙니다. 차축은 차체와 바퀴를 연결하는 제약 조건입니다. 계산 시간 간격은 1/120 t로 고정하고 재생 속도에 따라 계산 횟수를 늘립니다.</p>
-        <p>길이 1 m를 23 u로 바꾸고 중력은 9.81 m/s²에 대응시킵니다. 화면의 kg·PS·N·m는 제조사 기준값에 튜닝 배율을 적용한 수치입니다. 공통 감속비 8과 구동 효율 88%를 사용하는 이상화된 모터 곡선으로 이를 바퀴 힘으로 환산합니다. 실제 다단 변속기나 엔진 회전수별 곡선을 재현하지 않으므로 최고속도·가속시간을 실차 기록으로 해석하지 마세요.</p>
+        <p>길이 1 m를 23 u로 바꾸고 중력은 9.81 m/s²에 대응시킵니다. 화면의 kg·PS·N·m는 제조사 기준값에 튜닝 배율을 적용한 수치입니다. 기본 감속비 8, 마력형 / 토크형 비교의 감속비 12와 구동 효율 88%를 사용하는 이상화된 동력 곡선으로 이를 바퀴 힘으로 환산합니다. 모형 한계 회전수는 전기차 14,000 rpm·디젤 4,500 rpm·그 외 6,500 rpm으로 가정하며 마지막 5% 구간에서 토크를 줄입니다. 이 값은 제조사가 공개한 레드라인이 아닙니다. 실제 다단 변속기나 엔진 회전수별 곡선을 재현하지 않으므로 최고속도·가속시간을 실차 기록으로 해석하지 마세요.</p>
         <pre><code>현재 최고출력(PS) = 출고 최고출력 × 마력 배율
 현재 최대토크(N·m) = 출고 최대토크 × 토크 배율
 튜닝 추가 중량(kg) = 공차중량 × [0.03 × (마력 배율 − 1) + 0.02 × (토크 배율 − 1)]
-현재 중량(kg) = 공차중량 + 튜닝 추가 중량
+현재 중량(kg) = 공차중량 + 튜닝 추가 중량 + 개조 순증 중량 + 비교 보정추
 질량당 출력(PS/t) = 현재 최고출력 ÷ (현재 중량 / 1000)</code></pre>
-        <p>마력·토크 배율은 각각 1.0~1.6입니다. 출고 상태의 중량은 차체 외피 72%, 옮길 수 있는 동력장치 24%, 앞뒤 바퀴 각각 2%로 나누는 추정 모형이며 실제 부품별 무게를 뜻하지 않습니다. 추가 중량은 동력장치에 더해지고 가속과 회전에 직접 작용합니다. 무거운 차의 평가 점수를 별도로 깎지는 않습니다.</p>
-        <p>전체 토크 예산은 구동방식에 관계없이 같습니다. 전륜과 후륜은 한 축에 100%, 사륜은 앞뒤에 50%씩 보냅니다. 모형 모터 토크는 바퀴의 상대 회전 속도에 따라 선형으로 줄고 목표 속도를 넘으면 제동 방향으로 작용합니다. 비구동축은 모터 토크를 받지 않고 지면 접촉으로 회전합니다. 바퀴에 가한 토크의 반작용은 차체에 전달되며, 매 시간 간격에서 회전 변화와 타이어 힘을 함께 계산합니다.</p>
+        <p>마력·토크 배율은 각각 1.0~1.6입니다. 출고 상태의 중량은 차체 외피 72%, 옮길 수 있는 동력장치 24%, 앞뒤 바퀴 각각 2%로 나누는 추정 모형이며 실제 부품별 무게를 뜻하지 않습니다. 튜닝 중량과 비교 보정추는 동력장치에 더해지고, 렉카의 개조 순증 중량은 차체 중심에서 뒤로 차체 길이의 28%인 위치에 더합니다. 추가 질량과 위치는 가속·무게중심·회전 관성에 직접 작용합니다. 무거운 차의 평가 점수를 별도로 깎지는 않습니다.</p>
+        <p>전체 토크 예산은 구동방식에 관계없이 같습니다. 전륜과 후륜은 한 축에 100%, 사륜은 앞뒤에 50%씩 보냅니다. 낮은 회전수에서는 최대토크로 힘을 제한하고, 회전수가 높아지면 토크 × 각속도가 최고출력을 넘지 않도록 제한합니다. 모형 한계 회전수에 가까워지면 구동 토크를 줄여 0으로 만듭니다. 비구동축은 모터 토크를 받지 않고 지면 접촉으로 회전합니다. 바퀴에 가한 토크의 반작용은 차체에 전달되며, 매 시간 간격에서 회전 변화와 타이어 힘을 함께 계산합니다.</p>
         <p>차체 외피의 질량 중심을 위의 추정 출고 배분에 맞춘 뒤 동력장치의 질량·위치로 차체의 무게중심과 회전 관성을 계산하고, 두 바퀴는 각각의 질량과 관성을 가진 강체로 연결합니다. 동력장치를 앞뒤로 옮기면 같은 전체 질량이라도 차체의 질량 중심과 관성이 바뀝니다. 화면의 앞/뒤 배분은 이 설계에서 구한 정적 기준이며, 달리는 동안의 접촉·마찰과 차체 회전은 물리 계산으로 정해집니다.</p>
         <p>구동 방식만 바꾸면 동력장치 질량과 정격 출력은 유지합니다. 앞뒤로 힘을 나누는 효과를 분리해 비교하기 위한 설정입니다. 사륜의 50:50 배분은 고정이며, 차동장치·좌우 바퀴·전자식 접지 제어·구동계별 추가 질량은 계산하지 않습니다.</p>
         <p>중력과 접촉 마찰, 차체 회전이 주행에 영향을 줍니다. 각 탈것은 지면과 충돌하지만 같은 차의 부품끼리 또는 다른 탈것과는 충돌하지 않습니다. 따라서 화면에서 탈것이 겹쳐 보여도 경주 결과에 영향을 주지 않습니다.</p>

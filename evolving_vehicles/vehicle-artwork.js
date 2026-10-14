@@ -1,4 +1,4 @@
-/* Source-image geometry in original pixels; provenance in assets/vehicles/SOURCES.json. */
+/* Source-image geometry in original pixels; provenance in assets/vehicles/SOURCES.json and GENERATED.json. */
 window.VehicleArtwork = {
   "ray": {
     "file": "assets/vehicles/ray.png",
@@ -310,6 +310,54 @@ window.VehicleArtwork = {
       "y": 372,
       "r": 43,
       "rimRatio": 0.78
+    }
+  },
+  "rexton_tow": {
+    "file": "assets/vehicles/rexton_tow.png",
+    "width": 1774,
+    "height": 887,
+    "bounds": [
+      43,
+      112,
+      1695,
+      675
+    ],
+    "bodyBottom": 709,
+    "rear": {
+      "x": 431,
+      "y": 646,
+      "r": 140,
+      "rimRatio": 0.79
+    },
+    "front": {
+      "x": 1452,
+      "y": 647,
+      "r": 141,
+      "rimRatio": 0.79
+    }
+  },
+  "starex_tow": {
+    "file": "assets/vehicles/starex_tow.png",
+    "width": 1774,
+    "height": 887,
+    "bounds": [
+      30,
+      104,
+      1720,
+      716
+    ],
+    "bodyBottom": 745,
+    "rear": {
+      "x": 374,
+      "y": 690,
+      "r": 128,
+      "rimRatio": 0.8
+    },
+    "front": {
+      "x": 1487,
+      "y": 689,
+      "r": 129,
+      "rimRatio": 0.8
     }
   }
 };

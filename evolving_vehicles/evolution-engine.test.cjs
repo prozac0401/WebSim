@@ -22,9 +22,9 @@ function without(genome, ...genes) {
   return result;
 }
 
-test('all thirteen silhouettes have matching collision outlines and preserve space above the pickup deck', () => {
+test('all fifteen silhouettes have matching collision outlines and preserve space above the pickup deck', () => {
   const lab = new EvolutionLab({ seed: 42, terrain: 'flat', population: 16 });
-  assert.equal(new Set(lab.vehicles.map(vehicle => vehicle.design.style)).size, 13);
+  assert.equal(new Set(lab.vehicles.map(vehicle => vehicle.design.style)).size, 15);
   for (const vehicle of lab.vehicles) {
     const outline = vehicle.design.outline.map(point => world(vehicle.body, point));
     const parts = vehicle.body.parts.slice(1);
@@ -57,12 +57,17 @@ test('all factory dimensions, curb masses and base output match their named prod
     near(genome.frontRadius, spec.frontTireRadiusMm * .023);
     const totalHeight = design.rearAxle.y + genome.rearRadius - Math.min(...design.outline.map(p => p.y));
     near(totalHeight, spec.heightMm * .023);
-    near(design.massKg, spec.curbMassKg);
-    near(design.powerPs, spec.powerPs);
-    near(design.torqueNm, spec.torqueNm);
-    near(genome.powerMultiplier, 1); near(genome.torqueMultiplier, 1);
-    near(design.performanceRatio, 1);
-    near(design.frontLoad, design.estimatedFactoryFrontLoad);
+    const power = spec.baseTune?.power || 1, torque = spec.baseTune?.torque || 1;
+    const conversion = spec.conversionMassKg || 0;
+    const tunedMass = spec.curbMassKg * (.03 * (power - 1) + .02 * (torque - 1));
+    near(design.massKg, spec.curbMassKg + conversion + tunedMass);
+    near(design.powerPs, spec.powerPs * power);
+    near(design.torqueNm, spec.torqueNm * torque);
+    near(genome.powerMultiplier, power); near(genome.torqueMultiplier, torque);
+    near(design.referencePowerToWeight, spec.powerPs / (spec.curbMassKg + conversion));
+    near(design.performanceRatio, design.powerToWeight / design.referencePowerToWeight);
+    if (!conversion) near(design.frontLoad, design.estimatedFactoryFrontLoad);
+    else assert.ok(design.frontLoad < design.estimatedFactoryFrontLoad);
     assert.equal(design.driveType, spec.factoryDrive);
   }
   const porter = new EvolutionLab({ startingStyle: 'porter2' }).vehicles[0];
@@ -75,8 +80,8 @@ test('all factory dimensions, curb masses and base output match their named prod
 
 test('the style catalogue can start a diverse fleet with any chosen model and survives terrain resets', () => {
   const ids = EvolutionLab.STYLES.map(style => style.id);
-  assert.equal(ids.length, 13);
-  assert.equal(new Set(ids).size, 13);
+  assert.equal(ids.length, 15);
+  assert.equal(new Set(ids).size, 15);
   assert.ok(Object.isFrozen(EvolutionLab.STYLES));
   for (const [start, startingStyle] of ids.entries()) {
     const lab = new EvolutionLab({ seed: 42, startingStyle });
@@ -98,7 +103,7 @@ test('the style catalogue can start a diverse fleet with any chosen model and su
   selected.reset({ startingStyle: 'missing-model' });
   assert.equal(selected.startingStyle, null);
   assert.deepEqual(selected.genomes, auto.genomes);
-  for (const initialExperiment of ['power', 'balance', 'drive']) {
+  for (const initialExperiment of ['power', 'balance', 'drive', 'character']) {
     const baseline = new EvolutionLab({ seed: 42, initialExperiment });
     const comparison = new EvolutionLab({ seed: 42, initialExperiment, startingStyle: 'morning' });
     assert.equal(comparison.startingStyle, 'morning');
@@ -115,7 +120,7 @@ test('output comparison changes only the power multiplier and includes modest ha
     assert.deepEqual(without(vehicle.genome, 'powerMultiplier'), without(lab.vehicles[0].genome, 'powerMultiplier'));
     const design = vehicle.design;
     near(design.totalMass, vehicle.body.mass + vehicle.wheels.reduce((sum, wheel) => sum + wheel.mass, 0));
-    near(design.totalMass, design.shellMass + design.powertrainMass + design.wheelMass);
+    near(design.totalMass, design.shellMass + design.powertrainMass + design.wheelMass + design.conversionMassKg * EvolutionLab.UNITS.massPerKg);
     near(design.massKg, design.totalMass / EvolutionLab.UNITS.massPerKg);
     near(design.powerToWeight, design.powerPs / design.massKg);
     near(design.torqueNm, design.factoryTorqueNm);
@@ -134,9 +139,8 @@ test('performance grades compare factory PS per kg and do not reward torque with
   catalogue.genomes = catalogue.genomes.map(genome => ({ ...genome, powerMultiplier: 1, torqueMultiplier: 1 }));
   catalogue.restartTrial();
   for (const { design } of catalogue.vehicles) {
-    near(design.performanceRatio, 1);
-    near(design.referencePowerToWeight, design.powerToWeight);
-    near(design.referencePowerToWeight, design.factoryPowerPs / design.curbMassKg);
+    if (!design.conversionMassKg) near(design.performanceRatio, 1);
+    near(design.referencePowerToWeight, design.factoryPowerPs / (design.curbMassKg + design.conversionMassKg));
   }
   const lab = new EvolutionLab({ initialExperiment: 'power' });
   const base = lab.genomes[0];
@@ -166,10 +170,18 @@ test('PS and Nm drive the physical motor curve in explicit length, mass and time
   near(lab.engine.gravity.scale, 9.81 * 23 / 1e6);
   for (const vehicle of lab.vehicles) {
     const spec = EvolutionLab.SPECS[vehicle.design.style], g = vehicle.genome;
-    const reduction = spec.gearRatio || u.reduction;
+    const reduction = g.gearRatio;
     near(2 * g.motorTorque / torqueUnit / reduction / u.efficiency, vehicle.design.torqueNm);
-    const physicalPeakWatts = (g.motorTorque * g.motorSpeed / 2) / torqueUnit / u.baseSeconds;
-    near(physicalPeakWatts, vehicle.design.powerPs * u.powerWattsPerPs * u.efficiency, 1e-6);
+    near(g.motorSpeed / u.baseSeconds * reduction * 30 / Math.PI, vehicle.design.rpmLimitRpm);
+    const curve = rpm => EvolutionLab.motorEnvelope(spec, g.powerMultiplier, g.torqueMultiplier, rpm);
+    near(curve(0).torqueNm, vehicle.design.torqueNm);
+    near(curve(vehicle.design.rpmLimitRpm).torqueNm, 0);
+    for (let rpm = 0; rpm <= vehicle.design.rpmLimitRpm * 1.1; rpm += 100) {
+      const point = curve(rpm);
+      assert.ok(point.torqueNm >= 0 && point.torqueNm <= vehicle.design.torqueNm + 1e-8);
+      assert.ok(point.powerPs >= 0 && point.powerPs <= vehicle.design.powerPs + 1e-8);
+      near(point.powerPs * u.powerWattsPerPs, point.torqueNm * rpm * Math.PI / 30, 1e-6);
+    }
   }
   for (let i = 0; i < 240; i++) lab.step();
   for (const vehicle of lab.vehicles) near(vehicle.telemetry.speedKmH, vehicle.telemetry.speed / 23 * 3.6);
@@ -257,7 +269,9 @@ test('implicit motors preserve the rated budget, passive axles and equal opposit
   const lab = new EvolutionLab({ population: 3, initialExperiment: 'drive' });
   for (const vehicle of lab.vehicles) {
     near(vehicle.design.driveShares.reduce((a, b) => a + b, 0), 1);
-    near(vehicle.design.peakPower, vehicle.genome.motorTorque * vehicle.genome.motorSpeed / 2);
+    const units = EvolutionLab.UNITS;
+    const torqueUnit = units.massPerKg * units.lengthPerMetre ** 2 / 1e6;
+    near(vehicle.design.peakPower, vehicle.design.powerPs * units.powerWattsPerPs * units.efficiency * torqueUnit * units.baseSeconds);
     for (const relativeRatio of [0, .5, 1, 3]) {
       vehicle.body.angularVelocity = .073;
       vehicle.body.torque = 0;
@@ -270,10 +284,10 @@ test('implicit motors preserve the rated budget, passive axles and equal opposit
         assert.ok(Math.abs(wheel.torque) <= 2 * vehicle.genome.motorTorque * share + 1e-10);
         const units = EvolutionLab.UNITS, spec = EvolutionLab.SPECS[vehicle.design.style];
         const unitTorque = units.massPerKg * units.lengthPerMetre ** 2 / 1e6;
-        const actualRatedWheelTorque = vehicle.design.torqueNm * (spec.gearRatio || units.reduction) * units.efficiency * unitTorque;
+        const actualRatedWheelTorque = vehicle.design.torqueNm * vehicle.genome.gearRatio * units.efficiency * unitTorque;
         assert.ok(Math.abs(wheel.torque) <= actualRatedWheelTorque * share + 1e-10);
         if (relativeRatio < 1 && share) assert.ok(wheel.torque > 0);
-        if (relativeRatio > 1 && share) assert.ok(wheel.torque < 0);
+        if (relativeRatio > 1) near(wheel.torque, 0);
         if (relativeRatio === 1) near(wheel.torque, 0);
         motorTotal += wheel.torque;
       });
@@ -416,9 +430,9 @@ test('evolution preserves factory geometry and never selects output below the fa
       near(genome.wheelBase, spec.wheelbaseMm / spec.lengthMm);
       near(genome.rearRadius, spec.rearTireRadiusMm * .023);
       near(genome.frontRadius, spec.frontTireRadiusMm * .023);
-      assert.ok(genome.powerMultiplier >= 1 && genome.powerMultiplier <= 1.6);
-      assert.ok(genome.torqueMultiplier >= 1 && genome.torqueMultiplier <= 1.6);
-      assert.ok(design.massKg >= spec.curbMassKg - 1e-8 && design.massKg <= spec.curbMassKg * 1.03 + 1e-8);
+      assert.ok(genome.powerMultiplier >= (spec.baseTune?.power || 1) && genome.powerMultiplier <= 1.6);
+      assert.ok(genome.torqueMultiplier >= (spec.baseTune?.torque || 1) && genome.torqueMultiplier <= 1.6);
+      assert.ok(design.massKg >= spec.curbMassKg + design.conversionMassKg - 1e-8 && design.massKg <= spec.curbMassKg * 1.03 + design.conversionMassKg + 1e-8);
       assert.ok(Number.isInteger(genome.drivetrain));
     }
     lab._finish(); lab.nextGeneration();
@@ -443,4 +457,94 @@ test('finish times improve the champion record while equal-time elites retain it
   assert.equal(lab.champion.generation, 3);
   assert.equal(lab.champion.id, 2);
   assert.equal(lab.champion.finishTime, 15);
+});
+
+
+test('torque plateaus at low RPM while horsepower sustains more torque at high RPM without changing the RPM ceiling', () => {
+  const spec = EvolutionLab.SPECS.ioniq5;
+  const curve = (power, torque, rpm) => EvolutionLab.motorEnvelope(spec, power, torque, rpm);
+  const lowPower = curve(1.6, 1, 1000), lowTorque = curve(1, 1.6, 1000);
+  near(lowPower.torqueNm, spec.torqueNm);
+  near(lowTorque.torqueNm, spec.torqueNm * 1.6);
+  assert.equal(lowPower.limit, 'torque');
+  const highPower = curve(1.6, 1, 9000), highTorque = curve(1, 1.6, 9000);
+  near(highPower.powerPs, spec.powerPs * 1.6);
+  near(highTorque.powerPs, spec.powerPs);
+  assert.ok(highPower.torqueNm > highTorque.torqueNm * 1.5);
+  near(highPower.redlineRpm, highTorque.redlineRpm);
+  for (const [power, torque] of [[1, 1], [1.6, 1], [1, 1.6]]) {
+    const redlineRpm = curve(power, torque, 0).redlineRpm;
+    const boundary = curve(power, torque, redlineRpm);
+    assert.equal(boundary.limit, 'rpm'); near(boundary.torqueNm, 0); near(boundary.powerPs, 0);
+    near(curve(power, torque, redlineRpm * 2).powerPs, 0);
+  }
+});
+
+test('equal-mass character cars show torque-led launch and horsepower-led passing on a 500 metre course', () => {
+  const lab = new EvolutionLab({ seed: 42, population: 3, terrain: 'flat', initialExperiment: 'character' });
+  near((lab.finishX - lab.startX) / EvolutionLab.UNITS.lengthPerMetre, 500);
+  near(lab.duration, 60);
+  const [factory, power, torque] = lab.vehicles;
+  for (const vehicle of lab.vehicles) {
+    near(vehicle.design.massKg, factory.design.massKg);
+    near(vehicle.body.inertia, factory.body.inertia);
+    near(vehicle.design.frontLoad, factory.design.frontLoad);
+    near(vehicle.genome.gearRatio, 12);
+    assert.equal(vehicle.design.driveType, factory.design.driveType);
+  }
+  for (let i = 0; i < 5; i++) lab.step(1);
+  assert.ok(torque.score > power.score + 200);
+  assert.ok(torque.telemetry.speedKmH > power.telemetry.speedKmH + 5);
+  for (let i = 0; i < 5; i++) lab.step(1);
+  assert.ok(power.telemetry.speedKmH > torque.telemetry.speedKmH + 5);
+  for (let i = 0; i < 5; i++) lab.step(1);
+  assert.ok(power.score > torque.score + 30);
+  finish(lab, 1);
+  assert.ok(lab.vehicles.every(vehicle => vehicle.finished));
+  assert.ok(power.finishTime + .5 < torque.finishTime);
+  const elite = structuredClone(lab.best.genome), time = lab.best.finishTime;
+  lab.nextGeneration(); assert.deepEqual(lab.genomes[0], elite); finish(lab, 1);
+  near(lab.vehicles[0].finishTime, time);
+  lab.reset({ initialExperiment: 'evolution' });
+  near(lab.finishX, 2600); near(lab.duration, 45);
+  assert.ok(lab.vehicles.every(vehicle => vehicle.genome.gearRatio === 8));
+});
+
+test('tow equipment and base tunes are explicit masses and outputs with a rearward axle load', () => {
+  for (const startingStyle of ['rexton_tow', 'starex_tow']) {
+    const lab = new EvolutionLab({ seed: 42, startingStyle, terrain: 'flat' });
+    const v = lab.vehicles[0], d = v.design, spec = EvolutionLab.SPECS[startingStyle];
+    near(d.stockMassKg, spec.curbMassKg);
+    near(d.conversionMassKg, 350);
+    near(v.genome.powerMultiplier, 1.25); near(v.genome.torqueMultiplier, 1.2);
+    near(d.powerPs, spec.powerPs * 1.25); near(d.torqueNm, spec.torqueNm * 1.2);
+    near(d.conversionUnit.x - d.frame.x, v.genome.width * spec.conversionPosition);
+    const addedHardware = d.massKg - d.stockMassKg - d.conversionMassKg;
+    const wheelbase = d.frontAxle.x - d.rearAxle.x;
+    const expectedFront = (d.stockMassKg * d.estimatedFactoryFrontLoad
+      + addedHardware * (d.powerUnit.x - d.rearAxle.x) / wheelbase
+      + d.conversionMassKg * (d.conversionUnit.x - d.rearAxle.x) / wheelbase) / d.massKg;
+    near(d.frontLoad, expectedFront);
+    assert.ok(d.frontLoad < d.estimatedFactoryFrontLoad - .03);
+    const equipmentMass = d.conversionMassKg * EvolutionLab.UNITS.massPerKg;
+    const c = d.conversionUnit;
+    assert.ok(v.body.inertia > 4 * equipmentMass * ((c.width ** 2 + c.height ** 2) / 12 + c.x ** 2 + c.y ** 2));
+    finish(lab, 1);
+    assert.ok(v.finished, startingStyle + ' should finish in its base towing configuration');
+  }
+});
+
+
+test('saved custom terrain stretches to the 500 metre finish and restores without changing its saved points', () => {
+  const lab = new EvolutionLab({ terrain: 'custom', points: [{ x: 1000, y: 330 }, { x: 2600, y: 340 }] });
+  const saved = structuredClone(lab._customPoints), originalTerrain = structuredClone(lab.terrainPoints);
+  lab.reset({ initialExperiment: 'character', terrain: 'flat' });
+  lab.reset({ initialExperiment: 'character', terrain: 'custom' });
+  assert.deepEqual(lab._customPoints, saved);
+  assert.ok(lab.terrainPoints.at(-1).x > lab.finishX);
+  assert.ok(lab.terrainPoints.some(point => point.x === 1000 && point.y === 330));
+  assert.ok(lab.terrainBodies.some(body => body.bounds.min.x <= lab.finishX && body.bounds.max.x >= lab.finishX));
+  lab.reset({ initialExperiment: 'evolution', terrain: 'custom' });
+  assert.deepEqual(lab._customPoints, saved);
+  assert.deepEqual(lab.terrainPoints, originalTerrain);
 });
