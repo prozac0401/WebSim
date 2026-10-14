@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "id": "spa-official-access-plan-2026",
+  "method": "periodic-monotone-cubic",
+  "stationCount": 18,
+  "source": "Circuit de Spa-Francorchamps · 2026 공식 거리·고도 표기",
+  "sourceUrl": "https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf",
+  "sourcePage": 3,
+  "retrievedOn": "2026-10-15",
+  "distanceOrigin": "official-start-line",
+  "note": "공식 지도 18개 측점과 종점의 고도를 보존한 보간입니다. 측점 사이의 노면 경사·캠버는 추정이며 최대 17% 경사를 강제하지 않습니다.",
+  "documentTitle": "CSF_Plans_Acces_2026",
+  "documentSHA256": "b27ef259435a2b0cfbac40059aed18281ac9cd09e517488f96b2ca5d48049d68",
+  "documentPageCount": 4,
+  "markers": [
+    {
+      "distanceM": 0,
+      "altitudeM": 418
+    },
+    {
+      "distanceM": 220,
+      "altitudeM": 424
+    },
+    {
+      "distanceM": 310,
+      "altitudeM": 419
+    },
+    {
+      "distanceM": 690,
+      "altitudeM": 403
+    },
+    {
+      "distanceM": 890,
+      "altitudeM": 391
+    },
+    {
+      "distanceM": 1130,
+      "altitudeM": 415
+    },
+    {
+      "distanceM": 1490,
+      "altitudeM": 446
+    },
+    {
+      "distanceM": 2200,
+      "altitudeM": 463
+    },
+    {
+      "distanceM": 2470,
+      "altitudeM": 470
+    },
+    {
+      "distanceM": 2870,
+      "altitudeM": 455
+    },
+    {
+      "distanceM": 3110,
+      "altitudeM": 438
+    },
+    {
+      "distanceM": 3600,
+      "altitudeM": 402
+    },
+    {
+      "distanceM": 4280,
+      "altitudeM": 377
+    },
+    {
+      "distanceM": 4740,
+      "altitudeM": 375
+    },
+    {
+      "distanceM": 5100,
+      "altitudeM": 373
+    },
+    {
+      "distanceM": 5700,
+      "altitudeM": 388
+    },
+    {
+      "distanceM": 6000,
+      "altitudeM": 398
+    },
+    {
+      "distanceM": 6540,
+      "altitudeM": 408
+    },
+    {
+      "distanceM": 7004,
+      "altitudeM": 418
+    }
+  ],
+  "rights": "Numeric facts transcribed from the circuit-published access plan; source PDF remains the publisher's copyrighted document and is linked, not redistributed.",
+  "alignment": {
+    "referenceLayoutM": 7004,
+    "originalGeoJSON": "data/be-1925.geojson",
+    "sourceRevision": "394d8fbe70ef2c0b0c8d23ff7bee61fa09606055",
+    "sourceCoordinatesStart": [
+      5.96502,
+      50.444251
+    ],
+    "distanceShiftAppliedM": 0,
+    "elevationScaleApplied": 1,
+    "direction": "Start → La Source → downhill Eau Rouge (left) → uphill Raidillon (right then left) → Kemmel → Les Combes",
+    "checks": [
+      "PDF 0/7004 m marker is the main-pit start line; source begins on that straight and travels towards La Source.",
+      "220 m turn-in at La Source, 310 m hairpin exit, 890 m Eau Rouge entry, 1130 m Raidillon left/exit and 1490 m Kemmel bend occur in the same geographic sequence.",
+      "Official chainage is applied to centreline s, not to the shorter optimized racing-line distance; racing-line resampling carries centerS."
+    ],
+    "accuracyNote": "The PDF provides a cartographic route and chainage markers, not georeferenced station coordinates. Alignment is checked by start location, direction, corner sequence and 7004 m chainage; no independent centimetre/metre registration accuracy is claimed.",
+    "verticalDatum": "The plan labels altitude in metres but does not name a vertical datum. Do not interpret differences from EGM2008 DSM as survey residuals."
+  },
+  "interpolation": {
+    "method": "Periodic Fritsch-Butland/PCHIP weighted-harmonic tangents, zero slope at local extrema, exact published marker elevations, no segment overshoot.",
+    "unobservedRoadDetails": "Intermediate surface slope, cambers, vertical curves and bridge deck details remain estimates.",
+    "reportedLocalMaximum": "The official 2025 Raidillon article quotes 24 m rise in 240 m and 17% maximum grade. The rise agrees with 890→1130 m markers; this implementation does not invent an internal station to enforce 17%.",
+    "articleUrl": "https://www.spa-francorchamps.be/en/news/548_mongrip-unveils-new-curbstone-collection-raidillon-limited-edition-dedicated-to-the-iconic-corner-of",
+    "preservedData": [
+      "circuits.js elevations and coordinates",
+      "data/elevation/spa.json API response",
+      "point.rawZ before DEM smoothing",
+      "point.demZ after DEM smoothing"
+    ]
+  },
+  "comparison": [
+    {
+      "officialDistanceM": 0,
+      "officialAltitudeM": 418,
+      "previousDemAltitudeM": 418.5772032074398,
+      "simulationAltitudeM": 418,
+      "samplingErrorM": 0,
+      "longitude": 5.965019975230435,
+      "latitude": 50.44425099099268
+    },
+    {
+      "officialDistanceM": 220,
+      "officialAltitudeM": 424,
+      "previousDemAltitudeM": 422.35057401103217,
+      "simulationAltitudeM": 424,
+      "samplingErrorM": 0,
+      "longitude": 5.96348450316952,
+      "latitude": 50.445960091412815
+    },
+    {
+      "officialDistanceM": 310,
+      "officialAltitudeM": 419,
+      "previousDemAltitudeM": 421.21064242306875,
+      "simulationAltitudeM": 419.001600997606,
+      "samplingErrorM": 0.0016009976059763176,
+      "longitude": 5.964290419455178,
+      "latitude": 50.446026397452165
+    },
+    {
+      "officialDistanceM": 690,
+      "officialAltitudeM": 403,
+      "previousDemAltitudeM": 402.99437665179937,
+      "simulationAltitudeM": 402.99909018901633,
+      "samplingErrorM": -0.0009098109836713775,
+      "longitude": 5.968490374130663,
+      "latitude": 50.44399637719401
+    },
+    {
+      "officialDistanceM": 890,
+      "officialAltitudeM": 391,
+      "previousDemAltitudeM": 392.2419152830578,
+      "simulationAltitudeM": 391.0030066266494,
+      "samplingErrorM": 0.0030066266493804505,
+      "longitude": 5.9702969520219495,
+      "latitude": 50.44262508694931
+    },
+    {
+      "officialDistanceM": 1130,
+      "officialAltitudeM": 415,
+      "previousDemAltitudeM": 401.3718293966255,
+      "simulationAltitudeM": 414.9992362468152,
+      "samplingErrorM": -0.0007637531847990431,
+      "longitude": 5.972062859138315,
+      "latitude": 50.44094092470286
+    },
+    {
+      "officialDistanceM": 1490,
+      "officialAltitudeM": 446,
+      "previousDemAltitudeM": 429.54293240692573,
+      "simulationAltitudeM": 445.9994333216286,
+      "samplingErrorM": -0.0005666783713991208,
+      "longitude": 5.974580133013899,
+      "latitude": 50.438154105703944
+    },
+    {
+      "officialDistanceM": 2200,
+      "officialAltitudeM": 463,
+      "previousDemAltitudeM": 455.69999263270194,
+      "simulationAltitudeM": 463,
+      "samplingErrorM": 0,
+      "longitude": 5.97734524479437,
+      "latitude": 50.43204815255395
+    },
+    {
+      "officialDistanceM": 2470,
+      "officialAltitudeM": 470,
+      "previousDemAltitudeM": 462.5855961737418,
+      "simulationAltitudeM": 469.99930061468467,
+      "samplingErrorM": -0.000699385315328982,
+      "longitude": 5.976987416168995,
+      "latitude": 50.429876975518134
+    },
+    {
+      "officialDistanceM": 2870,
+      "officialAltitudeM": 455,
+      "previousDemAltitudeM": 445.91809339201717,
+      "simulationAltitudeM": 454.9997277305786,
+      "samplingErrorM": -0.0002722694213730392,
+      "longitude": 5.972924421616552,
+      "latitude": 50.42767979562168
+    },
+    {
+      "officialDistanceM": 3110,
+      "officialAltitudeM": 438,
+      "previousDemAltitudeM": 432.24193066538794,
+      "simulationAltitudeM": 438.00004251931546,
+      "samplingErrorM": 0.000042519315456956974,
+      "longitude": 5.9738846965285255,
+      "latitude": 50.42903359429209
+    },
+    {
+      "officialDistanceM": 3600,
+      "officialAltitudeM": 402,
+      "previousDemAltitudeM": 401.38613484020397,
+      "simulationAltitudeM": 402,
+      "samplingErrorM": 0,
+      "longitude": 5.972945681647011,
+      "latitude": 50.43318985277566
+    },
+    {
+      "officialDistanceM": 4280,
+      "officialAltitudeM": 377,
+      "previousDemAltitudeM": 374.56767312664925,
+      "simulationAltitudeM": 377,
+      "samplingErrorM": 0,
+      "longitude": 5.967357213565523,
+      "latitude": 50.431045148321736
+    },
+    {
+      "officialDistanceM": 4740,
+      "officialAltitudeM": 375,
+      "previousDemAltitudeM": 368.5772064584247,
+      "simulationAltitudeM": 375,
+      "samplingErrorM": 0,
+      "longitude": 5.9627091235234495,
+      "latitude": 50.42921112352345
+    },
+    {
+      "officialDistanceM": 5100,
+      "officialAltitudeM": 373,
+      "previousDemAltitudeM": 376.35782943222296,
+      "simulationAltitudeM": 373,
+      "samplingErrorM": 0,
+      "longitude": 5.959707731566047,
+      "latitude": 50.43051442786955
+    },
+    {
+      "officialDistanceM": 5700,
+      "officialAltitudeM": 388,
+      "previousDemAltitudeM": 402.6335254080108,
+      "simulationAltitudeM": 388,
+      "samplingErrorM": 0,
+      "longitude": 5.965722199016667,
+      "latitude": 50.43403127597116
+    },
+    {
+      "officialDistanceM": 6000,
+      "officialAltitudeM": 398,
+      "previousDemAltitudeM": 411.88962839924693,
+      "simulationAltitudeM": 398,
+      "samplingErrorM": 0,
+      "longitude": 5.967929860738113,
+      "latitude": 50.436272845544146
+    },
+    {
+      "officialDistanceM": 6540,
+      "officialAltitudeM": 408,
+      "previousDemAltitudeM": 413.7842812029507,
+      "simulationAltitudeM": 408,
+      "samplingErrorM": 0,
+      "longitude": 5.9664821194138105,
+      "latitude": 50.44093326304413
+    },
+    {
+      "officialDistanceM": 7004,
+      "officialAltitudeM": 418,
+      "previousDemAltitudeM": 418.5772032074398,
+      "simulationAltitudeM": 418,
+      "samplingErrorM": 0,
+      "longitude": 5.965019975230435,
+      "latitude": 50.44425099099268
+    }
+  ],
+  "validation": {
+    "maximumAltitudeSamplingErrorM": 0.0030066266493804505,
+    "raidillonOfficialRiseM": 24,
+    "raidillonPreviousDemRiseM": 9.129914113567736,
+    "raidillonNewSimulationRiseM": 23.99622962016582,
+    "raidillonMaximumSimulatedGrade": 0.13321520833333267,
+    "sourceCoordinatesAndElevationsUnchanged": true
+  }
+}

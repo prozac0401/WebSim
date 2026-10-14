@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "taebaek",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "taebaek-city-20240428-start",
+      "title": "Taebaek City, 2024-04-28 Track Festival starting gantry photograph",
+      "url": "https://www.taebaek.go.kr/DATA/bbs/174/183A927F-0508-A2A0-BCB9-C527FF3352CE.jpg",
+      "pageUrl": "https://www.taebaek.go.kr/mayor/selectBbsNttView.do?bbsNo=174&key=1765&nttNo=154538&pageIndex=75&searchCnd=all&searchCtgry=&searchKrwd=",
+      "sourceType": "local-government-event-photograph",
+      "localEvidenceFile": "output/environment-references/korea/taebaek-1.jpg",
+      "sha256": "1db9a4de58743840d0f1f0d2e759e8366e864569ec630165578d0b4bae5ab8d5",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2024,
+      "captureYear": 2024,
+      "captureYearStatus": "identified from event caption",
+      "rights": {
+        "ownerOrPublisher": "Taebaek City",
+        "license": "Korea Open Government Licence (KOGL) Type 4: attribution, non-commercial, no derivatives. Local reference only.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "taebaek-city-20240428-corner",
+      "title": "Taebaek City, 2024-04-28 Track Festival corner photograph",
+      "url": "https://www.taebaek.go.kr/DATA/bbs/174/20EA2243-7957-0642-28F0-76A5BF2E6D01.jpg",
+      "pageUrl": "https://www.taebaek.go.kr/mayor/selectBbsNttView.do?bbsNo=174&key=1765&nttNo=154538&pageIndex=75&searchCnd=all&searchCtgry=&searchKrwd=",
+      "sourceType": "local-government-event-photograph",
+      "localEvidenceFile": "output/environment-references/korea/taebaek-3.jpg",
+      "sha256": "4c0a9171d6fed80afb04d1b235030b485947c7ca40754f94a6e121af6c2fdeb7",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2024,
+      "captureYear": 2024,
+      "captureYearStatus": "identified from event caption",
+      "rights": {
+        "ownerOrPublisher": "Taebaek City",
+        "license": "Korea Open Government Licence (KOGL) Type 4: attribution, non-commercial, no derivatives. Local reference only.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "태백 스피드웨이",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "observed-materials-not-geolocated",
+    "limitations": [
+      "Photographed corner and side of the starting straight are not resolved against north-up geometry; no arbitrary perimeter band or forest ring added.",
+      "2024 event caption dates photographs; present condition may differ.",
+      "No confirmed sand or gravel in the inspected images."
+    ]
+  },
+  "features": []
+}

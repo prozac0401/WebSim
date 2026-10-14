@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "yeongam-permanent",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "kic-official-grandstand",
+      "title": "Korea International Circuit official pit / grandstand aerial crop",
+      "url": "https://koreacircuit.com/main/images/contents/kic_bg_2.png",
+      "pageUrl": "https://koreacircuit.com/Introduce",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/kic-2.png",
+      "sha256": "fd4f6c596341553ba4f0c89d0a68ac38734d335786af00998bf4d10991829db6",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Korea Mobility Group / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "kic-official-bridge",
+      "title": "Korea International Circuit official Korean-roof bridge photograph",
+      "url": "https://koreacircuit.com/main/images/contents/kic_bg_3.jpg",
+      "pageUrl": "https://koreacircuit.com/Introduce",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/kic-3.jpg",
+      "sha256": "50d51c419d6b76558f35fc36190cf3a8e1ad8da0880dbe64d55bfdb8625868bf",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Korea Mobility Group / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "영암 코리아 인터내셔널 서킷",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "observed-materials-not-geolocated",
+    "limitations": [
+      "These crops do not locate the observed areas against both simulator layouts reliably; geometry intentionally omitted.",
+      "The KIC website main bg_track.png appears to show Inje Speedium and is excluded as geographically inconsistent evidence.",
+      "A pit safety wall is not identified as a terrain-retaining wall."
+    ]
+  },
+  "features": []
+}

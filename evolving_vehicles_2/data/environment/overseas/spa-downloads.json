@@ -1,0 +1,17 @@
+{
+  "localReferenceDirectory": "output/environment-references/overseas",
+  "successfulDownloads": [
+    {
+      "file": "spa-raidillon-2022.jpeg",
+      "url": "https://www.spa-francorchamps.be/assets/cache/70384e33-9a92-9e0d-cbd8-3a10af05f334/raidillon1.jpeg",
+      "sha256": "dd0a4766ac23a835591dfaf539637d1ede33c7fea7059d63a48d21f88047f7d3",
+      "bytes": 362781
+    },
+    {
+      "file": "spa-corners.html",
+      "url": "https://www.spa-francorchamps.be/en/news/96_the-corners-of-the-spa-francorchamps-circuit",
+      "sha256": "710e0244e186b1cf7546073b301ba466a7942d383a1e3f5df63e5445e6f37ab0",
+      "bytes": 102281
+    }
+  ]
+}

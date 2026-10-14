@@ -1,0 +1,733 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "silverstone",
+  "coordinateSystem": "wgs84",
+  "metadata": {
+    "coverage": "Observed Hamilton Straight grass and limited outer gravel apron; remainder omitted",
+    "method": "Observed regions in official operator photographs, approximately registered to imported centreline. No georeferenced land survey available.",
+    "horizontalGeometry": "Approximate footprint, nominal uncertainty 15 m; not measured landscaping boundaries.",
+    "verticalGeometry": "Estimated from adjacent road; individual tree placement and height unmeasured.",
+    "dateLimitation": "Photograph capture dates not published. Acquisition date does not establish current conditions.",
+    "omitted": "Unobserved areas, sand and retaining walls are omitted. Grass is not inferred for the entire venue."
+  },
+  "sources": [
+    {
+      "id": "silverstone-official-wing-aerial",
+      "title": "Visit, Eat, Stay — Venue Hire aerial",
+      "url": "https://www.silverstone.co.uk/visit-eat-stay",
+      "imageUrl": "https://www.silverstone.co.uk/sites/default/files/styles/card_sets_default/public/images/Hoodpin_Silverstone_004_-2%20%281%29.jpg.webp?h=47ea0187",
+      "imageCaptureDate": "not stated; photograph includes completed Wing with rooftop solar panels and hotel footbridge",
+      "reviewed": "2026-10-15",
+      "localInspection": "output/environment-references/overseas/silverstone-venue-aerial.webp",
+      "rights": "Silverstone; photograph inspected for reference, not shipped as texture.",
+      "referenceSha256": "3b9103488f4ca7b2e07c977ab9a601e90d0a8be3900e8bc66ba6d3988bacf3c1",
+      "referenceBytes": 92592
+    },
+    {
+      "id": "silverstone-2023-maintenance",
+      "title": "Maintaining a Race Track",
+      "url": "https://www.silverstone.co.uk/maintaining-race-track",
+      "evidence": "Operator describes partial removal of the Hamilton Straight/Abbey gravel trap in 2023; do not reproduce the entire historic trap.",
+      "reviewed": "2026-10-15"
+    }
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "id": "hamilton-left-grass-verge",
+      "properties": {
+        "kind": "grass",
+        "sourceId": "silverstone-official-wing-aerial",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Visible narrow green verge between track edge and left-side outer apron on Hamilton Straight.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            2910,
+            3330
+          ],
+          "lateralOffsetM": [
+            -8.5,
+            -15
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02434129,
+              52.06722812
+            ],
+            [
+              -1.02440163,
+              52.06739986
+            ],
+            [
+              -1.02436709,
+              52.06758842
+            ],
+            [
+              -1.02422806,
+              52.06774533
+            ],
+            [
+              -1.02408711,
+              52.0678825
+            ],
+            [
+              -1.02392598,
+              52.06801747
+            ],
+            [
+              -1.02376629,
+              52.0681455
+            ],
+            [
+              -1.0236066,
+              52.06827352
+            ],
+            [
+              -1.02344691,
+              52.06840154
+            ],
+            [
+              -1.02328723,
+              52.06852957
+            ],
+            [
+              -1.02312754,
+              52.06865759
+            ],
+            [
+              -1.02296785,
+              52.06878561
+            ],
+            [
+              -1.02280816,
+              52.06891364
+            ],
+            [
+              -1.02264847,
+              52.06904166
+            ],
+            [
+              -1.02248879,
+              52.06916969
+            ],
+            [
+              -1.0223291,
+              52.06929771
+            ],
+            [
+              -1.02216941,
+              52.06942573
+            ],
+            [
+              -1.02200972,
+              52.06955376
+            ],
+            [
+              -1.02185004,
+              52.06968178
+            ],
+            [
+              -1.02169035,
+              52.06980981
+            ],
+            [
+              -1.02153066,
+              52.06993783
+            ],
+            [
+              -1.02137097,
+              52.07006585
+            ],
+            [
+              -1.02121129,
+              52.07019388
+            ],
+            [
+              -1.0210516,
+              52.0703219
+            ],
+            [
+              -1.02099837,
+              52.07036457
+            ],
+            [
+              -1.02107358,
+              52.07040002
+            ],
+            [
+              -1.02112681,
+              52.07035735
+            ],
+            [
+              -1.0212865,
+              52.07022932
+            ],
+            [
+              -1.02144619,
+              52.0701013
+            ],
+            [
+              -1.02160587,
+              52.06997327
+            ],
+            [
+              -1.02176556,
+              52.06984525
+            ],
+            [
+              -1.02192525,
+              52.06971723
+            ],
+            [
+              -1.02208494,
+              52.0695892
+            ],
+            [
+              -1.02224462,
+              52.06946118
+            ],
+            [
+              -1.02240431,
+              52.06933315
+            ],
+            [
+              -1.022564,
+              52.06920513
+            ],
+            [
+              -1.02272369,
+              52.06907711
+            ],
+            [
+              -1.02288337,
+              52.06894908
+            ],
+            [
+              -1.02304306,
+              52.06882106
+            ],
+            [
+              -1.02320275,
+              52.06869304
+            ],
+            [
+              -1.02336244,
+              52.06856501
+            ],
+            [
+              -1.02352213,
+              52.06843699
+            ],
+            [
+              -1.02368181,
+              52.06830896
+            ],
+            [
+              -1.0238415,
+              52.06818094
+            ],
+            [
+              -1.02400119,
+              52.06805292
+            ],
+            [
+              -1.02416672,
+              52.0679141
+            ],
+            [
+              -1.02430829,
+              52.06777634
+            ],
+            [
+              -1.02445682,
+              52.06760719
+            ],
+            [
+              -1.0244962,
+              52.06739596
+            ],
+            [
+              -1.02443288,
+              52.06721315
+            ],
+            [
+              -1.02434129,
+              52.06722812
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hamilton-left-grass-approach",
+      "properties": {
+        "kind": "grass",
+        "sourceId": "silverstone-official-wing-aerial",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Green bank visible close to Abbey-side pedestrian bridge; approximate boundary.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            3190,
+            3360
+          ],
+          "lateralOffsetM": [
+            -16,
+            -32
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02232717,
+              52.06940973
+            ],
+            [
+              -1.02216748,
+              52.06953776
+            ],
+            [
+              -1.02200779,
+              52.06966578
+            ],
+            [
+              -1.0218481,
+              52.0697938
+            ],
+            [
+              -1.02168842,
+              52.06992183
+            ],
+            [
+              -1.02152873,
+              52.07004985
+            ],
+            [
+              -1.02136904,
+              52.07017788
+            ],
+            [
+              -1.02120935,
+              52.0703059
+            ],
+            [
+              -1.02104967,
+              52.07043392
+            ],
+            [
+              -1.02088947,
+              52.07056228
+            ],
+            [
+              -1.02081754,
+              52.07061939
+            ],
+            [
+              -1.0210017,
+              52.07070742
+            ],
+            [
+              -1.02107416,
+              52.07064989
+            ],
+            [
+              -1.0212348,
+              52.07052117
+            ],
+            [
+              -1.02139449,
+              52.07039315
+            ],
+            [
+              -1.02155418,
+              52.07026512
+            ],
+            [
+              -1.02171387,
+              52.0701371
+            ],
+            [
+              -1.02187355,
+              52.07000908
+            ],
+            [
+              -1.02203324,
+              52.06988105
+            ],
+            [
+              -1.02219293,
+              52.06975303
+            ],
+            [
+              -1.02235262,
+              52.06962501
+            ],
+            [
+              -1.02251231,
+              52.06949698
+            ],
+            [
+              -1.02232717,
+              52.06940973
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hamilton-left-gravel-apron",
+      "properties": {
+        "kind": "gravel",
+        "sourceId": "silverstone-official-wing-aerial",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Remaining tan gravel apron outside the grass verge on the Club-side part of Hamilton Straight; excludes the altered Abbey corner runoff.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            2940,
+            3160
+          ],
+          "lateralOffsetM": [
+            -16,
+            -38
+          ],
+          "positiveSide": "driver right"
+        },
+        "corroboratingSourceId": "silverstone-2023-maintenance"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02450029,
+              52.06754199
+            ],
+            [
+              -1.02436918,
+              52.06773256
+            ],
+            [
+              -1.02422739,
+              52.06787219
+            ],
+            [
+              -1.02406611,
+              52.06801558
+            ],
+            [
+              -1.0239063,
+              52.06814372
+            ],
+            [
+              -1.02374661,
+              52.06827174
+            ],
+            [
+              -1.02358693,
+              52.06839977
+            ],
+            [
+              -1.02342724,
+              52.06852779
+            ],
+            [
+              -1.02326755,
+              52.06865581
+            ],
+            [
+              -1.02310786,
+              52.06878384
+            ],
+            [
+              -1.02294818,
+              52.06891186
+            ],
+            [
+              -1.02278849,
+              52.06903989
+            ],
+            [
+              -1.0226288,
+              52.06916791
+            ],
+            [
+              -1.02259331,
+              52.06919636
+            ],
+            [
+              -1.02284788,
+              52.06931633
+            ],
+            [
+              -1.02288336,
+              52.06928788
+            ],
+            [
+              -1.02304305,
+              52.06915985
+            ],
+            [
+              -1.02320274,
+              52.06903183
+            ],
+            [
+              -1.02336243,
+              52.06890381
+            ],
+            [
+              -1.02352212,
+              52.06877578
+            ],
+            [
+              -1.0236818,
+              52.06864776
+            ],
+            [
+              -1.02384149,
+              52.06851973
+            ],
+            [
+              -1.02400118,
+              52.06839171
+            ],
+            [
+              -1.02416087,
+              52.06826369
+            ],
+            [
+              -1.02432085,
+              52.0681354
+            ],
+            [
+              -1.02449886,
+              52.06797723
+            ],
+            [
+              -1.0246445,
+              52.06783374
+            ],
+            [
+              -1.02481398,
+              52.0675832
+            ],
+            [
+              -1.02450029,
+              52.06754199
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hamilton-pit-separation-grass",
+      "properties": {
+        "kind": "grass",
+        "sourceId": "silverstone-official-wing-aerial",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Grass strip separating Hamilton Straight from the parallel pit lane, visible beneath the Wing; pit lane itself is not modelled.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            2910,
+            3240
+          ],
+          "lateralOffsetM": [
+            11,
+            20
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02406652,
+              52.06727303
+            ],
+            [
+              -1.02411795,
+              52.06741155
+            ],
+            [
+              -1.02409792,
+              52.06753213
+            ],
+            [
+              -1.02398736,
+              52.06765231
+            ],
+            [
+              -1.02384826,
+              52.0677877
+            ],
+            [
+              -1.02370034,
+              52.06791114
+            ],
+            [
+              -1.02354065,
+              52.06803916
+            ],
+            [
+              -1.02338096,
+              52.06816718
+            ],
+            [
+              -1.02322128,
+              52.06829521
+            ],
+            [
+              -1.02306159,
+              52.06842323
+            ],
+            [
+              -1.0229019,
+              52.06855126
+            ],
+            [
+              -1.02274221,
+              52.06867928
+            ],
+            [
+              -1.02258253,
+              52.0688073
+            ],
+            [
+              -1.02242284,
+              52.06893533
+            ],
+            [
+              -1.02226315,
+              52.06906335
+            ],
+            [
+              -1.02210346,
+              52.06919137
+            ],
+            [
+              -1.02194378,
+              52.0693194
+            ],
+            [
+              -1.02178409,
+              52.06944742
+            ],
+            [
+              -1.0216244,
+              52.06957545
+            ],
+            [
+              -1.02157117,
+              52.06961812
+            ],
+            [
+              -1.02146703,
+              52.06956904
+            ],
+            [
+              -1.02152026,
+              52.06952637
+            ],
+            [
+              -1.02167995,
+              52.06939834
+            ],
+            [
+              -1.02183964,
+              52.06927032
+            ],
+            [
+              -1.02199932,
+              52.0691423
+            ],
+            [
+              -1.02215901,
+              52.06901427
+            ],
+            [
+              -1.0223187,
+              52.06888625
+            ],
+            [
+              -1.02247839,
+              52.06875823
+            ],
+            [
+              -1.02263807,
+              52.0686302
+            ],
+            [
+              -1.02279776,
+              52.06850218
+            ],
+            [
+              -1.02295745,
+              52.06837415
+            ],
+            [
+              -1.02311714,
+              52.06824613
+            ],
+            [
+              -1.02327682,
+              52.06811811
+            ],
+            [
+              -1.02343651,
+              52.06799008
+            ],
+            [
+              -1.0235962,
+              52.06786206
+            ],
+            [
+              -1.02373802,
+              52.06774394
+            ],
+            [
+              -1.02387627,
+              52.06760937
+            ],
+            [
+              -1.02397369,
+              52.06750615
+            ],
+            [
+              -1.02398702,
+              52.06741695
+            ],
+            [
+              -1.0239397,
+              52.06729376
+            ],
+            [
+              -1.02406652,
+              52.06727303
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 (function (root) {
   'use strict';
   const SPECS = root.VehicleSpecs || (typeof require === 'function' ? require('../evolving_vehicles/vehicle-specs.js') : null);
+  const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
   const CATALOG = [
@@ -175,6 +176,14 @@
         p.z = weights.reduce((sum, w, j) => sum + rawZ[mod(i + j - radius, count)] * w, 0) / totalWeight;
       });
     }
+    // The official Spa plan supplies published altitude markers along
+    // the correctly aligned 7004 m route. Retain the DEM and original API data;
+    // only this track's simulated z is replaced by the bounded interpolation.
+    const elevationProfile = hasElevation ? SPA_PROFILE?.forCircuit(circuit) : null;
+    if (elevationProfile) for (const p of points) {
+      p.demZ = p.z;
+      p.z = elevationProfile.sample(p.s).elevation;
+    }
     points.forEach((p, i) => {
       const a = points[mod(i - span, count)], b = points[(i + span) % count];
       const ab = hypot(a, p), bc = hypot(p, b), ac = hypot(a, b);
@@ -198,12 +207,14 @@
     const racingLine = optimizeRacingLine(points, length, width, hasElevation);
     return { points, length, spacing, width, racingLine, centerlineLength: length, centerlineSpacing: spacing,
       bounds, rawLength, scale, id: circuit.id, name: circuit.name, hasElevation,
+      projection: { origin: origin.slice(0, 2), latitudeRad: latitude, metresPerDegree, offset: { x: offset.x, y: offset.y }, scale },
       elevationMin: hasElevation ? elevationMin : null, elevationMax: hasElevation ? elevationMax : null,
       elevationGainM: hasElevation ? elevationGainM : null, elevationLossM: hasElevation ? elevationLossM : null,
-      elevationSmoothingSigmaM,
-      elevationSmoothingMethod: elevationSmoothingSigmaM ? 'periodic-gaussian' : 'local-geometric',
-      elevationSource: hasElevation ? circuit.elevationSource || null : null,
-      elevationResolutionM: hasElevation ? circuit.elevationResolutionM || null : null };
+      elevationSmoothingSigmaM: elevationProfile ? 0 : elevationSmoothingSigmaM,
+      elevationSmoothingMethod: elevationProfile ? elevationProfile.metadata.method : elevationSmoothingSigmaM ? 'periodic-gaussian' : 'local-geometric',
+      elevationProfile: elevationProfile ? elevationProfile.metadata : null,
+      elevationSource: elevationProfile ? elevationProfile.metadata.source : hasElevation ? circuit.elevationSource || null : null,
+      elevationResolutionM: elevationProfile ? null : hasElevation ? circuit.elevationResolutionM || null : null };
   }
 
   class TrackRace {

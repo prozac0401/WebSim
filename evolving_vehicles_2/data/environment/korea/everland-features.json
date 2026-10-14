@@ -1,0 +1,513 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "everland",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "everland-official-overhead",
+      "title": "Everland SPEEDWAY official overhead circuit photograph",
+      "url": "https://www.everland.com/static/img/speedway_home_img04.6233cb78.png",
+      "pageUrl": "https://www.everland.com/speedway/home",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/everland-home-04.png",
+      "sha256": "a8b5cb57fc7869586ced808de8d75477948ebf3e2a3eaa63d71856ae3e42c65e",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Samsung C&T / Everland",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "everland-official-hairpin",
+      "title": "Everland official grass infield / barrier photograph",
+      "url": "https://www.everland.com/static/img/speedway_home_img03.a2906f48.png",
+      "pageUrl": "https://www.everland.com/speedway/home",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/everland-home-03.png",
+      "sha256": "fb81dd74a3e49f02079396e8dbc80c6d73c16461fc1ec9d29e7044c18c5497c6",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Samsung C&T / Everland",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "용인 에버랜드 스피드웨이",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "partial-observed-footprints",
+    "limitations": [
+      "Overhead image is 624 x 400; boundaries are approximate manual interpretation, not survey geometry.",
+      "Paved paddock/parking, the eastern pond and access roads are not classified as grass or forest.",
+      "Gravel/sand material cannot be resolved reliably from pale pixels."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "everland-north-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -622.38,
+              -358.27
+            ],
+            [
+              67.91,
+              -358.27
+            ],
+            [
+              107.01,
+              -223.87
+            ],
+            [
+              41.04,
+              -80.93
+            ],
+            [
+              -54.26,
+              -49.16
+            ],
+            [
+              -413.46,
+              -49.16
+            ],
+            [
+              -506.31,
+              -87.04
+            ],
+            [
+              -556.4,
+              -140.79
+            ],
+            [
+              -608.94,
+              -171.34
+            ],
+            [
+              -622.38,
+              -358.27
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Woodland north of main straight, between west and east course complexes",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 24
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-south-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -483.1,
+              224.51
+            ],
+            [
+              -237.52,
+              207.41
+            ],
+            [
+              -5.39,
+              209.85
+            ],
+            [
+              28.82,
+              279.49
+            ],
+            [
+              -2.95,
+              371.12
+            ],
+            [
+              -187.43,
+              389.45
+            ],
+            [
+              -409.79,
+              349.13
+            ],
+            [
+              -483.1,
+              224.51
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Woodland south of central circuit, beyond access road; excludes eastern pond",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 25
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-west-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -838.63,
+              -222.65
+            ],
+            [
+              -811.75,
+              -247.09
+            ],
+            [
+              -723.78,
+              -256.86
+            ],
+            [
+              -706.68,
+              -240.98
+            ],
+            [
+              -721.34,
+              -226.32
+            ],
+            [
+              -786.09,
+              -225.1
+            ],
+            [
+              -811.75,
+              -207.99
+            ],
+            [
+              -815.41,
+              -178.67
+            ],
+            [
+              -794.64,
+              -146.9
+            ],
+            [
+              -771.43,
+              -121.25
+            ],
+            [
+              -789.76,
+              -126.13
+            ],
+            [
+              -823.97,
+              -162.79
+            ],
+            [
+              -844.74,
+              -194.55
+            ],
+            [
+              -838.63,
+              -222.65
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Inner west hairpin island",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-east-inner-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              115.56,
+              -142.02
+            ],
+            [
+              174.21,
+              -128.58
+            ],
+            [
+              236.52,
+              -129.8
+            ],
+            [
+              260.95,
+              -138.35
+            ],
+            [
+              273.17,
+              -160.34
+            ],
+            [
+              297.6,
+              -183.56
+            ],
+            [
+              296.38,
+              -157.9
+            ],
+            [
+              281.72,
+              -135.91
+            ],
+            [
+              229.19,
+              -117.58
+            ],
+            [
+              163.21,
+              -100.48
+            ],
+            [
+              86.24,
+              -77.26
+            ],
+            [
+              115.56,
+              -142.02
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Grass island inside eastern complex below the inner S bend",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-east-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              180.32,
+              -282.52
+            ],
+            [
+              210.86,
+              -277.63
+            ],
+            [
+              252.4,
+              -253.2
+            ],
+            [
+              267.06,
+              -232.43
+            ],
+            [
+              252.4,
+              -231.2
+            ],
+            [
+              209.64,
+              -239.76
+            ],
+            [
+              177.87,
+              -249.53
+            ],
+            [
+              168.1,
+              -261.75
+            ],
+            [
+              180.32,
+              -282.52
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Upper east hairpin island",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-central-west-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -391.47,
+              36.36
+            ],
+            [
+              -331.6,
+              38.8
+            ],
+            [
+              -241.19,
+              40.03
+            ],
+            [
+              -150.78,
+              40.03
+            ],
+            [
+              -90.91,
+              40.03
+            ],
+            [
+              -53.04,
+              35.14
+            ],
+            [
+              -45.71,
+              48.58
+            ],
+            [
+              -99.47,
+              57.13
+            ],
+            [
+              -195.98,
+              66.9
+            ],
+            [
+              -261.96,
+              70.57
+            ],
+            [
+              -320.6,
+              62.02
+            ],
+            [
+              -384.14,
+              54.69
+            ],
+            [
+              -391.47,
+              36.36
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Narrow central infield between the first return and middle straight",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-central-south-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -464.77,
+              109.67
+            ],
+            [
+              -403.68,
+              97.45
+            ],
+            [
+              -330.38,
+              99.89
+            ],
+            [
+              -260.74,
+              107.22
+            ],
+            [
+              -181.32,
+              103.56
+            ],
+            [
+              -109.24,
+              96.23
+            ],
+            [
+              -86.03,
+              101.11
+            ],
+            [
+              -83.58,
+              113.33
+            ],
+            [
+              -106.8,
+              121.88
+            ],
+            [
+              -214.31,
+              123.11
+            ],
+            [
+              -336.49,
+              123.11
+            ],
+            [
+              -441.56,
+              124.33
+            ],
+            [
+              -464.77,
+              109.67
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "everland-official-overhead",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Narrow grass infield above southern return straight",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    }
+  ]
+}

@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "title": "국내 서킷 실제 사진 환경 근거",
+  "reviewedDate": "2026-10-15",
+  "distribution": "Metadata and approximate feature geometry only. Downloaded photographs/PDF/HTML remain under ignored output/environment-references/korea and are not distributed with the simulator.",
+  "interpretationPolicy": [
+    "Only visually confirmed surface classes are recorded.",
+    "Pale runoff is not automatically gravel or sand.",
+    "Pit safety walls are distinct from retaining walls.",
+    "Photographs with unresolved geographic identity are excluded from geometry.",
+    "Ungeolocated observations do not generate a repeated perimeter pattern."
+  ],
+  "facilities": [
+    {
+      "facilityId": "everland",
+      "name": "용인 에버랜드 스피드웨이",
+      "circuitIds": [
+        "everland"
+      ],
+      "sources": [
+        {
+          "id": "everland-official-overhead",
+          "title": "Everland SPEEDWAY official overhead circuit photograph",
+          "url": "https://www.everland.com/static/img/speedway_home_img04.6233cb78.png",
+          "pageUrl": "https://www.everland.com/speedway/home",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/everland-home-04.png",
+          "sha256": "a8b5cb57fc7869586ced808de8d75477948ebf3e2a3eaa63d71856ae3e42c65e",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Samsung C&T / Everland",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "everland-official-hairpin",
+          "title": "Everland official grass infield / barrier photograph",
+          "url": "https://www.everland.com/static/img/speedway_home_img03.a2906f48.png",
+          "pageUrl": "https://www.everland.com/speedway/home",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/everland-home-03.png",
+          "sha256": "fb81dd74a3e49f02079396e8dbc80c6d73c16461fc1ec9d29e7044c18c5497c6",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Samsung C&T / Everland",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "West/east hairpin islands and narrow central infields in the overhead photograph",
+          "sourceId": "everland-official-overhead",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Large wooded area north of the main straight and woodland south of the narrow central section; parking excluded",
+          "sourceId": "everland-official-overhead",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "guardrail",
+          "visibleLocation": "Foreground metal/tyre barriers in the hairpin detail; not confidently mapped to surveyed barrier line",
+          "sourceId": "everland-official-hairpin",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Overhead image is 624 x 400; boundaries are approximate manual interpretation, not survey geometry.",
+        "Paved paddock/parking, the eastern pond and access roads are not classified as grass or forest.",
+        "Gravel/sand material cannot be resolved reliably from pale pixels."
+      ]
+    },
+    {
+      "facilityId": "inje",
+      "name": "인제 스피디움",
+      "circuitIds": [
+        "inje"
+      ],
+      "sources": [
+        {
+          "id": "inje-official-aerial",
+          "title": "Inje Speedium company introduction aerial photograph",
+          "url": "https://www.speedium.co.kr/company/img/content/s0101img04.jpg",
+          "pageUrl": "https://www.speedium.co.kr/company/content/01_01.jsp",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/inje-gallery-04.jpg",
+          "sha256": "0a9b65db43546afb96aec919d0a4e47fb84085f4fcaeb0c31846263b4dc01bbd",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Inje Speedium / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "inje-official-corner",
+          "title": "Inje Speedium company introduction corner photograph",
+          "url": "https://www.speedium.co.kr/company/img/content/s0101img01.jpg",
+          "pageUrl": "https://www.speedium.co.kr/company/content/01_01.jsp",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/inje-gallery-01.jpg",
+          "sha256": "8ea76181391d90bc31e938adafd7d9b466dff6857c532558becd071981c3c3fa",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Inje Speedium / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Visible hairpin islands near the foreground circuit complex",
+          "sourceId": "inje-official-aerial",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Large central wooded hill and outside wooded slopes; paddock, hotel and access-road areas excluded",
+          "sourceId": "inje-official-aerial",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "guardrail",
+          "visibleLocation": "Corner photograph shows silver metal barriers and mesh fence beside grass verge",
+          "sourceId": "inje-official-corner",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Oblique aerial has perspective distortion; only broad clearly identifiable footprints are interpreted.",
+        "Individual trees, heights and outside-track elevations are not measured.",
+        "Pale runoff patches remain unclassified; no sand/gravel inference from colour."
+      ]
+    },
+    {
+      "facilityId": "yeongam",
+      "name": "영암 코리아 인터내셔널 서킷",
+      "circuitIds": [
+        "yeongam",
+        "yeongam-permanent"
+      ],
+      "sources": [
+        {
+          "id": "kic-official-grandstand",
+          "title": "Korea International Circuit official pit / grandstand aerial crop",
+          "url": "https://koreacircuit.com/main/images/contents/kic_bg_2.png",
+          "pageUrl": "https://koreacircuit.com/Introduce",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/kic-2.png",
+          "sha256": "fd4f6c596341553ba4f0c89d0a68ac38734d335786af00998bf4d10991829db6",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Korea Mobility Group / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "kic-official-bridge",
+          "title": "Korea International Circuit official Korean-roof bridge photograph",
+          "url": "https://koreacircuit.com/main/images/contents/kic_bg_3.jpg",
+          "pageUrl": "https://koreacircuit.com/Introduce",
+          "sourceType": "operator-photograph",
+          "localEvidenceFile": "output/environment-references/korea/kic-3.jpg",
+          "sha256": "50d51c419d6b76558f35fc36190cf3a8e1ad8da0880dbe64d55bfdb8625868bf",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": null,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Korea Mobility Group / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Between the main grandstand, pit entry and adjoining track edges in the aerial crop",
+          "sourceId": "kic-official-grandstand",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Small wooded mound beyond the access road at the right of the grandstand aerial crop",
+          "sourceId": "kic-official-grandstand",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "concrete-safety-wall",
+          "visibleLocation": "Low wall and catch fence along the main straight under the Korean-roof bridge",
+          "sourceId": "kic-official-bridge",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "These crops do not locate the observed areas against both simulator layouts reliably; geometry intentionally omitted.",
+        "The KIC website main bg_track.png appears to show Inje Speedium and is excluded as geographically inconsistent evidence.",
+        "A pit safety wall is not identified as a terrain-retaining wall."
+      ]
+    },
+    {
+      "facilityId": "taebaek",
+      "name": "태백 스피드웨이",
+      "circuitIds": [
+        "taebaek"
+      ],
+      "sources": [
+        {
+          "id": "taebaek-city-20240428-start",
+          "title": "Taebaek City, 2024-04-28 Track Festival starting gantry photograph",
+          "url": "https://www.taebaek.go.kr/DATA/bbs/174/183A927F-0508-A2A0-BCB9-C527FF3352CE.jpg",
+          "pageUrl": "https://www.taebaek.go.kr/mayor/selectBbsNttView.do?bbsNo=174&key=1765&nttNo=154538&pageIndex=75&searchCnd=all&searchCtgry=&searchKrwd=",
+          "sourceType": "local-government-event-photograph",
+          "localEvidenceFile": "output/environment-references/korea/taebaek-1.jpg",
+          "sha256": "1db9a4de58743840d0f1f0d2e759e8366e864569ec630165578d0b4bae5ab8d5",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2024,
+          "captureYear": 2024,
+          "captureYearStatus": "identified from event caption",
+          "rights": {
+            "ownerOrPublisher": "Taebaek City",
+            "license": "Korea Open Government Licence (KOGL) Type 4: attribution, non-commercial, no derivatives. Local reference only.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "taebaek-city-20240428-corner",
+          "title": "Taebaek City, 2024-04-28 Track Festival corner photograph",
+          "url": "https://www.taebaek.go.kr/DATA/bbs/174/20EA2243-7957-0642-28F0-76A5BF2E6D01.jpg",
+          "pageUrl": "https://www.taebaek.go.kr/mayor/selectBbsNttView.do?bbsNo=174&key=1765&nttNo=154538&pageIndex=75&searchCnd=all&searchCtgry=&searchKrwd=",
+          "sourceType": "local-government-event-photograph",
+          "localEvidenceFile": "output/environment-references/korea/taebaek-3.jpg",
+          "sha256": "4c0a9171d6fed80afb04d1b235030b485947c7ca40754f94a6e121af6c2fdeb7",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2024,
+          "captureYear": 2024,
+          "captureYearStatus": "identified from event caption",
+          "rights": {
+            "ownerOrPublisher": "Taebaek City",
+            "license": "Korea Open Government Licence (KOGL) Type 4: attribution, non-commercial, no derivatives. Local reference only.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Narrow verge at the starting gantry and broad inside-corner grass island",
+          "sourceId": "taebaek-city-20240428-corner",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Wooded hillside immediately beyond the start-line wall/fence and the photographed corner",
+          "sourceId": "taebaek-city-20240428-start",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "guardrail",
+          "visibleLocation": "Three-row silver metal barrier outside the photographed corner",
+          "sourceId": "taebaek-city-20240428-corner",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "concrete-safety-wall",
+          "visibleLocation": "Low concrete wall carrying catch fence near the starting gantry",
+          "sourceId": "taebaek-city-20240428-start",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Photographed corner and side of the starting straight are not resolved against north-up geometry; no arbitrary perimeter band or forest ring added.",
+        "2024 event caption dates photographs; present condition may differ.",
+        "No confirmed sand or gravel in the inspected images."
+      ]
+    },
+    {
+      "facilityId": "bmw-incheon",
+      "name": "BMW 드라이빙 센터 인천",
+      "circuitIds": [
+        "bmw-incheon"
+      ],
+      "sources": [
+        {
+          "id": "bmw-official-2026",
+          "title": "BMW Korea Driving Center official exterior / kick-plate training area photograph",
+          "url": "https://mediapool.bmwgroup.com/cache/P9/202601/P90627704/P90627704-bmw-korea-driving-center-contract-01-2026-1600px.jpg",
+          "pageUrl": "https://www.press.bmwgroup.com/korea/article/detail/T0454844KO/",
+          "sourceType": "manufacturer-press-photograph",
+          "localEvidenceFile": "output/environment-references/korea/bmw-2026-04.jpg",
+          "sha256": "8dafa048b50594a759e41b92cab395da1058c4e0442a3724a6eb3d67f38fbd18",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2026,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "BMW Group",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Grass islands between paved training lanes in front of the main building",
+          "sourceId": "bmw-official-2026",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "guardrail",
+          "visibleLocation": "Silver metal barrier at the left edge of the training area",
+          "sourceId": "bmw-official-2026",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Tree-covered background behind the main building",
+          "sourceId": "bmw-official-2026",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Training/kick-plate area in the photograph must not be confused with the handling circuit geometry; no guessed footprint added.",
+        "Press release dated 2026, image capture year unknown.",
+        "No confirmed sand or gravel."
+      ]
+    },
+    {
+      "facilityId": "hmg-taean",
+      "name": "HMG 드라이빙 익스피리언스 센터 태안",
+      "circuitIds": [
+        "hmg-taean"
+      ],
+      "sources": [
+        {
+          "id": "hmg-official-brochure-2025",
+          "title": "HMG Driving Experience Center Korean brochure, aerial and course key",
+          "url": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+          "pageUrl": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+          "sourceType": "operator-brochure",
+          "localEvidenceFile": "output/environment-references/korea/hmg-brochure-2025.pdf",
+          "sha256": "969931d1e06f12166f560302f2de99323fa888a9c2c67db7e330e64833c2817c",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2025,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Hyundai Motor Group / original photographers",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified.",
+          "pdfPages": [
+            5,
+            6,
+            7
+          ],
+          "localPageRenders": [
+            "output/environment-references/korea/hmg-page-05.png",
+            "output/environment-references/korea/hmg-page-06.png",
+            "output/environment-references/korea/hmg-page-07.png"
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Green infield islands inside course 7 (dry handling circuit), identified with brochure page 6 key",
+          "sourceId": "hmg-official-brochure-2025",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "guardrail",
+          "visibleLocation": "Metal roadside barrier visible in course 7 photograph on brochure page 7",
+          "sourceId": "hmg-official-brochure-2025",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Page 5 is oblique; footprint boundaries are conservative manual estimates.",
+        "Course 6 off-road gravel/bare ground is a separate facility and is excluded from the race circuit.",
+        "Farmland and distant woodland outside the large oval are not modelled as adjacent circuit grass/forest.",
+        "Brochure publication year 2025; photo capture years unknown."
+      ]
+    },
+    {
+      "facilityId": "pocheon",
+      "name": "포천 레이스웨이",
+      "circuitIds": [
+        "pocheon"
+      ],
+      "sources": [
+        {
+          "id": "pocheon-encar-aerial-2018",
+          "title": "Encar Magazine first-hand Pocheon Raceway visit: aerial photograph",
+          "url": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-2.jpg?resize=640:*",
+          "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+          "sourceType": "first-hand-editorial-photograph",
+          "localEvidenceFile": "output/environment-references/korea/pocheon-encar-track-2.jpg",
+          "sha256": "c323000bbf50f11993f6c9db23ed44c891dbdde11d1539da7c96cde5beba282d",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2018,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Encar Magazine / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "pocheon-encar-ground-2018",
+          "title": "Encar Magazine first-hand Pocheon visit: unpaved infield and wooded hills",
+          "url": "https://ci.encarmagazine.com/2018/11/20181031_163022.jpg?resize=640:*",
+          "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+          "sourceType": "first-hand-editorial-photograph",
+          "localEvidenceFile": "output/environment-references/korea/pocheon-encar-20181031.jpg",
+          "sha256": "3c88eff799a01d6408fc6b68786e5cb7be03b584bef21bda2ea34bc115f5554f",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2018,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Encar Magazine / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        },
+        {
+          "id": "pocheon-encar-pit-wall-2018",
+          "title": "Encar Magazine first-hand Pocheon visit: concrete safety wall and fence",
+          "url": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-5.jpg?resize=640:*",
+          "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+          "sourceType": "first-hand-editorial-photograph",
+          "localEvidenceFile": "output/environment-references/korea/pocheon-encar-track-5.jpg",
+          "sha256": "ad4e9205cfbf70918c903a1ae5da928938fefc26c76f4ec28f00bbcca6718cf3",
+          "retrievedDate": "2026-10-15",
+          "publicationYear": 2018,
+          "captureYear": null,
+          "captureYearStatus": "unknown",
+          "rights": {
+            "ownerOrPublisher": "Encar Magazine / original photographer",
+            "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+            "redistributed": false
+          },
+          "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+        }
+      ],
+      "observations": [
+        {
+          "kind": "grass",
+          "visibleLocation": "Dormant/sparse grass on the long infield strip and selected hairpin islands; some soil remains exposed",
+          "sourceId": "pocheon-encar-aerial-2018",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "forest",
+          "visibleLocation": "Wooded slopes beyond the circuit perimeter, clearly visible in aerial and ground photographs",
+          "sourceId": "pocheon-encar-aerial-2018",
+          "locationResolvedForGeometry": true
+        },
+        {
+          "kind": "bare-soil",
+          "visibleLocation": "Earth mounds in the ground-level infield photograph; not labelled sand or gravel",
+          "sourceId": "pocheon-encar-ground-2018",
+          "locationResolvedForGeometry": false
+        },
+        {
+          "kind": "concrete-safety-wall",
+          "visibleLocation": "Concrete pit safety wall and catch fence below RACEWAY sign",
+          "sourceId": "pocheon-encar-pit-wall-2018",
+          "locationResolvedForGeometry": false
+        }
+      ],
+      "limitations": [
+        "Operator source not located. These are explicitly labelled supplementary first-hand editorial photographs, not operator-official photographs.",
+        "2018 publication is historical; capture year is not independently confirmed.",
+        "Oblique view permits only approximate footprints; paddock and bare-earth mounds excluded.",
+        "Concrete pit wall is not treated as a retaining wall."
+      ]
+    }
+  ],
+  "excludedEvidence": [
+    {
+      "localFile": "output/environment-references/korea/kic-track-bg.png",
+      "reason": "Appears to show Inje (Lotus, mountainous surroundings, blue grandstand), although served from KIC website; do not use as Yeongam geometry."
+    },
+    {
+      "localFile": "output/environment-references/korea/everland-aerial.jpg",
+      "reason": "Elevated ground/stand view, not an overhead aerial; superseded by official everland-home-04.png for geometry."
+    }
+  ]
+}

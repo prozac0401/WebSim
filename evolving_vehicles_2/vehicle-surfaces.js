@@ -160,9 +160,12 @@ class VehicleSurfaces {
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);gl.useProgram(this.program);
   const U=this.uniforms;gl.uniform3f(U.uTarget,camera.target.x,camera.target.y,camera.target.z);
   gl.uniform4f(U.uCamera,camera.yaw,camera.pitch,camera.distance,camera.f);gl.uniform4f(U.uViewport,width,height,camera.cx,camera.cy);
-  // Vehicle-only layer: a tight depth range retains thin lenses, badges and
-  // roof trim without the coplanar sparkle of a whole-circuit far plane.
-  gl.uniform2f(U.uClip,Math.max(.08,camera.distance*.018),Math.max(100,camera.distance*4));
+  // Match the canvas near plane and include every visible vehicle. A fixed
+  // 100 m far plane made distant detailed cars disappear while labels stayed.
+  // Keep the range tight when only the watched body is present.
+  let far=Math.max(100,camera.distance*2);
+  for(const {mesh,position:p}of entries){const horizontal=-(p.x-camera.target.x)*camera.sinYaw+(p.y-camera.target.y)*camera.cosYaw,depth=camera.distance-horizontal*camera.cosPitch-((p.elevation||0)-camera.target.z)*camera.sinPitch;far=Math.max(far,depth+Math.hypot(mesh.length||5,mesh.width||2,mesh.height||2)+2);}
+  gl.uniform2f(U.uClip,Math.max(.3,camera.distance*.018),far);
   gl.uniform3f(U.uEye,camera.target.x-Math.sin(camera.yaw)*Math.cos(camera.pitch)*camera.distance,camera.target.y+Math.cos(camera.yaw)*Math.cos(camera.pitch)*camera.distance,camera.target.z+Math.sin(camera.pitch)*camera.distance);
   // Independent ghost cars can occupy the exact same point. Draw the watched
   // body last with its own depth buffer to prevent coplanar flicker at the grid.

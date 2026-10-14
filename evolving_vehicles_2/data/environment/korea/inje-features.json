@@ -1,0 +1,506 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "inje",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "inje-official-aerial",
+      "title": "Inje Speedium company introduction aerial photograph",
+      "url": "https://www.speedium.co.kr/company/img/content/s0101img04.jpg",
+      "pageUrl": "https://www.speedium.co.kr/company/content/01_01.jsp",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/inje-gallery-04.jpg",
+      "sha256": "0a9b65db43546afb96aec919d0a4e47fb84085f4fcaeb0c31846263b4dc01bbd",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Inje Speedium / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "inje-official-corner",
+      "title": "Inje Speedium company introduction corner photograph",
+      "url": "https://www.speedium.co.kr/company/img/content/s0101img01.jpg",
+      "pageUrl": "https://www.speedium.co.kr/company/content/01_01.jsp",
+      "sourceType": "operator-photograph",
+      "localEvidenceFile": "output/environment-references/korea/inje-gallery-01.jpg",
+      "sha256": "8ea76181391d90bc31e938adafd7d9b466dff6857c532558becd071981c3c3fa",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": null,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Inje Speedium / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "인제 스피디움",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "partial-observed-footprints",
+    "limitations": [
+      "Oblique aerial has perspective distortion; only broad clearly identifiable footprints are interpreted.",
+      "Individual trees, heights and outside-track elevations are not measured.",
+      "Pale runoff patches remain unclassified; no sand/gravel inference from colour."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "inje-central-wooded-hill",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -159.04,
+              272.92
+            ],
+            [
+              -103.45,
+              266.45
+            ],
+            [
+              -43.99,
+              284.55
+            ],
+            [
+              7.72,
+              320.75
+            ],
+            [
+              9.01,
+              506.89
+            ],
+            [
+              -31.06,
+              536.62
+            ],
+            [
+              -69.84,
+              566.35
+            ],
+            [
+              -109.92,
+              628.4
+            ],
+            [
+              -159.04,
+              669.77
+            ],
+            [
+              -159.04,
+              272.92
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Large wooded hill opposite the pit complex, within central circuit outline",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 23
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-north-outside-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              151.2,
+              -20.52
+            ],
+            [
+              268.84,
+              -23.1
+            ],
+            [
+              305.03,
+              106.16
+            ],
+            [
+              290.81,
+              252.23
+            ],
+            [
+              178.35,
+              276.8
+            ],
+            [
+              138.28,
+              194.06
+            ],
+            [
+              151.2,
+              -20.52
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Wooded slope beyond northern hairpin, shown in aerial foreground",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 25
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-southwest-outside-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -756.25,
+              787.4
+            ],
+            [
+              -628.28,
+              788.69
+            ],
+            [
+              -539.08,
+              840.4
+            ],
+            [
+              -491.25,
+              934.77
+            ],
+            [
+              -471.86,
+              1048.52
+            ],
+            [
+              -717.47,
+              1044.64
+            ],
+            [
+              -766.59,
+              917.96
+            ],
+            [
+              -756.25,
+              787.4
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Wooded slope outside southwestern complex; keeps hotel/paddock out",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 26
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-north-inner-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -67.26,
+              97.11
+            ],
+            [
+              -42.7,
+              100.99
+            ],
+            [
+              -11.67,
+              142.36
+            ],
+            [
+              19.35,
+              182.43
+            ],
+            [
+              49.08,
+              227.67
+            ],
+            [
+              11.59,
+              213.45
+            ],
+            [
+              -34.94,
+              183.72
+            ],
+            [
+              -77.6,
+              152.7
+            ],
+            [
+              -89.23,
+              134.6
+            ],
+            [
+              -67.26,
+              97.11
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Grass island between tight northern switchback branches",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-north-outer-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -85.36,
+              -3.71
+            ],
+            [
+              -34.94,
+              5.33
+            ],
+            [
+              -18.14,
+              32.48
+            ],
+            [
+              2.55,
+              67.38
+            ],
+            [
+              30.98,
+              115.21
+            ],
+            [
+              50.37,
+              151.41
+            ],
+            [
+              58.13,
+              173.38
+            ],
+            [
+              40.03,
+              155.28
+            ],
+            [
+              5.13,
+              108.75
+            ],
+            [
+              -22.01,
+              68.68
+            ],
+            [
+              -59.5,
+              47.99
+            ],
+            [
+              -94.4,
+              49.29
+            ],
+            [
+              -130.6,
+              68.68
+            ],
+            [
+              -159.04,
+              99.7
+            ],
+            [
+              -159.04,
+              62.21
+            ],
+            [
+              -131.89,
+              26.02
+            ],
+            [
+              -85.36,
+              -3.71
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Grass border island between outer north arc and inner hairpin",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-south-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -369.74,
+              886.94
+            ],
+            [
+              -314.16,
+              884.35
+            ],
+            [
+              -263.74,
+              866.25
+            ],
+            [
+              -226.26,
+              840.4
+            ],
+            [
+              -199.11,
+              818.42
+            ],
+            [
+              -179.72,
+              830.06
+            ],
+            [
+              -160.33,
+              857.2
+            ],
+            [
+              -169.38,
+              871.42
+            ],
+            [
+              -208.16,
+              870.13
+            ],
+            [
+              -235.31,
+              888.23
+            ],
+            [
+              -249.52,
+              930.89
+            ],
+            [
+              -274.09,
+              955.45
+            ],
+            [
+              -340.01,
+              956.74
+            ],
+            [
+              -373.62,
+              945.11
+            ],
+            [
+              -387.84,
+              915.38
+            ],
+            [
+              -369.74,
+              886.94
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Grassed infield in southern end loop, excluding buildings",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-southwest-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -686.45,
+              664.6
+            ],
+            [
+              -637.33,
+              656.84
+            ],
+            [
+              -608.89,
+              656.84
+            ],
+            [
+              -583.03,
+              672.35
+            ],
+            [
+              -562.35,
+              693.04
+            ],
+            [
+              -592.08,
+              695.62
+            ],
+            [
+              -647.67,
+              696.91
+            ],
+            [
+              -689.03,
+              693.04
+            ],
+            [
+              -686.45,
+              664.6
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "inje-official-aerial",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Inner southwestern hairpin grass island",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    }
+  ]
+}

@@ -1,0 +1,438 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "pocheon",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "pocheon-encar-aerial-2018",
+      "title": "Encar Magazine first-hand Pocheon Raceway visit: aerial photograph",
+      "url": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-2.jpg?resize=640:*",
+      "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+      "sourceType": "first-hand-editorial-photograph",
+      "localEvidenceFile": "output/environment-references/korea/pocheon-encar-track-2.jpg",
+      "sha256": "c323000bbf50f11993f6c9db23ed44c891dbdde11d1539da7c96cde5beba282d",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2018,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Encar Magazine / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "pocheon-encar-ground-2018",
+      "title": "Encar Magazine first-hand Pocheon visit: unpaved infield and wooded hills",
+      "url": "https://ci.encarmagazine.com/2018/11/20181031_163022.jpg?resize=640:*",
+      "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+      "sourceType": "first-hand-editorial-photograph",
+      "localEvidenceFile": "output/environment-references/korea/pocheon-encar-20181031.jpg",
+      "sha256": "3c88eff799a01d6408fc6b68786e5cb7be03b584bef21bda2ea34bc115f5554f",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2018,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Encar Magazine / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "pocheon-encar-pit-wall-2018",
+      "title": "Encar Magazine first-hand Pocheon visit: concrete safety wall and fence",
+      "url": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-5.jpg?resize=640:*",
+      "pageUrl": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+      "sourceType": "first-hand-editorial-photograph",
+      "localEvidenceFile": "output/environment-references/korea/pocheon-encar-track-5.jpg",
+      "sha256": "ad4e9205cfbf70918c903a1ae5da928938fefc26c76f4ec28f00bbcca6718cf3",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2018,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Encar Magazine / original photographer",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "포천 레이스웨이",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "partial-observed-footprints",
+    "limitations": [
+      "Operator source not located. These are explicitly labelled supplementary first-hand editorial photographs, not operator-official photographs.",
+      "2018 publication is historical; capture year is not independently confirmed.",
+      "Oblique view permits only approximate footprints; paddock and bare-earth mounds excluded.",
+      "Concrete pit wall is not treated as a retaining wall."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "pocheon-long-infield-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -320.25,
+              -171.97
+            ],
+            [
+              -286.26,
+              -135.49
+            ],
+            [
+              -245.63,
+              -92.37
+            ],
+            [
+              -199.19,
+              -44.28
+            ],
+            [
+              -153.59,
+              1.32
+            ],
+            [
+              -107.98,
+              47.76
+            ],
+            [
+              -63.21,
+              95.02
+            ],
+            [
+              -30.04,
+              128.19
+            ],
+            [
+              -10.14,
+              143.11
+            ],
+            [
+              -20.09,
+              143.11
+            ],
+            [
+              -46.62,
+              122.38
+            ],
+            [
+              -86.43,
+              82.58
+            ],
+            [
+              -132.03,
+              38.64
+            ],
+            [
+              -179.29,
+              -8.63
+            ],
+            [
+              -225.73,
+              -56.72
+            ],
+            [
+              -267.19,
+              -99.84
+            ],
+            [
+              -303.67,
+              -140.46
+            ],
+            [
+              -320.25,
+              -171.97
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "pocheon-encar-aerial-2018",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Dormant grass strip separating the long outer straight and inner return",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "surfaceNote": "Sparse/dormant grass with exposed soil; not uniformly manicured turf"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-north-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -512.62,
+              -428.19
+            ],
+            [
+              -490.23,
+              -452.23
+            ],
+            [
+              -469.5,
+              -461.36
+            ],
+            [
+              -457.07,
+              -455.55
+            ],
+            [
+              -452.09,
+              -438.97
+            ],
+            [
+              -460.38,
+              -425.7
+            ],
+            [
+              -477.8,
+              -422.38
+            ],
+            [
+              -499.35,
+              -424.04
+            ],
+            [
+              -512.62,
+              -428.19
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "pocheon-encar-aerial-2018",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Visible dormant grass inside northern hairpin",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "surfaceNote": "Dormant grass and soil mix"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-south-hairpin-grass",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -8.48,
+              48.59
+            ],
+            [
+              18.88,
+              80.1
+            ],
+            [
+              37.95,
+              105.8
+            ],
+            [
+              50.39,
+              130.68
+            ],
+            [
+              41.27,
+              145.6
+            ],
+            [
+              18.88,
+              153.06
+            ],
+            [
+              -2.68,
+              148.09
+            ],
+            [
+              -20.09,
+              140.63
+            ],
+            [
+              -2.68,
+              139.8
+            ],
+            [
+              17.22,
+              132.33
+            ],
+            [
+              28.83,
+              116.58
+            ],
+            [
+              30.49,
+              99.17
+            ],
+            [
+              13.91,
+              72.63
+            ],
+            [
+              -8.48,
+              48.59
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "pocheon-encar-aerial-2018",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Grass strip around southeast hairpin; inner paved lanes excluded",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "surfaceNote": "Dormant grass and soil mix"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-northwest-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -646.95,
+              -573.29
+            ],
+            [
+              -438.82,
+              -573.29
+            ],
+            [
+              -421.41,
+              -531.01
+            ],
+            [
+              -460.38,
+              -510.28
+            ],
+            [
+              -497.7,
+              -505.3
+            ],
+            [
+              -536.67,
+              -475.45
+            ],
+            [
+              -581.44,
+              -428.19
+            ],
+            [
+              -637.0,
+              -414.09
+            ],
+            [
+              -646.95,
+              -573.29
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "pocheon-encar-aerial-2018",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Wooded hill beyond far northern hairpin in aerial photograph",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 25
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-southwest-woodland",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -587.25,
+              -278.11
+            ],
+            [
+              -520.91,
+              -226.7
+            ],
+            [
+              -457.9,
+              -152.07
+            ],
+            [
+              -384.1,
+              -71.64
+            ],
+            [
+              -309.47,
+              13.76
+            ],
+            [
+              -238.99,
+              100.82
+            ],
+            [
+              -199.19,
+              181.25
+            ],
+            [
+              -212.46,
+              214.42
+            ],
+            [
+              -285.43,
+              168.82
+            ],
+            [
+              -366.69,
+              78.44
+            ],
+            [
+              -447.12,
+              -6.97
+            ],
+            [
+              -530.86,
+              -106.47
+            ],
+            [
+              -588.08,
+              -186.9
+            ],
+            [
+              -587.25,
+              -278.11
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "forest",
+        "sourceId": "pocheon-encar-aerial-2018",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Wooded slope beyond west/southwest long-straight perimeter",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
+        "treeSpacing": 27
+      }
+    }
+  ]
+}

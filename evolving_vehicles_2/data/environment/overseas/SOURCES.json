@@ -1,0 +1,63 @@
+{
+  "reviewed": "2026-10-15",
+  "sources": [
+    {
+      "id": "monza-official-main-straight",
+      "title": "Autodromo Nazionale Monza — Circuito",
+      "url": "https://www.monzanet.it/autodromo-nazionale-monza/",
+      "imageUrl": "https://www.monzanet.it/wp-content/uploads/2025/03/Autodromo-Circuito-uai-1200x675.webp",
+      "imageCaptureDate": "not stated; asset path 2025/03 is publication metadata only",
+      "reviewed": "2026-10-15",
+      "localInspection": "output/environment-references/overseas/monza-circuit.webp",
+      "rights": "Autodromo Nazionale Monza; photograph inspected for reference, not shipped as texture.",
+      "referenceSha256": "d91e35b9bf36248856366571b363a0cd0288f0f25c894224ff080f1ee934a9b6",
+      "referenceBytes": 348552
+    },
+    {
+      "id": "silverstone-official-wing-aerial",
+      "title": "Visit, Eat, Stay — Venue Hire aerial",
+      "url": "https://www.silverstone.co.uk/visit-eat-stay",
+      "imageUrl": "https://www.silverstone.co.uk/sites/default/files/styles/card_sets_default/public/images/Hoodpin_Silverstone_004_-2%20%281%29.jpg.webp?h=47ea0187",
+      "imageCaptureDate": "not stated; photograph includes completed Wing with rooftop solar panels and hotel footbridge",
+      "reviewed": "2026-10-15",
+      "localInspection": "output/environment-references/overseas/silverstone-venue-aerial.webp",
+      "rights": "Silverstone; photograph inspected for reference, not shipped as texture.",
+      "referenceSha256": "3b9103488f4ca7b2e07c977ab9a601e90d0a8be3900e8bc66ba6d3988bacf3c1",
+      "referenceBytes": 92592
+    },
+    {
+      "id": "silverstone-2023-maintenance",
+      "title": "Maintaining a Race Track",
+      "url": "https://www.silverstone.co.uk/maintaining-race-track",
+      "evidence": "Operator describes partial removal of the Hamilton Straight/Abbey gravel trap in 2023; do not reproduce the entire historic trap.",
+      "reviewed": "2026-10-15"
+    },
+    {
+      "id": "spa-2022-raidillon",
+      "title": "The Spa-Francorchamps track is decked out in new colours",
+      "url": "https://www.spa-francorchamps.be/en/news/275_the-spa-francorchamps-track-is-decked-out-in-new-colours",
+      "imageUrl": "https://www.spa-francorchamps.be/assets/cache/70384e33-9a92-9e0d-cbd8-3a10af05f334/raidillon1.jpeg",
+      "published": "2022-08-24",
+      "imageCaptureDate": "not stated; associated with 2022 works",
+      "reviewed": "2026-10-15",
+      "localInspection": "output/environment-references/overseas/spa-raidillon-2022.jpeg",
+      "rights": "Circuit de Spa-Francorchamps; image inspected as reference and not bundled in application",
+      "referenceSha256": "dd0a4766ac23a835591dfaf539637d1ede33c7fea7059d63a48d21f88047f7d3",
+      "referenceBytes": 362781
+    },
+    {
+      "id": "spa-map-2026",
+      "title": "CSF Plans Acces 2026, page 3",
+      "url": "https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf",
+      "reviewed": "2026-10-15",
+      "evidence": "Corner names, route placement and official distance/elevation anchors; not a land survey"
+    }
+  ],
+  "acquisitionNotes": [
+    "OpenStreetMap Overpass public endpoints returned HTTP406/429 or timeout, so no OSM footprints are claimed.",
+    "Original official photographs and PDFs are kept only in output/environment-references/overseas for inspection, not browser redistribution.",
+    "F1 Silverstone aerial dal1029ap04 shows Wing construction and was rejected for current feature placement.",
+    "The former SF_access-organiser.pdf URL returned404. The current 2026 all-plan-acces.pdf is valid and is used by the Spa elevation work."
+  ],
+  "method": "Manual photo interpretation registered approximately to imported circuit centreline. Individual trees, off-road crossfall, height and precise boundaries are model estimates."
+}

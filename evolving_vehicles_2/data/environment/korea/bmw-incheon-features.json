@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "bmw-incheon",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "bmw-official-2026",
+      "title": "BMW Korea Driving Center official exterior / kick-plate training area photograph",
+      "url": "https://mediapool.bmwgroup.com/cache/P9/202601/P90627704/P90627704-bmw-korea-driving-center-contract-01-2026-1600px.jpg",
+      "pageUrl": "https://www.press.bmwgroup.com/korea/article/detail/T0454844KO/",
+      "sourceType": "manufacturer-press-photograph",
+      "localEvidenceFile": "output/environment-references/korea/bmw-2026-04.jpg",
+      "sha256": "8dafa048b50594a759e41b92cab395da1058c4e0442a3724a6eb3d67f38fbd18",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2026,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "BMW Group",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    }
+  ],
+  "metadata": {
+    "name": "BMW 드라이빙 센터 인천",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "observed-materials-not-geolocated",
+    "limitations": [
+      "Training/kick-plate area in the photograph must not be confused with the handling circuit geometry; no guessed footprint added.",
+      "Press release dated 2026, image capture year unknown.",
+      "No confirmed sand or gravel."
+    ]
+  },
+  "features": []
+}

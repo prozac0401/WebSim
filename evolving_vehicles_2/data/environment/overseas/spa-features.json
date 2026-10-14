@@ -1,0 +1,1890 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "spa",
+  "coordinateSystem": "wgs84",
+  "metadata": {
+    "coverage": "Eau Rouge–Raidillon and first part of Kemmel only",
+    "method": "Official 2022 oblique photo interpretation registered to imported circuit centreline and 2026 official corner map; approximate footprints, not a georeferenced survey.",
+    "horizontalGeometry": "estimated track-relative placement within observed regions",
+    "verticalGeometry": "estimated from adjacent road elevation; crown height and tree positions unmeasured",
+    "dateLimitation": "2022 photograph; the 2026 condition of every landscaping boundary is not asserted.",
+    "omitted": "No sand or gravel is inferred from paint; no unverified retaining walls or remaining-circuit vegetation are added."
+  },
+  "sources": [
+    {
+      "id": "spa-2022-raidillon",
+      "title": "The Spa-Francorchamps track is decked out in new colours",
+      "url": "https://www.spa-francorchamps.be/en/news/275_the-spa-francorchamps-track-is-decked-out-in-new-colours",
+      "imageUrl": "https://www.spa-francorchamps.be/assets/cache/70384e33-9a92-9e0d-cbd8-3a10af05f334/raidillon1.jpeg",
+      "published": "2022-08-24",
+      "imageCaptureDate": "not stated; associated with 2022 works",
+      "reviewed": "2026-10-15",
+      "localInspection": "output/environment-references/overseas/spa-raidillon-2022.jpeg",
+      "rights": "Circuit de Spa-Francorchamps; image inspected as reference and not bundled in application",
+      "referenceSha256": "dd0a4766ac23a835591dfaf539637d1ede33c7fea7059d63a48d21f88047f7d3",
+      "referenceBytes": 362781
+    },
+    {
+      "id": "spa-map-2026",
+      "title": "CSF Plans Acces 2026, page 3",
+      "url": "https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf",
+      "reviewed": "2026-10-15",
+      "evidence": "Corner names, route placement and official distance/elevation anchors; not a land survey"
+    }
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "id": "raidillon-right-grass-bank",
+      "properties": {
+        "kind": "grass",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Clearly visible grass between ascending race track and right-side service road; boundary and crossfall estimated.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            925,
+            1125
+          ],
+          "lateralOffsetM": [
+            10,
+            24
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97060289,
+              50.44235297
+            ],
+            [
+              5.97081451,
+              50.4422675
+            ],
+            [
+              5.97102693,
+              50.44218004
+            ],
+            [
+              5.97122788,
+              50.44209445
+            ],
+            [
+              5.97139316,
+              50.44199208
+            ],
+            [
+              5.9715239,
+              50.441876
+            ],
+            [
+              5.97164034,
+              50.4417474
+            ],
+            [
+              5.97173444,
+              50.44160579
+            ],
+            [
+              5.97179614,
+              50.44145951
+            ],
+            [
+              5.97183252,
+              50.4413103
+            ],
+            [
+              5.97186296,
+              50.44115035
+            ],
+            [
+              5.97190305,
+              50.44098449
+            ],
+            [
+              5.97190921,
+              50.44096556
+            ],
+            [
+              5.9717169,
+              50.44093914
+            ],
+            [
+              5.9717101,
+              50.44096004
+            ],
+            [
+              5.97166766,
+              50.44113526
+            ],
+            [
+              5.97163721,
+              50.44129522
+            ],
+            [
+              5.97160468,
+              50.44143068
+            ],
+            [
+              5.97154894,
+              50.44156405
+            ],
+            [
+              5.97146077,
+              50.44169622
+            ],
+            [
+              5.97135724,
+              50.44180941
+            ],
+            [
+              5.97125047,
+              50.44190581
+            ],
+            [
+              5.97110839,
+              50.4419949
+            ],
+            [
+              5.97092013,
+              50.4420748
+            ],
+            [
+              5.9707077,
+              50.44216227
+            ],
+            [
+              5.97049888,
+              50.44224661
+            ],
+            [
+              5.97060289,
+              50.44235297
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-right-service-road",
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Grey service road at the outside of the visible grass bank.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            925,
+            1105
+          ],
+          "lateralOffsetM": [
+            25,
+            33
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97049145,
+              50.44223901
+            ],
+            [
+              5.97070008,
+              50.44215475
+            ],
+            [
+              5.9709125,
+              50.44206728
+            ],
+            [
+              5.97109985,
+              50.44198779
+            ],
+            [
+              5.97124028,
+              50.44189965
+            ],
+            [
+              5.97134534,
+              50.44180466
+            ],
+            [
+              5.97144794,
+              50.44169257
+            ],
+            [
+              5.97153569,
+              50.44156107
+            ],
+            [
+              5.97159101,
+              50.44142862
+            ],
+            [
+              5.97162326,
+              50.44129414
+            ],
+            [
+              5.97165371,
+              50.44113418
+            ],
+            [
+              5.97154211,
+              50.44112555
+            ],
+            [
+              5.97151166,
+              50.44128553
+            ],
+            [
+              5.97148161,
+              50.44141214
+            ],
+            [
+              5.97142969,
+              50.44153722
+            ],
+            [
+              5.97134532,
+              50.44166332
+            ],
+            [
+              5.97125011,
+              50.44176661
+            ],
+            [
+              5.97115875,
+              50.44185035
+            ],
+            [
+              5.97103157,
+              50.44193091
+            ],
+            [
+              5.97085146,
+              50.44200715
+            ],
+            [
+              5.97063904,
+              50.44209462
+            ],
+            [
+              5.97043202,
+              50.44217823
+            ],
+            [
+              5.97049145,
+              50.44223901
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-east-forest",
+      "properties": {
+        "kind": "forest",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Dense conifers behind the upper Raidillon grandstand and beside the start of Kemmel; individual trees estimated.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            1135,
+            1440
+          ],
+          "lateralOffsetM": [
+            -55,
+            -130
+          ],
+          "positiveSide": "driver right"
+        },
+        "height": 17,
+        "treeSpacing": 18
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97281506,
+              50.44105784
+            ],
+            [
+              5.9728659,
+              50.44098557
+            ],
+            [
+              5.97296881,
+              50.44086971
+            ],
+            [
+              5.97310052,
+              50.44073541
+            ],
+            [
+              5.97323459,
+              50.4405988
+            ],
+            [
+              5.97336866,
+              50.44046218
+            ],
+            [
+              5.97350273,
+              50.44032556
+            ],
+            [
+              5.97363679,
+              50.44018894
+            ],
+            [
+              5.97377086,
+              50.44005232
+            ],
+            [
+              5.97390493,
+              50.4399157
+            ],
+            [
+              5.97403899,
+              50.43977908
+            ],
+            [
+              5.97417274,
+              50.43964288
+            ],
+            [
+              5.97430701,
+              50.43950634
+            ],
+            [
+              5.97444128,
+              50.4393698
+            ],
+            [
+              5.97457555,
+              50.43923326
+            ],
+            [
+              5.97470982,
+              50.43909672
+            ],
+            [
+              5.97484417,
+              50.43896008
+            ],
+            [
+              5.97500228,
+              50.43877217
+            ],
+            [
+              5.97595807,
+              50.43905503
+            ],
+            [
+              5.97573749,
+              50.43931629
+            ],
+            [
+              5.97560299,
+              50.43945307
+            ],
+            [
+              5.97546872,
+              50.43958961
+            ],
+            [
+              5.97533446,
+              50.43972614
+            ],
+            [
+              5.97520019,
+              50.43986268
+            ],
+            [
+              5.97506592,
+              50.43999922
+            ],
+            [
+              5.9749327,
+              50.44013489
+            ],
+            [
+              5.97479863,
+              50.44027151
+            ],
+            [
+              5.97466457,
+              50.44040813
+            ],
+            [
+              5.9745305,
+              50.44054475
+            ],
+            [
+              5.97439643,
+              50.44068137
+            ],
+            [
+              5.97426236,
+              50.44081799
+            ],
+            [
+              5.9741283,
+              50.44095461
+            ],
+            [
+              5.97399423,
+              50.44109123
+            ],
+            [
+              5.97386564,
+              50.44122233
+            ],
+            [
+              5.97379271,
+              50.44130518
+            ],
+            [
+              5.97381208,
+              50.44127545
+            ],
+            [
+              5.97281506,
+              50.44105784
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-west-forest",
+      "properties": {
+        "kind": "forest",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Forest behind the right-side access lane; spectator stands excluded from the near-road portion.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            1000,
+            1370
+          ],
+          "lateralOffsetM": [
+            58,
+            125
+          ],
+          "positiveSide": "driver right"
+        },
+        "height": 16,
+        "treeSpacing": 18
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97088934,
+              50.44170859
+            ],
+            [
+              5.97097491,
+              50.44162495
+            ],
+            [
+              5.97104045,
+              50.44154945
+            ],
+            [
+              5.97109569,
+              50.44146728
+            ],
+            [
+              5.97114072,
+              50.44136104
+            ],
+            [
+              5.97116798,
+              50.44123194
+            ],
+            [
+              5.97119874,
+              50.44107041
+            ],
+            [
+              5.97125283,
+              50.44086622
+            ],
+            [
+              5.97139278,
+              50.44060062
+            ],
+            [
+              5.97153464,
+              50.44042797
+            ],
+            [
+              5.97168697,
+              50.44026764
+            ],
+            [
+              5.97182104,
+              50.44013102
+            ],
+            [
+              5.97195511,
+              50.4399944
+            ],
+            [
+              5.97208918,
+              50.43985778
+            ],
+            [
+              5.97222324,
+              50.43972116
+            ],
+            [
+              5.97235731,
+              50.43958454
+            ],
+            [
+              5.97249138,
+              50.43944792
+            ],
+            [
+              5.97262544,
+              50.4393113
+            ],
+            [
+              5.97275964,
+              50.43917455
+            ],
+            [
+              5.97289415,
+              50.43903771
+            ],
+            [
+              5.97302842,
+              50.43890117
+            ],
+            [
+              5.97310301,
+              50.43882531
+            ],
+            [
+              5.97230511,
+              50.43850698
+            ],
+            [
+              5.97223051,
+              50.43858283
+            ],
+            [
+              5.97209624,
+              50.43871937
+            ],
+            [
+              5.97196142,
+              50.43885653
+            ],
+            [
+              5.97182707,
+              50.43899344
+            ],
+            [
+              5.971693,
+              50.43913006
+            ],
+            [
+              5.97155893,
+              50.43926668
+            ],
+            [
+              5.97142487,
+              50.4394033
+            ],
+            [
+              5.9712908,
+              50.43953992
+            ],
+            [
+              5.97115673,
+              50.43967654
+            ],
+            [
+              5.97102266,
+              50.43981316
+            ],
+            [
+              5.9708886,
+              50.43994978
+            ],
+            [
+              5.970712,
+              50.4401363
+            ],
+            [
+              5.97054208,
+              50.44034367
+            ],
+            [
+              5.97033249,
+              50.44073977
+            ],
+            [
+              5.97026443,
+              50.4409964
+            ],
+            [
+              5.97023332,
+              50.44115976
+            ],
+            [
+              5.97021442,
+              50.44125368
+            ],
+            [
+              5.97019043,
+              50.44130248
+            ],
+            [
+              5.97017942,
+              50.44130686
+            ],
+            [
+              5.97017734,
+              50.44130627
+            ],
+            [
+              5.97015611,
+              50.44133241
+            ],
+            [
+              5.97088934,
+              50.44170859
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-lower-forest",
+      "properties": {
+        "kind": "forest",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Wooded bank behind the lower left spectator facilities; individual crowns are representative.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            870,
+            960
+          ],
+          "lateralOffsetM": [
+            -85,
+            -150
+          ],
+          "positiveSide": "driver right"
+        },
+        "height": 16,
+        "treeSpacing": 18
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97103094,
+              50.44325078
+            ],
+            [
+              5.97117385,
+              50.44314198
+            ],
+            [
+              5.97125032,
+              50.44309347
+            ],
+            [
+              5.97129676,
+              50.44307946
+            ],
+            [
+              5.97152746,
+              50.44298646
+            ],
+            [
+              5.97173988,
+              50.44289899
+            ],
+            [
+              5.97223576,
+              50.44338758
+            ],
+            [
+              5.97202334,
+              50.44347505
+            ],
+            [
+              5.97177968,
+              50.44357329
+            ],
+            [
+              5.97185694,
+              50.44352843
+            ],
+            [
+              5.97185864,
+              50.44352699
+            ],
+            [
+              5.9717308,
+              50.44362463
+            ],
+            [
+              5.97103094,
+              50.44325078
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-paved-apron",
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Dark apron between kerb and painted runoff, visually traced from 2022 official photo.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            925,
+            1100
+          ],
+          "lateralOffsetM": [
+            -11,
+            -15
+          ],
+          "positiveSide": "driver right"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97075891,
+              50.44251252
+            ],
+            [
+              5.97097472,
+              50.44242536
+            ],
+            [
+              5.97118714,
+              50.44233789
+            ],
+            [
+              5.97140712,
+              50.44224377
+            ],
+            [
+              5.97160718,
+              50.44212149
+            ],
+            [
+              5.97177389,
+              50.44197589
+            ],
+            [
+              5.9719097,
+              50.44182417
+            ],
+            [
+              5.97201269,
+              50.44166839
+            ],
+            [
+              5.97208332,
+              50.44150276
+            ],
+            [
+              5.97212547,
+              50.44133293
+            ],
+            [
+              5.97214746,
+              50.44121741
+            ],
+            [
+              5.97220326,
+              50.44122172
+            ],
+            [
+              5.97218127,
+              50.44133724
+            ],
+            [
+              5.97213802,
+              50.441511
+            ],
+            [
+              5.97206569,
+              50.44168032
+            ],
+            [
+              5.97196101,
+              50.4418388
+            ],
+            [
+              5.9718215,
+              50.44199491
+            ],
+            [
+              5.97164794,
+              50.44214614
+            ],
+            [
+              5.97144126,
+              50.44227221
+            ],
+            [
+              5.97121766,
+              50.44236795
+            ],
+            [
+              5.97100523,
+              50.44245542
+            ],
+            [
+              5.97078863,
+              50.44254291
+            ],
+            [
+              5.97075891,
+              50.44251252
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-0",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -15,
+            -19
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#c54749"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97084857,
+              50.44251909
+            ],
+            [
+              5.97106424,
+              50.44243113
+            ],
+            [
+              5.97127666,
+              50.44234366
+            ],
+            [
+              5.97151425,
+              50.44223121
+            ],
+            [
+              5.97170587,
+              50.44210452
+            ],
+            [
+              5.97185919,
+              50.44195664
+            ],
+            [
+              5.97198996,
+              50.44179739
+            ],
+            [
+              5.97209098,
+              50.44162673
+            ],
+            [
+              5.972155,
+              50.4414604
+            ],
+            [
+              5.97216943,
+              50.44139944
+            ],
+            [
+              5.97222523,
+              50.44140375
+            ],
+            [
+              5.9722103,
+              50.44146681
+            ],
+            [
+              5.97214536,
+              50.4416358
+            ],
+            [
+              5.97204137,
+              50.44181187
+            ],
+            [
+              5.9719069,
+              50.44197557
+            ],
+            [
+              5.97174964,
+              50.44212698
+            ],
+            [
+              5.97155385,
+              50.44225662
+            ],
+            [
+              5.97130718,
+              50.44237373
+            ],
+            [
+              5.97109476,
+              50.44246119
+            ],
+            [
+              5.97087837,
+              50.44254945
+            ],
+            [
+              5.97084857,
+              50.44251909
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-1",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -19,
+            -20.5
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#e7e7dc"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97087837,
+              50.44254945
+            ],
+            [
+              5.97109476,
+              50.44246119
+            ],
+            [
+              5.97130718,
+              50.44237373
+            ],
+            [
+              5.97155385,
+              50.44225662
+            ],
+            [
+              5.97174964,
+              50.44212698
+            ],
+            [
+              5.9719069,
+              50.44197557
+            ],
+            [
+              5.97204137,
+              50.44181187
+            ],
+            [
+              5.97214536,
+              50.4416358
+            ],
+            [
+              5.9722103,
+              50.44146681
+            ],
+            [
+              5.97222523,
+              50.44140375
+            ],
+            [
+              5.97224616,
+              50.44140536
+            ],
+            [
+              5.97223104,
+              50.44146922
+            ],
+            [
+              5.97216575,
+              50.4416392
+            ],
+            [
+              5.97206065,
+              50.4418173
+            ],
+            [
+              5.97192479,
+              50.44198267
+            ],
+            [
+              5.97176606,
+              50.4421354
+            ],
+            [
+              5.97156869,
+              50.44226615
+            ],
+            [
+              5.97131862,
+              50.442385
+            ],
+            [
+              5.9711062,
+              50.44247247
+            ],
+            [
+              5.97088955,
+              50.44256083
+            ],
+            [
+              5.97087837,
+              50.44254945
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-2",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -20.5,
+            -24.5
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#3c4242"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97088955,
+              50.44256083
+            ],
+            [
+              5.9711062,
+              50.44247247
+            ],
+            [
+              5.97131862,
+              50.442385
+            ],
+            [
+              5.97156869,
+              50.44226615
+            ],
+            [
+              5.97176606,
+              50.4421354
+            ],
+            [
+              5.97192479,
+              50.44198267
+            ],
+            [
+              5.97206065,
+              50.4418173
+            ],
+            [
+              5.97216575,
+              50.4416392
+            ],
+            [
+              5.97223104,
+              50.44146922
+            ],
+            [
+              5.97224616,
+              50.44140536
+            ],
+            [
+              5.97230196,
+              50.44140967
+            ],
+            [
+              5.97228634,
+              50.44147563
+            ],
+            [
+              5.97222013,
+              50.44164826
+            ],
+            [
+              5.97211205,
+              50.44183179
+            ],
+            [
+              5.9719725,
+              50.4420016
+            ],
+            [
+              5.97180983,
+              50.44215786
+            ],
+            [
+              5.97160828,
+              50.44229156
+            ],
+            [
+              5.97134914,
+              50.44241507
+            ],
+            [
+              5.97113672,
+              50.44250254
+            ],
+            [
+              5.97091935,
+              50.44259119
+            ],
+            [
+              5.97088955,
+              50.44256083
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-3",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -24.5,
+            -26
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#e7e7dc"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97091935,
+              50.44259119
+            ],
+            [
+              5.97113672,
+              50.44250254
+            ],
+            [
+              5.97134914,
+              50.44241507
+            ],
+            [
+              5.97160828,
+              50.44229156
+            ],
+            [
+              5.97180983,
+              50.44215786
+            ],
+            [
+              5.9719725,
+              50.4420016
+            ],
+            [
+              5.97211205,
+              50.44183179
+            ],
+            [
+              5.97222013,
+              50.44164826
+            ],
+            [
+              5.97228634,
+              50.44147563
+            ],
+            [
+              5.97230196,
+              50.44140967
+            ],
+            [
+              5.97232288,
+              50.44141129
+            ],
+            [
+              5.97230708,
+              50.44147803
+            ],
+            [
+              5.97224052,
+              50.44165166
+            ],
+            [
+              5.97213133,
+              50.44183722
+            ],
+            [
+              5.9719904,
+              50.4420087
+            ],
+            [
+              5.97182625,
+              50.44216628
+            ],
+            [
+              5.97162313,
+              50.4423011
+            ],
+            [
+              5.97136058,
+              50.44242634
+            ],
+            [
+              5.97114816,
+              50.44251381
+            ],
+            [
+              5.97093053,
+              50.44260257
+            ],
+            [
+              5.97091935,
+              50.44259119
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-4",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -26,
+            -31
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#d3ad28"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97093053,
+              50.44260257
+            ],
+            [
+              5.97114816,
+              50.44251381
+            ],
+            [
+              5.97136058,
+              50.44242634
+            ],
+            [
+              5.97162313,
+              50.4423011
+            ],
+            [
+              5.97182625,
+              50.44216628
+            ],
+            [
+              5.9719904,
+              50.4420087
+            ],
+            [
+              5.97213133,
+              50.44183722
+            ],
+            [
+              5.97224052,
+              50.44165166
+            ],
+            [
+              5.97230708,
+              50.44147803
+            ],
+            [
+              5.97232288,
+              50.44141129
+            ],
+            [
+              5.97239263,
+              50.44141667
+            ],
+            [
+              5.9723762,
+              50.44148604
+            ],
+            [
+              5.97230849,
+              50.44166299
+            ],
+            [
+              5.97219558,
+              50.44185532
+            ],
+            [
+              5.97205003,
+              50.44203236
+            ],
+            [
+              5.97188097,
+              50.44219435
+            ],
+            [
+              5.97167262,
+              50.44233286
+            ],
+            [
+              5.97139872,
+              50.44246393
+            ],
+            [
+              5.9711863,
+              50.44255139
+            ],
+            [
+              5.97096778,
+              50.44264051
+            ],
+            [
+              5.97093053,
+              50.44260257
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-5",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -31,
+            -32.5
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#e7e7dc"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97096778,
+              50.44264051
+            ],
+            [
+              5.9711863,
+              50.44255139
+            ],
+            [
+              5.97139872,
+              50.44246393
+            ],
+            [
+              5.97167262,
+              50.44233286
+            ],
+            [
+              5.97188097,
+              50.44219435
+            ],
+            [
+              5.97205003,
+              50.44203236
+            ],
+            [
+              5.97219558,
+              50.44185532
+            ],
+            [
+              5.97230849,
+              50.44166299
+            ],
+            [
+              5.9723762,
+              50.44148604
+            ],
+            [
+              5.97239263,
+              50.44141667
+            ],
+            [
+              5.97241356,
+              50.44141829
+            ],
+            [
+              5.97239694,
+              50.44148844
+            ],
+            [
+              5.97232888,
+              50.44166639
+            ],
+            [
+              5.97221486,
+              50.44186075
+            ],
+            [
+              5.97206792,
+              50.44203946
+            ],
+            [
+              5.97189738,
+              50.44220277
+            ],
+            [
+              5.97168747,
+              50.44234239
+            ],
+            [
+              5.97141017,
+              50.4424752
+            ],
+            [
+              5.97119775,
+              50.44256267
+            ],
+            [
+              5.97097896,
+              50.4426519
+            ],
+            [
+              5.97096778,
+              50.44264051
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-left-painted-6",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Black/yellow/red/white painted runoff observed in the official 2022 photo. Stripe widths and exact transition positions are approximate.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            930,
+            1080
+          ],
+          "lateralOffsetM": [
+            -32.5,
+            -36
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#c54749"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97097896,
+              50.4426519
+            ],
+            [
+              5.97119775,
+              50.44256267
+            ],
+            [
+              5.97141017,
+              50.4424752
+            ],
+            [
+              5.97168747,
+              50.44234239
+            ],
+            [
+              5.97189738,
+              50.44220277
+            ],
+            [
+              5.97206792,
+              50.44203946
+            ],
+            [
+              5.97221486,
+              50.44186075
+            ],
+            [
+              5.97232888,
+              50.44166639
+            ],
+            [
+              5.97239694,
+              50.44148844
+            ],
+            [
+              5.97241356,
+              50.44141829
+            ],
+            [
+              5.97246238,
+              50.44142206
+            ],
+            [
+              5.97244533,
+              50.44149405
+            ],
+            [
+              5.97237646,
+              50.44167432
+            ],
+            [
+              5.97225984,
+              50.44187343
+            ],
+            [
+              5.97210967,
+              50.44205602
+            ],
+            [
+              5.97193569,
+              50.44222243
+            ],
+            [
+              5.97172211,
+              50.44236463
+            ],
+            [
+              5.97143687,
+              50.44250151
+            ],
+            [
+              5.97122445,
+              50.44258898
+            ],
+            [
+              5.97100504,
+              50.44267846
+            ],
+            [
+              5.97097896,
+              50.4426519
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-upper-green-runoff",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Green paved runoff alongside the upper-left grandstand; this is paint, not grass.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            1095,
+            1200
+          ],
+          "lateralOffsetM": [
+            -10,
+            -34
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#34866d"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97212505,
+              50.44126077
+            ],
+            [
+              5.97215556,
+              50.44110304
+            ],
+            [
+              5.97220213,
+              50.44095585
+            ],
+            [
+              5.9722841,
+              50.44082462
+            ],
+            [
+              5.97240291,
+              50.44068715
+            ],
+            [
+              5.97253451,
+              50.44055229
+            ],
+            [
+              5.97264623,
+              50.44043844
+            ],
+            [
+              5.97293222,
+              50.4405523
+            ],
+            [
+              5.97282049,
+              50.44066615
+            ],
+            [
+              5.97269345,
+              50.44079624
+            ],
+            [
+              5.9725823,
+              50.44092497
+            ],
+            [
+              5.97252749,
+              50.44101239
+            ],
+            [
+              5.97248927,
+              50.4411341
+            ],
+            [
+              5.97245985,
+              50.44128662
+            ],
+            [
+              5.97212505,
+              50.44126077
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "raidillon-upper-right-painted",
+      "properties": {
+        "kind": "painted-runoff",
+        "sourceId": "spa-2022-raidillon",
+        "evidence": "photo-observed; approximate track-relative footprint",
+        "observation": "Opposite-side expanded paved runoff at the crest, visible red outer zone in official photo; approximate footprint.",
+        "horizontalAccuracyM": 15,
+        "verticalGeometry": "estimated from adjacent road elevation",
+        "trace": {
+          "centerlineDistanceM": [
+            1150,
+            1270
+          ],
+          "lateralOffsetM": [
+            11,
+            22
+          ],
+          "positiveSide": "driver right"
+        },
+        "color": "#bc484c"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.97202975,
+              50.4407289
+            ],
+            [
+              5.97215746,
+              50.44058227
+            ],
+            [
+              5.97229172,
+              50.44044507
+            ],
+            [
+              5.97242579,
+              50.44030845
+            ],
+            [
+              5.97255985,
+              50.44017183
+            ],
+            [
+              5.97269392,
+              50.44003521
+            ],
+            [
+              5.97282799,
+              50.43989859
+            ],
+            [
+              5.97291737,
+              50.43980751
+            ],
+            [
+              5.97278629,
+              50.43975533
+            ],
+            [
+              5.97269691,
+              50.43984641
+            ],
+            [
+              5.97256284,
+              50.43998303
+            ],
+            [
+              5.97242878,
+              50.44011965
+            ],
+            [
+              5.97229471,
+              50.44025627
+            ],
+            [
+              5.97216064,
+              50.44039289
+            ],
+            [
+              5.97202593,
+              50.44053055
+            ],
+            [
+              5.97189307,
+              50.4406829
+            ],
+            [
+              5.97202975,
+              50.4407289
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

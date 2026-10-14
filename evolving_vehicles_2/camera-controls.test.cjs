@@ -16,7 +16,7 @@ function fixture() {
   renderer.race = {
     track: { bounds: { minX: -100, maxX: 400, minY: -250, maxY: 500, width: 500, height: 750 }, elevationMin: 30, elevationMax: 100 },
     cars: [{ id: 0, distance: 0, spec: { lengthMm: 5000 } }],
-    sample: distance => ({ x: distance, y: 20 + distance * .2, elevation: 40 + distance * .01, angle: .3 })
+    sample: distance => ({ x: distance, y: 20 + distance * .2, elevation: 40 + distance * .01, angle: Math.atan2(.2, 1) })
   };
   const event = (type, id, x, y, extras = {}) => listeners.get(type)({
     type, pointerId: id, pointerType: 'mouse', button: 0, clientX: x + 20, clientY: y + 40,
@@ -125,9 +125,11 @@ test('follow view opens behind the car at a low pitch and comfortable distance',
   r.setView('follow');
   const camera = r._interactionCamera(), heading = Math.atan2(.2, 1);
   const rearX = -Math.sin(camera.yaw), rearY = Math.cos(camera.yaw);
-  near(r.followYaw, 0); near(r.pitch, .30);
+  near(r.followYaw, 0); near(r.pitch, .24);
   near(rearX * Math.cos(heading) + rearY * Math.sin(heading), -1);
   assert.ok(camera.distance >= 8 && camera.distance <= 11);
+  near(2 * Math.atan(r.height / (2 * camera.f)) * 180 / Math.PI, 58);
+  near(camera.cy / r.height, .64);
 });
 
 test('follow heading crosses the signed-angle boundary by the short arc', () => {
@@ -144,13 +146,18 @@ test('follow heading crosses the signed-angle boundary by the short arc', () => 
 
 test('follow smoothing uses elapsed time and settles without idle drift', () => {
   const { renderer: a } = fixture(), { renderer: b } = fixture();
-  for (const r of [a, b]) { r.setView('follow'); r._interactionCamera(); r.race.cars[0].distance = .2; }
+  let heading = 0;
+  for (const r of [a, b]) {
+    r.race.sample = distance => ({ x: distance * Math.cos(heading), y: distance * Math.sin(heading), elevation: 10, angle: heading });
+    r.setView('follow'); r._interactionCamera();
+  }
+  heading = .2;
   a.advanceCamera(.1);
   for (let frame = 0; frame < 6; frame++) b.advanceCamera(1 / 60);
-  for (const key of ['x', 'y', 'z', 'heading']) near(a._followState[key], b._followState[key]);
-  assert.ok(a._followState.x > 0 && a._followState.x < .2);
+  for (const key of ['x', 'y', 'z', 'heading', 'headingVelocity']) near(a._followState[key], b._followState[key]);
+  assert.ok(a._followState.heading > 0 && a._followState.heading < .2);
   for (let frame = 0; frame < 300; frame++) a.advanceCamera(1 / 60);
-  near(a._interactionCamera().target.x, .2);
+  near(a._followState.heading, .2);
   const settled = { ...a._followState };
   assert.equal(a.advanceCamera(1 / 60), false);
   assert.deepEqual(a._followState, settled);
@@ -170,7 +177,7 @@ test('camera reads and pointer controls never advance a pending follow interpola
   assert.deepEqual(r._followState, state);
 });
 
-test('follow lag stays bounded during accelerated playback and height changes', () => {
+test('the rig shares the car anchor without lateral or vertical sliding at accelerated playback', () => {
   const { renderer: r } = fixture();
   const sample = r.race.sample;
   r.race.sample = distance => ({ ...sample(distance), elevation: 40 + distance * .2 });
@@ -178,18 +185,22 @@ test('follow lag stays bounded during accelerated playback and height changes', 
   r.race.cars[0].distance = 5;
   r.advanceCamera(1 / 60);
   const goal = r._followGoal(r.race.cars[0]), pose = r._followState;
-  assert.ok(Math.hypot(goal.x - pose.x, goal.y - pose.y) <= .80000001);
-  assert.ok(Math.abs(goal.z - pose.z) <= .24000001);
-  assert.ok(pose.x < goal.x && pose.z < goal.z);
+  for (const key of ['x', 'y', 'z']) near(pose[key], goal[key]);
+  const camera = r._interactionCamera(), screen = r._project({ x: goal.x, y: goal.y, z: goal.z }, camera);
+  near(screen.x, camera.cx); near(screen.y, camera.cy); near(camera.pitch, .24);
 });
 
-test('discontinuous timeline jumps snap once and manual idle frames do not redraw', () => {
+test('only explicit timeline jumps snap angular state; manual idle frames do not redraw', () => {
   const { renderer: r } = fixture();
+  let heading = 0;
+  r.race.sample = distance => ({ x: distance, y: Math.tan(heading) * distance, elevation: 10, angle: heading });
   r.setView('follow'); r._interactionCamera();
-  r.race.cars[0].distance = 1000;
+  heading = .6; r.race.cars[0].distance = 1000;
   assert.equal(r.advanceCamera(1 / 60), true);
   near(r._interactionCamera().target.x, 1000);
-  assert.equal(r.advanceCamera(1 / 60, { snap: true }), false);
+  assert.ok(r._followState.heading < .1, 'large travel must not trigger an automatic yaw reset');
+  assert.equal(r.advanceCamera(0, { snap: true }), true);
+  near(r._followState.heading, heading); near(r._followState.headingVelocity, 0);
   const state = r._followState;
   assert.equal(r.advanceCamera(0, { snap: true }), false);
   assert.equal(r._followState, state);
@@ -206,4 +217,38 @@ test('new race, view and watched vehicle reset stale follow state', () => {
   near(r._interactionCamera().target.x, 200); near(r.followYaw, 0);
   r.race.cars.push({ ...r.race.cars[0], id: 1, distance: 300 }); r.watch = 1;
   near(r._interactionCamera().target.x, 300);
+});
+
+test('corner heading carries angular velocity instead of clamping or reversing instantly', () => {
+  const { renderer: r } = fixture();
+  let heading = 0;
+  r.race.sample = distance => ({ x: distance * Math.cos(heading), y: distance * Math.sin(heading), elevation: 10, angle: heading });
+  r.setView('follow'); r._interactionCamera();
+  heading = .6; r.advanceCamera(1 / 60);
+  assert.ok(r._followState.heading < .03, 'first turn frame must not jump to a fixed angular-lag boundary');
+  for (let frame = 0; frame < 9; frame++) r.advanceCamera(1 / 60);
+  const before = { ...r._followState };
+  heading = 0; r.advanceCamera(1 / 60);
+  assert.ok(r._followState.heading > before.heading, 'angular inertia should carry through a sudden target change');
+  assert.ok(r._followState.headingVelocity > 0 && r._followState.headingVelocity < before.headingVelocity);
+  for (let frame = 0; frame < 240; frame++) r.advanceCamera(1 / 60);
+  near(r._followState.heading, 0); near(r._followState.headingVelocity, 0);
+});
+
+test('camera uses the shared visual path and lengthens corner anticipation with speed', t => {
+  const previous = global.DrivingPose, samples = [];
+  t.after(() => { if (previous === undefined) delete global.DrivingPose; else global.DrivingPose = previous; });
+  global.DrivingPose = { sample(race, distance) {
+    samples.push(distance);
+    const radius = 80, angle = distance / radius;
+    return { x: 700 + radius * Math.sin(angle), y: 900 + radius * (1 - Math.cos(angle)), z: 30, elevation: 30, angle, grade: 0 };
+  } };
+  const { renderer: r } = fixture(), car = r.race.cars[0];
+  car.speed = 0;
+  const slow = r._followGoal(car);
+  near(slow.x, 700); near(slow.y, 900); near(slow.z, 30.8); near(samples.at(-1) - car.distance, 10);
+  car.speed = 50;
+  const fast = r._followGoal(car);
+  near(samples.at(-1) - car.distance, 20);
+  assert.ok(fast.heading > slow.heading && fast.heading < .15, 'look ahead gradually around the path bend');
 });

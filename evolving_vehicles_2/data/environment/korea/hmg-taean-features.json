@@ -1,0 +1,314 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "hmg-taean",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "hmg-official-brochure-2025",
+      "title": "HMG Driving Experience Center Korean brochure, aerial and course key",
+      "url": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+      "pageUrl": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+      "sourceType": "operator-brochure",
+      "localEvidenceFile": "output/environment-references/korea/hmg-brochure-2025.pdf",
+      "sha256": "969931d1e06f12166f560302f2de99323fa888a9c2c67db7e330e64833c2817c",
+      "retrievedDate": "2026-10-15",
+      "publicationYear": 2025,
+      "captureYear": null,
+      "captureYearStatus": "unknown",
+      "rights": {
+        "ownerOrPublisher": "Hyundai Motor Group / original photographers",
+        "license": "No open redistribution licence identified; rights remain with the publisher/original photographer.",
+        "redistributed": false
+      },
+      "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified.",
+      "pdfPages": [
+        5,
+        6,
+        7
+      ],
+      "localPageRenders": [
+        "output/environment-references/korea/hmg-page-05.png",
+        "output/environment-references/korea/hmg-page-06.png",
+        "output/environment-references/korea/hmg-page-07.png"
+      ]
+    }
+  ],
+  "metadata": {
+    "name": "HMG 드라이빙 익스피리언스 센터 태안",
+    "method": "photo-traced; approximate footprint",
+    "reviewedDate": "2026-10-15",
+    "sourceIndex": "../korea-references.json",
+    "captureYear": "See individual sources; otherwise unknown.",
+    "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
+    "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
+    "geometryStatus": "partial-observed-footprints",
+    "limitations": [
+      "Page 5 is oblique; footprint boundaries are conservative manual estimates.",
+      "Course 6 off-road gravel/bare ground is a separate facility and is excluded from the race circuit.",
+      "Farmland and distant woodland outside the large oval are not modelled as adjacent circuit grass/forest.",
+      "Brochure publication year 2025; photo capture years unknown."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "hmg-taean-north-island",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -66.14,
+              -305.76
+            ],
+            [
+              -30.17,
+              -284.18
+            ],
+            [
+              -0.19,
+              -254.2
+            ],
+            [
+              32.19,
+              -215.83
+            ],
+            [
+              29.79,
+              -177.45
+            ],
+            [
+              9.4,
+              -154.67
+            ],
+            [
+              -7.38,
+              -163.06
+            ],
+            [
+              -18.18,
+              -215.83
+            ],
+            [
+              -31.37,
+              -269.79
+            ],
+            [
+              -66.14,
+              -305.76
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "hmg-official-brochure-2025",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Northern dry-handling loop infield",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hmg-taean-central-east-island",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -63.74,
+              47.98
+            ],
+            [
+              -33.77,
+              69.57
+            ],
+            [
+              -31.37,
+              242.25
+            ],
+            [
+              -45.76,
+              280.62
+            ],
+            [
+              -50.55,
+              229.05
+            ],
+            [
+              -49.35,
+              170.3
+            ],
+            [
+              -44.56,
+              130.73
+            ],
+            [
+              -68.54,
+              95.95
+            ],
+            [
+              -76.93,
+              70.77
+            ],
+            [
+              -63.74,
+              47.98
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "hmg-official-brochure-2025",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Narrow middle dry-handling infield island",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hmg-taean-central-west-island",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -134.49,
+              121.13
+            ],
+            [
+              -121.3,
+              147.51
+            ],
+            [
+              -105.71,
+              189.48
+            ],
+            [
+              -94.92,
+              227.86
+            ],
+            [
+              -90.12,
+              268.63
+            ],
+            [
+              -102.12,
+              293.81
+            ],
+            [
+              -123.7,
+              298.6
+            ],
+            [
+              -140.49,
+              274.62
+            ],
+            [
+              -152.48,
+              224.26
+            ],
+            [
+              -157.28,
+              177.49
+            ],
+            [
+              -134.49,
+              121.13
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "hmg-official-brochure-2025",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Western dry-handling hairpin grass island",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hmg-taean-south-island",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -98.52,
+              448.5
+            ],
+            [
+              -61.35,
+              425.71
+            ],
+            [
+              -31.37,
+              382.54
+            ],
+            [
+              -12.18,
+              340.57
+            ],
+            [
+              13.0,
+              376.55
+            ],
+            [
+              44.18,
+              430.51
+            ],
+            [
+              45.38,
+              482.07
+            ],
+            [
+              17.8,
+              526.44
+            ],
+            [
+              -28.97,
+              555.22
+            ],
+            [
+              -91.32,
+              570.81
+            ],
+            [
+              -133.29,
+              566.01
+            ],
+            [
+              -144.09,
+              540.83
+            ],
+            [
+              -141.69,
+              491.67
+            ],
+            [
+              -126.1,
+              465.28
+            ],
+            [
+              -98.52,
+              448.5
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "hmg-official-brochure-2025",
+        "evidence": "photo-traced; approximate footprint",
+        "approximation": true,
+        "location": "Southern dry-handling loop infield; no off-road gravel assigned",
+        "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    }
+  ]
+}
