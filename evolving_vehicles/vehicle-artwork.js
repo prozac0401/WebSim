@@ -287,5 +287,29 @@ window.VehicleArtwork = {
       "r": 125,
       "rimRatio": 0.84
     }
+  },
+  "porter2": {
+    "file": "assets/vehicles/porter2.png",
+    "width": 940,
+    "height": 515,
+    "bounds": [
+      137,
+      147,
+      615,
+      268
+    ],
+    "bodyBottom": 378,
+    "rear": {
+      "x": 630,
+      "y": 371,
+      "r": 35,
+      "rimRatio": 0.78
+    },
+    "front": {
+      "x": 366,
+      "y": 372,
+      "r": 43,
+      "rimRatio": 0.78
+    }
   }
 };

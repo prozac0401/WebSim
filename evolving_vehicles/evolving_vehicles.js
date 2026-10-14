@@ -5,10 +5,32 @@
   let running=false,auto=false,watch=-1,overview=false,editing=false,drawPoints=[],pointer=null,camera=0,manual=false,last=null,accumulator=0,strokes=[];
   const message=text=>{$('message').textContent=text;};
   const distance=v=>Math.max(0,v).toFixed(0)+' u';
-  const experimentHelp={evolution:'12종 가운데 차체·바퀴·동력장치·구동방식이 서로 다른 8대로 시작합니다.',power:'같은 사륜구동 차체에서 1→8번 순으로 모터가 강하고 무거워집니다. 다음 세대부터 모든 설계 특성이 진화합니다.',balance:'같은 사륜구동·출력·질량으로 1→8번 순서대로 동력장치를 뒤에서 앞으로 옮깁니다. 다음 세대부터 모든 특성이 진화합니다.',drive:'같은 차체·출력·질량·무게배분으로 전륜·후륜·사륜을 비교합니다. 전체 토크와 출력은 같으며 다음 세대부터 모든 특성이 진화합니다.'};
+  const experimentHelp={evolution:'13종의 실제 출고 제원을 바탕으로 서로 다른 8대로 시작합니다. 1번은 출고 출력·토크 그대로입니다.',power:'같은 후륜구동 차체에서 1→8번 순으로 마력이 출고값의 100→160%로 증가합니다. 토크 배율은 100%로 같습니다. 다음 세대부터 모든 설계 특성이 진화합니다.',balance:'같은 후륜구동·출력·질량으로 1→8번 순서대로 동력장치를 뒤에서 앞으로 옮깁니다. 다음 세대부터 모든 특성이 진화합니다.',drive:'같은 차체·출력·질량·무게배분으로 전륜·후륜·사륜을 비교합니다. 전체 토크와 출력은 같으며 다음 세대부터 모든 특성이 진화합니다.'};
   let engineering=false,artworkReady=false;
-  function paintCar(target,vehicle,live=false){VehicleRenderer.drawVehicle(target,vehicle,{live,engineering});}
-  function drawThumbnail(target,vehicle){VehicleRenderer.drawThumbnail(target,vehicle,{width:200,height:96});}
+  const appearanceRegistry=new Map();
+  const defaultLiveries={ray:'delivery',avante:'none',staria:'van_taxi',musso_ev:'camping',ioniq5:'ev_taxi',santafe:'none',morning:'none',k5:'kakao_taxi',grandeur:'premium_taxi',carnival:'kakao_taxi',g80:'none',torres:'camping',porter2:'delivery'};
+  const defaultPaints={ray:'aeq',avante:'v2r',staria:'a2b',musso_ev:'amazonia-green',ioniq5:'saw',santafe:'factory',morning:'beg',k5:'factory',grandeur:'a2b',carnival:'swp',g80:'factory',torres:'forest-green',porter2:'factory'};
+  const selectedVehicle=()=>watch<0?lab.best:lab.vehicles[watch];
+  function appearanceOf(vehicle){return VehicleRenderer.getAppearance(vehicle,{performance:vehicle.appearance?.performance!==false&&vehicle.design.performanceRatio>=1.2});}
+  function hydrateAppearances(){
+    const counts=new Map();
+    for(const v of lab.vehicles){const genome=JSON.stringify(v.genome),occurrence=counts.get(genome)||0;counts.set(genome,occurrence+1);v.appearanceKey=genome+'#'+occurrence;
+      v.appearance={...(appearanceRegistry.get(v.appearanceKey)||{color:defaultPaints[v.design.style]||'factory',livery:defaultLiveries[v.design.style]||'none',performance:true})};
+      const normalized=VehicleRenderer.getAppearance(v);v.appearance.color=normalized.color;v.appearance.livery=normalized.livery;appearanceRegistry.set(v.appearanceKey,{...v.appearance});
+      VehicleRenderer.ensureAppearance(v.design.style,v.appearance.color).then(ok=>{if(!ok){v.appearance.color='factory';appearanceRegistry.set(v.appearanceKey,{...v.appearance});}render();});
+    }
+  }
+  function renderAppearance(v){
+    const a=appearanceOf(v),color=$('paint-color'),livery=$('paint-livery');
+    if(color.dataset.style!==a.style){color.replaceChildren(...a.colors.map(c=>new Option(c.label,c.id)));livery.replaceChildren(...a.liveries.map(l=>new Option(l.label,l.id)));color.dataset.style=a.style;}
+    color.value=a.color;livery.value=a.livery;$('performance-look').checked=v.appearance?.performance!==false;
+    $('appearance-status').textContent=a.loading?'선택한 색상을 불러오는 중…':a.colorLabel+' · '+a.liveryLabel;
+    const gain=Math.round((v.design.performanceRatio-1)*100);$('performance-note').textContent=a.performance?'출고 대비 질량당 출력 +'+gain+'% · '+(a.spoiler?'고성능 포인트 + 리어 스포일러':'고성능 포인트'):'출고 대비 질량당 출력 '+(gain>=0?'+':'')+gain+'% · +20%부터 고성능 외형 표시';
+  }
+  function updateAppearance(change){const v=selectedVehicle();v.appearance={...v.appearance,...change};appearanceRegistry.set(v.appearanceKey,{...v.appearance});const chosen=v.appearance.color;VehicleRenderer.ensureAppearance(v.design.style,chosen).then(ok=>{if(!ok&&v.appearance.color===chosen){v.appearance.color='factory';appearanceRegistry.set(v.appearanceKey,{...v.appearance});message('선택한 색상을 불러오지 못해 기본 색상으로 표시합니다.');}render();});render();}
+
+  function paintCar(target,vehicle,live=false){VehicleRenderer.drawVehicle(target,vehicle,{live,engineering,appearance:appearanceOf(vehicle)});}
+  function drawThumbnail(target,vehicle){VehicleRenderer.drawThumbnail(target,vehicle,{width:200,height:96,appearance:appearanceOf(vehicle)});}
   const surfaceNames={asphalt:'포장도로',snow:'눈길',gravel:'자갈길',sand:'모래길',mixed:'복합 노면'};
   const surfaceHints={asphalt:'높은 접지력과 작은 주행 저항. 기본 성능을 비교하기 좋습니다.',snow:'접지력이 낮아 구동 바퀴가 쉽게 헛돕니다. 하중과 구동방식을 비교하세요.',gravel:'느슨한 자갈은 접지력을 낮추고 주행 저항을 키웁니다.',sand:'모래는 접지력이 낮고 주행 저항이 큽니다. 모터 출력과 무게의 균형을 살펴보세요.',mixed:'포장 → 자갈 → 눈 → 모래. 각 구간에서 속도와 바퀴 헛돎을 관찰하세요.'};
   const roadPaint={asphalt:{top:'#414a50',base:'#d6d0c3',edge:'#87939b',grain:'#aeb8ba'},snow:{top:'#eff8fa',base:'#d7e5e8',edge:'#9bbecb',grain:'#b4d3de'},gravel:{top:'#888b82',base:'#d8d7cb',edge:'#5e675d',grain:'#d9d8c9'},sand:{top:'#dfbf83',base:'#eddbb5',edge:'#b99354',grain:'#b28d53'}};
@@ -46,8 +68,8 @@
     }
   }
   function validSeed(){const value=Number($('seed').value);if(!Number.isInteger(value)||value<1||value>999999){message('시드는 1부터 999999 사이의 정수로 입력해 주세요.');$('seed').focus();return null;}return value;}
-  function reset(config={}){const seed=validSeed();if(seed===null)return;running=false;watch=-1;overview=false;editing=false;camera=0;lab.reset({seed,terrain:$('terrain').value,surface:$('surface').value,initialExperiment:$('initial-experiment').value,startingStyle:$('starting-style').value||null,...config});lab.setMutation(Number($('mutation').value)/100);last=null;accumulator=0;const clues={valley:'골짜기에서 얻은 속도로 긴 오르막을 넘을 수 있을까요?',dunes:'세 언덕에서 바퀴 크기와 차체 높이의 장단점을 비교하세요.',ripple:'작은 요철이 반복됩니다. 바퀴 크기와 차체의 흔들림을 관찰하세요.'};message((lab.initialExperiment==='evolution'?(clues[lab.terrain]||'새 실험을 준비했습니다.'):experimentHelp[lab.initialExperiment])+' 경주 시작을 눌러 첫 세대를 관찰하세요.');render();}
-  function next(){if(lab.nextGeneration()){watch=-1;camera=0;running=true;message(lab.generation+'세대 출발! 1번 차량은 이전 세대의 최고 개체입니다.');render();}}
+  function reset(config={}){const seed=validSeed();if(seed===null)return;running=false;watch=-1;overview=false;editing=false;camera=0;lab.reset({seed,terrain:$('terrain').value,surface:$('surface').value,initialExperiment:$('initial-experiment').value,startingStyle:$('starting-style').value||null,...config});lab.setMutation(Number($('mutation').value)/100);hydrateAppearances();last=null;accumulator=0;const clues={valley:'골짜기에서 얻은 속도로 긴 오르막을 넘을 수 있을까요?',dunes:'세 언덕에서 바퀴 크기와 차체 높이의 장단점을 비교하세요.',ripple:'작은 요철이 반복됩니다. 바퀴 크기와 차체의 흔들림을 관찰하세요.'};message((lab.initialExperiment==='evolution'?(clues[lab.terrain]||'새 실험을 준비했습니다.'):experimentHelp[lab.initialExperiment])+' 경주 시작을 눌러 첫 세대를 관찰하세요.');render();}
+  function next(){const eliteAppearance={...lab.best.appearance};if(lab.nextGeneration()){hydrateAppearances();lab.vehicles[0].appearance=eliteAppearance;appearanceRegistry.set(lab.vehicles[0].appearanceKey,{...eliteAppearance});watch=-1;camera=0;running=true;message(lab.generation+'세대 출발! 1번 차량은 이전 세대의 최고 개체입니다.');render();}}
   function update(dt){if(!running||editing)return;lab.step(dt);if(lab.complete){running=false;const count=lab.vehicles.filter(v=>v.finished).length;message(lab.generation+'세대 완료 · '+count+'/'+lab.population+'대 완주. '+(count?lab.best.id+'번이 '+lab.best.finishTime.toFixed(2)+' t로 가장 먼저 도착했습니다.':lab.best.id+'번이 '+distance(lab.best.score)+'까지 갔습니다.')+' 다음 세대로 이어가 보세요.');if(auto)next();}}
   function transform(){if(editing)return{sx:960/(lab.finishX+100),sy:1,tx:0,ty:0};if(overview){const z=960/(lab.finishX+240);return{sx:z,sy:z,tx:40,ty:290-360*z};}const vehicle=watch<0?lab.best:lab.vehicles[watch],zoom=Math.max(1.85,Math.min(2.8,900/Math.max(280,canvas.clientWidth))),x=vehicle?.body.position.x||lab.startX;camera=Math.max(-30,Math.min(lab.finishX-720/zoom,x-290/zoom));return{sx:zoom,sy:zoom,tx:-camera*zoom,ty:zoom>1?360-lab.groundAt(x)*zoom:0};}
   function render(){
@@ -75,21 +97,24 @@
     $('draw').hidden=editing;$('apply').hidden=$('cancel').hidden=$('undo-course').hidden=$('course-point-controls').hidden=!editing;$('edit-note').hidden=!editing;
     canvas.style.touchAction=editing?'none':'pan-y';$('undo-course').disabled=!strokes.length;
     const specimen=watch<0?lab.best:lab.vehicles[watch],gene=specimen.genome,design=specimen.design;
-    $('genome-note').textContent=specimen.id+'번 '+design.styleLabel+' · '+design.driveLabel+' · 몸체 '+gene.width.toFixed(0)+' × '+gene.height.toFixed(0)+' u · 뒤/앞 바퀴 '+gene.rearRadius.toFixed(1)+' / '+gene.frontRadius.toFixed(1)+' u';
+    const factory=VehicleSpecs[design.style];$('genome-note').textContent=specimen.id+'번 '+design.styleLabel+' · '+design.driveLabel+' · '+Math.round(design.powerPs)+' PS · '+Math.round(design.torqueNm)+' N·m · '+Math.round(design.massKg).toLocaleString('ko-KR')+' kg';
     $('design-title').textContent=specimen.id+'번 설계';$('design-style').textContent=design.styleLabel;$('design-preview').setAttribute('aria-label',design.styleLabel+' 제조사 원본 측면 이미지');
-    $('power-stat').textContent=(design.peakPower*10000).toFixed(1);$('mass-stat').textContent=design.totalMass.toFixed(1);
-    $('specific-power-stat').textContent=(design.powerToWeight*10000).toFixed(1);$('engine-mass-stat').textContent=design.powertrainMass.toFixed(1);
+    $('power-stat').textContent=design.powerPs.toFixed(0)+' PS';$('mass-stat').textContent=Math.round(design.massKg).toLocaleString('ko-KR')+' kg';
+    $('specific-power-stat').textContent=(design.powerToWeight*1000).toFixed(1)+' PS/t';$('torque-stat').textContent=design.torqueNm.toFixed(1)+' N·m';
+    $('factory-trim').textContent=factory.variant;$('factory-spec').textContent=factory.curbMassKg.toLocaleString('ko-KR')+' kg · '+factory.powerPs+' PS · '+factory.torqueNm.toFixed(1)+' N·m / 전장 '+factory.lengthMm+' · 전고 '+factory.heightMm+' · 축거 '+factory.wheelbaseMm+' mm';$('factory-source').href=factory.sourceUrl;
+    $('tuning-note').textContent='출고 대비 마력 '+Math.round(gene.powerMultiplier*100)+'% · 토크 '+Math.round(gene.torqueMultiplier*100)+'% · 튜닝 부품 +'+Math.round(design.massKg-factory.curbMassKg)+' kg (모형 추정)';
+    $('vehicle-reference-note').textContent=design.style==='porter2'?'제조사 전측면 원본 · 포터는 원근감이 남습니다. 무적재 기준입니다.':'제조사 원본 측면 이미지 · 실제 기준 치수와 차축 간격을 적용합니다.';
     $('drive-stat').textContent=design.driveLabel;const [rearShare,frontShare]=design.driveShares;
     $('drive-help').textContent='토크 배분 · 앞 '+Math.round(frontShare*100)+'% / 뒤 '+Math.round(rearShare*100)+'%';
     const tipped=design.frontLoad<0||design.rearLoad<0;
     $('balance-stat').textContent=tipped?(design.frontLoad<0?'뒤쪽':'앞쪽')+'으로 기울어짐':'앞 '+Math.round(design.frontLoad*100)+'% / 뒤 '+Math.round(design.rearLoad*100)+'%';
     $('rear-load-bar').style.width=Math.max(0,Math.min(1,design.rearLoad))*100+'%';$('front-load-bar').style.width=Math.max(0,Math.min(1,design.frontLoad))*100+'%';
-    $('balance-help').textContent=tipped?'무게중심이 차축 바깥입니다. 수평으로 정지하기 어려운 설계입니다. 수치는 모형의 상대 단위입니다.':'수치는 모형의 상대 단위이며, 무게배분은 수평 정지 상태의 기준입니다. 강한 모터는 더 무겁고, 장치 위치는 앞뒤 균형을 바꿉니다.';
+    $('balance-help').textContent=tipped?'무게중심이 차축 바깥입니다. 수평으로 정지하기 어려운 설계입니다.':'무게배분은 수평 정지 상태의 모형 추정값입니다. 동력장치 위치에 따라 가속·경사에서 접지 하중이 달라집니다.';
     $('experiment-help').textContent=experimentHelp[lab.initialExperiment];
     $('starting-style').disabled=lab.initialExperiment!=='evolution';
     $('starting-style-help').textContent=lab.initialExperiment==='evolution'?'고른 차종을 1번 차량으로, 서로 다른 8종을 함께 배치합니다. 바꾸면 새 실험을 시작합니다.':'같은 차체 비교에서는 아이오닉 5로 통일합니다. 다양한 설계로 돌아가면 고른 출발 차종을 다시 적용합니다.';
     const telemetry=specimen.telemetry||{},slip=telemetry.slip||[0,0],contact=telemetry.contact||[false,false],loads=telemetry.load||[0,0];
-    $('velocity-stat').textContent=(telemetry.speed||0).toFixed(1)+' u/t';
+    $('velocity-stat').textContent=(telemetry.speedKmH||0).toFixed(1)+' km/h';
     $('slip-stat').textContent='앞 '+Math.round(Math.abs(slip[1]||0)*100)+'% · 뒤 '+Math.round(Math.abs(slip[0]||0)*100)+'%';
     $('surface-stat').textContent=surfaceNames[typeof telemetry.surface==='string'?telemetry.surface:telemetry.surface?.id]||surfaceNames[materialAt(specimen.body.position.x)];
     $('contact-stat').textContent=specimen.finished?'완주':lab.time===0?'출발 준비':contact.every(Boolean)?'앞뒤 접지':contact[0]?'뒤 바퀴 접지':contact[1]?'앞 바퀴 접지':'공중';
@@ -100,8 +125,8 @@
     const legend=ids.map(id=>'<span><i style="background:'+roadPaint[id].top+';border-color:'+roadPaint[id].edge+'"></i>'+surfaceNames[id]+'</span>').join('<b aria-hidden="true">→</b>');
     if($('road-legend').innerHTML!==legend)$('road-legend').innerHTML=legend;
     $('engineering').setAttribute('aria-pressed',String(engineering));$('engineering').textContent='물리 표시 '+(engineering?'켜짐':'꺼짐');
-    const previewKey=JSON.stringify(specimen.genome)+engineering+VehicleRenderer.revision;
-    if($('design-preview').dataset.design!==previewKey){VehicleRenderer.drawThumbnail($('design-preview').getContext('2d'),specimen,{width:640,height:230,engineering});$('design-preview').dataset.design=previewKey;}
+    renderAppearance(specimen);const previewKey=JSON.stringify([specimen.genome,appearanceOf(specimen)])+engineering+VehicleRenderer.revision;
+    if($('design-preview').dataset.design!==previewKey){VehicleRenderer.drawThumbnail($('design-preview').getContext('2d'),specimen,{width:640,height:230,engineering,appearance:appearanceOf(specimen)});$('design-preview').dataset.design=previewKey;}
     $('race-results').hidden=!lab.complete;$('finished-stat').textContent=lab.vehicles.filter(v=>v.finished).length+' / '+lab.population+'대 완주';
     if(lab.complete){
       const ranked=[...lab.vehicles].sort((a,b)=>Number(b.finished)-Number(a.finished)||(a.finished?a.finishTime-b.finishTime:b.score-a.score));
@@ -109,14 +134,16 @@
       if($('results-body').innerHTML!==rows)$('results-body').innerHTML=rows;
     }
     $('view-caption').textContent=editing?'코스를 그린 뒤 적용하세요 · 취소하면 경주로 돌아갑니다.':overview?'전체 코스 보기 · 차량 번호를 눌러 가까이 보기':watch<0?'선두 따라가기 · 아래 번호로 개별 차량 관찰':(watch+1)+'번 따라가기 · 선두 따라가기로 돌아갈 수 있어요';
-    lab.vehicles.forEach((v,i)=>{const b=$('fleet').children[i];b.setAttribute('aria-pressed',String(watch===i&&!overview));b.setAttribute('aria-label',v.id+'번 '+v.design.styleLabel+' '+v.design.driveLabel+' 관찰');b.querySelector('.fleet-name').textContent=v.id+'번 · '+v.design.styleLabel;b.querySelector('.fleet-drive').textContent=v.design.driveLabel;b.querySelector('.fleet-spec').textContent='출력 '+(v.design.peakPower*10000).toFixed(0)+' · 질량 '+v.design.totalMass.toFixed(1);b.querySelector('.fleet-distance').textContent=distance(v.score)+(v.finished?' · '+v.finishTime.toFixed(2)+' t':!v.alive?' · 멈춤':'');const signature=JSON.stringify(v.genome)+VehicleRenderer.revision;if(b.dataset.design!==signature){drawThumbnail(b.querySelector('canvas').getContext('2d'),v);b.dataset.design=signature;}});
+    lab.vehicles.forEach((v,i)=>{const b=$('fleet').children[i];b.setAttribute('aria-pressed',String(watch===i&&!overview));b.setAttribute('aria-label',v.id+'번 '+v.design.styleLabel+' '+v.design.driveLabel+' 관찰');b.querySelector('.fleet-name').textContent=v.id+'번 · '+v.design.styleLabel;b.querySelector('.fleet-drive').textContent=v.design.driveLabel;b.querySelector('.fleet-spec').textContent=Math.round(v.design.powerPs)+' PS · '+Math.round(v.design.massKg).toLocaleString('ko-KR')+' kg';b.querySelector('.fleet-appearance').textContent=appearanceOf(v).liveryLabel+(appearanceOf(v).performance?' · 튜닝':'');b.querySelector('.fleet-distance').textContent=distance(v.score)+(v.finished?' · '+v.finishTime.toFixed(2)+' t':!v.alive?' · 멈춤':'');const signature=JSON.stringify([v.genome,appearanceOf(v)])+VehicleRenderer.revision;if(b.dataset.design!==signature){drawThumbnail(b.querySelector('canvas').getContext('2d'),v);b.dataset.design=signature;}});
     const html=lab.history.length?lab.history.slice(-5).reverse().map(h=>'<li><span>'+h.generation+'세대</span><strong>'+(h.finishers?h.bestTime.toFixed(2)+' t · '+h.finishers+'대 완주':distance(h.best))+'</strong></li>').join(''):'<li>첫 경주가 끝나면 기록됩니다.</li>';if($('history').innerHTML!==html)$('history').innerHTML=html;
   }
   for(const style of EvolutionLab.STYLES){const option=document.createElement('option');option.value=style.id;option.textContent=style.label;$('starting-style').append(option);}
   $('starting-style').onchange=()=>reset();
-  for(let i=0;i<lab.population;i++){const b=document.createElement('button');b.innerHTML='<canvas width="200" height="96" aria-hidden="true"></canvas><span class="fleet-name">'+(i+1)+'번</span><small class="fleet-drive"></small><small class="fleet-spec"></small><small class="fleet-distance">0 u</small>';b.style.borderBottomColor=lab.vehicles[i].color;b.style.borderBottomWidth='3px';b.onclick=()=>{watch=i;overview=false;render();};$('fleet').append(b);}
+  $('paint-color').onchange=e=>updateAppearance({color:e.target.value});$('paint-livery').onchange=e=>updateAppearance({livery:e.target.value});$('performance-look').onchange=e=>updateAppearance({performance:e.target.checked});
+  $('starting-style').options[0].textContent='시드에 따라 배치 · 전체 '+EvolutionLab.STYLES.length+'종';
+  for(let i=0;i<lab.population;i++){const b=document.createElement('button');b.innerHTML='<canvas width="200" height="96" aria-hidden="true"></canvas><span class="fleet-name">'+(i+1)+'번</span><small class="fleet-drive"></small><small class="fleet-spec"></small><small class="fleet-appearance"></small><small class="fleet-distance">0 u</small>';b.style.borderBottomColor=lab.vehicles[i].color;b.style.borderBottomWidth='3px';b.onclick=()=>{watch=i;overview=false;render();};$('fleet').append(b);}
   $('start').onclick=()=>{running=!running;last=null;message(running?'같은 코스와 노면에서 완주 시간과 최장 거리를 기록합니다.':'경주를 멈췄습니다. 번호를 눌러 각 차량의 모양을 살펴보세요.');render();};$('next').onclick=next;
-  $('replay').onclick=()=>{lab.restartTrial();running=false;camera=0;message('같은 개체와 코스로 경주를 다시 준비했습니다. 경주 시작을 눌러 보세요.');render();};$('reset').onclick=()=>reset();$('terrain').onchange=()=>reset();$('surface').onchange=()=>reset();$('new-seed').onclick=()=>reset();
+  $('replay').onclick=()=>{lab.restartTrial();hydrateAppearances();running=false;camera=0;message('같은 개체와 코스로 경주를 다시 준비했습니다. 경주 시작을 눌러 보세요.');render();};$('reset').onclick=()=>reset();$('terrain').onchange=()=>reset();$('surface').onchange=()=>reset();$('new-seed').onclick=()=>reset();
   $('mutation').oninput=e=>{lab.setMutation(Number(e.target.value)/100);$('mutation-value').textContent=e.target.value+'%';};$('auto').onclick=()=>{auto=!auto;if(auto&&lab.complete&&!editing)next();else render();};$('leader').onclick=()=>{watch=-1;overview=false;render();};$('overview').onclick=()=>{overview=true;render();};
   $('initial-experiment').onchange=()=>reset();
   $('engineering').onclick=()=>{engineering=!engineering;render();};
@@ -131,8 +158,9 @@
   canvas.onpointerdown=e=>{if(e.button!==0)return;canvas.focus({preventScroll:true});if(editing){strokes.push(drawPoints.map(p=>({...p})));if(strokes.length>20)strokes.shift();canvas.setPointerCapture(e.pointerId);pointer=null;paint(e);}};canvas.onpointermove=e=>{if(canvas.hasPointerCapture(e.pointerId))paint(e);};canvas.onpointerup=canvas.onpointercancel=e=>{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);pointer=null;};
   const fullscreen=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen?.();}else if(typeof $('stage').requestFullscreen==='function'){await $('stage').requestFullscreen();}else{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}}catch{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}};$('fullscreen').onclick=fullscreen;
   canvas.onkeydown=e=>{if(e.code==='Space'&&!editing){e.preventDefault();if(!$('start').disabled)$('start').click();}if(e.key.toLowerCase()==='f')fullscreen();};
-  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'world units u; origin at left, x right, y down; chassis COM positions; score uses chassis frame origin, start x140, finish x2600; two drawn wheels represent rear and front axles',generation:lab.generation,time:lab.time,duration:lab.duration,complete:lab.complete,running,auto,terrain:lab.terrain,surface:lab.surface,engineering,seed:lab.seed,mutation:lab.mutation,initialExperiment:lab.initialExperiment,startingStyle:lab.startingStyle,availableStyles:EvolutionLab.STYLES,artwork:{mode:VehicleRenderer.mode,loaded:VehicleRenderer.loadedCount,total:EvolutionLab.STYLES.length,ready:artworkReady,failures:VehicleRenderer.failures},editing,undo:strokes.length,watch,overview,history:lab.history.slice(-5),vehicles:lab.vehicles.map(v=>({id:v.id,x:v.body.position.x,y:v.body.position.y,score:v.score,alive:v.alive,finished:v.finished,finishTime:v.finishTime,stopReason:v.stopReason,telemetry:v.telemetry,genome:v.genome,design:{style:v.design.styleLabel,driveType:v.design.driveType,driveLabel:v.design.driveLabel,driveShares:v.design.driveShares,mass:v.design.totalMass,powertrainMass:v.design.powertrainMass,powerIndex:v.design.peakPower*10000,powerPerMass:v.design.powerToWeight*10000,frontLoad:v.design.frontLoad,rearLoad:v.design.rearLoad,centerOfMass:v.design.centerOfMass}})),terrainPoints:editing?drawPoints:undefined});
+  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'world units u; origin at left, x right, y down; chassis COM positions; score uses chassis frame origin, start x140, finish x2600; two drawn wheels represent rear and front axles',generation:lab.generation,time:lab.time,duration:lab.duration,complete:lab.complete,running,auto,terrain:lab.terrain,surface:lab.surface,engineering,seed:lab.seed,mutation:lab.mutation,initialExperiment:lab.initialExperiment,startingStyle:lab.startingStyle,availableStyles:EvolutionLab.STYLES,factorySpecs:VehicleSpecs,artwork:{mode:VehicleRenderer.mode,loaded:VehicleRenderer.loadedCount,total:EvolutionLab.STYLES.length,ready:artworkReady,failures:VehicleRenderer.failures},editing,undo:strokes.length,watch,overview,history:lab.history.slice(-5),vehicles:lab.vehicles.map(v=>({id:v.id,x:v.body.position.x,y:v.body.position.y,score:v.score,alive:v.alive,finished:v.finished,finishTime:v.finishTime,stopReason:v.stopReason,telemetry:v.telemetry,genome:v.genome,appearance:appearanceOf(v),design:{style:v.design.styleLabel,driveType:v.design.driveType,driveLabel:v.design.driveLabel,driveShares:v.design.driveShares,massKg:v.design.massKg,curbMassKg:v.design.curbMassKg,powerPs:v.design.powerPs,torqueNm:v.design.torqueNm,factoryPowerPs:v.design.factoryPowerPs,factoryTorqueNm:v.design.factoryTorqueNm,performanceRatio:v.design.performanceRatio,mass:v.design.totalMass,powertrainMass:v.design.powertrainMass,powerIndex:v.design.peakPower*10000,powerPerMass:v.design.powerToWeight*1000,frontLoad:v.design.frontLoad,rearLoad:v.design.rearLoad,centerOfMass:v.design.centerOfMass}})),terrainPoints:editing?drawPoints:undefined});
   window.advanceTime=ms=>{manual=true;const ticks=Math.round(ms/1000*120*Number($('speed').value));for(let i=0;i<ticks;i++)update(1/120);render();};
   VehicleRenderer.ready.then(()=>{artworkReady=VehicleRenderer.failures.length===0&&VehicleRenderer.loadedCount===EvolutionLab.STYLES.length;if(!artworkReady){$('start').textContent='차량 이미지 로딩 실패';message('일부 차량 이미지를 불러오지 못했습니다. 페이지를 새로고침해 주세요.');}render();});
+  hydrateAppearances();
   function frame(now){if(!manual&&last!==null){accumulator+=Math.min(.1,(now-last)/1000)*Number($('speed').value);while(accumulator>=1/120){update(1/120);accumulator-=1/120;}render();}last=now;requestAnimationFrame(frame);}render();requestAnimationFrame(frame);
 })();

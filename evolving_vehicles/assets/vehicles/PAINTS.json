@@ -1,0 +1,709 @@
+{
+  "capturedAt": "2026-10-14",
+  "assets": [
+    {
+      "id": "ray",
+      "colorId": "aeq",
+      "label": "아쿠아 민트",
+      "colorHex": "#92B2B1",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/ray-aeq.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/aeq/aeq_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRTM311/trim/2906/colors",
+      "trim": "1.0 가솔린 시그니처",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.999510. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 146088,
+      "sha256": "e7ef65e5cd413d404378c0e012afedc23bdce2e637d232f74ec7b0626f9cc3ff",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/ray.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9995099927490256,
+        "alphaMeanAbsoluteDifference": 0.13364903713621865,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.2083333333333333
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.2577821011673151
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "ray",
+      "colorId": "ud",
+      "label": "클리어 화이트",
+      "colorHex": "#C9C9CB",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/ray-ud.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/ud/ud_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRTM311/trim/2906/colors",
+      "trim": "1.0 가솔린 시그니처",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.999615. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 141688,
+      "sha256": "84240089ac33c3de83c344d4023723824c0ace1dcf7a420be352e506154c35ff",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/ray.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9996147701650823,
+        "alphaMeanAbsoluteDifference": 0.16649864135785453,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.0210765239948119
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.082036316472114
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "morning",
+      "colorId": "beg",
+      "label": "시그널 레드",
+      "colorHex": "#B52934",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/morning-beg.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/beg/beg_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRJA305/trim/2831/colors",
+      "trim": "GT-Line",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.998912. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 108505,
+      "sha256": "36ff004dca4914012c50f074b344942e3cdbd41b81752d21d45096d9a0dd00a0",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/morning.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9989120520784276,
+        "alphaMeanAbsoluteDifference": 0.1666187531997007,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.2588265835929386
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.2858255451713396
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "morning",
+      "colorId": "ud",
+      "label": "클리어 화이트",
+      "colorHex": "#C9C9CB",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/morning-ud.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/ud/ud_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRJA305/trim/2831/colors",
+      "trim": "GT-Line",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.998626. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 109731,
+      "sha256": "5f52f0300e2b53aac29605bcdfae27ba60f001af9632547edfa28665beaacc65",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/morning.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9986260092572998,
+        "alphaMeanAbsoluteDifference": 0.15864509904304336,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.7607736240913812
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.9190031152647975
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "k5",
+      "colorId": "c7s",
+      "label": "울프 그레이",
+      "colorHex": "#575c60",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/k5-c7s.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/c7s/c7s_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRDL308/trim/2845/colors",
+      "trim": "노블레스",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.998548. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 145935,
+      "sha256": "e729995717eec0f68d59002c88c3db90646ecbd5b1ba3d611083632595eeaf80",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/k5.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9985478398025761,
+        "alphaMeanAbsoluteDifference": 0.11227700547394952,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.834207153675871
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.8018175463124781
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "k5",
+      "colorId": "abp",
+      "label": "오로라 블랙 펄",
+      "colorHex": "#000000",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/k5-abp.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/abp/abp_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRDL308/trim/2845/colors",
+      "trim": "노블레스",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.997964. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 156452,
+      "sha256": "3a68df79c97deea4055844942bec5ab788f39c085dd9aec8f14971225bf3326c",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/k5.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9979639443633254,
+        "alphaMeanAbsoluteDifference": 0.10732189973614775,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.9824070837702435
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.9440754980775953
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "carnival",
+      "colorId": "abp",
+      "label": "오로라 블랙 펄",
+      "colorHex": "#000000",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/carnival-abp.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/abp/abp_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRKP328/trim/3053/colors",
+      "trim": "1.6 하이브리드 9인승 노블레스",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.998609. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 151333,
+      "sha256": "5440e5786ba643c3ad20df26bb7bcdf3181b5cf01649c39cb271ef62253d98b5",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/carnival.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9986089278696724,
+        "alphaMeanAbsoluteDifference": 0.2175826015043516,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.0198224852071005
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.9952662721893492
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "carnival",
+      "colorId": "swp",
+      "label": "스노우 화이트 펄",
+      "colorHex": "#C9C9CB",
+      "colorHexSource": "manufacturer API bgClrCd",
+      "file": "assets/vehicles/colors/carnival-swp.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "sourceImage": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/swp/swp_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRKP328/trim/3053/colors",
+      "trim": "1.6 하이브리드 9인승 노블레스",
+      "frame": 37,
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 0.998462. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1516,
+      "height": 670,
+      "hasAlpha": true,
+      "byteLength": 134482,
+      "sha256": "38af6759908b5b304418a3b63e381301340b8262ccdf4825ed53870fdc5a4ef2",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/carnival.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 0.9984617685865909,
+        "alphaMeanAbsoluteDifference": 0.13917516638443667,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.2010848126232743
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 1.0684418145956607
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "musso_ev",
+      "colorId": "grand-white",
+      "label": "그랜드 화이트",
+      "colorHex": "#ebebe9",
+      "colorHexSource": "center pixel sampled from manufacturer color-chip image",
+      "colorChipURL": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304142329489_5EI1nk.png",
+      "file": "assets/vehicles/colors/musso_ev-grand-white.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304142624456_kMqbcu_14.png",
+      "metadataUrl": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "trim": "MX",
+      "frame": 13,
+      "sourceFrame": "GRAND-WHITE-(WAA)_13",
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 1.000000. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1386,
+      "height": 780,
+      "hasAlpha": true,
+      "byteLength": 526675,
+      "sha256": "0650c5a1266d2c99d2c657bde55a6524c4e4eb26bc584eb17e8bf764ce130755",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/musso_ev.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 1,
+        "alphaMeanAbsoluteDifference": 0.00000185000185000185,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.0002665600426496068
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.0035046728971962616
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "musso_ev",
+      "colorId": "amazonia-green",
+      "label": "아마조니아 그린",
+      "colorHex": "#3c372f",
+      "colorHexSource": "center pixel sampled from manufacturer color-chip image",
+      "colorChipURL": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144437313_GOJ6xk.png",
+      "file": "assets/vehicles/colors/musso_ev-amazonia-green.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144531304_oIx18A_14.png",
+      "metadataUrl": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "trim": "MX",
+      "frame": 13,
+      "sourceFrame": "AMAZONIA-GREEN-(GAM)_13",
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 1.000000. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1386,
+      "height": 780,
+      "hasAlpha": true,
+      "byteLength": 537343,
+      "sha256": "db0b1ee86907d60ce1917ec7bbd96cbcb52c6cbb92a25e3284875f5a1fe1366f",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/musso_ev.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 1,
+        "alphaMeanAbsoluteDifference": 0,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.00039984006397441024
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.0006490134994807892
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "torres",
+      "colorId": "grand-white",
+      "label": "그랜드 화이트 원톤",
+      "colorHex": "#ebebe9",
+      "colorHexSource": "center pixel sampled from manufacturer color-chip image",
+      "colorChipURL": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20241205095807481_3hvlz1.png",
+      "file": "assets/vehicles/colors/torres-grand-white.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520083711152_DLAFEN_14.png",
+      "metadataUrl": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "trim": "T7",
+      "frame": 13,
+      "sourceFrame": "GRAND WHITE_WAA ONE TONE 013",
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 1.000000. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1660,
+      "height": 840,
+      "hasAlpha": true,
+      "byteLength": 1024590,
+      "sha256": "8a52bf22cd83e7821f2140355e3bc0def23dc600a960092d6ae57075e8107f20",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/torres.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 1,
+        "alphaMeanAbsoluteDifference": 0,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.06697698474269459
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.05921903284199638
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "torres",
+      "colorId": "forest-green",
+      "label": "포레스트 그린 원톤",
+      "colorHex": "#59625b",
+      "colorHexSource": "center pixel sampled from manufacturer color-chip image",
+      "colorChipURL": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20241205102417939_fLWJs5.png",
+      "file": "assets/vehicles/colors/torres-forest-green.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084046384_iYZBhN_14.png",
+      "metadataUrl": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "trim": "T7",
+      "frame": 13,
+      "sourceFrame": "FOREST GREEN_GAO ONE TONE 013",
+      "alignmentNotes": "Exact same official trim/frame and dimensions as base. Both wheel patches best-match at (0,0) offset; alpha silhouette IoU 1.000000. Reuse base bounds/bodyBottom/wheel metadata unchanged.",
+      "width": 1660,
+      "height": 840,
+      "hasAlpha": true,
+      "byteLength": 1033543,
+      "sha256": "53f49f36374d430e2cd20443d459186441842d09d5efe4d15d47a6092c3dd415",
+      "unmodified": true,
+      "alignment": {
+        "baseImage": "assets/vehicles/torres.png",
+        "sameDimensions": true,
+        "silhouetteIntersectionOverUnion": 1,
+        "alphaMeanAbsoluteDifference": 0,
+        "wheels": [
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.0647788983708301
+          },
+          {
+            "dx": 0,
+            "dy": 0,
+            "mad": 0.05896043444530644
+          }
+        ],
+        "requiresArtworkOverride": false
+      }
+    },
+    {
+      "id": "avante",
+      "colorId": "a2b",
+      "label": "어비스 블랙 펄",
+      "colorHex": "#1b1c20",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "avante-a2b.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/avante-a2b.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/FN01/exterior/A2B/042.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 42,
+      "sha256": "4ab8487d7088243d9faa06bf566ae24b09084e942704795e60a6d25364863e73",
+      "bytes": 83294,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.13066721751704194,
+      "alphaChangedFractionOver16": 0.0007436480066102045,
+      "unmodified": true
+    },
+    {
+      "id": "avante",
+      "colorId": "v2r",
+      "label": "볼케닉 레드 펄",
+      "colorHex": "#921e29",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "avante-v2r.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/avante-v2r.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/FN01/exterior/V2R/042.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 42,
+      "sha256": "f2a9c84db70fe0bfd0c7c025eef9e04a9af205f7816ce0f8e249426af5c3e03a",
+      "bytes": 77524,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.1488969221235282,
+      "alphaChangedFractionOver16": 0.0010596984094195414,
+      "unmodified": true
+    },
+    {
+      "id": "grandeur",
+      "colorId": "a2b",
+      "label": "어비스 블랙 펄",
+      "colorHex": "#19191c",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "grandeur-a2b.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/grandeur-a2b.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/GN11/exterior/A2B/041.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 41,
+      "sha256": "e146b79b2db8f47cb72fb5158dbd2fea793c0d3dd2fae1b80ac72fad8bcf59cd",
+      "bytes": 78255,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.10896095847965297,
+      "alphaChangedFractionOver16": 0.0004461888039661227,
+      "unmodified": true
+    },
+    {
+      "id": "grandeur",
+      "colorId": "w6h",
+      "label": "세레니티 화이트 펄",
+      "colorHex": "#ebeae4",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "grandeur-w6h.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/grandeur-w6h.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/GN11/exterior/W6H/041.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 41,
+      "sha256": "896902a680d15b99574a226fa033e3cf31574480325d11a75b33224232cab923",
+      "bytes": 86093,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.11004751084486676,
+      "alphaChangedFractionOver16": 0.0005701301384011568,
+      "unmodified": true
+    },
+    {
+      "id": "ioniq5",
+      "colorId": "saw",
+      "label": "아틀라스 화이트",
+      "colorHex": "#e7e8e8",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "ioniq5-saw.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/ioniq5-saw.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/SAW/040.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 40,
+      "sha256": "b9441a7ecf302549fbe056f189367a2de500a7fb608d82c4b653adfed396f200",
+      "bytes": 102715,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.09531295186944846,
+      "alphaChangedFractionOver16": 0.0004606486263168767,
+      "unmodified": true
+    },
+    {
+      "id": "ioniq5",
+      "colorId": "u3p",
+      "label": "루시드 블루 펄",
+      "colorHex": "#738698",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "ioniq5-u3p.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/ioniq5-u3p.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/U3P/040.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 40,
+      "sha256": "784443bbddb418c89e22e31b4b61bd54a17da6c661712080dd8c0d536d17a9bf",
+      "bytes": 99782,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.1147262962197893,
+      "alphaChangedFractionOver16": 0.0004606486263168767,
+      "unmodified": true
+    },
+    {
+      "id": "santafe",
+      "colorId": "a2b",
+      "label": "어비스 블랙 펄",
+      "colorHex": "#191b1b",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "santafe-a2b.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/santafe-a2b.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/A2B/040.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 40,
+      "sha256": "73eb028a1dfca835fcada47f404504a0ba3f6b1dc71e2e3e57671935af4e6eb1",
+      "bytes": 97519,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.14422226812642017,
+      "alphaChangedFractionOver16": 0.0012394133443503407,
+      "unmodified": true
+    },
+    {
+      "id": "santafe",
+      "colorId": "ww2",
+      "label": "크리미 화이트 펄",
+      "colorHex": "#ece9e0",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "santafe-ww2.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/santafe-ww2.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/WW2/040.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 40,
+      "sha256": "40592b4b0ceb8e64538b4d9158678281740b0d4b37d92dd1f7b4db23092c2dad",
+      "bytes": 99174,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.16186118570543276,
+      "alphaChangedFractionOver16": 0.001134063210080562,
+      "unmodified": true
+    },
+    {
+      "id": "staria",
+      "colorId": "a2b",
+      "label": "어비스 블랙 펄",
+      "colorHex": "#191c1d",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "staria-a2b.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/staria-a2b.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/US31/exterior/A2B/042.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 42,
+      "sha256": "dfe84895ea2a770803c903edd0dd4687a60d20b2a7d38482e0e6448c1f53c0da",
+      "bytes": 76195,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.14201198099566206,
+      "alphaChangedFractionOver16": 0.0011505887213385665,
+      "unmodified": true
+    },
+    {
+      "id": "staria",
+      "colorId": "cbp",
+      "label": "클래지 블루 펄",
+      "colorHex": "#243449",
+      "colorHexNote": "Approximate UI swatch only; original photo color unchanged.",
+      "file": "staria-cbp.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/staria-cbp.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/US31/exterior/CBP/042.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 42,
+      "sha256": "6e794147e30998f9d266e0e03e4a51b49d55a34ebc910dc7a0f9165a77b1e852",
+      "bytes": 72062,
+      "alignmentNotes": "Same official model/trim path and frame as base; unmodified original PNG, same right-facing geometry and wheel centers. Alpha differences arise from per-color palette/antialias encoding.",
+      "alphaMeanAbsoluteDifference": 0.14825862425118777,
+      "alphaChangedFractionOver16": 0.0013798801900433795,
+      "unmodified": true
+    },
+    {
+      "id": "porter2",
+      "colorId": "yaw",
+      "label": "크리미 화이트",
+      "colorHex": "#e8e9e5",
+      "file": "porter2-yaw.png",
+      "path": "evolving_vehicles/assets/vehicles/colors/porter2-yaw.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "sourceURL": "https://www.hyundai.com/contents/vr360/M575/exterior/YAW/001.png",
+      "width": 940,
+      "height": 515,
+      "hasAlpha": true,
+      "frame": 1,
+      "sha256": "d4595b6f81a8506db6b222c677c486bcc084d32de294dd7cd51b8b542e331ca0",
+      "bytes": 69772,
+      "alignmentNotes": "Exact same official M575/001 frame as blue base; three-quarter perspective retained unchanged.",
+      "unmodified": true
+    }
+  ]
+}

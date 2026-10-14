@@ -7,6 +7,14 @@
 (function (root) {
   'use strict';
   const M = root.Matter || (typeof require === 'function' ? require('./vendor/matter.min.js') : null);
+  const VEHICLE_SPECS = root.VehicleSpecs || (typeof require === 'function' ? require('./vehicle-specs.js') : null);
+  if (!VEHICLE_SPECS) throw new Error('Vehicle specifications must be loaded before evolution-engine.js.');
+  // Matter uses world units and milliseconds. One world unit is 1/23 metre;
+  // one internal mass unit represents 50 kg. The 2D drivetrain uses a fixed
+  // reduction and an idealized torque curve, not a manufacturer acceleration map.
+  const UNITS = Object.freeze({ lengthPerMetre: 23, massPerKg: .02, gravity: 9.81,
+    baseSeconds: 1 / 60, powerWattsPerPs: 735.49875, reduction: 8, efficiency: .88 });
+  const TORQUE_UNIT = UNITS.massPerKg * UNITS.lengthPerMetre ** 2 / 1e6;
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
   const copy = value => JSON.parse(JSON.stringify(value));
@@ -30,32 +38,28 @@
     { id: 'grandeur', label: '현대 그랜저', points: [[-.5,.16],[-.5,-.19],[-.451,-.282],[-.33,-.327],[-.204,-.701],[-.115,-.78],[.062,-.79],[.142,-.661],[.255,-.292],[.442,-.243],[.5,-.11],[.5,.16],[.37,.35],[-.37,.35]] },
     { id: 'carnival', label: '기아 카니발', points: [[-.5,.16],[-.5,-.51],[-.437,-.755],[-.372,-.805],[.03,-.803],[.134,-.692],[.289,-.298],[.445,-.26],[.5,-.12],[.5,.16],[.37,.35],[-.37,.35]] },
     { id: 'g80', label: '제네시스 G80', points: [[-.5,.16],[-.5,-.168],[-.474,-.267],[-.37,-.38],[-.244,-.63],[-.10,-.798],[.021,-.81],[.112,-.695],[.26,-.295],[.403,-.255],[.471,-.18],[.5,-.055],[.5,.16],[.37,.35],[-.37,.35]] },
-    { id: 'torres', label: 'KGM 토레스', points: [[-.5,.17],[-.5,-.16],[-.475,-.35],[-.371,-.735],[-.321,-.785],[.086,-.785],[.157,-.675],[.286,-.32],[.447,-.283],[.5,-.125],[.5,.17],[.37,.35],[-.37,.35]] }
+    { id: 'torres', label: 'KGM 토레스', points: [[-.5,.17],[-.5,-.16],[-.475,-.35],[-.371,-.735],[-.321,-.785],[.086,-.785],[.157,-.675],[.286,-.32],[.447,-.283],[.5,-.125],[.5,.17],[.37,.35],[-.37,.35]] },
+    { id: 'porter2', label: '현대 포터 II', axleOffset: .044, points: [[-.5,.17],[-.5,-.18],[.10,-.18],[.10,-.72],[.16,-.81],[.32,-.82],[.405,-.72],[.465,-.45],[.5,-.10],[.5,.17],[.39,.35],[-.38,.35]] }
   ];
   const GENES = {
     width: [80, 124], height: [18, 50], roofLeft: [-0.25, 0.15], roofRight: [-0.15, 0.25],
-    rearRadius: [6, 15], frontRadius: [6, 15], wheelBase: [0.56, 0.75], axleY: [0.30, 0.42],
-    motorSpeed: [0.22, 0.38], motorTorque: [0.10, 0.32],
+    rearRadius: [6, 15], frontRadius: [6, 15], wheelBase: [0.50, 0.75], axleY: [0.30, 0.42],
+    powerMultiplier: [1, 1.6], torqueMultiplier: [1, 1.6],
     bodyStyle: [0, STYLES.length - 1e-6], powertrainPosition: [-0.38, 0.38], drivetrain: [0, 2.999999]
   };
-  // Korean-market reference silhouettes, at roughly 0.023 world units per mm
-  // of length. Height is a body scale: roof-to-axle height plus tire radius gives
-  // the total vehicle height. These shape envelopes apply to every generation;
-  // motor, mass distribution and drivetrain remain independent experiment genes.
-  const STARTING_PROPORTIONS = [
-    { width: [80,86], heightRatio: [.332,.350], wheelRatio: [.079,.088], wheelBase: [.688,.714] },
-    { width: [106,114], heightRatio: [.192,.209], wheelRatio: [.067,.075], wheelBase: [.563,.592] },
-    { width: [118,124], heightRatio: [.258,.279], wheelRatio: [.070,.078], wheelBase: [.610,.636] },
-    { width: [116,122], heightRatio: [.220,.240], wheelRatio: [.071,.081], wheelBase: [.596,.625] },
-    { width: [103,111], heightRatio: [.220,.240], wheelRatio: [.077,.087], wheelBase: [.630,.659] },
-    { width: [108,116], heightRatio: [.236,.258], wheelRatio: [.076,.086], wheelBase: [.570,.598] },
-    { width: [80,86], heightRatio: [.276,.295], wheelRatio: [.077,.086], wheelBase: [.655,.681] },
-    { width: [110,117], heightRatio: [.183,.203], wheelRatio: [.068,.078], wheelBase: [.568,.595] },
-    { width: [113,120], heightRatio: [.181,.199], wheelRatio: [.070,.080], wheelBase: [.561,.586] },
-    { width: [115,122], heightRatio: [.228,.247], wheelRatio: [.071,.080], wheelBase: [.586,.612] },
-    { width: [112,120], heightRatio: [.183,.202], wheelRatio: [.069,.079], wheelBase: [.588,.614] },
-    { width: [104,113], heightRatio: [.233,.255], wheelRatio: [.078,.087], wheelBase: [.556,.584] }
-  ];
+  function estimatedFactoryBalance(style, spec) {
+    // Axle weights are unavailable in the cited retail specifications. These
+    // layout estimates are explicitly separate from the measured curb mass.
+    if (style === 'porter2') return { front: .59, unit: .30 };
+    if (style === 'musso_ev') return { front: .52, unit: 0 };
+    if (style === 'ioniq5') return { front: .49, unit: 0 };
+    return { front: spec.factoryDrive === 'fwd' ? .58 : .50, unit: .25 };
+  }
+  function powertrainMassFor(spec, powerMultiplier, torqueMultiplier) {
+    // The reference curb mass includes the factory drivetrain. Hardware for
+    // extra output adds up to 3% at the limits of this educational model.
+    return spec.curbMassKg * (.24 + .03 * (powerMultiplier - 1) + .02 * (torqueMultiplier - 1));
+  }
   const SURFACES = {
     asphalt: { id: 'asphalt', label: '포장도로', grip: .95, rollingResistance: .012 },
     snow: { id: 'snow', label: '눈길', grip: .16, rollingResistance: .035 },
@@ -166,15 +170,31 @@
       return this.surfaceSegments.find(segment => x < segment.end) || this.surfaceSegments[this.surfaceSegments.length - 1];
     }
     _constrainGenome(genome) {
-      const shape = STARTING_PROPORTIONS[Math.floor(clamp(genome.bodyStyle, 0, STYLES.length - 1e-6))];
-      genome.width = clamp(genome.width, ...shape.width);
-      genome.height = clamp(genome.height, genome.width * shape.heightRatio[0], genome.width * shape.heightRatio[1]);
-      genome.rearRadius = clamp(genome.rearRadius, genome.width * shape.wheelRatio[0], genome.width * shape.wheelRatio[1]);
-      genome.frontRadius = clamp(genome.frontRadius, genome.rearRadius * .98, genome.rearRadius * 1.02);
-      genome.wheelBase = clamp(genome.wheelBase, ...shape.wheelBase);
-      genome.axleY = clamp(genome.axleY, .30, .42);
-      genome.roofLeft = clamp(genome.roofLeft, -.035, .035);
-      genome.roofRight = clamp(genome.roofRight, -.035, .035);
+      genome.bodyStyle = clamp(finite(genome.bodyStyle, 0), 0, STYLES.length - 1e-6);
+      const style = STYLES[Math.floor(genome.bodyStyle)], spec = VEHICLE_SPECS[style.id];
+      if (!spec) throw new Error('Missing vehicle specification: ' + style.id);
+      const scale = UNITS.lengthPerMetre / 1000;
+      genome.width = spec.lengthMm * scale;
+      genome.rearRadius = spec.rearTireRadiusMm * scale;
+      genome.frontRadius = spec.frontTireRadiusMm * scale;
+      genome.wheelBase = spec.wheelbaseMm / spec.lengthMm;
+      genome.axleY = .36;
+      genome.roofLeft = 0;
+      genome.roofRight = 0;
+      const roof = Math.min(...style.points.map(point => point[1]));
+      genome.height = (spec.heightMm * scale - genome.rearRadius) / (genome.axleY - roof);
+      genome.powerMultiplier = clamp(finite(genome.powerMultiplier, 1), ...GENES.powerMultiplier);
+      genome.torqueMultiplier = clamp(finite(genome.torqueMultiplier, 1), ...GENES.torqueMultiplier);
+      genome.powertrainPosition = clamp(finite(genome.powertrainPosition, 0), ...GENES.powertrainPosition);
+      genome.drivetrain = Math.floor(clamp(finite(genome.drivetrain, 2), 0, DRIVETRAINS.length - 1e-6));
+      const reduction = spec.gearRatio || UNITS.reduction;
+      const powerWatts = spec.powerPs * genome.powerMultiplier * UNITS.powerWattsPerPs;
+      const torqueNm = spec.torqueNm * genome.torqueMultiplier;
+      // The linear wheel-motor curve peaks at the selected PS after losses.
+      // Its stall torque is capped at the selected geared torque. Half that
+      // torque at half its free speed produces the selected peak wheel power.
+      genome.motorTorque = .5 * torqueNm * reduction * UNITS.efficiency * TORQUE_UNIT;
+      genome.motorSpeed = 4 * powerWatts / (torqueNm * reduction) * UNITS.baseSeconds;
       return genome;
     }
     _newGenome() {
@@ -188,35 +208,27 @@
       if (this.initialExperiment === 'evolution') {
         const selectedStyle = STYLES.findIndex(style => style.id === this.startingStyle);
         const firstStyle = selectedStyle < 0 ? Math.floor(genomes[0].bodyStyle) : selectedStyle;
-        const firstDrive = genomes[0].drivetrain;
         genomes.forEach((genome, i) => {
           genome.bodyStyle = (firstStyle + i) % STYLES.length + genome.bodyStyle % 1;
-          genome.drivetrain = (firstDrive + i) % DRIVETRAINS.length;
-          const shape = STARTING_PROPORTIONS[Math.floor(genome.bodyStyle)];
-          const original = { ...genome };
-          const sample = (name, [low, high]) => low + (high - low)
-            * (original[name] - GENES[name][0]) / (GENES[name][1] - GENES[name][0]);
-          genome.width = sample('width', shape.width);
-          genome.height = clamp(genome.width * sample('height', shape.heightRatio), ...GENES.height);
-          genome.rearRadius = clamp(genome.width * sample('rearRadius', shape.wheelRatio), ...GENES.rearRadius);
-          genome.frontRadius = clamp(genome.rearRadius * sample('frontRadius', [.98,1.02]), ...GENES.frontRadius);
-          genome.wheelBase = sample('wheelBase', shape.wheelBase);
-          genome.axleY = sample('axleY', [.32,.40]);
-          genome.roofLeft = sample('roofLeft', [-.025,.025]);
-          genome.roofRight = sample('roofRight', [-.025,.025]);
-          genome.powertrainPosition = sample('powertrainPosition', [-.18,.18]);
+          const spec = VEHICLE_SPECS[STYLES[Math.floor(genome.bodyStyle)].id];
+          genome.drivetrain = Math.max(0, DRIVETRAINS.findIndex(drive => drive.id === spec.factoryDrive));
+          const balance = estimatedFactoryBalance(STYLES[Math.floor(genome.bodyStyle)].id, spec);
+          genome.powertrainPosition = balance.unit + (genome.powertrainPosition / .38) * .07;
+          if (i === 0) { genome.powerMultiplier = 1; genome.torqueMultiplier = 1; genome.powertrainPosition = balance.unit; }
+          this._constrainGenome(genome);
         });
         return genomes;
       }
-      const base = { ...genomes[0], width: 108, height: 25, rearRadius: 8.8, frontRadius: 8.8,
-        wheelBase: .645, axleY: .34, roofLeft: 0, roofRight: 0, bodyStyle: 4,
-        motorSpeed: .32, motorTorque: .22, powertrainPosition: 0, drivetrain: 2 };
-      if (this.initialExperiment === 'drive') return genomes.map((_, i) => ({ ...base, drivetrain: i % DRIVETRAINS.length }));
-      const gene = this.initialExperiment === 'power' ? 'motorTorque' : 'powertrainPosition';
+      const factoryDrive = DRIVETRAINS.findIndex(drive => drive.id === VEHICLE_SPECS.ioniq5.factoryDrive);
+      const base = this._constrainGenome({ ...genomes[0], bodyStyle: 4,
+        powerMultiplier: 1, torqueMultiplier: 1, powertrainPosition: 0, drivetrain: factoryDrive });
+      if (this.initialExperiment === 'drive') return genomes.map((_, i) => this._constrainGenome({ ...base, drivetrain: i % DRIVETRAINS.length }));
+      const gene = this.initialExperiment === 'power' ? 'powerMultiplier' : 'powertrainPosition';
       const [low, high] = GENES[gene];
-      return genomes.map((_, i) => ({ ...base, [gene]: low + (high - low) * i / (this.population - 1) }));
+      return genomes.map((_, i) => this._constrainGenome({ ...base, [gene]: low + (high - low) * i / (this.population - 1) }));
     }
     _makeVehicle(genome, index) {
+      this._constrainGenome(genome);
       const w = genome.width, h = genome.height;
       const style = STYLES[Math.floor(clamp(finite(genome.bodyStyle, 0), 0, STYLES.length - 1e-6))];
       const drivetrain = DRIVETRAINS[Math.floor(clamp(finite(genome.drivetrain, 2), 0, 2.999999))];
@@ -235,33 +247,48 @@
         return M.Bodies.fromVertices(this.startX + centroid.x, y + centroid.y, [triangle], bodyOptions, false, .01, 0);
       });
       const body = M.Body.create({ ...bodyOptions, parts });
-      const shellMass = body.mass;
+      const spec = VEHICLE_SPECS[style.id];
+      const shellMass = spec.curbMassKg * .72 * UNITS.massPerKg;
       // Larger torque and speed ratings need heavier motors and batteries.
       // This cost lives in Matter mass/inertia, never in a fitness penalty.
-      const torqueRating = genome.motorTorque / GENES.motorTorque[1], speedRating = genome.motorSpeed / GENES.motorSpeed[1];
-      const powertrainMass = .8 + 20 * torqueRating ** 2 + 8 * speedRating ** 2 + 6 * torqueRating * speedRating;
+      const powertrainMass = powertrainMassFor(spec, genome.powerMultiplier, genome.torqueMultiplier) * UNITS.massPerKg;
+      const axleOffset = w * (style.axleOffset || 0);
+      const balance = estimatedFactoryBalance(style.id, spec);
+      const referenceMass = spec.curbMassKg * UNITS.massPerKg;
+      const referencePowertrainMass = powertrainMassFor(spec, 1, 1) * UNITS.massPerKg;
+      const referenceComX = axleOffset + w * genome.wheelBase * (balance.front - .5);
+      // Body panels are not a uniformly filled silhouette. Use a separate
+      // structural mass centroid to reproduce the estimated factory axle loads.
+      const massShellCenter = {
+        x: (referenceMass * referenceComX - referencePowertrainMass * w * balance.unit - referenceMass * .04 * axleOffset) / shellMass,
+        y: shellCenter.y
+      };
       const unit = { x: w * clamp(finite(genome.powertrainPosition, 0), -.38, .38), y: h * .26, width: w * .20, height: h * .12 };
       const chassisMass = shellMass + powertrainMass;
-      const center = { x: (shellMass * shellCenter.x + powertrainMass * unit.x) / chassisMass,
-        y: (shellMass * shellCenter.y + powertrainMass * unit.y) / chassisMass };
+      const center = { x: (shellMass * massShellCenter.x + powertrainMass * unit.x) / chassisMass,
+        y: (shellMass * massShellCenter.y + powertrainMass * unit.y) / chassisMass };
       const distance2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
       const shellInertia = M.Vertices.inertia(outline.map(p => ({ x: p.x - shellCenter.x, y: p.y - shellCenter.y })), shellMass);
       // Matter uses an inertia scale of 4 for polygon bodies; apply it to both
       // the distributed shell and the localized powertrain consistently.
-      const inertia = 4 * (shellInertia + shellMass * distance2(shellCenter, center)
+      const inertia = 4 * (shellInertia + shellMass * distance2(massShellCenter, center)
         + powertrainMass * ((unit.width ** 2 + unit.height ** 2) / 12 + distance2(unit, center)));
       M.Body.setMass(body, chassisMass);
       M.Body.setCentre(body, { x: this.startX + center.x, y: y + center.y });
       M.Body.setInertia(body, inertia);
+      // A one-ton flatbed uses smaller rear tires. Raise its front axle by the
+      // radius difference so the load deck remains level on flat ground.
+      const frontAxleRise = style.id === 'porter2' ? genome.frontRadius - genome.rearRadius : 0;
       const offsets = [
-        { x: -w * genome.wheelBase / 2 - center.x, y: h * genome.axleY - center.y },
-        { x: w * genome.wheelBase / 2 - center.x, y: h * genome.axleY - center.y }
+        { x: axleOffset - w * genome.wheelBase / 2 - center.x, y: h * genome.axleY - center.y },
+        { x: axleOffset + w * genome.wheelBase / 2 - center.x, y: h * genome.axleY - center.y - frontAxleRise }
       ];
       const radii = [genome.rearRadius, genome.frontRadius];
       const wheels = offsets.map((offset, i) => M.Bodies.circle(body.position.x + offset.x, body.position.y + offset.y, radii[i], {
         density: 0.0018, friction: 0.95, frictionStatic: 1.3, frictionAir: 0.0005, restitution: 0,
         collisionFilter: filter, label: 'wheel-' + index + '-' + i
       }, 24));
+      for (const wheel of wheels) M.Body.setMass(wheel, spec.curbMassKg * .02 * UNITS.massPerKg);
       const joints = wheels.map((wheel, i) => M.Constraint.create({ bodyA: body, pointA: offsets[i], bodyB: wheel, length: 0, stiffness: 0.9, damping: 0.06 }));
       M.Composite.add(this.engine.world, [body, ...wheels, ...joints]);
       const wheelMass = wheels.reduce((sum, wheel) => sum + wheel.mass, 0), totalMass = chassisMass + wheelMass;
@@ -269,20 +296,33 @@
         y: wheels.reduce((sum, wheel, i) => sum + wheel.mass * offsets[i].y, 0) / totalMass };
       const frontLoad = (centerOfMass.x - offsets[0].x) / (offsets[1].x - offsets[0].x);
       const peakPower = 2 * genome.motorTorque * genome.motorSpeed / 4;
+      const massKg = totalMass / UNITS.massPerKg;
+      const powerPs = spec.powerPs * genome.powerMultiplier, torqueNm = spec.torqueNm * genome.torqueMultiplier;
+      const powerToWeight = powerPs / massKg;
+      // Appearance grading compares against this exact model at factory output.
+      // It adds no thrust, downforce or scoring bonus.
+      const referenceMassKg = (shellMass + wheelMass) / UNITS.massPerKg + powertrainMassFor(spec, 1, 1);
+      const referencePowerToWeight = spec.powerPs / referenceMassKg;
+      const performanceRatio = powerToWeight / referencePowerToWeight;
       const design = { style: style.id, styleLabel: style.label,
         driveType: drivetrain.id, driveLabel: drivetrain.label, driveShares: [...drivetrain.shares],
         outline: outline.map(p => ({ x: p.x - center.x, y: p.y - center.y })),
+        shellCenterOfMass: { x: massShellCenter.x - center.x, y: massShellCenter.y - center.y },
+        estimatedFactoryFrontLoad: balance.front,
         frame: { x: -center.x, y: -center.y }, rearAxle: { ...offsets[0] }, frontAxle: { ...offsets[1] },
         powerUnit: { ...unit, x: unit.x - center.x, y: unit.y - center.y }, shellMass, powertrainMass, wheelMass,
-        totalMass, peakPower, powerToWeight: peakPower / totalMass, rearLoad: 1 - frontLoad, frontLoad, centerOfMass };
-      const telemetry = { speed: 0, slip: [0, 0], contact: [false, false], load: [1 - frontLoad, frontLoad], surface: this.surfaceAt(this.startX).id, status: 'ready' };
+        totalMass, peakPower, massKg, curbMassKg: spec.curbMassKg, powerPs, torqueNm,
+        factoryPowerPs: spec.powerPs, factoryTorqueNm: spec.torqueNm, factoryDrive: spec.factoryDrive,
+        lengthMm: spec.lengthMm, heightMm: spec.heightMm, wheelbaseMm: spec.wheelbaseMm,
+        powerToWeight, referencePowerToWeight, performanceRatio, rearLoad: 1 - frontLoad, frontLoad, centerOfMass };
+      const telemetry = { speed: 0, speedKmH: 0, slip: [0, 0], contact: [false, false], load: [1 - frontLoad, frontLoad], surface: this.surfaceAt(this.startX).id, status: 'ready' };
       return { telemetry, finishTime: null, stopReason: null, _forwardSpeed: 0, _acceleration: 0, id: index + 1, genome: copy(genome), design, body, wheels, joints, score: 0, alive: true, finished: false, color: COLORS[index % COLORS.length], lastProgress: 0, _progressMark: 0 };
     }
     restartTrial() {
       if (this.engine) { M.Composite.clear(this.engine.world, false); M.Engine.clear(this.engine); }
       this.engine = M.Engine.create({ positionIterations: 8, velocityIterations: 8, constraintIterations: 4, enableSleeping: false });
       this.engine.gravity.y = 1;
-      this.engine.gravity.scale = 0.001;
+      this.engine.gravity.scale = UNITS.gravity * UNITS.lengthPerMetre / 1e6;
       this.terrainBodies = [];
       for (let i = 1; i < this.terrainPoints.length; i++) {
         const a = this.terrainPoints[i - 1], b = this.terrainPoints[i];
@@ -304,6 +344,7 @@
       vehicle.stopReason = reason;
       vehicle.telemetry.status = reason;
       vehicle.telemetry.speed = 0;
+      vehicle.telemetry.speedKmH = 0;
       vehicle.telemetry.slip = [0, 0];
       vehicle.alive = false;
       for (const body of [vehicle.body, ...vehicle.wheels]) M.Body.setStatic(body, true);
@@ -335,6 +376,7 @@
       if (t.contact[1] && !t.contact[0]) frontFraction = 1;
       t.load = t.contact.some(Boolean) ? [1 - frontFraction, frontFraction] : [0, 0];
       t.speed = vehicle.body.velocity.x * 60;
+      t.speedKmH = t.speed / UNITS.lengthPerMetre * 3.6;
       t.surface = this.surfaceAt(vehicle.body.position.x).id;
       t.status = t.contact.some(Boolean) ? 'driving' : (this.time > .2 ? 'airborne' : 'ready');
       for (let i = 0; i < 2; i++) {
@@ -470,6 +512,8 @@
       return true;
     }
   }
+  EvolutionLab.UNITS = UNITS;
+  EvolutionLab.SPECS = VEHICLE_SPECS;
   EvolutionLab.STYLES = Object.freeze(STYLES.map(({ id, label }) => Object.freeze({ id, label })));
   EvolutionLab.SURFACES = SURFACES;
   EvolutionLab.compareVehicles = compareVehicles;

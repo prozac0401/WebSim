@@ -1,6 +1,6 @@
 {
   "capturedAt": "2026-10-14",
-  "description": "Official manufacturer transparent side-view originals, bundled byte-for-byte without pixel edits. Renderer crops moving wheels and excludes studio floor shadows at draw time.",
+  "description": "Unmodified official manufacturer transparent originals. Twelve models use side views; Porter II uses the available front three-quarter view. Renderer crops moving wheels and excludes studio floor shadows at draw time.",
   "assets": [
     {
       "id": "ray",
@@ -452,7 +452,8 @@
       },
       "notes": "Official showroom Ultra Marine MX rotation frame13, closest right-facing side profile; slight perspective. Transparent RGB padding has streaked hidden colors at alpha0; normal alpha compositing removes them. Soft floor shadow extends right and should be excluded by bodyBottom.",
       "bytes": 555281,
-      "sha256": "b73475016979405d02230b6e2f216eb13f4c54c6bdde001782e01779451635fe"
+      "sha256": "b73475016979405d02230b6e2f216eb13f4c54c6bdde001782e01779451635fe",
+      "color": "울트라 마린"
     },
     {
       "id": "torres",
@@ -493,7 +494,60 @@
       },
       "notes": "Official Korean gasoline Torres T7 Latte Greige one-tone rotation frame13, closest right-facing side profile; slight perspective. Transparent original.",
       "bytes": 1029383,
-      "sha256": "ecdfe7a6243af45d49dbf6da9dc927b2b7c921a23f88570c77d3fe9e5d623170"
+      "sha256": "ecdfe7a6243af45d49dbf6da9dc927b2b7c921a23f88570c77d3fe9e5d623170",
+      "color": "라떼 그레이지"
+    },
+    {
+      "id": "porter2",
+      "label": "현대 포터 II",
+      "color": "오닉스 블루",
+      "colorId": "zv",
+      "colorHex": "#303f75",
+      "path": "evolving_vehicles/assets/vehicles/porter2.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "orientation": "left",
+      "view": "official front three-quarter configurator image; no orthographic transparent side frame is published",
+      "frame": 1,
+      "visibleBBox": {
+        "x": 137,
+        "y": 147,
+        "width": 615,
+        "height": 268
+      },
+      "rearWheel": {
+        "x": 630,
+        "y": 371,
+        "r": 35
+      },
+      "frontWheel": {
+        "x": 366,
+        "y": 372,
+        "r": 43
+      },
+      "bodyBottom": 378,
+      "geometryNotes": "Near-side wheel centers measured from perspective image. Radius and vertical position differ with perspective; far-side wheels remain part of source. Do not claim exact orthographic silhouette. Image public on current26MY page, source VR code M575.",
+      "referenceVariant": "초장축 슈퍼캡 2WD LPG2.5 터보 자동5단, 범퍼가드 장착 기준",
+      "referenceDimensionsMm": {
+        "length": 5155,
+        "width": 1740,
+        "height": 1970,
+        "wheelbase": 2640
+      },
+      "referenceCurbWeightKg": 1705,
+      "referencePowerPS": 159,
+      "referenceTorqueNm": 294.2,
+      "referenceTyres": {
+        "front": "195/70R15C 8PR",
+        "rear": "145R13C 8PR"
+      },
+      "sha256": "dec4eb9f0724155daf3e77c62ef6b5c09d70f92a86bfd78d0523c03101861e50",
+      "byteLength": 70640,
+      "unmodified": true
     }
   ]
 }
