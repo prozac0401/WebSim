@@ -1,0 +1,499 @@
+{
+  "capturedAt": "2026-10-14",
+  "description": "Official manufacturer transparent side-view originals, bundled byte-for-byte without pixel edits. Renderer crops moving wheels and excludes studio floor shadows at draw time.",
+  "assets": [
+    {
+      "id": "ray",
+      "label": "기아 레이",
+      "trim": "1.0 가솔린 시그니처",
+      "color": "밀키 베이지",
+      "rcCode": "KRTM311",
+      "trimNo": "2906",
+      "visibleBBox": {
+        "x": 313,
+        "y": 93,
+        "width": 957,
+        "height": 484
+      },
+      "rearWheel": {
+        "x": 436,
+        "y": 498,
+        "r": 79
+      },
+      "frontWheel": {
+        "x": 1125,
+        "y": 495,
+        "r": 79
+      },
+      "bodyBottom": 513,
+      "path": "evolving_vehicles/assets/vehicles/ray.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/ray/features",
+      "imageUrl": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/ray/trim/exterior/signature/m9y/m9y_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRTM311/trim/2906/colors",
+      "width": 1516,
+      "height": 670,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "orientation": "right",
+      "view": "true side",
+      "frame": 37,
+      "byteLength": 172947,
+      "sha256": "62d557aac558b13c3d42c8a0731ea548bbad83fcc3651ce41755f9b5c91638fd",
+      "unmodified": true
+    },
+    {
+      "id": "morning",
+      "label": "기아 모닝",
+      "trim": "GT-Line",
+      "color": "어드벤쳐러스 그린",
+      "rcCode": "KRJA305",
+      "trimNo": "2831",
+      "visibleBBox": {
+        "x": 222,
+        "y": 143,
+        "width": 1004,
+        "height": 432
+      },
+      "rearWheel": {
+        "x": 363,
+        "y": 488,
+        "r": 88
+      },
+      "frontWheel": {
+        "x": 1061,
+        "y": 485,
+        "r": 88
+      },
+      "bodyBottom": 518,
+      "path": "evolving_vehicles/assets/vehicles/morning.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/morning/features",
+      "imageUrl": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/morning/trim/exterior/gtline/a2g/a2g_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRJA305/trim/2831/colors",
+      "width": 1516,
+      "height": 670,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "orientation": "right",
+      "view": "true side",
+      "frame": 37,
+      "byteLength": 118168,
+      "sha256": "420b04bc6c7fdab5b1996b869b341bbb150672df8fb9cf3f5adc7d94241e5c50",
+      "unmodified": true
+    },
+    {
+      "id": "k5",
+      "label": "기아 K5",
+      "trim": "노블레스",
+      "color": "스노우 화이트 펄",
+      "rcCode": "KRDL308",
+      "trimNo": "2845",
+      "visibleBBox": {
+        "x": 165,
+        "y": 158,
+        "width": 1203,
+        "height": 382
+      },
+      "rearWheel": {
+        "x": 428,
+        "y": 449,
+        "r": 93
+      },
+      "frontWheel": {
+        "x": 1173,
+        "y": 445,
+        "r": 93
+      },
+      "bodyBottom": 483,
+      "path": "evolving_vehicles/assets/vehicles/k5.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/k5/features",
+      "imageUrl": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/k5/trim/exterior/ice/noblesse/swp/swp_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRDL308/trim/2845/colors",
+      "width": 1516,
+      "height": 670,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "orientation": "right",
+      "view": "true side",
+      "frame": 37,
+      "byteLength": 129405,
+      "sha256": "a12d12895d0c4af0eb6d740ac6cefd22823270ce39e468ab4bdf8aa58d73a511",
+      "unmodified": true
+    },
+    {
+      "id": "carnival",
+      "label": "기아 카니발",
+      "trim": "1.6 하이브리드 9인승 노블레스",
+      "color": "아이보리 실버",
+      "rcCode": "KRKP328",
+      "trimNo": "3053",
+      "visibleBBox": {
+        "x": 139,
+        "y": 87,
+        "width": 1241,
+        "height": 465
+      },
+      "rearWheel": {
+        "x": 400,
+        "y": 451,
+        "r": 101
+      },
+      "frontWheel": {
+        "x": 1196,
+        "y": 448,
+        "r": 101
+      },
+      "bodyBottom": 480,
+      "path": "evolving_vehicles/assets/vehicles/carnival.png",
+      "sourcePage": "https://www.kia.com/kr/vehicles/carnival/features",
+      "imageUrl": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/carnival/trim/exteroir/1-6hev_9/noblesse/isg/isg_37.png",
+      "metadataUrl": "https://kwpapi.kia.com/kr/ko/api/v1/goods/pdp/vehicle/KRKP328/trim/3053/colors",
+      "width": 1516,
+      "height": 670,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "orientation": "right",
+      "view": "true side",
+      "frame": 37,
+      "byteLength": 143848,
+      "sha256": "52c52bbbc6ed9885e98416718293fab99def4e8b23c41d0876f36448789e095d",
+      "unmodified": true
+    },
+    {
+      "id": "avante",
+      "label": "현대 아반떼",
+      "color": "아틀라스 화이트",
+      "visibleBBox": {
+        "x": 63,
+        "y": 182,
+        "width": 807,
+        "height": 249
+      },
+      "rearWheel": {
+        "x": 239,
+        "y": 374,
+        "r": 56
+      },
+      "frontWheel": {
+        "x": 715,
+        "y": 374,
+        "r": 56
+      },
+      "bodyBottom": 398,
+      "path": "evolving_vehicles/assets/vehicles/avante.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-all-new-avante/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/FN01/exterior/SAW/042.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.6747077050196241,
+      "orientation": "right",
+      "view": "near-orthographic side from official 360 configurator",
+      "frame": 42,
+      "byteLength": 87783,
+      "sha256": "05207c1b53d5b62652aa3eb866ec885b0b03a09c1928cb32ae61de14377e84c5",
+      "unmodified": true
+    },
+    {
+      "id": "staria",
+      "label": "현대 스타리아",
+      "color": "크리미 화이트",
+      "visibleBBox": {
+        "x": 119,
+        "y": 145,
+        "width": 703,
+        "height": 272
+      },
+      "rearWheel": {
+        "x": 245,
+        "y": 365,
+        "r": 50
+      },
+      "frontWheel": {
+        "x": 694,
+        "y": 366,
+        "r": 50
+      },
+      "bodyBottom": 388,
+      "path": "evolving_vehicles/assets/vehicles/staria.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/US31/exterior/YAC/042.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.6694236727948771,
+      "orientation": "right",
+      "view": "near-orthographic side from official 360 configurator",
+      "frame": 42,
+      "byteLength": 80438,
+      "sha256": "749af1d788e454134ba3ee8ad97c678e3eacb8fce8a1ffbfdfb88ac0e45a16a5",
+      "unmodified": true
+    },
+    {
+      "id": "ioniq5",
+      "label": "현대 아이오닉 5",
+      "color": "사이버 그레이 메탈릭",
+      "visibleBBox": {
+        "x": 54,
+        "y": 104,
+        "width": 830,
+        "height": 297
+      },
+      "rearWheel": {
+        "x": 181,
+        "y": 332,
+        "r": 66
+      },
+      "frontWheel": {
+        "x": 744,
+        "y": 333,
+        "r": 67
+      },
+      "bodyBottom": 369,
+      "path": "evolving_vehicles/assets/vehicles/ioniq5.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/ioniq5/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/NE09/exterior//J/C5G/040.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.5706692832059492,
+      "orientation": "right",
+      "view": "near-orthographic side from official 360 configurator",
+      "frame": 40,
+      "byteLength": 102807,
+      "sha256": "1504ed48980c9fb93ed0c23a64b9d837e8920185c0aa042d1589c06ef50614c0",
+      "unmodified": true
+    },
+    {
+      "id": "santafe",
+      "label": "현대 싼타페",
+      "color": "사이버 세이지 펄",
+      "visibleBBox": {
+        "x": 87,
+        "y": 95,
+        "width": 772,
+        "height": 303
+      },
+      "rearWheel": {
+        "x": 250,
+        "y": 327,
+        "r": 65
+      },
+      "frontWheel": {
+        "x": 728,
+        "y": 331,
+        "r": 66
+      },
+      "bodyBottom": 355,
+      "path": "evolving_vehicles/assets/vehicles/santafe.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/MX07/exterior/H/RS2/040.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.6155443090270605,
+      "orientation": "right",
+      "view": "near-orthographic side from official 360 configurator",
+      "frame": 40,
+      "byteLength": 87481,
+      "sha256": "a7ab20207dff218eef2f92ea9f1a3ce142f72d2c2f3cab76ecc0ecb670e7dc77",
+      "unmodified": true
+    },
+    {
+      "id": "grandeur",
+      "label": "현대 그랜저",
+      "color": "아티스널 버건디 펄",
+      "visibleBBox": {
+        "x": 75,
+        "y": 142,
+        "width": 790,
+        "height": 241
+      },
+      "rearWheel": {
+        "x": 252,
+        "y": 321,
+        "r": 60
+      },
+      "frontWheel": {
+        "x": 719,
+        "y": 322,
+        "r": 60
+      },
+      "bodyBottom": 347,
+      "path": "evolving_vehicles/assets/vehicles/grandeur.png",
+      "sourcePage": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-grandeur/intro",
+      "imageUrl": "https://www.hyundai.com/contents/vr360/GN11/exterior/WBP/041.png",
+      "width": 940,
+      "height": 515,
+      "format": "image/png",
+      "transparency": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.6973249328651105,
+      "orientation": "right",
+      "view": "near-orthographic side from official 360 configurator",
+      "frame": 41,
+      "byteLength": 81991,
+      "sha256": "310241b6752f3d3ffdfe8a749b062d2cfbda87dbd09d1f56f6e2743f6830c386",
+      "unmodified": true
+    },
+    {
+      "id": "g80",
+      "label": "제네시스 G80",
+      "path": "evolving_vehicles/assets/vehicles/g80.png",
+      "sourcePage": "https://www.genesis.com/kr/ko/models/g80",
+      "sourceImage": "https://dams.hyundai-autoever.com/v1/openapi/hmg-presigned-url/50534b313031303030303030303030303130363133/genesis-g80-standard-side-view-model-thumbnail.png",
+      "width": 1920,
+      "height": 1080,
+      "hasAlpha": true,
+      "facing": "left",
+      "visibleBoundingBox": {
+        "x": 160,
+        "y": 353,
+        "width": 1600,
+        "height": 497
+      },
+      "alphaBoundingBox": {
+        "x": 131,
+        "y": 352,
+        "width": 1647,
+        "height": 512
+      },
+      "bodyBottom": 782,
+      "wheels": {
+        "rear": {
+          "cx": 1412,
+          "cy": 729,
+          "r": 120
+        },
+        "front": {
+          "cx": 416,
+          "cy": 727,
+          "r": 120
+        }
+      },
+      "notes": "Official standard G80 side-view thumbnail linked by current Korean G80 page. Exact transparent original, dark blue, left-facing. Soft floor shadow below rocker is part of original; bodyBottom excludes it for renderer.",
+      "bytes": 268344,
+      "sha256": "76818faadbf4e5df57f78243a139286266c47cb0033b623fdaa0d14ba39602e8"
+    },
+    {
+      "id": "musso_ev",
+      "label": "KGM 무쏘 EV",
+      "path": "evolving_vehicles/assets/vehicles/musso_ev.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100030003",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100030003",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000300030002/20250304144306673_npMjRQ_14.png",
+      "sourceFrame": "ULTRA-MARINE-(BBE)_13",
+      "width": 1386,
+      "height": 780,
+      "hasAlpha": true,
+      "facing": "right",
+      "visibleBoundingBox": {
+        "x": 57,
+        "y": 153,
+        "width": 1257,
+        "height": 445
+      },
+      "alphaBoundingBox": {
+        "x": 57,
+        "y": 153,
+        "width": 1329,
+        "height": 451
+      },
+      "bodyBottom": 541,
+      "wheels": {
+        "rear": {
+          "cx": 310,
+          "cy": 511,
+          "r": 87
+        },
+        "front": {
+          "cx": 1110,
+          "cy": 512,
+          "r": 88
+        }
+      },
+      "notes": "Official showroom Ultra Marine MX rotation frame13, closest right-facing side profile; slight perspective. Transparent RGB padding has streaked hidden colors at alpha0; normal alpha compositing removes them. Soft floor shadow extends right and should be excluded by bodyBottom.",
+      "bytes": 555281,
+      "sha256": "b73475016979405d02230b6e2f216eb13f4c54c6bdde001782e01779451635fe"
+    },
+    {
+      "id": "torres",
+      "label": "KGM 토레스",
+      "path": "evolving_vehicles/assets/vehicles/torres.png",
+      "sourcePage": "https://www.kg-mobility.com/pr/model/show-room/200000100010001",
+      "sourceData": "https://web.kg-mobility.com/app/display/getCarDetailContents.do?dispCatNo=200000100010001",
+      "sourceImage": "https://www.kg-mobility.com/attached/contents/display/image/2000001000100010012/20260520084845790_HsARx5_14.png",
+      "sourceFrame": "LATTE GREIGE_EBL ONE TONE 013",
+      "width": 1660,
+      "height": 840,
+      "hasAlpha": true,
+      "facing": "right",
+      "visibleBoundingBox": {
+        "x": 60,
+        "y": 133,
+        "width": 1543,
+        "height": 597
+      },
+      "alphaBoundingBox": {
+        "x": 59,
+        "y": 133,
+        "width": 1544,
+        "height": 605
+      },
+      "bodyBottom": 634,
+      "wheels": {
+        "rear": {
+          "cx": 396,
+          "cy": 603,
+          "r": 125
+        },
+        "front": {
+          "cx": 1325,
+          "cy": 603,
+          "r": 125
+        }
+      },
+      "notes": "Official Korean gasoline Torres T7 Latte Greige one-tone rotation frame13, closest right-facing side profile; slight perspective. Transparent original.",
+      "bytes": 1029383,
+      "sha256": "ecdfe7a6243af45d49dbf6da9dc927b2b7c921a23f88570c77d3fe9e5d623170"
+    }
+  ]
+}
