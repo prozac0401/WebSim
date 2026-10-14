@@ -128,6 +128,7 @@
     $('drive-stat').textContent=design.driveLabel;const [rearShare,frontShare]=design.driveShares;
     $('drive-help').textContent='모형 토크 배분 · 앞 '+Math.round(frontShare*100)+'% / 뒤 '+Math.round(rearShare*100)+'%';
     $('drive-availability').textContent='이 기준 사양의 구동 선택: '+factory.allowedDrives.map(id=>({fwd:'전륜',rwd:'후륜',awd:design.style==='rexton_tow'?'사륜(4WD)':'사륜(AWD)'})[id]).join(' / ')+'. '+(factory.driveNote||factory.driveAvailabilityNote||'진화해도 제조사에서 제공한 구동 조합만 사용합니다.');
+    const tires=factory.tireFitment;$('tire-spec').hidden=!tires;$('tire-spec').textContent=tires?'타이어 · 앞 '+tires.front.size+' ('+tires.front.tiresPerAxle+'개) / 뒤 '+tires.rear.size+' ('+tires.rear.tiresPerAxle+'개'+(tires.rear.mounting==='dual'?' · 좌우 복륜':'')+'). 측면에서는 바깥쪽 뒤 타이어만 보입니다.':'';
     const tipped=design.frontLoad<0||design.rearLoad<0;
     $('balance-stat').textContent=tipped?(design.frontLoad<0?'뒤쪽':'앞쪽')+'으로 기울어짐':'앞 '+Math.round(design.frontLoad*100)+'% / 뒤 '+Math.round(design.rearLoad*100)+'%';
     $('rear-load-bar').style.width=Math.max(0,Math.min(1,design.rearLoad))*100+'%';$('front-load-bar').style.width=Math.max(0,Math.min(1,design.frontLoad))*100+'%';

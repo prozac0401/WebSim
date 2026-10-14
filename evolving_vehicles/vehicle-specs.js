@@ -128,10 +128,16 @@
     "powerPs": 159,
     "torqueNm": 294.2,
     "frontTireRadiusMm": 327,
-    "rearTireRadiusMm": 281.3,
+    "rearTireRadiusMm": 281.1,
+    "tireFitment": {
+      "front": { "size": "195/70 R15C 8PR", "tiresPerAxle": 2 },
+      "rear": { "size": "145 R13C 8PR", "tiresPerAxle": 4, "mounting": "dual" }
+    },
+    "tireSourceUrl": "https://www.hyundai.com/contents/repn-car/catalog/porter2-2026-price.pdf",
+    "rearDualSourceUrl": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-back-w.jpg",
     "factoryDrive": "rwd",
     "sourceUrl": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
-    "sourceNote": "145R13C 뒤 타이어는 단면비 미표기: 80% 가정 반지름. 무적재 공차중량.",
+    "sourceNote": "2WD 앞 195/70 R15C 단륜·뒤 145 R13C 복륜. 뒤 타이어 단면비는 미표기이므로 80%를 가정한 반지름 281.1mm를 사용하며 제조사 실측값이 아닙니다. 무적재 공차중량에는 복륜이 포함됩니다.",
     "driveVariants": {
       "rwd": {}
     },

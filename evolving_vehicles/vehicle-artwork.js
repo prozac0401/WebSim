@@ -289,28 +289,29 @@ window.VehicleArtwork = {
     }
   },
   "porter2": {
-    "file": "assets/vehicles/porter2-side.png",
-    "width": 1870,
-    "height": 841,
+    "file": "assets/vehicles/porter2-2wd-side.png",
+    "width": 1869,
+    "height": 842,
     "bounds": [
       50,
-      87,
+      88,
       1789,
-      686
+      685
     ],
     "bodyBottom": 690,
     "rear": {
-      "x": 492,
-      "y": 667,
-      "r": 106,
-      "rimRatio": 0.65
+      "x": 494,
+      "y": 662,
+      "r": 96,
+      "rimRatio": 0.64
     },
     "front": {
       "x": 1427,
-      "y": 660,
-      "r": 115,
-      "rimRatio": 0.66
-    }
+      "y": 661,
+      "r": 116,
+      "rimRatio": 0.65
+    },
+    "physicalWheelMask": true
   },
   "rexton_tow": {
     "file": "assets/vehicles/rexton_tow.png",

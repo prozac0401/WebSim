@@ -245,7 +245,9 @@
     const { reference, image, sx, sy, tx, ty } = view, sourceWheels = [reference.rear, reference.front];
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     for (const [i, wheel] of wheels.entries()) {
-      ctx.beginPath(); ctx.arc(wheel.axle.x, wheel.axle.y, Math.max(wheel.r, sourceWheels[i].r * sy) * 1.025, 0, TAU); ctx.fillStyle = '#12181c'; ctx.fill();
+      const radius = reference.physicalWheelMask ? wheel.r : Math.max(wheel.r, sourceWheels[i].r * sy);
+      const center = reference.physicalWheelMask ? wheel.p : wheel.axle;
+      ctx.beginPath(); ctx.arc(center.x, center.y, radius * 1.025, 0, TAU); ctx.fillStyle = '#12181c'; ctx.fill();
     }
     for (const [i, wheel] of wheels.entries()) drawPhotoWheel(ctx, image, sourceWheels[i], wheel, Math.sign(sx));
     ctx.save(); ctx.translate(tx, ty); ctx.scale(sx, sy);
@@ -253,7 +255,18 @@
     ctx.beginPath(); ctx.rect(x, y, width, height); ctx.clip();
     ctx.beginPath(); ctx.rect(x, y, width, height);
     for (const wheel of sourceWheels) { ctx.moveTo(wheel.x + wheel.r * 1.005, wheel.y); ctx.arc(wheel.x, wheel.y, wheel.r * 1.005, 0, TAU); }
-    ctx.clip('evenodd'); ctx.drawImage(image, 0, 0); ctx.restore();
+    ctx.clip('evenodd');
+    if (reference.physicalWheelMask) {
+      // The smaller Porter rear tire sits lower than the generated source hub.
+      // Separate clips remove the union of source tires and live physical tires.
+      ctx.beginPath(); ctx.rect(x, y, width, height);
+      for (const wheel of wheels) {
+        const cx = (wheel.p.x - tx) / sx, cy = (wheel.p.y - ty) / sy, r = wheel.r / sy;
+        ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, TAU);
+      }
+      ctx.clip('evenodd');
+    }
+    ctx.drawImage(image, 0, 0); ctx.restore();
     drawLivery(ctx, view); drawPerformance(ctx, view);
     if (options.engineering === true) drawEngineering(ctx, vehicle, wheels);
     ctx.restore();

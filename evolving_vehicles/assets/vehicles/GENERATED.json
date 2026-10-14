@@ -298,6 +298,128 @@
       "sha256": "29b6b778a976f5cfed19cfeeb18b9d77133b04e3becc676bcd0e2738769cdb2c",
       "bytes": 1083249,
       "notes": "Generated side reconstruction replaces the perspective-bearing display asset. Original manufacturer reference PNGs remain unchanged. Factory physical dimensions and drivetrain data are unchanged."
+    },
+    {
+      "id": "porter2-2wd-side-blue",
+      "file": "porter2-2wd-side.png",
+      "kind": "generated photographic side profile with corrected smaller 2WD rear tire",
+      "vehicle": "Hyundai Porter II extra-long Supercab 2WD",
+      "sources": [
+        {
+          "page": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-side-w.jpg",
+          "detail": "Official side-profile proportion reference: 5155mm length, 1970mm height, 2640mm wheelbase"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/side-w/porter2-26my-well-side.png",
+          "detail": "Official transparent true side profile"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/vr360/M575/exterior/ZV/001.png",
+          "detail": "Original factory paint/material reference, not camera reference"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-back-w.jpg",
+          "detail": "Official rear view confirms two rear tires per side on one axle"
+        },
+        {
+          "page": "https://www.hyundai.com/contents/repn-car/catalog/porter2-2026-price.pdf",
+          "detail": "2WD front 195/70 R15C 8PR and rear 145 R13C 8PR; 4WD has 195 R15C 8PR at both axles"
+        }
+      ],
+      "inputFiles": [
+        "porter2-side.png"
+      ],
+      "prompt": "Precise small-area edit for a physically accurate Hyundai Porter II 2WD extra-long Supercab truck sprite. INPUT1 is the EDIT TARGET. INPUT2 is a manufacturer rear-view specification reference ONLY, confirming that the 2WD has dual rear tires (two per side). Do not copy its camera, text or background.\nKeep the complete input1 true RIGHT-facing orthographic side view EXACTLY unchanged except for the rear wheel/tire under the LEFT end of the cargo bed. This is the rear-driven 2WD variant, NOT the 4WD.\nCORRECTION: reduce the outer rear tire diameter so rear/front tire-diameter ratio is about0.86. Its 13-inch wheel is smaller than the front15-inch wheel. In the1870x841 input, front wheelcenter stays at(1427,660) and outerradius115px; target rearwheelcenter is(492,676), outerradius99px, so both tire bottoms lie at y775. Keep rear axle X at492. Fit the smaller rear wheel naturally under the existing cargo bed with slightly more dark wheel-arch clearance. Remove any residual ring from the previous larger rear tire. Retain the realistic small factory silver full wheel-cover styling, consistent with current Korean Porter II 2WD factory hubcaps, scaled for13in; do not invent sporty wheels or a different front wheel.\nRear dual tires are paired across vehicle width on the SAME rear axle. In this STRICT side profile the inner dual is occluded by the outer tire. Therefore show just ONE visible rear wheel and ONE visible front wheel, no extra axle, no tandem side-by-side wheel, no perspective, no tire drawn beside or behind the rear wheel horizontally. The reference rearview is structural evidence, not a request to display a rearview.\nSTRICT INVARIANTS: exact canvas1870x841, exact body pose/scale/cab/window/mirror/bed/guard/paint/metallic reflections/doors/panels/lamps and front wheel pixels, transparency and subject position; exact current factory body paint and no decals/text. Keep everything outside a small neighborhood around rear tire (x370..620,y540..790) unchanged. Preserve true alpha, no ground shadow or added background. Output ONE transparent photorealistic PNG.",
+      "originalOutput": "exec-0a2abe9e-117d-414f-88ef-8b3035c2a31f.png",
+      "geometry": {
+        "width": 1869,
+        "height": 842,
+        "bounds": [
+          50,
+          88,
+          1789,
+          685
+        ],
+        "bodyBottom": 690,
+        "rear": {
+          "x": 494,
+          "y": 662,
+          "r": 96,
+          "rimRatio": 0.64
+        },
+        "front": {
+          "x": 1427,
+          "y": 661,
+          "r": 116,
+          "rimRatio": 0.65
+        },
+        "physicalWheelMask": true
+      },
+      "sha256": "46de2575f93ffd19b3c75344edae4391651aa601b207e549bdfc0b2837b76942",
+      "bytes": 1111627,
+      "notes": "Built-in image_gen edit copied without pixel modifications. Each paint has independently calibrated source geometry. Renderer crops tires onto the physical axles, using rear/front radius ratio 281.1/327 and an equal contact height; generated source hub heights are not used as physics. Inner dual rear tire is occluded in a strict side view. Silver factory wheel covers are retained."
+    },
+    {
+      "id": "porter2-2wd-side-white",
+      "file": "colors/porter2-yaw-2wd-side.png",
+      "kind": "generated photographic side profile with corrected smaller 2WD rear tire",
+      "vehicle": "Hyundai Porter II extra-long Supercab 2WD",
+      "sources": [
+        {
+          "page": "https://www.hyundai.com/kr/ko/e/vehicles/porter2/intro",
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-side-w.jpg",
+          "detail": "Official side-profile proportion reference: 5155mm length, 1970mm height, 2640mm wheelbase"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/side-w/porter2-26my-well-side.png",
+          "detail": "Official transparent true side profile"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/vr360/M575/exterior/YAW/001.png",
+          "detail": "Original factory paint/material reference, not camera reference"
+        },
+        {
+          "image": "https://www.hyundai.com/contents/repn-car/html/homepage/spec/images/pip-porter2-24my-specifications-back-w.jpg",
+          "detail": "Official rear view confirms two rear tires per side on one axle"
+        },
+        {
+          "page": "https://www.hyundai.com/contents/repn-car/catalog/porter2-2026-price.pdf",
+          "detail": "2WD front 195/70 R15C 8PR and rear 145 R13C 8PR; 4WD has 195 R15C 8PR at both axles"
+        }
+      ],
+      "inputFiles": [
+        "colors/porter2-yaw-side.png"
+      ],
+      "prompt": "Precise small-area edit for a physically accurate Hyundai Porter II 2WD extra-long Supercab truck sprite. INPUT1 is the EDIT TARGET. INPUT2 is a manufacturer rear-view specification reference ONLY, confirming that the 2WD has dual rear tires (two per side). Do not copy its camera, text or background.\nKeep the complete input1 true RIGHT-facing orthographic side view EXACTLY unchanged except for the rear wheel/tire under the LEFT end of the cargo bed. This is the rear-driven 2WD variant, NOT the 4WD.\nCORRECTION: reduce the outer rear tire diameter so rear/front tire-diameter ratio is about0.86. Its 13-inch wheel is smaller than the front15-inch wheel. In the1870x841 input, front wheelcenter stays at(1427,660) and outerradius115px; target rearwheelcenter is(492,676), outerradius99px, so both tire bottoms lie at y775. Keep rear axle X at492. Fit the smaller rear wheel naturally under the existing cargo bed with slightly more dark wheel-arch clearance. Remove any residual ring from the previous larger rear tire. Retain the realistic small factory silver full wheel-cover styling, consistent with current Korean Porter II 2WD factory hubcaps, scaled for13in; do not invent sporty wheels or a different front wheel.\nRear dual tires are paired across vehicle width on the SAME rear axle. In this STRICT side profile the inner dual is occluded by the outer tire. Therefore show just ONE visible rear wheel and ONE visible front wheel, no extra axle, no tandem side-by-side wheel, no perspective, no tire drawn beside or behind the rear wheel horizontally. The reference rearview is structural evidence, not a request to display a rearview.\nSTRICT INVARIANTS: exact canvas1870x841, exact body pose/scale/cab/window/mirror/bed/guard/paint/metallic reflections/doors/panels/lamps and front wheel pixels, transparency and subject position; exact current factory body paint and no decals/text. Keep everything outside a small neighborhood around rear tire (x370..620,y540..790) unchanged. Preserve true alpha, no ground shadow or added background. Output ONE transparent photorealistic PNG.",
+      "originalOutput": "exec-ba92a667-141c-4225-9314-0c840cd4ca2c.png",
+      "geometry": {
+        "width": 1870,
+        "height": 841,
+        "bounds": [
+          48,
+          87,
+          1791,
+          687
+        ],
+        "bodyBottom": 690,
+        "rear": {
+          "x": 491,
+          "y": 665,
+          "r": 98,
+          "rimRatio": 0.63
+        },
+        "front": {
+          "x": 1428,
+          "y": 661,
+          "r": 116,
+          "rimRatio": 0.65
+        },
+        "physicalWheelMask": true
+      },
+      "sha256": "baff929dcd87e9ef0453d375108f1b7d418d7bafa893242aff50b095b20dc854",
+      "bytes": 1077241,
+      "notes": "Built-in image_gen edit copied without pixel modifications. Each paint has independently calibrated source geometry. Renderer crops tires onto the physical axles, using rear/front radius ratio 281.1/327 and an equal contact height; generated source hub heights are not used as physics. Inner dual rear tire is occluded in a strict side view. Silver factory wheel covers are retained."
     }
   ]
 }
