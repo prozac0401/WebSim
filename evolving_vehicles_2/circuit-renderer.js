@@ -540,26 +540,27 @@
       this._compass(camera);this._caption();
     }
     _labels(selected){
-      const ctx=this.ctx,placed=[];
+      const ctx=this.ctx,placed=[];ctx.font='600 10px system-ui,sans-serif';
       const ordered=[...this.markerPositions].sort((a,b)=>(b.id===selected.id)-(a.id===selected.id));
       const watched=ordered.find(p=>p.id===selected.id);
       for(const p of ordered){
-        const selectedCar=p.id===selected.id,car=this.race.cars.find(c=>c.id===p.id),index=car.index??this.race.cars.indexOf(car);
+        const selectedCar=p.id===selected.id,car=this.race.cars.find(c=>c.id===p.id);
         // Overlapping ghost labels obscure the very body the follow camera shows.
         // Every entrant remains selectable in the timing table.
         if(this.mode==='follow'&&!selectedCar&&watched&&Math.hypot(p.anchorX-watched.anchorX,p.anchorY-watched.anchorY)<Math.max(28,watched.length*.35)){p.hidden=true;continue;}
-        const label='#'+String(index+1).padStart(2,'0');let x=p.anchorX,y=p.anchorY-Math.max(14,p.length*.55);
-        x=clamp(x,20,this.width-20);y=clamp(y,29,this.height-75);
-        for(let j=0;j<55&&placed.some(q=>Math.abs(q.x-x)<37&&Math.abs(q.y-y)<23);j++){
+        const label=(car.speed*3.6).toFixed(0)+' km/h',bw=Math.max(48,Math.ceil(ctx.measureText(label).width)+14),bh=20,margin=bw/2+4;
+        let x=p.anchorX,y=p.anchorY-Math.max(14,p.length*.55);
+        x=clamp(x,margin,this.width-margin);y=clamp(y,29,this.height-75);
+        for(let j=0;j<55&&placed.some(q=>Math.abs(q.x-x)<(bw+q.width)/2+5&&Math.abs(q.y-y)<24);j++){
           const radius=24+Math.sqrt(j)*16;
-          x=clamp(p.anchorX+Math.cos(j*2.399)*radius,20,this.width-20);
+          x=clamp(p.anchorX+Math.cos(j*2.399)*radius,margin,this.width-margin);
           y=clamp(p.anchorY-20+Math.sin(j*2.399)*radius,29,this.height-75);
         }
-        placed.push({x,y});
+        placed.push({x,y,width:bw});
         ctx.strokeStyle=selectedCar?'#355b45':'rgba(52,79,56,.45)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.anchorX,p.anchorY);ctx.lineTo(x,y+7);ctx.stroke();
-        const bw=32,bh=19;ctx.fillStyle=selectedCar?'#254d3d':'#f8fbf1';ctx.beginPath();ctx.roundRect(x-bw/2,y-bh/2,bw,bh,5);ctx.fill();
-        ctx.strokeStyle=p.color||'#81b57a';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=selectedCar?'#fff':'#294936';ctx.font='600 9px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x,y+.5);
-        p.x=x;p.y=y;p.radius=18;
+        ctx.fillStyle=selectedCar?'#254d3d':'#f8fbf1';ctx.beginPath();ctx.roundRect(x-bw/2,y-bh/2,bw,bh,5);ctx.fill();
+        ctx.strokeStyle=p.color||'#81b57a';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=selectedCar?'#fff':'#294936';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x,y+.5);
+        p.x=x;p.y=y;p.radius=Math.max(18,bw/2);
       }
       ctx.textAlign='left';ctx.textBaseline='alphabetic';
     }

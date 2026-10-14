@@ -1,5 +1,9 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-15 차량 상단 현재 속도
+- Replaced floating entrant numbers with each car's current speed in integer km/h, matching the existing timing table. Expanded label width, spacing, edge bounds and selection radius for the longer text; vehicle IDs and timing-table numbers remain available for selection. Public deployment remains authorized. User attachment remains untracked and excluded from the release.
+- Verification: 25 existing camera/scene checks pass. Browser QA confirms 0 km/h at rest, live speed matching each car, readable 390px mobile labels and selecting another vehicle through its speed label. Desktop/mobile screenshots were opened and checked; no browser errors. Evidence: output/playwright/speed-labels/.
+
 ## 2026-10-15 코너 자세·촬영 보간, 사진 근거 환경, 스파 라디용
 - User requests continuous corner work/camera angle, source-backed real circuit surroundings, and a clearly visible Eau Rouge–Raidillon climb. Public deployment remains authorized. DrivingPose provides a shared periodic C2 display curve for cars, line and camera; continuous Bezier bounds keep planar error <=0.4m and vertical error <=0.025m. Physical lap scoring is untouched by display smoothing. Camera anchors to the shared car pose, anticipates bends and carries angular velocity through an elapsed-time spring, with a stable world horizon, 58-degree lens and 1x default playback.
 - Verified current Spa official 2026 access plan PDF page3:18 unique altitude markers plus repeat endpoint, including890m/391m and1130m/415m. Replaced Spa simulated altitude only with bounded periodic monotone interpolation; preserved raw DEM/circuit coordinates and old point.demZ. Equal-centreline-distance rise improves9.13m to24.00m without height exaggeration or forcing17% over an entire corner. Source/hash/alignment limitations are in data/elevation/spa-official-profile-2026.json. Added orbitable/pannable Eau Rouge scenic camera.
