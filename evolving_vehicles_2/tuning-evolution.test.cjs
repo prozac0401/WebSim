@@ -32,7 +32,7 @@ test('G80 2.5T receives acceleration and speed credits/headroom relative to 3.5T
   assert.ok(low.credits.topSpeed > high.credits.topSpeed);
   assert.ok(low.maxLevels.acceleration > high.maxLevels.acceleration);
   assert.ok(low.maxLevels.topSpeed > high.maxLevels.topSpeed);
-  const compensated = T.createEntrant({ vehicleId: 'g80', variantId: 'g80-2.5t-awd', budget: 0, levels: levels(3, 0, 0, 0) });
+  const compensated = T.createEntrant({ vehicleId: 'g80', variantId: 'g80-2.5t-awd', budget: 18, levels: levels(3, 0, 0, 0) });
   assert.equal(compensated.cost, 0);
   assert.ok(compensated.spec.powerPs >= T.getVariant('g80', 'g80-3.5t-awd').spec.powerPs);
   assert.equal(compensated.spec.displacementCc, 2497);
@@ -45,12 +45,12 @@ test('RWD compensation belongs only to grip and cannot fund brakes', () => {
   assert.equal(rwd.credits.grip, 8);
   assert.equal(awd.credits.grip, 0);
   assert.ok(rwd.maxLevels.grip > awd.maxLevels.grip);
-  const freeGrip = T.quote({ vehicleId: 'g80', variantId: 'g80-3.5t-rwd', budget: 0, levels: levels(0, 0, 0, 2) });
+  const freeGrip = T.quote({ vehicleId: 'g80', variantId: 'g80-3.5t-rwd', budget: 18, levels: levels(0, 0, 0, 2) });
   assert.equal(freeGrip.valid, true);
   assert.equal(freeGrip.cost, 0);
   assert.equal(freeGrip.totalCost, 8);
   assert.equal(freeGrip.creditUsed.grip, 8);
-  assert.equal(T.quote({ vehicleId: 'g80', variantId: 'g80-3.5t-rwd', budget: 0, levels: levels(0, 0, 1, 0) }).valid, false);
+  assert.equal(T.quote({ vehicleId: 'g80', variantId: 'g80-3.5t-rwd', budget: 18, levels: levels(0, 0, 4, 0) }).valid, false, 'grip credits cannot fund a 25-point brake upgrade on an 18-point budget');
   assert.equal(T.getRules('morning', 'morning-1.0-14').credits.grip, 0, 'no fictional AWD comparator');
 });
 
@@ -63,6 +63,82 @@ test('strict manual edits reject overspend, invalid stage and unknown genes with
   assert.throws(() => T.createEntrant({ ...entrant, levels: { ...levels(), grip: 1.2 } }), /범위/);
   assert.throws(() => T.createEntrant({ ...entrant, levels: { ...levels(), engineSwap: 1 } }), /알 수 없는/);
   assert.equal(JSON.stringify(entrant), before);
+});
+
+test('zero budget preserves all 36 factory specifications exactly and disables compensation and tuning', () => {
+  let checked = 0;
+  for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) for (const variant of variants) {
+    const factoryBefore = JSON.stringify(variant.spec), entry = T.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
+    assert.equal(entry.spec, variant.spec, variant.id + ': no tuning arithmetic or rounding may touch a stock specification');
+    assert.equal(entry.factorySpec, entry.spec); assert.ok(Object.isFrozen(entry.spec));
+    assert.deepEqual(entry.levels, levels());
+    for (const field of ['credits', 'compensationLevels', 'maxLevels', 'creditUsed', 'costByCategory', 'paidByCategory']) assert.deepEqual(entry[field], levels(), variant.id + ': ' + field);
+    assert.deepEqual([entry.budget, entry.cost, entry.totalCost, entry.remainingBudget], [0, 0, 0, 0]);
+    assert.deepEqual(T.getRules(vehicleId, variant.id, { budget: 0 }).maxLevels, levels());
+    for (const key of keys) {
+      const changed = { ...levels(), [key]: 1 }, quote = T.quote({ vehicleId, variantId: variant.id, budget: 0, levels: changed });
+      assert.equal(quote.valid, false, variant.id + ': ' + key + ' must not be bought with compensation');
+      assert.deepEqual(quote.credits, levels()); assert.deepEqual(quote.maxLevels, levels());
+      assert.throws(() => T.createEntrant({ ...entry, levels: changed }), /예산 없음/);
+    }
+    assert.equal(JSON.stringify(variant.spec), factoryBefore);
+    checked++;
+  }
+  assert.equal(checked, 36);
+});
+
+test('stock generations and regeneration keep factory trims and zero stages for every one-make family', () => {
+  for (const vehicleId of Object.keys(T.VARIANTS)) {
+    for (const seed of [31415, 31416]) {
+      const initial = T.createPopulation({ vehicleId, count: 8, budget: 0, seed });
+      assert.deepEqual(initial, T.createPopulation({ vehicleId, count: 8, budget: 0, seed }));
+      assert.equal(new Set(initial.map(e => e.variantId)).size, T.VARIANTS[vehicleId].length, 'all factory trims remain available');
+      let population = initial;
+      for (let generation = 1; generation <= 5; generation++) {
+        for (const entry of population) {
+          assert.deepEqual(entry.levels, levels()); assert.deepEqual(entry.credits, levels()); assert.deepEqual(entry.maxLevels, levels());
+          assert.equal(entry.spec, T.getVariant(vehicleId, entry.variantId).spec);
+          assert.equal(entry.generation, generation); assert.equal(entry.cost, 0);
+        }
+        if (generation === 5) break;
+        const results = population.map((e, i) => ({ uid: e.uid, finished: true, finishTime: 100 + i }));
+        const next = T.breed(population, results, { seed: seed + generation });
+        assert.deepEqual(next, T.breed(population, results, { seed: seed + generation }));
+        assert.equal(next[0].variantId, population[0].variantId);
+        assert.equal(next[0].spec, population[0].spec);
+        population = next;
+      }
+    }
+  }
+});
+
+test('stock breeding cannot inherit old paid tuning genes or a modified effective specification', () => {
+  const paid = T.createPopulation({ vehicleId: 'g80', budget: 30, count: 8, seed: 99 });
+  assert.ok(paid.some(e => keys.some(key => e.levels[key] > 0)));
+  const staleStock = paid.map(e => ({ ...e, budget: 0 }));
+  const results = staleStock.map((e, i) => ({ uid: e.uid, finished: true, finishTime: 100 + i }));
+  const next = T.breed(staleStock, results, { seed: 100 });
+  for (const entry of next) {
+    assert.deepEqual(entry.levels, levels()); assert.deepEqual(entry.credits, levels()); assert.deepEqual(entry.maxLevels, levels());
+    assert.equal(entry.spec, T.getVariant('g80', entry.variantId).spec);
+  }
+  assert.ok(paid.some(e => keys.some(key => e.levels[key] > 0)), 'normalizing a stock child cannot mutate the old paid experiment');
+});
+
+test('paid 18/30/45-point modes retain compensation, tuning headroom and affordable variation', () => {
+  for (const budget of [18, 30, 45]) {
+    assert.deepEqual(T.getRules('g80', 'g80-2.5t-rwd', { budget }), T.getRules('g80', 'g80-2.5t-rwd'), 'two-argument getRules keeps paid-mode compatibility');
+    const entry = T.createEntrant({ vehicleId: 'g80', variantId: 'g80-2.5t-rwd', budget, levels: levels(3, 3, 0, 2) });
+    assert.equal(entry.cost, 0); assert.equal(entry.totalCost, 38);
+    assert.deepEqual(entry.creditUsed, { acceleration: 15, topSpeed: 15, brakes: 0, grip: 8 });
+    assert.deepEqual(entry.maxLevels, { acceleration: 6, topSpeed: 6, brakes: 4, grip: 6 });
+    assert.ok(entry.spec.powerPs > entry.factorySpec.powerPs && entry.spec.gripG > entry.factorySpec.gripG);
+    for (const vehicleId of Object.keys(T.VARIANTS)) {
+      const population = T.createPopulation({ vehicleId, budget, seed: 31415 });
+      assert.ok(population.every(e => e.cost <= budget && e.remainingBudget >= 0));
+      assert.ok(population.every(e => keys.some(key => e.levels[key] > 0)), vehicleId + ': paid tuning remains active');
+    }
+  }
 });
 
 test('four axes have distinct effects and aerodynamic grip has drag and weight tradeoffs', () => {

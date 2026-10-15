@@ -156,9 +156,12 @@
     return () => { state += 0x6D2B79F5; let n = state; n = Math.imul(n ^ n >>> 15, n | 1); n ^= n + Math.imul(n ^ n >>> 7, n | 61); return ((n ^ n >>> 14) >>> 0) / 4294967296; };
   }
   const stageCost = level => STAGE_COSTS.slice(0, level).reduce((sum, value) => sum + value, 0);
-  function getRules(vehicleId, variantId) {
+  function getRules(vehicleId, variantId, { budget } = {}) {
     const variant = getVariant(vehicleId, variantId), family = VARIANTS[vehicleId];
     const maxPower = Math.max(...family.map(item => item.spec.powerPs));
+    // Zero budget means an unmodified factory comparison, including no free
+    // compensation stages. Omitted budget preserves the existing tuning API.
+    if (budget === 0) return { credits: zeroLevels(), maxLevels: zeroLevels(), compensationLevels: zeroLevels(), referencePowerPs: maxPower };
     const gap = maxPower / variant.spec.powerPs;
     const accelerationGap = clamp(Math.ceil((gap - 1) / .10 - 1e-8), 0, 3);
     const speedGap = clamp(Math.ceil((Math.cbrt(gap) - 1) / .025 - 1e-8), 0, 3);
@@ -169,7 +172,7 @@
     return { credits, maxLevels, compensationLevels, referencePowerPs: maxPower };
   }
   function quote({ vehicleId, variantId, levels = {}, budget = 30 } = {}) {
-    const { credits, maxLevels, compensationLevels, referencePowerPs } = getRules(vehicleId, variantId);
+    const { credits, maxLevels, compensationLevels, referencePowerPs } = getRules(vehicleId, variantId, { budget });
     let reason = null;
     if (!Number.isInteger(budget) || budget < 0 || budget > 200) reason = '공통 예산은 0–200 정수여야 합니다.';
     const normalized = { ...zeroLevels(), ...levels };
@@ -178,6 +181,7 @@
     for (const key of KEYS) {
       const value = normalized[key];
       if (!Number.isInteger(value) || value < 0 || value > maxLevels[key]) reason = '해당 출고 사양의 튜닝 단계 범위를 벗어났습니다.';
+      if (budget === 0 && Number.isInteger(value) && value > 0) reason = '예산 없음에서는 출고 상태인 0단계만 사용할 수 있습니다.';
       costByCategory[key] = stageCost(clamp(Number.isFinite(value) ? Math.floor(value) : 0, 0, 6));
       creditUsed[key] = Math.min(costByCategory[key], credits[key]);
       paidByCategory[key] = costByCategory[key] - creditUsed[key];
@@ -198,7 +202,9 @@
     const base = variant.spec;
     // Four coupled axes: aero costs straight speed/weight; shorter acceleration
     // gearing costs ceiling speed unless top-speed work compensates it.
-    const spec = {
+    // Preserve the immutable factory object verbatim in stock mode. Even a
+    // zero-stage pass through tuning arithmetic can round factory values.
+    const spec = budget === 0 ? base : {
       ...base, powerPs: round(base.powerPs * (1 + .10 * a) * (1 + .025 * s)),
       torqueNm: round(base.torqueNm * (1 + .11 * a)),
       massKg: base.massKg + 2 * b + 3 * g, curbMassKg: base.massKg + 2 * b + 3 * g,
@@ -215,7 +221,7 @@
       lineage: options.lineage || { kind: 'initial', parents: [] }, estimatedDynamics: true });
   }
   function repairLevels(vehicleId, variantId, levels, budget, rng) {
-    const { maxLevels } = getRules(vehicleId, variantId);
+    const { maxLevels } = getRules(vehicleId, variantId, { budget });
     const result = Object.fromEntries(KEYS.map(key => [key, clamp(Math.round(levels[key] || 0), 0, maxLevels[key])]));
     for (let steps = 0; steps < 24; steps++) {
       const account = quote({ vehicleId, variantId, levels: result, budget });
@@ -227,7 +233,8 @@
     return result;
   }
   function randomLevels(vehicleId, variantId, budget, rng) {
-    const levels = zeroLevels(), { maxLevels } = getRules(vehicleId, variantId);
+    if (budget === 0) return zeroLevels();
+    const levels = zeroLevels(), { maxLevels } = getRules(vehicleId, variantId, { budget });
     // Spend in a seeded random order. The last few unaffordable increments stop
     // cleanly; unused category credits cannot become common money.
     for (let i = 0; i < 24; i++) {
@@ -272,7 +279,7 @@
     if (ranked.some(entry => !entry.finished && !entry.dnf)) throw new RangeError('Wait until all entrants finish or retire before breeding.');
     const nextGeneration = generation ?? Math.max(...population.map(entry => entry.generation)) + 1;
     const rng = random(seed), parents = ranked.slice(0, Math.max(2, Math.ceil(population.length / 2))).map(entry => entry.entrant);
-    const make = (variantId, levels, index, lineage) => createEntrant({ vehicleId, variantId, budget, levels, generation: nextGeneration,
+    const make = (variantId, levels, index, lineage) => createEntrant({ vehicleId, variantId, budget, levels: budget === 0 ? zeroLevels() : levels, generation: nextGeneration,
       uid: vehicleId + '-' + (seed >>> 0) + '-g' + nextGeneration + '-' + (index + 1), color: PALETTE[index % PALETTE.length], lineage });
     const winner = ranked[0].entrant;
     const next = [make(winner.variantId, winner.levels, 0, { kind: 'elite', parents: [winner.uid] })];
