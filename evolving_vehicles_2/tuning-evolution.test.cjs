@@ -87,7 +87,23 @@ test('zero budget preserves all 36 factory specifications exactly and disables c
   assert.equal(checked, 36);
 });
 
-test('stock generations and regeneration keep factory trims and zero stages for every one-make family', () => {
+test('stock grids contain exactly one of each factory trim, regardless of the tuning population size', () => {
+  for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) {
+    for (const count of [1, 4, 8, 12, 24]) {
+      const population = T.createPopulation({ vehicleId, count, budget: 0, seed: 31415 });
+      assert.equal(population.length, variants.length, vehicleId + ': stock count comes from available factory trims');
+      assert.deepEqual(population.map(e => e.variantId).sort(), variants.map(v => v.id).sort());
+      assert.equal(new Set(population.map(e => e.uid)).size, variants.length);
+      for (const entry of population) assert.equal(entry.spec, T.getVariant(vehicleId, entry.variantId).spec);
+    }
+  }
+  assert.equal(T.createPopulation({ vehicleId: 'g80', budget: 0 }).length, 4);
+  assert.equal(T.createPopulation({ vehicleId: 'g70', budget: 0 }).length, 4);
+  assert.equal(T.createPopulation({ vehicleId: 'supra', budget: 0 }).length, 1);
+  assert.equal(T.createPopulation({ vehicleId: 'staria', budget: 0 }).length, 1);
+});
+
+test('stock regeneration and direct generation APIs keep every factory trim exactly once at zero stages', () => {
   for (const vehicleId of Object.keys(T.VARIANTS)) {
     for (const seed of [31415, 31416]) {
       const initial = T.createPopulation({ vehicleId, count: 8, budget: 0, seed });
@@ -95,6 +111,8 @@ test('stock generations and regeneration keep factory trims and zero stages for 
       assert.equal(new Set(initial.map(e => e.variantId)).size, T.VARIANTS[vehicleId].length, 'all factory trims remain available');
       let population = initial;
       for (let generation = 1; generation <= 5; generation++) {
+        assert.equal(population.length, T.VARIANTS[vehicleId].length);
+        assert.deepEqual(population.map(e => e.variantId).sort(), T.VARIANTS[vehicleId].map(v => v.id).sort());
         for (const entry of population) {
           assert.deepEqual(entry.levels, levels()); assert.deepEqual(entry.credits, levels()); assert.deepEqual(entry.maxLevels, levels());
           assert.equal(entry.spec, T.getVariant(vehicleId, entry.variantId).spec);
@@ -112,12 +130,27 @@ test('stock generations and regeneration keep factory trims and zero stages for 
   }
 });
 
+test('single-trim stock comparison can be evaluated, while incomplete or duplicate input stays invalid', () => {
+  const population = T.createPopulation({ vehicleId: 'supra', budget: 0 });
+  const results = [{ uid: population[0].uid, finished: true, finishTime: 120, bestLap: 120 }];
+  const ranked = T.evaluate(population, results);
+  assert.equal(ranked.length, 1); assert.equal(ranked[0].rank, 1); assert.equal(ranked[0].fitness, 120);
+  assert.throws(() => T.breed(population, []), /Run the race/);
+  assert.throws(() => T.breed([population[0], population[0]], results), /unique/);
+  const next = T.breed(population, results, { seed: 42 });
+  assert.equal(next.length, 1); assert.equal(next[0].spec, population[0].spec);
+  assert.deepEqual(next[0].levels, levels()); assert.equal(next[0].generation, 2);
+  assert.throws(() => T.breed([{ ...population[0], budget: 30 }], results), /2–24/);
+});
+
 test('stock breeding cannot inherit old paid tuning genes or a modified effective specification', () => {
   const paid = T.createPopulation({ vehicleId: 'g80', budget: 30, count: 8, seed: 99 });
   assert.ok(paid.some(e => keys.some(key => e.levels[key] > 0)));
   const staleStock = paid.map(e => ({ ...e, budget: 0 }));
   const results = staleStock.map((e, i) => ({ uid: e.uid, finished: true, finishTime: 100 + i }));
   const next = T.breed(staleStock, results, { seed: 100 });
+  assert.equal(next.length, T.VARIANTS.g80.length, 'old repeated trims collapse to one stock entrant each');
+  assert.deepEqual(next.map(e => e.variantId).sort(), T.VARIANTS.g80.map(v => v.id).sort());
   for (const entry of next) {
     assert.deepEqual(entry.levels, levels()); assert.deepEqual(entry.credits, levels()); assert.deepEqual(entry.maxLevels, levels());
     assert.equal(entry.spec, T.getVariant('g80', entry.variantId).spec);

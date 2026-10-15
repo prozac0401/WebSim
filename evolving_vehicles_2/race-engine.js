@@ -1,7 +1,9 @@
 /* Deterministic circuit time trial. Vehicles are independent ghosts.
  * Factory mass, PS and Nm come from shared specs plus circuit-only additions.
- * Drag area, grip, brakes, reduction and efficiency below are model estimates,
- * not manufacturer measurements. Geographic elevations, when supplied, drive
+ * Drag area, grip, brakes, fallback reduction and efficiency are estimates.
+ * Source-backed first-gear/final-drive ratios bound low-speed wheel torque
+ * where available; reference-market ratios are identified in LAUNCH-DYNAMICS.md.
+ * Geographic elevations, when supplied, drive
  * road grade, gravity and normal load. No collisions, tyre wear or pits.
  * Entrants follow one bounded, curvature-optimized model racing line. This is
  * not a measured professional driver's record trace. Legacy vehicleIds callers
@@ -14,6 +16,7 @@
   const SPECS = root.CircuitVehicleSpecs || (typeof require === 'function' ? require('./circuit-vehicle-specs.js') : root.VehicleSpecs);
   const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
+  const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
   const CATALOG = [
@@ -290,6 +293,17 @@
           topSpeedMps: entrant ? clamp(spec.topSpeedMps ?? 120, 10, 140) : 120,
           frontNormalLoad: frontWeightFraction * spec.massKg * G,
           rearNormalLoad: (1 - frontWeightFraction) * spec.massKg * G };
+        // Keep the HUD's tuning-relative reduction unchanged. A separate
+        // low-speed torque envelope can use the sourced first gear and final
+        // drive without making display-only gear changes drive the physics.
+        car.driveReduction = car.reduction;
+        const transmission = entrant && POWERTRAIN?.resolve(car);
+        if (transmission?.gearRatios?.[0] > 0 && transmission.finalDriveRatio > 0) {
+          const factoryReduction = entrant.factorySpec?.reduction ?? entrant.spec.reduction;
+          const tuningScale = factoryReduction > 0 ? car.reduction / factoryReduction : 1;
+          car.driveReduction = transmission.gearRatios[0] * transmission.finalDriveRatio * tuningScale;
+          car.driveReductionSource = transmission.ratioStatus;
+        }
         car.speedProfile = this._makeSpeedProfile(car);
         car.targetSpeed = car.speedProfile[0];
         if (TELEMETRY) car.telemetry = TELEMETRY.create(car);
@@ -340,11 +354,21 @@
       const sine = grade * normal, totalLoad = G * normal + this._aeroLoadAcceleration(car, speed);
       const mu = car.longitudinalGrip / G;
       const transferRatio = car.cgHeightM / car.wheelbaseM;
+      const allTyres = mu * totalLoad;
+      // Aero drag is applied at the CG. Its pitch moment belongs in the axle
+      // load balance along with acceleration and gravity; rolling resistance
+      // remains at the road. See LAUNCH-DYNAMICS.md and the Vehicle Body model.
+      const dragAcceleration = .5 * 1.225 * car.dragArea * speed * speed / car.massKg;
+      const transferOffset = (G * sine + dragAcceleration - resistanceAcceleration) * transferRatio;
       let limit;
-      if (car.spec.factoryDrive === 'awd') limit = mu * totalLoad;
-      else if (car.spec.factoryDrive === 'rwd') limit = mu * ((1 - car.frontWeightFraction) * totalLoad + (G * sine - resistanceAcceleration) * transferRatio) / Math.max(.1, 1 - mu * transferRatio);
-      else limit = mu * (car.frontWeightFraction * totalLoad - (G * sine - resistanceAcceleration) * transferRatio) / (1 + mu * transferRatio);
-      return Math.max(0, limit);
+      if (car.spec.factoryDrive === 'awd') limit = allTyres;
+      else if (car.spec.factoryDrive === 'rwd') {
+        const denominator = 1 - mu * transferRatio;
+        limit = denominator > 0 ? mu * ((1 - car.frontWeightFraction) * totalLoad + transferOffset) / denominator : allTyres;
+      } else limit = mu * (car.frontWeightFraction * totalLoad - transferOffset) / (1 + mu * transferRatio);
+      // A driven axle cannot gain more contact load than all four tyres carry.
+      // This also bounds very high grip/CG tuning as an axle becomes unloaded.
+      return clamp(limit, 0, allTyres);
     }
 
     _brakingDeceleration(car, grade, speed = 0) {
@@ -406,7 +430,7 @@
       const oldPosition = this.sample(oldDistance), grade = oldPosition.grade, normal = 1 / Math.hypot(1, grade), sine = grade * normal;
       const target = this._target(car, oldDistance + Math.max(.1, oldSpeed * dt));
       const wheelRadius = (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
-      const torqueForce = car.torqueNm * car.reduction * car.efficiency / wheelRadius;
+      const torqueForce = car.torqueNm * car.driveReduction * car.efficiency / wheelRadius;
       const powerForce = car.powerPs * PS_WATTS * car.efficiency / Math.max(4, oldSpeed);
       const drag = .5 * 1.225 * car.dragArea * oldSpeed * oldSpeed;
       const rolling = car.rollingCoefficient * car.massKg * G * normal;
@@ -424,7 +448,7 @@
       car.grade = position.grade; car.elevation = position.elevation; car.slopeAcceleration = -G * sine;
       if (car.advancedDynamics) {
         const totalLoad = car.massKg * (G * normal + this._aeroLoadAcceleration(car, car.speed));
-        const transfer = car.massKg * (acceleration + G * sine) * car.cgHeightM / car.wheelbaseM;
+        const transfer = (car.massKg * (acceleration + G * sine) + drag) * car.cgHeightM / car.wheelbaseM;
         car.frontNormalLoad = clamp(totalLoad * car.frontWeightFraction - transfer, 0, totalLoad);
         car.rearNormalLoad = totalLoad - car.frontNormalLoad;
       }

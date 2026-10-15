@@ -177,12 +177,14 @@ class VehicleSurfaces {
    if(entry.selected)gl.clear(gl.DEPTH_BUFFER_BIT);
    const {mesh,position:p}=entry;
    gl.uniform3f(U.uCar,p.x,p.y,(p.elevation||0)+.055);gl.uniform2f(U.uPose,p.angle||0,Math.atan(p.grade||0));
-   if(mesh.manufacturer){this._drawAsset(mesh,p,camera,entry.selected===false);continue;}
-   gl.uniform1i(U.uPhotoMode,0);
-   gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
-   const b=this._buffer(mesh);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
-   for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=this.attributes[name];gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}
-   gl.uniform3f(U.uCar,p.x,p.y,(p.elevation||0)+.055);gl.uniform2f(U.uPose,p.angle||0,Math.atan(p.grade||0));gl.drawArrays(gl.TRIANGLES,0,b.count);
+   if(mesh.manufacturer)this._drawAsset(mesh,p,camera,entry.selected===false);
+   for(const geometry of [mesh.manufacturer?null:mesh,entry.effect].filter(Boolean)){
+    gl.uniform1i(U.uPhotoMode,0);
+    gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
+    const b=this._buffer(geometry);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
+    for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=this.attributes[name];gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}
+    gl.drawArrays(gl.TRIANGLES,0,b.count);
+   }
   }
   return this.canvas;
  }

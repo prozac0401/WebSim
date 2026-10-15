@@ -246,12 +246,14 @@
   }
   function createPopulation({ vehicleId = 'g80', count = 8, seed = 1234, budget = 30 } = {}) {
     getVariant(vehicleId);
-    if (!Number.isInteger(count) || count < 2 || count > 24) throw new RangeError('count must be 2–24.');
+    // Factory comparison uses the catalogue itself as the grid: exactly one
+    // entrant per real preset, including one car for a single-trim model.
+    if (budget !== 0 && (!Number.isInteger(count) || count < 2 || count > 24)) throw new RangeError('count must be 2–24.');
     const check = quote({ vehicleId, budget });
     if (!check.valid) throw new RangeError(check.reason);
     const rng = random(seed), order = [...VARIANTS[vehicleId]];
     for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    return Array.from({ length: count }, (_, index) => {
+    return Array.from({ length: budget === 0 ? order.length : count }, (_, index) => {
       const variant = order[index % order.length];
       return createEntrant({ vehicleId, variantId: variant.id, budget, uid: vehicleId + '-' + (seed >>> 0) + '-g1-' + (index + 1),
         color: PALETTE[index % PALETTE.length], levels: randomLevels(vehicleId, variant.id, budget, rng) });
@@ -270,8 +272,9 @@
       .map((entry, index) => ({ ...entry, rank: index + 1, fitness: entry.finished ? entry.finishTime : Infinity }));
   }
   function breed(population, results, { seed = 1234, generation } = {}) {
-    if (!Array.isArray(population) || population.length < 2 || population.length > 24) throw new RangeError('A generation needs 2–24 entrants.');
+    if (!Array.isArray(population) || !population.length || population.length > 24) throw new RangeError('A generation needs 2–24 entrants, or at least one stock entrant.');
     const vehicleId = population[0].vehicleId, budget = population[0].budget;
+    if (population.length < 2 && budget !== 0) throw new RangeError('A generation needs 2–24 entrants.');
     if (population.some(entry => entry.vehicleId !== vehicleId || entry.budget !== budget)) throw new RangeError('Breed one make with one common base budget.');
     if (new Set(population.map(entry => entry.uid)).size !== population.length) throw new RangeError('Entrant uids must be unique.');
     const ranked = evaluate(population, results);
@@ -281,6 +284,15 @@
     const rng = random(seed), parents = ranked.slice(0, Math.max(2, Math.ceil(population.length / 2))).map(entry => entry.entrant);
     const make = (variantId, levels, index, lineage) => createEntrant({ vehicleId, variantId, budget, levels: budget === 0 ? zeroLevels() : levels, generation: nextGeneration,
       uid: vehicleId + '-' + (seed >>> 0) + '-g' + nextGeneration + '-' + (index + 1), color: PALETTE[index % PALETTE.length], lineage });
+    // The UI repeats the same stock race without breeding. Keep direct API
+    // calls safe too: selection must never remove or duplicate factory trims.
+    if (budget === 0) {
+      const parentsByVariant = new Map();
+      for (const { entrant } of ranked) if (!parentsByVariant.has(entrant.variantId)) parentsByVariant.set(entrant.variantId, entrant);
+      const variantIds = [...new Set([...parentsByVariant.keys(), ...VARIANTS[vehicleId].map(variant => variant.id)])];
+      return variantIds.map((variantId, index) => make(variantId, zeroLevels(), index,
+        { kind: 'stock', parents: parentsByVariant.has(variantId) ? [parentsByVariant.get(variantId).uid] : [] }));
+    }
     const winner = ranked[0].entrant;
     const next = [make(winner.variantId, winner.levels, 0, { kind: 'elite', parents: [winner.uid] })];
     for (let index = 1; index < population.length; index++) {

@@ -1,7 +1,8 @@
 /* Manufacturer-checked transmission families and sourced ratios for the HUD.
  * Sources distinguish exact-market specifications from reference-market ratios.
- * WOT shift scheduling and rolling-radius correction remain estimates; none of
- * these presentation parameters feeds the race's forces or lap-time solver. */
+ * The race also uses sourced first-gear/final-drive ratios for its low-speed
+ * torque envelope. WOT shift scheduling and rolling-radius correction remain
+ * display estimates and never feed the race's forces or lap-time solver. */
 (function(root){
   'use strict';
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};

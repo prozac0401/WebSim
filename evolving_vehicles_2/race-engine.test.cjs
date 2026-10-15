@@ -395,6 +395,121 @@ test('driven axle load transfer changes launch and conserves front/rear normal l
   }
 });
 
+// Starts halfway along a 2 km straight, avoiding a start-line corner or any
+// overridden speed/force functions when comparing factory launch performance.
+const launchStraight = {
+  id: 'launch-straight', name: 'Flat launch validation loop', lengthM: 4800,
+  coordinates: [[1000, 0], [2000, 0], [2000, 400], [0, 400], [0, 0], [1000, 0]]
+    .map(([x, y]) => [127 + x / (111195.08 * Math.cos(37 * Math.PI / 180)), 37 + y / 111195.08])
+};
+function measureLaunch(race) {
+  const measurements = race.cars.map(car => ({ variantId: car.entrant.variantId }));
+  for (let i = 0; i < 3600 && !measurements.every(m => m.t100); i++) {
+    const before = race.cars.map(car => [car.speed, car.distance]);
+    race.step(TrackRace.FIXED_DT);
+    race.cars.forEach((car, index) => {
+      assert.ok(Number.isFinite(car.speed) && car.speed >= 0);
+      const [speed, distance] = before[index];
+      assert.ok(car.distance >= distance && car.distance - distance <= Math.max(speed, car.speed) * TrackRace.FIXED_DT + 1e-8, 'continuous integration, no launch teleport');
+      for (const kph of [30, 60, 100]) if (!measurements[index]['t' + kph] && car.speed >= kph / 3.6) {
+        measurements[index]['t' + kph] = race.time - TrackRace.FIXED_DT + (kph / 3.6 - speed) / (car.speed - speed) * TrackRace.FIXED_DT;
+      }
+    });
+  }
+  assert.ok(measurements.every(m => m.t100), 'all factory cars reach 100 km/h on the straight');
+  return measurements;
+}
+
+test('each same-engine stock G70/G80 pair reflects AWD launch grip in dry/wet 0–30/60/100 runs', t => {
+  const tuning = require('./tuning-evolution.js'), measurements = {};
+  for (const vehicleId of ['g70', 'g80']) for (const surface of ['dry', 'wet']) {
+    const population = tuning.createPopulation({ vehicleId, budget: 0 });
+    const before = JSON.stringify(population);
+    const race = new TrackRace({ circuit: launchStraight, entrants: population, surface, laps: 1, racingLine: false });
+    measurements[vehicleId + surface] = Object.fromEntries(measureLaunch(race).map(m => [m.variantId, m]));
+    assert.equal(JSON.stringify(population), before, 'launch cannot alter factory presets');
+    for (const engine of vehicleId === 'g70' ? ['2.0t', '3.3t'] : ['2.5t', '3.5t']) {
+      const prefix = vehicleId + '-' + engine, result = measurements[vehicleId + surface];
+      const rear = race.cars.find(c => c.entrant.variantId === prefix + '-rwd'), all = race.cars.find(c => c.entrant.variantId === prefix + '-awd');
+      assert.equal(all.powerPs, rear.powerPs); assert.equal(all.torqueNm, rear.torqueNm);
+      assert.ok(all.massKg > rear.massKg && all.efficiency < rear.efficiency, 'AWD mass/loss penalties remain');
+      for (const kph of [30, 60, 100]) assert.ok(result[prefix + '-awd']['t' + kph] < result[prefix + '-rwd']['t' + kph], prefix + '/' + surface + ': traction-limited AWD launch');
+      t.diagnostic(prefix + '/' + surface + ' 0–100: RWD ' + result[prefix + '-rwd'].t100.toFixed(3) + ' / AWD ' + result[prefix + '-awd'].t100.toFixed(3) + ' model seconds');
+    }
+  }
+  for (const vehicleId of ['g70', 'g80']) for (const variant of Object.keys(measurements[vehicleId + 'dry'])) {
+    assert.ok(measurements[vehicleId + 'wet'][variant].t100 > measurements[vehicleId + 'dry'][variant].t100, 'wet launch cannot acquire more tyre grip');
+  }
+});
+
+test('axle traction stays inside whole-car contact grip even at high CG/grip, with drag moments conserving axle loads', () => {
+  const cars = ['fwd', 'rwd', 'awd'].map(drive => entrant(drive, { factoryDrive: drive, powerPs: 3000, torqueNm: 4000, gripG: 4, cgHeightM: 1.3, wheelbaseM: 1.5 }));
+  const race = new TrackRace({ circuit: launchStraight, entrants: cars, laps: 1, racingLine: false });
+  for (const car of race.cars) for (const speed of [0, 10, 40]) for (const grade of [-.2, 0, .2]) {
+    const normal = 1 / Math.hypot(1, grade);
+    const resistance = .5 * 1.225 * car.dragArea * speed * speed / car.massKg + 9.81 * (car.rollingCoefficient + grade) * normal;
+    const capacity = race._tractionAcceleration(car, speed, grade, resistance);
+    const allTyres = car.longitudinalGrip * (normal + race._aeroLoadAcceleration(car, speed) / 9.81);
+    assert.ok(Number.isFinite(capacity) && capacity >= 0 && capacity <= allTyres + 1e-9, 'one driven axle cannot exceed all tyre contact capacity');
+  }
+  for (let i = 0; i < 120; i++) {
+    race.step(1 / 120);
+    for (const car of race.cars) {
+      assert.ok(car.frontNormalLoad >= 0 && car.rearNormalLoad >= 0);
+      assert.ok(Math.abs(car.frontNormalLoad + car.rearNormalLoad - car.massKg * 9.81) < 1e-7);
+    }
+  }
+  const rear = race.cars[1];
+  assert.ok(rear.frontNormalLoad < 1e-7, 'front contact can reach zero without exceeding the whole-car grip limit');
+  // At a fixed transmitted force, changing drag at the CG changes net
+  // acceleration but not the tractive pitch moment at the road contact.
+  const lowDrag = entrant('low-drag', { factoryDrive: 'rwd', dragArea: .5 }), highDrag = entrant('high-drag', { factoryDrive: 'rwd', dragArea: 1.5 });
+  const pair = new TrackRace({ circuit: launchStraight, entrants: [lowDrag, highDrag], laps: 1, racingLine: false });
+  const limits = pair.cars.map(car => pair._tractionAcceleration(car, 40, 0, .5 * 1.225 * car.dragArea * 40 ** 2 / car.massKg + car.rollingCoefficient * 9.81));
+  assert.ok(Math.abs(limits[0] - limits[1]) < 1e-10, 'CG drag must not spuriously remove driven-axle contact load');
+});
+
+test('source-backed first gear limits wheel torque separately from HUD gearing, retaining tuning and EV fallbacks', () => {
+  const tuning = require('./tuning-evolution.js'), profiles = require('./powertrain-profiles.js'), telemetry = require('./powertrain-telemetry.js');
+  for (const vehicleId of ['g70', 'g80', 'supra']) {
+    const population = tuning.createPopulation({ vehicleId, budget: 0 });
+    const race = new TrackRace({ circuit: launchStraight, entrants: population, laps: 1, racingLine: false });
+    for (const car of race.cars) {
+      const p = profiles.resolve(car);
+      assert.equal(car.driveReduction, p.gearRatios[0] * p.finalDriveRatio);
+      assert.equal(car.reduction, car.entrant.factorySpec.reduction, 'HUD tuning scale stays nominal');
+      const withoutForceRatio = { ...car }; delete withoutForceRatio.driveReduction;
+      assert.deepEqual(telemetry.describeGearing(car), telemetry.describeGearing(withoutForceRatio), 'launch envelope cannot change displayed gear speeds');
+    }
+    const tuned = tuning.createEntrant({ vehicleId, variantId: population[0].variantId, levels: { acceleration: 1 } });
+    const tunedRace = new TrackRace({ circuit: launchStraight, entrants: [tuned], laps: 1, racingLine: false });
+    const car = tunedRace.cars[0], p = profiles.resolve(car);
+    assert.ok(Math.abs(car.driveReduction / (p.gearRatios[0] * p.finalDriveRatio) - tuned.spec.reduction / tuned.factorySpec.reduction) < 1e-12);
+  }
+  for (const vehicleId of ['ioniq5', 'musso_ev', 'ray', 'k5']) {
+    const population = tuning.createPopulation({ vehicleId, budget: 0 });
+    const race = new TrackRace({ circuit: launchStraight, entrants: population, laps: 1, racingLine: false });
+    for (const car of race.cars) {
+      assert.equal(car.driveReduction, car.reduction, 'unsourced gearing/EV uses original reduction');
+      assert.equal(car.torqueNm, car.entrant.factorySpec.torqueNm, 'combined motor/engine torque is never multiplied by axle count');
+    }
+  }
+});
+
+test('power-limited AWD retains its mass/loss penalty, and factory launch stays deterministic across playback batching', () => {
+  const common = { powerPs: 50, torqueNm: 70, gripG: 1.2, frontWeightFraction: .5 };
+  const race = new TrackRace({ circuit: launchStraight, entrants: [
+    entrant('rwd', { ...common, factoryDrive: 'rwd', massKg: 1500 }),
+    entrant('awd', { ...common, factoryDrive: 'awd', massKg: 1600 })
+  ], laps: 1, racingLine: false });
+  race.step(3);
+  assert.ok(race.cars[0].speed > race.cars[1].speed, 'AWD is not an unconditional acceleration bonus');
+  const tuning = require('./tuning-evolution.js'), options = { circuit: launchStraight, entrants: tuning.createPopulation({ vehicleId: 'g80', budget: 0 }), laps: 1, racingLine: false };
+  const batch = new TrackRace(options), frames = new TrackRace(options);
+  batch.step(8); for (let i = 0; i < 960; i++) frames.step(1 / 120);
+  assert.deepEqual(batch.cars.map(c => [c.speed, c.distance, c.frontNormalLoad, c.rearNormalLoad, c.telemetry]), frames.cars.map(c => [c.speed, c.distance, c.frontNormalLoad, c.rearNormalLoad, c.telemetry]));
+});
+
 test('mass, balance and centre-of-gravity affect acceleration, cornering and braking independently of power', () => {
   const race = make({ entrants: [
     entrant('balanced', { frontWeightFraction: .5, cgHeightM: .5, massKg: 1700 }),

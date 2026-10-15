@@ -4,6 +4,7 @@ const DEFAULT_VEHICLE='supra',DEFAULT_CIRCUIT='inje';
 await window.ManufacturerModels?.load(DEFAULT_VEHICLE);
 const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=[...RaceCircuits].sort((a,b)=>Number(b.id===DEFAULT_CIRCUIT)-Number(a.id===DEFAULT_CIRCUIT)),canvas=$('canvas');
 let population=[],race,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='',autoDelay=0;
+let paidPopulationSize=Number($('population-size').value),autoEvolution=true,autoStockRepeat=true,stockRun=1;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
 const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
 const currentCircuit=()=>circuits.find(c=>c.id===$('circuit').value)||circuits[0];
@@ -23,10 +24,21 @@ $('circuit').value=DEFAULT_CIRCUIT;
 $('circuit-quick').replaceChildren(...[...$('circuit').children].map(g=>g.cloneNode(true)));
 vehicles.forEach(v=>$('vehicle-model').append(new Option(v.name,v.id)));$('vehicle-model').value=DEFAULT_VEHICLE;
 function experiment(note){
- generation=1;history=[];$('seed').value=seedValue();
- if(stockMode())$('auto-evolve').checked=false;
- population=E.createPopulation({vehicleId:$('vehicle-model').value,count:Number($('population-size').value),seed:seedValue(),budget:Number($('budget').value)});
- prepareRace(note||(stockMode()?'보정 예산과 튜닝 없이 출고 상태만 비교합니다. 레이스 또는 빠른 평가를 시작하세요.':'한 차종의 출고 사양과 튜닝을 추첨했습니다. 레이스 또는 빠른 평가로 첫 세대를 비교하세요.'));
+ generation=1;stockRun=1;history=[];$('seed').value=seedValue();
+ population=E.createPopulation({vehicleId:$('vehicle-model').value,count:paidPopulationSize,seed:seedValue(),budget:Number($('budget').value)});
+ updateModeControls();
+ prepareRace(note||(stockMode()?'세부 트림별 한 대씩, 튜닝 없이 출고 상태를 비교합니다. 자동 반복 주행을 켜 두면 같은 구성으로 다시 달립니다.':'한 차종의 출고 사양과 튜닝을 추첨했습니다. 레이스 또는 빠른 평가로 첫 세대를 비교하세요.'));
+}
+function updateModeControls(){
+ const stock=stockMode(),count=$('population-size');
+ count.querySelector('[data-stock-count]')?.remove();
+ if(stock){const option=new Option(population.length+'대 · 트림별 1대','stock');option.dataset.stockCount='';count.append(option);count.value='stock';}
+ else count.value=String(paidPopulationSize);
+ count.disabled=stock;$('population-label').textContent=stock?'출고 비교 차량':'세대당 차량';
+ $('auto-evolve').checked=stock?autoStockRepeat:autoEvolution;
+ $('auto-evolve-label').textContent=stock?'자동 반복 주행':'자동 세대 진행';
+ $('seed').disabled=stock;$('reroll').disabled=stock;
+ $('roster-note').textContent=stock?'등록된 실제 세부 트림별로 한 대씩 모두 참가합니다. 차량 수와 사양은 자동으로 정해집니다.':'같은 차종의 실제 엔진·구동 조합을 추첨합니다. 낮은 출고 성능에 항목별 추가 예산과 더 많은 튜닝 단계가 주어집니다.';
 }
 function prepareRace(note,keepWatch=false){
  running=false;fast=false;recorded=false;lastFrame=null;lastUI=-1;autoDelay=0;
@@ -114,12 +126,12 @@ function editTuning(carId,id,level){
 }
 function historyUI(){
  const stock=stockMode();$('evolution-title').textContent=stock?'출고 상태 비교':'원메이크 튜닝 진화';
- $('generation-stat').textContent=generation;$('make-summary').textContent=vehicles.find(v=>v.id===$('vehicle-model').value).name+' · '+population.length+'대';
+ $('generation-label').textContent=stock?'반복 주행':'현재 세대';$('generation-stat').textContent=stock?stockRun+'회차':generation;$('make-summary').textContent=vehicles.find(v=>v.id===$('vehicle-model').value).name+' · '+population.length+'대';
  const valid=history.filter(h=>Number.isFinite(h.best)),champion=valid.reduce((a,b)=>!a||b.best<a.best?b:a,null);
  $('champion-time').textContent=champion?fTime(champion.best):'—';
  $('improvement-stat').textContent=!stock&&champion&&valid[0]?((valid[0].best-champion.best)/valid[0].best*100).toFixed(2)+'%':'—';
  document.querySelector('.history-chart').classList.toggle('has-history',!stock&&valid.length>0);
- if(stock){$('history-path').setAttribute('d','');$('history-caption').textContent=champion?'출고 상태 최고 기록 · '+champion.variantLabel+' · '+fTime(champion.best):'출고 사양만 비교합니다. 세대 진화는 튜닝 예산을 선택하면 사용할 수 있습니다.';return;}
+ if(stock){$('history-path').setAttribute('d','');$('history-caption').textContent=champion?'출고 상태 최고 기록 · '+champion.variantLabel+' · '+fTime(champion.best):'세부 트림별 한 대씩 비교합니다. 자동 반복 주행을 끄면 완주 후 멈춥니다.';return;}
  if(valid.length){
   const min=Math.min(...valid.map(h=>h.best)),max=Math.max(...valid.map(h=>h.best)),range=Math.max(.5,max-min);
   const coords=valid.map((h,i)=>(10+i/Math.max(1,valid.length-1)*780).toFixed(2)+','+(8+(h.best-min)/range*48).toFixed(2));
@@ -130,7 +142,7 @@ function historyUI(){
 function finishGeneration(){
  if(recorded||!race.finished)return;recorded=true;fast=false;running=false;
  const best=race.standings().find(c=>c.finished),record={generation,best:best?.finishTime??null,variantLabel:best?.entrant.variantLabel||'',levels:{...best?.entrant.levels},uid:best?.entrant.uid,finishers:race.cars.filter(c=>c.finished).length};
- const index=history.findIndex(h=>h.generation===generation);if(index<0)history.push(record);else history[index]=record;autoDelay=stockMode()?0:1;
+ const index=history.findIndex(h=>h.generation===generation);if(index<0)history.push(record);else history[index]=record;autoDelay=1;
  if(stockMode()){tell(best?'출고 상태 비교 완료 · '+best.entrant.variantLabel+' · '+fTime(best.finishTime):'출고 상태 비교에서 완주 차량이 없습니다.');return;}
  tell(best?generation+'세대 평가 완료 · #'+(best.index+1)+' '+best.entrant.variantLabel+' · '+fTime(best.finishTime)+' — 우수 세팅을 보존하고 다음 세대를 만들 수 있습니다.':'이번 세대는 완주 차량이 없습니다. 주행 거리를 기준으로 다음 세대를 선발합니다.');
 }
@@ -141,13 +153,17 @@ function nextGeneration(auto=false){
  prepareRace(generation+'세대 · 우수 세팅 보존 + 교배·돌연변이로 새 튜닝을 만들었습니다.');
  if(auto){running=true;updateUI();}
 }
+function continueAutomatically(){
+ if(!race.finished||!$('auto-evolve').checked)return;
+ if(stockMode()){stockRun++;prepareRace('출고 상태 '+stockRun+'회차 · 같은 트림과 사양으로 반복 주행합니다.',true);running=true;updateUI();}
+ else nextGeneration(true);
+}
 function updateUI(){
  if(!race)return;const order=race.standings(),car=watching(),leader=order[0],spec=car.spec,p=car.entrant,stock=stockMode();
  updatePowertrainHUD(car);
  $('start').textContent=race.finished?(stock?'↺ 같은 구성 재주행':'↺ 같은 세대 재주행'):running?'Ⅱ 일시정지':race.time>0?'▶ 계속 달리기':'▶ 레이스 시작';
  $('reset').textContent=stock?'↻ 같은 구성 재주행':'↻ 같은 세대 재주행';
  $('start').setAttribute('aria-pressed',String(running));$('step').disabled=race.finished;$('evaluate').disabled=race.finished||fast;$('evaluate').textContent=fast?'평가 중…':stock?'출고 성능 빠른 평가':'이번 세대 빠른 평가';
- $('auto-evolve').disabled=stock;if(stock)$('auto-evolve').checked=false;
  $('next-generation').disabled=stock||!race.finished;$('race-status').textContent=race.finished?(stock?'출고 비교 완료':'세대 평가 완료'):fast?'빠른 평가 중':running?'● 레이스 진행 중':race.time>0?'일시정지':'출발 준비';
  $('time-stat').textContent=race.time>0?fTime(race.time):'00:00.000';$('lap-stat').textContent=Math.min(race.laps,leader.lap+1)+' / '+race.laps;
  $('best-stat').textContent=fTime(Math.min(...race.cars.map(c=>c.bestLap||Infinity)));$('finish-stat').textContent=race.cars.filter(c=>c.finished).length+' / '+race.cars.length;
@@ -186,11 +202,11 @@ function updatePowertrainHUD(car){
  $('battery-flow').setAttribute('aria-valuenow',Math.round(flow*100));$('battery-flow').setAttribute('aria-valuetext',label);
 }
 function simulate(seconds){let remaining=seconds;while(remaining>1e-7&&!race.finished){const step=Math.min(remaining,1);race.step(step);remaining-=step;}if(race.finished)finishGeneration();}
-function toggle(){fast=false;if(race.finished)prepareRace('같은 세대와 같은 튜닝으로 다시 달립니다.',true);running=!running;lastFrame=null;autoDelay=0;updateUI();}
+function toggle(){fast=false;if(race.finished)prepareRace(stockMode()?'같은 출고 사양으로 다시 달립니다.':'같은 세대와 같은 튜닝으로 다시 달립니다.',true);running=!running;lastFrame=null;autoDelay=0;updateUI();}
 function frame(timestamp){
  const before=race.time;
  const delta=lastFrame===null?0:Math.min((timestamp-lastFrame)/1000,.1);lastFrame=timestamp;
- if(!manual){if(fast)simulate(12);else if(running)simulate(delta*Number($('speed').value));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=delta;if(autoDelay<=0)nextGeneration(true);}}
+ if(!manual){if(fast)simulate(12);else if(running)simulate(delta*Number($('speed').value));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=delta;if(autoDelay<=0)continueAutomatically();}}
  if(Math.abs(lastUI-race.time)>.12||race.finished&&lastUI!==race.time){updateUI();lastUI=race.time;}
  const cameraMoved=renderer.advanceCamera(delta,{watch,snap:fast||manual});
  if(running||fast||before!==race.time||cameraMoved)draw();requestAnimationFrame(frame);
@@ -200,10 +216,11 @@ async function fullscreen(){
 }
 $('start').addEventListener('click',toggle);
 $('step').addEventListener('click',()=>{running=false;fast=false;autoDelay=0;simulate(1);renderer.advanceCamera(0,{watch,snap:true});updateUI();draw();});
-$('reset').addEventListener('click',()=>prepareRace('같은 세대의 출고 사양과 튜닝으로 다시 배치했습니다.',true));
+$('reset').addEventListener('click',()=>prepareRace(stockMode()?'같은 출고 사양으로 다시 배치했습니다.':'같은 세대의 출고 사양과 튜닝으로 다시 배치했습니다.',true));
 $('evaluate').addEventListener('click',()=>{if(race.finished)return;running=false;fast=true;lastFrame=null;updateUI();});
-$('next-generation').addEventListener('click',()=>nextGeneration(false));$('auto-evolve').addEventListener('change',()=>{if($('auto-evolve').checked&&race.finished)autoDelay=1;});
-for(const id of ['vehicle-model','population-size','budget','seed','circuit','laps','surface'])$(id).addEventListener('change',()=>experiment('조건을 바꾸어 1세대부터 새 실험을 시작합니다.'));
+$('next-generation').addEventListener('click',()=>nextGeneration(false));$('auto-evolve').addEventListener('change',()=>{const enabled=$('auto-evolve').checked;if(stockMode())autoStockRepeat=enabled;else autoEvolution=enabled;autoDelay=enabled&&race.finished?1:0;});
+$('population-size').addEventListener('change',()=>{if(!stockMode()){paidPopulationSize=Number($('population-size').value);experiment();}});
+for(const id of ['vehicle-model','budget','seed','circuit','laps','surface'])$(id).addEventListener('change',()=>experiment());
 $('circuit-quick').addEventListener('change',()=>{$('circuit').value=$('circuit-quick').value;experiment('서킷을 바꾸어 새 실험을 시작합니다.');});
 $('reroll').addEventListener('click',()=>{$('seed').value=(seedValue()+104729)%2147483646||1;experiment('새 시드로 출고 사양과 튜닝 조합을 추첨했습니다.');});
 $('speed').addEventListener('change',()=>{lastFrame=null;});
@@ -230,15 +247,16 @@ document.addEventListener('fullscreenchange',()=>{renderer.resize();draw();});do
 new ResizeObserver(entries=>{for(const entry of entries)$('stage').style.setProperty('--powertrain-hud-height',entry.target.getBoundingClientRect().height+'px');}).observe($('powertrain-hud'));
 window.advanceTime=milliseconds=>{
  manual=true;let seconds=Math.max(0,Math.min(Number(milliseconds)||0,3600000))/1000;
- while(seconds>1e-7){const chunk=Math.min(seconds,.25);if(fast||running)simulate(chunk*(fast?256:Number($('speed').value)));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=chunk;if(autoDelay<=0)nextGeneration(true);}else break;seconds-=chunk;}
+ while(seconds>1e-7){const chunk=Math.min(seconds,.25);if(fast||running)simulate(chunk*(fast?256:Number($('speed').value)));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=chunk;if(autoDelay<=0)continueAutomatically();}else break;seconds-=chunk;}
  renderer.advanceCamera(0,{watch,snap:true});updateUI();draw();
 };
 window.render_game_to_text=()=>JSON.stringify({
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  watchTelemetry:watching().telemetry,
+ patrolLights:renderer.getPatrolInfo?.()||[],
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. One shared computed racing line; no lateral lanes. Independent ghost races.',
  visualPath:DrivingPose.info(race),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,
- circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),stockComparison:stockMode(),lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
+ circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),stockComparison:stockMode(),stockRun,lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:!stockMode()&&$('auto-evolve').checked,autoRepeat:stockMode()&&$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
  cars:race.standings().map((c,i)=>{const p=race.sample(c.distance),e=c.entrant;return{id:c.id,uid:e.uid,vehicleId:c.vehicleId,variantId:e.variantId,variantLabel:e.variantLabel,position:i+1,levels:e.levels,credits:e.credits,cost:e.cost,budget:e.budget,maxLevels:e.maxLevels,massKg:c.massKg,powerPs:c.powerPs,drive:c.spec.factoryDrive,frontWeightFraction:c.spec.frontWeightFraction,x:+p.x.toFixed(2),y:+p.y.toFixed(2),elevationM:p.elevation,grade:p.grade,distanceM:+c.distance.toFixed(2),speedKmh:+(c.speed*3.6).toFixed(1),bestLap:c.bestLap,finished:c.finished,finishTime:c.finishTime,dnf:c.dnf};})
 });
 experiment();renderer.resize();draw();requestAnimationFrame(frame);

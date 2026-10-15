@@ -453,6 +453,7 @@
       const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.CircuitVehicleSpecs?.[id]||root.VehicleSpecs?.[id]||{},paint=finishes[(car.index??car.id??0)%finishes.length],key=[id,paint,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm].join('|');
       if(!this.meshCache.has(key))this.meshCache.set(key,root.ManufacturerModels?.create(id,spec,paint)||(root.ManufacturerModels?.requiresAsset(id)?{length:spec.lengthMm/1000,width:spec.widthMm/1000,height:spec.heightMm/1000,faces:[],metadata:{id}}:root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint)));return this.meshCache.get(key);
     }
+    getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=root.G70PatrolLights?.sample(this.race,car,mesh);return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}
     _drawVehicles(entries,camera){
       // Coincident ghost runs share one body outline. Keep the watched entrant
       // visible without drawing identical geometry eight times at the start.
@@ -481,7 +482,7 @@
         if(projected&&entry.mesh.length*projected.scale<9)this._carFaces(entry.car,p,camera,tiny,entry.selected);
         else detailed.push(entry);
       }
-      this._paint(tiny);entries=detailed;if(!entries.length)return;
+      this._paint(tiny);entries=detailed.map(entry=>({...entry,effect:root.G70PatrolLights?.create(this.race,entry.car,entry.mesh)}));if(!entries.length)return;
       if(!this.surfaceRenderer&&root.VehicleSurfaces)this.surfaceRenderer=new root.VehicleSurfaces(()=>this._changed());
       const layer=this.surfaceRenderer?.render(entries,camera,this.width,this.height,this.dpr);
       if(layer){
@@ -507,7 +508,8 @@
         this._queue({vertices:[point(-mesh.length*.5,-mesh.width*.40,.5),point(mesh.length*.45,-mesh.width*.42,.5),point(mesh.length*.5,0,.5),point(mesh.length*.45,mesh.width*.42,.5),point(-mesh.length*.5,mesh.width*.40,.5)].map(transform),fill:car.color||'#aacbb9'},camera,queue);
         return mesh;
       }
-      for(const face of mesh.faces){
+      const effect=root.G70PatrolLights?.create(this.race,car,mesh);
+      for(const face of effect?[...mesh.faces,...effect.faces]:mesh.faces){
         const vertices=face.vertices.map(transform);let fill=face.fill;
         // Reference meshes include physical trim ribbons. Skip their duplicate
         // stroke-only representation, and seal antialiased polygon seams below.
