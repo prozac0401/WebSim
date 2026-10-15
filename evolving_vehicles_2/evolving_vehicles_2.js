@@ -134,6 +134,7 @@ function nextGeneration(auto=false){
 }
 function updateUI(){
  if(!race)return;const order=race.standings(),car=watching(),leader=order[0],spec=car.spec,p=car.entrant;
+ updatePowertrainHUD(car);
  $('start').textContent=race.finished?'↺ 같은 세대 재주행':running?'Ⅱ 일시정지':race.time>0?'▶ 계속 달리기':'▶ 레이스 시작';
  $('start').setAttribute('aria-pressed',String(running));$('step').disabled=race.finished;$('evaluate').disabled=race.finished||fast;$('evaluate').textContent=fast?'평가 중…':'이번 세대 빠른 평가';
  $('next-generation').disabled=!race.finished;$('race-status').textContent=race.finished?'세대 평가 완료':fast?'빠른 평가 중':running?'● 레이스 진행 중':race.time>0?'일시정지':'출발 준비';
@@ -152,6 +153,22 @@ function updateUI(){
  $('vehicle-source').href=spec.sourceUrl||VehicleSpecs[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
  if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId],[x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
  updateTuning(car);historyUI();
+}
+function updatePowertrainHUD(car){
+ const t=car.telemetry,hud=$('powertrain-hud');hud.hidden=!t||t.kind==='electric';
+ if(hud.hidden)return;
+ $('powertrain-car').textContent='#'+String(car.index+1).padStart(2,'0')+' '+(vehicles.find(v=>v.id===car.vehicleId)?.name||car.name);
+ hud.dataset.kind=t.kind;const stopped=car.finished||car.dnf,gear=stopped?'—':t.gearLabel;
+ $('gear-value').textContent=gear;$('gear-value').dataset.wide=String(gear.length>1);
+ const lamps=stopped?0:t.shiftLights,cue=!stopped&&t.shiftCue,rpm=stopped?0:Math.round(t.rpmNormalized*100);
+ [...$('shift-lights').children].forEach((lamp,i)=>lamp.classList.toggle('lit',i<lamps));
+ $('shift-lights').setAttribute('aria-valuenow',rpm);$('shift-lights').setAttribute('aria-valuetext',stopped?'주행 종료':cue?'변속 시점':lamps+'개 신호등 점등');
+ $('shift-cue').textContent=cue?'변속':t.gear===null?'회전 신호':'변속 신호';$('shift-cue').classList.toggle('shift-ready',cue);
+ $('hybrid-flow').hidden=t.kind!=='hybrid';
+ const flow=stopped?0:Math.max(-1,Math.min(1,t.battery?.flow||0)),mode=flow<0?'charging':flow>0?'using':'idle',label={charging:'충전 중',using:'사용 중',idle:'대기'}[mode];
+ $('hybrid-flow').dataset.mode=mode;$('battery-mode').textContent=label;
+ $('charge-fill').style.width=(Math.max(0,-flow)*100).toFixed(1)+'%';$('use-fill').style.width=(Math.max(0,flow)*100).toFixed(1)+'%';
+ $('battery-flow').setAttribute('aria-valuenow',Math.round(flow*100));$('battery-flow').setAttribute('aria-valuetext',label);
 }
 function simulate(seconds){let remaining=seconds;while(remaining>1e-7&&!race.finished){const step=Math.min(remaining,1);race.step(step);remaining-=step;}if(race.finished)finishGeneration();}
 function toggle(){fast=false;if(race.finished)prepareRace('같은 세대와 같은 튜닝으로 다시 달립니다.',true);running=!running;lastFrame=null;autoDelay=0;updateUI();}
@@ -196,6 +213,7 @@ window.advanceTime=milliseconds=>{
 };
 window.render_game_to_text=()=>JSON.stringify({
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
+ watchTelemetry:watching().telemetry,
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. One shared computed racing line; no lateral lanes. Independent ghost races.',
  visualPath:DrivingPose.info(race),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,
  circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},

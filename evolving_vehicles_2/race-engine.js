@@ -13,6 +13,7 @@
   'use strict';
   const SPECS = root.VehicleSpecs || (typeof require === 'function' ? require('../evolving_vehicles/vehicle-specs.js') : null);
   const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
+  const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
   const CATALOG = [
@@ -289,6 +290,7 @@
           rearNormalLoad: (1 - frontWeightFraction) * spec.massKg * G };
         car.speedProfile = this._makeSpeedProfile(car);
         car.targetSpeed = car.speedProfile[0];
+        if (TELEMETRY) car.telemetry = TELEMETRY.create(car);
         return car;
       });
     }
@@ -425,12 +427,25 @@
         car.rearNormalLoad = totalLoad - car.frontNormalLoad;
       }
       car.phase = acceleration < -.2 ? 'braking' : Math.abs(position.curvature) > .0015 && car.speed > target * .9 ? 'cornering' : 'accelerating';
+      if (TELEMETRY) {
+        // Observe applied wheel work, not acceleration alone: gravity/drag can
+        // change speed without propulsion or regenerative braking. This is
+        // display-only and never changes forces, speed or the result above.
+        const wheelForce = car.massKg * acceleration + resistance;
+        const meanSpeed = (oldSpeed + car.speed) * .5;
+        TELEMETRY.update(car, car.telemetry, dt, {
+          drivePowerW: Math.max(0, wheelForce) * meanSpeed,
+          brakePowerW: Math.max(0, -wheelForce) * meanSpeed,
+          curvature: position.curvature
+        });
+      }
       // Do not give underpowered cars fictional climbing force or leave a race
       // running forever. Thirty continuous seconds below 0.1m/s is a retirement.
       car.stalledFor = car.speed < .1 ? car.stalledFor + dt : 0;
       if (car.stalledFor + 1e-9 >= 30) {
         car.dnf = true; car.retiredAt = now + dt; car.phase = 'dnf';
         car.dnfReason = grade > .01 && availableAcceleration < .1 ? '오르막 구동력 부족' : '30초간 주행 지속 불가';
+        if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         return;
       }
       while (car.lap < this.laps && car.distance + 1e-9 >= (car.lap + 1) * this.track.length) {
@@ -441,7 +456,7 @@
         const crossingTime = now + crossingDt, lapTime = crossingTime - car.lastLapAt;
         car.lapTimes.push(lapTime); car.bestLap = car.bestLap === null ? lapTime : Math.min(car.bestLap, lapTime);
         car.lastLapAt = crossingTime; car.lap++; car.currentLap = Math.min(this.laps, car.lap + 1);
-        if (car.lap === this.laps) { car.finished = true; car.finishTime = crossingTime; car.distance = this.totalDistance; }
+        if (car.lap === this.laps) { car.finished = true; car.finishTime = crossingTime; car.distance = this.totalDistance; if (TELEMETRY) TELEMETRY.stop(car.telemetry); }
       }
     }
 
