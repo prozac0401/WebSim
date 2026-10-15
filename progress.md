@@ -422,3 +422,7 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 - Moved only the existing vehicle-model selector above the evolution panel in the main header area for desktop and mobile. Other settings retain their sidebar positions; no duplicate control or synchronization state added.
 - Initial selected vehicle and preloaded exterior both use one Supra default constant. Preserved the single A90 RZ 3.0T variant, 2x playback, budgets, circuit and generation reset behavior. Updated guide and asset version keys. Focused browser verification and authorized public deployment follow.
 - Focused Chromium checks passed at 320/390/1440px: one top selector, all other settings retained, only Supra initially requested, all initial entrants RZ 3.0T, unchanged 2x playback, model switching, actual driving and reset. Desktop/mobile screenshots inspected; no browser errors.
+
+
+## 2026-10-15 수프라 표시 이름 간소화
+- User requested exact displayed trim text “GR Supra 3.0T 8AT · 19인치”. Updated both the circuit base specification and evolution preset label; retained the variant ID, year/market provenance and all physical values. Versioned the two changed scripts for public cache refresh.

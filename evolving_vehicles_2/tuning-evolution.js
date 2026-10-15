@@ -138,7 +138,7 @@
       preset('g70', 'g70-3.3t-awd', '2019 국내 3.3T Sport AWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'awd', 370, nm(52), 1775, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .54, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 })
     ],
     supra: [
-      preset('supra', 'supra-3.0t-rz', '2019 일본 RZ 3.0T RWD · 8AT · 19인치', 2997, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 340, 500, 1520, { sourceNote: SHARED.supra.sourceNote })
+      preset('supra', 'supra-3.0t-rz', 'GR Supra 3.0T 8AT · 19인치', 2997, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 340, 500, 1520, { sourceNote: SHARED.supra.sourceNote })
     ]
   });
   const PALETTE = freeze(['#e65454', '#38bdf8', '#fbbf24', '#a78bfa', '#4ade80', '#fb923c', '#f472b6', '#f1f5f9', '#22d3ee', '#a3e635', '#c084fc', '#fda4af']);

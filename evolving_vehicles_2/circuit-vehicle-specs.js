@@ -22,7 +22,7 @@
     driveVerificationDate: '2026-10-15'
   };
   const supra = {
-    variant: '2019 일본 RZ 3.0T RWD · 8AT · 19인치', modelYear: 2019, market: 'JP',
+    variant: 'GR Supra 3.0T 8AT · 19인치', modelYear: 2019, market: 'JP',
     lengthMm: 4380, widthMm: 1865, heightMm: 1290, wheelbaseMm: 2470,
     curbMassKg: 1520, powerPs: 340, torqueNm: 500, displacementCc: 2997,
     engine: '직렬 6기통 가솔린 트윈스크롤 터보', factoryDrive: 'rwd', powertrainType: 'gasoline', electric: false,
