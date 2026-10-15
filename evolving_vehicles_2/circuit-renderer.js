@@ -1,9 +1,10 @@
-/* Perspective renderer. Road vertices retain real metres AMSL, without vertical
- * exaggeration. Curated scenery is photo-interpreted; off-road heights and
+/* Perspective renderer. Display terrain uses a 1.75x elevation gain while
+ * source elevations and race physics retain real metres AMSL. Off-road heights and
  * individual tree shapes remain estimates. Vehicle assets carry their sources. */
 (function (root) {
   'use strict';
   const TAU = Math.PI * 2;
+  const ELEVATION_EXAGGERATION = 1.75;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const MODELS = {
     ray: { width: 1.595, type: 'box', roof: [-.43, .24], cabin: [-.47, .36], lamps: 'vertical', grille: 'small' },
@@ -231,7 +232,23 @@
       this.dpr=clamp(root.devicePixelRatio||1,1,2);this.canvas.width=Math.round(this.width*this.dpr);this.canvas.height=Math.round(this.height*this.dpr);
     }
     clearVehicleModels(){this.meshCache.clear();this.surfaceRenderer?.clearGeometry();}
-    setRace(race){if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();this.race=race;this._makeRoad();this.pits=root.PitFacilities?.build(race.track,root.PitFacilityData?.[race.track.id])||null;this.environment=root.TrackEnvironment?.build(race.track,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this.landmark=null;}
+    _displayHeight(z){const datum=this.race?.track.elevationMin||0;return datum+(z-datum)*ELEVATION_EXAGGERATION;}
+    _displayPose(p){
+      const z=this._displayHeight(p.elevation??p.z??0);
+      return {...p,z,elevation:p.elevation==null?null:z,grade:(p.grade||0)*ELEVATION_EXAGGERATION};
+    }
+    setRace(race){
+      if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();
+      this.race=race;
+      // Scale only ground elevation. Scenery is rebuilt on this display track,
+      // so cars, trees and buildings retain their original physical dimensions.
+      this.displayTrack={...race.track,points:race.track.points.map(p=>({...p,z:this._displayHeight(p.z||0)})),
+        elevationMin:this._displayHeight(race.track.elevationMin||0),elevationMax:this._displayHeight(race.track.elevationMax||0)};
+      this._makeRoad();
+      this.pits=root.PitFacilities?.build(this.displayTrack,root.PitFacilityData?.[race.track.id])||null;
+      this.environment=root.TrackEnvironment?.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;
+      this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this.landmark=null;
+    }
     setView(mode){
       if(!['overview','follow','top','eau-rouge','pits'].includes(mode))return;
       if(mode==='eau-rouge'&&this.race?.track.id!=='spa')mode='follow';
@@ -244,7 +261,7 @@
         const projection=this.race.track.projection;
         const xy=(lon,lat)=>({x:((lon-projection.origin[0])*projection.metresPerDegree*Math.cos(projection.latitudeRad)-projection.offset.x)*projection.scale,y:(-(lat-projection.origin[1])*projection.metresPerDegree-projection.offset.y)*projection.scale});
         const nearest=geo=>this.race.pathPoints.reduce((best,p)=>Math.hypot(p.x-geo.x,p.y-geo.y)<Math.hypot(best.x-geo.x,best.y-geo.y)?p:best);
-        const low=nearest(xy(5.970788,50.442385)),high=nearest(xy(5.972132,50.440815));
+        const low=this._displayPose(nearest(xy(5.970788,50.442385))),high=this._displayPose(nearest(xy(5.972132,50.440815)));
         this.landmark={target:point((low.x+high.x)/2,(low.y+high.y)/2,(low.z+high.z)/2),distance:Math.max(230,Math.hypot(high.x-low.x,high.y-low.y)*1.28),low,high};
         this.pitch=.25;this.yaw=Math.atan2(high.y-low.y,high.x-low.x)+Math.PI/2-.42;
       }else {this.pitch=.24;this.followYaw=0;}
@@ -288,7 +305,7 @@
     resetPan(){this.recenter();}
     _followGoal(car){
       const sample=distance=>root.DrivingPose?.sample(this.race,distance)||this.race.sample(distance);
-      const p=sample(car.distance),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
+      const p=this._displayPose(sample(car.distance)),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
       const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
       // Estimate bend size from chords, not the instantaneous spline curvature.
       // The neighbouring chords also see a tight bend before a wide filter
@@ -369,11 +386,11 @@
       if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:1,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y)}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y)}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();}
     _makeRoad(){
       this.roadFaces=[];this.supports=[];if(!this.race)return;
-      const track=this.race.track,pts=track.points,n=pts.length,step=n>1300?2:1,edges=[];
+      const track=this.displayTrack,pts=track.points,n=pts.length,step=n>1300?2:1,edges=[];
       const half=track.width/2,curb=Math.min(1.1,track.width*.065),datum=(track.elevationMin||0)-4;
       for(let i=0;i<n;i+=step){
         const a=pts[(i-1+n)%n],b=pts[(i+1)%n],p=pts[i],l=Math.hypot(b.x-a.x,b.y-a.y)||1,nx=-(b.y-a.y)/l,ny=(b.x-a.x)/l;
@@ -404,7 +421,7 @@
       }
     }
     _camera(watch){
-      const track=this.race.track,b=track.bounds,f=this.mode==='follow'?this.height/(2*Math.tan(29*Math.PI/180)):this.height*1.15;
+      const track=this.displayTrack||this.race.track,b=track.bounds,f=this.mode==='follow'?this.height/(2*Math.tan(29*Math.PI/180)):this.height*1.15;
       let target={x:(b.minX+b.maxX)/2,y:(b.minY+b.maxY)/2,z:((track.elevationMin||0)+(track.elevationMax||0))/2};
       let distance=Math.max(b.width*f/(this.width*.67),b.height*f/(this.height*.63),Math.hypot(b.width,b.height)*.70)+(track.elevationMax-track.elevationMin||0)*.7;
       let yaw=this.yaw;
@@ -541,7 +558,7 @@
       if(this.mode!=='follow')for(const support of this.supports)this._line(support,camera,'rgba(100,123,90,.15)',.75);
     }
     _startLine(camera,queue){
-      const line=this.race.track.points[0],next=this.race.track.points[1];
+      const line=this.displayTrack.points[0],next=this.displayTrack.points[1];
       const angle=Math.atan2(next.y-line.y,next.x-line.x),dx=Math.cos(angle),dy=Math.sin(angle),width=this.race.track.width;
       for(let j=0;j<2;j++)for(let i=0;i<8;i++){
         const a=-width/2+i*width/8,b=a+width/8,x=j*.65;
@@ -564,7 +581,7 @@
       this._startLine(camera,queue);
       this.markerPositions=[];
       for(const c of this.race.cars){
-        const p=root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance),projected=this._project(point(p.x,p.y,(p.elevation||0)+.7),camera);
+        const p=this._displayPose(root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance)),projected=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);
         if(!projected)continue;
         const mesh=this._mesh(c);
         if(projected.x>-60&&projected.x<this.width+60&&projected.y>-60&&projected.y<this.height+60)this.markerPositions.push({id:c.id,x:projected.x,y:projected.y,anchorX:projected.x,anchorY:projected.y,color:c.color,length:mesh.length*projected.scale,radius:Math.max(12,mesh.width*projected.scale*.6)});
@@ -581,11 +598,11 @@
           pts=[];for(let s=from;s<=to;s+=2){const p=root.DrivingPose?.sample(this.race,s)||this.race.sample(s);pts.push(point(p.x,p.y,p.elevation??p.z??0));}closed=false;
         }
         // One shared trajectory. No per-car lane shifts are introduced.
-        this._line((closed?[...pts,pts[0]]:pts).map(p=>point(p.x,p.y,p.z+.075)),camera,'rgba(215,233,133,.72)',this.mode==='follow'?1.35:1.05);
+        this._line((closed?[...pts,pts[0]]:pts).map(p=>point(p.x,p.y,this._displayHeight(p.z)+.075)),camera,'rgba(215,233,133,.72)',this.mode==='follow'?1.35:1.05);
       }
       // Cars are redrawn after the trajectory so the line never cuts across a roof.
       const visibleCars=[];
-      for(const c of this.race.cars){const p=root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance),v=this._project(point(p.x,p.y,(p.elevation||0)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
+      for(const c of this.race.cars){const p=this._displayPose(root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance)),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
       this._drawVehicles(visibleCars,camera);this._labels(car);
       if(this.mode!=='follow'&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
       this._compass(camera);this._caption();
@@ -636,11 +653,12 @@
       if(this.width>600){ctx.fillStyle='rgba(245,249,237,.91)';ctx.beginPath();ctx.roundRect(11,this.height-61,310,16,4);ctx.fill();ctx.fillStyle='#5e7554';ctx.font='9px system-ui,sans-serif';
       ctx.fillText(this.width<450?(this.interactionMode==='pan'?'드래그 이동 · 두 손가락 이동/확대':'드래그 회전 · 두 손가락 이동/확대'):(this.interactionMode==='pan'?'드래그 이동 · 휠 확대 · 중앙 버튼으로 복귀':'드래그 회전 · 우클릭/Shift+드래그 이동 · 휠 확대'),18,this.height-(this.width<450?82:50));
       }
-      if(this.mode==='eau-rouge'&&this.landmark){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('EAU ROUGE → RAIDILLON · 고도 1:1',18,76);}
+      if(this.mode==='eau-rouge'&&this.landmark){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('EAU ROUGE → RAIDILLON · 고저차 '+ELEVATION_EXAGGERATION+'배',18,76);}
       if(this.mode==='pits'){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('피트·서비스 구역 · 사진 참고 재구성',18,76);}
     }
   }
   CircuitRenderer.MODELS=Object.freeze(MODELS);
+  CircuitRenderer.ELEVATION_EXAGGERATION=ELEVATION_EXAGGERATION;
   root.CircuitRenderer=CircuitRenderer;
   if(typeof module!=='undefined'&&module.exports)module.exports=CircuitRenderer;
 })(typeof window!=='undefined'?window:globalThis);

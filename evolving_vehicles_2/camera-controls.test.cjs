@@ -14,7 +14,7 @@ function fixture() {
   };
   const renderer = new CircuitRenderer(canvas, { onSelect() { selections++; } });
   renderer.race = {
-    track: { bounds: { minX: -100, maxX: 400, minY: -250, maxY: 500, width: 500, height: 750 }, elevationMin: 30, elevationMax: 100 },
+    track: { points: [{x:0,y:0,z:30},{x:100,y:20,z:31},{x:0,y:40,z:30}], bounds: { minX: -100, maxX: 400, minY: -250, maxY: 500, width: 500, height: 750 }, elevationMin: 30, elevationMax: 100 },
     cars: [{ id: 0, distance: 0, spec: { lengthMm: 5000 } }],
     sample: distance => ({ x: distance, y: 20 + distance * .2, elevation: 40 + distance * .01, angle: Math.atan2(.2, 1) })
   };
@@ -105,7 +105,7 @@ test('follow camera retains world pan as its vehicle moves; view buttons recente
   r.race.cars[0].distance += 100;
   r.advanceCamera(0, { snap: true });
   const after = r._interactionCamera().target;
-  near(after.x - before.x, 100); near(after.y - before.y, 20); near(after.z - before.z, 1);
+  near(after.x - before.x, 100); near(after.y - before.y, 20); near(after.z - before.z, 1.75);
   assert.deepEqual(r.panOffset, offset);
   r.setView('overview'); assert.deepEqual(r.panOffset, { x: 0, y: 0, z: 0 }); near(r.zoomLevel, 1);
 });

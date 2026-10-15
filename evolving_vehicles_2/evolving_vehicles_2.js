@@ -89,8 +89,9 @@ function updateElevation(){
  $('elevation-distance').textContent='주행선 '+(t.length/1000).toFixed(3)+' km';
  if(t.elevationProfile){
   const link=document.createElement('a');link.href=t.elevationProfile.sourceUrl;link.target='_blank';link.rel='noopener';link.textContent='Spa 2026 공식 지도 · 거리별 고도';
-  $('elevation-note').replaceChildren(link,document.createTextNode(' · 18개 측점 사이를 보간했습니다. 오 루주 391 m → 라디용 415 m. 고도 배율 1:1이며 측점 사이 경사·노면 캠버는 추정입니다.'));
+  $('elevation-note').replaceChildren(link,document.createTextNode(' · 18개 측점 사이를 보간했습니다. 오 루주 391 m → 라디용 415 m. 측점 사이 경사·노면 캠버는 추정입니다.'));
  }else $('elevation-note').innerHTML='<a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM · Open-Meteo · 90 m 해상도</a> · 거리 기준 평활화. 실제 노면·교량 높이와 다를 수 있습니다.';
+ $('elevation-note').append(document.createTextNode(' 3D 고저차 '+CircuitRenderer.ELEVATION_EXAGGERATION+'배 · 고도·경사 수치와 주행 계산은 원래 고도 기준입니다.'));
 }
 function updateTuning(car){
  const p=car.entrant,spec=car.spec,key=p.uid+':'+generation+':'+JSON.stringify(p.levels);if(inspectorKey===key)return;inspectorKey=key;

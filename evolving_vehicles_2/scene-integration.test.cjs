@@ -12,6 +12,7 @@ const Pose = require('./driving-pose.js');
 const Renderer = require('./circuit-renderer.js');
 const Profile = require('./spa-elevation-profile.js');
 const close = (a,b,label,tolerance=1e-8) => assert.ok(Math.abs(a-b)<=tolerance, `${label}: ${a} != ${b}`);
+const displayHeight = (track,z) => (track.elevationMin||0)+(z-(track.elevationMin||0))*1.75;
 const races = new Map(circuits.map(c => [c.id,new Race({circuit:c,vehicleIds:['g80'],racingLine:true})]));
 
 function renderer(race=races.get('spa'),width=980,height=615) {
@@ -88,9 +89,9 @@ test('published profile keeps the start line and geographic projection aligned a
   assert.ok(r.landmark.high.centerS>r.landmark.low.centerS,'camera looks up the actual driving direction');
   assert.ok(r.landmark.low.centerS>890&&r.landmark.low.centerS<960);
   assert.ok(r.landmark.high.centerS>1130&&r.landmark.high.centerS<1180);
-  for(const p of [r.landmark.low,r.landmark.high])close(p.z,Profile.sample(p.centerS).elevation,'centreline chainage height',.02);
-  close(r.landmark.target.z,(r.landmark.low.z+r.landmark.high.z)/2,'unexaggerated target height');
-  assert.equal(r.getState().elevationExaggeration,1);assert.equal(r.getState().metresPerUnit,1);
+  for(const p of [r.landmark.low,r.landmark.high])close(p.z,displayHeight(track,Profile.sample(p.centerS).elevation),'displayed centreline chainage height',.035);
+  close(r.landmark.target.z,(r.landmark.low.z+r.landmark.high.z)/2,'target follows displayed landmark heights');
+  assert.equal(r.getState().elevationExaggeration,1.75);assert.equal(r.getState().metresPerUnit,1);
 });
 
 test('scenic desktop/mobile dragging, cursor zoom and repeated view reset preserve the world anchor',()=>{
@@ -116,11 +117,11 @@ test('switching from Spa scenic view to another circuit falls back to that race 
   assert.equal(r.mode,'follow');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
   assert.deepEqual(r.panOffset,{x:0,y:0,z:0});
   const car=r.race.cars[0],pose=Pose.sample(r.race,car.distance),target=r._interactionCamera().target;
-  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,pose.z+.8,'new circuit height');
+  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,displayHeight(r.race.track,pose.z)+.8,'new circuit height');
   r.setRace(races.get('spa'));r.setView('eau-rouge');assert.ok(r.landmark);assert.equal(r.getState().mode,'eau-rouge');
 });
 
-test('all real circuits share continuous car, camera and line coordinates without sinking below source path heights',()=>{
+test('all real circuits share continuous car, camera and line coordinates without sinking below displayed path heights',()=>{
   for(const [id,race]of races) {
     const r=renderer(race);r.setView('follow');let vehicles,line;
     r._background=r._paint=r._startLine=r._labels=r._compass=r._caption=()=>{};
@@ -129,25 +130,62 @@ test('all real circuits share continuous car, camera and line coordinates withou
     for(const fraction of [0,.137,.503,.923]) {
       const car=race.cars[0];car.distance=race.track.length*fraction;r.advanceCamera(0,{snap:true});r.render({showLine:true});
       const expected=Pose.sample(race,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
-      assert.deepEqual(entry.position,expected,id+' render pose');
+      assert.deepEqual(entry.position,{...expected,z:displayHeight(race.track,expected.z),elevation:displayHeight(race.track,expected.elevation),grade:expected.grade*1.75},id+' displayed render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
-      close(r._lastCamera.target.z,expected.z+.8,id+' camera height');
+      close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.8,id+' camera height');
       assert.equal(line.length,86);assert.notDeepEqual(line[0],line.at(-1),'close view does not join a whole-lap line over nearby grass');
       for(const index of [0,10,45,85]) {
         const sample=Pose.sample(race,car.distance-20+index*2);
         close(line[index].x,sample.x,id+' local line x');close(line[index].y,sample.y,id+' local line y');
-        close(line[index].z,sample.z+.075,id+' line surface clearance');
+        close(line[index].z,displayHeight(race.track,sample.z)+.075,id+' line surface clearance');
       }
     }
     // The vehicle render floor has a 55 mm clearance. Verify the display-only
-    // spline does not lower the centre of the body through its original path
+    // spline does not lower the centre of the body through the amplified path
     // height. This does not assert exact contact with every wide road polygon.
     for(let s=0;s<race.track.length;s+=2) {
-      const p=Pose.sample(race,s),road=race.sample(s).elevation;
-      assert.ok(p.z+.055>=road-1e-6,id+' centre floor below original road at '+s);
-      assert.ok(p.z+.055-road<.10,id+' excessive floor gap at '+s);
+      const p=Pose.sample(race,s),road=displayHeight(race.track,race.sample(s).elevation),height=displayHeight(race.track,p.z);
+      assert.ok(height+.055>=road-1e-6,id+' centre floor below displayed road at '+s);
+      assert.ok(height+.055-road<.10,id+' excessive floor gap at '+s);
     }
   }
+});
+
+test('terrain gain changes displayed relief while preserving source elevations, road width and physical samples',()=>{
+  const race=races.get('spa'),source=JSON.stringify(race.track),before=race.sample(1050),r=renderer(race);
+  assert.equal(Renderer.ELEVATION_EXAGGERATION,1.75);
+  assert.equal(r.race,race);assert.notEqual(r.displayTrack,race.track);
+  const heights=r.displayTrack.points.map(p=>p.z),original=race.track.points.map(p=>p.z);
+  close(Math.max(...heights)-Math.min(...heights),(Math.max(...original)-Math.min(...original))*1.75,'displayed relief');
+  for(const edge of r.roadEdges) {
+    close(edge.left.z,displayHeight(race.track,race.track.points[edge.index].z),'road surface height');
+    close(Math.hypot(edge.right.x-edge.left.x,edge.right.y-edge.left.y),race.track.width,'road width');
+  }
+  r.setRace(race);
+  close(r.displayTrack.points[0].z,displayHeight(race.track,race.track.points[0].z),'rebuild does not compound gain');
+  assert.equal(JSON.stringify(race.track),source,'source geometry and physics metadata remain unchanged');
+  assert.deepEqual(race.sample(1050),before,'physical height and grade remain unchanged');
+});
+
+test('vehicle bodies retain their dimensions on the amplified slope and in the isolated preview',()=>{
+  const race=races.get('spa'),r=renderer(race),p=r._displayPose(Pose.sample(race,1050)),faces=[];
+  const vertices=[{x:0,y:0,z:0},{x:4,y:0,z:0},{x:0,y:0,z:1.5}];
+  const mesh={length:4,width:2,height:1.5,manufacturer:{},faces:[{vertices,fill:'#fff'}]};
+  r._mesh=()=>mesh;r._queue=face=>faces.push(face);
+  const camera=r._createCamera({x:p.x,y:p.y,z:p.z},12,.5,.4,600,490,300);
+  r._carFaces(race.cars[0],p,camera,[]);
+  const [a,b,c]=faces.at(-1).vertices;
+  const distance=(u,v)=>Math.hypot(v.x-u.x,v.y-u.y,v.z-u.z);
+  close(distance(a,b),4,'body length');close(distance(a,c),1.5,'body height');
+  close((b.z-a.z)/Math.hypot(b.x-a.x,b.y-a.y),Pose.sample(race,1050).grade*1.75,'body follows amplified grade');
+  const surface=surfaceFixture();surface.renderer.render([{mesh,position:p,selected:true}],camera,980,615);
+  close(surface.uniforms.get('uCar')[2],p.z+.055,'WebGL anchor matches displayed road');
+  close(surface.uniforms.get('uPose')[1],Math.atan(p.grade),'WebGL pitch matches Canvas body');
+  for(const method of ['save','restore','stroke','clip'])r.ctx[method]=()=>{};
+  let preview;r._drawVehicles=(entries,view)=>{preview={entries,view};};r._inset(race.cars[0]);
+  assert.deepEqual(preview.entries[0].position,{x:0,y:0,elevation:0,angle:0,grade:0});
+  close(preview.view.target.z,mesh.height*.4,'isolated preview camera height');
+  assert.equal(preview.entries[0].mesh,mesh,'preview retains original body geometry');
 });
 
 test('near-plane clipping retains visible fragments and rejects wholly hidden faces at any camera orientation',()=>{
