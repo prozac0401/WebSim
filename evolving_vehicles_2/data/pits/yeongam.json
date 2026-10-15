@@ -1,0 +1,353 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "yeongam",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "kic-official-aerial",
+      "title": "KMG 2025 company introduction, page 33, KIC whole-track aerial",
+      "url": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "imageUrl": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "localEvidenceFile": "output/pit-references/kmg-belle-foret.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "Operator publication depicts two separate pit compounds: northern permanent-circuit garages and southern GP pit building. Page 33 opened and visually reviewed. Photograph capture date unspecified.",
+      "sha256": "0825a3e76bb22696727eedb314159d2607493b0434a6b3117acde79b91667499",
+      "publicationYear": 2025,
+      "rights": "© Korea Mobility Group; local reference only."
+    },
+    {
+      "id": "kic-osm",
+      "title": "OpenStreetMap KIC pit lanes and buildings",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=126.410,34.729,126.422,34.740",
+      "imageUrl": null,
+      "localEvidenceFile": "output/pit-references/kic-pits-osm.xml",
+      "reviewedDate": "2026-10-15",
+      "observation": "Northern permanent pit way 234768719/building 234773074 differs from southern GP pit way 234767156/building 236254488. Photo correspondence checked against operator aerial.",
+      "sha256": "4a0f74d4d74b0a7f45eb95802852faf7a0920241accbff921ae66bb8f89077fb",
+      "rights": "© OpenStreetMap contributors, ODbL-1.0"
+    },
+    {
+      "id": "kic-gp-aerial",
+      "title": "KIC official introduction: southern F1 pit complex",
+      "url": "https://koreacircuit.com/Introduce",
+      "imageUrl": "https://koreacircuit.com/main/images/contents/kic_bg_2.png",
+      "localEvidenceFile": "output/pit-references/kic-2.png",
+      "reviewedDate": "2026-10-15",
+      "observation": "Long flat silver-roofed GP garage block opposite the main grandstand, with smaller team buildings behind it. Pit lane lies between garages and main straight. Image date unspecified.",
+      "sha256": "fd4f6c596341553ba4f0c89d0a68ac38734d335786af00998bf4d10991829db6",
+      "rights": "© KIC; local reference only."
+    },
+    {
+      "id": "kic-gp-front",
+      "title": "KIC official introduction: pit exit and Korean-style footbridge",
+      "url": "https://koreacircuit.com/Introduce",
+      "imageUrl": "https://koreacircuit.com/main/images/contents/kic_bg_3.jpg",
+      "localEvidenceFile": "output/pit-references/kic-3.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Garage-front grey panels/glazing, low concrete pit separator and a blue outlined garage-front work box are visible near the footbridge end. The spanning footbridge is not a ground-level building.",
+      "sha256": "50d51c419d6b76558f35fc36190cf3a8e1ad8da0880dbe64d55bfdb8625868bf",
+      "rights": "© KIC; local reference only."
+    },
+    {
+      "id": "kic-gp-allocation",
+      "title": "KIC F1 Track Day 1, official April 2026 pit allocation",
+      "url": "https://www.koreacircuit.com/Notice/8/read/119",
+      "imageUrl": "https://www.koreacircuit.com/Notice/download/119/436",
+      "localEvidenceFile": "output/pit-references/kic-f1-pit.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "Official 2026 F1-track pit allocation confirms continued GP pit use. This event uses garages 3–5 and is not a total garage inventory.",
+      "sha256": "cff34278d8c37d07881bdfbf906c01f67fd4c5665074642f927b43448011e3c4",
+      "publicationDate": "2026-04-07",
+      "rights": "© KIC; local reference only."
+    }
+  ],
+  "metadata": {
+    "coverage": "Distinct photo-confirmed southern GP pit facility; geographic footprints matched against operator whole-circuit aerial.",
+    "reviewedDate": "2026-10-15",
+    "limitations": [
+      "Southern GP pit compound is separate from permanent circuit pits.",
+      "Only photo-confirmed main lane included: current modified exit around turns 1–2 is omitted.",
+      "Heights, uniform garage-count representation and one blue work-box footprint are visual estimates; no full painted box row invented.",
+      "Korean-style bridge crosses the live track and is omitted because this format describes grounded building footprints."
+    ],
+    "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "kic-gp-pit-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            347.246,
+            692.622
+          ],
+          [
+            363.669,
+            705.949
+          ],
+          [
+            372.381,
+            713.21
+          ],
+          [
+            379.643,
+            719.745
+          ],
+          [
+            387.63,
+            729.173
+          ],
+          [
+            394.864,
+            739.261
+          ],
+          [
+            432.365,
+            794.156
+          ],
+          [
+            436.358,
+            798.792
+          ],
+          [
+            441.077,
+            802.333
+          ],
+          [
+            446.255,
+            804.958
+          ],
+          [
+            451.515,
+            806.232
+          ],
+          [
+            596.774,
+            827.423
+          ],
+          [
+            610.067,
+            830.864
+          ],
+          [
+            957.502,
+            963.108
+          ],
+          [
+            980.893,
+            968.772
+          ],
+          [
+            1031.862,
+            987.238
+          ],
+          [
+            1034.845,
+            988.042
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "kic-osm",
+        "evidence": "Photo-confirmed southern entry and garage-front pit lane only. Ends before old/new exit divergence because current full exit geometry is not confirmed by the reviewed photograph.",
+        "width": 6,
+        "color": "#62686a",
+        "edgeMarkings": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              656.464,
+              886.273
+            ],
+            [
+              665.066,
+              863.484
+            ],
+            [
+              938.545,
+              967.599
+            ],
+            [
+              930.374,
+              989.058
+            ],
+            [
+              656.464,
+              886.273
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "kic-osm",
+        "evidence": "Mapped GP garage footprint matched to kic-gp-aerial and facade photo. Flat silver roof, light walls and glazing verified. Height 12 m, two storeys and 30 evenly spaced facade openings are visual approximations; total garage inventory is unverified.",
+        "height": 12,
+        "levels": 2,
+        "roofColor": "#bdc4c7",
+        "wallColor": "#c8c7bd",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.5,
+        "garageEdge": 1,
+        "garageCount": 30,
+        "doorColor": "#46545b"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-control",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              595.323,
+              861.708
+            ],
+            [
+              644.107,
+              880.296
+            ],
+            [
+              653.021,
+              856.904
+            ],
+            [
+              604.595,
+              838.695
+            ],
+            [
+              595.323,
+              861.708
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "kic-osm",
+        "evidence": "Distinct western-end GP control building visible in official aerial. Estimated 15 m envelope; no invented garage openings.",
+        "height": 15,
+        "levels": 3,
+        "roofColor": "#c4c8c5",
+        "wallColor": "#bbbcae",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "garageCount": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-work-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              665.066,
+              863.484
+            ],
+            [
+              938.545,
+              967.599
+            ],
+            [
+              941.391,
+              960.122
+            ],
+            [
+              667.912,
+              856.007
+            ],
+            [
+              665.066,
+              863.484
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "kic-gp-aerial",
+        "evidence": "Visible paved working apron between garage doors and travel lane. Approximate 8 m depth.",
+        "color": "#aeb1ad"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            670.403,
+            849.466
+          ],
+          [
+            943.882,
+            953.581
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "kic-gp-front",
+        "evidence": "Low concrete separator between main straight and pit travel lane. 0.9 m height and offset are estimated; does not represent the mesh fence as concrete.",
+        "height": 0.9,
+        "color": "#bcbdb7"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-observed-work-box",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              668.8042576941631,
+              864.9071758190859
+            ],
+            [
+              676.2807730824892,
+              867.7535274572576
+            ],
+            [
+              678.238,
+              862.613
+            ],
+            [
+              670.761,
+              859.767
+            ],
+            [
+              668.8042576941631,
+              864.9071758190859
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box",
+        "sourceId": "kic-gp-front",
+        "evidence": "Single blue garage-front box outline visible at the bridge end. Approximate footprint/placement; no extrapolated full row or bay numbering.",
+        "color": "#4b90b8"
+      }
+    }
+  ]
+}

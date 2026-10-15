@@ -231,13 +231,15 @@
       this.dpr=clamp(root.devicePixelRatio||1,1,2);this.canvas.width=Math.round(this.width*this.dpr);this.canvas.height=Math.round(this.height*this.dpr);
     }
     clearVehicleModels(){this.meshCache.clear();this.surfaceRenderer?.clearGeometry();}
-    setRace(race){if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();this.race=race;this._makeRoad();this.environment=root.TrackEnvironment?.build(race.track,race.track.id)||null;this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this.landmark=null;}
+    setRace(race){if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();this.race=race;this._makeRoad();this.pits=root.PitFacilities?.build(race.track,root.PitFacilityData?.[race.track.id])||null;this.environment=root.TrackEnvironment?.build(race.track,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this.landmark=null;}
     setView(mode){
-      if(!['overview','follow','top','eau-rouge'].includes(mode))return;
+      if(!['overview','follow','top','eau-rouge','pits'].includes(mode))return;
       if(mode==='eau-rouge'&&this.race?.track.id!=='spa')mode='follow';
+      if(mode==='pits'&&!this.pits?.focus)mode='overview';
       this.mode=mode;this.zoomLevel=1;this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._followState=null;
       if(mode==='top'){this.pitch=Math.PI/2-.008;this.yaw=0;}
       else if(mode==='overview'){this.pitch=.90;this.yaw=-.42;}
+      else if(mode==='pits'){this.pitch=.48;this.yaw=this.pits.focus.yaw;}
       else if(mode==='eau-rouge'){
         const projection=this.race.track.projection;
         const xy=(lon,lat)=>({x:((lon-projection.origin[0])*projection.metresPerDegree*Math.cos(projection.latitudeRad)-projection.offset.x)*projection.scale,y:(-(lat-projection.origin[1])*projection.metresPerDegree-projection.offset.y)*projection.scale});
@@ -293,7 +295,8 @@
       // could accidentally average across its return leg.
       const probes=[sample(car.distance-2*desired),sample(car.distance-desired),p,sample(car.distance+desired),sample(car.distance+2*desired)];
       const directions=probes.slice(1).map((q,i)=>Math.atan2(q.y-probes[i].y,q.x-probes[i].x));
-      const curvature=Math.max(...directions.slice(1).map((angle,i)=>Math.abs(wrap(angle-directions[i]))))/desired;
+      // A smooth norm avoids a kink when a different chord becomes dominant.
+      const curvature=Math.pow(directions.slice(1).reduce((sum,angle,i)=>sum+Math.pow(wrap(angle-directions[i]),4),0),.25)/desired;
       const sigma=desired/Math.sqrt(1+(desired*curvature/.55)**2),anticipation=Math.min(4,speed*.1)/Math.sqrt(1+(18*curvature)**2);
       // A Gaussian derivative of positions averages the whole local road
       // direction. Retaining any raw tangent here reintroduces the short
@@ -301,7 +304,8 @@
       // The window is centred near the car, with at most four metres of lead;
       // it smooths gentle bends without looking far around a hairpin.
       let dx=0,dy=0;
-      const samples=Math.max(6,Math.ceil(3*sigma/2));
+      // Fixed quadrature keeps the direction continuous as the window narrows.
+      const samples=24;
       for(let i=1;i<=samples;i++){
         const u=3*i/samples,weight=u*Math.exp(-.5*u*u),offset=u*sigma;
         const a=sample(car.distance+anticipation-offset),b=sample(car.distance+anticipation+offset);
@@ -385,16 +389,16 @@
       this.roadEdges=edges;this.datum=datum;
     }
     _makeContextGround(){
-      this.contextGround=[];if(!this.environment?.stats.features)return;
-      // A neutral, unclassified support surface connects observed patches.
-      // It is interpolated from road heights, not claimed as surveyed terrain
-      // or photographed grass/gravel. Known land cover is drawn above it.
-      const b=this.race.track.bounds,cell=clamp(Math.max(b.width,b.height)/64,24,55),margin=180;
+      this.contextGround=[];if(!this.race||!this.environment&&!this.pits)return;
+      // User-requested default grass fills unclassified ground. Its height and
+      // material are illustrative; photographed land cover is drawn above it.
+      const road=this.race.track.bounds,pit=this.pits?.bounds,b={minX:Math.min(road.minX,pit?.minX??road.minX),maxX:Math.max(road.maxX,pit?.maxX??road.maxX),minY:Math.min(road.minY,pit?.minY??road.minY),maxY:Math.max(road.maxY,pit?.maxY??road.maxY)};b.width=b.maxX-b.minX;b.height=b.maxY-b.minY;
+      const cell=clamp(Math.max(b.width,b.height)/64,24,55),margin=180,ground=this.environment?.groundHeight||this.pits.groundHeight;
       const nx=Math.ceil((b.width+2*margin)/cell),ny=Math.ceil((b.height+2*margin)/cell),vertices=[];
-      for(let j=0;j<=ny;j++){const row=[];for(let i=0;i<=nx;i++){const x=b.minX-margin+i*cell,y=b.minY-margin+j*cell;row.push(point(x,y,this.environment.groundHeight(x,y)-.22));}vertices.push(row);}
+      for(let j=0;j<=ny;j++){const row=[];for(let i=0;i<=nx;i++){const x=b.minX-margin+i*cell,y=b.minY-margin+j*cell;row.push(point(x,y,ground(x,y)-.22));}vertices.push(row);}
       for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
         const a=vertices[j][i],b=vertices[j][i+1],c=vertices[j+1][i+1],d=vertices[j+1][i];
-        for(const points of [[a,b,c],[a,c,d]])this.contextGround.push({vertices:points,fill:'#c3c4b8',stroke:'#c3c4b8',width:.7,center:{x:(a.x+c.x)/2,y:(a.y+c.y)/2}});
+        for(const points of [[a,b,c],[a,c,d]])this.contextGround.push({vertices:points,fill:'#829569',stroke:'#829569',width:.7,center:{x:(a.x+c.x)/2,y:(a.y+c.y)/2}});
       }
     }
     _camera(watch){
@@ -407,6 +411,7 @@
         distance=Math.max(6.6,((watch.spec?.lengthMm||4800)/1000)*1.72,((watch.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(190,this.width*.36)));yaw=p.heading+Math.PI/2+this.followYaw;
       }
       if(this.mode==='eau-rouge'&&this.landmark){target={...this.landmark.target};distance=this.landmark.distance;}
+      if(this.mode==='pits'&&this.pits?.focus){target={...this.pits.focus.target};distance=this.pits.focus.distance*Math.max(1,this.height/this.width*1.25);}
       target.x+=this.panOffset.x;target.y+=this.panOffset.y;target.z+=this.panOffset.z;
       return this._createCamera(target,distance/this.zoomLevel,yaw,this.pitch,f,this.width/2,this.height*(this.mode==='follow'?.64:.49));
     }
@@ -453,7 +458,21 @@
       for(const entry of [...entries].sort((a,b)=>Number(!!b.selected)-Number(!!a.selected))){
         if(!distinct.some(other=>Math.hypot(other.position.x-entry.position.x,other.position.y-entry.position.y)<.06&&Math.abs((other.position.angle||0)-(entry.position.angle||0))<.01))distinct.push(entry);
       }
-      entries=distinct;
+      const ghosts=distinct.filter(entry=>!entry.selected),watched=distinct.filter(entry=>entry.selected);
+      if(ghosts.length){
+        // Composite the whole depth-tested ghost layer once. Per-triangle alpha
+        // would make overlapping body panels nearly opaque and reveal interiors.
+        if(!this.ghostCanvas)this.ghostCanvas=(this.canvas.ownerDocument||root.document).createElement('canvas');
+        const layer=this.ghostCanvas,w=Math.round(this.width*this.dpr),h=Math.round(this.height*this.dpr);
+        if(layer.width!==w||layer.height!==h){layer.width=w;layer.height=h;}
+        const context=layer.getContext('2d'),main=this.ctx;
+        context.setTransform(1,0,0,1,0,0);context.clearRect(0,0,w,h);context.setTransform(this.dpr,0,0,this.dpr,0,0);
+        this.ctx=context;try{this._drawVehicleBatch(ghosts,camera);}finally{this.ctx=main;}
+        main.save();main.globalAlpha=.32;main.drawImage(layer,0,0,this.width,this.height);main.restore();
+      }
+      this._drawVehicleBatch(watched,camera);
+    }
+    _drawVehicleBatch(entries,camera){
       const tiny=[],detailed=[];
       for(const entry of entries){
         const p=entry.position,projected=this._project(point(p.x,p.y,p.elevation||0),camera);
@@ -503,11 +522,11 @@
     }
     _background(camera){
       const ctx=this.ctx,w=this.width,h=this.height;
-      ctx.fillStyle='#c4c8bd';ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#829569';ctx.fillRect(0,0,w,h);
       // Keep the blue sky above the camera's actual horizon when orbiting.
       const horizon=clamp(camera.cy-camera.f*Math.tan(camera.pitch),0,h);
       if(horizon>0){const sky=ctx.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5ea9e8');sky.addColorStop(.55,'#8ac6f0');sky.addColorStop(1,'#d9ecfa');ctx.fillStyle=sky;ctx.fillRect(0,0,w,horizon);}
-      if(this.environment?.stats.features)return;
+      if(this.contextGround?.length)return;
       const b=this.race.track.bounds,span=Math.max(b.width,b.height)*1.1,center=camera.target;
       const grid=this.mode==='follow'?10:Math.pow(10,Math.floor(Math.log10(Math.max(b.width,b.height)/7)));
       const range=this.mode==='follow'?Math.min(span,camera.distance*2):span;
@@ -526,7 +545,7 @@
         this._queue({vertices:[v(x,a),v(x+.65,a),v(x+.65,b),v(x,b)],fill:(i+j)%2?'#eef3eb':'#263632'},camera,queue);
       }
     }
-    render({watch=this.watch,mode=this.mode,showLine=true}={}){
+    render({watch=this.watch,mode=this.mode,showLine=false}={}){
       if(!this.race)return;
       if(mode!==this.mode)this.setView(mode);this.watch=watch;
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return;
@@ -536,6 +555,8 @@
       const scenery=this.environment?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
       for(const group of scenery)for(const face of group.faces){if(this.mode!=='follow'&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
       for(const face of this.roadFaces)this._queue(face,camera,queue);
+      const facilities=this.pits?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Infinity)||[];
+      for(const group of facilities)for(const face of group.faces)this._queue({...face,stroke:face.fill,width:.55},camera,queue);
       this._startLine(camera,queue);
       this.markerPositions=[];
       for(const c of this.race.cars){
@@ -545,7 +566,7 @@
         if(projected.x>-60&&projected.x<this.width+60&&projected.y>-60&&projected.y<this.height+60)this.markerPositions.push({id:c.id,x:projected.x,y:projected.y,anchorX:projected.x,anchorY:projected.y,color:c.color,length:mesh.length*projected.scale,radius:Math.max(12,mesh.width*projected.scale*.6)});
       }
       this._paint(queue);
-      if(showLine){
+      if(showLine&&this.mode!=='pits'){
         let pts=root.DrivingPose?root.DrivingPose.path(this.race):this.race.track.racingLine?.points||this.race.track.points;
         let closed=true;
         // A close camera must not paint a distant, hill-hidden part of the lap
@@ -562,7 +583,7 @@
       const visibleCars=[];
       for(const c of this.race.cars){const p=root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance),v=this._project(point(p.x,p.y,(p.elevation||0)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
       this._drawVehicles(visibleCars,camera);this._labels(car);
-      if(this.mode!=='follow'&&this.mode!=='eau-rouge')this._inset(car);
+      if(this.mode!=='follow'&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
       this._compass(camera);this._caption();
     }
     _labels(selected){
@@ -606,9 +627,10 @@
       ctx.fillStyle='#355d43';ctx.font='700 10px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('N',x+dx/length*21,y+dy/length*21+3);ctx.textAlign='left';
     }
     _caption(){
-      const ctx=this.ctx;ctx.fillStyle='rgba(245,249,237,.91)';ctx.beginPath();ctx.roundRect(11,this.height-61,this.width<450?222:310,16,4);ctx.fill();ctx.fillStyle='#5e7554';ctx.font=(this.width<450?'8':'9')+'px system-ui,sans-serif';
-      ctx.fillText(this.width<450?(this.interactionMode==='pan'?'드래그 이동 · 두 손가락 이동/확대':'드래그 회전 · 두 손가락 이동/확대'):(this.interactionMode==='pan'?'드래그 이동 · 휠 확대 · 중앙 버튼으로 복귀':'드래그 회전 · 우클릭/Shift+드래그 이동 · 휠 확대'),18,this.height-50);
+      const ctx=this.ctx;ctx.fillStyle='rgba(245,249,237,.91)';ctx.beginPath();ctx.roundRect(11,this.height-(this.width<450?93:61),this.width<450?222:310,16,4);ctx.fill();ctx.fillStyle='#5e7554';ctx.font=(this.width<450?'8':'9')+'px system-ui,sans-serif';
+      ctx.fillText(this.width<450?(this.interactionMode==='pan'?'드래그 이동 · 두 손가락 이동/확대':'드래그 회전 · 두 손가락 이동/확대'):(this.interactionMode==='pan'?'드래그 이동 · 휠 확대 · 중앙 버튼으로 복귀':'드래그 회전 · 우클릭/Shift+드래그 이동 · 휠 확대'),18,this.height-(this.width<450?82:50));
       if(this.mode==='eau-rouge'&&this.landmark){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('EAU ROUGE → RAIDILLON · 고도 1:1',18,76);}
+      if(this.mode==='pits'){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('피트·서비스 구역 · 사진 참고 재구성',18,76);}
     }
   }
   CircuitRenderer.MODELS=Object.freeze(MODELS);

@@ -1,0 +1,3041 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "spa",
+  "coordinateSystem": "wgs84",
+  "sources": [
+    {
+      "id": "spa-official-drone",
+      "title": "Circuit de Spa-Francorchamps – Formula 1 terrace drone photograph",
+      "url": "https://www.spa-francorchamps.be/en/directory/salles/224_terrasse-formule-1",
+      "imageUrl": "https://www.spa-francorchamps.be/assets/cache/add922cd-64aa-42e3-9c14-daf8b13e3f9b/900x600/dji-0055-mod-hd.jpg",
+      "localEvidenceFile": "output/pit-references/spa-f1-aerial.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "한 항공사진에서 F1·Endurance 두 건물, La Source 안쪽 연결 피트레인, 두 apron과 벽 위치를 직접 확인. 사진의 원근·표고차 때문에 픽셀 정합은 근사.",
+      "sha256": "9cc94170af6de8e14af9412e48564111dc3fc7bc86b5129f3602f0a4f7fb0c98",
+      "captureDate": "not stated unless specified below"
+    },
+    {
+      "id": "spa-official-access-2026",
+      "title": "Circuit de Spa-Francorchamps – official 2026 access plans",
+      "url": "https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf",
+      "imageUrl": "https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf",
+      "localEvidenceFile": "output/pit-references/spa-official-2026.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "p3에서 Pit Building F1 / Pit Building Endurance와 시작선·La Source·Eau Rouge 위치를 대조.",
+      "sha256": "b27ef259435a2b0cfbac40059aed18281ac9cd09e517488f96b2ca5d48049d68",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 3
+    },
+    {
+      "id": "spa-endurance-photo",
+      "title": "Circuit de Spa-Francorchamps – Endurance mezzanines",
+      "url": "https://www.spa-francorchamps.be/fr/directory/kamers/214_mezzanines-endurance",
+      "imageUrl": "https://www.spa-francorchamps.be/assets/cache/db733210-7baf-4641-b3d1-3a70fc3b6e12/p1010358-0.png",
+      "localEvidenceFile": "output/pit-references/spa-endurance-full.png",
+      "reviewedDate": "2026-10-15",
+      "observation": "적색 차고문·난간, 회색 기둥, 상부 유리와 일부 돌출 박공지붕을 직접 확인. 운영사는 10개 mezzanine을 설명하지만 이것을 차고 10개로 해석하지 않음.",
+      "sha256": "b87419df94b47d5d5347b80602f85c5de23966390d2edf2762ccac525dbf32ea",
+      "captureDate": "not stated unless specified below"
+    },
+    {
+      "id": "spa-endurance-plan",
+      "title": "RAC Spa event – Circuit Endurance boxes layout",
+      "url": "https://ser2025.racspa.be/docs/25StandEndurance-planescaliers.pdf",
+      "imageUrl": "https://ser2025.racspa.be/docs/25StandEndurance-planescaliers.pdf",
+      "localEvidenceFile": "output/pit-references/spa-endurance-plan.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "Circuit 명의 도면 p1–2의 1–46 차고·중간 Uniroyal tower·pitlane을 직접 확인. 도면의 작성연도는 명시되지 않아 2025 행사 보관 자료로만 날짜를 한정.",
+      "sha256": "d272c889d812e6a5f356c3137f08cc7fe26c20284d6ac0e934b9a81fc325279b",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 2
+    },
+    {
+      "id": "spa-fia-f1-pits",
+      "title": "FIA 2024 Spa event notes – F1 pit lane",
+      "url": "https://www.fia.com/sites/default/files/decision-document/2024%20Spa%20Francorchamps%20Event%20-%20F2%20Spa%20Event%20Notes.pdf",
+      "imageUrl": "https://www.fia.com/sites/default/files/decision-document/2024%20Spa%20Francorchamps%20Event%20-%20F2%20Spa%20Event%20Notes.pdf",
+      "localEvidenceFile": "output/pit-references/spa-fia-pitlane-2024.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "p10 F1 차고 01–42와 fast lane, p11 정비 위치 도면을 확인. 실제 팀/시즌별 배정은 미반영.",
+      "sha256": "f6f1e771825297d2a0f4a3643c20c2863c8188847ccdd53986b93c25cfd2c564",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 10
+    }
+  ],
+  "metadata": {
+    "coverage": "현재 F1 피트와 La Source–Eau Rouge 내리막 Endurance 피트를 각각 표시. F1 42개, Endurance 46개 차고 번호는 공식/행사 자료 근거.",
+    "limitations": "항공사진 촬영일 불명. 가파른 표고 차 때문에 단일 평면 homography 대신 사진 속 도로와 현재 centerline의 구간별 진행거리·측방 거리를 대응시킴. 중간 측점·지붕 시차·곡률의 약 10–30m 위치 오차 가능. 실제 차고 폭·계단·운영 분기·시즌별 도색은 단순화.",
+    "placementMethod": "공식 사진·배치도의 수작업 판독을 현재 centerline/projection에 정합. 측량·지적도 데이터가 아님.",
+    "verticalGeometry": "건물 높이·지붕 상승량·정비칸 깊이는 사진 추정. 지면 고도는 현재 서킷 고도 모델에서 파생.",
+    "raceOperations": "풍경용 시설 데이터. 대회별 차고 배정, 실제 피트 속도선, 진입 허가 및 레이스의 피트 전략을 정의하지 않음.",
+    "reviewedDate": "2026-10-15",
+    "approximateHorizontalUncertaintyM": 30,
+    "focusFeatureId": "spa-f1-building",
+    "photoRegistration": {
+      "imageWidth": 900,
+      "imageHeight": 600,
+      "roadControls": [
+        {
+          "centerS": -350,
+          "pixel": [
+            754,
+            533
+          ]
+        },
+        {
+          "centerS": -320,
+          "pixel": [
+            713,
+            500
+          ]
+        },
+        {
+          "centerS": -300,
+          "pixel": [
+            716,
+            463
+          ]
+        },
+        {
+          "centerS": 0,
+          "pixel": [
+            350,
+            483
+          ]
+        },
+        {
+          "centerS": 200,
+          "pixel": [
+            76,
+            489
+          ]
+        },
+        {
+          "centerS": 240,
+          "pixel": [
+            41,
+            476
+          ]
+        },
+        {
+          "centerS": 300,
+          "pixel": [
+            93,
+            405
+          ]
+        },
+        {
+          "centerS": 400,
+          "pixel": [
+            205,
+            322
+          ]
+        },
+        {
+          "centerS": 500,
+          "pixel": [
+            316,
+            264
+          ]
+        },
+        {
+          "centerS": 600,
+          "pixel": [
+            430,
+            231
+          ]
+        },
+        {
+          "centerS": 700,
+          "pixel": [
+            548,
+            206
+          ]
+        },
+        {
+          "centerS": 800,
+          "pixel": [
+            661,
+            180
+          ]
+        },
+        {
+          "centerS": 900,
+          "pixel": [
+            760,
+            149
+          ]
+        },
+        {
+          "centerS": 920,
+          "pixel": [
+            775,
+            141
+          ]
+        },
+        {
+          "centerS": 1000,
+          "pixel": [
+            885,
+            120
+          ]
+        }
+      ],
+      "method": "piecewise road-relative manual photo tracing; intermediate station positions estimated; not photogrammetric survey"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "spa-f1-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.96732892,
+            50.44200388
+          ],
+          [
+            5.96696262,
+            50.44238579
+          ],
+          [
+            5.96636291,
+            50.44303857
+          ],
+          [
+            5.96577175,
+            50.44369967
+          ],
+          [
+            5.96521519,
+            50.44432204
+          ],
+          [
+            5.96465678,
+            50.44494362
+          ],
+          [
+            5.96420311,
+            50.44544858
+          ],
+          [
+            5.96416282,
+            50.44552679
+          ],
+          [
+            5.96419411,
+            50.44558228
+          ],
+          [
+            5.96428185,
+            50.44561722
+          ],
+          [
+            5.96441091,
+            50.44563378
+          ],
+          [
+            5.96456615,
+            50.44563416
+          ],
+          [
+            5.96473242,
+            50.44562052
+          ],
+          [
+            5.9648946,
+            50.44559505
+          ],
+          [
+            5.96503753,
+            50.44555994
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "spa-official-drone",
+        "evidence": "공식 항공사진의 F1 fast lane과 La Source 안쪽 우회 출구. 가려진 지면은 FIA 정비구역 관계로 보완: 중심 측방 16m, 폭 6m는 추정. 출구 곡선은 사진 형태를 따른 보간이며 운영용 경로가 아님.",
+        "photoTracePixels": [
+          [
+            712,
+            441
+          ],
+          [
+            670,
+            449
+          ],
+          [
+            560,
+            459
+          ],
+          [
+            400,
+            466
+          ],
+          [
+            204,
+            467
+          ],
+          [
+            149,
+            466
+          ],
+          [
+            132,
+            459
+          ],
+          [
+            130,
+            440
+          ],
+          [
+            143,
+            419
+          ],
+          [
+            184,
+            381
+          ],
+          [
+            220,
+            351
+          ]
+        ],
+        "width": 6,
+        "color": "#575e60",
+        "edgeMarkings": true,
+        "markingColor": "#e6e6df",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96639954,
+              50.44305186
+            ],
+            [
+              5.96626045,
+              50.44320742
+            ],
+            [
+              5.96612135,
+              50.44336297
+            ],
+            [
+              5.96598225,
+              50.44351852
+            ],
+            [
+              5.96584316,
+              50.44367407
+            ],
+            [
+              5.96570406,
+              50.44382962
+            ],
+            [
+              5.96556497,
+              50.44398518
+            ],
+            [
+              5.96542587,
+              50.44414073
+            ],
+            [
+              5.96528675,
+              50.4442963
+            ],
+            [
+              5.96514704,
+              50.444452
+            ],
+            [
+              5.96500745,
+              50.44460737
+            ],
+            [
+              5.96486786,
+              50.44476274
+            ],
+            [
+              5.96472827,
+              50.44491811
+            ],
+            [
+              5.96458868,
+              50.44507348
+            ],
+            [
+              5.96444909,
+              50.44522886
+            ],
+            [
+              5.96455886,
+              50.44526887
+            ],
+            [
+              5.96469845,
+              50.44511349
+            ],
+            [
+              5.96483804,
+              50.44495812
+            ],
+            [
+              5.96497763,
+              50.44480275
+            ],
+            [
+              5.96511722,
+              50.44464738
+            ],
+            [
+              5.96525681,
+              50.44449201
+            ],
+            [
+              5.96539664,
+              50.44433619
+            ],
+            [
+              5.96553577,
+              50.4441806
+            ],
+            [
+              5.96567486,
+              50.44402504
+            ],
+            [
+              5.96581396,
+              50.44386949
+            ],
+            [
+              5.96595305,
+              50.44371394
+            ],
+            [
+              5.96609215,
+              50.44355839
+            ],
+            [
+              5.96623125,
+              50.44340284
+            ],
+            [
+              5.96637034,
+              50.44324729
+            ],
+            [
+              5.96650944,
+              50.44309173
+            ],
+            [
+              5.96639954,
+              50.44305186
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "spa-official-drone",
+        "evidence": "항공사진의 F1 차고 앞 apron. 지붕에 가려진 경계는 FIA 정비구역 도면과 함께 판독하여 본선 중심의 안쪽 19–28m로 근사. 측량값 아님.",
+        "photoTracePixels": [
+          [
+            198,
+            462
+          ],
+          [
+            559,
+            454
+          ],
+          [
+            559,
+            446
+          ],
+          [
+            199,
+            454
+          ]
+        ],
+        "color": "#8b9190",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96650944,
+              50.44309173
+            ],
+            [
+              5.96623125,
+              50.44340284
+            ],
+            [
+              5.96653651,
+              50.44351358
+            ],
+            [
+              5.9668147,
+              50.44320248
+            ],
+            [
+              5.96650944,
+              50.44309173
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 42개 차고를 7개 연결 구간으로 분할한 첫 부분. 사진의 반복 지붕 구획과 경사 지면을 단순화하며 정확한 구조 이음/단차 수를 주장하지 않음. 각6개 문, 높이9.4m 추정.",
+        "photoTracePixels": [
+          [
+            557,
+            446
+          ],
+          [
+            200,
+            455
+          ],
+          [
+            199,
+            427
+          ],
+          [
+            556,
+            415
+          ]
+        ],
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.9668294,
+            50.44243883
+          ],
+          [
+            5.96598889,
+            50.44336642
+          ],
+          [
+            5.96515419,
+            50.44429984
+          ],
+          [
+            5.96414213,
+            50.44542635
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "spa-official-drone",
+        "evidence": "본선과 F1 fast lane 사이 벽. 항공사진 지붕 시차에 영향을 받는 위치는 도로와 피트 사이로 정합하여 본선 중심 안쪽 약11m로 근사. 높이1.15m 추정.",
+        "photoTracePixels": [
+          [
+            154,
+            477
+          ],
+          [
+            310,
+            476
+          ],
+          [
+            474,
+            471
+          ],
+          [
+            604,
+            463
+          ],
+          [
+            692,
+            456
+          ]
+        ],
+        "height": 1.15,
+        "width": 0.35,
+        "color": "#a7aaa5",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-box-row",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.96638919,
+            50.44309961
+          ],
+          [
+            5.96450838,
+            50.4451989
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "spa-fia-f1-pits",
+        "evidence": "공식 정비 위치 도면을 바탕으로 apron 안에 정비칸 표시. 14칸은 42개 차고를 3개씩 묶은 시각화이며 실제 대회 배정이 아님.",
+        "photoTracePixels": [
+          [
+            549,
+            457
+          ],
+          [
+            208,
+            465
+          ]
+        ],
+        "bayCount": 14,
+        "depth": 7,
+        "side": "right",
+        "color": "#e6dfc8",
+        "complex": "f1",
+        "estimatedBayCount": true,
+        "relatedSourceIds": [
+          "spa-official-drone"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96623125,
+              50.44340284
+            ],
+            [
+              5.96595305,
+              50.44371394
+            ],
+            [
+              5.96625832,
+              50.44382469
+            ],
+            [
+              5.96653651,
+              50.44351358
+            ],
+            [
+              5.96623125,
+              50.44340284
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96595305,
+              50.44371394
+            ],
+            [
+              5.96567486,
+              50.44402504
+            ],
+            [
+              5.96598013,
+              50.44413579
+            ],
+            [
+              5.96625832,
+              50.44382469
+            ],
+            [
+              5.96595305,
+              50.44371394
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96567486,
+              50.44402504
+            ],
+            [
+              5.96539664,
+              50.44433619
+            ],
+            [
+              5.96570187,
+              50.44444697
+            ],
+            [
+              5.96598013,
+              50.44413579
+            ],
+            [
+              5.96567486,
+              50.44402504
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96539664,
+              50.44433619
+            ],
+            [
+              5.96511722,
+              50.44464738
+            ],
+            [
+              5.96542213,
+              50.44475852
+            ],
+            [
+              5.96570187,
+              50.44444697
+            ],
+            [
+              5.96539664,
+              50.44433619
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96511722,
+              50.44464738
+            ],
+            [
+              5.96483804,
+              50.44495812
+            ],
+            [
+              5.96514295,
+              50.44506926
+            ],
+            [
+              5.96542213,
+              50.44475852
+            ],
+            [
+              5.96511722,
+              50.44464738
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-f1-building-7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96483804,
+              50.44495812
+            ],
+            [
+              5.96455886,
+              50.44526887
+            ],
+            [
+              5.96486377,
+              50.44538001
+            ],
+            [
+              5.96514295,
+              50.44506926
+            ],
+            [
+              5.96483804,
+              50.44495812
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "F1 총42개 차고를 사진의 반복 지붕 인상에 맞춘 7개 연결 구간으로 표현. 경사 지면을 위한 시각화 분할이며 측량된 단차가 아님. 각6개 문·높이9.4m 추정.",
+        "height": 9.4,
+        "levels": 2,
+        "roofColor": "#dce1e1",
+        "wallColor": "#b4bdc0",
+        "glassColor": "#3f5966",
+        "doorColor": "#39454c",
+        "garageEdge": 0,
+        "garageCount": 6,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.2,
+        "complex": "f1",
+        "relatedSourceIds": [
+          "spa-fia-f1-pits"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.96503753,
+            50.44555994
+          ],
+          [
+            5.9656383,
+            50.44540557
+          ],
+          [
+            5.96613278,
+            50.44522092
+          ],
+          [
+            5.96682245,
+            50.44479927
+          ],
+          [
+            5.96755408,
+            50.44435041
+          ],
+          [
+            5.96817494,
+            50.44390794
+          ],
+          [
+            5.96880908,
+            50.44343875
+          ],
+          [
+            5.96934595,
+            50.44298118
+          ],
+          [
+            5.96972193,
+            50.44269769
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "spa-official-drone",
+        "evidence": "La Source 이후 Eau Rouge 방향 Endurance fast lane. 사진의 별도 레인과 적색/백색 경계가 기준. 폭 6m 추정.",
+        "photoTracePixels": [
+          [
+            203,
+            365
+          ],
+          [
+            248,
+            327
+          ],
+          [
+            294,
+            301
+          ],
+          [
+            370,
+            280
+          ],
+          [
+            455,
+            257
+          ],
+          [
+            534,
+            238
+          ],
+          [
+            613,
+            218
+          ],
+          [
+            685,
+            201
+          ],
+          [
+            726,
+            188
+          ]
+        ],
+        "width": 6,
+        "color": "#777b79",
+        "edgeMarkings": true,
+        "markingColor": "#e8e5dd",
+        "complex": "endurance"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96560161,
+              50.44537499
+            ],
+            [
+              5.96608762,
+              50.44519865
+            ],
+            [
+              5.96677011,
+              50.44476775
+            ],
+            [
+              5.96749971,
+              50.44432145
+            ],
+            [
+              5.96811871,
+              50.44388047
+            ],
+            [
+              5.96873902,
+              50.44340732
+            ],
+            [
+              5.96926152,
+              50.44293076
+            ],
+            [
+              5.96913957,
+              50.4428704
+            ],
+            [
+              5.96861498,
+              50.44335835
+            ],
+            [
+              5.96800077,
+              50.44383209
+            ],
+            [
+              5.96738504,
+              50.44426994
+            ],
+            [
+              5.9666983,
+              50.44470063
+            ],
+            [
+              5.96600215,
+              50.44513165
+            ],
+            [
+              5.96556086,
+              50.44529294
+            ],
+            [
+              5.96560161,
+              50.44537499
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "spa-official-drone",
+        "evidence": "Endurance 차고 앞 작업 영역의 좁고 굽은 apron. 양 끝 비정비 구역은 생략.",
+        "photoTracePixels": [
+          [
+            250,
+            332
+          ],
+          [
+            295,
+            306
+          ],
+          [
+            371,
+            286
+          ],
+          [
+            456,
+            263
+          ],
+          [
+            535,
+            244
+          ],
+          [
+            614,
+            225
+          ],
+          [
+            688,
+            209
+          ],
+          [
+            691,
+            220
+          ],
+          [
+            615,
+            237
+          ],
+          [
+            536,
+            256
+          ],
+          [
+            457,
+            275
+          ],
+          [
+            375,
+            296
+          ],
+          [
+            300,
+            317
+          ],
+          [
+            258,
+            341
+          ]
+        ],
+        "color": "#92928b",
+        "complex": "endurance"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96591694,
+              50.44518938
+            ],
+            [
+              5.96602638,
+              50.4451094
+            ],
+            [
+              5.96592448,
+              50.44505877
+            ],
+            [
+              5.96582523,
+              50.44513581
+            ],
+            [
+              5.96591694,
+              50.44518938
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            287.0,
+            321.0
+          ],
+          [
+            303.7391304347826,
+            316.4347826086956
+          ],
+          [
+            306.04347826086956,
+            327.7391304347826
+          ],
+          [
+            289.0,
+            332.0
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96602638,
+              50.4451094
+            ],
+            [
+              5.96615069,
+              50.44501776
+            ],
+            [
+              5.96604628,
+              50.44496478
+            ],
+            [
+              5.96592448,
+              50.44505877
+            ],
+            [
+              5.96602638,
+              50.4451094
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            303.7391304347826,
+            316.4347826086956
+          ],
+          [
+            320.47826086956525,
+            311.8695652173913
+          ],
+          [
+            323.0869565217391,
+            323.47826086956525
+          ],
+          [
+            306.04347826086956,
+            327.7391304347826
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96615069,
+              50.44501776
+            ],
+            [
+              5.96635658,
+              50.44487062
+            ],
+            [
+              5.96626532,
+              50.44479867
+            ],
+            [
+              5.96604628,
+              50.44496478
+            ],
+            [
+              5.96615069,
+              50.44501776
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            320.47826086956525,
+            311.8695652173913
+          ],
+          [
+            337.2173913043478,
+            307.30434782608694
+          ],
+          [
+            340.1304347826087,
+            319.2173913043478
+          ],
+          [
+            323.0869565217391,
+            323.47826086956525
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96635658,
+              50.44487062
+            ],
+            [
+              5.96650242,
+              50.44479561
+            ],
+            [
+              5.96640704,
+              50.44472483
+            ],
+            [
+              5.96626532,
+              50.44479867
+            ],
+            [
+              5.96635658,
+              50.44487062
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            337.2173913043478,
+            307.30434782608694
+          ],
+          [
+            354.17391304347825,
+            302.95652173913044
+          ],
+          [
+            357.1739130434783,
+            314.95652173913044
+          ],
+          [
+            340.1304347826087,
+            319.2173913043478
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96650242,
+              50.44479561
+            ],
+            [
+              5.96664682,
+              50.44471295
+            ],
+            [
+              5.96654875,
+              50.44464366
+            ],
+            [
+              5.96640704,
+              50.44472483
+            ],
+            [
+              5.96650242,
+              50.44479561
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            354.17391304347825,
+            302.95652173913044
+          ],
+          [
+            371.21739130434787,
+            298.695652173913
+          ],
+          [
+            374.21739130434787,
+            310.69565217391306
+          ],
+          [
+            357.1739130434783,
+            314.95652173913044
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96664682,
+              50.44471295
+            ],
+            [
+              5.96680131,
+              50.44462423
+            ],
+            [
+              5.96670324,
+              50.44455495
+            ],
+            [
+              5.96654875,
+              50.44464366
+            ],
+            [
+              5.96664682,
+              50.44471295
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            371.21739130434787,
+            298.695652173913
+          ],
+          [
+            388.2608695652174,
+            294.4347826086956
+          ],
+          [
+            391.26086956521743,
+            306.4347826086956
+          ],
+          [
+            374.21739130434787,
+            310.69565217391306
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96680131,
+              50.44462423
+            ],
+            [
+              5.96695283,
+              50.44453707
+            ],
+            [
+              5.96685404,
+              50.44446817
+            ],
+            [
+              5.96670324,
+              50.44455495
+            ],
+            [
+              5.96680131,
+              50.44462423
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            388.2608695652174,
+            294.4347826086956
+          ],
+          [
+            405.30434782608694,
+            290.17391304347825
+          ],
+          [
+            408.304347826087,
+            302.17391304347825
+          ],
+          [
+            391.26086956521743,
+            306.4347826086956
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "pitched",
+        "roofRise": 1.0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-8",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96695283,
+              50.44453707
+            ],
+            [
+              5.96704719,
+              50.4444738
+            ],
+            [
+              5.96693631,
+              50.44441289
+            ],
+            [
+              5.96685404,
+              50.44446817
+            ],
+            [
+              5.96695283,
+              50.44453707
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            405.30434782608694,
+            290.17391304347825
+          ],
+          [
+            422.3478260869565,
+            285.9130434782609
+          ],
+          [
+            425.3478260869565,
+            297.9130434782609
+          ],
+          [
+            408.304347826087,
+            302.17391304347825
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-9",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96704719,
+              50.4444738
+            ],
+            [
+              5.96717951,
+              50.44437469
+            ],
+            [
+              5.967068,
+              50.4443142
+            ],
+            [
+              5.96693631,
+              50.44441289
+            ],
+            [
+              5.96704719,
+              50.4444738
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            422.3478260869565,
+            285.9130434782609
+          ],
+          [
+            439.3913043478261,
+            281.6521739130435
+          ],
+          [
+            442.3913043478261,
+            293.6521739130435
+          ],
+          [
+            425.3478260869565,
+            297.9130434782609
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-10",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96717951,
+              50.44437469
+            ],
+            [
+              5.96735837,
+              50.44426445
+            ],
+            [
+              5.96725553,
+              50.44420016
+            ],
+            [
+              5.967068,
+              50.4443142
+            ],
+            [
+              5.96717951,
+              50.44437469
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            439.3913043478261,
+            281.6521739130435
+          ],
+          [
+            456.4782608695652,
+            277.3478260869565
+          ],
+          [
+            459.4782608695652,
+            289.34782608695656
+          ],
+          [
+            442.3913043478261,
+            293.6521739130435
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-11",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96735837,
+              50.44426445
+            ],
+            [
+              5.96748863,
+              50.44418028
+            ],
+            [
+              5.96738183,
+              50.44411865
+            ],
+            [
+              5.96725553,
+              50.44420016
+            ],
+            [
+              5.96735837,
+              50.44426445
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            456.4782608695652,
+            277.3478260869565
+          ],
+          [
+            473.82608695652175,
+            272.7826086956522
+          ],
+          [
+            476.82608695652175,
+            284.7826086956522
+          ],
+          [
+            459.4782608695652,
+            289.34782608695656
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-12",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96748863,
+              50.44418028
+            ],
+            [
+              5.96762977,
+              50.44408313
+            ],
+            [
+              5.96752278,
+              50.44402164
+            ],
+            [
+              5.96738183,
+              50.44411865
+            ],
+            [
+              5.96748863,
+              50.44418028
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            473.82608695652175,
+            272.7826086956522
+          ],
+          [
+            491.17391304347825,
+            268.2173913043478
+          ],
+          [
+            494.17391304347825,
+            280.21739130434787
+          ],
+          [
+            476.82608695652175,
+            284.7826086956522
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-13",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96762977,
+              50.44408313
+            ],
+            [
+              5.96777167,
+              50.44398541
+            ],
+            [
+              5.96766468,
+              50.44392392
+            ],
+            [
+              5.96752278,
+              50.44402164
+            ],
+            [
+              5.96762977,
+              50.44408313
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            491.17391304347825,
+            268.2173913043478
+          ],
+          [
+            508.52173913043475,
+            263.6521739130435
+          ],
+          [
+            511.52173913043475,
+            275.6521739130435
+          ],
+          [
+            494.17391304347825,
+            280.21739130434787
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-14",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96777167,
+              50.44398541
+            ],
+            [
+              5.96791089,
+              50.44388678
+            ],
+            [
+              5.9678039,
+              50.44382529
+            ],
+            [
+              5.96766468,
+              50.44392392
+            ],
+            [
+              5.96777167,
+              50.44398541
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            508.52173913043475,
+            263.6521739130435
+          ],
+          [
+            525.8695652173913,
+            259.3478260869565
+          ],
+          [
+            528.8695652173913,
+            271.3478260869565
+          ],
+          [
+            511.52173913043475,
+            275.6521739130435
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-15",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96791089,
+              50.44388678
+            ],
+            [
+              5.96804967,
+              50.44378799
+            ],
+            [
+              5.96794268,
+              50.4437265
+            ],
+            [
+              5.9678039,
+              50.44382529
+            ],
+            [
+              5.96791089,
+              50.44388678
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            525.8695652173913,
+            259.3478260869565
+          ],
+          [
+            543.2173913043479,
+            255.08695652173913
+          ],
+          [
+            546.2173913043478,
+            267.0869565217391
+          ],
+          [
+            528.8695652173913,
+            271.3478260869565
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-16",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96804967,
+              50.44378799
+            ],
+            [
+              5.96816595,
+              50.44368416
+            ],
+            [
+              5.96805292,
+              50.44362144
+            ],
+            [
+              5.96794268,
+              50.4437265
+            ],
+            [
+              5.96804967,
+              50.44378799
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            543.2173913043479,
+            255.08695652173913
+          ],
+          [
+            560.5652173913044,
+            250.82608695652175
+          ],
+          [
+            563.5652173913044,
+            262.82608695652175
+          ],
+          [
+            546.2173913043478,
+            267.0869565217391
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-17",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96816595,
+              50.44368416
+            ],
+            [
+              5.96830464,
+              50.4435804
+            ],
+            [
+              5.96819162,
+              50.44351768
+            ],
+            [
+              5.96805292,
+              50.44362144
+            ],
+            [
+              5.96816595,
+              50.44368416
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            560.5652173913044,
+            250.82608695652175
+          ],
+          [
+            577.7391304347826,
+            246.7391304347826
+          ],
+          [
+            580.7391304347826,
+            258.7391304347826
+          ],
+          [
+            563.5652173913044,
+            262.82608695652175
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-18",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96830464,
+              50.4435804
+            ],
+            [
+              5.96844121,
+              50.44347708
+            ],
+            [
+              5.96832819,
+              50.44341436
+            ],
+            [
+              5.96819162,
+              50.44351768
+            ],
+            [
+              5.96830464,
+              50.4435804
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            577.7391304347826,
+            246.7391304347826
+          ],
+          [
+            594.7826086956522,
+            242.7826086956522
+          ],
+          [
+            597.7826086956522,
+            254.78260869565216
+          ],
+          [
+            580.7391304347826,
+            258.7391304347826
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-19",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96844121,
+              50.44347708
+            ],
+            [
+              5.96857779,
+              50.44337377
+            ],
+            [
+              5.96846476,
+              50.44331104
+            ],
+            [
+              5.96832819,
+              50.44341436
+            ],
+            [
+              5.96844121,
+              50.44347708
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            594.7826086956522,
+            242.7826086956522
+          ],
+          [
+            611.8260869565217,
+            238.82608695652175
+          ],
+          [
+            614.8260869565217,
+            250.82608695652175
+          ],
+          [
+            597.7826086956522,
+            254.78260869565216
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-20",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96857779,
+              50.44337377
+            ],
+            [
+              5.96871673,
+              50.44326896
+            ],
+            [
+              5.96860419,
+              50.44320564
+            ],
+            [
+              5.96846476,
+              50.44331104
+            ],
+            [
+              5.96857779,
+              50.44337377
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            611.8260869565217,
+            238.82608695652175
+          ],
+          [
+            629.1304347826087,
+            234.7826086956522
+          ],
+          [
+            632.2173913043479,
+            246.7826086956522
+          ],
+          [
+            614.8260869565217,
+            250.82608695652175
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-21",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96871673,
+              50.44326896
+            ],
+            [
+              5.96886162,
+              50.44316043
+            ],
+            [
+              5.96875075,
+              50.44309502
+            ],
+            [
+              5.96860419,
+              50.44320564
+            ],
+            [
+              5.96871673,
+              50.44326896
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            629.1304347826087,
+            234.7826086956522
+          ],
+          [
+            647.0869565217391,
+            230.5217391304348
+          ],
+          [
+            650.4782608695652,
+            242.52173913043478
+          ],
+          [
+            632.2173913043479,
+            246.7826086956522
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-22",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96886162,
+              50.44316043
+            ],
+            [
+              5.9690065,
+              50.4430519
+            ],
+            [
+              5.96889731,
+              50.4429844
+            ],
+            [
+              5.96875075,
+              50.44309502
+            ],
+            [
+              5.96886162,
+              50.44316043
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            647.0869565217391,
+            230.5217391304348
+          ],
+          [
+            665.0434782608695,
+            226.26086956521738
+          ],
+          [
+            668.7391304347826,
+            238.26086956521738
+          ],
+          [
+            650.4782608695652,
+            242.52173913043478
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-garages-23",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.9690065,
+              50.4430519
+            ],
+            [
+              5.96907291,
+              50.44292749
+            ],
+            [
+              5.96894367,
+              50.44285584
+            ],
+            [
+              5.96889731,
+              50.4429844
+            ],
+            [
+              5.9690065,
+              50.4430519
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-official-drone",
+        "evidence": "내리막 차고 행의 사진 굴곡과 경사 지면을 2차고씩 짧은 연결 구간으로 단순화. 총46개 번호는 Circuit/RAC 도면 근거. 실제 건물 분할 경계·6.2m 높이·지붕 단차는 추정.",
+        "photoTracePixels": [
+          [
+            665.0434782608695,
+            226.26086956521738
+          ],
+          [
+            683.0,
+            222.0
+          ],
+          [
+            687.0,
+            234.0
+          ],
+          [
+            668.7391304347826,
+            238.26086956521738
+          ]
+        ],
+        "height": 6.2,
+        "levels": 2,
+        "roofColor": "#b8bec0",
+        "wallColor": "#bab5aa",
+        "doorColor": "#a14b44",
+        "glassColor": "#547176",
+        "garageEdge": 0,
+        "garageCount": 2,
+        "roofStyle": "flat",
+        "roofRise": 0,
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-endurance-plan"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-control-tower",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.96750764,
+              50.44404319
+            ],
+            [
+              5.9676692,
+              50.44391302
+            ],
+            [
+              5.96755872,
+              50.44380832
+            ],
+            [
+              5.96739783,
+              50.44392191
+            ],
+            [
+              5.96750764,
+              50.44404319
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "spa-endurance-plan",
+        "evidence": "Endurance 도면의 중간 Uniroyal 관제탑과 공식 현장사진의 높은 유리 탑을 단순화. 위치·12.5m 높이·3층은 추정.",
+        "photoTracePixels": [
+          [
+            491,
+            280
+          ],
+          [
+            513,
+            276
+          ],
+          [
+            521,
+            291
+          ],
+          [
+            501,
+            296
+          ]
+        ],
+        "height": 12.5,
+        "levels": 3,
+        "roofColor": "#9ca9ac",
+        "wallColor": "#d1cdc1",
+        "glassColor": "#5d858e",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "complex": "endurance",
+        "relatedSourceIds": [
+          "spa-endurance-photo",
+          "spa-official-drone"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.96555096,
+            50.44548664
+          ],
+          [
+            5.96625128,
+            50.4452274
+          ],
+          [
+            5.96697678,
+            50.44480177
+          ],
+          [
+            5.96768465,
+            50.44436821
+          ],
+          [
+            5.96830449,
+            50.44392664
+          ],
+          [
+            5.96893885,
+            50.44346358
+          ],
+          [
+            5.96948141,
+            50.4429984
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "spa-official-drone",
+        "evidence": "Endurance fast lane 바깥 본선 쪽의 낮은 분리벽. 1m 높이 추정.",
+        "photoTracePixels": [
+          [
+            234,
+            328
+          ],
+          [
+            298,
+            291
+          ],
+          [
+            377,
+            269
+          ],
+          [
+            459,
+            246
+          ],
+          [
+            537,
+            227
+          ],
+          [
+            615,
+            207
+          ],
+          [
+            687,
+            191
+          ]
+        ],
+        "height": 1,
+        "width": 0.3,
+        "color": "#b9b4aa",
+        "complex": "endurance"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spa-endurance-box-row",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.96600088,
+            50.44519207
+          ],
+          [
+            5.96647196,
+            50.44486429
+          ],
+          [
+            5.96696152,
+            50.44458641
+          ],
+          [
+            5.96740927,
+            50.44428761
+          ],
+          [
+            5.9678646,
+            50.44397927
+          ],
+          [
+            5.96830239,
+            50.44364673
+          ],
+          [
+            5.96875112,
+            50.44330726
+          ],
+          [
+            5.96911983,
+            50.44296796
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "spa-endurance-plan",
+        "evidence": "차고 앞 작업 위치 표시. 23칸은 46개 차고를 2개씩 묶은 시각화이며 실제 행사 피트스톱 배정이나 영구 도색을 주장하지 않음.",
+        "photoTracePixels": [
+          [
+            291,
+            314
+          ],
+          [
+            344,
+            300
+          ],
+          [
+            400,
+            286
+          ],
+          [
+            456,
+            272
+          ],
+          [
+            513,
+            257
+          ],
+          [
+            570,
+            243
+          ],
+          [
+            626,
+            230
+          ],
+          [
+            680,
+            217
+          ]
+        ],
+        "bayCount": 23,
+        "depth": 4.0,
+        "color": "#e5ded0",
+        "side": "right",
+        "complex": "endurance",
+        "estimatedBayCount": true,
+        "relatedSourceIds": [
+          "spa-official-drone"
+        ]
+      }
+    }
+  ]
+}

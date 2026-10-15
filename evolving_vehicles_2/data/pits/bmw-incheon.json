@@ -1,0 +1,431 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "bmw-incheon",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "bmw-designer-plan",
+      "title": "Ingenaix BMW Incheon original facility plan",
+      "url": "https://www.ingenaix.de/en/projects/bmw-driving-experience-centre-south-korea/",
+      "imageUrl": "https://www.ingenaix.de/media/user_upload/referenzen/12-2360-DEC-South-Korea/DEC-South-Korea-Plan01-min.png",
+      "localEvidenceFile": "output/pit-references/bmw-plan1.png",
+      "sha256": "e4ab9d05b7491b409517acea42896814ed88ab5e979ef94b77e3e511921b93cb",
+      "reviewedDate": "2026-10-15",
+      "observation": "Plan labels Maintenance Area, Building Area and Parking Area, with separate handling, dynamic and circular courses. Used to register existing facility blocks; no racing pit lane is labelled.",
+      "photographsRedistributed": false,
+      "publicationYear": 2014
+    },
+    {
+      "id": "bmw-opening-aerial",
+      "title": "BMW opening press presentation, actual aerial on page 2",
+      "url": "https://www.ingenaix.de/media/user_upload/referenzen/12-2360-DEC-South-Korea/download/BMW-Korea-Driving-Center-Eroeffnung.pdf",
+      "imageUrl": "https://www.ingenaix.de/media/user_upload/referenzen/12-2360-DEC-South-Korea/download/BMW-Korea-Driving-Center-Eroeffnung.pdf",
+      "localEvidenceFile": "output/pit-references/bmw-opening-designer.pdf",
+      "sha256": "c9ee9db9445391af9301d807f9a52ac0bfb685759e95e540e2cbc6c25a55087d",
+      "reviewedDate": "2026-10-15",
+      "observation": "Page 2 actual photograph confirms central building compound, two service buildings and vehicle staging adjacent to dynamic course. Plan is used only where corresponding built forms are present.",
+      "photographsRedistributed": false,
+      "pdfPages": [
+        2
+      ],
+      "publicationYear": 2014
+    },
+    {
+      "id": "bmw-2026-facade",
+      "title": "BMW Korea official 2026 Driving Center photograph",
+      "url": "https://www.press.bmwgroup.com/korea/article/detail/T0454844KO/",
+      "imageUrl": "https://mediapool.bmwgroup.com/cache/P9/202601/P90627704/P90627704-bmw-korea-driving-center-contract-01-2026-1600px.jpg",
+      "localEvidenceFile": "output/pit-references/bmw-2026-04.jpg",
+      "sha256": "8dafa048b50594a759e41b92cab395da1058c4e0442a3724a6eb3d67f38fbd18",
+      "reviewedDate": "2026-10-15",
+      "observation": "Current long low white/glass building and canopy behind vehicle staging; no race-style pit wall is visible.",
+      "photographsRedistributed": false,
+      "publicationYear": 2026
+    },
+    {
+      "id": "bmw-service-eight-bays",
+      "title": "BMW Korea original opening description: eight service work bays",
+      "url": "https://www.press.bmwgroup.com/korea/article/detail/T0189924KO/",
+      "imageUrl": "https://www.press.bmwgroup.com/korea/article/detail/T0189924KO/",
+      "localEvidenceFile": "output/pit-references/bmw-open-2014.html",
+      "sha256": "f13a71a693cb914e118c5fbe39634a0df3beca14340e4752eb70f77319b1f486",
+      "reviewedDate": "2026-10-15",
+      "observation": "Opening description reports eight service work bays. This is a customer service workshop, not eight racing pit boxes.",
+      "photographsRedistributed": false,
+      "publicationYear": 2014
+    }
+  ],
+  "metadata": {
+    "reviewedDate": "2026-10-15",
+    "localAxes": "x east, y south; scaled local metres from buildTrack.projection",
+    "coverage": "Actual driving-center training/visitor buildings, workshop and vehicle staging/access; no formal racing pits claimed.",
+    "facilityType": "driver-training-service-area",
+    "registration": {
+      "method": "Manual corresponding circuit landmark affine registration; source diagram is not a survey.",
+      "sourcePixelAnchors": [
+        [
+          1450,
+          945
+        ],
+        [
+          65,
+          330
+        ],
+        [
+          682,
+          90
+        ],
+        [
+          748,
+          570
+        ]
+      ],
+      "trackPlotPixelAnchors": [
+        [
+          176,
+          50
+        ],
+        [
+          257,
+          830
+        ],
+        [
+          65,
+          612
+        ],
+        [
+          206,
+          463
+        ]
+      ],
+      "sourceToTrackPlotMatrix": [
+        [
+          -0.1947712631905963,
+          -0.4516465287548661
+        ],
+        [
+          0.30692111153567725,
+          -0.25117059783893736
+        ],
+        [
+          170.92725481869257,
+          942.7785335003562
+        ]
+      ],
+      "anchorResidualMetres": [
+        2.44,
+        2.45,
+        0.69,
+        5.58
+      ],
+      "trackPlot": "output/environment-references/korea/bmw-incheon-track.png",
+      "trackProjection": {
+        "origin": [
+          126.4868882,
+          37.4619387
+        ],
+        "latitudeRad": 0.6538243413102788,
+        "metresPerDegree": 111195.08023353292,
+        "offset": {
+          "x": 0.23031991721343126,
+          "y": 0.35867054192703574
+        },
+        "scale": 1.0032500405844818
+      }
+    },
+    "limitations": [
+      "Facility plan and full aerial date from original 2014 layout; 2026 photo corroborates facade/staging but does not resurvey all service footprints.",
+      "Registration is an approximate affine match to four existing course landmarks; see residuals.",
+      "Workshop has eight bays in the opening description; facade side and height are estimates.",
+      "No race pit wall or pit-stop boxes fabricated; workshop bays and staging areas retain their real service purpose."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-training-center",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -92.58,
+              52.06
+            ],
+            [
+              -102.63,
+              28.75
+            ],
+            [
+              -71.53,
+              3.3
+            ],
+            [
+              -79.57,
+              -15.34
+            ],
+            [
+              -110.67,
+              10.11
+            ],
+            [
+              -120.9,
+              -13.62
+            ],
+            [
+              -73.39,
+              -52.5
+            ],
+            [
+              -45.07,
+              13.18
+            ],
+            [
+              -92.58,
+              52.06
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "bmw-designer-plan",
+        "evidence": "U-shaped training building footprint matched to actual 2014 aerial. Training facility, not racing garages.",
+        "label": "BMW 교육·차량 지원동",
+        "height": 8.5,
+        "levels": 2,
+        "roofColor": "#d9dbd8",
+        "wallColor": "#dfe4e1",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "estimatedProperties": [
+          "height"
+        ],
+        "garageEdge": 6
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-brand-center",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -131.13,
+              -37.35
+            ],
+            [
+              -148.67,
+              -78.02
+            ],
+            [
+              -101.16,
+              -116.91
+            ],
+            [
+              -83.62,
+              -76.23
+            ],
+            [
+              -131.13,
+              -37.35
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "bmw-opening-aerial",
+        "evidence": "Main brand/visitor building footprint aligned through designer plan, with low white roof and glass facade corroborated in 2026 photograph.",
+        "label": "BMW 드라이빙센터",
+        "height": 9,
+        "levels": 2,
+        "roofColor": "#e1e4e1",
+        "wallColor": "#e6e8e5",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 3,
+        "estimatedProperties": [
+          "height",
+          "canopyDepth"
+        ],
+        "garageEdge": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-service-workshop",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -151.74,
+              -10.16
+            ],
+            [
+              -170.75,
+              -54.23
+            ],
+            [
+              -154.04,
+              -67.9
+            ],
+            [
+              -135.04,
+              -23.83
+            ],
+            [
+              -151.74,
+              -10.16
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "bmw-designer-plan",
+        "evidence": "Workshop rectangle in maintenance area, confirmed as-built by opening aerial. Eight work bays are from official opening description; current bay allocation not verified.",
+        "label": "BMW 서비스 정비센터",
+        "height": 5.5,
+        "levels": 1,
+        "roofColor": "#bdc0b5",
+        "wallColor": "#dadbd7",
+        "roofStyle": "flat",
+        "garageEdge": 2,
+        "garageCount": 8,
+        "estimatedProperties": [
+          "height",
+          "garage-facade-edge"
+        ],
+        "additionalSourceIds": [
+          "bmw-service-eight-bays"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-service-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -130.34,
+              -15.64
+            ],
+            [
+              -156.47,
+              -76.23
+            ],
+            [
+              -150.71,
+              -80.94
+            ],
+            [
+              -124.58,
+              -20.35
+            ],
+            [
+              -130.34,
+              -15.64
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "bmw-designer-plan",
+        "evidence": "Paved circulation/working area between maintenance workshop and brand-center blocks; not a pit-stop apron.",
+        "label": "BMW 정비 차량 대기마당",
+        "color": "#969d9f",
+        "estimatedProperties": [
+          "edge-position"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-staging-strip",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -45.12,
+              10.35
+            ],
+            [
+              -100.66,
+              -118.46
+            ],
+            [
+              -94.33,
+              -123.64
+            ],
+            [
+              -38.78,
+              5.17
+            ],
+            [
+              -45.12,
+              10.35
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "bmw-opening-aerial",
+        "evidence": "Visible vehicle staging/circulation strip along track-facing building side in aerial and present-day photo. Individual parking count omitted.",
+        "label": "BMW 교육 차량 대기 구역",
+        "color": "#8d9596"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "bmw-incheon-service-access",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -3.04,
+            -38.42
+          ],
+          [
+            -13.95,
+            -37.51
+          ],
+          [
+            -42.74,
+            -13.95
+          ],
+          [
+            -67.59,
+            -71.58
+          ],
+          [
+            -91.71,
+            -127.51
+          ],
+          [
+            -113.9,
+            -179.86
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "bmw-designer-plan",
+        "evidence": "Facility circulation road beside dynamic course and training buildings. Rendered using lane geometry only; not a regulated racing pit lane.",
+        "label": "BMW 차량 대기 구역 진입로",
+        "width": 7,
+        "estimatedProperties": [
+          "width"
+        ],
+        "facilityRole": "service-access"
+      }
+    }
+  ]
+}

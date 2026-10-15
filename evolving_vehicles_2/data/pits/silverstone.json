@@ -1,0 +1,968 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "silverstone",
+  "coordinateSystem": "wgs84",
+  "sources": [
+    {
+      "id": "silverstone-wing-photo",
+      "title": "Silverstone – completed Wing aerial photograph",
+      "url": "https://www.silverstone.co.uk/visit-eat-stay",
+      "imageUrl": "https://www.silverstone.co.uk/sites/default/files/styles/card_sets_default/public/images/Hoodpin_Silverstone_004_-2%20%281%29.jpg.webp?h=47ea0187",
+      "localEvidenceFile": "output/pit-references/silverstone-wing-aerial.webp",
+      "reviewedDate": "2026-10-15",
+      "observation": "Hamilton Straight 안쪽의 완공 Wing, 기복 있는 은회색 지붕과 어두운 태양광 영역, 유리 띠, apron·fast lane·pit wall 및 본선 사이 잔디를 직접 확인.",
+      "sha256": "3b9103488f4ca7b2e07c977ab9a601e90d0a8be3900e8bc66ba6d3988bacf3c1",
+      "captureDate": "not stated unless specified below"
+    },
+    {
+      "id": "silverstone-official-paddock-map",
+      "title": "Silverstone Festival 2023 – competitor paddock maps",
+      "url": "https://www.silverstone.co.uk/sites/default/files/pdf/Competitor_Guide_to_Silverstone_Festival_2023.pdf",
+      "imageUrl": "https://www.silverstone.co.uk/sites/default/files/pdf/Competitor_Guide_to_Silverstone_Festival_2023.pdf",
+      "localEvidenceFile": "output/pit-references/silverstone-festival-2023.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "p3 지도에서 International Wing의 여러 홀/출입 통로와 National의 1–6 / 7–12 두 차고 그룹·중앙 통로를 확인. p4 실제 National paddock 사진도 직접 확인.",
+      "sha256": "36dafdad9cbf6640f65b80df4ce25ed2f2e658ea37187ed0c191466920167329",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 3
+    },
+    {
+      "id": "silverstone-operator-40",
+      "title": "Silverstone venue hire – forty pit garages",
+      "url": "https://www.silverstone.co.uk/venue-hire/awards-dinners",
+      "imageUrl": "https://www.silverstone.co.uk/venue-hire/awards-dinners",
+      "localEvidenceFile": "output/pit-references/silverstone-40-garages.html",
+      "reviewedDate": "2026-10-15",
+      "observation": "운영사가 40개 pit garage를 명시. 행사 지도 번호 1–41의 통행·검차 용도와 다른 기준일 수 있으므로 모델은 40개 차고로 표현.",
+      "sha256": "d1169d82ebd34d47f658ff35c7738569f72a3c09e97420d2c2057ea7e1007f82",
+      "captureDate": "not stated unless specified below"
+    },
+    {
+      "id": "silverstone-national-photo",
+      "title": "Silverstone Heritage Club – National Pit Straight view",
+      "url": "https://www.silverstone.co.uk/events/formula-1-british-grand-prix/hospitality/heritage-club",
+      "imageUrl": "https://www.silverstone.co.uk/sites/default/files/images/Heritage%20Club%202026-%20View.jpg",
+      "localEvidenceFile": "output/pit-references/silverstone-national-view.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "National 직선 안쪽의 별도 포장 레인·흰 경계선·적색 분리 방호벽을 실제 사진에서 확인. 이 사진은 차고 건물 전체를 보여주지 않으므로 건물 세부는 2023 참가자 자료만으로 제한.",
+      "sha256": "269a832d120a9f5e9af1f7a1d7767e84c68fa9ed0f06ea411b232eef58aaca9d",
+      "captureDate": "not stated unless specified below",
+      "captureDateHint": "URL labels the asset 2026; exact capture date is not supplied."
+    }
+  ],
+  "metadata": {
+    "coverage": "Hamilton Straight의 현재 International Wing 피트와 Woodcote–Copse의 National 피트를 서로 다른 단지로 표시.",
+    "limitations": "현재 코스 데이터의 s=0이 National 직선에 있어도 GP Wing을 거기에 잘못 놓지 않음. Wing은 centerline 약 3.0–3.36km 구간. 지붕·층수·폭은 사진 근사이며 National 차고 전면은 자료 부족으로 낮은 단순 건물만 표시. 사진의 정확한 촬영일 불명.",
+    "placementMethod": "공식 사진·배치도의 수작업 판독을 현재 centerline/projection에 정합. 측량·지적도 데이터가 아님.",
+    "verticalGeometry": "건물 높이·지붕 상승량·정비칸 깊이는 사진 추정. 지면 고도는 현재 서킷 고도 모델에서 파생.",
+    "raceOperations": "풍경용 시설 데이터. 대회별 차고 배정, 실제 피트 속도선, 진입 허가 및 레이스의 피트 전략을 정의하지 않음.",
+    "reviewedDate": "2026-10-15",
+    "approximateHorizontalUncertaintyM": 25,
+    "primaryComplex": "international-wing",
+    "secondaryComplex": "national",
+    "focusFeatureId": "silverstone-wing-hall-2"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.0238991,
+            52.06703312
+          ],
+          [
+            -1.02387247,
+            52.06743859
+          ],
+          [
+            -1.02357532,
+            52.06774597
+          ],
+          [
+            -1.02287105,
+            52.06831085
+          ],
+          [
+            -1.02171775,
+            52.06923547
+          ],
+          [
+            -1.02056445,
+            52.07016008
+          ],
+          [
+            -1.02016662,
+            52.07053528
+          ],
+          [
+            -1.0199121,
+            52.07086777
+          ],
+          [
+            -1.01972584,
+            52.0711054
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "현재 GP Wing 앞 병행 fast lane. Club 쪽 진입과 Abbey 쪽 출구는 공식 지도·항공사진의 형태를 따라 근사. 폭 7m 추정.",
+        "width": 7,
+        "color": "#626b70",
+        "edgeMarkings": true,
+        "markingColor": "#dddeda",
+        "complex": "international-wing"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02349454,
+              52.06775943
+            ],
+            [
+              -1.02332549,
+              52.06789497
+            ],
+            [
+              -1.02315507,
+              52.0680316
+            ],
+            [
+              -1.02298464,
+              52.06816823
+            ],
+            [
+              -1.02281421,
+              52.06830487
+            ],
+            [
+              -1.02264378,
+              52.0684415
+            ],
+            [
+              -1.02247336,
+              52.06857813
+            ],
+            [
+              -1.02230293,
+              52.06871477
+            ],
+            [
+              -1.0221325,
+              52.0688514
+            ],
+            [
+              -1.02196208,
+              52.06898804
+            ],
+            [
+              -1.02179165,
+              52.06912467
+            ],
+            [
+              -1.02162122,
+              52.0692613
+            ],
+            [
+              -1.0214508,
+              52.06939794
+            ],
+            [
+              -1.02128037,
+              52.06953457
+            ],
+            [
+              -1.02110994,
+              52.0696712
+            ],
+            [
+              -1.02093951,
+              52.06980784
+            ],
+            [
+              -1.02076909,
+              52.06994447
+            ],
+            [
+              -1.02059866,
+              52.0700811
+            ],
+            [
+              -1.02042823,
+              52.07021774
+            ],
+            [
+              -1.0202592,
+              52.07035264
+            ],
+            [
+              -1.02011529,
+              52.07028389
+            ],
+            [
+              -1.0202836,
+              52.07014957
+            ],
+            [
+              -1.02045402,
+              52.07001294
+            ],
+            [
+              -1.02062445,
+              52.06987631
+            ],
+            [
+              -1.02079488,
+              52.06973967
+            ],
+            [
+              -1.0209653,
+              52.06960304
+            ],
+            [
+              -1.02113573,
+              52.06946641
+            ],
+            [
+              -1.02130616,
+              52.06932977
+            ],
+            [
+              -1.02147658,
+              52.06919314
+            ],
+            [
+              -1.02164701,
+              52.06905651
+            ],
+            [
+              -1.02181744,
+              52.06891987
+            ],
+            [
+              -1.02198786,
+              52.06878324
+            ],
+            [
+              -1.02215829,
+              52.0686466
+            ],
+            [
+              -1.02232872,
+              52.06850997
+            ],
+            [
+              -1.02249915,
+              52.06837334
+            ],
+            [
+              -1.02266957,
+              52.0682367
+            ],
+            [
+              -1.02284,
+              52.06810007
+            ],
+            [
+              -1.02301043,
+              52.06796344
+            ],
+            [
+              -1.02318085,
+              52.0678268
+            ],
+            [
+              -1.02334938,
+              52.06769169
+            ],
+            [
+              -1.02349454,
+              52.06775943
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "Wing 차고와 fast lane 사이 연속 apron. 사진의 어두운 포장 표면과 폭 비율을 반영.",
+        "color": "#848c8e",
+        "complex": "international-wing"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-hall-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02334938,
+              52.06769169
+            ],
+            [
+              -1.0222867,
+              52.06854366
+            ],
+            [
+              -1.02184699,
+              52.06833644
+            ],
+            [
+              -1.02290808,
+              52.06748577
+            ],
+            [
+              -1.02334938,
+              52.06769169
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "Wing의 길게 이어진 유리 전면과 기복 있는 지붕을 3개 블록으로 단순화. 높이·깊이·지붕 상승량은 사진 추정. 전체 40개 문은 운영사 수치이며 블록별 배분은 시각화.",
+        "height": 8.7,
+        "levels": 2,
+        "roofColor": "#687b8a",
+        "wallColor": "#c2cbd0",
+        "glassColor": "#466c81",
+        "doorColor": "#385065",
+        "garageEdge": 0,
+        "garageCount": 14,
+        "roofStyle": "wing",
+        "roofRise": 4.4,
+        "roofSections": 2,
+        "windowBand": true,
+        "canopyDepth": 2,
+        "complex": "international-wing",
+        "relatedSourceIds": [
+          "silverstone-operator-40",
+          "silverstone-official-paddock-map"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-hall-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.0222867,
+              52.06854366
+            ],
+            [
+              -1.02117775,
+              52.06943272
+            ],
+            [
+              -1.02073805,
+              52.0692255
+            ],
+            [
+              -1.02184699,
+              52.06833644
+            ],
+            [
+              -1.0222867,
+              52.06854366
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "Wing의 길게 이어진 유리 전면과 기복 있는 지붕을 3개 블록으로 단순화. 높이·깊이·지붕 상승량은 사진 추정. 전체 40개 문은 운영사 수치이며 블록별 배분은 시각화.",
+        "height": 9.2,
+        "levels": 2,
+        "roofColor": "#687b8a",
+        "wallColor": "#c2cbd0",
+        "glassColor": "#466c81",
+        "doorColor": "#385065",
+        "garageEdge": 0,
+        "garageCount": 14,
+        "roofStyle": "wing",
+        "roofRise": 4.7,
+        "roofSections": 2,
+        "windowBand": true,
+        "canopyDepth": 2,
+        "complex": "international-wing",
+        "relatedSourceIds": [
+          "silverstone-operator-40",
+          "silverstone-official-paddock-map"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-hall-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.02117775,
+              52.06943272
+            ],
+            [
+              -1.02011529,
+              52.07028389
+            ],
+            [
+              -1.0196778,
+              52.07007492
+            ],
+            [
+              -1.02073805,
+              52.0692255
+            ],
+            [
+              -1.02117775,
+              52.06943272
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "Wing의 길게 이어진 유리 전면과 기복 있는 지붕을 3개 블록으로 단순화. 높이·깊이·지붕 상승량은 사진 추정. 전체 40개 문은 운영사 수치이며 블록별 배분은 시각화.",
+        "height": 9.0,
+        "levels": 2,
+        "roofColor": "#687b8a",
+        "wallColor": "#c2cbd0",
+        "glassColor": "#466c81",
+        "doorColor": "#385065",
+        "garageEdge": 0,
+        "garageCount": 12,
+        "roofStyle": "wing",
+        "roofRise": 3.8,
+        "roofSections": 2,
+        "windowBand": true,
+        "canopyDepth": 2,
+        "complex": "international-wing",
+        "relatedSourceIds": [
+          "silverstone-operator-40",
+          "silverstone-official-paddock-map"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.02363406,
+            52.06777251
+          ],
+          [
+            -1.02266276,
+            52.06855149
+          ],
+          [
+            -1.02150946,
+            52.06947611
+          ],
+          [
+            -1.02035707,
+            52.07039938
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "사진의 fast lane과 본선 사이 잔디 섬 안쪽 분리벽. 본선 가장자리로 옮기지 않음. 높이 1.1m 추정.",
+        "height": 1.1,
+        "width": 0.35,
+        "color": "#ad5654",
+        "complex": "international-wing"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-wing-service-bays",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.02338753,
+            52.06778631
+          ],
+          [
+            -1.02026567,
+            52.07028899
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "silverstone-wing-photo",
+        "evidence": "Wing apron 안쪽 정비칸 시각화. 20칸은 40차고 2개씩 묶은 추정 구획이며 실제 GP 팀 배정이 아님.",
+        "bayCount": 20,
+        "depth": 7.8,
+        "color": "#e0ddcc",
+        "side": "right",
+        "complex": "international-wing",
+        "estimatedBayCount": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.01822788,
+            52.07850216
+          ],
+          [
+            -1.01735639,
+            52.07850565
+          ],
+          [
+            -1.01619349,
+            52.07856231
+          ],
+          [
+            -1.01474269,
+            52.07864251
+          ],
+          [
+            -1.01314486,
+            52.078728
+          ],
+          [
+            -1.01202084,
+            52.07873423
+          ],
+          [
+            -1.01156009,
+            52.078635
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "2023 지도와 Heritage 현장사진에 있는 National 보조 피트. Wing과 다른 위치임을 구분. 폭 6.5m와 진출입 곡률은 추정.",
+        "width": 6.5,
+        "color": "#6d7272",
+        "edgeMarkings": true,
+        "markingColor": "#e5e3da",
+        "complex": "national",
+        "relatedSourceIds": [
+          "silverstone-national-photo"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.01691513,
+              52.07849231
+            ],
+            [
+              -1.01662474,
+              52.07850871
+            ],
+            [
+              -1.01633435,
+              52.07852511
+            ],
+            [
+              -1.01604396,
+              52.07854151
+            ],
+            [
+              -1.01575357,
+              52.0785579
+            ],
+            [
+              -1.01546318,
+              52.0785743
+            ],
+            [
+              -1.01517435,
+              52.07859018
+            ],
+            [
+              -1.01488383,
+              52.07860572
+            ],
+            [
+              -1.01459332,
+              52.07862127
+            ],
+            [
+              -1.01430281,
+              52.07863681
+            ],
+            [
+              -1.01401229,
+              52.07865235
+            ],
+            [
+              -1.01372178,
+              52.07866789
+            ],
+            [
+              -1.01343126,
+              52.07868344
+            ],
+            [
+              -1.01314075,
+              52.07869898
+            ],
+            [
+              -1.01285023,
+              52.07871452
+            ],
+            [
+              -1.01259278,
+              52.07872576
+            ],
+            [
+              -1.01231815,
+              52.07871604
+            ],
+            [
+              -1.0123276,
+              52.07861987
+            ],
+            [
+              -1.0125946,
+              52.07862942
+            ],
+            [
+              -1.01283664,
+              52.07861854
+            ],
+            [
+              -1.01312716,
+              52.078603
+            ],
+            [
+              -1.01341767,
+              52.07858745
+            ],
+            [
+              -1.01370819,
+              52.07857191
+            ],
+            [
+              -1.0139987,
+              52.07855637
+            ],
+            [
+              -1.01428921,
+              52.07854083
+            ],
+            [
+              -1.01457973,
+              52.07852529
+            ],
+            [
+              -1.01487024,
+              52.07850974
+            ],
+            [
+              -1.01516076,
+              52.0784942
+            ],
+            [
+              -1.01544884,
+              52.07847836
+            ],
+            [
+              -1.01573923,
+              52.07846196
+            ],
+            [
+              -1.01602962,
+              52.07844557
+            ],
+            [
+              -1.01632001,
+              52.07842917
+            ],
+            [
+              -1.0166104,
+              52.07841277
+            ],
+            [
+              -1.01690079,
+              52.07839637
+            ],
+            [
+              -1.01691513,
+              52.07849231
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "National 1–12 차고 전면의 apron. 지도 비율로 근사한 footprint이며 사진에서 보이지 않는 영구 도색은 재현하지 않음.",
+        "color": "#a4a39a",
+        "complex": "national"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-garage-group-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.0168282,
+              52.07840047
+            ],
+            [
+              -1.01465236,
+              52.0785214
+            ],
+            [
+              -1.01462328,
+              52.07831604
+            ],
+            [
+              -1.01679752,
+              52.0781952
+            ],
+            [
+              -1.0168282,
+              52.07840047
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "공식 지도 1–6 / 7–12 번호 그룹과 중앙 통로를 반영. 참가자 가이드 p4 실제 사진의 낮은 밝은 지붕 차고를 단순화. 6m 높이·문 18개는 추정(번호 그룹당 3문), 정확한 현행 문 수 아님.",
+        "height": 6,
+        "levels": 1,
+        "roofColor": "#c2c5c4",
+        "wallColor": "#a4acaa",
+        "doorColor": "#555d60",
+        "garageEdge": 0,
+        "garageCount": 18,
+        "roofStyle": "flat",
+        "windowBand": false,
+        "complex": "national",
+        "numberedGarageGroups": 6,
+        "estimatedDoorCount": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-garage-group-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.01441995,
+              52.07853383
+            ],
+            [
+              -1.01231304,
+              52.07861933
+            ],
+            [
+              -1.01233325,
+              52.07841358
+            ],
+            [
+              -1.01439087,
+              52.07832848
+            ],
+            [
+              -1.01441995,
+              52.07853383
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "공식 지도 1–6 / 7–12 번호 그룹과 중앙 통로를 반영. 참가자 가이드 p4 실제 사진의 낮은 밝은 지붕 차고를 단순화. 6m 높이·문 18개는 추정(번호 그룹당 3문), 정확한 현행 문 수 아님.",
+        "height": 6,
+        "levels": 1,
+        "roofColor": "#c2c5c4",
+        "wallColor": "#a4acaa",
+        "doorColor": "#555d60",
+        "garageEdge": 0,
+        "garageCount": 18,
+        "roofStyle": "flat",
+        "windowBand": false,
+        "complex": "national",
+        "numberedGarageGroups": 6,
+        "estimatedDoorCount": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-control",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.01740897,
+              52.07836768
+            ],
+            [
+              -1.01697339,
+              52.07839227
+            ],
+            [
+              -1.01694138,
+              52.07817808
+            ],
+            [
+              -1.01737696,
+              52.07815348
+            ],
+            [
+              -1.01740897,
+              52.07836768
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "National 차고 행 Woodcote 쪽의 race control 표시를 반영. 전체 외형은 미확인으로 회색 단순 매스만 표시, 높이 9m 추정.",
+        "height": 9,
+        "levels": 2,
+        "roofColor": "#aeb6b6",
+        "wallColor": "#c6cac7",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "complex": "national",
+        "geometryConfidence": "low; massing only"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.01736172,
+            52.07854135
+          ],
+          [
+            -1.01532968,
+            52.07865605
+          ],
+          [
+            -1.01344169,
+            52.0787571
+          ],
+          [
+            -1.01219759,
+            52.07878541
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "silverstone-national-photo",
+        "evidence": "Heritage 공식 현장사진의 적색 National 레인 분리 방호벽. renderer 단순 벽으로 표시하여 금속 가드레일 단면은 생략. 높이 .95m 추정.",
+        "height": 0.95,
+        "width": 0.3,
+        "color": "#b8554d",
+        "complex": "national"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-service-bays",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.01679504,
+            52.07847254
+          ],
+          [
+            -1.01467674,
+            52.07859027
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "National 1–6 번호 그룹 앞 작업 위치 시각화. 6개 구획은 지도 번호 그룹과 대응하나 영구 도색·팀 배정은 아님.",
+        "bayCount": 6,
+        "depth": 7.2,
+        "color": "#ddd9c5",
+        "side": "right",
+        "complex": "national",
+        "estimatedBayCount": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silverstone-national-service-bays-east",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.01438623,
+            52.07860581
+          ],
+          [
+            -1.01234985,
+            52.07869073
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "silverstone-official-paddock-map",
+        "evidence": "National 7–12 번호 그룹 앞 작업 위치 시각화. 중앙 통로는 비워둠. 영구 도색·팀 배정은 아님.",
+        "bayCount": 6,
+        "depth": 7.2,
+        "color": "#ddd9c5",
+        "side": "right",
+        "complex": "national",
+        "estimatedBayCount": true
+      }
+    }
+  ]
+}

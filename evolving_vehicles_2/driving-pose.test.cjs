@@ -144,6 +144,49 @@ test('20–40 metre curvature ripple decreases against the deployed algorithm on
   t.diagnostic(JSON.stringify(reports));
 });
 
+test('real tight turns do not revert to polygon straight/turn pulses when the broad fit is constrained', t => {
+  // Captured from the previously deployed 10/14/18 m display curve, at 1 m
+  // intervals across these actual 30 m bends. These are observations, not a
+  // second copy of the smoothing implementation. HMG is already smooth.
+  const corners = [
+    ['everland', 3860, .0183310921], ['inje', 220, .0169699715],
+    ['yeongam', 3670, .0527022680], ['yeongam-permanent', 145, .0294269862],
+    ['taebaek', 540, .1326872191], ['bmw-incheon', 2385, .0520927022],
+    ['hmg-taean', 1940, .0009815806], ['pocheon', 2730, .2136115208],
+    ['monza', 655, .0190096538], ['silverstone', 4055, .0144931552],
+    ['spa', 240, .0457075695]
+  ];
+  const reports = [];
+  for (const [id, center, before] of corners) {
+    const race = races.find(r => r.circuit.id === id);
+    const k = Array.from({ length: 31 }, (_, i) => DrivingPose.sample(race, center - 15 + i).curvature);
+    const change = rms(k.slice(1).map((v, i) => v - k[i])), ratio = change / before;
+    assert.ok(ratio < (id === 'hmg-taean' ? 1.05 : .4), id + ': tight-corner curvature ripple ratio ' + ratio);
+    const sign = Math.sign(k.reduce((a, b) => a + b));
+    assert.ok(k.every(v => v * sign > 0), id + ': preserve the actual bend direction');
+    reports.push({ id, distanceM: center, curvatureRippleRatio: +ratio.toFixed(4) });
+  }
+  t.diagnostic(JSON.stringify(reports));
+});
+
+test('tight-turn car poses keep the same forward tangent at 1x, 2x and 3x playback', () => {
+  const patterns = [[1 / 30], [1 / 60], [1 / 120, 1 / 45, 1 / 80, 1 / 28]];
+  for (const [id, center] of [['everland', 3860], ['yeongam', 3670], ['pocheon', 2730], ['spa', 240]]) {
+    const race = races.find(r => r.circuit.id === id);
+    for (const playback of [1, 2, 3]) for (const pattern of patterns) {
+      let elapsed = 0, frame = 0;
+      while (elapsed * 12 * playback < 60) {
+        elapsed += pattern[frame++ % pattern.length];
+        const s = center - 30 + elapsed * 12 * playback, pose = DrivingPose.sample(race, s);
+        const a = DrivingPose.sample(race, s - .001), b = DrivingPose.sample(race, s + .001);
+        assert.ok(Math.abs(turn(pose.angle - Math.atan2(b.y - a.y, b.x - a.x))) < .00003,
+          id + ': accelerated playback cannot make the body turn separately from its position');
+        assert.deepEqual(DrivingPose.sample(race, s), pose, 'render cadence has no state or orientation lag');
+      }
+    }
+  }
+});
+
 test('the line drawing and every car use identical, deterministic, stateless samples', () => {
   for (const race of races) {
     const points = DrivingPose.path(race);

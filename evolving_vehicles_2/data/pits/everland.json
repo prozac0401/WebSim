@@ -1,0 +1,311 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "everland",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "everland-aerial",
+      "title": "Everland official Speedway overhead photograph",
+      "url": "https://www.everland.com/speedway/home",
+      "imageUrl": "https://www.everland.com/static/img/speedway_home_img04.6233cb78.png",
+      "localEvidenceFile": "output/pit-references/everland-home-04.png",
+      "reviewedDate": "2026-10-15",
+      "observation": "Western diagonal pit straight, parallel inner pit lane and two white roof blocks. Photograph year unspecified.",
+      "sha256": "a8b5cb57fc7869586ced808de8d75477948ebf3e2a3eaa63d71856ae3e42c65e",
+      "rights": "© Samsung C&T / Everland; local reference only."
+    },
+    {
+      "id": "everland-pit-photo",
+      "title": "Edaily original photograph, Everland pit front, 2017-10-28",
+      "url": "https://www.edaily.co.kr/News/Read?mediaCodeNo=257&newsId=01466166616098496",
+      "imageUrl": "https://image.edaily.co.kr/images/photo/files/NP/S/2017/10/PS17103100124.jpg",
+      "localEvidenceFile": "output/pit-references/everland-pit-edaily-2017.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Original on-site photo: two-storey white facade, upper window band, shallow eave, garage doors and pale concrete work apron. No complete painted bay row can be established.",
+      "sha256": "5fd063109ddf462240e2a3295183bc9d72ef2c800765ca06a1a02c63fb965ebd",
+      "observedDate": "2017-10-28",
+      "rights": "© Edaily / Kim Ha-eun; local reference only."
+    },
+    {
+      "id": "everland-osm",
+      "title": "OpenStreetMap pit lane and photo-matched buildings",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=127.204,37.294,127.210,37.299",
+      "imageUrl": null,
+      "localEvidenceFile": "output/pit-references/everland-pits-osm.xml",
+      "reviewedDate": "2026-10-15",
+      "observation": "Way 450059011 pit lane; 614628802 long garage block; 614628801 shorter adjoining block. Matched to official overhead image.",
+      "sha256": "11f525e45da25f66146a7dfca8410df772a3fd5a11b995dfa385edc426068dc2",
+      "rights": "© OpenStreetMap contributors, ODbL-1.0"
+    }
+  ],
+  "metadata": {
+    "coverage": "Photo-confirmed pit compound and mapped pit lane; simplified architectural envelope.",
+    "reviewedDate": "2026-10-15",
+    "limitations": [
+      "Photograph years differ; no claim of survey-grade/current event signage.",
+      "Garage count, height, apron depth and wall height are estimates.",
+      "No invented box-row lines: work apron and garage openings are shown, but a complete permanent painted service-box row is not resolved."
+    ],
+    "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "everland-pit-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -468.627,
+            142.113
+          ],
+          [
+            -483.641,
+            136.972
+          ],
+          [
+            -492.068,
+            136.727
+          ],
+          [
+            -507.206,
+            136.682
+          ],
+          [
+            -524.538,
+            137.395
+          ],
+          [
+            -530.416,
+            137.94
+          ],
+          [
+            -536.285,
+            139.331
+          ],
+          [
+            -541.482,
+            142.458
+          ],
+          [
+            -546.563,
+            148.011
+          ],
+          [
+            -548.891,
+            150.904
+          ],
+          [
+            -551.432,
+            153.174
+          ],
+          [
+            -555.548,
+            153.352
+          ],
+          [
+            -558.814,
+            152.273
+          ],
+          [
+            -563.063,
+            148.734
+          ],
+          [
+            -592.462,
+            113.57
+          ],
+          [
+            -626.074,
+            80.331
+          ],
+          [
+            -633.448,
+            73.676
+          ],
+          [
+            -727.565,
+            -35.01
+          ],
+          [
+            -732.699,
+            -40.774
+          ],
+          [
+            -759.77,
+            -71.175
+          ],
+          [
+            -774.606,
+            -84.473
+          ],
+          [
+            -821.895,
+            -126.848
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "everland-osm",
+        "evidence": "Mapped pit lane, visually matched to everland-aerial. Lane width is an image-based estimate.",
+        "width": 5,
+        "color": "#656a6c",
+        "edgeMarkings": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -636.847,
+              23.69
+            ],
+            [
+              -573.075,
+              94.797
+            ],
+            [
+              -585.53,
+              105.969
+            ],
+            [
+              -649.302,
+              34.851
+            ],
+            [
+              -636.847,
+              23.69
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "everland-osm",
+        "evidence": "Footprint from OSM; white two-storey garage facade and flat white roof verified in everland-pit-photo and everland-aerial. Height and 16 facade bays are approximate, not a surveyed inventory.",
+        "height": 8.2,
+        "levels": 2,
+        "roofColor": "#e9e9e5",
+        "wallColor": "#d9dcdb",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.8,
+        "garageEdge": 2,
+        "garageCount": 16
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-control-block",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -667.485,
+              -7.134
+            ],
+            [
+              -640.91,
+              23.49
+            ],
+            [
+              -656.738,
+              37.221
+            ],
+            [
+              -683.313,
+              6.598
+            ],
+            [
+              -667.485,
+              -7.134
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "everland-osm",
+        "evidence": "Shorter white building immediately north-west of garages visible in official overhead. Envelope height estimated; no invented garage doors.",
+        "height": 9.5,
+        "levels": 2,
+        "roofColor": "#dedfdc",
+        "wallColor": "#d7d9d6",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "garageCount": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-work-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -585.53,
+              105.969
+            ],
+            [
+              -649.302,
+              34.851
+            ],
+            [
+              -655.258,
+              40.192
+            ],
+            [
+              -591.486,
+              111.31
+            ],
+            [
+              -585.53,
+              105.969
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "everland-pit-photo",
+        "evidence": "Continuous pale concrete work area immediately outside the garage doors. Footprint depth is an approximate 8 m; painted individual service-box dividers are not evidenced.",
+        "color": "#b4b5b0"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "everland-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -597.442,
+            116.651
+          ],
+          [
+            -661.214,
+            45.533
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "everland-aerial",
+        "evidence": "Parallel separator visible between pit lane and main straight in overhead and pit-front photo. Segment extent and 0.9 m height are approximate.",
+        "height": 0.9,
+        "color": "#c5c8c6"
+      }
+    }
+  ]
+}

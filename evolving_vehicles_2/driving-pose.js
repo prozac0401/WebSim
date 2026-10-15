@@ -8,7 +8,11 @@
   const cache = new WeakMap();
   const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .24, SIGMA_M = 6;
   const MAX_ELEVATION_DEVIATION_M = .025, MAX_ELEVATION_CONTROL_SHIFT_M = .012;
-  const PLANAR_SCALES_M = [10, 14, 18], LIMIT_TRANSITION_M = 10;
+  // Start below the source path's ~4 m point spacing. A 10 m first fit is
+  // frequently constrained in a hairpin, leaving the polygon's straight/turn
+  // pulses untouched. Short fits remove that ripple before longer fits taper
+  // in, without giving the car a heading separate from its actual position.
+  const PLANAR_SCALES_M = [2, 4, 6, 10, 14, 18], LIMIT_TRANSITION_M = 10;
   const mod = (n, d) => ((n % d) + d) % d;
   const lerp = (a, b, t) => a + (b - a) * t;
 

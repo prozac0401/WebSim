@@ -1,0 +1,294 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "hmg-taean",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "hmg-operator-brochure",
+      "title": "HMG official 2025 brochure: aerial and course plan",
+      "url": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+      "imageUrl": "https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf",
+      "localEvidenceFile": "output/pit-references/hmg-brochure-2025.pdf",
+      "sha256": "969931d1e06f12166f560302f2de99323fa888a9c2c67db7e330e64833c2817c",
+      "reviewedDate": "2026-10-15",
+      "observation": "Page 5 actual aerial shows long flat-roof visitor/research building north of the dry handling course; page 6 diagram provides matching dry-course topology. Parking apron and access road remain distinct from the racing surface.",
+      "photographsRedistributed": false,
+      "pdfPages": [
+        5,
+        6
+      ],
+      "publicationYear": 2025
+    },
+    {
+      "id": "hmg-starting-point",
+      "title": "HMG official center introduction: Starting Point",
+      "url": "https://drivingexperience.hyundai.co.kr/kr/hmg-driving-experience/about/contents",
+      "imageUrl": "https://drivingexperience.hyundai.co.kr/kr/common/images_new/img-center-starting.jpg",
+      "localEvidenceFile": "output/pit-references/hmg-starting.jpg",
+      "sha256": "1feeae445127e13c80f06547cc753bc87b608477e1ab9f0033d1eed438d8aa4b",
+      "reviewedDate": "2026-10-15",
+      "observation": "Actual covered vehicle fleet waiting area with transverse parking markings. Operator calls it Starting Point for practical driving after classroom instruction, not racing pits.",
+      "photographsRedistributed": false
+    },
+    {
+      "id": "hmg-center-facade",
+      "title": "HMG official center facade photograph",
+      "url": "https://drivingexperience.hyundai.co.kr/kr/hmg-driving-experience/about/contents",
+      "imageUrl": "https://drivingexperience.hyundai.co.kr/kr/common/images_new/img-center-kv1.jpg",
+      "localEvidenceFile": "output/pit-references/hmg-aerial.jpg",
+      "sha256": "76689cabd554922bfd8e96ef88689c59f26ef15f5c7909f0b8c32699102682ab",
+      "reviewedDate": "2026-10-15",
+      "observation": "Two-storey long metal/glass visitor facade with flat overhanging roof. Filename from the source is a key visual, not an aerial.",
+      "photographsRedistributed": false
+    }
+  ],
+  "metadata": {
+    "reviewedDate": "2026-10-15",
+    "localAxes": "x east, y south; scaled local metres from buildTrack.projection",
+    "coverage": "Visitor/starting-point building and observed arrival/vehicle circulation area; formal racing pit lane or boxes not asserted.",
+    "facilityType": "driver-training-starting-area",
+    "registration": {
+      "method": "Manual corresponding circuit landmark affine registration; source diagram is not a survey.",
+      "sourcePixelAnchors": [
+        [
+          942,
+          585
+        ],
+        [
+          919,
+          581
+        ],
+        [
+          866,
+          670
+        ],
+        [
+          735,
+          640
+        ],
+        [
+          489,
+          674
+        ],
+        [
+          425,
+          543
+        ]
+      ],
+      "trackPlotPixelAnchors": [
+        [
+          120,
+          50
+        ],
+        [
+          112,
+          88
+        ],
+        [
+          249,
+          150
+        ],
+        [
+          195,
+          331
+        ],
+        [
+          250,
+          739
+        ],
+        [
+          75,
+          822
+        ]
+      ],
+      "sourceToTrackPlotMatrix": [
+        [
+          -0.018326688222227272,
+          -1.509976947251378
+        ],
+        [
+          1.395904727041681,
+          -0.05368586667192288
+        ],
+        [
+          -678.9797615507432,
+          1497.65350446524
+        ]
+      ],
+      "anchorResidualMetres": [
+        7.39,
+        11.69,
+        11.39,
+        27.86,
+        19.39,
+        7.3
+      ],
+      "trackPlot": "output/environment-references/korea/hmg-taean-track.png",
+      "trackProjection": {
+        "origin": [
+          126.3396899,
+          36.6445908
+        ],
+        "latitudeRad": 0.639553965352811,
+        "metresPerDegree": 111195.08023353292,
+        "offset": {
+          "x": -7.713387739322064e-05,
+          "y": 4.3385264262174594e-05
+        },
+        "scale": 1.0060166401985415
+      }
+    },
+    "limitations": [
+      "Official course diagram is schematic; six-landmark registration residual reaches roughly 28 m. Building outline and access endpoints are approximate, not survey data.",
+      "The Starting Point is covered within the building. Its interior markings are not placed as outdoor racing pit boxes.",
+      "No formal race pit wall or independently numbered race pit garages confirmed.",
+      "Brochure year is 2025; aerial capture year unknown."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "hmg-taean-visitor-starting-building",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -160.25,
+              -401.43
+            ],
+            [
+              -161.39,
+              -495.58
+            ],
+            [
+              -141.3,
+              -496.36
+            ],
+            [
+              -144.09,
+              -726.31
+            ],
+            [
+              -102.25,
+              -727.92
+            ],
+            [
+              -98.31,
+              -403.81
+            ],
+            [
+              -160.25,
+              -401.43
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "hmg-operator-brochure",
+        "evidence": "Long existing visitor/research building footprint from operator plan, corroborated by aerial. Covered Starting Point is inside this facility; no exterior garage shutters inferred.",
+        "label": "HMG 센터·스타팅 포인트",
+        "height": 9,
+        "levels": 2,
+        "roofColor": "#d9dfe1",
+        "wallColor": "#aab4b9",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 3.5,
+        "estimatedProperties": [
+          "height",
+          "footprint",
+          "canopyDepth"
+        ],
+        "additionalSourceIds": [
+          "hmg-starting-point",
+          "hmg-center-facade"
+        ],
+        "garageEdge": 4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hmg-taean-vehicle-forecourt",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -93.33,
+              -407.62
+            ],
+            [
+              -97.27,
+              -731.73
+            ],
+            [
+              -70.49,
+              -732.76
+            ],
+            [
+              -66.55,
+              -408.65
+            ],
+            [
+              -93.33,
+              -407.62
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "hmg-operator-brochure",
+        "evidence": "Narrow paved parking/arrival forecourt visible along public side of long center building. Does not represent a racing pit apron or measured set of pit boxes.",
+        "label": "HMG 차량 대기·진입 마당",
+        "color": "#a3aaac",
+        "estimatedProperties": [
+          "footprint"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "hmg-taean-service-access",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.67,
+            -335.31
+          ],
+          [
+            -28.94,
+            -344.89
+          ],
+          [
+            -51.33,
+            -396.56
+          ],
+          [
+            -53.69,
+            -452.63
+          ],
+          [
+            -57.07,
+            -731.47
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "hmg-operator-brochure",
+        "evidence": "Existing access/circulation road between dry handling course edge, visitor compound and off-road course; exact joining geometry approximate.",
+        "label": "HMG 차량 대기 구역 연결로",
+        "width": 7.5,
+        "facilityRole": "service-access",
+        "estimatedProperties": [
+          "width",
+          "junctions"
+        ]
+      }
+    }
+  ]
+}

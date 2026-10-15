@@ -1,0 +1,242 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "yeongam-permanent",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "kic-official-aerial",
+      "title": "KMG 2025 company introduction, page 33, KIC whole-track aerial",
+      "url": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "imageUrl": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "localEvidenceFile": "output/pit-references/kmg-belle-foret.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "Operator publication depicts two separate pit compounds: northern permanent-circuit garages and southern GP pit building. Page 33 opened and visually reviewed. Photograph capture date unspecified.",
+      "sha256": "0825a3e76bb22696727eedb314159d2607493b0434a6b3117acde79b91667499",
+      "publicationYear": 2025,
+      "rights": "© Korea Mobility Group; local reference only."
+    },
+    {
+      "id": "kic-osm",
+      "title": "OpenStreetMap KIC pit lanes and buildings",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=126.410,34.729,126.422,34.740",
+      "imageUrl": null,
+      "localEvidenceFile": "output/pit-references/kic-pits-osm.xml",
+      "reviewedDate": "2026-10-15",
+      "observation": "Northern permanent pit way 234768719/building 234773074 differs from southern GP pit way 234767156/building 236254488. Photo correspondence checked against operator aerial.",
+      "sha256": "4a0f74d4d74b0a7f45eb95802852faf7a0920241accbff921ae66bb8f89077fb",
+      "rights": "© OpenStreetMap contributors, ODbL-1.0"
+    },
+    {
+      "id": "kic-permanent-photo",
+      "title": "On-site photograph of KIC permanent pit garage facade, Bonta 2019",
+      "url": "https://bonta.tistory.com/546",
+      "imageUrl": "https://blog.kakaocdn.net/dna/dG0Giy/btqxoQkFy76/AAAAAAAAAAAAAAAAAAAAANGaayMcQKLnHmqZUK2L7XruUpEr5toYlyqsNLwMCwqM/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=4OQI5dVmvn9nj1t7g8iEBf7wXn0%3D",
+      "localEvidenceFile": "output/pit-references/kic-permanent-visitor-0.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Original photograph explicitly captioned permanent pits; visible doors 19–21, brown lower masonry, pale metal upper facade, upper windows and a flat terrace railing. Image is the paddock-facing side; do not infer race-side painted box markings from it. Photograph capture date is not stated; 2019-08-09 is the article publication date.",
+      "sha256": "0d14a99d0bf29c98e3a2608200d6441b09058681aa172855fe6825c22f88b0c5",
+      "rights": "© BONTA; local reference only.",
+      "publicationDate": "2019-08-09"
+    },
+    {
+      "id": "kic-permanent-allocation",
+      "title": "KIC official 2026 AKRC Round 5 pit allocation",
+      "url": "https://www.koreacircuit.com/Notice/1/read/242",
+      "imageUrl": "https://www.koreacircuit.com/Notice/download/242/1017",
+      "localEvidenceFile": "output/pit-references/kic-akrc-pit.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "AKRC operates on permanent track; official allocation lists garages 1–30. No spatial stall dimensions are supplied.",
+      "sha256": "f0d9c385d56fdc2d83108a908843786cd2bd801684a7a6a1e3f1877245e67487",
+      "publicationDate": "2026-10-14",
+      "rights": "© KIC; local reference only."
+    }
+  ],
+  "metadata": {
+    "coverage": "Distinct photo-confirmed northern permanent pit facility; geographic footprints matched against operator whole-circuit aerial.",
+    "reviewedDate": "2026-10-15",
+    "limitations": [
+      "Northern permanent pits are separate from southern GP facility.",
+      "Official 30 garages represented with evenly spaced doors; roof/eave details and height simplified.",
+      "Race-side work-apron depth is conservative because source roof footprint and mapped pit lane are close.",
+      "No race-side painted work-box rows are evidenced by the reviewed rear-facade photo; no imaginary service-box markings added."
+    ],
+    "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "kic-permanent-pit-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            209.156,
+            29.267
+          ],
+          [
+            270.836,
+            39.1
+          ],
+          [
+            336.268,
+            35.703
+          ],
+          [
+            646.031,
+            15.235
+          ],
+          [
+            755.865,
+            5.224
+          ],
+          [
+            872.452,
+            -4.587
+          ],
+          [
+            880.661,
+            -7.828
+          ],
+          [
+            887.515,
+            -13.04
+          ],
+          [
+            892.585,
+            -20.791
+          ],
+          [
+            894.672,
+            -29.288
+          ],
+          [
+            894.562,
+            -39.477
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "kic-osm",
+        "evidence": "Northern permanent pit lane visually matched to operator whole-circuit aerial, separate from GP southern lane. Narrow mapped lane; 4 m rendered width estimated.",
+        "width": 4,
+        "color": "#646b6d",
+        "edgeMarkings": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-permanent-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              341.411,
+              64.958
+            ],
+            [
+              340.057,
+              43.766
+            ],
+            [
+              356.749,
+              37.385
+            ],
+            [
+              640.009,
+              18.732
+            ],
+            [
+              641.473,
+              45.726
+            ],
+            [
+              341.411,
+              64.958
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "kic-osm",
+        "evidence": "Mapped northern permanent garage building. Two-storey pale upper facade and flat roof verified by visitor photo; 30 bays supported by 2026 official allocation. Race-facing doors are simplified and height 9 m is estimated.",
+        "height": 9,
+        "levels": 2,
+        "roofColor": "#c9cdcb",
+        "wallColor": "#b7b5aa",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 0.7,
+        "garageEdge": 2,
+        "garageCount": 30
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-permanent-work-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              356.749,
+              37.385
+            ],
+            [
+              640.009,
+              18.732
+            ],
+            [
+              639.864,
+              16.537
+            ],
+            [
+              356.604,
+              35.19
+            ],
+            [
+              356.749,
+              37.385
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "kic-official-aerial",
+        "evidence": "Only narrow visually supported pavement along the roof edge is reconstructed. OSM roof outline and lane are close; do not create a wider apron crossing the mapped travel lane. Depth approximate.",
+        "color": "#afb1aa"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-permanent-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            356.289,
+            30.4
+          ],
+          [
+            639.549,
+            11.747
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "kic-official-aerial",
+        "evidence": "Linear divider parallel to permanent pit lane in operator aerial. Approximate 0.8 m wall height and extent. Kept clear of main straight.",
+        "height": 0.8,
+        "color": "#c5c5bc"
+      }
+    }
+  ]
+}

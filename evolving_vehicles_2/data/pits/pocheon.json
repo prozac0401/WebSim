@@ -1,0 +1,243 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "pocheon",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "pocheon-encar-aerial",
+      "title": "Encar Magazine firsthand Pocheon Raceway aerial, 2018",
+      "url": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+      "imageUrl": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-2.jpg?resize=640:*",
+      "localEvidenceFile": "output/pit-references/pocheon-encar-track-2.jpg",
+      "sha256": "c323000bbf50f11993f6c9db23ed44c891dbdde11d1539da7c96cde5beba282d",
+      "reviewedDate": "2026-10-15",
+      "observation": "Actual aerial shows grey-roof service building, bright paved paddock and parallel pit lane outside the eastern main straight; photographed from the southern hairpin end.",
+      "photographsRedistributed": false,
+      "publicationYear": 2018
+    },
+    {
+      "id": "pocheon-encar-pit-wall",
+      "title": "Encar Magazine firsthand pit-wall photograph, 2018",
+      "url": "https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1",
+      "imageUrl": "https://ci.encarmagazine.com/2018/11/POCHEONRACEWAY-5.jpg?resize=640:*",
+      "localEvidenceFile": "output/pit-references/pocheon-encar-track-5.jpg",
+      "sha256": "ad4e9205cfbf70918c903a1ae5da928938fefc26c76f4ec28f00bbcca6718cf3",
+      "reviewedDate": "2026-10-15",
+      "observation": "Concrete pit wall with metal safety fence and a starter stand; painted lane line beside wall. Does not reveal an independently countable garage or pit-box row.",
+      "photographsRedistributed": false,
+      "publicationYear": 2018
+    }
+  ],
+  "metadata": {
+    "reviewedDate": "2026-10-15",
+    "localAxes": "x east, y south; scaled local metres from buildTrack.projection",
+    "coverage": "Historical photographed pit/service building, paddock, lane and wall on eastern main straight.",
+    "facilityType": "historical-racing-pits",
+    "registration": {
+      "method": "Manual track-relative footprint based on 2018 oblique aerial, matched to distinctive southern outer/inner hairpins and eastern main straight.",
+      "trackProjection": {
+        "origin": [
+          127.1973413,
+          38.0618868
+        ],
+        "latitudeRad": 0.6643274003825576,
+        "metresPerDegree": 111195.08023353292,
+        "offset": {
+          "x": 0.04975762627787683,
+          "y": -0.032139597630907235
+        },
+        "scale": 1.0130980433820134
+      },
+      "longitudinalUncertaintyM": 35,
+      "lateralUncertaintyM": 10
+    },
+    "limitations": [
+      "Source records the built 2018 facility; present operating status or later changes not verified.",
+      "Oblique aerial is not a georeferenced survey; placement and dimensions are approximate.",
+      "Garage doors and individually painted pit-stop boxes cannot be counted reliably and are deliberately omitted.",
+      "Concrete-wall height estimated from starter stand photograph; metal safety fence not modelled by this data."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "pocheon-pit-building",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -20.14,
+              -83.1
+            ],
+            [
+              43.12,
+              11.57
+            ],
+            [
+              57.94,
+              1.36
+            ],
+            [
+              -3.77,
+              -90.58
+            ],
+            [
+              -20.14,
+              -83.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "pocheon-encar-aerial",
+        "evidence": "Long narrow light-grey roof adjacent to pit lane on outside/east side of main straight. Roof shape and height estimated from oblique aerial; garage count not visible.",
+        "label": "포천 피트·서비스동",
+        "height": 5.5,
+        "levels": 1,
+        "roofStyle": "pitched",
+        "roofRise": 1.1,
+        "roofColor": "#b2bbc0",
+        "wallColor": "#d1d6d6",
+        "estimatedProperties": [
+          "footprint",
+          "height",
+          "roofRise"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-paddock",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -31.56,
+              -95.26
+            ],
+            [
+              79.61,
+              74.92
+            ],
+            [
+              108.81,
+              52.11
+            ],
+            [
+              96.3,
+              -11.71
+            ],
+            [
+              23.4,
+              -90.35
+            ],
+            [
+              -31.56,
+              -95.26
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "pocheon-encar-aerial",
+        "evidence": "Bright paved paddock wraps behind and beyond the service building, with parked vehicles visible. Conservative outer boundary estimated from aerial.",
+        "label": "포천 피트 패독",
+        "color": "#c1c5c4",
+        "estimatedProperties": [
+          "footprint"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -55.24,
+            -129.76
+          ],
+          [
+            -40.78,
+            -99.69
+          ],
+          [
+            -29.32,
+            -74.95
+          ],
+          [
+            33.81,
+            19.21
+          ],
+          [
+            62.17,
+            60.37
+          ],
+          [
+            75.21,
+            91.29
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "pocheon-encar-aerial",
+        "evidence": "Pit lane parallels main straight between building/paddock and wall; connections inferred only along observed paved compound ends.",
+        "label": "포천 피트레인",
+        "width": 8,
+        "edgeMarkings": true,
+        "markingColor": "#e4e8e5",
+        "estimatedProperties": [
+          "width",
+          "entry-exit-junctions"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pocheon-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -46.68,
+            -101.03
+          ],
+          [
+            -19.4,
+            -47.02
+          ],
+          [
+            15.65,
+            3.79
+          ],
+          [
+            47.43,
+            49.9
+          ],
+          [
+            63.88,
+            73.7
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "pocheon-encar-pit-wall",
+        "evidence": "Concrete pit wall and fence confirmed by ground photo; wall body height approximate, safety-fence geometry not asserted here.",
+        "label": "포천 피트월",
+        "height": 1.35,
+        "color": "#b3b4aa",
+        "estimatedProperties": [
+          "height",
+          "endpoints"
+        ]
+      }
+    }
+  ]
+}

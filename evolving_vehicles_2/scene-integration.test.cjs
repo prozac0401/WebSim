@@ -49,6 +49,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
   assert.ok(index('track-environment-data.js')<index('track-environment.js'));
   assert.ok(index('track-environment.js')<index('circuit-renderer.js'));
+  assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
   const needed=new Set(['../evolving_vehicles/vehicle-specs.js','spa-elevation-profile.js','circuits.js','race-engine.js','driving-pose.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
@@ -110,7 +111,7 @@ test('all real circuits share continuous car, camera and line coordinates withou
     r._queue=()=>{};r._mesh=()=>({length:5,width:1.9,height:1.5,faces:[]});
     r._drawVehicles=entries=>{vehicles=entries;};r._line=points=>{line=points;};
     for(const fraction of [0,.137,.503,.923]) {
-      const car=race.cars[0];car.distance=race.track.length*fraction;r.advanceCamera(0,{snap:true});r.render();
+      const car=race.cars[0];car.distance=race.track.length*fraction;r.advanceCamera(0,{snap:true});r.render({showLine:true});
       const expected=Pose.sample(race,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
       assert.deepEqual(entry.position,expected,id+' render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
@@ -194,4 +195,16 @@ test('distant detailed vehicles stay inside the GPU far plane until they reach t
   const [near,far]=surface.uniforms.get('uClip');close(near,.3,'near depth');
   assert.ok(far>=300+Math.hypot(mesh.length,mesh.width,mesh.height),'farthest whole body is visible');
   assert.ok(far<330,'nearby vehicle layer keeps a tight, adequate depth range');
+});
+
+test('ghost bodies are composited once at 32 percent, with the selected body opaque and coincident duplicates removed',()=>{
+  const r=renderer(),batches=[],composites=[],ghostContext={setTransform(){},clearRect(){}};
+  r.canvas.ownerDocument={createElement:()=>({getContext:()=>ghostContext})};
+  r.ctx.globalAlpha=1;r.ctx.save=()=>{};r.ctx.restore=()=>{r.ctx.globalAlpha=1;};r.ctx.drawImage=()=>composites.push(r.ctx.globalAlpha);
+  const main=r.ctx;r._drawVehicleBatch=function(entries){batches.push({ids:entries.map(e=>e.car.id),ghost:this.ctx===ghostContext,alpha:this.ctx.globalAlpha});};
+  const entry=(id,x,selected)=>({car:{id},position:{x,y:0,angle:0},selected});
+  r._drawVehicles([entry(0,0,true),entry(1,0,false),entry(2,8,false)],{});
+  assert.deepEqual(composites,[.32]);assert.deepEqual(batches.map(b=>b.ids),[[2],[0]]);assert(batches[0].ghost);assert(!batches[1].ghost);assert.equal(batches[1].alpha,1);assert.equal(r.ctx,main);
+  batches.length=0;composites.length=0;r._drawVehicles([entry(0,0,false),entry(1,8,true)],{});
+  assert.deepEqual(batches.map(b=>b.ids),[[0],[1]]);assert.deepEqual(composites,[.32]);
 });

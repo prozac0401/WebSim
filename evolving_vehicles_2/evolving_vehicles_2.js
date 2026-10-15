@@ -4,7 +4,7 @@ await window.ManufacturerModels?.load('g80');
 const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=RaceCircuits,canvas=$('canvas');
 let population=[],race,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='',autoDelay=0;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
-const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','top','eau-rouge'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
+const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
 const currentCircuit=()=>circuits.find(c=>c.id===$('circuit').value)||circuits[0];
 const watching=()=>race.cars.find(c=>c.id===watch)||race.cars[0];
 const tell=text=>{$('message').textContent=text;};
@@ -32,10 +32,13 @@ function prepareRace(note,keepWatch=false){
  if(!keepWatch||!race.cars.some(c=>c.id===watch))watch=race.cars[0].id;
  inspectorKey='';imageId='';renderer.setRace(race);renderer.setView(camera);camera=renderer.mode;
  const c=currentCircuit();$('circuit-quick').value=c.id;$('circuit-title').textContent=c.name;
- $('eau-rouge').hidden=c.id!=='spa';['overview','follow','top','eau-rouge'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));
+ $('eau-rouge').hidden=c.id!=='spa';['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));
  const env=window.TrackEnvironmentData?.[c.id];
- $('environment-note').replaceChildren(document.createTextNode(env?.features?.length?'주변 환경: 실제 사진·공식 지도에서 확인한 일부 구역을 근사 재구성했습니다. 경계·수목·지형 높이는 추정이며, 회색 바탕은 지표가 미확인된 보조 지형입니다. ':'주변 환경: 사진의 위치를 확인하지 못한 구역은 추가하지 않았습니다. '));
+ $('environment-note').replaceChildren(document.createTextNode(env?.features?.length?'주변 환경: 사진·공식 지도에서 확인한 구역과 기본 잔디·추정 배경 수목을 함께 표시합니다. 사진 밖의 식생 배치와 지형 높이는 시각적 추정입니다. ':'주변 환경: 기본 잔디와 추정 배경 수목을 표시합니다. 실제 식생 위치와 지형 높이를 측량한 자료는 아닙니다. '));
  const sourceLink=document.createElement('a');sourceLink.href='data/environment/README.md';sourceLink.textContent='사진 출처·재현 범위 ↗';$('environment-note').append(sourceLink);
+ $('pits').hidden=!renderer.pits?.focus;
+ $('pit-note').replaceChildren(document.createTextNode(renderer.pits?.stats.features?'피트·서비스 시설: 실제 사진과 배치도를 참고한 근사 재구성입니다. 건물 높이와 세부 형태는 추정이며, 드라이빙센터의 대기·정비 구역은 레이스 피트와 구분합니다. ':'피트·서비스 시설: 위치가 확인된 자료가 충분하지 않아 시설을 임의로 배치하지 않았습니다. '));
+ const pitLink=document.createElement('a');pitLink.href='data/pits/README.md';pitLink.textContent='피트 사진·시설별 출처 ↗';$('pit-note').append(pitLink);
  $('circuit-subtitle').textContent=c.country+' / '+c.nameEn+' / 지도 '+(c.lengthM/1000).toFixed(3)+' km';
  $('circuit-description').textContent=[c.description,c.sourceNote].filter(Boolean).join(' ');
  $('map-source').href=c.sourceUrl;$('map-source').textContent=c.attribution||c.source;
@@ -60,7 +63,7 @@ function prepareRace(note,keepWatch=false){
 }
 function selectCar(id){watch=id;inspectorKey='';updateUI();draw();}
 function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const text=renderer.getModelInfo().label;if($('exterior-source').textContent!==text)$('exterior-source').textContent=text;}}
-function setCamera(mode){renderer.setView(mode);camera=renderer.mode;['overview','follow','top','eau-rouge'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));draw();}
+function setCamera(mode){renderer.setView(mode);camera=renderer.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));draw();}
 function updateElevation(){
  const t=race.track,points=t.racingLine?.points||t.points;$('elevation-plot').hidden=!t.hasElevation;
  if(!t.hasElevation){$('elevation-range').textContent='고도 데이터 없음';return;}
@@ -172,7 +175,7 @@ for(const id of ['vehicle-model','population-size','budget','seed','circuit','la
 $('circuit-quick').addEventListener('change',()=>{$('circuit').value=$('circuit-quick').value;experiment('서킷을 바꾸어 새 실험을 시작합니다.');});
 $('reroll').addEventListener('click',()=>{$('seed').value=(seedValue()+104729)%2147483646||1;experiment('새 시드로 출고 사양과 튜닝 조합을 추첨했습니다.');});
 $('speed').addEventListener('change',()=>{lastFrame=null;});
-['overview','follow','top','eau-rouge'].forEach(id=>$(id).addEventListener('click',()=>setCamera(id)));
+['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).addEventListener('click',()=>setCamera(id)));
 $('zoom-in').addEventListener('click',()=>{renderer.zoom(1.4);draw();});$('zoom-out').addEventListener('click',()=>{renderer.zoom(1/1.4);draw();});
 $('orbit-mode').addEventListener('click',()=>renderer.setInteractionMode('orbit'));
 $('pan-mode').addEventListener('click',()=>renderer.setInteractionMode('pan'));
@@ -194,7 +197,7 @@ window.advanceTime=milliseconds=>{
 window.render_game_to_text=()=>JSON.stringify({
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. One shared computed racing line; no lateral lanes. Independent ghost races.',
- visualPath:DrivingPose.info(race),environment:renderer.environment?.stats||null,elevationProfile:race.track.elevationProfile||null,
+ visualPath:DrivingPose.info(race),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,
  circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
  cars:race.standings().map((c,i)=>{const p=race.sample(c.distance),e=c.entrant;return{id:c.id,uid:e.uid,vehicleId:c.vehicleId,variantId:e.variantId,variantLabel:e.variantLabel,position:i+1,levels:e.levels,credits:e.credits,cost:e.cost,budget:e.budget,maxLevels:e.maxLevels,massKg:c.massKg,powerPs:c.powerPs,drive:c.spec.factoryDrive,frontWeightFraction:c.spec.frontWeightFraction,x:+p.x.toFixed(2),y:+p.y.toFixed(2),elevationM:p.elevation,grade:p.grade,distanceM:+c.distance.toFixed(2),speedKmh:+(c.speed*3.6).toFixed(1),bestLap:c.bestLap,finished:c.finished,finishTime:c.finishTime,dnf:c.dnf};})
 });

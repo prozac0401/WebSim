@@ -1,0 +1,420 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "monza",
+  "coordinateSystem": "wgs84",
+  "sources": [
+    {
+      "id": "monza-official-photo",
+      "title": "Autodromo Nazionale Monza – official main-straight photograph",
+      "url": "https://www.monzanet.it/autodromo-nazionale-monza/",
+      "imageUrl": "https://www.monzanet.it/wp-content/uploads/2025/03/Autodromo-Circuito-uai-1200x675.webp",
+      "localEvidenceFile": "output/pit-references/monza-main-straight.webp",
+      "reviewedDate": "2026-10-15",
+      "observation": "진행 오른쪽의 연속 차고, 청색 정비 앞마당, 검은 fast lane, 낮은 콘크리트 pit wall, 상부 유리 띠 및 밝은 지붕 구조를 직접 확인.",
+      "sha256": "d91e35b9bf36248856366571b363a0cd0288f0f25c894224ff080f1ee934a9b6",
+      "captureDate": "not stated unless specified below"
+    },
+    {
+      "id": "monza-official-map",
+      "title": "2023 Italian Grand Prix official site map",
+      "url": "https://www.monzanet.it/wp-content/uploads/2023/08/Depliant_poster_F1_def_594x420_2023_VERTICAL.pdf",
+      "imageUrl": "https://www.monzanet.it/wp-content/uploads/2023/08/Depliant_poster_F1_def_594x420_2023_VERTICAL.pdf",
+      "localEvidenceFile": "output/pit-references/monza-map-2023.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "p2의 F1 pits, pitlane, paddock 및 메인 직선 배치를 현재 코스와 대조.",
+      "sha256": "7333a3e2fcb0c340907693b4175adef5d1c27d7e463894e9ae18ccfa8481990a",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 2
+    },
+    {
+      "id": "monza-fia-pitlane",
+      "title": "FIA 2025 Monza Event – Pit Lane",
+      "url": "https://www.fia.com/system/files/decision-document/2025_monza_event_-_f3_monza_pit_lane_map_2025.pdf",
+      "imageUrl": "https://www.fia.com/system/files/decision-document/2025_monza_event_-_f3_monza_pit_lane_map_2025.pdf",
+      "localEvidenceFile": "output/pit-references/monza-fia-pitlane-2025.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "p3의 차고 03–60, fast lane, 피트 입출구 방향과 현장사진을 확인. 행사 팀 배정은 복제하지 않음.",
+      "sha256": "9842950272d5eb8eef2474d67b5c61716bae68144ac1812cad8f63000cbc767f",
+      "captureDate": "not stated unless specified below",
+      "documentPage": 3
+    },
+    {
+      "id": "monza-operator-history",
+      "title": "Monza operator history – pit building dimensions and extension",
+      "url": "https://www.monzanet.it/autodromo-di-monza-storia/",
+      "imageUrl": "https://www.monzanet.it/autodromo-di-monza-storia/",
+      "localEvidenceFile": "output/pit-references/monza-history.html",
+      "reviewedDate": "2026-10-15",
+      "observation": "운영사 기록은 초기 건물 196.30×약12.90m, 지상 2층, 48개 모듈 및 2001–2003년 50m 연장·60개 모듈을 명시. 246.3m는 두 길이의 합산 추정이며 현재 현장 재측량값이 아님.",
+      "sha256": "b1b7a17bc1029641e44cec9f6202619305c2edae6c817502211d75e308ff381f",
+      "captureDate": "not stated unless specified below"
+    }
+  ],
+  "metadata": {
+    "coverage": "메인 직선 F1 피트 fast lane, 청색 apron, 60모듈 건물, 관제동, pit wall과 시각화 정비칸.",
+    "limitations": "폭·높이·진출입 곡률 및 track-relative footprint 위치는 사진/도면 근사. 사진 촬영일 불명. 2023 지도와 2025 FIA 배치도를 사용하며 2026 이후 공사를 보증하지 않음.",
+    "placementMethod": "공식 사진·배치도의 수작업 판독을 현재 centerline/projection에 정합. 측량·지적도 데이터가 아님.",
+    "verticalGeometry": "건물 높이·지붕 상승량·정비칸 깊이는 사진 추정. 지면 고도는 현재 서킷 고도 모델에서 파생.",
+    "raceOperations": "풍경용 시설 데이터. 대회별 차고 배정, 실제 피트 속도선, 진입 허가 및 레이스의 피트 전략을 정의하지 않음.",
+    "reviewedDate": "2026-10-15",
+    "approximateHorizontalUncertaintyM": 20,
+    "focusFeatureId": "monza-main-garages"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "monza-pit-fast-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            9.28122726,
+            45.61811646
+          ],
+          [
+            9.28136881,
+            45.61855538
+          ],
+          [
+            9.28145246,
+            45.61895931
+          ],
+          [
+            9.28151847,
+            45.619498
+          ],
+          [
+            9.28164899,
+            45.62057137
+          ],
+          [
+            9.28176864,
+            45.62155529
+          ],
+          [
+            9.28179744,
+            45.62200405
+          ],
+          [
+            9.2817914,
+            45.62259003
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "monza-fia-pitlane",
+        "evidence": "FIA 배치도와 공식 사진의 메인 직선 오른쪽 병행 fast lane. 선의 정확한 곡률·폭 6m는 사진 비율 추정.",
+        "width": 6,
+        "color": "#4d5357",
+        "edgeMarkings": true,
+        "markingColor": "#e8e7df",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "monza-blue-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.28151116,
+              45.61912004
+            ],
+            [
+              9.28153144,
+              45.61928679
+            ],
+            [
+              9.28155172,
+              45.61945355
+            ],
+            [
+              9.28157199,
+              45.6196203
+            ],
+            [
+              9.28159227,
+              45.61978706
+            ],
+            [
+              9.28161255,
+              45.61995382
+            ],
+            [
+              9.28163282,
+              45.62012057
+            ],
+            [
+              9.2816531,
+              45.62028733
+            ],
+            [
+              9.28167338,
+              45.62045408
+            ],
+            [
+              9.28169365,
+              45.62062084
+            ],
+            [
+              9.28171393,
+              45.6207876
+            ],
+            [
+              9.28173421,
+              45.62095435
+            ],
+            [
+              9.28175449,
+              45.62112111
+            ],
+            [
+              9.28177476,
+              45.62128786
+            ],
+            [
+              9.28179504,
+              45.62145462
+            ],
+            [
+              9.28194852,
+              45.62144549
+            ],
+            [
+              9.28192824,
+              45.62127874
+            ],
+            [
+              9.28190796,
+              45.62111198
+            ],
+            [
+              9.28188768,
+              45.62094522
+            ],
+            [
+              9.28186741,
+              45.62077847
+            ],
+            [
+              9.28184713,
+              45.62061171
+            ],
+            [
+              9.28182685,
+              45.62044496
+            ],
+            [
+              9.28180658,
+              45.6202782
+            ],
+            [
+              9.2817863,
+              45.62011144
+            ],
+            [
+              9.28176602,
+              45.61994469
+            ],
+            [
+              9.28174575,
+              45.61977793
+            ],
+            [
+              9.28172547,
+              45.61961118
+            ],
+            [
+              9.28170519,
+              45.61944442
+            ],
+            [
+              9.28168491,
+              45.61927766
+            ],
+            [
+              9.28166464,
+              45.61911091
+            ],
+            [
+              9.28151116,
+              45.61912004
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "monza-official-photo",
+        "evidence": "사진에서 명확한 청색 차고 앞 정비 표면. 경계와 12m 깊이는 사진 비율 추정.",
+        "color": "#91b9c4",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "monza-main-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.28167551,
+              45.61920036
+            ],
+            [
+              9.2819434,
+              45.62140345
+            ],
+            [
+              9.28210839,
+              45.62139364
+            ],
+            [
+              9.2818405,
+              45.61919054
+            ],
+            [
+              9.28167551,
+              45.61920036
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "monza-operator-history",
+        "evidence": "196.3m 원건물+50m 연장을 길이에 반영. 사진의 두 층·청록 유리 띠·밝은 지붕을 단순화. 높이 8.4m와 footprint 정합은 추정.",
+        "height": 8.4,
+        "levels": 2,
+        "roofColor": "#c7cdd0",
+        "wallColor": "#c8ccca",
+        "glassColor": "#397381",
+        "doorColor": "#33464c",
+        "garageEdge": 0,
+        "garageCount": 60,
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 1.5,
+        "complex": "f1",
+        "countBasis": "공식 운영사 역사 및 FIA 2025 도면의 60개 모듈",
+        "relatedSourceIds": [
+          "monza-official-photo",
+          "monza-fia-pitlane"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "monza-control-building",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.28192185,
+              45.62143807
+            ],
+            [
+              9.28195774,
+              45.62173325
+            ],
+            [
+              9.28223911,
+              45.62171651
+            ],
+            [
+              9.28220322,
+              45.62142133
+            ],
+            [
+              9.28192185,
+              45.62143807
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "monza-official-photo",
+        "evidence": "차고 행의 출구 쪽에 보이는 더 높은 유리·회색 관제 건물을 별도 footprint로 표시. 3층·12.2m 및 깊이 22m는 사진 추정.",
+        "height": 12.2,
+        "levels": 3,
+        "roofColor": "#b4bcc1",
+        "wallColor": "#b7c2c8",
+        "glassColor": "#38515f",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "roofStyle": "pitched",
+        "roofRise": 1.5,
+        "windowBand": true,
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "monza-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            9.28137581,
+            45.61896455
+          ],
+          [
+            9.28148524,
+            45.61986035
+          ],
+          [
+            9.28161576,
+            45.62093373
+          ],
+          [
+            9.28170821,
+            45.62169403
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "monza-official-photo",
+        "evidence": "본선과 fast lane 사이 콘크리트 벽을 사진으로 확인. 높이 1.15m·두께 .4m는 추정.",
+        "height": 1.15,
+        "width": 0.4,
+        "color": "#c1c6c2",
+        "complex": "f1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "monza-service-bays",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            9.28157006,
+            45.61923366
+          ],
+          [
+            9.2818311,
+            45.6213804
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-box-row",
+        "sourceId": "monza-fia-pitlane",
+        "evidence": "FIA 도면의 fast lane 안쪽 작업 위치를 반영한 표시. 20칸은 60개 차고를 3개씩 묶은 시각화이며 실제 팀 배정·영구 바닥 구획 수가 아님.",
+        "bayCount": 20,
+        "depth": 7.8,
+        "color": "#e8e3c9",
+        "side": "right",
+        "complex": "f1",
+        "estimatedBayCount": true
+      }
+    }
+  ]
+}

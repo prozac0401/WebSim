@@ -1,0 +1,482 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "inje",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "inje-aerial",
+      "title": "Inje Speedium official gallery aerial",
+      "url": "https://www.speedium.co.kr/company/content/01_01.jsp",
+      "imageUrl": "https://www.speedium.co.kr/company/img/content/s0101img04.jpg",
+      "localEvidenceFile": "output/pit-references/inje-gallery-04.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Pit building is the long light-roofed block between central main straight and paddock, distinct from the blue grandstand. Photograph year unspecified.",
+      "sha256": "0a9b65db43546afb96aec919d0a4e47fb84085f4fcaeb0c31846263b4dc01bbd",
+      "rights": "© Inje Speedium; local reference only."
+    },
+    {
+      "id": "inje-pit-photo",
+      "title": "Inje Speedium official pit building front",
+      "url": "https://cc.speedium.co.kr:8443/content/03facility/04_01.jsp",
+      "imageUrl": "https://cc.speedium.co.kr:8443/img/03facility/s0401img.jpg",
+      "localEvidenceFile": "output/pit-references/inje-s0401img.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Official 2-above-ground-storey/36-room pit building; grey wall panels, green-grey upper window band, flat roof, blue rooftop equipment enclosures, concrete working apron, red strip and low pit wall. Photograph year unspecified.",
+      "sha256": "11a7ab82e01648602c9c16391acb1da1729487a35917d0371ebd3a8270041800",
+      "rights": "© Inje Speedium; local reference only."
+    },
+    {
+      "id": "inje-pit-front2",
+      "title": "Inje Speedium official garage-front perspective",
+      "url": "https://cc.speedium.co.kr:8443/content/03facility/04_01.jsp",
+      "imageUrl": "https://cc.speedium.co.kr:8443/img/03facility/s0401img2.jpg",
+      "localEvidenceFile": "output/pit-references/inje-s0401img2.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Long continuous working apron and yellow line directly in front of garages; visible concrete joints do not establish individual painted service boxes.",
+      "sha256": "d42f0f7d15ae8d516cf882a798867f45ee99dba8626200a1fd3506b20b082b4a",
+      "rights": "© Inje Speedium; local reference only."
+    },
+    {
+      "id": "inje-osm",
+      "title": "OpenStreetMap Inje pit complex",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=128.287,38.000,128.295,38.004",
+      "imageUrl": null,
+      "localEvidenceFile": "output/pit-references/inje-pits-osm.xml",
+      "reviewedDate": "2026-10-15",
+      "observation": "Mapped lane 677355827 and garage footprint 826321354; official photo match. Official two above-ground levels used instead of conflicting OSM three-level tag.",
+      "sha256": "977f7e7db3d91545328adb7c319d44a6bdace8e662891366dc02249dfaebd760",
+      "rights": "© OpenStreetMap contributors, ODbL-1.0"
+    }
+  ],
+  "metadata": {
+    "coverage": "Photo-confirmed pit compound and mapped pit lane; simplified architectural envelope.",
+    "reviewedDate": "2026-10-15",
+    "limitations": [
+      "Pit-building 36 official rooms are represented by a simplified evenly spaced facade.",
+      "Heights, wall offset and apron/strip widths are image-based estimates; rooftop machinery omitted.",
+      "No complete permanent painted service-box row is visible; do not mislabel concrete expansion joints as service-box markings."
+    ],
+    "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "inje-pit-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -216.237,
+            808.094
+          ],
+          [
+            -200.652,
+            790.29
+          ],
+          [
+            -192.716,
+            783.032
+          ],
+          [
+            -185.814,
+            775.145
+          ],
+          [
+            -181.999,
+            768.35
+          ],
+          [
+            -179.113,
+            761.158
+          ],
+          [
+            -176.114,
+            750.922
+          ],
+          [
+            -174.236,
+            737.784
+          ],
+          [
+            -174.306,
+            717.212
+          ],
+          [
+            -178.713,
+            656.643
+          ],
+          [
+            -179.2,
+            630.224
+          ],
+          [
+            -180.025,
+            542.166
+          ],
+          [
+            -179.374,
+            485.171
+          ],
+          [
+            -177.07,
+            369.547
+          ],
+          [
+            -175.801,
+            332.793
+          ],
+          [
+            -175.071,
+            319.336
+          ],
+          [
+            -173.706,
+            284.39
+          ],
+          [
+            -172.82,
+            257.972
+          ],
+          [
+            -171.507,
+            218.736
+          ],
+          [
+            -169.125,
+            208.4
+          ],
+          [
+            -169.343,
+            182.82
+          ],
+          [
+            -169.934,
+            146.452
+          ],
+          [
+            -170.029,
+            101.447
+          ],
+          [
+            -168.439,
+            81.9
+          ],
+          [
+            -163.536,
+            65.376
+          ],
+          [
+            -155.096,
+            51.5
+          ],
+          [
+            -145.352,
+            41.352
+          ],
+          [
+            -114.06,
+            12.407
+          ],
+          [
+            -107.324,
+            6.925
+          ],
+          [
+            -97.345,
+            2.49
+          ],
+          [
+            -86.063,
+            -0.234
+          ],
+          [
+            -72.79,
+            -0.091
+          ],
+          [
+            -48.878,
+            4.608
+          ],
+          [
+            -35.396,
+            7.079
+          ],
+          [
+            -24.913,
+            10.024
+          ],
+          [
+            -12.883,
+            18.176
+          ],
+          [
+            -4.765,
+            26.052
+          ],
+          [
+            7.022,
+            41.451
+          ],
+          [
+            24.171,
+            66.314
+          ],
+          [
+            44.076,
+            94.431
+          ],
+          [
+            50.639,
+            104.723
+          ],
+          [
+            60.939,
+            122.901
+          ],
+          [
+            90.51,
+            163.296
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "inje-osm",
+        "evidence": "Mapped lane enters south of main straight, passes its east side, and follows north turn to visible exit. Consistent with official whole-track aerial. Width estimated.",
+        "width": 6,
+        "color": "#696c6d",
+        "edgeMarkings": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -166.431,
+              552.756
+            ],
+            [
+              -156.704,
+              552.579
+            ],
+            [
+              -153.158,
+              552.513
+            ],
+            [
+              -142.632,
+              552.325
+            ],
+            [
+              -134.409,
+              233.263
+            ],
+            [
+              -158.017,
+              232.679
+            ],
+            [
+              -166.431,
+              552.756
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm",
+        "evidence": "OSM footprint matched to official photos. Official website reports 36 rooms and two above-ground levels; uniform garage spacing and 10 m envelope height are simplified estimates. Blue roof enclosures omitted rather than placing them at ground level.",
+        "height": 10,
+        "levels": 2,
+        "roofColor": "#d4d7d5",
+        "wallColor": "#aeb3b5",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 0.8,
+        "garageEdge": 5,
+        "garageCount": 36
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-control-tower",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -170.221,
+              623.617
+            ],
+            [
+              -148.777,
+              623.694
+            ],
+            [
+              -148.768,
+              622.889
+            ],
+            [
+              -143.397,
+              622.911
+            ],
+            [
+              -143.318,
+              603.795
+            ],
+            [
+              -151.932,
+              603.761
+            ],
+            [
+              -151.802,
+              570.647
+            ],
+            [
+              -153.323,
+              570.647
+            ],
+            [
+              -156.704,
+              570.625
+            ],
+            [
+              -168.048,
+              570.592
+            ],
+            [
+              -168.161,
+              601.136
+            ],
+            [
+              -170.142,
+              601.125
+            ],
+            [
+              -170.221,
+              623.617
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm",
+        "evidence": "South end control tower visible in aerial; separate footprint. Five levels from OSM; 19 m envelope height is estimated.",
+        "height": 19,
+        "levels": 5,
+        "roofColor": "#b2b6b8",
+        "wallColor": "#a4aaad",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "garageCount": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-work-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -158.017,
+              232.679
+            ],
+            [
+              -166.431,
+              552.756
+            ],
+            [
+              -175.228,
+              552.525
+            ],
+            [
+              -166.814,
+              232.448
+            ],
+            [
+              -158.017,
+              232.679
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "inje-pit-photo",
+        "evidence": "Photo-confirmed pale continuous apron in front of garage doors. Approximate depth; no invented permanent bay divider markings.",
+        "color": "#bfc1bd"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-red-pit-strip",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -166.814,
+              232.448
+            ],
+            [
+              -175.228,
+              552.525
+            ],
+            [
+              -177.427,
+              552.467
+            ],
+            [
+              -169.013,
+              232.39
+            ],
+            [
+              -166.814,
+              232.448
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "inje-pit-photo",
+        "evidence": "Continuous red longitudinal strip between concrete apron and pit travel lane is directly visible. Offset/width estimated.",
+        "color": "#aa4b4c"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -177.01,
+            232.18
+          ],
+          [
+            -185.424,
+            552.257
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "inje-pit-photo",
+        "evidence": "Low concrete wall separates pit travel lane from main straight; 0.9 m concrete height estimated. Mesh fencing is not represented as solid concrete.",
+        "height": 0.9,
+        "color": "#b9bdba"
+      }
+    }
+  ]
+}

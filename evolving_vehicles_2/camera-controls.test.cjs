@@ -261,13 +261,13 @@ function legacyFollowGoal(car) {
   const chord=Math.atan2(ahead.y-p.y,ahead.x-p.x);
   return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading:p.angle+wrap(chord-p.angle)*.65,distance:car.distance};
 }
-function chase(r, speed, start, framePattern, duration, collectAfter=0) {
+function chase(r, speed, start, framePattern, duration, collectAfter=0, playback=1) {
   const car=r.race.cars[0];car.speed=speed;car.distance=start;r.setView('follow');r._interactionCamera();
   const frames=[],checkpoints=[];let elapsed=0,index=0,previous=r._followState.heading;
   while(elapsed<duration-1e-9){
     const checkpoint=Math.min(duration,Math.floor(elapsed+1e-8)+1);
     const dt=Math.min(framePattern[index++%framePattern.length],checkpoint-elapsed);
-    elapsed+=dt;car.distance=start+elapsed*speed;r.advanceCamera(dt);
+    elapsed+=dt;car.distance=start+elapsed*speed*playback;r.advanceCamera(dt);
     const heading=r._followState.heading;
     if(elapsed>collectAfter)frames.push({heading,rate:wrap(heading-previous)/dt,distance:car.distance});
     if(Math.abs(elapsed-checkpoint)<1e-8)checkpoints.push(heading);
@@ -296,6 +296,69 @@ test('millimetre-scale path ripples do not produce repeated straight/turn camera
     assert.ok(Math.abs(wrap(heading-results[0].checkpoints[i]))<.0025,'camera follows elapsed time across fixed/variable frame rates');
   });
   t.diagnostic(JSON.stringify(results.map(({pattern,ratio})=>({pattern,angularRippleRatio:+ratio.toFixed(5)}))));
+});
+
+test('sharp-course camera target has no adaptation-switch direction kinks', t => {
+  const previous = global.DrivingPose;
+  t.after(() => { if (previous === undefined) delete global.DrivingPose; else global.DrivingPose = previous; });
+  global.DrivingPose = require('./driving-pose.js');
+  const TrackRace = require('./race-engine.js'), circuits = require('./circuits.js');
+  // Maximum change of direction gradient (rad/m²) over the actual bends.
+  // These limits distinguish a smooth change of bend radius from a cusp
+  // caused by switching the dominant look-ahead chord or quadrature count.
+  const corners = [
+    ['everland', 3860, .004], ['inje', 220, .005], ['yeongam', 3670, .012],
+    ['yeongam-permanent', 145, .009], ['taebaek', 540, .004],
+    ['bmw-incheon', 2385, .012], ['hmg-taean', 1940, .002],
+    ['pocheon', 2730, .04], ['monza', 655, .008], ['silverstone', 4055, .004], ['spa', 240, .01]
+  ];
+  const reports = [];
+  for (const [id, center, limit] of corners) {
+    const { renderer: r } = fixture();
+    r.race = new TrackRace({ circuit: circuits.find(c => c.id === id), vehicleIds: ['g80'], racingLine: true, laps: 1 });
+    const car = r.race.cars[0]; car.speed = 12;
+    const headings = [];
+    for (let s = center - 30; s <= center + 30; s += .1) {
+      car.distance = s;
+      const goal = r._followGoal(car), body = global.DrivingPose.sample(r.race, s);
+      headings.push(goal.heading);
+      assert.ok(Math.abs(wrap(goal.heading - body.angle)) < .28, id + ': do not look around the return leg');
+    }
+    const maximum = Math.max(...headings.slice(2).map((h, i) => Math.abs(wrap(h - headings[i + 1]) - wrap(headings[i + 1] - headings[i])) / .01));
+    assert.ok(maximum < limit, id + ': abrupt camera direction-gradient change ' + maximum);
+    reports.push({ id, maximumGradientChange: +maximum.toFixed(5) });
+  }
+  t.diagnostic(JSON.stringify(reports));
+});
+
+test('actual sharp corners remain rearward and cadence-independent at 1x, 2x and 3x', t => {
+  const previous = global.DrivingPose;
+  t.after(() => { if (previous === undefined) delete global.DrivingPose; else global.DrivingPose = previous; });
+  global.DrivingPose = require('./driving-pose.js');
+  const TrackRace = require('./race-engine.js'), circuits = require('./circuits.js');
+  const reports = [], patterns = [[1 / 30], [1 / 60], [1 / 120, 1 / 45, 1 / 80, 1 / 28]];
+  for (const [id, center] of [['everland', 3860], ['yeongam', 3670], ['pocheon', 2730], ['spa', 240]]) {
+    const race = new TrackRace({ circuit: circuits.find(c => c.id === id), vehicleIds: ['g80'], racingLine: true, laps: 1 });
+    for (const playback of [1, 2, 3]) {
+      let reference = null, worstOffset = 0;
+      for (const pattern of patterns) {
+        const { renderer: r } = fixture(); r.race = race;
+        const run = chase(r, 12, center - 45, pattern, 90 / (12 * playback), 0, playback);
+        for (const frame of run.frames) {
+          const body = global.DrivingPose.sample(race, frame.distance);
+          worstOffset = Math.max(worstOffset, Math.abs(wrap(frame.heading - body.angle)));
+        }
+        const car = race.cars[0], goal = r._followGoal(car);
+        for (const key of ['x', 'y', 'z']) near(r._followState[key], goal[key]);
+        if (reference) run.checkpoints.forEach((heading, i) => {
+          assert.ok(Math.abs(wrap(heading - reference[i])) < .012, id + ' ' + playback + 'x: fixed/uneven frame agreement');
+        }); else reference = run.checkpoints;
+      }
+      assert.ok(worstOffset < 1, id + ' ' + playback + 'x: chase camera stays in the rear hemisphere');
+      reports.push({ id, playback, maximumBodyOffsetDegrees: +(worstOffset * 180 / Math.PI).toFixed(2) });
+    }
+  }
+  t.diagnostic(JSON.stringify(reports));
 });
 
 test('tight hairpins keep a rearward direction without excessive early rotation or heading flips', () => {

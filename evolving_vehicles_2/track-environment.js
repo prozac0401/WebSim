@@ -1,6 +1,6 @@
-/* Source-backed scenery. Footprints come from curated, cited observations;
- * off-road elevation, tree crowns and wall heights are explicitly estimates.
- * No scenery is invented when a circuit has no observations. */
+/* Cited scenery footprints plus explicitly illustrative background vegetation.
+ * Off-road elevation, individual trees and wall heights are estimates.
+ * Background trees never replace an observed surface or a mapped pit facility. */
 (function (root) {
   'use strict';
   const CELL = 96, ROAD_CELL = 64, EPS = 1e-7;
@@ -89,7 +89,7 @@
     }
     return { faces, sourceTriangles: triangles.length, insertedBoundaryVertices, sharedVertices: vertices.length };
   }
-  function build(track,circuitOrId,data) {
+  function build(track,circuitOrId,data,options={}) {
     if(!track||!Array.isArray(track.points)||track.points.length<3)throw new TypeError('TrackEnvironment requires a built track.');
     const id=typeof circuitOrId==='string'?circuitOrId:circuitOrId&&circuitOrId.id||track.id;
     data=data||(root.TrackEnvironmentData||{})[id]||{features:[],sources:[]};
@@ -104,7 +104,24 @@
     const groundHeight=(x,y)=>nearest(x,y).z-.07;
     const clearance=track.width*.5+Math.min(1.1,track.width*.065)+.35;
     function clearTriangle(t) { for(const s of candidates(bounds(t),clearance)){if(inTriangle(s.a,...t)||inTriangle(s.b,...t))return false;for(let i=0;i<3;i++)if(segmentDistance(t[i],t[(i+1)%3],s.a,s.b)<clearance)return false;}return true; }
-    const groupsMap=new Map(),faces=[],objects=[],terrain=[],stats={features:0,rejected:0,faces:0,trees:0,kinds:{},approximateVerticalGeometry:true};
+    // Reserve every cited polygon before placing trees, including polygons that
+    // appear later in the input. A crown must not overlap a paved/gravel surface;
+    // illustrative vegetation additionally stays outside all observed areas.
+    const observedRegions=[],regionGrid=new Map();
+    for(const f of data.features||[])if(f.properties?.sourceId&&f.geometry?.type==='Polygon'){
+      const rings=f.geometry.coordinates.map(r=>r.map(project));if(!rings[0]?.length)continue;
+      const region={kind:f.properties.kind,outer:rings[0],holes:rings.slice(1),bounds:bounds(rings[0])},i=observedRegions.push(region)-1,b=region.bounds;
+      for(let x=Math.floor(b.minX/CELL);x<=Math.floor(b.maxX/CELL);x++)for(let y=Math.floor(b.minY/CELL);y<=Math.floor(b.maxY/CELL);y++){const k=key(x,y);if(!regionGrid.has(k))regionGrid.set(k,[]);regionGrid.get(k).push(i);}
+    }
+    function reservedSurface(p,r,allObserved=false){
+      const ids=new Set();for(let x=Math.floor((p.x-r)/CELL);x<=Math.floor((p.x+r)/CELL);x++)for(let y=Math.floor((p.y-r)/CELL);y<=Math.floor((p.y+r)/CELL);y++)for(const i of regionGrid.get(key(x,y))||[])ids.add(i);
+      const touches=ring=>ring.some((a,i)=>nearestOn(a,ring[(i+1)%ring.length],p).distance<=r);
+      for(const i of ids){const region=observedRegions[i];if(!allObserved&&['grass','forest'].includes(region.kind))continue;
+        if(inside(p,region.outer)){const hole=region.holes.find(ring=>inside(p,ring));if(!hole||touches(hole))return true;}
+        else if(touches(region.outer))return true;
+      }return false;
+    }
+    const groupsMap=new Map(),faces=[],objects=[],terrain=[],stats={features:0,rejected:0,faces:0,trees:0,sourceTrees:0,backgroundTrees:0,backgroundPlacementCandidates:0,illustrativeVegetation:false,kinds:{},approximateVerticalGeometry:true};
     const tint=(hex,f)=>'#'+[1,3,5].map(i=>clamp(Math.round(parseInt(hex.slice(i,i+2),16)*f),0,255).toString(16).padStart(2,'0')).join('');
     function addFace(vertices,fill,kind,featureId,extra={}) {
       if(faces.length>=50000&&!Object.hasOwn(COLORS,kind))return; const center=vertices.reduce((p,v)=>point(p.x+v.x/vertices.length,p.y+v.y/vertices.length,p.z+v.z/vertices.length),point(0,0));
@@ -114,14 +131,24 @@
     }
     function tree(p,properties,featureId,rng) {
       const h=clamp(properties.height||9+rng()*8,3,32),r=clamp(properties.crownRadius||h*.24,1.3,6);
-      if(nearest(p.x,p.y).distance<clearance+r+3)return;
-      const z=groundHeight(p.x,p.y),o={kind:'tree',x:p.x,y:p.y,z,height:h,radius:r,featureId,individualPositionEstimated:properties.kind==='forest'};objects.push(o);stats.trees++;
+      const illustrative=properties.illustrativeVegetation===true;
+      if(nearest(p.x,p.y).distance<clearance+r+3||reservedSurface(p,r+1,illustrative)||options.excludeTree?.(p.x,p.y,r+1))return false;
+      const z=groundHeight(p.x,p.y),o={kind:'tree',x:p.x,y:p.y,z,height:h,radius:r,featureId,individualPositionEstimated:properties.kind==='forest'||illustrative,illustrativeVegetation:illustrative};objects.push(o);stats.trees++;
+      if(illustrative){stats.backgroundTrees++;stats.illustrativeVegetation=true;}else stats.sourceTrees++;
       const n=6,ring=Array.from({length:n},(_,i)=>{const a=i*Math.PI*2/n;return point(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,z+h*.61);}),tip=point(p.x+.12*r,p.y-.08*r,z+h),bottom=point(p.x,p.y,z+h*.35);
       const shadow=ring.map(q=>point(q.x+h*.20,q.y+h*.13,z+.025));
       if(shadow.slice(1,-1).every((q,i)=>clearTriangle([shadow[0],q,shadow[i+2]])))addFace(shadow,'rgba(26,42,22,.20)','tree-shadow',featureId,{detail:1});
-      for(let i=0;i<n;i++){addFace([ring[i],ring[(i+1)%n],tip],tint('#496642',.81+i*.055),'tree',featureId);addFace([ring[(i+1)%n],ring[i],bottom],tint('#3f5738',.82+i*.035),'tree',featureId,{detail:1});}
+      if(illustrative){
+        // Two irregular crown rings produce broad, rounded silhouettes instead
+        // of repeating the same pointed conifer on a regular planting grid.
+        const phase=rng()*Math.PI*2,upperRadius=properties.crownShape==='spreading'?.80:.62,color=properties.crownColor||'#5b7546';
+        const lower=Array.from({length:n},(_,i)=>{const a=phase+i*Math.PI*2/n,rr=r*(.82+rng()*.18);return point(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,z+h*(.53+rng()*.06));});
+        const upper=lower.map((q,i)=>point(p.x+(q.x-p.x)*upperRadius+.08*r,p.y+(q.y-p.y)*upperRadius,z+h*(.81+(i%2)*.04)));
+        for(let i=0;i<n;i++){const j=(i+1)%n;addFace([lower[i],lower[j],upper[j],upper[i]],tint(color,.82+i*.035),'tree',featureId,{illustrativeVegetation:true});addFace([upper[i],upper[j],tip],tint(color,.94+i*.025),'tree',featureId,{illustrativeVegetation:true});addFace([lower[j],lower[i],bottom],tint(color,.72+i*.025),'tree',featureId,{detail:1,illustrativeVegetation:true});}
+      }else for(let i=0;i<n;i++){addFace([ring[i],ring[(i+1)%n],tip],tint('#496642',.81+i*.055),'tree',featureId);addFace([ring[(i+1)%n],ring[i],bottom],tint('#3f5738',.82+i*.035),'tree',featureId,{detail:1});}
       const tr=h*.019;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2;addFace([point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z+h*.58),point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z+h*.58)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
       const group=groupsMap.get(key(Math.floor(p.x/CELL),Math.floor(p.y/CELL)));if(group)group.objects.push(o);
+      return true;
     }
     for(const feature of data.features||[]) {
       const p=feature.properties||{},g=feature.geometry,featureId=feature.id||'feature-'+stats.features;
@@ -151,6 +178,32 @@
         for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],length=distance(a,b),n=Math.ceil(length/9);if(length<EPS)continue;for(let j=0;j<n;j++){const u=point(a.x+(b.x-a.x)*j/n,a.y+(b.y-a.y)*j/n),v=point(a.x+(b.x-a.x)*(j+1)/n,a.y+(b.y-a.y)*(j+1)/n);if(candidates(bounds([u,v]),clearance+width).some(s=>segmentDistance(u,v,s.a,s.b)<clearance+width))continue;const nx=-(b.y-a.y)/length*width*.5,ny=(b.x-a.x)/length*width*.5;const verts=[point(u.x+nx,u.y+ny,groundHeight(u.x,u.y)),point(v.x+nx,v.y+ny,groundHeight(v.x,v.y)),point(v.x-nx,v.y-ny,groundHeight(v.x,v.y)),point(u.x-nx,u.y-ny,groundHeight(u.x,u.y))],top=verts.map(q=>point(q.x,q.y,q.z+height));for(let k=0;k<4;k++)addFace([verts[k],verts[(k+1)%4],top[(k+1)%4],top[k]],kind==='guardrail'?'#9caaa9':k%2?'#77796c':'#939285',kind,featureId);addFace(top,kind==='guardrail'?'#b4c0bd':'#aba99b',kind,featureId);}}
       }
     }
+    if(options.backgroundVegetation!==false){
+      const requested=Number.isFinite(options.backgroundTreeLimit)?options.backgroundTreeLimit:400;
+      const length=track.centerlineLength||segments.reduce((s,q)=>s+distance(q.a,q.b),0),budget=Math.floor(clamp(Math.min(requested,Math.max(260,length/10)),0,400));
+      const rng=seeded(id+':illustrative-background-v1'),treeGrid=new Map(),TREE_CELL=16;
+      function indexTree(o){const k=key(Math.floor(o.x/TREE_CELL),Math.floor(o.y/TREE_CELL));if(!treeGrid.has(k))treeGrid.set(k,[]);treeGrid.get(k).push(o);}
+      objects.forEach(indexTree);
+      function occupied(p,r){const reach=r+8;for(let x=Math.floor((p.x-reach)/TREE_CELL);x<=Math.floor((p.x+reach)/TREE_CELL);x++)for(let y=Math.floor((p.y-reach)/TREE_CELL);y<=Math.floor((p.y+reach)/TREE_CELL);y++)for(const o of treeGrid.get(key(x,y))||[])if(Math.hypot(p.x-o.x,p.y-o.y)<r+o.radius+2)return true;return false;}
+      // Seed small elliptical clusters beside random road locations. Every
+      // candidate is checked against ALL road legs, not only its seed segment.
+      // Fixed attempt/geometry caps also bound work on densely reserved venues.
+      for(let cluster=0;cluster<budget*3&&stats.backgroundTrees<budget;cluster++){
+        const s=segments[Math.floor(rng()*segments.length)],d=distance(s.a,s.b);if(d<EPS)continue;
+        const t=rng(),side=rng()<.5?-1:1,offset=60+rng()*90;
+        const center=point(s.a.x+(s.b.x-s.a.x)*t+(s.b.y-s.a.y)/d*offset*side,s.a.y+(s.b.y-s.a.y)*t-(s.b.x-s.a.x)/d*offset*side);
+        const rotation=rng()*Math.PI*2,major=14+rng()*20,minor=8+rng()*12,count=5+Math.floor(rng()*8);
+        for(let j=0;j<count&&stats.backgroundTrees<budget;j++){
+          stats.backgroundPlacementCandidates++;
+          const a=rng()*Math.PI*2,rad=Math.sqrt(rng()),u=Math.cos(a)*major*rad,v=Math.sin(a)*minor*rad;
+          const p=point(center.x+u*Math.cos(rotation)-v*Math.sin(rotation),center.y+u*Math.sin(rotation)+v*Math.cos(rotation));
+          const r=1.9+rng()*2.2,road=nearest(p.x,p.y).distance;
+          if(road<45+r||road>180-r||occupied(p,r)||reservedSurface(p,r+1,true)||options.excludeTree?.(p.x,p.y,r+1))continue;
+          const spreading=rng()<.42,properties={illustrativeVegetation:true,height:(spreading?5.5:7)+rng()*6,crownRadius:r,crownShape:spreading?'spreading':'rounded',crownColor:['#607b49','#536e44','#6e8350','#587547'][Math.floor(rng()*4)]};
+          if(tree(p,properties,'illustrative-background-'+id+'-'+cluster,rng))indexTree(objects.at(-1));
+        }
+      }
+    }
     const conforming=conformTerrain(terrain,groundHeight);
     stats.terrain={sourceTriangles:conforming.sourceTriangles,conformingTriangles:conforming.faces.length,insertedBoundaryVertices:conforming.insertedBoundaryVertices,sharedVertices:conforming.sharedVertices};
     for(const f of conforming.faces)addFace(f.vertices,f.fill,f.kind,f.featureId,{priority:f.priority});
@@ -158,7 +211,7 @@
     stats.faces=faces.length;
     const worldBounds=faces.length?bounds(faces.flatMap(f=>f.vertices)):{...track.bounds};
     function query(x,y,radius=320) { if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(radius)||radius<0)return [];return groups.filter(g=>Math.hypot(Math.max(g.bounds.minX-x,0,x-g.bounds.maxX),Math.max(g.bounds.minY-y,0,y-g.bounds.maxY))<=radius); }
-    return {id,groups,faces,objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,verticalGeometry:'estimated from adjacent track elevations; individual trees are illustrative within observed forest footprints'};
+    return {id,groups,faces,objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
   }
-  const api={build};root.TrackEnvironment=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  const api={build,conformTerrain};root.TrackEnvironment=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -1,0 +1,311 @@
+{
+  "type": "FeatureCollection",
+  "circuitId": "taebaek",
+  "coordinateSystem": "local-metres",
+  "sources": [
+    {
+      "id": "taebaek-kto-pit-front",
+      "title": "Korea Tourism Organization photograph: numbered pit garages",
+      "url": "https://www.ktourmap.com/spotDetails.jsp?contentId=3072028",
+      "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/51/3054551_image2_1.jpg",
+      "localEvidenceFile": "output/pit-references/taebaek-3054551_image2_1.jpg",
+      "sha256": "91c01e899b5563c1b927588fac48514d8ac50174553d9e98f76cd0365a48bdf6",
+      "reviewedDate": "2026-10-15",
+      "observation": "Actual numbered shutters 25–28, pale concrete apron, blue strip and yellow lane edge. The listing reports 32 pits; individual apron box outlines are not visible.",
+      "photographsRedistributed": false,
+      "publisher": "Korea Tourism Organization; listing served by KTourMap",
+      "captureDateStatus": "Unknown; other images in the same set show a 2023 track-festival banner."
+    },
+    {
+      "id": "taebaek-kto-pit-straight",
+      "title": "Korea Tourism Organization photograph: main straight and pit building",
+      "url": "https://www.ktourmap.com/spotDetails.jsp?contentId=3072028",
+      "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/62/3054562_image2_1.jpg",
+      "localEvidenceFile": "output/pit-references/taebaek-3054562_image2_1.jpg",
+      "sha256": "50d0e0484a938a37705d0887170fc0b862ae72d06ac2a263f2e19dd394b29602",
+      "reviewedDate": "2026-10-15",
+      "observation": "Long two-storey silver/white pit building is on the infield side of the straight, opposite the roofed grandstand; low concrete pit wall separates its apron.",
+      "photographsRedistributed": false
+    },
+    {
+      "id": "taebaek-kto-tower",
+      "title": "Korea Tourism Organization photograph: four-storey control tower",
+      "url": "https://www.ktourmap.com/spotDetails.jsp?contentId=3072028",
+      "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/65/3054565_image2_1.jpg",
+      "localEvidenceFile": "output/pit-references/taebaek-3054565_image2_1.jpg",
+      "sha256": "10a3fc9316ca86cd26b346dd646b1819796884f5f15889a1361fe9de13bdbbda",
+      "reviewedDate": "2026-10-15",
+      "observation": "Four visible storeys at the downstream end of the pit building; flat roof, pale cladding and continuous greenish glazing.",
+      "photographsRedistributed": false
+    },
+    {
+      "id": "taebaek-operator-course",
+      "title": "Taebaek Speedway official course map",
+      "url": "http://taebaekspeedway.com/document/course",
+      "imageUrl": "http://taebaekspeedway.com/assets/images/tb-course.png",
+      "localEvidenceFile": "output/pit-references/taebaek-plan.png",
+      "sha256": "5f4d20af6f07bcdfbba929ee255f60fd55fa61b48118fa9c9330814877b8518d",
+      "reviewedDate": "2026-10-15",
+      "observation": "Operator plan identifies start, paddock and grandstand. It is schematic and establishes the infield side and ordering, not surveyed building corners.",
+      "photographsRedistributed": false
+    }
+  ],
+  "metadata": {
+    "reviewedDate": "2026-10-15",
+    "localAxes": "x east, y south; scaled local metres from buildTrack.projection",
+    "coverage": "Race pit building, control tower, working apron, pit lane and wall; photo-based approximate footprint.",
+    "facilityType": "racing-pits",
+    "registration": {
+      "method": "Track-relative placement on main straight, infield/driver-right side; operator start/paddock diagram and opposite-grandstand photographs.",
+      "trackProjection": {
+        "origin": [
+          129.0182351,
+          37.0827744
+        ],
+        "latitudeRad": 0.6472330818923436,
+        "metresPerDegree": 111195.08023353292,
+        "offset": {
+          "x": 0.0005262063758411095,
+          "y": 0.003148909241227127
+        },
+        "scale": 1.0018787146315455
+      },
+      "longitudinalUncertaintyM": 30,
+      "lateralUncertaintyM": 7
+    },
+    "limitations": [
+      "No measured building plan or orthophoto obtained; footprint/entry positions are approximate.",
+      "The 32 garage total is from the tourism listing; exact current allocation and apron box paint were not verified.",
+      "No individual painted pit-stop boxes invented; garage modules and open working apron are shown.",
+      "Tourism photographs are retained locally for review only; capture date unknown, a companion photo displays 2023."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "taebaek-garage-block",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              194.56,
+              -61.59
+            ],
+            [
+              13.02,
+              -31.55
+            ],
+            [
+              10.25,
+              -48.32
+            ],
+            [
+              191.78,
+              -78.36
+            ],
+            [
+              194.56,
+              -61.59
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "taebaek-kto-pit-straight",
+        "evidence": "Long garage row observed opposite the grandstand. 32 total garages follows the tourism listing, with numbered bays 25–28 independently visible in the close photograph.",
+        "label": "태백 피트 차고동",
+        "height": 8.2,
+        "levels": 2,
+        "roofStyle": "flat",
+        "roofColor": "#b7b9b7",
+        "wallColor": "#d8d9d5",
+        "windowBand": true,
+        "garageEdge": 0,
+        "garageCount": 32,
+        "estimatedProperties": [
+          "height",
+          "footprint",
+          "garage-module-width"
+        ],
+        "dimensionStatus": "Height and footprint approximate; 32 bays reported by listing, not recounted from one photograph."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "taebaek-control-tower",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              13.35,
+              -29.58
+            ],
+            [
+              -8.44,
+              -25.96
+            ],
+            [
+              -11.77,
+              -45.68
+            ],
+            [
+              10.09,
+              -49.31
+            ],
+            [
+              13.35,
+              -29.58
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "taebaek-kto-tower",
+        "evidence": "Four-storey tower at the downstream end of the garage block, beside start gantry; height estimated from visible floors.",
+        "label": "태백 관제동",
+        "height": 16,
+        "levels": 4,
+        "roofStyle": "flat",
+        "roofColor": "#c6c8c5",
+        "wallColor": "#d7dad6",
+        "windowBand": true,
+        "estimatedProperties": [
+          "height",
+          "footprint"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "taebaek-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              199.8,
+              -48.27
+            ],
+            [
+              -8.41,
+              -13.8
+            ],
+            [
+              -10.74,
+              -27.6
+            ],
+            [
+              197.52,
+              -62.08
+            ],
+            [
+              199.8,
+              -48.27
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "taebaek-kto-pit-front",
+        "evidence": "Concrete working apron in front of shutters. No fabricated individual pit-stop rectangles are added.",
+        "label": "태백 피트 작업마당",
+        "color": "#a3a5a2",
+        "estimatedProperties": [
+          "footprint"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "taebaek-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            250.27,
+            -49.52
+          ],
+          [
+            222.98,
+            -49.06
+          ],
+          [
+            199.8,
+            -48.27
+          ],
+          [
+            96.21,
+            -31.13
+          ],
+          [
+            -12.36,
+            -13.13
+          ],
+          [
+            -51.3,
+            -3.52
+          ],
+          [
+            -82.02,
+            6.74
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "taebaek-kto-pit-straight",
+        "evidence": "Parallel pit lane immediately behind concrete pit wall, connected to main straight upstream/downstream. Join positions and width are approximate from operator map and photographs.",
+        "label": "태백 피트레인",
+        "width": 6.5,
+        "edgeMarkings": true,
+        "markingColor": "#ddb945",
+        "estimatedProperties": [
+          "width",
+          "entry-exit-junctions"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "taebaek-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            220.23,
+            -47.29
+          ],
+          [
+            146.24,
+            -35.05
+          ],
+          [
+            67.31,
+            -21.99
+          ],
+          [
+            -16.57,
+            -8.06
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "taebaek-kto-pit-straight",
+        "evidence": "Low continuous concrete pit wall observed between racing surface and lane; physical wall height estimated.",
+        "label": "태백 피트월",
+        "height": 1.15,
+        "color": "#c1c2ba",
+        "estimatedProperties": [
+          "height",
+          "endpoints"
+        ]
+      }
+    }
+  ]
+}
