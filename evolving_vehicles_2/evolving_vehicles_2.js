@@ -1,8 +1,8 @@
 (async () => {
 'use strict';
-const DEFAULT_VEHICLE='supra';
+const DEFAULT_VEHICLE='supra',DEFAULT_CIRCUIT='inje';
 await window.ManufacturerModels?.load(DEFAULT_VEHICLE);
-const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=RaceCircuits,canvas=$('canvas');
+const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=[...RaceCircuits].sort((a,b)=>Number(b.id===DEFAULT_CIRCUIT)-Number(a.id===DEFAULT_CIRCUIT)),canvas=$('canvas');
 let population=[],race,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='',autoDelay=0;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
 const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
@@ -18,7 +18,7 @@ for(const [label,list] of [
  ['국내 · 운영 확인 필요',circuits.filter(c=>c.countryCode==='KR'&&c.category==='운영 확인 필요')],
  ['해외 · 그랑프리 서킷',circuits.filter(c=>c.countryCode!=='KR')]
 ]){const group=document.createElement('optgroup');group.label=label;list.forEach(c=>group.append(new Option(c.name+' · '+(c.lengthM/1000).toFixed(3)+' km',c.id)));if(list.length)$('circuit').append(group);}
-$('circuit').value='everland';
+$('circuit').value=DEFAULT_CIRCUIT;
 $('circuit-quick').replaceChildren(...[...$('circuit').children].map(g=>g.cloneNode(true)));
 vehicles.forEach(v=>$('vehicle-model').append(new Option(v.name,v.id)));$('vehicle-model').value=DEFAULT_VEHICLE;
 function experiment(note){

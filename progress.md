@@ -426,3 +426,8 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 
 ## 2026-10-15 수프라 표시 이름 간소화
 - User requested exact displayed trim text “GR Supra 3.0T 8AT · 19인치”. Updated both the circuit base specification and evolution preset label; retained the variant ID, year/market provenance and all physical values. Versioned the two changed scripts for public cache refresh.
+
+
+## 2026-10-15 인제 스피디움 기본 서킷
+- Promoted Inje Speedium to the first circuit option in the app without mutating the source dataset; other circuits retain relative order. Set initial circuit to Inje, including the mobile quick selector through its existing synchronization. Supra, 2x playback and all race settings remain unchanged. Updated guide and app cache key.
+- Focused browser check passed: both circuit selectors have Inje as their first option and initial value, all 11 options preserved in identical order, mobile switching synchronizes the desktop selection and track title, Supra/2x defaults preserved; no browser errors. Mobile screenshot inspected.
