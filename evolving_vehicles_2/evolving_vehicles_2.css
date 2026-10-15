@@ -43,3 +43,7 @@
 }
 .circuit-stage:fullscreen .powertrain-hud{bottom:20px;right:20px}.circuit-stage:fullscreen .view-menu-toggle{bottom:20px;left:20px}.circuit-stage:fullscreen .map-controls{bottom:max(62px,calc(var(--powertrain-hud-height,52px) + 28px));left:20px}
 @media(max-width:520px){.circuit-stage:fullscreen .powertrain-hud{bottom:9px;right:9px}.circuit-stage:fullscreen .view-menu-toggle{bottom:9px;left:8px}.circuit-stage:fullscreen .map-controls{bottom:max(55px,calc(var(--powertrain-hud-height,52px) + 21px));left:8px}}
+
+.vehicle-picker{display:flex;align-items:center;gap:12px;margin:0 25px 15px}.vehicle-picker select{flex:1;min-width:0;max-width:360px;width:auto;margin:0}
+@media(max-width:1050px){.vehicle-picker{margin-inline:18px}}
+@media(max-width:520px){.vehicle-picker{gap:10px;margin:0 15px 13px}.vehicle-picker select{max-width:none;font-size:11px}}

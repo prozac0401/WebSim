@@ -1,6 +1,7 @@
 (async () => {
 'use strict';
-await window.ManufacturerModels?.load('g80');
+const DEFAULT_VEHICLE='supra';
+await window.ManufacturerModels?.load(DEFAULT_VEHICLE);
 const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=RaceCircuits,canvas=$('canvas');
 let population=[],race,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='',autoDelay=0;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
@@ -19,7 +20,7 @@ for(const [label,list] of [
 ]){const group=document.createElement('optgroup');group.label=label;list.forEach(c=>group.append(new Option(c.name+' · '+(c.lengthM/1000).toFixed(3)+' km',c.id)));if(list.length)$('circuit').append(group);}
 $('circuit').value='everland';
 $('circuit-quick').replaceChildren(...[...$('circuit').children].map(g=>g.cloneNode(true)));
-vehicles.forEach(v=>$('vehicle-model').append(new Option(v.name,v.id)));$('vehicle-model').value='g80';
+vehicles.forEach(v=>$('vehicle-model').append(new Option(v.name,v.id)));$('vehicle-model').value=DEFAULT_VEHICLE;
 function experiment(note){
  generation=1;history=[];$('seed').value=seedValue();
  population=E.createPopulation({vehicleId:$('vehicle-model').value,count:Number($('population-size').value),seed:seedValue(),budget:Number($('budget').value)});

@@ -416,3 +416,9 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 - Full Node suite 162/162 passed. Focused actual-browser checks passed gearing/WOT/downshift, real Spa pre-corner charging/apex ramp/full exit, ICE/IVT/EV switching, pause/reset/finish; new-model drive/watch/reset/evolution/Canvas checks passed. Mobile layout and final publication verification follow. Software GPU benchmark is explicitly not real-phone FPS (final Supra 8-car throughput 3.5 desktop / 4.4 mobile-size draws/s).
 
 - Final user steering: replace all bottom camera controls with one expandable 화면 button on mobile; subsequently unify desktop too. Both HUD and toggle now sit at the bottom. Camera choices open only on demand, close on mode selection/outside click/Escape, and keep repeated zoom available. Final UI verification/release follows.
+
+
+## 2026-10-15 상단 차종 선택 · 수프라 기본값
+- Moved only the existing vehicle-model selector above the evolution panel in the main header area for desktop and mobile. Other settings retain their sidebar positions; no duplicate control or synchronization state added.
+- Initial selected vehicle and preloaded exterior both use one Supra default constant. Preserved the single A90 RZ 3.0T variant, 2x playback, budgets, circuit and generation reset behavior. Updated guide and asset version keys. Focused browser verification and authorized public deployment follow.
+- Focused Chromium checks passed at 320/390/1440px: one top selector, all other settings retained, only Supra initially requested, all initial entrants RZ 3.0T, unchanged 2x playback, model switching, actual driving and reset. Desktop/mobile screenshots inspected; no browser errors.
