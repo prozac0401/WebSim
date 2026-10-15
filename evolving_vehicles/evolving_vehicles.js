@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
-  const lab=new EvolutionLab({seed:42,terrain:'rolling',mutation:.2,population:8});
+  const lab=new EvolutionLab({seed:42,terrain:'rolling',surface:$('surface').value,mutation:.2,population:8});
   let running=false,auto=false,watch=-1,overview=false,editing=false,drawPoints=[],pointer=null,camera=0,manual=false,last=null,accumulator=0,strokes=[];
   const message=text=>{$('message').textContent=text;};
   const distance=v=>Math.max(0,v).toFixed(0)+' u';

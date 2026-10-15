@@ -1,5 +1,11 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-15 진화하는 탈것 1 · 기본 혼합 노면
+- User request: 1편의 기본 노면을 혼합으로 설정.
+- Selected `mixed` in the initial surface menu and initialize the simulation from that menu value so the first rendered course matches the selected surface. Updated the application script cache key.
+- Browser checks passed initial selection/state, four-surface legend, race start, reset, manual surface selection and reload. Original game client confirmed active mixed-surface racing; screenshots visually inspected and no browser errors. Evidence: output/playwright/mixed-default/. No remaining implementation TODOs.
+- User approved deployment. Publish through the existing main-branch GitHub Pages configuration, then verify the public page's default selector and simulation state. Exclude the unrelated local attachment directory.
+
 ## 2026-10-15 코너 회전율 반복 및 푸른 하늘
 - User reports remaining straight/turn oscillation after the earlier C2 interpolation, and adds a blue-sky request. Reproduced repeated curvature pulses on Everland 2530–2645m: knot continuity alone did not eliminate the longer polygon-scale ripple. Replaced point-clipped planar Gaussian with progressive local cubic fits at 10/14/18m, smoothly constrained over 10m. The same 0.4m planar/0.025m vertical bounds, shared car/line tangent, original physics and recorded altitude remain unchanged.
 - Follow camera now averages direction from positions around the car, narrows its window for tight bends, limits anticipation to four metres and retains a critically damped heading spring. The sky is blue toward the top, pale at the physical projected horizon, with ground below; top-down views do not paint blue ground.
