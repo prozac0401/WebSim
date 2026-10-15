@@ -41,19 +41,35 @@ function surfaceFixture() {
   return {renderer:r,uniforms};
 }
 
+test('watched vehicle keeps full geometry while ghosts share a cached source-derived LOD',()=>{
+  const r=surfaceFixture().renderer,draws=[];
+  const camera={target:{x:0,y:0,z:0},distance:20,yaw:0,pitch:.3,f:400,cx:400,cy:300,sinYaw:0,cosYaw:1,sinPitch:Math.sin(.3),cosPitch:Math.cos(.3)};
+  const source={primitives:[{name:'full'}],fallbackPrimitives:[{name:'reduced'}]},mesh={manufacturer:source,length:4.7,width:1.85,height:1.4,modelScale:[1,1,1],modelOffset:[0,0,0]};
+  r._drawAsset=(mesh,p,c,low)=>draws.push(low);
+  r.render([{mesh,position:{x:0,y:0},selected:true},{mesh,position:{x:5,y:0},selected:false}],camera,800,600);
+  assert.deepEqual(draws,[true,false]);
+  delete r._drawAsset;r.attributes={};r.lodCache=new WeakMap();
+  for(const name of ['uniform3fv','disableVertexAttribArray','depthMask'])r.gl[name]=()=>{};
+  const sources=[];r._assetBuffers=model=>{sources.push(model);return[]};
+  r._drawAsset(mesh,{},camera,false);r._drawAsset(mesh,{},camera,true);r._drawAsset(mesh,{},camera,true);
+  assert.equal(sources[0],source);assert.equal(sources[1].primitives,source.fallbackPrimitives);assert.equal(sources[1],sources[2]);
+});
+
 test('browser HTML order installs the official profile before TrackRace and shared poses before the renderer',()=>{
   const html=fs.readFileSync(path.join(__dirname,'evolving_vehicles_2.html'),'utf8');
   const scripts=[...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
   const index=name=>scripts.indexOf(name);
   assert.ok(index('spa-elevation-profile.js')>=0&&index('spa-elevation-profile.js')<index('race-engine.js'));
+  assert.ok(index('../evolving_vehicles/vehicle-specs.js')<index('circuit-vehicle-specs.js')&&index('circuit-vehicle-specs.js')<index('race-engine.js'));
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
   assert.ok(index('track-environment-data.js')<index('track-environment.js'));
   assert.ok(index('track-environment.js')<index('circuit-renderer.js'));
   assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
-  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','spa-elevation-profile.js','circuits.js','race-engine.js','driving-pose.js']);
+  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','race-engine.js','driving-pose.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
+  assert.equal(context.TrackRace.VEHICLES.length,15);
   assert.equal(race.track.elevationProfile.id,Profile.metadata.id);
   close(race.track.points[0].z,418,'browser start elevation');
   const point=context.DrivingPose.sample(race,1050);assert.ok(point.grade>.09,'browser and Node both apply the real climb');

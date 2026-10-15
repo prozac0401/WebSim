@@ -1,0 +1,39 @@
+{
+  "id": "g70",
+  "name": "Genesis G70",
+  "author": "Lucas.Karlsmoen",
+  "authorUrl": "https://sketchfab.com/Lucas.Karlsmoen",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "sourceUrl": "https://sketchfab.com/3d-models/genesis-g70-ded2c8428fb9499ebd2bfc69c5592b02",
+  "sourceUid": "ded2c8428fb9499ebd2bfc69c5592b02",
+  "sourcePublishedAt": "2019-08-01T16:40:53.997491",
+  "manufacturerOfficial": false,
+  "modelYear": "Pre-facelift generation; exact original model year and trim not specified by the artist. Published before the 2020 facelift.",
+  "downloadUrl": "https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-067/ded2c8428fb9499ebd2bfc69c5592b02.glb",
+  "downloadedAt": "2026-10-15",
+  "sourceBytes": 42092444,
+  "sourceSha256": "8cc0bc72c525ebc70b31b421b3a34f4ff89dda8a48b82aedd07ca774db22fcac",
+  "redistributor": "Allen Institute for AI / Objaverse",
+  "redistributorUrl": "https://huggingface.co/datasets/allenai/objaverse",
+  "redistributorMetadataUrl": "https://huggingface.co/datasets/allenai/objaverse/resolve/main/metadata/000-067.json.gz",
+  "redistributorLicense": "Dataset ODC-By 1.0; this individual object CC BY 4.0. Both the archive metadata and GLB asset.extras retain the original author, source UID and license.",
+  "changes": [
+    "Simplified geometry with tight error limits for external painted panels, glazing and trim; heavier reduction only for small details, plus a separate Canvas fallback mesh.",
+    "Converted source +Y forward / Z up to renderer +X forward / +Y right / +Z up; placed lowest tire point at zero.",
+    "Preserved original lamp/wheel textures and UVs.",
+    "Recolored untextured white tire material as rubber, used dark opaque cabin glazing, omitted concealed beige interior and adapted metal/lamp materials to the renderer."
+  ],
+  "attribution": "Genesis G70 by Lucas.Karlsmoen (Sketchfab), licensed CC BY 4.0. Retrieved from AllenAI Objaverse; geometry and materials adapted for WebSim. No manufacturer endorsement implied.",
+  "sourceLocalPath": "output/free-models/g70/g70-lucas-original.glb",
+  "buildCommand": "node evolving_vehicles_2/assets/models/build-free-g70.mjs",
+  "conversion": {
+    "mainTriangles": 243817,
+    "paintTriangles": 85458,
+    "fallbackTriangles": 4689,
+    "runtimeBytes": 10197040,
+    "runtimeSha256": "a9f8d0f4b5008e227ea21cee964d776454443ca708cff19b078dc1cb72ccb99b",
+    "quality": "External painted panels, glazing and trim use ratio 0.25 / relative error 0.00012 to preserve smoothness and neighboring surface fit. Internal details use ratio 0.035 / error 0.0045.",
+    "validation": "Seven dedicated geometry/provenance tests passed. Front and rear browser renders inspected on 2026-10-15; smooth roof, hood and trunk verified. Actual race performance is measured separately by integration QA."
+  }
+}

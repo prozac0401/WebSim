@@ -1,6 +1,7 @@
-/* Manufacturer-checked transmission families for the display-only HUD.
- * RPM and reduction values below are illustration parameters, not ECU data,
- * measured gear ratios, engine redlines, or inputs to the race physics. */
+/* Manufacturer-checked transmission families and sourced ratios for the HUD.
+ * Sources distinguish exact-market specifications from reference-market ratios.
+ * WOT shift scheduling and rolling-radius correction remain estimates; none of
+ * these presentation parameters feeds the race's forces or lap-time solver. */
 (function(root){
   'use strict';
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
@@ -19,7 +20,11 @@
     'hyundai-staria':{title:'현대 더 뉴 스타리아 라운지 가격',url:'https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/price',observation:'스마트스트림 LPG 3.5: 8단 자동변속기.'},
     'kgm-musso-ev':{title:'KGM 무쏘 EV 2026년 3월 가격·제원',url:'https://www.kg-mobility.com/attached/contents/display/file/200000200010012/20260228234258004_JNYcqu.pdf',observation:'2WD/AWD 전기 구동 모델. 내연기관 HUD를 표시하지 않는다.'},
     'kgm-torres':{title:'KGM 뉴 토레스 공식 출시 설명',url:'https://allways.kg-mobility.com/kgm-%EB%89%B4-%ED%86%A0%EB%A0%88%EC%8A%A4-%EC%B6%9C%EC%8B%9C-%ED%8C%8C%EC%9B%8C%ED%8A%B8%EB%A0%88%EC%9D%B8-%EC%97%85%EA%B7%B8%EB%A0%88%EC%9D%B4%EB%93%9C-%EC%A0%95%ED%86%B5-suv-%EA%B0%90%EC%84%B1/',observation:'2026년 5월 출시 가솔린 1.5 T-GDI: 아이신 8단 자동변속기. 이전 6AT 및 HEV e-DHT와 구분한다.'},
-    'hyundai-porter':{title:'현대 포터 II 공식 카탈로그',url:'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',observation:'PDF 5/11쪽: LPG 초장축 슈퍼캡 6단 수동 또는 5단 자동. 최고출력 회전수 3800rpm은 레드라인이 아니다.'}
+    'hyundai-porter':{title:'현대 포터 II 공식 카탈로그',url:'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',observation:'PDF 5/11쪽: LPG 초장축 슈퍼캡 6단 수동 또는 5단 자동. 최고출력 회전수 3800rpm은 레드라인이 아니다.'},
+    'genesis-g70-2019':{title:'전기형 G70 2019 제조사 카탈로그 보관본',url:'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',observation:'국내 2.0T/3.3T, RWD/AWD: 8단 자동. 현행 2.5T 또는 북미 6MT 사양을 혼합하지 않는다.'},
+    'toyota-supra-2019':{title:'토요타 2019 일본 수프라 공식 제원표',url:'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf',observation:'RZ 3.0: 8단 스포츠 AT, 1~8단 기어비 및 종감속 3.154. 최고출력 5000rpm은 레드라인이 아니다.'},
+    'genesis-g80-au-2026-ratios':{title:'Genesis Australia MY2026 G80 specification sheet',url:'https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf',observation:'호주 2.5T RWD/3.5T AWD 1~8단 기어비, 종감속 3.909/3.727, 최고출력 5800rpm. 국내 전 구동 조합의 기어비 일치 및 레드라인은 미확인. 유럽판 6단 .832와도 구분한다.'},
+    'genesis-g70-us-2019-ratios':{title:'Genesis Motor America: 2019 G70 Equipped To Compete',url:'https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html',observation:'제조사의 2019 미국 전기형 발표. 2.0T/3.3T 8AT 단별 기어비와 종감속 3.727/3.538, 최고출력 6200/6000rpm. 국내 기어비 일치는 미확인. 6MT 열을 사용하지 않고 국내 PS·질량은 변경하지 않는다.'}
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
   const profiles={};
@@ -29,6 +34,7 @@
     for(const variantId of variantIds)profiles[variantId]={vehicleId,variantId,powertrainType,visible:!electric,transmissionType,gearCount,transmissionLabel:label,
       idleRPM:electric?0:900,shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
       ratioStep:electric?null:({4:.66,5:.71,6:.75,8:.81}[gearCount]??null),
+      ratioStatus:electric?'not-applicable':'estimated',gearRatios:null,finalDriveRatio:null,rollingRadiusScale:1,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[sourceId],reviewedAt,verifiedFields:['powertrainType','transmissionType',...(gearCount===null?[]:['gearCount'])],...overrides};
   }
   add('ray',['ray-1.0-14','ray-1.0-15'],'gasoline','AT',4,'kia-ray');
@@ -49,11 +55,31 @@
   add('torres',['torres-1.5t-fwd','torres-1.5t-awd'],'gasoline','AT',8,'kgm-torres');
   add('porter2',['porter-lpg-mt'],'lpg','MT',6,'hyundai-porter',{shiftRPM:4000,maxRPM:5000});
   add('porter2',['porter-lpg-at'],'lpg','AT',5,'hyundai-porter',{shiftRPM:4000,maxRPM:5000});
+  add('g70',['g70-2.0t-rwd','g70-2.0t-awd','g70-3.3t-rwd','g70-3.3t-awd'],'gasoline','AT',8,'genesis-g70-2019');
+  add('supra',['supra-3.0t-rz'],'gasoline','AT',8,'toyota-supra-2019');
+  function applyRatios(ids, ratios, finalDriveRatio, sourceId, status, ratedPowerRPM, shiftRPM, market) {
+    for (const id of ids) {
+      const p = profiles[id];
+      Object.assign(p, { gearRatios: ratios, finalDriveRatio, ratioStatus: status,
+        ratioSourceId: sourceId, ratioMarket: market,
+        ratedPowerRPM, shiftRPM, drivenAxle: 'rear', rollingRadiusScale: .985,
+        total1stReduction: ratios[0] * finalDriveRatio, ratioStep: null,
+        sourceIds: [...new Set([...p.sourceIds, sourceId])],
+        verifiedFields: [...p.verifiedFields, ...(status === 'verified-exact-market' ? ['gearRatios', 'finalDriveRatio', 'ratedPowerRPM'] : [])],
+        referenceFields: status === 'reference-market' ? ['gearRatios', 'finalDriveRatio', 'ratedPowerRPM'] : [],
+        estimatedFields: ['idleRPM', 'shiftRPM', 'maxRPM', 'rollingRadiusScale', 'tunedFinalDriveScale', ...(status === 'reference-market' ? ['domesticRatioMatch'] : [])] });
+    }
+  }
+  applyRatios(['g80-2.5t-rwd','g80-2.5t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.909, 'genesis-g80-au-2026-ratios', 'reference-market', 5800, 6200, 'AU');
+  applyRatios(['g80-3.5t-rwd','g80-3.5t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.727, 'genesis-g80-au-2026-ratios', 'reference-market', 5800, 6200, 'AU');
+  applyRatios(['g70-2.0t-rwd','g70-2.0t-awd'], [3.964,2.468,1.610,1.176,1,.832,.652,.565], 3.727, 'genesis-g70-us-2019-ratios', 'reference-market', 6200, 6500, 'US');
+  applyRatios(['g70-3.3t-rwd','g70-3.3t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.538, 'genesis-g70-us-2019-ratios', 'reference-market', 6000, 6500, 'US');
+  applyRatios(['supra-3.0t-rz'], [5.250,3.360,2.172,1.720,1.316,1,.822,.640], 3.154, 'toyota-supra-2019', 'verified-exact-market', 5000, 6500, 'JP');
   const PROFILES=freeze(profiles);
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.
   const FALLBACKS=freeze({ray:'ray-1.0-15',morning:'morning-1.0-16',avante:'avante-2.0-18',k5:'k5-2.0',carnival:'carnival-1.6heV',
-    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at'});
+    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz'});
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',

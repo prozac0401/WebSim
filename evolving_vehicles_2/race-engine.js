@@ -1,5 +1,5 @@
 /* Deterministic circuit time trial. Vehicles are independent ghosts.
- * Factory mass, PS and Nm come from the original simulator's shared specs.
+ * Factory mass, PS and Nm come from shared specs plus circuit-only additions.
  * Drag area, grip, brakes, reduction and efficiency below are model estimates,
  * not manufacturer measurements. Geographic elevations, when supplied, drive
  * road grade, gravity and normal load. No collisions, tyre wear or pits.
@@ -11,7 +11,7 @@
  */
 (function (root) {
   'use strict';
-  const SPECS = root.VehicleSpecs || (typeof require === 'function' ? require('../evolving_vehicles/vehicle-specs.js') : null);
+  const SPECS = root.CircuitVehicleSpecs || (typeof require === 'function' ? require('./circuit-vehicle-specs.js') : root.VehicleSpecs);
   const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
@@ -29,7 +29,9 @@
     ['carnival', '기아 카니발', '#facc15', 1.04, .79, .86],
     ['g80', '제네시스 G80', '#4ade80', .72, .98, 1.00],
     ['torres', 'KGM 토레스', '#2dd4bf', .97, .83, .89],
-    ['porter2', '현대 포터 II', '#cbd5e1', 1.14, .68, .76]
+    ['porter2', '현대 포터 II', '#cbd5e1', 1.14, .68, .76],
+    ['g70', '제네시스 G70 (전기형)', '#f43f5e', .66, 1.00, 1.05],
+    ['supra', '토요타 GR 수프라 A90', '#e2e8f0', .62, 1.04, 1.12]
   ];
   const VEHICLES = Object.freeze(CATALOG.map(([id, name, color, dragArea, gripG, brakeG]) => {
     const spec = SPECS[id];
@@ -245,7 +247,7 @@
         throw new RangeError('entrant uid values must be unique.');
       const ids = entries ? entries.map(e => e.vehicleId) : options.vehicleIds === undefined ? ['k5', 'avante', 'ioniq5', 'g80'] : options.vehicleIds;
       if (!entries && (!Array.isArray(ids) || !ids.length || ids.length > VEHICLES.length || new Set(ids).size !== ids.length || ids.some(id => !Object.hasOwn(BY_ID, id))))
-        throw new RangeError('vehicleIds must contain 1–13 unique, known vehicle IDs.');
+        throw new RangeError('vehicleIds must contain 1–' + VEHICLES.length + ' unique, known vehicle IDs.');
       this.time = 0; this.finished = false; this._ticks = 0; this._accumulator = 0;
       this.totalDistance = this.track.length * this.laps;
       const gripFactor = this.surface === 'wet' ? .62 : 1;

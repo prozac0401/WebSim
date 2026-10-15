@@ -5,7 +5,7 @@
  * See VARIANTS.md for provenance and the exact accounting model. */
 (function (root) {
   'use strict';
-  const SHARED = root.VehicleSpecs || (typeof require === 'function' ? require('../evolving_vehicles/vehicle-specs.js') : null);
+  const SHARED = root.CircuitVehicleSpecs || (typeof require === 'function' ? require('./circuit-vehicle-specs.js') : root.VehicleSpecs);
   if (!SHARED) throw new Error('Load vehicle-specs.js before tuning-evolution.js.');
   const freeze = value => { if (value && typeof value === 'object' && !Object.isFrozen(value)) { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -34,7 +34,9 @@
     carnival: ['기아 카니발', 1.04, .79, .86, .61, .72, 1995, 1.74, 205],
     g80: ['제네시스 G80', .72, .98, 1.00, .52, .53, 1925, 1.63, 240],
     torres: ['KGM 토레스', .97, .83, .89, .60, .69, 1890, 1.61, 190],
-    porter2: ['현대 포터 II', 1.14, .68, .76, .65, .79, 1740, 1.40, 150]
+    porter2: ['현대 포터 II', 1.14, .68, .76, .65, .79, 1740, 1.40, 150],
+    g70: ['제네시스 G70 (전기형)', .66, 1.00, 1.05, .52, .49, 1850, 1.61, 240],
+    supra: ['토요타 GR 수프라 A90', .62, 1.04, 1.12, .50, .45, 1865, 1.60, 250]
   };
   const SOURCE = {
     ray: 'https://www.kia.com/kr/vehicles/ray/specification',
@@ -49,7 +51,9 @@
     santafe: 'https://www.hyundai.com/kr/ko/e/vehicles/santafe/intro',
     musso_ev: 'https://www.kg-mobility.com/pr/model/show-room/200000100030003',
     torres: 'https://www.kg-mobility.com/pr/model/show-room/200000100010001',
-    porter2: 'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf'
+    porter2: 'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',
+    g70: SHARED.g70.sourceUrl,
+    supra: SHARED.supra.sourceUrl
   };
   function preset(vehicleId, id, label, cc, engine, drive, powerPs, torqueNm, massKg, overrides = {}) {
     const [name, dragArea, gripG, brakeG, front, cg, widthMm, trackWidthM, capKph] = MODEL_ROWS[vehicleId];
@@ -69,7 +73,7 @@
     };
     spec.weightFront = spec.frontWeightFraction;
     spec.wheelbaseM = spec.wheelbaseMm / 1000;
-    return { id, vehicleId, label, sourceUrl: spec.sourceUrl, verifiedAt: '2026-10-14', spec };
+    return { id, vehicleId, label, sourceUrl: spec.sourceUrl, verifiedAt: shared.driveVerificationDate || '2026-10-14', spec };
   }
   const VARIANTS = freeze({
     ray: [
@@ -126,6 +130,15 @@
     porter2: [
       preset('porter2', 'porter-lpg-mt', '2.5 LPG 터보 RWD · 슈퍼캡 6MT', 2469, '직렬 4기통 LPG 터보', 'rwd', 138, nm(26), 1675),
       preset('porter2', 'porter-lpg-at', '2.5 LPG 터보 RWD · 슈퍼캡 5AT', 2469, '직렬 4기통 LPG 터보', 'rwd', 159, nm(30), 1705)
+    ],
+    g70: [
+      preset('g70', 'g70-2.0t-rwd', '2019 국내 2.0T RWD · 8AT · 18인치', 1998, '직렬 4기통 가솔린 터보', 'rwd', 252, nm(36), 1595, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .52 }),
+      preset('g70', 'g70-2.0t-awd', '2019 국내 2.0T AWD · 8AT · 18인치', 1998, '직렬 4기통 가솔린 터보', 'awd', 252, nm(36), 1665, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .53 }),
+      preset('g70', 'g70-3.3t-rwd', '2019 국내 3.3T Sport RWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'rwd', 370, nm(52), 1705, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .53, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 }),
+      preset('g70', 'g70-3.3t-awd', '2019 국내 3.3T Sport AWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'awd', 370, nm(52), 1775, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .54, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 })
+    ],
+    supra: [
+      preset('supra', 'supra-3.0t-rz', '2019 일본 RZ 3.0T RWD · 8AT · 19인치', 2997, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 340, 500, 1520, { sourceNote: SHARED.supra.sourceNote })
     ]
   });
   const PALETTE = freeze(['#e65454', '#38bdf8', '#fbbf24', '#a78bfa', '#4ade80', '#fb923c', '#f472b6', '#f1f5f9', '#22d3ee', '#a3e635', '#c084fc', '#fda4af']);

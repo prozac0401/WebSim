@@ -1,0 +1,1714 @@
+{
+  "id": "supra",
+  "source": {
+    "kind": "community-mesh",
+    "label": "Toyota GR Supra A90 · 커뮤니티 3D 외관",
+    "url": "https://sketchfab.com/3d-models/toyota-supra-3d-model-free-41b83cfb912b4eab9af19a802bcf5ffc",
+    "author": "Mpgs Studios",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "configuration": "Community A90 exterior, modeled in Blender; not a manufacturer-authenticated trim-specific model. Simplified and reoriented for real-time rendering."
+  },
+  "bounds": {
+    "min": [
+      -2.19,
+      -1.002485012790102,
+      0.000017824538806538466
+    ],
+    "max": [
+      2.189873748808666,
+      1.0024849242549045,
+      1.2969766698854848
+    ]
+  },
+  "triangles": 201832,
+  "primitives": [
+    {
+      "materialName": "Mat_mt.001",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_2",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3980476068713824,
+          -0.8047178336771316,
+          0.25303792835873773
+        ],
+        "max": [
+          0.6693763794966229,
+          0.7962867153745009,
+          0.9652792876367918
+        ]
+      },
+      "triangles": 514
+    },
+    {
+      "materialName": "body.012",
+      "color": [
+        1,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "paint": true,
+      "material": 0,
+      "name": "Object_4 | Object_28 | Object_29 | Object_30 | Object_31 | Object_32 | Object_33 | Object_34 | Object_35 | Object_36 | Object_37 | Object_38 | Object_39 | Object_40",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1365532491709933,
+          -0.9560521973607213,
+          0.1338173502420916
+        ],
+        "max": [
+          2.189873748808666,
+          0.9561233796593417,
+          1.2969766698854848
+        ]
+      },
+      "triangles": 94744
+    },
+    {
+      "materialName": "glass.018",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 0.2,
+      "paint": false,
+      "material": 1,
+      "name": "Object_5",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.041201270621575706,
+          -1.002485012790102,
+          0.9438497858089847
+        ],
+        "max": [
+          0.17930987025955164,
+          1.0024849242549045,
+          0.9671062999680469
+        ]
+      },
+      "triangles": 32
+    },
+    {
+      "materialName": "metal.007",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_7",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.07456724268447612,
+          -0.11559035835530711,
+          1.075265323736109
+        ],
+        "max": [
+          0.08265955892088127,
+          0.0965804792018087,
+          1.1435345487600368
+        ]
+      },
+      "triangles": 13
+    },
+    {
+      "materialName": "shiny_metal.002",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_8",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.48130871819024357,
+          -0.09101632979158855,
+          0.9588030264903015
+        ],
+        "max": [
+          0.5036977644862685,
+          -0.08415093431921386,
+          0.9789253946653343
+        ]
+      },
+      "triangles": 196
+    },
+    {
+      "materialName": "tailight.001",
+      "color": [
+        0.1,
+        0.009,
+        0.014
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_9",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.047742707418461,
+          -0.7569853215515491,
+          0.6883134790001632
+        ],
+        "max": [
+          -1.8138438716158787,
+          0.7569867381147056,
+          0.8273757133819378
+        ]
+      },
+      "triangles": 1322
+    },
+    {
+      "materialName": "tailight.002",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_10",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.139271456798159,
+          -0.6353539410796241,
+          0.40119064692495265
+        ],
+        "max": [
+          -2.1078588146592456,
+          0.6353554019103793,
+          0.41855465676084924
+        ]
+      },
+      "triangles": 12
+    },
+    {
+      "materialName": "tailight.003",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_11",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.9822555238989445,
+          -0.6885882959703347,
+          0.7397489757523565
+        ],
+        "max": [
+          -1.9291177609084762,
+          0.6885882074351374,
+          0.8020827126148349
+        ]
+      },
+      "triangles": 26
+    },
+    {
+      "materialName": "whipper_rubber.001",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_12",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5040809890877338,
+          -0.6093406179473781,
+          0.8617101055665842
+        ],
+        "max": [
+          0.5326744492069733,
+          -0.5806639790102857,
+          0.9013517401527176
+        ]
+      },
+      "triangles": 224
+    },
+    {
+      "materialName": "Front_Tire.002",
+      "color": [
+        0.045,
+        0.047,
+        0.05
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_13 | Object_14",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5696839835178997,
+          -0.9394129809174309,
+          0.02288812931898077
+        ],
+        "max": [
+          1.5298966199970288,
+          0.9342201259908413,
+          0.6432665050139467
+        ]
+      },
+      "triangles": 542
+    },
+    {
+      "materialName": "Front_Tire.003",
+      "color": [
+        0.045,
+        0.047,
+        0.05
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_15 | Object_16 | Object_17 | Object_18",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5954849107118494,
+          -0.9368269563398175,
+          0.000017824538806538466
+        ],
+        "max": [
+          1.5553010865775183,
+          0.9292603842387136,
+          0.668017316232852
+        ]
+      },
+      "triangles": 8827
+    },
+    {
+      "materialName": "Glass.013",
+      "color": [
+        0.06,
+        0.08,
+        0.1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 1,
+      "name": "Object_19 | Object_20",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8705033876841073,
+          -0.7479394148389438,
+          0.848334296495365
+        ],
+        "max": [
+          0.5998772235119568,
+          0.7478694720330855,
+          1.2279647230914998
+        ]
+      },
+      "triangles": 226
+    },
+    {
+      "materialName": "Glass.013",
+      "color": [
+        0.32,
+        0.36,
+        0.4
+      ],
+      "alpha": 0.06,
+      "paint": false,
+      "material": 1,
+      "name": "Object_19_lampCover | Object_20_lampCover",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.0475867084008383,
+          -0.8360087399197725,
+          0.5157308007700181
+        ],
+        "max": [
+          2.1025054454199714,
+          0.8360086513845753,
+          0.8254595461070128
+        ]
+      },
+      "triangles": 232
+    },
+    {
+      "materialName": "Material.035",
+      "color": [
+        0.7021932498136277,
+        0.7021932498136277,
+        0.7021932498136277
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_26 | Object_27",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4088759110484044,
+          -0.7964115500026783,
+          0.16324410363821484
+        ],
+        "max": [
+          1.3891440716286132,
+          0.7888464829999283,
+          0.48421860080175333
+        ]
+      },
+      "triangles": 2161
+    },
+    {
+      "materialName": "brake.009",
+      "color": [
+        1,
+        0.6193899590693429,
+        0
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_41 | Object_42 | Object_43",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.188340932065407,
+          -0.8171874850040983,
+          0.16027334936078233
+        ],
+        "max": [
+          1.416449743035686,
+          0.8096447288710651,
+          0.4871878499808319
+        ]
+      },
+      "triangles": 6599
+    },
+    {
+      "materialName": "chrome.001",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_44 | Object_45 | Object_46 | Object_47 | Object_48 | Object_49",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1348524880310724,
+          -1.001751233074971,
+          0.2331903734360898
+        ],
+        "max": [
+          2.158518831618385,
+          1.0017511445397738,
+          1.032303796322034
+        ]
+      },
+      "triangles": 18037
+    },
+    {
+      "materialName": "glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 0.2,
+      "paint": false,
+      "material": 1,
+      "name": "Object_50",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6863972780480214,
+          -0.7468654828958287,
+          0.5575054695968358
+        ],
+        "max": [
+          1.8169140951874652,
+          0.7474298062433485,
+          0.6713014851086875
+        ]
+      },
+      "triangles": 172
+    },
+    {
+      "materialName": "glossy_black.002",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_51 | Object_52 | Object_53 | Object_55",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1346697513838677,
+          -1.002485012790102,
+          0.23077068436038312
+        ],
+        "max": [
+          2.1620154407001153,
+          1.0024849242549045,
+          1.1988201756367352
+        ]
+      },
+      "triangles": 4625
+    },
+    {
+      "materialName": "glossy_black.002",
+      "color": [
+        0.045,
+        0.048,
+        0.052
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 0,
+      "name": "Object_54",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.19,
+          -0.8437979780420582,
+          0.1897892244998766
+        ],
+        "max": [
+          -1.7229182240001133,
+          0.8437340556296157,
+          0.5225160054874484
+        ]
+      },
+      "triangles": 11746
+    },
+    {
+      "materialName": "glossy_black.003",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_56 | Object_57",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5137373528582416,
+          -0.9273369570776109,
+          0.08059491440231605
+        ],
+        "max": [
+          1.4736916436316816,
+          0.9197703849765069,
+          0.5874491357423306
+        ]
+      },
+      "triangles": 2447
+    },
+    {
+      "materialName": "grill",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_58",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8169750074032,
+          -0.9493545982210085,
+          0.3986074112060539
+        ],
+        "max": [
+          1.7227122911312192,
+          0.9495996636471044,
+          0.9028208046813333
+        ]
+      },
+      "triangles": 131
+    },
+    {
+      "materialName": "headlight",
+      "color": [
+        0.88,
+        0.93,
+        0.98
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_59 | Object_60",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.42116140916501,
+          -0.818717461748449,
+          0.5302057743155799
+        ],
+        "max": [
+          2.0489919390522084,
+          0.8185807634038348,
+          0.6712376069638435
+        ]
+      },
+      "triangles": 552
+    },
+    {
+      "materialName": "headlight.007",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_61 | Object_62 | Object_63 | Object_64 | Object_65 | Object_66 | Object_67 | Object_68 | Object_69 | Object_70 | Object_71 | Object_72 | Object_73 | Object_74 | Object_75 | Object_76 | Object_77 | Object_78 | Object_79 | Object_80 | Object_81 | Object_82 | Object_83",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8373202186698092,
+          -0.9516539458298002,
+          0.13322469563143927
+        ],
+        "max": [
+          2.1834731852558575,
+          0.9508384481275716,
+          1.1854340079474333
+        ]
+      },
+      "triangles": 39133
+    },
+    {
+      "materialName": "mat_mt",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_84 | Object_85 | Object_86 | Object_87 | Object_88 | Object_89",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.9319593866006628,
+          -0.9439033090535325,
+          0.1346268828854029
+        ],
+        "max": [
+          1.6599160463981033,
+          0.944041335426106,
+          1.2587535462303152
+        ]
+      },
+      "triangles": 5814
+    },
+    {
+      "materialName": "mat_mt.001",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_92 | Object_99",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.083003974583526,
+          -0.7043644270428537,
+          0.1957738054282227
+        ],
+        "max": [
+          2.0353561021065514,
+          0.759297949439934,
+          1.0268064688519678
+        ]
+      },
+      "triangles": 223
+    },
+    {
+      "materialName": "tailight",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_100",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.0436994820286687,
+          -0.7022685775850307,
+          0.7310387502402724
+        ],
+        "max": [
+          -1.947433922523617,
+          0.7022685333174321,
+          0.8112013952596117
+        ]
+      },
+      "triangles": 629
+    },
+    {
+      "materialName": "tailight.004",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_101",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.1538579778197096,
+          -0.1841151291593098,
+          1.1590433478043416
+        ],
+        "max": [
+          -1.1505990857427002,
+          0.1840155381292594,
+          1.170767444234938
+        ]
+      },
+      "triangles": 772
+    },
+    {
+      "materialName": "tailight.005",
+      "color": [
+        0.9035454309190944,
+        0.4801151989338221,
+        0
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_102",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.943378833417388,
+          -0.824549009588281,
+          0.6045219975819425
+        ],
+        "max": [
+          1.6569007146488357,
+          0.8232997779545338,
+          0.7920965621070208
+        ]
+      },
+      "triangles": 175
+    },
+    {
+      "materialName": "whipper_rubber.002",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_103 | Object_104 | Object_105 | Object_106 | Object_107",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.3737542570168692,
+          -0.6153638002217423,
+          0.8565915316705202
+        ],
+        "max": [
+          0.6114586897397207,
+          0.6589624269155085,
+          0.9969459372567272
+        ]
+      },
+      "triangles": 1534
+    },
+    {
+      "name": "WebSim_display_plate_frame",
+      "materialName": "WebSim_display_plate_frame",
+      "color": [
+        0.17,
+        0.18,
+        0.19
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1037873942796965,
+          -0.2748432622754152,
+          0.5189644691693199
+        ],
+        "max": [
+          -2.088636578168797,
+          0.274745165276819,
+          0.6734433785353534
+        ]
+      },
+      "triangles": 8
+    },
+    {
+      "name": "WebSim_display_plate",
+      "materialName": "WebSim_display_plate",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "textureIndex": 0,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1037873942796965,
+          -0.2614748951187392,
+          0.5308474621974764
+        ],
+        "max": [
+          -2.093983925031467,
+          0.2613767981201431,
+          0.661560385507197
+        ]
+      },
+      "triangles": 2
+    },
+    {
+      "name": "WebSim_reverse_lamp_housing",
+      "materialName": "WebSim_reverse_lamp_housing",
+      "color": [
+        0.018,
+        0.02,
+        0.024
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1808783115498613,
+          -0.06986163253971703,
+          0.2768484862206329
+        ],
+        "max": [
+          -2.166782111070211,
+          0.06976353554112086,
+          0.38528079760256023
+        ]
+      },
+      "triangles": 2
+    },
+    {
+      "name": "WebSim_reverse_lamp_lenses",
+      "materialName": "WebSim_reverse_lamp_lenses",
+      "color": [
+        0.48,
+        0.49,
+        0.5
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1798236959186124,
+          -0.04832370767618353,
+          0.29411203715974477
+        ],
+        "max": [
+          -2.171713553176896,
+          0.048225610677587356,
+          0.3635611242778898
+        ]
+      },
+      "triangles": 160
+    }
+  ],
+  "textures": [
+    {
+      "bytes": 17770
+    }
+  ],
+  "fallbackPrimitives": [
+    {
+      "materialName": "body.012",
+      "color": [
+        1,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "paint": true,
+      "material": 0,
+      "name": "Object_4 | Object_28 | Object_29 | Object_30 | Object_31 | Object_32 | Object_33 | Object_34 | Object_35 | Object_36 | Object_37 | Object_38 | Object_39 | Object_40",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1210280711151897,
+          -0.9507048485148625,
+          0.14411991447811673
+        ],
+        "max": [
+          2.1800093341971243,
+          0.9506037413195585,
+          1.2919085610518755
+        ]
+      },
+      "triangles": 1581
+    },
+    {
+      "materialName": "glass.018",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 0.2,
+      "paint": false,
+      "material": 1,
+      "name": "Object_5",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.042325711894744183,
+          -1.002485012790102,
+          0.9447409811048955
+        ],
+        "max": [
+          0.17930987025955164,
+          1.0024849242549045,
+          0.9666324595921564
+        ]
+      },
+      "triangles": 12
+    },
+    {
+      "materialName": "metal.007",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_7",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.07460139513683034,
+          -0.11653506211107933,
+          1.075468777619479
+        ],
+        "max": [
+          0.08264767307064523,
+          0.09519016673118147,
+          1.1433325999750206
+        ]
+      },
+      "triangles": 50
+    },
+    {
+      "materialName": "shiny_metal.002",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_8",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.4814587410820497,
+          -0.09101632979158855,
+          0.9589887733342137
+        ],
+        "max": [
+          0.5035967458261618,
+          -0.08415093431921386,
+          0.9786640387629373
+        ]
+      },
+      "triangles": 60
+    },
+    {
+      "materialName": "tailight.001",
+      "color": [
+        0.1,
+        0.009,
+        0.014
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_9",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.0443204679024536,
+          -0.7266331540057629,
+          0.7194008428242368
+        ],
+        "max": [
+          -1.8860850511957812,
+          0.7266331097381643,
+          0.8175395414983313
+        ]
+      },
+      "triangles": 26
+    },
+    {
+      "materialName": "tailight.002",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_10",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.117298437394195,
+          -0.6051874761101516,
+          0.4083323386142669
+        ],
+        "max": [
+          -2.1112068616799253,
+          0.6051889369409068,
+          0.4189809537357956
+        ]
+      },
+      "triangles": 4
+    },
+    {
+      "materialName": "tailight.003",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_11",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.976890468013628,
+          -0.6782159106643475,
+          0.7397489757523565
+        ],
+        "max": [
+          -1.9371730472986153,
+          0.6769235623895206,
+          0.8008691606655951
+        ]
+      },
+      "triangles": 12
+    },
+    {
+      "materialName": "whipper_rubber.001",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_12",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5042592547074751,
+          -0.609355447592924,
+          0.8617101055665842
+        ],
+        "max": [
+          0.5326744492069733,
+          -0.5806639790102857,
+          0.9013517401527176
+        ]
+      },
+      "triangles": 352
+    },
+    {
+      "materialName": "Front_Tire.002",
+      "color": [
+        0.045,
+        0.047,
+        0.05
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_13 | Object_14",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5108631462134527,
+          -0.9411108203958413,
+          0.08462027781605537
+        ],
+        "max": [
+          1.469868339671955,
+          0.9334951997954393,
+          0.5849343819985349
+        ]
+      },
+      "triangles": 64
+    },
+    {
+      "materialName": "Front_Tire.003",
+      "color": [
+        0.045,
+        0.047,
+        0.05
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_15 | Object_16 | Object_17 | Object_18",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.5941629916811277,
+          -0.9352628935445108,
+          0.0013145561705008757
+        ],
+        "max": [
+          1.554132067832515,
+          0.9276963214434067,
+          0.666355156438949
+        ]
+      },
+      "triangles": 1420
+    },
+    {
+      "materialName": "Glass.013",
+      "color": [
+        0.06,
+        0.08,
+        0.1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 1,
+      "name": "Object_19 | Object_20",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.8669355963037566,
+          -0.749519856645749,
+          0.8502756963015173
+        ],
+        "max": [
+          0.543998942024606,
+          0.749516757913844,
+          1.2257262876984432
+        ]
+      },
+      "triangles": 65
+    },
+    {
+      "materialName": "Glass.013",
+      "color": [
+        0.32,
+        0.36,
+        0.4
+      ],
+      "alpha": 0.06,
+      "paint": false,
+      "material": 1,
+      "name": "Object_19_lampCover | Object_20_lampCover",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.05121257887061,
+          -0.7929313199324465,
+          0.6037897229651654
+        ],
+        "max": [
+          1.939958010464537,
+          0.7911532675652923,
+          0.8293349087627453
+        ]
+      },
+      "triangles": 22
+    },
+    {
+      "materialName": "Material.035",
+      "color": [
+        0.7021932498136277,
+        0.7021932498136277,
+        0.7021932498136277
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_26 | Object_27",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.366368923337211,
+          -0.7975790636493278,
+          0.20683240491459728
+        ],
+        "max": [
+          1.3891440716286132,
+          0.7900125800834212,
+          0.4817692303011555
+        ]
+      },
+      "triangles": 32
+    },
+    {
+      "materialName": "brake.009",
+      "color": [
+        1,
+        0.6193899590693429,
+        0
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_41 | Object_42 | Object_43",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.1874511533326528,
+          -0.8156724707080896,
+          0.16022879402274665
+        ],
+        "max": [
+          1.4152941816406706,
+          0.8081058986069857,
+          0.4872338882834222
+        ]
+      },
+      "triangles": 620
+    },
+    {
+      "materialName": "chrome.001",
+      "color": [
+        0.9035454309190944,
+        0.9035454309190944,
+        0.9035454309190944
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "name": "Object_44 | Object_45 | Object_46 | Object_47 | Object_48 | Object_49",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1267408932554575,
+          -1.001751233074971,
+          0.3232619662712071
+        ],
+        "max": [
+          2.1566162102286452,
+          1.0017511445397738,
+          1.0117329088375353
+        ]
+      },
+      "triangles": 282
+    },
+    {
+      "materialName": "glass",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 0.2,
+      "paint": false,
+      "material": 1,
+      "name": "Object_50",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6880920187945267,
+          -0.7350656446039515,
+          0.575200733873389
+        ],
+        "max": [
+          1.7837842243619353,
+          0.7349675476053554,
+          0.6617980284964928
+        ]
+      },
+      "triangles": 10
+    },
+    {
+      "materialName": "glossy_black.002",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_51 | Object_52 | Object_53 | Object_55",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.108712825172295,
+          -0.8483061017528151,
+          0.6000035152531029
+        ],
+        "max": [
+          2.1619249577284863,
+          0.9995735328272544,
+          1.1984547908775236
+        ]
+      },
+      "triangles": 253
+    },
+    {
+      "materialName": "glossy_black.002",
+      "color": [
+        0.045,
+        0.048,
+        0.052
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 0,
+      "name": "Object_54",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1705564311825816,
+          -0.8375846664315162,
+          0.20394633455337166
+        ],
+        "max": [
+          -1.7457201099210966,
+          0.8375860829946727,
+          0.5197368856445478
+        ]
+      },
+      "triangles": 76
+    },
+    {
+      "materialName": "glossy_black.003",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_56 | Object_57",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.4987365687759808,
+          -0.9248489409633964,
+          0.09040135505998298
+        ],
+        "max": [
+          1.4638851310391667,
+          0.9172838739606464,
+          0.5191679584667689
+        ]
+      },
+      "triangles": 46
+    },
+    {
+      "materialName": "grill",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_58",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.6456622337753692,
+          -0.8253793812036543,
+          0.414648129715671
+        ],
+        "max": [
+          1.712478861817377,
+          0.8252797791067041,
+          0.5120649123910713
+        ]
+      },
+      "triangles": 2
+    },
+    {
+      "materialName": "headlight",
+      "color": [
+        0.88,
+        0.93,
+        0.98
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_59 | Object_60",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          1.4305875745499714,
+          -0.8009627903545148,
+          0.5314579718784364
+        ],
+        "max": [
+          2.0464786018715695,
+          0.8008646933559186,
+          0.6549905571769444
+        ]
+      },
+      "triangles": 52
+    },
+    {
+      "materialName": "headlight.007",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_61 | Object_62 | Object_63 | Object_64 | Object_65 | Object_66 | Object_67 | Object_68 | Object_69 | Object_70 | Object_71 | Object_72 | Object_73 | Object_74 | Object_75 | Object_76 | Object_77 | Object_78 | Object_79 | Object_80 | Object_81 | Object_82 | Object_83",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.826405599548026,
+          -0.9432378785107086,
+          0.14147594361387777
+        ],
+        "max": [
+          2.1794285433029086,
+          0.9431382764137586,
+          1.1852067380959923
+        ]
+      },
+      "triangles": 1223
+    },
+    {
+      "materialName": "mat_mt",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_84 | Object_85 | Object_86 | Object_87 | Object_88 | Object_89",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.925272146079033,
+          -0.9288891561564809,
+          0.13512744982397504
+        ],
+        "max": [
+          1.6016462521615829,
+          0.9426407086049946,
+          1.2565210426954767
+        ]
+      },
+      "triangles": 700
+    },
+    {
+      "materialName": "tailight",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_100",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.0139578532033875,
+          -0.6928067325155619,
+          0.7369847298226005
+        ],
+        "max": [
+          -1.9587138378694147,
+          0.6928066882479632,
+          0.7975657353843493
+        ]
+      },
+      "triangles": 10
+    },
+    {
+      "materialName": "tailight.004",
+      "color": [
+        0.92,
+        0.025,
+        0.032
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 4,
+      "name": "Object_101",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.1523829814328754,
+          -0.12698912113656555,
+          1.1643119888598106
+        ],
+        "max": [
+          -1.1519715583710737,
+          0.12688954117341478,
+          1.1661493598091484
+        ]
+      },
+      "triangles": 4
+    },
+    {
+      "materialName": "tailight.005",
+      "color": [
+        0.9035454309190944,
+        0.4801151989338221,
+        0
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_102",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.9355048671112967,
+          -0.8204152126916621,
+          0.605881145663124
+        ],
+        "max": [
+          1.6565203674412823,
+          0.8180475159105633,
+          0.7862159657678907
+        ]
+      },
+      "triangles": 13
+    },
+    {
+      "materialName": "whipper_rubber.002",
+      "color": [
+        0.025,
+        0.028,
+        0.033
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "name": "Object_103 | Object_104 | Object_105 | Object_106 | Object_107",
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.3960066492358786,
+          -0.6049023042396838,
+          0.8566450069296826
+        ],
+        "max": [
+          0.607078322318652,
+          0.6026266397961669,
+          0.9952481863135141
+        ]
+      },
+      "triangles": 1414
+    },
+    {
+      "name": "WebSim_display_plate_frame",
+      "materialName": "WebSim_display_plate_frame",
+      "color": [
+        0.17,
+        0.18,
+        0.19
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1037873942796965,
+          -0.2748432622754152,
+          0.5189644691693199
+        ],
+        "max": [
+          -2.088636578168797,
+          0.274745165276819,
+          0.6734433785353534
+        ]
+      },
+      "triangles": 8
+    },
+    {
+      "name": "WebSim_display_plate",
+      "materialName": "WebSim_display_plate",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "textureIndex": 0,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1037873942796965,
+          -0.2614748951187392,
+          0.5308474621974764
+        ],
+        "max": [
+          -2.093983925031467,
+          0.2613767981201431,
+          0.661560385507197
+        ]
+      },
+      "triangles": 2
+    },
+    {
+      "name": "WebSim_reverse_lamp_housing",
+      "materialName": "WebSim_reverse_lamp_housing",
+      "color": [
+        0.018,
+        0.02,
+        0.024
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 2,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1808783115498613,
+          -0.06986163253971703,
+          0.2768484862206329
+        ],
+        "max": [
+          -2.166782111070211,
+          0.06976353554112086,
+          0.38528079760256023
+        ]
+      },
+      "triangles": 2
+    },
+    {
+      "name": "WebSim_reverse_lamp_lenses",
+      "materialName": "WebSim_reverse_lamp_lenses",
+      "color": [
+        0.48,
+        0.49,
+        0.5
+      ],
+      "alpha": 1,
+      "paint": false,
+      "material": 3,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -2.1798236959186124,
+          -0.04832370767618353,
+          0.29411203715974477
+        ],
+        "max": [
+          -2.171713553176896,
+          0.048225610677587356,
+          0.3635611242778898
+        ]
+      },
+      "triangles": 160
+    }
+  ],
+  "fallbackTriangles": 8577,
+  "sourceBounds": {
+    "min": [
+      -0.6775500178337097,
+      0.0006169999833218753,
+      -1.5845110416412354
+    ],
+    "max": [
+      0.6774839758872986,
+      0.8737900257110596,
+      1.3642410039901733
+    ]
+  },
+  "scale": 1.485374128519552
+}

@@ -365,9 +365,11 @@
     getModelInfo(){
       const car=this.race?.cars.find(c=>c.id===this.watch)||this.race?.cars[0],asset=car&&root.ManufacturerModels?.get(car.vehicleId);
       if(car&&root.ManufacturerModels?.isLoading(car.vehicleId))return {kind:'loading',label:'정밀 3D 외형 불러오는 중…'};
-      return asset&&this.surfaceRenderer?.available?{kind:asset.source.kind,label:asset.source.label,triangles:asset.triangles,url:asset.source.url}:{kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
+      if(asset&&(this.surfaceRenderer?.available||asset.fallbackPrimitives))return {kind:asset.source.kind,label:asset.source.label+(this.surfaceRenderer?.available?'':' · 저해상도 외형'),triangles:this.surfaceRenderer?.available?asset.triangles:asset.fallbackPrimitives.reduce((n,p)=>n+p.indices.length/3,0),url:asset.source.url,license:asset.source.license,licenseUrl:asset.source.licenseUrl};
+      if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
+      return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:1,carModels:Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y)}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:1,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y)}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();}
     _makeRoad(){
       this.roadFaces=[];this.supports=[];if(!this.race)return;
@@ -448,8 +450,8 @@
     }
     _mesh(car){
       const finishes=['#d9dcdb','#526573','#8c979e','#303a46','#776a63','#8a3f43','#6b7770','#b3b0a7'];
-      const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.VehicleSpecs?.[id]||{},paint=finishes[(car.index??car.id??0)%finishes.length],key=[id,paint,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm].join('|');
-      if(!this.meshCache.has(key))this.meshCache.set(key,root.ManufacturerModels?.create(id,spec,paint)||(root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint)));return this.meshCache.get(key);
+      const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.CircuitVehicleSpecs?.[id]||root.VehicleSpecs?.[id]||{},paint=finishes[(car.index??car.id??0)%finishes.length],key=[id,paint,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm].join('|');
+      if(!this.meshCache.has(key))this.meshCache.set(key,root.ManufacturerModels?.create(id,spec,paint)||(root.ManufacturerModels?.requiresAsset(id)?{length:spec.lengthMm/1000,width:spec.widthMm/1000,height:spec.heightMm/1000,faces:[],metadata:{id}}:root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint)));return this.meshCache.get(key);
     }
     _drawVehicles(entries,camera){
       // Coincident ghost runs share one body outline. Keep the watched entrant
@@ -616,9 +618,9 @@
       ctx.save();ctx.fillStyle='rgba(250,252,246,.93)';ctx.strokeStyle='rgba(112,138,99,.23)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();ctx.stroke();ctx.clip();
       ctx.fillStyle='#597052';ctx.font='600 9px system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('관찰 차량 · 3D 외형',x+11,y+17);
       const mesh=this._mesh(car),camera=this._createCamera(point(0,0,mesh.height*.4),mesh.length*2.8,-.69,1.08,w*1.65,x+w*.50,y+h*.55),queue=[];
-      this._drawVehicles([{car,mesh,position:{x:0,y:0,elevation:0,angle:0,grade:0}}],camera);
-      const exteriorKind=mesh.manufacturer&&this.surfaceRenderer?.available?mesh.manufacturer.source.kind:'photo-reference';
-      const exteriorLabel={'manufacturer-mesh':'제조사 3D 모델','dealer-mesh':'딜러 제공 3D 모델','photo-reconstruction':'공식 사진 기반 3D 재구성'}[exteriorKind]||'제조사 사진 · 제원 기반';
+      this._drawVehicles([{car,mesh,selected:true,position:{x:0,y:0,elevation:0,angle:0,grade:0}}],camera);
+      const exteriorKind=this.getModelInfo().kind;
+      const exteriorLabel={'manufacturer-mesh':'제조사 3D 모델','dealer-mesh':'딜러 제공 3D 모델','community-mesh':'커뮤니티 3D 모델 · CC BY 4.0','photo-reconstruction':'공식 사진 기반 3D 재구성',loading:'3D 외형 불러오는 중…',unavailable:'3D 외형을 불러오지 못했습니다'}[exteriorKind]||'제조사 사진 · 제원 기반';
       ctx.fillStyle='#73806c';ctx.font='8px system-ui,sans-serif';ctx.fillText(exteriorLabel,x+11,y+h-9);ctx.restore();
     }
     _compass(camera){
@@ -627,8 +629,11 @@
       ctx.fillStyle='#355d43';ctx.font='700 10px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('N',x+dx/length*21,y+dy/length*21+3);ctx.textAlign='left';
     }
     _caption(){
-      const ctx=this.ctx;ctx.fillStyle='rgba(245,249,237,.91)';ctx.beginPath();ctx.roundRect(11,this.height-(this.width<450?93:61),this.width<450?222:310,16,4);ctx.fill();ctx.fillStyle='#5e7554';ctx.font=(this.width<450?'8':'9')+'px system-ui,sans-serif';
+      const ctx=this.ctx;
+      // Narrow layouts already show gestures below the canvas; keep the lower HUD clear.
+      if(this.width>600){ctx.fillStyle='rgba(245,249,237,.91)';ctx.beginPath();ctx.roundRect(11,this.height-61,310,16,4);ctx.fill();ctx.fillStyle='#5e7554';ctx.font='9px system-ui,sans-serif';
       ctx.fillText(this.width<450?(this.interactionMode==='pan'?'드래그 이동 · 두 손가락 이동/확대':'드래그 회전 · 두 손가락 이동/확대'):(this.interactionMode==='pan'?'드래그 이동 · 휠 확대 · 중앙 버튼으로 복귀':'드래그 회전 · 우클릭/Shift+드래그 이동 · 휠 확대'),18,this.height-(this.width<450?82:50));
+      }
       if(this.mode==='eau-rouge'&&this.landmark){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('EAU ROUGE → RAIDILLON · 고도 1:1',18,76);}
       if(this.mode==='pits'){ctx.fillStyle='#294936';ctx.font='600 11px system-ui,sans-serif';ctx.fillText('피트·서비스 구역 · 사진 참고 재구성',18,76);}
     }

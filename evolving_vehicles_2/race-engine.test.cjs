@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const TrackRace = require('./race-engine.js');
-const specifications = require('../evolving_vehicles/vehicle-specs.js');
+const specifications = require('./circuit-vehicle-specs.js');
 const circuits = require('./circuits.js');
 
 const circle = {
@@ -19,8 +19,8 @@ function finish(race) {
   return race;
 }
 
-test('all 13 presets use shared factory mass, power and torque', () => {
-  assert.equal(TrackRace.VEHICLES.length, 13);
+test('all circuit presets use the original or circuit-only factory mass, power and torque', () => {
+  assert.equal(TrackRace.VEHICLES.length, 15);
   for (const vehicle of TrackRace.VEHICLES) {
     assert.equal(vehicle.massKg, specifications[vehicle.id].curbMassKg);
     assert.equal(vehicle.powerPs, specifications[vehicle.id].powerPs);
@@ -267,7 +267,7 @@ test('a downhill approach plans and starts braking earlier than the same flat co
   assert.ok(brakingStarts[2] > brakingStarts[1] + 10, 'uphill gravity allows a later braking point');
 });
 
-test('all 13 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
+test('all 15 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
   assert.equal(circuits.length, 11);
   const retirements = [];
   for (const circuit of circuits) {
@@ -292,7 +292,7 @@ test('all 13 vehicles reach a terminal result on all 11 circuits in dry/wet and 
       if (!g80.dnf && !ray.dnf) assert.ok(g80.finishTime < ray.finishTime, circuit.id + ': power/weight comparison');
     }
   }
-  t.diagnostic(`572 vehicle-runs across 44 sessions; ${retirements.length} retirements: ${retirements.join(', ') || 'none'}`);
+  t.diagnostic(`${TrackRace.VEHICLES.length * circuits.length * 4} vehicle-runs across ${circuits.length * 4} sessions; ${retirements.length} retirements: ${retirements.join(', ') || 'none'}`);
 });
 
 test('guards reject invalid circuits, settings and time without silently corrupting state', () => {
@@ -430,7 +430,7 @@ test('one-make variant and tuning entrants complete every elevated layout in dry
   t.diagnostic(runs + ' one-make entrant runs completed on actual elevated racing lines.');
 });
 
-test('generated factory variants run for all 13 models and tuning generations preserve the measured elite', t => {
+test('generated factory variants run for all 15 models and tuning generations preserve the measured elite', t => {
   const tuning = require('./tuning-evolution.js');
   const circuit = circuits.find(c => c.id === 'inje');
   let runs = 0;

@@ -210,3 +210,20 @@ test('missing decompression support leaves the simulator able to use fallback me
   assert.equal(isolated.api.ids().length, 0);
   assert.equal(isolated.api.failures.length, 1);
 });
+
+test('community meshes use their decoded source geometry in Canvas without a substitute car', async () => {
+  const isolated = makeRegistry();
+  for (const id of ['g70', 'supra']) {
+    assert.equal(isolated.api.requiresAsset(id), true);
+    assert.equal(isolated.api.create(id, {}, '#123456'), null);
+    await vm.runInContext(fs.readFileSync(path.join(ASSETS, id + '-runtime.js'), 'utf8'), isolated.context);
+    const mesh = isolated.api.create(id, {lengthMm: 4600, heightMm: 1400, widthMm: 1850}, '#123456');
+    const data = isolated.api.get(id);
+    assert.ok(data.fallbackPrimitives.every(p => p.vertices instanceof Float32Array && p.indices instanceof Uint16Array || p.vertices instanceof Float32Array && p.indices instanceof Uint32Array));
+    assert.equal(mesh.faces.length, data.fallbackPrimitives.reduce((n, p) => n + p.indices.length / 3, 0));
+    assert.equal(mesh.faces, mesh.faces);
+    assert.ok(mesh.faces.some(face => face.material === 'paint' && face.fill === '#123456'));
+    assert.ok(mesh.faces.every(face => face.vertices.every(v => Object.values(v).every(Number.isFinite) && v.z >= -.001)));
+  }
+  assert.equal(isolated.fallbackCalls(), 0);
+});

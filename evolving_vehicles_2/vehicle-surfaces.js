@@ -11,7 +11,7 @@ const rgb=hex=>{
 const materials={paint:0,glass:1,rubber:2,chrome:3,light:4,interior:2,plastic:2};
 class VehicleSurfaces {
  constructor(onUpdate) {
-  this.canvas=document.createElement('canvas');this.cache=new Map();this.assetCache=new Map();this.textures=new Map();this.textureGeneration=0;this.available=false;this.onUpdate=onUpdate;
+  this.canvas=document.createElement('canvas');this.cache=new Map();this.assetCache=new Map();this.lodCache=new WeakMap();this.textures=new Map();this.textureGeneration=0;this.available=false;this.onUpdate=onUpdate;
   try {
    this.gl=this.canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
    const gl=this.gl;if(!gl)return;
@@ -133,12 +133,16 @@ class VehicleSurfaces {
   nearest.forEach(({c},i)=>{gl.activeTexture(gl.TEXTURE1+i);gl.bindTexture(gl.TEXTURE_2D,textures[i].texture);gl.uniform1i(i?U.uPhotoTextureB:U.uPhotoTextureA,i+1);gl.uniformMatrix4fv(i?U.uPhotoMatrixB:U.uPhotoMatrixA,false,this._photoCameraMatrix(c));});
   gl.uniform1f(U.uPhotoBlend,Math.abs(nearest[0].delta)/(Math.abs(nearest[0].delta)+Math.abs(nearest[1].delta)||1));gl.activeTexture(gl.TEXTURE0);
  }
- _drawAsset(mesh,position,camera){
+ _drawAsset(mesh,position,camera,useLowDetail=false){
   const gl=this.gl,A=this.attributes,U=this.uniforms;
   gl.uniform3fv(U.uModelScale,mesh.modelScale);gl.uniform3fv(U.uModelOffset,mesh.modelOffset);
   gl.disableVertexAttribArray(A.aColor);gl.disableVertexAttribArray(A.aMaterial);
   let boundPhotoCamera=null;
-  for(const b of this._assetBuffers(mesh.manufacturer)){
+  // The watched vehicle keeps its full exterior. Ghost cars share a reduced
+  // version of that same source, avoiding repeated high-detail geometry.
+  let model=mesh.manufacturer;
+  if(useLowDetail&&model.fallbackPrimitives){if(!this.lodCache.has(model))this.lodCache.set(model,{primitives:model.fallbackPrimitives});model=this.lodCache.get(model);}
+  for(const b of this._assetBuffers(model)){
    const p=b.p;gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
    for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aUV',2,24]]){gl.enableVertexAttribArray(A[name]);gl.vertexAttribPointer(A[name],size,gl.FLOAT,false,32,offset);}
    gl.vertexAttrib3fv(A.aColor,p.paint?rgb(mesh.paint):p.color);gl.vertexAttrib1f(A.aMaterial,p.material);
@@ -173,7 +177,7 @@ class VehicleSurfaces {
    if(entry.selected)gl.clear(gl.DEPTH_BUFFER_BIT);
    const {mesh,position:p}=entry;
    gl.uniform3f(U.uCar,p.x,p.y,(p.elevation||0)+.055);gl.uniform2f(U.uPose,p.angle||0,Math.atan(p.grade||0));
-   if(mesh.manufacturer){this._drawAsset(mesh,p,camera);continue;}
+   if(mesh.manufacturer){this._drawAsset(mesh,p,camera,entry.selected===false);continue;}
    gl.uniform1i(U.uPhotoMode,0);
    gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
    const b=this._buffer(mesh);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
@@ -182,7 +186,7 @@ class VehicleSurfaces {
   }
   return this.canvas;
  }
- clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);this.cache.clear();this.assetCache.clear();this.textures.clear();}
+ clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();}
  dispose(){if(!this.gl)return;this.clearGeometry();this.available=false;this.gl.deleteProgram(this.program);}
 }
 root.VehicleSurfaces=VehicleSurfaces;

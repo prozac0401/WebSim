@@ -1,0 +1,64 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const shared = require('../evolving_vehicles/vehicle-specs.js');
+const specs = require('./circuit-vehicle-specs.js');
+const Evolution = require('./tuning-evolution.js');
+const Profiles = require('./powertrain-profiles.js');
+
+test('circuit additions preserve all original presets and work in a script-tag browser', () => {
+  const originalIds = Object.keys(shared);
+  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined);
+  for (const id of Object.keys(shared)) assert.equal(specs[id], shared[id]);
+  assert.equal(Object.keys(specs).length, originalIds.length + 2);
+  const sandbox = { window: { VehicleSpecs: shared } };
+  vm.runInNewContext(fs.readFileSync(require.resolve('./circuit-vehicle-specs.js'), 'utf8'), sandbox);
+  for (const id of Object.keys(shared)) assert.equal(sandbox.window.CircuitVehicleSpecs[id], shared[id]);
+  assert.equal(sandbox.window.VehicleSpecs, shared);
+  assert.ok(Object.isFrozen(specs.g70.driveVariants.awd));
+});
+
+test('pre-facelift Korean G70 keeps engine, wheel and drivetrain mass combinations together', () => {
+  const expected = [
+    ['g70-2.0t-rwd', 1998, 'rwd', 252, 1595, '225/45R18', '225/45R18'],
+    ['g70-2.0t-awd', 1998, 'awd', 252, 1665, '225/45R18', '225/45R18'],
+    ['g70-3.3t-rwd', 3342, 'rwd', 370, 1705, '225/40R19', '255/35R19'],
+    ['g70-3.3t-awd', 3342, 'awd', 370, 1775, '225/40R19', '255/35R19']
+  ];
+  for (const [id, cc, drive, ps, kg, front, rear] of expected) {
+    const s = Evolution.getVariant('g70', id).spec;
+    assert.deepEqual([s.displacementCc, s.factoryDrive, s.powerPs, s.massKg, s.frontTire, s.rearTire], [cc, drive, ps, kg, front, rear]);
+    assert.equal(s.modelYear, 2019); assert.equal(s.market, 'KR');
+    assert.notEqual(s.displacementCc, 2497, 'the 2026 official G70 model must not leak into this pre-facelift car');
+  }
+  const low = Evolution.getRules('g70', 'g70-2.0t-rwd'), high = Evolution.getRules('g70', 'g70-3.3t-awd');
+  assert.ok(low.credits.acceleration > high.credits.acceleration);
+  assert.ok(low.credits.grip > high.credits.grip);
+});
+
+test('Supra is exclusively the 2019 Japanese RZ 3.0T with its official factory combination', () => {
+  assert.deepEqual(Evolution.VARIANTS.supra.map(v => v.id), ['supra-3.0t-rz']);
+  const s = Evolution.getVariant('supra', 'supra-3.0t-rz').spec;
+  assert.deepEqual([s.displacementCc, s.powerPs, s.torqueNm, s.massKg, s.factoryZeroTo100S], [2997, 340, 500, 1520, 4.3]);
+  assert.deepEqual([s.frontTireRadiusMm, s.rearTireRadiusMm], [330.55, 337.55]);
+  assert.equal(s.factoryDrive, 'rwd'); assert.equal(s.market, 'JP'); assert.equal(s.modelYear, 2019);
+  assert.deepEqual(Evolution.getRules('supra', 'supra-3.0t-rz').credits, { acceleration: 0, topSpeed: 0, brakes: 0, grip: 0 }, 'no fictional lower trim or AWD comparator');
+  const population = Evolution.createPopulation({ vehicleId: 'supra', count: 12, seed: 173 });
+  assert.ok(population.every(entry => entry.variantId === 'supra-3.0t-rz'));
+  assert.ok(new Set(population.map(entry => JSON.stringify(entry.levels))).size > 1, 'single factory trim still evolves varied tuning');
+});
+
+test('every new variant gets the correct eight-speed combustion HUD profile', () => {
+  for (const vehicleId of ['g70', 'supra']) {
+    for (const variant of Evolution.VARIANTS[vehicleId]) {
+      const entrant = Evolution.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
+      const profile = Profiles.resolve({ vehicleId, entrant });
+      assert.equal(profile.gearCount, 8); assert.equal(profile.transmissionType, 'AT');
+      assert.equal(profile.powertrainType, 'gasoline'); assert.equal(profile.visible, true);
+      assert.ok(profile.sourceIds.length); assert.equal(profile.variantId, variant.id);
+    }
+    assert.equal(Profiles.resolve(vehicleId).gearCount, 8);
+  }
+});

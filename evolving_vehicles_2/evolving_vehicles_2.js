@@ -62,7 +62,7 @@ function prepareRace(note,keepWatch=false){
  }
 }
 function selectCar(id){watch=id;inspectorKey='';updateUI();draw();}
-function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const text=renderer.getModelInfo().label;if($('exterior-source').textContent!==text)$('exterior-source').textContent=text;}}
+function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const source=renderer.getModelInfo(),key=source.kind+'|'+source.label;if($('exterior-source').dataset.source!==key){const node=$('exterior-source');node.dataset.source=key;node.replaceChildren(document.createTextNode(source.label));if(source.kind==='community-mesh'){const link=document.createElement('a');link.href='ADDITIONAL-VEHICLES.md';link.target='_blank';link.rel='noopener';link.textContent=' · 제작자·CC BY 4.0·변경 내역 ↗';node.append(link);}}}}
 function setCamera(mode){renderer.setView(mode);camera=renderer.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));draw();}
 function updateElevation(){
  const t=race.track,points=t.racingLine?.points||t.points;$('elevation-plot').hidden=!t.hasElevation;
@@ -150,8 +150,12 @@ function updateUI(){
  $('car-progress').style.width=(car.finished?100:(car.distance%race.track.length)/race.track.length*100)+'%';$('power-stat').textContent=Math.round(car.powerPs)+' PS';$('mass-stat').textContent=Math.round(car.massKg).toLocaleString('ko-KR')+' kg';$('torque-stat').textContent=Math.round(car.torqueNm)+' Nm';$('last-lap-stat').textContent=fTime(car.lapTimes.at(-1));
  const pos=race.sample(car.distance);$('elevation-stat').textContent=pos.elevation==null?'—':pos.elevation.toFixed(1)+' m';$('grade-stat').textContent=race.track.hasElevation?(pos.grade>=0?'+':'−')+Math.abs(pos.grade*100).toFixed(1)+'%':'—';
  const cursor=car.finished?1000:(car.distance%race.track.length)/race.track.length*1000;$('elevation-cursor').setAttribute('x1',cursor);$('elevation-cursor').setAttribute('x2',cursor);
- $('vehicle-source').href=spec.sourceUrl||VehicleSpecs[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
- if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId],[x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
+ $('vehicle-source').href=spec.sourceUrl||(window.CircuitVehicleSpecs||VehicleSpecs)[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
+ if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId];
+  if(art){const [x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
+  else if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png';image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
+  else $('car-image').replaceChildren();
+ }
  updateTuning(car);historyUI();
 }
 function updatePowertrainHUD(car){
@@ -206,6 +210,7 @@ document.addEventListener('keydown',event=>{
  if(document.activeElement===canvas&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();const dx=event.key==='ArrowLeft'?-25:event.key==='ArrowRight'?25:0,dy=event.key==='ArrowUp'?-18:event.key==='ArrowDown'?18:0;if(event.shiftKey||renderer.getState().interactionMode==='pan')renderer.pan(dx,dy);else renderer.orbit(dx,dy);draw();}
 });
 document.addEventListener('fullscreenchange',()=>{renderer.resize();draw();});document.addEventListener('visibilitychange',()=>{lastFrame=null;});new ResizeObserver(()=>{renderer.resize();draw();}).observe($('stage'));
+new ResizeObserver(entries=>{for(const entry of entries)$('stage').style.setProperty('--map-controls-height',entry.target.getBoundingClientRect().height+'px');}).observe(document.querySelector('.map-controls'));
 window.advanceTime=milliseconds=>{
  manual=true;let seconds=Math.max(0,Math.min(Number(milliseconds)||0,3600000))/1000;
  while(seconds>1e-7){const chunk=Math.min(seconds,.25);if(fast||running)simulate(chunk*(fast?256:Number($('speed').value)));else if(race.finished&&$('auto-evolve').checked&&autoDelay>0){autoDelay-=chunk;if(autoDelay<=0)nextGeneration(true);}else break;seconds-=chunk;}

@@ -5,8 +5,8 @@ const T = require('./tuning-evolution.js');
 const keys = T.CATEGORIES.map(category => category.id);
 const levels = (acceleration = 0, topSpeed = 0, brakes = 0, grip = 0) => ({ acceleration, topSpeed, brakes, grip });
 
-test('catalogue keeps real, immutable factory combinations for all thirteen bodies', () => {
-  assert.equal(Object.keys(T.VARIANTS).length, 13);
+test('catalogue keeps real, immutable factory combinations for all fifteen bodies', () => {
+  assert.equal(Object.keys(T.VARIANTS).length, 15);
   for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) {
     assert.ok(variants.length >= 1);
     assert.equal(new Set(variants.map(variant => variant.id)).size, variants.length);

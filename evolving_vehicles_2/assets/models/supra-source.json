@@ -1,0 +1,80 @@
+{
+  "id": "supra",
+  "checkedAt": "2026-10-15",
+  "title": "Toyota Supra 3D Model (Free)",
+  "author": "Mpgs Studios",
+  "authorUrl": "https://sketchfab.com/mpgs.studio",
+  "sourceUrl": "https://sketchfab.com/3d-models/toyota-supra-3d-model-free-41b83cfb912b4eab9af19a802bcf5ffc",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "attributionFile": "supra-LICENSE.txt",
+  "publisherDescription": "Publisher identifies this as a Supra modeled in Blender. The public listing, glTF asset.extras, and accompanying license.txt identify the same creator and CC BY license.",
+  "publisherNoAITag": true,
+  "usage": "Ordinary deterministic mesh conversion and game rendering. No AI training, datasets, or generative asset creation uses this model.",
+  "manufacturerOfficial": false,
+  "vehicleRepresentation": "Community Toyota GR Supra A90 exterior used for the simulated 3.0T RZ. Exact model year and trim-specific exterior accuracy are not manufacturer-certified.",
+  "visualReferences": [
+    {
+      "publisher": "Toyota Australia Pressroom",
+      "subject": "Official GR Supra rear photograph: dark lamp housings and red light guides, circular exhaust tips, plate recess, diffuser and central reverse-light lens array.",
+      "url": "https://pressroom.toyota.com.au/-/media/toyota/pressroom/pr-images/2020/03/25/12/50/51478_hr.jpg?rev=27d9d1b4ba764acdb1b7339b1591768a",
+      "viewedAt": "2026-10-15",
+      "usage": "Visually inspected reference only; photograph is not shipped in the runtime or repository."
+    },
+    {
+      "publisher": "Toyota Motor Corporation",
+      "subject": "17 May 2019 Japan Supra launch exterior gallery.",
+      "url": "https://global.toyota/en/album/images/28110994/",
+      "viewedAt": "2026-10-15"
+    }
+  ],
+  "download": {
+    "method": "Public GitHub raw files retaining original source and CC BY attribution; no Sketchfab account or viewer extraction used.",
+    "repository": "https://github.com/ReloadDesigner/Car-Viewer-Test",
+    "commit": "3c61e52a5243d730705ecffebebf91c5f9d012fa",
+    "directory": "public/models/toyota/Supra/gr_supra",
+    "baseUrl": "https://raw.githubusercontent.com/ReloadDesigner/Car-Viewer-Test/3c61e52a5243d730705ecffebebf91c5f9d012fa/public/models/toyota/Supra/gr_supra/",
+    "files": [
+      {"name": "gr_supra.gltf", "bytes": 157689, "sha256": "96d96838b1cb186f34755b224771934861891d4ae92ab495c94bfc33c6585f7a"},
+      {"name": "scene.bin", "bytes": 79503744, "sha256": "6cef82750ed88c060fe132f6342de7f83f15b13589da2800e447404e6018eaaf"},
+      {"name": "license.txt", "bytes": 742, "sha256": "46c877654bc955ec15e127d069e40b67cf95363a9644d466893e35bb8c27e1f3"}
+    ]
+  },
+  "sourceGeometry": {
+    "meshes": 106,
+    "materials": 28,
+    "textures": 0,
+    "excludedLinePrimitives": 2,
+    "provenanceCheck": "Node names contain a ToyotaSupera2021 OBJ scene and ordinary body/tire/glass/light materials. No third-party game names or extraction statement was found in the inspected metadata and publisher description. This is not a forensic originality guarantee."
+  },
+  "conversion": {
+    "script": "build-free-supra.mjs",
+    "runtime": "supra-runtime.js",
+    "summary": "supra-runtime-summary.json",
+    "changes": [
+      "Welded redundant vertices and simplified surface geometry with meshoptimizer.",
+      "Kept paint-surface vertex normals in the simplification error metric to preserve smooth highlights.",
+      "Merged surfaces sharing appearance to reduce draw calls.",
+      "Converted source forward -Z / up +Y to forward +X / right +Y / up +Z with a proper rotation.",
+      "Scaled the source uniformly to 4.38 metres length and placed tires on ground zero.",
+      "Adapted paint, glass, chrome and light materials to the race renderer.",
+      "Separated lamp-cover triangles from the shared window material so tail lamps remain visible.",
+      "Corrected rear-lamp materials against Toyota's rear photograph: dark red housing and red LED light guides instead of a solid red housing with white guides.",
+      "Assigned only the rear diffuser a fixed dark-charcoal reflective finish so its moulded curves remain visible; tires retain the nonreflective rubber material.",
+      "Preserved additional rear bumper, ducktail, diffuser, emblem and chrome exhaust geometry for the close rear camera.",
+      "The main rear bumper keeps all 52,736 source triangles. Its angular central recess shoulders remain a source-model limitation; increasing its triangle retention did not materially change those surfaces in visual comparison.",
+      "Added an authored display plate and bevelled frame inside the existing plate recess, plus a dark central reverse-lamp housing with 20 unlit dot lenses; these are photo-informed additions, not manufacturer CAD. The display plate is not a real registration.",
+      "Created a separate low-detail software-renderer mesh; hidden cabin details and original line primitives are omitted."
+    ],
+    "triangles": 201832,
+    "drawGroups": 33,
+    "fallbackTriangles": 8577,
+    "fallbackDrawGroups": 31,
+    "runtimeBytes": 6234271
+  },
+  "excludedCandidate": {
+    "sourceUrl": "https://sketchfab.com/3d-models/toyota-gr-supra-9231f2d5e71a43dd87603dc0b339d99d",
+    "author": "thelightning",
+    "decision": "Not used. Inspected mesh names refer to another model-sharing source and a title matching an earlier commercial model; the redistribution chain could not be resolved. This does not establish that the publisher infringed copyright."
+  }
+}
