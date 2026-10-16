@@ -1,5 +1,6 @@
 (function(root,factory){const node=typeof module==='object'&&module.exports;const api=factory(node?require('./data.js'):root.S2Data,node?require('./calendar.js'):root.S2Calendar,node?require('./recurrence.js'):root.S2Recurrence,node?require('./events.js'):root.S2Events,node?require('./engine.js'):root.S2Engine);if(node)module.exports=api;else root.S2Storage=api;})(typeof globalThis!=='undefined'?globalThis:this,function(D,C,R,E,Engine){
   'use strict';
+  // Keep the browser key stable so v1 players are offered their existing year.
   const KEY='websim-weekend-season2-v1',FORMAT='websim-weekend-season2';
   const object=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
   const money=x=>Number.isSafeInteger(x)&&x>=0&&x<=1000000000000;
@@ -28,7 +29,7 @@
     for(const entry of s.log){if(!object(entry)||typeof entry.id!=='string'||typeof entry.type!=='string'||typeof entry.title!=='string'||!inYear(entry.date)||entry.date>s.date)bad('기록 날짜나 내용이 손상되었습니다.');if(entry.type==='daily'){if(dayDates.has(entry.date)||!object(entry.stats)||Object.values(entry.stats).some(v=>!Number.isFinite(v)||v<0||v>100))bad('하루 요약이 중복되거나 손상되었습니다.');dayDates.add(entry.date);}if(entry.activityId&&!D.ACTIVITY_MAP[entry.activityId])bad('알 수 없는 활동 기록입니다.');}
     for(const artifact of s.artifacts)if(!object(artifact)||!D.ACTIVITY_MAP[artifact.activityId]||!inYear(artifact.date)||artifact.date>s.date||typeof artifact.name!=='string'||!s.log.some(l=>l.type==='artifact'&&l.artifactId===artifact.id))bad('결과물과 로그가 일치하지 않습니다.');
     if(s.log.filter(l=>l.type==='artifact').length!==s.artifacts.length||s.log.some(l=>l.type==='artifact'&&!s.artifacts.some(a=>a.id===l.artifactId)))bad('결과물 목록과 로그가 일치하지 않습니다.');
-    for(const item of s.queue)if(!object(item)||!E.MAP[item.catalogId]||!inYear(item.date)||!object(item.context))bad('대기 사건이 손상되었습니다.');
+    for(const item of s.queue)if(!object(item)||!E.MAP[item.catalogId]||!inYear(item.date)||!object(item.context)||!E.eligible(s,item.catalogId))bad('대기 사건이 손상되었습니다.');
     for(const field of ['skills','activityCounts','flags','eventHistory'])if(!object(s[field]))bad(field+' 상태가 없습니다.');
     if(object(s.skills))for(const [id,value]of Object.entries(s.skills))if(!D.ACTIVITY_MAP[id]||!Number.isFinite(value)||value<0||value>100)bad('숙련 기록이 손상되었습니다.');
     if(object(s.activityCounts))for(const [id,value]of Object.entries(s.activityCounts))if(!D.ACTIVITY_MAP[id]||!Number.isInteger(value)||value!==s.log.filter(l=>l.type==='activity'&&l.activityId===id).length)bad('활동 횟수와 로그가 일치하지 않습니다.');
@@ -36,7 +37,7 @@
     if(!Number.isInteger(s.friendPostponements)||s.friendPostponements<0)bad('약속 기록이 손상되었습니다.');
     if(s.lastExternal!==null&&!inYear(s.lastExternal))bad('외부 사건 날짜가 올바르지 않습니다.');
     if(s.phase==='event'&&!s.pendingEvent||s.phase!=='event'&&s.pendingEvent!==null)bad('사건 진행 단계가 일치하지 않습니다.');
-    if(s.pendingEvent){const e=s.pendingEvent;if(!object(e)||e.date!==s.date||!Array.isArray(e.choices)||!object(e.context))bad('현재 사건이 손상되었습니다.');else if(e.catalogId==='constraint'){if(!s.plan.some(p=>p.id===e.context.planId)||e.choices.map(c=>c.id).join(',')!=='reschedule,free,skip')bad('재배치 선택이 손상되었습니다.');}else{const original=E.MAP[e.catalogId];if(!original||JSON.stringify(original.choices)!==JSON.stringify(e.choices)||e.title!==original.title||e.source!==original.source)bad('사건 선택지가 원본과 일치하지 않습니다.');}}
+    if(s.pendingEvent){const e=s.pendingEvent;if(!object(e)||e.date!==s.date||!Array.isArray(e.choices)||!object(e.context))bad('현재 사건이 손상되었습니다.');else if(e.catalogId==='constraint'){if(!s.plan.some(p=>p.id===e.context.planId)||e.choices.map(c=>c.id).join(',')!=='reschedule,free,skip')bad('재배치 선택이 손상되었습니다.');}else{const original=E.MAP[e.catalogId];if(!original||!E.eligible(s,e.catalogId)||JSON.stringify(original.choices)!==JSON.stringify(e.choices)||e.title!==original.title||e.source!==original.source)bad('사건 선택지가 원본과 일치하지 않습니다.');}}
     if(s.dayState!==null){const d=s.dayState;if(!object(d)||d.date!==s.date||!Array.isArray(d.done)||!object(d.blocks)||typeof d.begun!=='boolean'||typeof d.baseDone!=='boolean'||typeof d.eventHandled!=='boolean'||typeof d.skipWork!=='boolean')bad('처리 중인 날짜 상태가 손상되었습니다.');else{for(const [slot,value]of Object.entries(d.blocks))if(!Engine.SLOT_IDS.includes(slot)||!Number.isInteger(value)||value<0||value>240)bad('사용한 시간이 올바르지 않습니다.');if(!Number.isInteger(d.extraTravel)||d.extraTravel<0||d.extraTravel>30)bad('이동 시간이 올바르지 않습니다.');}}
     const f=s.finance;
     if(!object(f)||!['cash','cardPending','arrears','fixedArrears','pendingPay','monthSpent'].every(k=>money(f[k]))||!Array.isArray(f.ledger)||f.ledger.length>20000||!Array.isArray(f.pendingRewards)||!object(f.processed)){bad('금융 상태가 손상되었습니다.');return errors;}
@@ -64,8 +65,28 @@
     if(s.phase==='finished'&&(s.date!==s.config.year+'-12-31'||dayDates.size!==C.dates(s.config.year).length))bad('연말 기록에 빠진 날짜가 있습니다.');
     return errors;
   }
+  function migrate(state,version){
+    if(version===D.VERSION)return state;
+    if(version!==1||!object(state)||state.version!==1||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
+    const migrated=JSON.parse(JSON.stringify(state));
+    migrated.version=D.VERSION;
+    // A v1 player did not choose a marital status. Do not invent a spouse or
+    // rewrite any past event, financial transaction or random-generator state.
+    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,...migrated.config};
+    if(migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
+      const event=migrated.pendingEvent,original=E.MAP[event.catalogId];
+      if(!original||original.requires)throw new Error('이전 저장의 사건 종류가 올바르지 않습니다.');
+      const oldChoices=JSON.parse(JSON.stringify(original.choices));
+      const oldLabels={household_repair:{repair:'수리비 35,000원 지출'},exam_june:{take:'시험 응시 · 20,000원'},exam_nov:{take:'시험 응시 · 20,000원'},hobby_gathering:{join:'모임에 참여 · 10,000원'}};
+      for(const choice of oldChoices)if(oldLabels[event.catalogId]&&oldLabels[event.catalogId][choice.id])choice.label=oldLabels[event.catalogId][choice.id];
+      if(JSON.stringify(event.choices)!==JSON.stringify(oldChoices))throw new Error('이전 저장의 사건 선택지가 원본과 일치하지 않습니다.');
+      event.choices=JSON.parse(JSON.stringify(original.choices));
+      if(event.catalogId==='job_offer')event.description=original.description;
+    }
+    return migrated;
+  }
   function serialize(state){const errors=validate(state);if(errors.length)throw new Error(errors[0]);const payload=JSON.stringify(state);return JSON.stringify({format:FORMAT,version:D.VERSION,savedAt:new Date().toISOString(),checksum:checksum(payload),state},null,2);}
-  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||envelope.version!==D.VERSION)throw Error('지원하는 시즌2 저장 파일이 아닙니다.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일의 검사값이 일치하지 않습니다. 파일이 손상되거나 변경되었습니다.');const errors=validate(envelope.state);if(errors.length)throw Error(errors[0]);return {ok:true,state:envelope.state,reason:''};}catch(e){return {ok:false,reason:e.message};}}
+  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('지원하는 시즌2 저장 파일이 아닙니다.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일의 검사값이 일치하지 않습니다. 파일이 손상되거나 변경되었습니다.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이전 저장을 호환 형식으로 읽었습니다. 과거 기록과 혼인 미설정 상태를 유지합니다.':''};}catch(e){return {ok:false,reason:e.message};}}
   function save(state,storage){try{(storage||localStorage).setItem(KEY,serialize(state));return {ok:true,reason:''};}catch(e){return {ok:false,reason:'브라우저 저장 실패: '+e.message};}}
   function load(storage){try{const value=(storage||localStorage).getItem(KEY);return value?parse(value):{ok:false,reason:'저장된 게임이 없습니다.'};}catch(e){return {ok:false,reason:'브라우저 저장을 읽지 못했습니다: '+e.message};}}
   function clear(storage){try{(storage||localStorage).removeItem(KEY);return {ok:true};}catch(e){return {ok:false,reason:e.message};}}

@@ -15,10 +15,12 @@
     if (!c || typeof c !== 'object' || Array.isArray(c)) return ['시작 설정이 없습니다.'];
     const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
     for (const [key,[min,max]] of Object.entries(nums)) if (!Number.isSafeInteger(c[key]) || c[key]<min || c[key]>max) errors.push(key+' 설정 범위를 확인하세요.');
-    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],role:Object.keys(D.ROLES),childAge:['none','preschool','school','teen'],housing:['studio','apartment','shared'],region:['city','town','rural'],transport:['walk','transit','car']};
+    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:['single','married','unspecified'],role:Object.keys(D.ROLES),childAge:['none','preschool','school','teen'],housing:['studio','apartment','shared'],region:['city','town','rural'],transport:['walk','transit','car']};
     for (const [key,values] of Object.entries(enums)) if (!values.includes(c[key])) errors.push(key+' 설정을 확인하세요.');
     if (!Array.isArray(c.preferences) || c.preferences.length>20 || c.preferences.some(id=>!D.ACTIVITY_MAP[id]) || new Set(c.preferences).size!==c.preferences.length) errors.push('활동 선호를 확인하세요.');
     if (c.children>0 && c.childAge==='none') errors.push('자녀가 있으면 연령대를 선택하세요.');
+    if(typeof c.personaName!=='string'||c.personaName.length>40||typeof c.lifeIntro!=='string'||c.lifeIntro.length>600)errors.push('가상 인물 소개를 확인하세요.');
+    if(c.generationSeed!==null&&(!Number.isInteger(c.generationSeed)||c.generationSeed<0||c.generationSeed>4294967295))errors.push('인생 배정 시드를 확인하세요.');
     return errors;
   }
   function create(config,presetId) {
@@ -43,7 +45,10 @@
     if (slot !== (C.isOff(date)?'morning':'evening')) return 0;
     const per = {none:0,preschool:100,school:70,teen:40}[s.config.childAge];
     const share = s.flags.careSharedUntil && date<=s.flags.careSharedUntil ? .5 : 1;
-    return Math.min(180,Math.round(per*s.config.children*s.config.careShare/100*share));
+    const baseline=Math.min(180,Math.round(per*s.config.children*s.config.careShare/100*share));
+    // New household agreements halve the actual capped time. Keep the legacy
+    // careSharedUntil formula intact so a v1 saved year replays unchanged.
+    return s.flags.householdCareSharedUntil&&date<=s.flags.householdCareSharedUntil?Math.round(baseline*.5):baseline;
   }
   function currentWeek(s) {
     if(s.phase==='finished')return [];
@@ -91,7 +96,50 @@
     const p={id:'plan-'+(++s.sequence),date:options.date,slot:slotId(options.slot),activityId:options.activityId,payment:options.payment||'cash',ruleId:options.ruleId||null,originalDate:options.originalDate||options.date};
     s.plan.push(p);return {ok:true,reason:'',plan:p,minutes:check.minutes};
   }
+  function prepareAutoWeek(s,options){
+    const direction=options&&options.direction||'balanced';
+    if(!['balanced','hobby','rest'].includes(direction))return {ok:false,added:[],issues:[],reason:'생활 방향을 확인하세요.'};
+    if(s.phase!=='planning')return {ok:false,added:[],issues:[],reason:'계획 단계에서 자동 주간 준비를 시작하세요.'};
+    const pending=reservations(s);
+    if(pending.length)return {ok:false,added:[],issues:pending,reason:'반복 예약의 날짜를 확인하고 확정하거나 건너뛴 뒤 자동 진행을 계속하세요.'};
+    // Resuming after an event must reach advance(), which turns its new time or
+    // resource conflict into an explicit reschedule/free/skip choice. Preparation
+    // must not strand an already prepared week on a hidden planning error.
+    if(s.flags.autoPreparedWeek===s.weekStart)return {ok:true,added:[],issues:[],notes:[],alreadyPrepared:true,reason:''};
+    const issues=s.plan.map(p=>({...p,...planCheck(s,p,p.id)})).filter(p=>!p.ok);
+    if(issues.length)return {ok:false,added:[],issues,reason:'기존 계획의 시간·역할·예산 조건이 바뀌었습니다. 먼저 일정을 조정하세요.'};
+    const draft=clone(s),added=[],notes=[],preferences=s.config.preferences.filter(id=>!D.ACTIVITY_MAP[id].roles||D.ACTIVITY_MAP[id].roles.includes(s.config.role));
+    const preferred=preferences.length?preferences[(s.weekNumber-1)%preferences.length]:'read';
+    const second=preferences.find(id=>id!==preferred)||'walk';
+    const goal={worker:'study',seeker:'jobstudy',graduate:'research',caregiver:s.config.children?'care':'chores'}[s.config.role];
+    const desired=direction==='hobby'?[preferred,second,'friends']:direction==='rest'?['rest','walk','read']:s.stats.fatigue>=65?['rest',preferred,goal]:[goal,preferred,'rest'];
+    const occupiedActivities=new Set(draft.plan.map(p=>p.activityId)),needed=Math.max(0,3-draft.plan.length);
+    for(let index=0;index<needed;index++){
+      const first=desired[index],pool=[first,...preferences,'read','walk','rest'].filter((id,i,list)=>list.indexOf(id)===i&&!occupiedActivities.has(id));
+      let selected=null;
+      for(const activityId of pool){
+        const days=currentWeek(draft),candidates=days.flatMap(day=>day.slots.filter(slot=>slot.available).map(slot=>({date:day.date,slot:slot.id,off:day.isOff})));
+        const slots=['afternoon','morning','evening'];
+        candidates.sort((a,b)=>Number(b.off)-Number(a.off)||draft.plan.filter(p=>p.date===a.date).length-draft.plan.filter(p=>p.date===b.date).length||a.date.localeCompare(b.date)||slots.indexOf(a.slot)-slots.indexOf(b.slot));
+        for(const candidate of candidates){
+          const previousSequence=draft.sequence,result=addPlan(draft,{...candidate,activityId,payment:'cash'});
+          if(result.ok){
+            // A cheap activity early in the week must not consume the budget
+            // reserved for a manual appointment later in that same week.
+            if(draft.plan.some(p=>!planCheck(draft,p,p.id).ok)){draft.plan=draft.plan.filter(p=>p.id!==result.plan.id);draft.sequence=previousSequence;continue;}
+            selected=result.plan;selected.automatic=true;selected.direction=direction;break;
+          }
+        }
+        if(selected){if(activityId!==first)notes.push(D.ACTIVITY_MAP[first].name+' 대신 시간과 예산에 맞는 '+D.ACTIVITY_MAP[activityId].name+'을 준비했습니다.');break;}
+      }
+      if(!selected){notes.push('활동·돌봄·이동 시간을 함께 확보하기 어려운 구간은 여유로 남겼습니다.');break;}
+      occupiedActivities.add(selected.activityId);added.push(selected);
+    }
+    s.plan=draft.plan;s.sequence=draft.sequence;s.flags.autoPreparedWeek=s.weekStart;s.flags.autoDirection=direction;
+    return {ok:true,added,issues:[],notes,alreadyPrepared:false,reason:''};
+  }
   function queue(s,id,date,context) {
+    if(!E.eligible(s,id))return;
     if(date>s.config.year+'-12-31'||s.queue.some(q=>q.catalogId===id)||s.pendingEvent&&s.pendingEvent.catalogId===id)return;
     s.queue.push({catalogId:id,date,context:context||{}});s.queue.sort((a,b)=>a.date.localeCompare(b.date));
   }
@@ -151,12 +199,14 @@
     if(suffix==='11-27'&&s.config.role==='graduate')id='thesis_deadline';
     if(suffix==='12-18'&&s.config.role==='worker')id='work_review';
     if(suffix==='10-01')id='autumn_reflection';
-    return id&&!s.eventHistory[id]?id:null;
+    if(suffix==='02-07'&&s.config.maritalStatus==='married')id=s.config.children?'partner_care':'partner_weekend';
+    if(suffix==='02-07'&&s.config.maritalStatus==='single')id=s.config.children?'single_care':'single_weekend';
+    return id&&!s.eventHistory[id]&&E.eligible(s,id)?id:null;
   }
   function maybeEvent(s) {
     if(s.dayState.eventHandled)return null;
     const scheduled=scheduledEvent(s);if(scheduled)return startEvent(s,scheduled);
-    const due=s.queue.findIndex(q=>q.date<=s.date&&!(E.MAP[q.catalogId].source==='external'&&s.flags.externalDelivered&&C.addDays(s.flags.externalDelivered,14)>s.date));if(due>=0){const [item]=s.queue.splice(due,1);return startEvent(s,item.catalogId,item.context);}
+    const due=s.queue.findIndex(q=>q.date<=s.date&&E.eligible(s,q.catalogId)&&!(E.MAP[q.catalogId].source==='external'&&s.flags.externalDelivered&&C.addDays(s.flags.externalDelivered,14)>s.date));if(due>=0){const [item]=s.queue.splice(due,1);return startEvent(s,item.catalogId,item.context);}
     return null;
   }
   function ensureDay(s) {
@@ -269,6 +319,7 @@
   }
   function choose(s,id) {
     const event=s.pendingEvent;if(s.phase!=='event'||!event)return {ok:false,reason:'선택할 사건이 없습니다.'};
+    if(event.catalogId!=='constraint'&&!E.eligible(s,event.catalogId))return {ok:false,reason:'현재 가구와 이전 선택에 맞지 않는 사건입니다.'};
     const choice=event.choices.find(c=>c.id===id);if(!choice)return {ok:false,reason:'선택지를 확인하세요.'};
     if(event.catalogId==='constraint'){
       const p=s.plan.find(p=>p.id===event.context.planId);
@@ -337,6 +388,31 @@
       case 'hobby_join':block(s,120,'취미 모임에 쓴 시간');log(s,'relationship','취미 모임에서 결과물을 나눴습니다.',{activityId:event.context.activityId});break;
       case 'hobby_show':block(s,120,'작은 발표에 쓴 시간');outcome('쌓아 온 취미 결과물을 작은 발표에서 나눴습니다.',{activityId:event.context.activityId});break;
       case 'hobby_private':log(s,'goal','취미 결과물을 개인 기록으로 간직했습니다.',{activityId:event.context.activityId,category:'choice'});break;
+      case 'partner_together':case 'partner_individual':case 'partner_swap':case 'partner_care_keep':{
+        s.flags.partnerPlan=action;
+        if(action==='partner_swap')s.flags.householdCareSharedUntil=C.addDays(s.date,21);
+        block(s,action==='partner_together'?90:action==='partner_swap'?30:60,'배우자와 합의한 주말 시간');
+        log(s,'relationship',action==='partner_together'?'배우자와 집에서 함께 시간을 보냈습니다.':action==='partner_individual'?'배우자와 각자의 취미 시간을 존중하기로 했습니다.':action==='partner_swap'?'배우자와 돌봄 교대 시간을 합의했습니다.':'배우자와 현재 돌봄 분담 안에서 짧은 여유를 마련했습니다.',{eventId:event.catalogId});
+        queue(s,'partner_followup',C.addDays(s.date,21),{plan:action});break;
+      }
+      case 'partner_continue':case 'partner_adjust':{
+        block(s,30,'배우자와 주말 리듬을 돌아본 시간');
+        if(s.flags.partnerPlan==='partner_swap'){if(action==='partner_continue')s.flags.householdCareSharedUntil=C.addDays(s.date,28);else delete s.flags.householdCareSharedUntil;}
+        log(s,'relationship',action==='partner_continue'?'배우자와 합의한 리듬을 이어가기로 했습니다.':'배우자와 각자의 필요를 다시 이야기하고 주말 경계를 조정했습니다.',{eventId:event.catalogId,previousPlan:s.flags.partnerPlan});break;
+      }
+      case 'single_connect':case 'single_own':case 'single_support':case 'single_care_keep':{
+        s.flags.singlePlan=action;
+        if(action==='single_support')s.flags.householdCareSharedUntil=C.addDays(s.date,21);
+        block(s,action==='single_own'?90:action==='single_care_keep'?60:30,'내 생활을 위해 정한 시간');
+        log(s,action==='single_own'?'goal':'relationship',action==='single_connect'?'가까운 사람과 안부를 나누는 시간을 정했습니다.':action==='single_own'?'개인 취향에 맞는 휴일을 보내기로 했습니다.':action==='single_support'?'친구·친척 등 도움을 나눌 사람과 돌봄 시간을 합의했습니다.':'현재 돌봄 분담 안에서 나를 돌볼 여유를 마련했습니다.',{eventId:event.catalogId,category:'choice'});
+        queue(s,'single_followup',C.addDays(s.date,21),{plan:action});break;
+      }
+      case 'single_continue':case 'single_change':{
+        block(s,30,'내 주말 리듬을 돌아본 시간');
+        if(s.flags.singlePlan==='single_support'){if(action==='single_continue')s.flags.householdCareSharedUntil=C.addDays(s.date,28);else delete s.flags.householdCareSharedUntil;}
+        if(action==='single_continue'&&['single_connect','single_support'].includes(s.flags.singlePlan))effect(s,{relationship:3});
+        log(s,'goal',action==='single_continue'?'선택한 연락·개인 시간·돌봄 도움의 리듬을 이어가기로 했습니다.':'내 주말에 필요한 시간을 다시 정했습니다.',{eventId:event.catalogId,previousPlan:s.flags.singlePlan,category:'choice'});break;
+      }
       case 'budget_reduce':
         for(const p of s.plan.filter(p=>D.ACTIVITY_MAP[p.activityId].cost>0)){const original=p.activityId;removePlan(s,p.id,event.catalogId==='money_recovery'?'money':'choice');const remaining=planCheck(s,{...p,activityId:'rest',ruleId:null});if(remaining.ok)s.plan.push({...p,activityId:'rest',payment:'cash',ruleId:null});log(s,'changed',D.ACTIVITY_MAP[original].name+' 대신 여유를 남겼습니다.',{category:event.catalogId==='money_recovery'?'cannot':'choice',reason:event.catalogId==='money_recovery'?'money':'choice'});}break;
     }
@@ -354,5 +430,5 @@
     const ranked=monthly.filter(m=>m.meanMood!==null).sort((a,b)=>b.meanMood-a.meanMood||a.month-b.month);
     return {year:s.config.year,activityCounts:clone(s.activityCounts),calendar,monthly,artifacts:clone(s.artifacts),achievements:s.log.filter(l=>l.type==='achievement'),relationshipScenes:s.log.filter(l=>l.type==='relationship'),finance:F.summary(s.finance),happiestMonth:ranked.length?ranked[0]:null,kept:s.log.filter(l=>l.type==='activity'&&l.ruleId).length,postponed:s.log.filter(l=>['postponed','skipped'].includes(l.type)),cannot:s.log.filter(l=>l.category==='cannot'),choices:s.log.filter(l=>l.category==='choice'),log:s.log.slice(),daysPlayed:s.log.filter(l=>l.type==='daily').length};
   }
-  return {create,validateConfig,currentWeek,addPlan,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,choose,finishReview,getSummary,activityTime,travelMinutes,careMinutes,season,SLOT_IDS,SLOT_LABELS};
+  return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,choose,finishReview,getSummary,activityTime,travelMinutes,careMinutes,season,SLOT_IDS,SLOT_LABELS};
 });

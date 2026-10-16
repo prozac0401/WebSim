@@ -55,7 +55,7 @@ test('active choices across four presets and three seeds complete all 365 days w
     assert.ok(weekdayLogs.every(l=>!C.isOff(l.date)), 'holiday never duplicates basic work');
     assert.ok(Object.values(state.stats).every(n=>Number.isFinite(n)&&n>=0&&n<=100));
     assert.ok(state.finance.ledger.every(l=>Number.isSafeInteger(l.amount)&&l.amount>=0));
-    const scheduled={exam_june:'2026-06-20',exam_nov:'2026-11-14',thesis_presentation:'2026-09-16',thesis_deadline:'2026-11-27',work_review:'2026-12-18',autumn_reflection:'2026-10-01'};
+    const scheduled={exam_june:'2026-06-20',exam_nov:'2026-11-14',thesis_presentation:'2026-09-16',thesis_deadline:'2026-11-27',work_review:'2026-12-18',autumn_reflection:'2026-10-01',partner_weekend:'2026-02-07',partner_care:'2026-02-07',single_weekend:'2026-02-07',single_care:'2026-02-07'};
     for(const log of state.log.filter(l=>l.type==='event'&&l.source==='scheduled'))assert.equal(log.date,scheduled[log.eventId]);
     if(!initial.children)assert.ok(!state.log.some(l=>l.eventId==='care_appointment'));
     const external=state.log.filter(l=>l.type==='event'&&l.source==='external');

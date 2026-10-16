@@ -4,6 +4,35 @@
   let canvas, context, state, active = 'rest', elapsed = 0, lastFrame = 0, frame;
   const reduced = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: true };
   const colors = { ink: '#394c43', wood: '#b98a5f', woodLight: '#d8b587', leaf: '#71885b', wall: '#ece8d7' };
+  // These are illustration choices only. Family appearance never changes game state.
+  const avatarStyles = {
+    woman: { hair: 'long-soft', top: '#b57879', trim: '#e7ccae' },
+    man: { hair: 'short-swept', top: '#bd8059', trim: '#edd9b3' },
+    other: { hair: 'side-wave', top: '#668f89', trim: '#e1c39a' },
+    unspecified: { hair: 'rounded-crop', top: '#8d9776', trim: '#efdfbd' }
+  };
+  const childScales = { preschool: .34, school: .44, teen: .53 };
+  function genderKey(value) { return value === 'female' ? 'woman' : value === 'male' ? 'man' : value === 'nonbinary' ? 'other' : Object.hasOwn(avatarStyles, value) ? value : 'unspecified'; }
+  function appearance(config) { const gender = genderKey(config?.gender); return { gender, ...avatarStyles[gender], hairColor: Number(config?.age || 32) >= 55 ? '#8a8c7e' : '#574a3b' }; }
+  function bounds(person) { return { left: person.x - 48 * person.scale, top: person.y - 74 * person.scale, right: person.x + (person.activity === 'draw' ? 72 : 48) * person.scale, bottom: person.y + 112 * person.scale }; }
+  function familyLayout(config = {}, activity = 'rest') {
+    const number = Number(config.children), children = Number.isFinite(number) ? Math.max(0, Math.min(6, Math.floor(number))) : 0;
+    const maritalStatus = config.maritalStatus === 'married' ? 'married' : 'single';
+    const ageStage = Object.hasOwn(childScales, config.childAge) ? config.childAge : 'preschool';
+    const player = { id: 'player', kind: 'player', name: config.personaName || '나', x: activity === 'rest' ? 165 : 397, y: activity === 'rest' ? 326 : children ? 329 : 360, scale: 1, activity, appearance: appearance(config) };
+    player.bounds = bounds(player);
+    const spouse = maritalStatus === 'married' ? { id: 'spouse', kind: 'spouse', name: '배우자', x: activity === 'rest' ? 327 : 306, y: children ? 329 : 350, scale: .82, activity: 'companion', appearance: { gender: 'unspecified', hair: 'side-wave', hairColor: Number(config.age || 32) >= 55 ? '#85897c' : '#645546', top: '#7c927d', trim: '#dfc89f' } } : null;
+    if (spouse) spouse.bounds = bounds(spouse);
+    const palette = ['#d0a15f', '#8fa8a3', '#bc8582', '#a0ad7f', '#b796b1', '#84a3b5'];
+    const childFigures = Array.from({ length: children }, (_, index) => {
+      const scale = childScales[ageStage];
+      const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage, x: 397 + (index - (children - 1) / 2) * 74, y: 542 - 112 * scale, scale,
+        activity: activity === 'care' || ageStage !== 'preschool' ? 'child-book' : 'child-play',
+        appearance: { gender: 'unspecified', hair: index % 2 ? 'side-wave' : 'rounded-crop', hairColor: index % 2 ? '#695342' : '#55483c', top: palette[index], trim: '#f1ddba' } };
+      child.bounds = bounds(child); return child;
+    });
+    return { player, spouse, children: childFigures, maritalStatus, childAge: children ? ageStage : 'none', childCount: children, personCount: 1 + children + (spouse ? 1 : 0) };
+  }
   function shape(x, y, w, h, color, radius = 0) { const c = context; c.fillStyle = color; c.beginPath(); c.roundRect(x, y, w, h, radius); c.fill(); }
   function ellipse(x, y, rx, ry, color, rotation = 0) { context.fillStyle = color; context.beginPath(); context.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2); context.fill(); }
   function line(points, color, width = 2) { context.strokeStyle = color; context.lineWidth = width; context.lineCap = 'round'; context.lineJoin = 'round'; context.beginPath(); points.forEach((p, i) => i ? context.lineTo(...p) : context.moveTo(...p)); context.stroke(); }
@@ -27,20 +56,36 @@
     shape(60, 52, 260, 8, '#9d8b69', 3); shape(65, 61, 32, 202, '#c6cfb7', 3); shape(283, 61, 32, 202, '#c6cfb7', 3);
     [70, 80, 292, 303].forEach(x => line([[x, 64], [x + 2, 257]], '#b8c4a8', 2));
   }
-  function character(activity) { const c = context; const resting = activity === 'rest'; const walk = ['walk', 'run', 'pt', 'garden'].includes(activity); const wave = reduced.matches ? 0 : Math.sin(elapsed / 470); c.save(); c.translate(resting ? 165 : 397, (resting ? 326 : 360) + (walk ? wave * 2 : wave * .5));
+  function hair(style, color, behind) {
+    const c = context; c.fillStyle = color;
+    if (behind) { if (style === 'long-soft') { shape(-32, -57, 64, 64, color, 25); ellipse(-28, -10, 10, 25, color, -.12); ellipse(28, -10, 10, 25, color, .12); } return; }
+    c.beginPath();
+    if (style === 'short-swept') { c.moveTo(-27,-31);c.quadraticCurveTo(-36,-71,3,-69);c.quadraticCurveTo(34,-67,27,-28);c.lineTo(17,-46);c.quadraticCurveTo(0,-35,-19,-49); }
+    else if (style === 'long-soft') { c.moveTo(-28,-27);c.quadraticCurveTo(-37,-72,0,-71);c.quadraticCurveTo(36,-71,28,-27);c.lineTo(21,-48);c.quadraticCurveTo(7,-48,1,-61);c.quadraticCurveTo(-8,-44,-24,-44); }
+    else if (style === 'side-wave') { c.moveTo(-28,-28);c.quadraticCurveTo(-36,-56,-22,-62);c.quadraticCurveTo(-15,-77,5,-69);c.quadraticCurveTo(32,-72,30,-48);c.lineTo(23,-27);c.lineTo(18,-48);c.quadraticCurveTo(-2,-31,-20,-43); }
+    else { c.moveTo(-28,-27);c.quadraticCurveTo(-33,-72,0,-69);c.quadraticCurveTo(34,-68,28,-26);c.lineTo(19,-45);c.quadraticCurveTo(0,-38,-20,-45); }
+    c.closePath();c.fill();
+  }
+  function character(activity, person) { const c = context; const resting = activity === 'rest'; const walk = ['walk', 'run', 'pt', 'garden'].includes(activity); const wave = reduced.matches || person.kind !== 'player' ? 0 : Math.sin(elapsed / 470); const style = person.appearance; c.save(); c.translate(person.x, person.y + (walk ? wave * 2 : wave * .5)); c.scale(person.scale, person.scale);
     ellipse(0, 102, 42, 9, '#9f9d7b35');
     line(resting ? [[-10,54],[-26,68],[-25,95],[-35,97]] : [[-10, 54], [-13 + (walk ? wave * 8 : 0), 92], [-28 + (walk ? wave * 8 : 0), 94]], '#54645b', 14);
     line(resting ? [[12,54],[30,68],[31,95],[41,97]] : [[12, 54], [20 - (walk ? wave * 8 : 0), 91], [32 - (walk ? wave * 8 : 0), 93]], '#54645b', 14);
-    shape(-25, -5, 50, 69, activity === 'overtime' ? '#9aab98' : '#c67c59', 18);
+    hair(style.hair, style.hairColor, true);
+    shape(-25, -5, 50, 69, style.top, 18);
+    if (style.gender === 'woman') { line([[-14, 1], [0, 12], [14, 1]], style.trim, 4); shape(-20,43,40,5,style.trim,2); }
+    else if (style.gender === 'other') { line([[-15, 0], [-8, 51]], style.trim, 5); shape(10,19,9,13,style.trim,2); }
+    else if (style.gender === 'unspecified') { line([[0, 3], [0, 58]], style.trim, 3); ellipse(6,20,2,2,style.trim);ellipse(6,32,2,2,style.trim); }
+    else { line([[-13, 0], [0, 8], [13, 0]], style.trim, 3); shape(9,18,10,10,style.trim,2); }
     shape(-9, -19, 18, 24, '#d8ac7e', 7); ellipse(0, -34, 27, 31, '#e4ba8e');
-    c.fillStyle = Number(state?.config?.age || 32) >= 55 ? '#8a8c7e' : '#574a3b'; c.beginPath(); c.moveTo(-27, -31); c.quadraticCurveTo(-36, -71, 3, -69); c.quadraticCurveTo(34, -67, 27, -28); c.lineTo(17, -46); c.quadraticCurveTo(0, -35, -19, -49); c.closePath(); c.fill();
+    hair(style.hair, style.hairColor, false);
     ellipse(-9, -31, 1.6, 2, '#574a3b'); ellipse(9, -31, 1.6, 2, '#574a3b'); line([[-4, -18], [1, -16], [6, -19]], '#a16c50', 1.5); ellipse(-17, -24, 4, 2, '#d89476'); ellipse(17, -24, 4, 2, '#d89476');
-    if (['read', 'study', 'research', 'jobstudy'].includes(activity)) { line([[-24, 11], [-30, 40], [-9, 44]], '#dba77e', 11); line([[24, 11], [31, 39], [11, 44]], '#dba77e', 11); shape(-25, 27, 50, 30, '#f2dfaa', 2); line([[0, 29], [0, 55]], '#b7a06f', 2); }
+    if (['read', 'study', 'research', 'jobstudy', 'child-book'].includes(activity)) { line([[-24, 11], [-30, 40], [-9, 44]], '#dba77e', 11); line([[24, 11], [31, 39], [11, 44]], '#dba77e', 11); shape(-25, 27, 50, 30, '#f2dfaa', 2); line([[0, 29], [0, 55]], '#b7a06f', 2); }
+    else if (activity === 'child-play') { line([[-24,11],[-30,35],[-13,43]],'#dba77e',11);line([[24,11],[30,35],[13,43]],'#dba77e',11);ellipse(0,40,19,18,'#d3b264');line([[-14,34],[13,45]],'#f1dca3',3); }
     else if (activity === 'photo') { line([[-22, 10], [-32, -8], [-13, -13]], '#dba77e', 11); line([[23, 10], [31, -7], [14, -13]], '#dba77e', 11); shape(-19, -20, 38, 25, '#536157', 4); ellipse(0, -8, 10, 10, '#273d39'); ellipse(0, -8, 5, 5, '#8fafa3'); }
     else if (activity === 'music') { line([[-23, 12], [-35, 40], [-10, 43]], '#dba77e', 11); line([[23, 12], [30, 35], [14, 40]], '#dba77e', 11); ellipse(-3, 46, 20, 24, '#d6ac6e', -.3); shape(8, 3, 9, 53, '#9e7d53', 3); ellipse(-1, 41, 7, 7, '#705f40'); }
     else if (activity === 'draw') { line([[-23, 12], [-30, 44]], '#dba77e', 11); line([[23, 12], [42, 18], [58, 4 + wave * 3]], '#dba77e', 11); line([[57, 5], [67, -16 + wave * 3]], '#6c7455', 3); }
     else if (['pottery','cook','garden'].includes(activity)) { line([[-23,12],[-31,37],[-12,43]],'#dba77e',11);line([[23,12],[31,37],[12,43]],'#dba77e',11);if(activity==='garden')plant(0,36,.35);else { ellipse(0,43,20,14,activity==='cook'?'#e1c792':'#ad7855');ellipse(0,36,20,5,activity==='cook'?'#82965b':'#cc9f79'); if(activity==='cook')line([[10,34],[23,5+wave*3]],'#84684b',4); } }
-    else if (activity === 'care') { line([[-23,12],[-29,38],[0,45]],'#dba77e',11);line([[23,12],[28,35],[2,45]],'#dba77e',11);ellipse(1,32,18,23,'#b5c3a1');ellipse(2,19,12,12,'#e1b187'); }
+    else if (activity === 'care') { line([[-23,12],[-29,38],[-8,45]],'#dba77e',11);line([[23,12],[28,35],[8,45]],'#dba77e',11);shape(-23,27,46,29,'#d5c49a',3);line([[0,30],[0,53]],'#9f946f',2);line([[-16,36],[-6,36]],'#f1e2bd',3);line([[6,41],[16,41]],'#f1e2bd',3); }
     else { line([[-24, 10], [-33 + wave * 2, 42]], '#dba77e', 11); line([[24, 10], [34 - wave * 2, 42]], '#dba77e', 11); }
     c.restore();
   }
@@ -67,11 +112,16 @@
     plant(705, 382, 1.08); shape(503, 373, 151, 13, '#bb9366', 6); line([[517, 384], [509, 439]], '#9c815c', 7); line([[639, 383], [647, 437]], '#9c815c', 7); shape(544, 356, 50, 14, '#e5d6b2', 3); line([[548, 360], [589, 360]], '#b2a185', 1); shape(605, 348, 16, 23, '#f5efdb', 4); c.strokeStyle = '#f5efdb'; c.lineWidth = 4; c.beginPath(); c.arc(621, 358, 6, -1.5, 1.5); c.stroke();
     if (active === 'draw') { line([[454, 350], [477, 282], [501, 351]], '#a78959', 4); picture(453, 275, 48, 57, 1); }
     if (['study', 'overtime', 'research', 'jobstudy'].includes(active)) { shape(553, 327, 43, 32, '#708575', 3); shape(557, 331, 35, 24, '#c7d4bc', 2); shape(549, 359, 52, 4, '#657c6f', 2); }
-    character(active);
+    const family = familyLayout(state?.config, active);
+    if (family.spouse) character(family.spouse.activity, family.spouse);
+    character(active, family.player);
+    family.children.forEach(child => character(child.activity, child));
     // Small, hand-drawn room details anchor the scene without depending on images.
     line([[323, 83], [371, 83]], '#b4a383', 2); shape(332, 60, 31, 29, '#fff6df', 1); text(String(month).padStart(2, '0'), 336, 81, 17, '#9f7954', 'Georgia');
     shape(12, 516, 736, 18, '#f8f3df1a');
   }
   function loop(timestamp) { if (!canvas?.isConnected) return; if (!reduced.matches) elapsed += Math.min(80, timestamp - (lastFrame || timestamp)); lastFrame = timestamp; draw(); frame = requestAnimationFrame(loop); }
-  root.S2Scene = { attach(element, nextState, activity) { if (frame) cancelAnimationFrame(frame); canvas = element; if (!canvas) return; context = canvas.getContext('2d'); state = nextState; active = activity || 'rest'; lastFrame = 0; draw(); frame = requestAnimationFrame(loop); }, update(nextState, activity) { state = nextState; active = activity || active; draw(); }, advance(ms) { elapsed += Number(ms) || 0; draw(); }, describe() { return { coordinateSystem: 'room canvas, origin top-left, x right, y down; logical 760 × 550', character: { x: active === 'rest' ? 165 : 397, y: active === 'rest' ? 326 : 360, activity: active }, seasonMonth: Number((state?.date || '2026-01-01').slice(5, 7)), artifacts: state?.artifacts?.length || 0, reducedMotion: reduced.matches }; } };
+  const api = { attach(element, nextState, activity) { if (frame) cancelAnimationFrame(frame); canvas = element; if (!canvas) return; context = canvas.getContext('2d'); state = nextState; active = activity || 'rest'; lastFrame = 0; draw(); frame = requestAnimationFrame(loop); }, update(nextState, activity) { state = nextState; active = activity || active; draw(); }, advance(ms) { elapsed += Number(ms) || 0; draw(); }, describe() { const family = familyLayout(state?.config, active); return { coordinateSystem: 'room canvas, origin top-left, x right, y down; logical 760 × 550', character: { ...family.player, gender: family.player.appearance.gender }, family: { maritalStatus: family.maritalStatus, spouse: family.spouse, children: family.children, childCount: family.childCount, childAge: family.childAge, personCount: family.personCount }, seasonMonth: Number((state?.date || '2026-01-01').slice(5, 7)), artifacts: state?.artifacts?.length || 0, reducedMotion: reduced.matches }; }, familyLayout };
+  root.S2Scene = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

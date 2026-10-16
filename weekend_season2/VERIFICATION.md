@@ -1,5 +1,46 @@
 # 주말 계획표 시즌2 검증 기록
 
+## 2026-10-17 간소화·자동진행·가족 업데이트
+
+이번 업데이트의 기본 흐름은 **자동 배정된 가상 인생 → 이 삶으로 시작 → 자동진행 → 중요한 사건에서 직접 선택 → 연말 회고**입니다. 환경 설정, 세부 일정, 장부, 전체 기록은 접힌 영역에 남겨 두었습니다. 모바일에서는 자동진행·일시정지가 하단에 고정됩니다.
+
+| 검사 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| 시즌2 자동시험 | **PASS 85 / FAIL 0** | 기존 60개, 인생 배정·자동일정·가족·저장 이전 19개, 삽화 6개 |
+| 기존 관련 회귀 | **PASS 67 / FAIL 0** | 기존 플래너 관련·잉크·Boids 39개, 차량 28개 |
+| 최종 Node 합계 | **PASS 152 / FAIL 0** | 아래 통합 명령을 수정 후 실행 |
+| 실제 Chromium 통합 | **PASS 14개 검사 묶음 / FAIL 0** | 기존 11개 흐름과 자동 인생·짧은 모바일 화면·자동 365일 완주 |
+| 원본 develop-web-game 클라이언트 | **PASS** | 최종 자산 URL로 시작·장면 훅·화면 확인 |
+| 기존 공개 버전 저장 복원 | **PASS** | 실제 v1 파일의 장부·난수·과거 로그 유지, v2 전환, 자동진행은 정지 상태로 복원 |
+| 독립 검토 | **PASS, 발견 문제 수정 후 재검사** | 다른 담당자가 자동일정 예산 보존·돌봄 분담·사건 뒤 진행 충돌 재현 |
+| Firefox·Safari·실물 모바일·스크린리더 | **NOT RUN** | Chromium의 390×844 터치·키보드·동작 줄이기 검사를 대체하지 않음 |
+| 사람의 재미·장기 균형·저사양 성능 평가 | **NOT RUN** | 자동 완주를 이 항목의 검증으로 해석하지 않음 |
+| 이번 업데이트 공개 배포 검사 | **NOT RUN (이 기록을 커밋하는 시점)** | 배포 후 같은 14개 브라우저 검사를 실행하고 별도 로컬 산출물과 최종 보고에 기록 |
+
+```powershell
+node --test weekend_season2/*.test.cjs tests/new-labs.test.cjs tests/preset-scenes.test.cjs ink_time_machine/ink-flow-engine.test.cjs boids_simulation/boids-app.test.cjs evolving_vehicles_2/continuous-race.test.cjs evolving_vehicles_2/racing-guidance.test.cjs
+$env:WEBSIM_URL = 'http://127.0.0.1:8766/'
+$env:WEBSIM_EVIDENCE = 'output/playwright/weekend-season2-refresh'
+node tests/weekend-season2.browser.cjs
+```
+
+- 생활 역할 4종 × 혼인 상태 2종 × 자녀 유무 2종의 16개 조합을 시드로 배정하며, 이 조합들의 연간 진행을 자동시험했습니다. 성별과 혼인 상태만으로 수입·숙련·돌봄 분담을 바꾸지 않습니다.
+- 자동일정은 균형·취미·휴식의 세 방향을 제공하고, 이미 직접 배치한 일정과 예산을 보존합니다. 사건·충돌·확인이 필요한 반복 예약에서는 멈춥니다. 실제 모바일 UI에서 사건 버튼만 선택하며 365일 자동 완주했고, 실제 활동 기록 30개 초과를 확인했습니다.
+- 여성·남성·그 밖의 성별·미지정의 그림, 배우자 유무, 자녀 0~6명과 연령대가 장면에 반영됩니다. 모바일에서 성별·배우자·자녀 설정 전후 픽셀이 달라지는지 검사했습니다. 모든 지원 활동의 가족 좌표와 경계도 검사했습니다.
+- 기혼·미혼 및 자녀 유무에 따른 최초 장면 4개와 후속 장면 2개를 추가하여 사건은 총 29종입니다. 가족 시간·각자 시간·돌봄 분담 선택이 이후 시간과 관계 기록에 반영됩니다.
+- 모든 돈 표시는 만원 단위입니다. 180.05만원 입력이 내부 1,800,500원으로 유지됨을 실제 브라우저에서 확인했습니다. 내부 장부는 정수 원화를 유지합니다.
+- 같은 390px 폭에서 기존 배치 화면 캡처는 3,051px, 새 기본 시작 화면은 980px, 새 기본 플레이 화면은 1,069px였습니다. 서로 다른 예시 상태의 전체 화면 높이이며 모든 플레이 상황의 고정 높이나 성능 측정은 아닙니다.
+- 이전 v1 저장의 혼인 상태는 미지정으로 이전합니다. 기존 로그에 배우자를 새로 만들어 넣지 않으며, 새 게임에서는 혼인 상태를 배정합니다. 기존 공개 소스에서 만든 23종 사건 대기 저장을 이전했고, 두 대표 환경의 연말 장부·난수·상태·결과물이 이전 전후 같음을 독립 확인했습니다.
+- 독립 검토에서 발견한 유료 자동 활동이 수동 일정 예산을 먼저 쓰는 문제, 큰 돌봄 부담에서 분담 효과가 사라지는 문제, 사건 뒤 같은 주 자동진행이 멈추는 문제를 수정하고 재현 시험 및 전체 브라우저 검사를 통과했습니다.
+
+화면과 결과: [모바일 시작](../output/playwright/weekend-season2-refresh/compact-default-mobile.png), [모바일 플레이](../output/playwright/weekend-season2-refresh/compact-play-mobile.png), [자동 연말 회고](../output/playwright/weekend-season2-refresh/automatic-year-mobile.png), [14개 검사 결과](../output/playwright/weekend-season2-refresh/result.json). 공개 배포 후 산출물은 `output/playwright/weekend-season2-refresh-deployed/`에 따로 보관합니다. 모두 Git에서 제외되는 로컬 자료입니다.
+
+수정 파일은 시즌2의 `app.js`, `style.css`, `index.html`, `scene.js`, `data.js`, `events.js`, `engine.js`, `storage.js`, 관련 문서·시험과 홈의 시즌2 소개 문구입니다. `life-family.test.cjs`, `scene-family.test.cjs`를 추가하고 `tests/weekend-season2.browser.cjs`를 확장했습니다. 기존 플래너·잉크·Boids·차량 구현과 루트 `progress.md`는 수정하지 않았습니다.
+
+아래는 최초 구현 및 첫 배포 준비 시점의 기록입니다.
+
+---
+
 2026-10-17 로컬 구현을 검증했습니다. 아래 최초 결과 표는 초기 구현·시험·독립 검토 시점의 기록입니다. 이후 사용자의 업로드 요청으로 원격 브랜치 커밋·push를, 다시 배포 요청으로 최신 `main` 통합과 기존 GitHub Pages 공개 배포를 작업 범위에 추가했습니다. 계정·Secret·호스팅 설정은 변경하지 않습니다.
 
 ## 결과
