@@ -152,11 +152,11 @@ async function season(page, browser) {
   for(const key of ['mode','date','stats','finance','plan','artifactCount','logCount'])assert.deepEqual(restored[key],saved[key],key);
   const downloadPromise=page.waitForEvent('download');await click(page,'#export-save');
   const download=await downloadPromise, savePath=path.join(output,'ui-save.json');await download.saveAs(savePath);
-  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,3);
+  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,4);
   await click(page,'#continue-week');
   const current=await textState(page), rawBefore=await page.evaluate(()=>localStorage.getItem(S2Storage.KEY));
   await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"version":999}')});
-  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('지원'));
+  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('시즌2에서 저장한 파일'));
   assert.equal(await page.evaluate(()=>localStorage.getItem(S2Storage.KEY)),rawBefore);
   page.once('dialog',dialog=>dialog.dismiss());await page.locator('#import-file').setInputFiles(savePath);
   await page.waitForTimeout(80);assert.equal((await textState(page)).date,current.date);
@@ -229,7 +229,7 @@ async function diversity(browser){
   await page.waitForFunction(()=>typeof window.render_game_to_text==='function');
   const identities=new Set(),pictures=new Set(),regions=new Set(),hair=new Set(),rooms=new Set();
   for(let i=0;i<16;i++){
-    const s=await textState(page);assert.equal(s.generation.model,'kr-life-2026-v1');assert.notEqual(s.generation.province,'unspecified');
+    const s=await textState(page);assert.equal(s.generation.model,'kr-life-2026-v2');assert.notEqual(s.generation.province,'unspecified');
     identities.add(s.persona);regions.add(s.generation.province);hair.add(s.generation.appearance.hairStyle);rooms.add(JSON.stringify(s.generation.homeStyle));
     assert.equal(s.scene.character.appearance.options.hairStyle,s.generation.appearance.hairStyle);
     pictures.add(await page.locator('#life-scene').evaluate(canvas=>canvas.toDataURL()));
@@ -251,13 +251,74 @@ async function diversity(browser){
   await click(page,'#start-btn');
   const before=await textState(page);assert.equal(before.mode,'planning');assert.equal(before.generation.province,'busan');
   const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,version:r.state?.version,allowance:r.state?.config.externalAllowance};});
-  assert.equal(saved.ok,true);assert.equal(saved.version,3);assert.equal(saved.allowance,1234500);
+  assert.equal(saved.ok,true);assert.equal(saved.version,4);assert.equal(saved.allowance,1234500);
   await shot(page,'diverse-family-mobile');
   await page.reload();await click(page,'#resume-game');
   const restored=await textState(page);assert.deepEqual(restored.generation,before.generation);assert.deepEqual(restored.scene.character.appearance,before.scene.character.appearance);assert.deepEqual(restored.scene.home,before.scene.home);
   await context.close();
-  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v3 저장 복원');
+  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v4 저장 복원');
 }
+async function expandedLife(browser) {
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+  const page=await context.newPage();observe(page);
+  await page.goto(base+'weekend_season2/index.html');
+  await click(page,'[data-preset="caregiver"]');
+  await reveal(page,page.locator('[name="age"]'));await page.locator('[name="age"]').fill('62');
+  await page.locator('[name="children"]').fill('2');await page.locator('[name="childAge"]').selectOption('adult');
+  await reveal(page,page.locator('[name="child-age-0"]'));
+  await page.locator('[name="child-age-0"]').fill('21');await page.locator('[name="child-gender-0"]').selectOption('man');
+  await page.locator('[name="child-military-0"]').selectOption('serving');
+  await page.locator('[name="child-age-1"]').fill('26');await page.locator('[name="child-gender-1"]').selectOption('woman');
+  await page.locator('[name="province"]').selectOption('busan');
+  await page.locator('[name="personalBudget"]').fill('100');
+  await page.locator('[name="startCash"]').fill('180.05');
+  const setup=await textState(page);assert.equal(setup.scene.family.childCount,2);assert.equal(setup.scene.family.awayChildren.length,1);
+  assert.equal(setup.scene.family.children[0].ageStage,'adult');
+  await page.locator('#advanced-settings > summary').click();await shot(page,'older-household-setup-mobile');
+  await click(page,'#start-btn');
+  assert.equal(await page.locator('.compact-status [data-stat]').count(),6);
+  assert.deepEqual(await page.locator('.compact-status [data-stat] > span').allTextContents(),['건강','행복','지식','기분','대인관계','가족관계']);
+  assert.ok(await page.locator('.cash-and-home').innerText().then(text=>text.includes('180.1만원')));
+  assert.equal((await textState(page)).finance.cash,1800500);
+  const genderPrice=await page.evaluate(()=>({men:S2Data.activityPrice(S2Storage.load().state.config,'haircut_men'),women:S2Data.activityPrice(S2Storage.load().state.config,'haircut_women')}));
+  assert.equal(genderPrice.men.amount,11286);assert.equal(genderPrice.women.amount,19614);
+  await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption('haircut_men');await click(page,'#quick-add');
+  const manual=(await textState(page)).plan.find(p=>p.activityId==='haircut_men'&&!p.automatic);assert.ok(manual);
+  const desired=['study','music','culture','pottery'];
+  for(const id of (await textState(page)).preferences)if(!desired.includes(id))await click(page,`[data-auto-preference="${id}"]`);
+  for(const id of desired)if(!(await textState(page)).preferences.includes(id))await click(page,`[data-auto-preference="${id}"]`);
+  assert.deepEqual((await textState(page)).preferences.slice().sort(),desired.slice().sort());
+  assert.deepEqual((await textState(page)).plan.find(p=>p.id===manual.id),manual);
+  const music=page.locator('[data-auto-preference="music"]');await music.focus();await page.keyboard.press('Space');assert.equal(await music.getAttribute('aria-pressed'),'false');
+  await music.focus();await page.keyboard.press('Space');assert.equal(await music.getAttribute('aria-pressed'),'true');
+  await shot(page,'multiple-interests-mobile');
+  await page.locator('#auto-preferences > summary').click();await page.locator('#quick-plan-tools > summary').click();
+  await shot(page,'six-stats-and-interests-mobile');
+  record('62세·성인 자녀·군복무 집 비움, 여섯 지표, 금액 한 자리, 지역별 커트 비용');
+  await page.reload();await click(page,'#resume-game');
+  assert.deepEqual((await textState(page)).preferences.slice().sort(),desired.slice().sort());assert.equal((await textState(page)).autoPlaying,false);
+  await click(page,'.tab[data-tab="routines"]');
+  await page.locator('#evening-rule-form [name="weekday"]').selectOption('5');
+  await click(page,'#evening-rule-form button[type="submit"]');
+  const reservation=(await textState(page)).reservations.find(r=>r.activityId==='culture');
+  assert.equal(reservation.originalDate,'2026-01-02');assert.equal(reservation.date,'2026-01-02');assert.equal(reservation.slot,'evening');
+  await click(page,'#confirm-reservations');assert.ok((await textState(page)).plan.some(p=>p.date==='2026-01-02'&&p.slot==='evening'&&p.activityId==='culture'));
+  await shot(page,'weekday-evening-class-mobile');
+  await click(page,'.tab[data-tab="planner"]');
+  for(let i=0;i<15&&(await textState(page)).mode!=='review';i++){
+    const s=await textState(page);
+    if(s.mode==='event'){let chosen=false;for(const choice of s.pendingEvent.choices){await click(page,`[data-choice="${choice.id}"]`);if((await textState(page)).mode!=='event'){chosen=true;break;}}assert.ok(chosen);}
+    else await click(page,'#advance-week');
+  }
+  const saved=await page.evaluate(()=>S2Storage.load());assert.ok(saved.ok,saved.reason);
+  assert.ok(saved.state.log.some(l=>l.type==='activity'&&l.activityId==='culture'&&l.date==='2026-01-02'&&l.slot==='evening'));
+  assert.ok(saved.state.finance.ledger.some(t=>t.type==='purchase'&&t.label==='남성 커트'&&t.amount===11286));
+  assert.ok(saved.state.log.some(l=>l.type==='daily'&&Object.keys(l.stats).includes('health')));
+  record('자동 선호 다중 선택·키보드·저장 재개·수동 약속 보존, 평일 저녁 강좌 예약·확정·실행');
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await context.close();
+}
+
 async function compactLife(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
   const page=await context.newPage();observe(page);
@@ -304,7 +365,7 @@ async function compactLife(browser) {
   const gameSize=await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth,view:innerWidth}));
   assert.ok(gameSize.height<=1450,`default play screen is too long: ${gameSize.height}px`);
   assert.ok(gameSize.width<=gameSize.view+1);
-  const body=await page.locator('body').innerText();assert.ok(body.includes('180.05만원'));
+  const body=await page.locator('body').innerText();assert.ok(body.includes('180.1만원'));
   await shot(page,'compact-play-mobile');
   await auto.tap();
   assert.equal(await auto.getAttribute('data-playing'),'true');
@@ -313,42 +374,27 @@ async function compactLife(browser) {
   const paused=await textState(page);await page.waitForTimeout(1200);
   assert.equal((await textState(page)).date,paused.date,'pause prevents date changes');
   record('짧은 모바일 시작·플레이 화면, 첫 화면 자동진행·일시정지, 여성·배우자·자녀 삽화, 만원 소수 입력');
-  let turns=0,eventCount=0;
-  while((await textState(page)).mode!=='finished'&&turns++<200) {
-    const state=await textState(page);
-    if(state.mode==='event') {
-      assert.equal(await auto.getAttribute('data-playing'),'false','autoplay stops for a human choice');
-      eventCount++;
-      let handled=false;
-      for(const choice of state.pendingEvent.choices) {
-        await click(page,`[data-choice="${choice.id}"]`);
-        if((await textState(page)).mode!=='event'){handled=true;break;}
-      }
-      assert.ok(handled,'event has an affordable usable response');
-    } else {
-      assert.equal(state.reservations.length,0);
-      await auto.tap();
-      await page.waitForFunction(()=>document.querySelector('#auto-play')?.dataset.playing!=='true',null,{timeout:45000});
-      const after=await textState(page);
-      assert.ok(after.mode==='event'||after.mode==='finished',`automatic life stopped at ${after.date} / ${after.mode}: ${await page.locator('.auto-note').allTextContents()}`);
-    }
-  }
-  assert.equal((await textState(page)).mode,'finished');assert.ok(eventCount>0);
-  const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,summary:r.ok?S2Engine.getSummary(r.state):null,config:r.state?.config};});
+  // One deliberate start must carry the year through everyday and major events.
+  // No test-side choice handler or repeated restart may mask a stopped autoplay.
+  await auto.tap();
+  await page.waitForFunction(()=>JSON.parse(render_game_to_text()).mode==='finished',null,{timeout:150000});
+  assert.equal((await textState(page)).mode,'finished');
+  const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,summary:r.ok?S2Engine.getSummary(r.state):null,config:r.state?.config,eventCount:r.state?.log.filter(l=>l.type==='event').length};});
   assert.equal(saved.ok,true);assert.equal(saved.summary.daysPlayed,365);
+  assert.ok(saved.eventCount>0,'autoplay makes and records real event choices');
   assert.ok(Object.values(saved.summary.activityCounts).reduce((a,b)=>a+b,0)>30,'autoplay supplies actual activities throughout the year');
   assert.equal(saved.config.maritalStatus,'married');assert.equal(saved.config.children,2);
   await shot(page,'automatic-year-mobile');
   fs.writeFileSync(path.join(output,'automatic-year-summary.json'),JSON.stringify(saved.summary,null,2));
-  record('자동일정·주간 재생으로 365일 완주, 사건에서 멈춤, 기혼·자녀 설정과 실제 활동 기록 유지');
+  record('자동 시작 한 번으로 추가 클릭 없이 사건 선택·365일 완주, 기혼·자녀와 실제 활동 기록 유지');
   await context.close();
 }
 (async () => {
   const browser = await playwright.chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); observe(page);
-    if(!process.argv.includes('--compact-only')&&!process.argv.includes('--diversity-only')) await legacy(page);
-    if (!process.argv.includes('--legacy-only')) { if(process.argv.includes('--diversity-only'))await diversity(browser);else{if(!process.argv.includes('--compact-only')){await diversity(browser);await season(page, browser);} await compactLife(browser);} }
+    if(!process.argv.includes('--compact-only')&&!process.argv.includes('--diversity-only')&&!process.argv.includes('--expanded-only')) await legacy(page);
+    if (!process.argv.includes('--legacy-only')) { if(process.argv.includes('--expanded-only'))await expandedLife(browser);else if(process.argv.includes('--diversity-only'))await diversity(browser);else{if(!process.argv.includes('--compact-only')){await diversity(browser);await season(page, browser);await expandedLife(browser);} await compactLife(browser);} }
     assert.deepEqual(errors, []);
     record('브라우저 pageerror 및 console.error 없음');
     fs.rmSync(path.join(output,'failure.json'),{force:true});

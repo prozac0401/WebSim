@@ -31,7 +31,8 @@
     clay:{wall:'#e8d9c8',floor:'#c7a786',floorLine:'#b89776',trim:'#ab8e70',sofa:'#ba9072',sofaDark:'#a0785d',cushion:'#d1ad86',accent:'#91a485',rug:'#b8b68d',rugInner:'#cecca5',curtain:'#c5b590',curtainLine:'#b2a27c'},
     lavender:{wall:'#e4e0e9',floor:'#cec0ad',floorLine:'#beae9a',trim:'#b5a799',sofa:'#aaa0bb',sofaDark:'#91859f',cushion:'#c4b9cf',accent:'#d4bb82',rug:'#b8bba9',rugInner:'#d0d0bd',curtain:'#c5bdd4',curtainLine:'#aea3c0'}
   };
-  const childScales = { preschool: .34, school: .44, teen: .53 };
+  const childScales = { toddler: .23, preschool: .34, school: .44, teen: .53, adult: .7 };
+  const childStage = age => age <= 2 ? 'toddler' : age <= 6 ? 'preschool' : age <= 12 ? 'school' : age <= 17 ? 'teen' : 'adult';
   function genderKey(value) { return value === 'female' ? 'woman' : value === 'male' ? 'man' : value === 'nonbinary' ? 'other' : Object.hasOwn(avatarStyles, value) ? value : 'unspecified'; }
   function normalizedOptions(raw, keys, defaults) { return Object.fromEntries(keys.map(key=>[key,OPTIONS[key].includes(raw?.[key])?raw[key]:defaults[key]])); }
   function appearance(config) {
@@ -55,7 +56,7 @@
     return {legacy,...values,colors:roomPalettes[values.palette],mirrored,furnitureBounds:furniture};
   }
   function bounds(person) { const reach=person.activity==='draw'?72:48, high=person.appearance.options?93:74;return {left:person.x-(person.facing===-1?reach:48)*person.scale,top:person.y-high*person.scale,right:person.x+(person.facing===-1?48:reach)*person.scale,bottom:person.y+112*person.scale}; }
-  function familyLayout(config = {}, activity = 'rest') {
+  function familyLayout(config = {}, activity = 'rest', lifeState = {}) {
     const number = Number(config.children), children = Number.isFinite(number) ? Math.max(0, Math.min(6, Math.floor(number))) : 0;
     const maritalStatus = config.maritalStatus === 'married' ? 'married' : 'single';
     const ageStage = Object.hasOwn(childScales, config.childAge) ? config.childAge : 'preschool';
@@ -64,15 +65,30 @@
     const spouse = maritalStatus === 'married' ? { id: 'spouse', kind: 'spouse', name: '배우자', x: activity === 'rest' ? 327 : 306, y: children ? 329 : 350, scale: .82, activity: 'companion', appearance: config.appearance ? memberAppearance(config,'spouse') : { gender: 'unspecified', hair: 'side-wave', hairColor: Number(config.age || 32) >= 55 ? '#85897c' : '#645546', top: '#7c927d', trim: '#dfc89f' } } : null;
     if (spouse) spouse.bounds = bounds(spouse);
     const palette = ['#d0a15f', '#8fa8a3', '#bc8582', '#a0ad7f', '#b796b1', '#84a3b5'];
+    const profiles = Array.isArray(config.childProfiles) && config.childProfiles.length === children ? config.childProfiles : null;
+    const awayChildren = [];
     const childFigures = Array.from({ length: children }, (_, index) => {
-      const scale = config.appearance ? {preschool:.32,school:.4,teen:.48}[ageStage] : childScales[ageStage];
-      const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage, x: 397 + (index - (children - 1) / 2) * 74, y: 542 - 112 * scale, scale,
-        activity: activity === 'care' || ageStage !== 'preschool' ? 'child-book' : 'child-play',
-        appearance: config.appearance ? memberAppearance(config,'child-'+(index+1)) : { gender: 'unspecified', hair: index % 2 ? 'side-wave' : 'rounded-crop', hairColor: index % 2 ? '#695342' : '#55483c', top: palette[index], trim: '#f1ddba' } };
+      const profile=profiles?.[index],stage=profile?childStage(profile.age):ageStage;
+      const modern=!!profile||!!config.appearance||['adult','toddler'].includes(stage);
+      const scale = modern ? {toddler:.22,preschool:.32,school:.4,teen:.48,adult:.7}[stage] : childScales[stage];
+      const onLeave=profile?.militaryStatus==='serving'&&lifeState.flags?.militaryChildIndex===index&&!!lifeState.flags?.militaryLeaveUntil&&lifeState.flags.militaryLeaveUntil>=(lifeState.date||'2026-01-01');
+      const memberStyle=config.appearance?memberAppearance(config,'child-'+(index+1)):{gender:'unspecified',hair:index%2?'side-wave':'rounded-crop',hairColor:index%2?'#695342':'#55483c',top:palette[index],trim:'#f1ddba'};
+      if(profile){memberStyle.gender=genderKey(profile.gender);if(!config.appearance)memberStyle.hair=avatarStyles[memberStyle.gender].hair;}
+      if(onLeave){memberStyle.top='#71816a';memberStyle.trim='#c6c6a0';}
+      const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage:stage, ...(profile?{age:profile.age,gender:profile.gender,militaryStatus:profile.militaryStatus,onLeave}:{}), x: 397 + (index - (children - 1) / 2) * 74, y: (stage==='adult'?546:542) - 112 * scale, scale,
+        activity: onLeave?'child-leave':stage==='adult'?'child-adult':stage==='toddler'?'child-toddler':activity === 'care' || stage !== 'preschool' ? 'child-book' : 'child-play',
+        appearance:memberStyle };
+      if(profile?.militaryStatus==='serving'&&!onLeave){awayChildren.push({id:child.id,name:child.name,age:profile.age,gender:profile.gender,militaryStatus:'serving',reason:'군 복무 중',onLeave:false});return null;}
       child.bounds = bounds(child); return child;
-    });
+    }).filter(Boolean);
+    // Grown children stand in the foreground. Move the parents farther into the room
+    // so all silhouettes stay separate, including a household with six adult children.
+    if(childFigures.some(child=>child.ageStage==='adult')){player.y=288;player.bounds=bounds(player);if(spouse){spouse.y=288;spouse.bounds=bounds(spouse);}}
+    if(lifeState.healthEpisode?.subject==='self')player.ill=true;
+    if(lifeState.flags?.recoveryUntil>=(lifeState.date||'2026-01-01'))player.recovering=lifeState.flags.recoveryCause||'low_condition_week';
+    if(lifeState.healthEpisode?.subject==='child'){const child=childFigures.find(p=>p.id==='child-'+(lifeState.healthEpisode.childIndex+1));if(child)child.ill=true;}
     if(homeStyle(config).mirrored)for(const person of [player,...(spouse?[spouse]:[]),...childFigures]){person.x=760-person.x;person.facing=-1;person.bounds=bounds(person);}
-    return { player, spouse, children: childFigures, maritalStatus, childAge: children ? ageStage : 'none', childCount: children, personCount: 1 + children + (spouse ? 1 : 0) };
+    return { player, spouse, children: childFigures, awayChildren, maritalStatus, childAge: children ? ageStage : 'none', childCount: children, visibleChildCount:childFigures.length, personCount: 1 + childFigures.length + (spouse ? 1 : 0) };
   }
   function shape(x, y, w, h, color, radius = 0) { const c = context; c.fillStyle = color; c.beginPath(); c.roundRect(x, y, w, h, radius); c.fill(); }
   function ellipse(x, y, rx, ry, color, rotation = 0) { context.fillStyle = color; context.beginPath(); context.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2); context.fill(); }
@@ -166,12 +182,22 @@
     ellipse(-9, -31, 1.6, 2, '#574a3b'); ellipse(9, -31, 1.6, 2, '#574a3b'); line([[-4, -18], [1, -16], [6, -19]], '#a16c50', 1.5); ellipse(-17, -24, 4, 2, skin.blush); ellipse(17, -24, 4, 2, skin.blush);
     if (['read', 'study', 'research', 'jobstudy', 'child-book'].includes(activity)) { line([[-24, 11], [-30, 40], [-9, 44]], skin.limb, 11); line([[24, 11], [31, 39], [11, 44]], skin.limb, 11); shape(-25, 27, 50, 30, '#f2dfaa', 2); line([[0, 29], [0, 55]], '#b7a06f', 2); }
     else if (activity === 'child-play') { line([[-24,11],[-30,35],[-13,43]],skin.limb,11);line([[24,11],[30,35],[13,43]],skin.limb,11);ellipse(0,40,19,18,'#d3b264');line([[-14,34],[13,45]],'#f1dca3',3); }
+    else if (activity === 'child-toddler') { line([[-24,11],[-31,29],[-16,33]],skin.limb,11);line([[24,11],[31,29],[16,33]],skin.limb,11);ellipse(0,37,20,21,'#d6b379');ellipse(-15,19,8,8,'#d6b379');ellipse(15,19,8,8,'#d6b379');ellipse(-6,32,2,2,'#7e694d');ellipse(6,32,2,2,'#7e694d'); }
+    else if (activity === 'child-adult' || activity === 'child-leave') { line([[-24,11],[-30,39],[-7,43]],skin.limb,11);line([[24,11],[30,38],[14,42]],skin.limb,11);shape(-10,25,22,33,'#607f78',3);shape(-6,29,14,23,'#dbe3cb',2);if(activity==='child-leave'){shape(-24,-4,48,8,'#596e59',2);shape(7,14,15,10,'#bec8a0',1);line([[-16,17],[-2,17]],'#4d6350',3);} }
     else if (activity === 'photo') { line([[-22, 10], [-32, -8], [-13, -13]], skin.limb, 11); line([[23, 10], [31, -7], [14, -13]], skin.limb, 11); shape(-19, -20, 38, 25, '#536157', 4); ellipse(0, -8, 10, 10, '#273d39'); ellipse(0, -8, 5, 5, '#8fafa3'); }
     else if (activity === 'music') { line([[-23, 12], [-35, 40], [-10, 43]], skin.limb, 11); line([[23, 12], [30, 35], [14, 40]], skin.limb, 11); ellipse(-3, 46, 20, 24, '#d6ac6e', -.3); shape(8, 3, 9, 53, '#9e7d53', 3); ellipse(-1, 41, 7, 7, '#705f40'); }
     else if (activity === 'draw') { line([[-23, 12], [-30, 44]], skin.limb, 11); line([[23, 12], [42, 18], [58, 4 + wave * 3]], skin.limb, 11); line([[57, 5], [67, -16 + wave * 3]], '#6c7455', 3); }
     else if (['pottery','cook','garden'].includes(activity)) { line([[-23,12],[-31,37],[-12,43]],skin.limb,11);line([[23,12],[31,37],[12,43]],skin.limb,11);if(activity==='garden')plant(0,36,.35);else { ellipse(0,43,20,14,activity==='cook'?'#e1c792':'#ad7855');ellipse(0,36,20,5,activity==='cook'?'#82965b':'#cc9f79'); if(activity==='cook')line([[10,34],[23,5+wave*3]],'#84684b',4); } }
     else if (activity === 'care') { line([[-23,12],[-29,38],[-8,45]],skin.limb,11);line([[23,12],[28,35],[8,45]],skin.limb,11);shape(-23,27,46,29,'#d5c49a',3);line([[0,30],[0,53]],'#9f946f',2);line([[-16,36],[-6,36]],'#f1e2bd',3);line([[6,41],[16,41]],'#f1e2bd',3); }
+    else if (activity === 'cleaning' || activity === 'chores' && !!state?.household) { line([[-24,11],[-33,42]],skin.limb,11);line([[24,11],[29,32],[36,40]],skin.limb,11);line([[37,17],[37,90]],'#a48c5d',5);shape(22,86,31,12,'#c8d2b3',3); }
+    else if (activity === 'culture' || activity === 'cinema') { line([[-24,11],[-29,37],[-9,43]],skin.limb,11);line([[24,11],[30,37],[11,43]],skin.limb,11);shape(-23,28,46,28,'#e9c27e',3);line([[-11,31],[-11,53]],'#b18a56',2);text('★',-3,49,19,'#927550'); }
+    else if (activity === 'delivery') { shape(-23,3,46,54,'#b68953',7);line([[-16,11],[16,11]],'#e9dfad',4);line([[-24,11],[-34,36],[-17,44]],skin.limb,11);line([[24,11],[34,36],[17,44]],skin.limb,11);shape(-24,28,48,34,'#d7ad75',3);line([[0,29],[0,59]],'#f0dbb4',5);line([[-19,35],[-9,35]],'#af875c',2); }
+    else if (activity === 'parttime') { shape(-19,10,38,51,'#e0d3ae',4);line([[-15,1],[-13,13],[13,13],[15,1]],'#e0d3ae',4);line([[-24,11],[-31,37],[-13,43]],skin.limb,11);line([[24,11],[31,35],[13,40]],skin.limb,11);shape(-22,30,43,29,'#8ca091',3);line([[-16,35],[15,35]],'#dbe2cd',2);shape(6,21,16,18,'#677e72',3); }
+    else if (activity === 'sideproject') { line([[-24,11],[-31,38],[-10,44]],skin.limb,11);line([[24,11],[31,38],[10,44]],skin.limb,11);shape(-27,23,54,34,'#708b86',3);shape(-22,27,44,24,'#d9e2cd',2);shape(-30,55,60,5,'#59766e',2);ellipse(0,36,6,6,'#d8b879');line([[-3,43],[3,43]],'#b2965d',2); }
     else { line([[-24, 10], [-33 + wave * 2, 42]], skin.limb, 11); line([[24, 10], [34 - wave * 2, 42]], skin.limb, 11); }
+    if(person.ill){shape(-22,-51,44,10,'#d1ded6',3);line([[-16,-47],[15,-47]],'#edf1e5',2);ellipse(-17,-24,5,3,'#c3826e');ellipse(17,-24,5,3,'#c3826e');}
+    if(person.recovering==='traffic_minor'){shape(-36,28,17,12,'#eeead7',3);line([[-32,32],[-23,32]],'#c7c6ae',2);}
+    else if(person.recovering){line([[-18,-2],[0,9],[19,-2]],'#d2bc91',8);line([[12,5],[17,29]],'#d2bc91',7);}
     c.restore();
   }
   function draw() { if (!canvas || !context) return; const c = context, dpr = Math.min(root.devicePixelRatio || 1, 2), width = canvas.clientWidth || 760, height = canvas.clientHeight || 550;
@@ -192,7 +218,9 @@
     const artifacts = state?.artifacts || []; artifacts.slice(-7).forEach((a, i) => { const kind = a.activityId || a.activity || a.type || ''; if (kind === 'pottery') pottery(595 + i % 3 * 29, 281 - Math.floor(i / 3) * 92, .85); else if (kind === 'photo' || kind === 'draw') picture(room.layout==='wide-window'?547+i%3*47:328+i%3*48,room.layout==='wide-window'?148+Math.floor(i/3)*48:127+Math.floor(i/3)*56,37,45,i); else books(603 + i % 3 * 18, 201, 1); });
     if (housing === 'apartment') { shape(680, 331, 73, 67, '#c4cbb4', 7); shape(681, 331, 72, 8, '#a9b99e', 2); line([[700, 345], [700, 385]], '#b0bba0', 1); }
     if(housing==='shared'&&room.legacy){picture(339,93,43,51,1);text('HOME',341,164,11,'#a79371','Georgia');}
-    if (Number(state?.config?.children) > 0) { shape(99, 454, 21, 21, '#b57b5b', 2); shape(120, 458, 17, 17, '#7e9980', 2); shape(112, 437, 17, 17, '#d5b678', 2); }
+    if (Number(state?.config?.children) > 0 && (!Array.isArray(state.config.childProfiles)||state.config.childProfiles.some(p=>p.age<13))) { shape(99, 454, 21, 21, '#b57b5b', 2); shape(120, 458, 17, 17, '#7e9980', 2); shape(112, 437, 17, 17, '#d5b678', 2); }
+    if(state?.household?.cleanliness<45){shape(23,478,46,12,'#b6a184',5);shape(35,470,34,12,'#a8b4a0',5);shape(76,491,31,11,'#d5b68b',2);line([[82,494],[99,494]],'#b1946d',2);ellipse(56,513,13,4,'#b39d7c');}
+    else if(state?.household?.cleanliness>=80){line([[34,447],[34,463]],'#f4efd5',2);line([[27,455],[41,455]],'#f4efd5',2);line([[691,489],[691,501]],'#f4efd5',2);line([[685,495],[697,495]],'#f4efd5',2);}
     if (state?.config?.transport === 'walk') { shape(674, 459, 28, 12, '#af805d', 5); shape(704, 459, 28, 12, '#af805d', 5); line([[680,461],[689,461]],'#e9d7b4',2); line([[710,461],[719,461]],'#e9d7b4',2); }
     else if (state?.config?.transport === 'car') { line([[606,325],[622,325]],'#9a8b69',3); ellipse(604,325,5,5,'#9a8b69'); shape(620,322,6,9,'#9a8b69',1); }
     else { shape(605,317,21,13,'#718f80',2); line([[609,321],[622,321]],'#e4e5cf',2); }
@@ -201,7 +229,7 @@
     if (['study', 'overtime', 'research', 'jobstudy'].includes(active)) { shape(553, 327, 43, 32, '#708575', 3); shape(557, 331, 35, 24, '#c7d4bc', 2); shape(549, 359, 52, 4, '#657c6f', 2); }
     if(!room.legacy&&room.decor==='music')decor(room);
     c.restore();
-    const family = familyLayout(state?.config, active);
+    const family = familyLayout(state?.config, active, state);
     if (family.spouse) character(family.spouse.activity, family.spouse);
     character(active, family.player);
     family.children.forEach(child => character(child.activity, child));
@@ -210,7 +238,7 @@
     shape(12, 516, 736, 18, '#f8f3df1a');
   }
   function loop(timestamp) { if (!canvas?.isConnected) return; if (!reduced.matches) elapsed += Math.min(80, timestamp - (lastFrame || timestamp)); lastFrame = timestamp; draw(); frame = requestAnimationFrame(loop); }
-  const api = { attach(element, nextState, activity) { if (frame) cancelAnimationFrame(frame); canvas = element; if (!canvas) return; context = canvas.getContext('2d'); state = nextState; active = activity || 'rest'; lastFrame = 0; draw(); frame = requestAnimationFrame(loop); }, update(nextState, activity) { state = nextState; active = activity || active; draw(); }, advance(ms) { elapsed += Number(ms) || 0; draw(); }, describe() { const family = familyLayout(state?.config, active); return { coordinateSystem: 'room canvas, origin top-left, x right, y down; logical 760 × 550', character: { ...family.player, gender: family.player.appearance.gender }, home:homeStyle(state?.config), family: { maritalStatus: family.maritalStatus, spouse: family.spouse, children: family.children, childCount: family.childCount, childAge: family.childAge, personCount: family.personCount }, seasonMonth: Number((state?.date || '2026-01-01').slice(5, 7)), artifacts: state?.artifacts?.length || 0, reducedMotion: reduced.matches }; }, familyLayout, appearance, homeStyle, OPTIONS };
+  const api = { attach(element, nextState, activity) { if (frame) cancelAnimationFrame(frame); canvas = element; if (!canvas) return; context = canvas.getContext('2d'); state = nextState; active = activity || 'rest'; lastFrame = 0; draw(); frame = requestAnimationFrame(loop); }, update(nextState, activity) { state = nextState; active = activity || active; draw(); }, advance(ms) { elapsed += Number(ms) || 0; draw(); }, describe() { const family = familyLayout(state?.config, active, state); return { date:state?.date||null, coordinateSystem: 'room canvas, origin top-left, x right, y down; logical 760 × 550', character: { ...family.player, gender: family.player.appearance.gender }, home:homeStyle(state?.config), family: { maritalStatus: family.maritalStatus, spouse: family.spouse, children: family.children, childCount: family.childCount, childAge: family.childAge, visibleChildCount:family.visibleChildCount, awayChildren:family.awayChildren, personCount: family.personCount }, household:state?.household?{cleanliness:state.household.cleanliness,appearance:state.household.cleanliness<45?'cluttered':state.household.cleanliness>=80?'tidy':'lived-in'}:null, healthEpisode:state?.healthEpisode?{...state.healthEpisode}:null, recovery:state?.flags?.recoveryUntil?{cause:state.flags.recoveryCause,until:state.flags.recoveryUntil,active:state.flags.recoveryUntil>=state.date}:null,overloadSaturday:state?.flags?.overloadSaturday||null,vaccineDate:state?.flags?.vaccineDate||null, seasonMonth: Number((state?.date || '2026-01-01').slice(5, 7)), artifacts: state?.artifacts?.length || 0, reducedMotion: reduced.matches }; }, familyLayout, appearance, homeStyle, OPTIONS };
   root.S2Scene = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

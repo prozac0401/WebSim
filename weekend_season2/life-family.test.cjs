@@ -49,15 +49,15 @@ test('generated lives are deterministic, fictional, balanced across 16 household
   const combinations=new Set(),genders=new Set();
   for(let seed=0;seed<64;seed++){
     const generated=D.generateLife(seed);assert.deepEqual(generated,D.generateLife(seed));assert.deepEqual(E.validateConfig(generated.config),[]);
-    assert.equal(generated.config.personaName,generated.name);assert.ok(generated.intro.includes('가상의 인물'));
+    assert.equal(generated.config.personaName,generated.name);assert.ok(generated.intro.includes(generated.name));assert.ok(generated.intro.includes(generated.config.age+'세'));
     combinations.add([generated.config.role,generated.config.maritalStatus,!!generated.config.children].join(':'));genders.add(generated.config.gender);
   }
   assert.equal(combinations.size,16);assert.equal(genders.size,4);
   assert.throws(()=>D.generateLife(-1));assert.throws(()=>D.generateLife(1.5));
 });
 
-test('money formatter shows exact decimal 만원 while amounts remain integer won',()=>{
-  for(const [value,label]of [[0,'0만원'],[1,'0.0001만원'],[500,'0.05만원'],[12000,'1.2만원'],[55000,'5.5만원'],[2800000,'280만원'],[-500,'-0.05만원']])assert.equal(D.formatMoney(value),label);
+test('money display rounds to one decimal 만원 without changing integer-won accounting',()=>{
+  for(const [value,label]of [[0,'0만원'],[1,'0만원'],[500,'0.1만원'],[12000,'1.2만원'],[55000,'5.5만원'],[2800000,'280만원'],[-500,'-0.1만원'],[3309438,'330.9만원']])assert.equal(D.formatMoney(value),label);
   assert.throws(()=>D.formatMoney(0.1));assert.throws(()=>D.formatMoney(NaN));
   for(const event of Events.CATALOG)assert.doesNotMatch(JSON.stringify([event.description,event.choices]),/\d,\d{3}원|\d만 원/);
 });
@@ -88,23 +88,16 @@ test('auto activities cannot consume money already reserved for a later manual a
   assert.ok(E.prepareAutoWeek(s).ok,'manual appointment must remain feasible after preparation');
 });
 
-test('resuming the February 8 care decision reaches a visible conflict choice without reopening planning',()=>{
+test('resuming a care decision reaches a visible conflict choice without reopening planning',()=>{
   const state=E.create({...D.PRESETS.find(p=>p.id==='caregiver').config,gender:'woman',maritalStatus:'married',children:2,childAge:'school',startCash:1800500,seed:2026});
-  let found=false;
-  for(let turns=0;turns<100&&!found;turns++){
-    if(state.phase==='event'){
-      const event=state.pendingEvent;
-      resolve(state);
-      if(event.catalogId==='care_appointment'&&state.date==='2026-02-08'){
-        const before=JSON.stringify(state.plan),prepared=E.prepareAutoWeek(state,{direction:'balanced'});
-        assert.ok(prepared.ok);assert.ok(prepared.alreadyPrepared);assert.equal(JSON.stringify(state.plan),before);
-        E.advance(state);assert.equal(state.phase,'event');assert.equal(state.pendingEvent.catalogId,'constraint');
-        assert.equal(state.pendingEvent.context.cause,'time');assert.ok(state.pendingEvent.choices.some(c=>c.id==='reschedule'));found=true;
-      }
-    }else if(state.phase==='review')E.finishReview(state);
-    else{assert.ok(E.prepareAutoWeek(state).ok);E.advance(state);}
-  }
-  assert.ok(found);const result=autoplayThroughChoices(state);assert.equal(E.getSummary(result.state).daysPlayed,365);
+  assert.ok(E.addPlan(state,{date:state.date,slot:'afternoon',activityId:'pottery'}).ok);
+  assert.ok(E.prepareAutoWeek(state).ok);
+  trigger(state,'care_appointment');assert.ok(E.choose(state,'accompany').ok);
+  const before=JSON.stringify(state.plan),prepared=E.prepareAutoWeek(state,{direction:'balanced'});
+  assert.ok(prepared.ok);assert.ok(prepared.alreadyPrepared);assert.equal(JSON.stringify(state.plan),before);
+  E.advance(state);assert.equal(state.phase,'event');assert.equal(state.pendingEvent.catalogId,'constraint');
+  assert.equal(state.pendingEvent.context.cause,'time');assert.ok(state.pendingEvent.choices.some(c=>c.id==='reschedule'));
+  const result=autoplayThroughChoices(state);assert.equal(E.getSummary(result.state).daysPlayed,365);
 });
 
 test('an already prepared week still stops for a newly added unconfirmed moved reservation',()=>{
@@ -194,8 +187,10 @@ test('v1 saves migrate without inventing a spouse, touching ledger, RNG or past 
 });
 
 test('v1 pending event labels migrate only after original choices are verified',()=>{
-  const s=E.create(D.PRESETS[0].config);trigger(s,'exam_june');const old=legacy(s);old.pendingEvent.choices.find(c=>c.id==='take').label='시험 응시 · 20,000원';
-  const parsed=Storage.parse(envelope(old,1));assert.ok(parsed.ok,parsed.reason);assert.equal(parsed.state.pendingEvent.choices[0].label,'시험 응시 · 2만원');
+  const s=E.create(D.PRESETS[0].config);trigger(s,'exam_june');const old=legacy(s);
+  old.pendingEvent.title='6월 자격증 시험일';old.pendingEvent.source='scheduled';
+  old.pendingEvent.choices=[{id:'take',label:'시험 응시 · 20,000원',description:'현재 준비도와 피로로 판정합니다.',effects:{},action:'exam_take'},{id:'defer',label:'11월로 목표 옮기기',description:'준비도는 남고 이번 기회는 미룬 기록으로 남습니다.',effects:{mood:-1},action:'exam_defer'}];
+  const parsed=Storage.parse(envelope(old,1));assert.ok(parsed.ok,parsed.reason);assert.equal(parsed.state.pendingEvent.choices[0].label,Events.MAP.exam_june.choices[0].label);
   assert.ok(E.choose(parsed.state,'take').ok);
   old.pendingEvent.choices[0].effects.preparation=100;assert.equal(Storage.parse(envelope(old,1)).ok,false);
 });

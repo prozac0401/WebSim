@@ -1,0 +1,957 @@
+{
+  "format": "websim-weekend-season2",
+  "version": 3,
+  "savedAt": "2026-10-16T22:47:59.365Z",
+  "checksum": "ac1f1a0c",
+  "state": {
+    "version": 3,
+    "config": {
+      "year": 2026,
+      "age": 32,
+      "gender": "unspecified",
+      "maritalStatus": "single",
+      "personaName": "",
+      "lifeIntro": "",
+      "generationSeed": null,
+      "role": "worker",
+      "children": 1,
+      "childAge": "preschool",
+      "careShare": 50,
+      "province": "unspecified",
+      "residenceOrigin": null,
+      "appearance": null,
+      "homeStyle": null,
+      "generationModel": null,
+      "incomeOrigin": null,
+      "housing": "studio",
+      "region": "city",
+      "transport": "transit",
+      "salary": 2800000,
+      "externalAllowance": 0,
+      "personalBudget": 500000,
+      "fixedCosts": 1500000,
+      "startCash": 2000000,
+      "payDay": 1,
+      "cardLimit": 1500000,
+      "preferences": [
+        "walk",
+        "photo"
+      ],
+      "seed": 2026
+    },
+    "presetId": "worker",
+    "date": "2026-01-12",
+    "weekStart": "2026-01-12",
+    "phase": "event",
+    "stats": {
+      "fatigue": 0,
+      "mood": 88,
+      "relationship": 60,
+      "preparation": 16,
+      "research": 0,
+      "work": 0
+    },
+    "finance": {
+      "cash": 3272000,
+      "cardPending": 0,
+      "arrears": 0,
+      "fixedArrears": 0,
+      "pendingPay": 0,
+      "pendingRewards": [],
+      "ledger": [
+        {
+          "id": "tx-1",
+          "date": "2026-01-01",
+          "type": "salary",
+          "amount": 2800000,
+          "label": "급여",
+          "method": "",
+          "income": 2800000,
+          "consumption": 0,
+          "paid": 0,
+          "cause": ""
+        },
+        {
+          "id": "tx-2",
+          "date": "2026-01-01",
+          "type": "fixed-cost",
+          "amount": 1500000,
+          "label": "이번 달 필수 고정비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 1500000,
+          "paid": 1500000,
+          "cause": "unavoidable",
+          "unpaid": 0
+        },
+        {
+          "id": "tx-3",
+          "date": "2026-01-01",
+          "type": "purchase",
+          "amount": 8000,
+          "label": "자격증 준비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 8000,
+          "paid": 8000,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-4",
+          "date": "2026-01-03",
+          "type": "purchase",
+          "amount": 0,
+          "label": "동네 산책",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-5",
+          "date": "2026-01-04",
+          "type": "purchase",
+          "amount": 0,
+          "label": "아무것도 안 하는 휴식",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-6",
+          "date": "2026-01-10",
+          "type": "purchase",
+          "amount": 0,
+          "label": "아무것도 안 하는 휴식",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-7",
+          "date": "2026-01-10",
+          "type": "purchase",
+          "amount": 8000,
+          "label": "자격증 준비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 8000,
+          "paid": 8000,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-8",
+          "date": "2026-01-11",
+          "type": "purchase",
+          "amount": 12000,
+          "label": "사진 산책",
+          "method": "cash",
+          "income": 0,
+          "consumption": 12000,
+          "paid": 12000,
+          "cause": "chosen"
+        }
+      ],
+      "processed": {
+        "begin:2026-01-01": true,
+        "fixed:2026-01": true,
+        "end:2026-01-01": true,
+        "begin:2026-01-02": true,
+        "end:2026-01-02": true,
+        "begin:2026-01-03": true,
+        "end:2026-01-03": true,
+        "begin:2026-01-04": true,
+        "end:2026-01-04": true,
+        "begin:2026-01-05": true,
+        "end:2026-01-05": true,
+        "begin:2026-01-06": true,
+        "end:2026-01-06": true,
+        "begin:2026-01-07": true,
+        "end:2026-01-07": true,
+        "begin:2026-01-08": true,
+        "end:2026-01-08": true,
+        "begin:2026-01-09": true,
+        "end:2026-01-09": true,
+        "begin:2026-01-10": true,
+        "end:2026-01-10": true,
+        "begin:2026-01-11": true,
+        "end:2026-01-11": true,
+        "begin:2026-01-12": true
+      },
+      "currentDate": "2026-01-12",
+      "monthKey": "2026-01",
+      "monthSpent": 28000
+    },
+    "plan": [],
+    "rules": [],
+    "log": [
+      {
+        "id": "log-4",
+        "date": "2026-01-01",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-5",
+        "date": "2026-01-01",
+        "type": "activity",
+        "title": "자격증 준비 · 오후",
+        "activityId": "study",
+        "slot": "afternoon",
+        "minutes": 140,
+        "cost": 8000,
+        "payment": "cash",
+        "effects": {
+          "fatigue": 11,
+          "mood": 0,
+          "preparation": 8
+        },
+        "moodAfter": 60,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-6",
+        "date": "2026-01-01",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 23,
+          "mood": 60,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "새해 첫날",
+        "isOff": true
+      },
+      {
+        "id": "log-7",
+        "date": "2026-01-02",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-8",
+        "date": "2026-01-02",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-9",
+        "date": "2026-01-02",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 23,
+          "mood": 60,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-10",
+        "date": "2026-01-03",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-11",
+        "date": "2026-01-03",
+        "type": "activity",
+        "title": "동네 산책 · 오후",
+        "activityId": "walk",
+        "slot": "afternoon",
+        "minutes": 95,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -5,
+          "mood": 8
+        },
+        "moodAfter": 68,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-12",
+        "date": "2026-01-03",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 5,
+          "mood": 68,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": true
+      },
+      {
+        "id": "log-13",
+        "date": "2026-01-04",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-14",
+        "date": "2026-01-04",
+        "type": "activity",
+        "title": "아무것도 안 하는 휴식 · 오후",
+        "activityId": "rest",
+        "slot": "afternoon",
+        "minutes": 120,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -17,
+          "mood": 4
+        },
+        "moodAfter": 72,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-15",
+        "date": "2026-01-04",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": true
+      },
+      {
+        "id": "log-19",
+        "date": "2026-01-05",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-20",
+        "date": "2026-01-05",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-21",
+        "date": "2026-01-05",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-22",
+        "date": "2026-01-06",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-23",
+        "date": "2026-01-06",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-24",
+        "date": "2026-01-06",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-25",
+        "date": "2026-01-07",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-26",
+        "date": "2026-01-07",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-27",
+        "date": "2026-01-07",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-28",
+        "date": "2026-01-08",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-29",
+        "date": "2026-01-08",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-30",
+        "date": "2026-01-08",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-31",
+        "date": "2026-01-09",
+        "type": "weekday",
+        "title": "직장인의 평일 기본 일정",
+        "role": "worker",
+        "fatigue": 5
+      },
+      {
+        "id": "log-32",
+        "date": "2026-01-09",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-33",
+        "date": "2026-01-09",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 72,
+          "relationship": 60,
+          "preparation": 8,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-34",
+        "date": "2026-01-10",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-35",
+        "date": "2026-01-10",
+        "type": "activity",
+        "title": "아무것도 안 하는 휴식 · 오전",
+        "activityId": "rest",
+        "slot": "morning",
+        "minutes": 170,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -17,
+          "mood": 4
+        },
+        "moodAfter": 76,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-36",
+        "date": "2026-01-10",
+        "type": "activity",
+        "title": "자격증 준비 · 오후",
+        "activityId": "study",
+        "slot": "afternoon",
+        "minutes": 140,
+        "cost": 8000,
+        "payment": "cash",
+        "effects": {
+          "fatigue": 11,
+          "mood": 0,
+          "preparation": 8
+        },
+        "moodAfter": 76,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-37",
+        "date": "2026-01-10",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 2,
+          "mood": 76,
+          "relationship": 60,
+          "preparation": 16,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": true
+      },
+      {
+        "id": "log-38",
+        "date": "2026-01-11",
+        "type": "care",
+        "title": "기본 돌봄 시간",
+        "minutes": 50,
+        "share": 50
+      },
+      {
+        "id": "log-39",
+        "date": "2026-01-11",
+        "type": "activity",
+        "title": "사진 산책 · 오후",
+        "activityId": "photo",
+        "slot": "afternoon",
+        "minutes": 165,
+        "cost": 12000,
+        "payment": "cash",
+        "effects": {
+          "fatigue": 5,
+          "mood": 12
+        },
+        "moodAfter": 88,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-40",
+        "date": "2026-01-11",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "fatigue": 0,
+          "mood": 88,
+          "relationship": 60,
+          "preparation": 16,
+          "research": 0,
+          "work": 0
+        },
+        "holiday": "",
+        "isOff": true
+      }
+    ],
+    "artifacts": [],
+    "pendingEvent": {
+      "id": "care_appointment-41",
+      "source": "external",
+      "title": "돌봄 일정이 바뀌었어요",
+      "description": "가족의 예정된 병원 방문에 동행이 필요합니다. 실제 병력은 설정하지 않습니다.",
+      "choices": [
+        {
+          "id": "accompany",
+          "label": "내가 동행하기",
+          "description": "오늘 한 구간을 돌봄에 쓰고 기존 일정은 재배치합니다.",
+          "effects": {
+            "fatigue": 7,
+            "relationship": 3
+          },
+          "action": "care_accompany"
+        },
+        {
+          "id": "share",
+          "label": "분담을 부탁하기",
+          "description": "함께 돌보는 사람과 조율합니다. 이후 2주간 내 기본 돌봄 시간이 절반이 됩니다.",
+          "effects": {
+            "mood": 2
+          },
+          "action": "care_share"
+        }
+      ],
+      "catalogId": "care_appointment",
+      "date": "2026-01-12",
+      "context": {}
+    },
+    "queue": [],
+    "dayState": {
+      "date": "2026-01-12",
+      "begun": true,
+      "eventHandled": true,
+      "randomChecked": false,
+      "baseDone": false,
+      "done": [],
+      "blocks": {},
+      "extraTravel": 0,
+      "skipWork": false
+    },
+    "skills": {
+      "study": 12,
+      "walk": 6,
+      "rest": 12,
+      "photo": 6
+    },
+    "activityCounts": {
+      "study": 2,
+      "walk": 1,
+      "rest": 2,
+      "photo": 1
+    },
+    "flags": {
+      "autoPreparedWeek": "2026-01-05",
+      "autoDirection": "balanced",
+      "externalDelivered": "2026-01-12"
+    },
+    "eventHistory": {
+      "care_appointment": 1
+    },
+    "sequence": 41,
+    "weekNumber": 3,
+    "rng": {
+      "external": 1222893419,
+      "followup": 2246823297
+    },
+    "friendPostponements": 0,
+    "lastExternal": null,
+    "review": {
+      "from": "2026-01-05",
+      "to": "2026-01-11",
+      "logs": [
+        {
+          "id": "log-19",
+          "date": "2026-01-05",
+          "type": "weekday",
+          "title": "직장인의 평일 기본 일정",
+          "role": "worker",
+          "fatigue": 5
+        },
+        {
+          "id": "log-20",
+          "date": "2026-01-05",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-21",
+          "date": "2026-01-05",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 72,
+            "relationship": 60,
+            "preparation": 8,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-22",
+          "date": "2026-01-06",
+          "type": "weekday",
+          "title": "직장인의 평일 기본 일정",
+          "role": "worker",
+          "fatigue": 5
+        },
+        {
+          "id": "log-23",
+          "date": "2026-01-06",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-24",
+          "date": "2026-01-06",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 72,
+            "relationship": 60,
+            "preparation": 8,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-25",
+          "date": "2026-01-07",
+          "type": "weekday",
+          "title": "직장인의 평일 기본 일정",
+          "role": "worker",
+          "fatigue": 5
+        },
+        {
+          "id": "log-26",
+          "date": "2026-01-07",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-27",
+          "date": "2026-01-07",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 72,
+            "relationship": 60,
+            "preparation": 8,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-28",
+          "date": "2026-01-08",
+          "type": "weekday",
+          "title": "직장인의 평일 기본 일정",
+          "role": "worker",
+          "fatigue": 5
+        },
+        {
+          "id": "log-29",
+          "date": "2026-01-08",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-30",
+          "date": "2026-01-08",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 72,
+            "relationship": 60,
+            "preparation": 8,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-31",
+          "date": "2026-01-09",
+          "type": "weekday",
+          "title": "직장인의 평일 기본 일정",
+          "role": "worker",
+          "fatigue": 5
+        },
+        {
+          "id": "log-32",
+          "date": "2026-01-09",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-33",
+          "date": "2026-01-09",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 72,
+            "relationship": 60,
+            "preparation": 8,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-34",
+          "date": "2026-01-10",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-35",
+          "date": "2026-01-10",
+          "type": "activity",
+          "title": "아무것도 안 하는 휴식 · 오전",
+          "activityId": "rest",
+          "slot": "morning",
+          "minutes": 170,
+          "cost": 0,
+          "payment": "cash",
+          "effects": {
+            "fatigue": -17,
+            "mood": 4
+          },
+          "moodAfter": 76,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-36",
+          "date": "2026-01-10",
+          "type": "activity",
+          "title": "자격증 준비 · 오후",
+          "activityId": "study",
+          "slot": "afternoon",
+          "minutes": 140,
+          "cost": 8000,
+          "payment": "cash",
+          "effects": {
+            "fatigue": 11,
+            "mood": 0,
+            "preparation": 8
+          },
+          "moodAfter": 76,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-37",
+          "date": "2026-01-10",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 2,
+            "mood": 76,
+            "relationship": 60,
+            "preparation": 16,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": true
+        },
+        {
+          "id": "log-38",
+          "date": "2026-01-11",
+          "type": "care",
+          "title": "기본 돌봄 시간",
+          "minutes": 50,
+          "share": 50
+        },
+        {
+          "id": "log-39",
+          "date": "2026-01-11",
+          "type": "activity",
+          "title": "사진 산책 · 오후",
+          "activityId": "photo",
+          "slot": "afternoon",
+          "minutes": 165,
+          "cost": 12000,
+          "payment": "cash",
+          "effects": {
+            "fatigue": 5,
+            "mood": 12
+          },
+          "moodAfter": 88,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-40",
+          "date": "2026-01-11",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "fatigue": 0,
+            "mood": 88,
+            "relationship": 60,
+            "preparation": 16,
+            "research": 0,
+            "work": 0
+          },
+          "holiday": "",
+          "isOff": true
+        }
+      ]
+    }
+  }
+}

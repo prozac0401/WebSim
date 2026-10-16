@@ -173,3 +173,70 @@ test('scene variety: explicit portraits remain stable when gender changes, while
   }
   assert.equal(drawings.size,4,'existing gender edit must still change actual pixels');
 });
+
+test('scene life stages: toddlers, schoolchildren and adult children have separate visible activities and ages',()=>{
+  const childProfiles=[{age:1,gender:'woman',militaryStatus:'none'},{age:5,gender:'man',militaryStatus:'none'},{age:10,gender:'unspecified',militaryStatus:'none'},{age:17,gender:'woman',militaryStatus:'none'},{age:18,gender:'man',militaryStatus:'none'},{age:35,gender:'woman',militaryStatus:'none'}];
+  const config={children:6,childAge:'toddler',childProfiles,maritalStatus:'married'};
+  const family=Scene.familyLayout(config,'rest');
+  assert.deepEqual(family.children.map(c=>c.ageStage),['toddler','preschool','school','teen','adult','adult']);
+  assert.deepEqual(family.children.map(c=>c.age),[1,5,10,17,18,35]);
+  assert.equal(family.children[0].activity,'child-toddler');assert.equal(family.children[5].activity,'child-adult');
+  assert.ok(family.children[5].scale>=.7,'adult children must look grown, at a comparable scale to their parents');
+  assert.equal(family.children[0].appearance.gender,'woman');assert.equal(family.children[1].appearance.gender,'man');
+  const h=drawingHarness(),images=new Set();
+  for(const age of [1,5,10,17,24]){h.clear();h.api.attach(h.canvas,{config:{children:1,childProfiles:[{age,gender:'woman',militaryStatus:'none'}]},date:'2026-02-04',artifacts:[]},'rest');images.add(h.snapshot());}
+  assert.equal(images.size,5);
+});
+
+test('scene military: serving child is away except during their dated leave, without changing the saved state',()=>{
+  const config={children:2,childProfiles:[{age:22,gender:'man',militaryStatus:'serving'},{age:20,gender:'woman',militaryStatus:'none'}]},h=drawingHarness();
+  const state={config,date:'2026-08-01',artifacts:[],flags:{militaryChildIndex:0,militaryLeaveUntil:'2026-08-03'},rng:{external:55,followup:22}},before=JSON.stringify(state);
+  h.api.attach(h.canvas,state,'rest');let family=h.api.describe().family;
+  assert.equal(family.childCount,2);assert.equal(family.visibleChildCount,2);assert.equal(family.children[0].onLeave,true);assert.equal(family.children[0].activity,'child-leave');
+  h.api.update({...state,date:'2026-08-04'},'rest');family=h.api.describe().family;
+  assert.equal(family.childCount,2);assert.equal(family.visibleChildCount,1);assert.equal(family.awayChildren[0].id,'child-1');assert.equal(family.personCount,2);
+  h.api.update({...state,flags:{militaryChildIndex:1,militaryLeaveUntil:'2026-08-03'}},'rest');assert.equal(h.api.describe().family.visibleChildCount,1,'leave for another child must not bring the soldier home');
+  assert.equal(JSON.stringify(state),before);
+});
+
+test('scene life stages: mixed ages and all-adult families fit every room with separated figures and safe foreground depth',()=>{
+  for(const layout of Scene.OPTIONS.layout)for(const ages of [[1,5,10,17,24,41],[18,20,22,24,26,28]])for(const activity of ['rest','care','draw','cleaning']){
+    const config={children:6,maritalStatus:'married',childAge:'adult',appearance:{hairStyle:'bun'},homeStyle:{layout},childProfiles:ages.map((age,i)=>({age,gender:i%2?'man':'woman',militaryStatus:'none'}))};
+    const family=Scene.familyLayout(config,activity),figures=members(family);
+    for(const figure of figures){assert.ok(figure.bounds.bottom<=550&&figure.bounds.top>=0&&figure.bounds.left>=0&&figure.bounds.right<=760,`${layout}/${figure.id} clipped`);}
+    for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false,`${activity}/${figures[i].id}/${figures[j].id} overlaps`);
+    for(const child of family.children)for(const object of Scene.homeStyle(config).furnitureBounds){if(child.ageStage==='adult'&&['sofa','table'].includes(object.id))continue;assert.equal(overlaps(child.bounds,object),false,`${layout}/${child.id}/${object.id} overlaps`);}
+  }
+});
+
+test('scene household and illness: visible mess, tidiness and specific sick family member are deterministic',()=>{
+  const h=drawingHarness(),config={children:1,childProfiles:[{age:2,gender:'man',militaryStatus:'none'}]},base={config,date:'2026-03-11',artifacts:[]},snapshots=new Set();
+  for(const cleanliness of [20,60,90]){h.clear();h.api.attach(h.canvas,{...base,household:{cleanliness}},'rest');snapshots.add(h.snapshot());assert.equal(h.api.describe().household.cleanliness,cleanliness);}
+  assert.equal(snapshots.size,3);
+  const state={...base,household:{cleanliness:20},healthEpisode:{kind:'hfmd',subject:'child',childIndex:0,started:'2026-03-11',recoveryDue:'2026-03-18',approach:'share'}},before=JSON.stringify(state);
+  h.api.attach(h.canvas,state,'care');assert.equal(h.api.describe().family.children[0].ill,true);assert.equal(h.api.describe().character.ill,undefined);
+  h.clear();h.api.update(state,'care');const commands=h.snapshot();h.clear();h.api.advance(9000);assert.equal(h.snapshot(),commands);assert.equal(JSON.stringify(state),before);
+  h.api.update({...base,healthEpisode:{...state.healthEpisode,subject:'self',childIndex:null}},'rest');assert.equal(h.api.describe().character.ill,true);assert.equal(h.api.describe().family.children[0].ill,undefined);
+});
+
+test('scene side jobs: delivery, part-time work and a personal project have distinct visible equipment',()=>{
+  const h=drawingHarness(),state={config:{...Data.DEFAULT_CONFIG},date:'2028-02-29',artifacts:[],flags:{},rng:{external:123,followup:456}},before=JSON.stringify(state),pictures=new Set();
+  for(const activity of ['rest','delivery','parttime','sideproject']){
+    h.clear();h.api.attach(h.canvas,state,activity);pictures.add(h.snapshot());
+    assert.equal(h.api.describe().character.activity,activity);
+    assert.equal(h.api.describe().date,'2028-02-29');
+  }
+  assert.equal(pictures.size,4);assert.equal(JSON.stringify(state),before);
+});
+
+test('scene recovery: a dated recovery period changes the figure only while active and exposes the health record',()=>{
+  const h=drawingHarness(),base={config:{...Data.DEFAULT_CONFIG},date:'2026-10-03',artifacts:[],flags:{recoveryCause:'traffic_minor',recoveryUntil:'2026-10-04',overloadSaturday:'2026-10-03',vaccineDate:'2026-09-20'}};
+  h.api.attach(h.canvas,base,'rest');const during=h.snapshot(),description=h.api.describe();
+  assert.equal(description.character.recovering,'traffic_minor');assert.equal(description.recovery.active,true);
+  assert.equal(description.overloadSaturday,'2026-10-03');assert.equal(description.vaccineDate,'2026-09-20');
+  h.clear();h.api.update({...base,date:'2026-10-05'},'rest');
+  assert.equal(h.api.describe().character.recovering,undefined);assert.equal(h.api.describe().recovery.active,false);
+  assert.notEqual(h.snapshot(),during);
+  h.clear();h.api.update({...base,flags:{...base.flags,recoveryCause:'low_condition_week'}},'rest');
+  assert.notEqual(h.snapshot(),during,'an accident bandage and a comfort scarf should be distinct');
+});

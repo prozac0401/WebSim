@@ -36,10 +36,12 @@
     const c = configValues(config);
     const date = f.currentDate;
     let incoming = 0;
-    // Only this month's known regular income is counted. Future overtime is never assumed.
+    // Only income already earned or scheduled within this month is counted.
+    // Future activities and their possible rewards are never assumed.
     if (date && date < payDate(date, c)) {
-      incoming = c.salary + c.externalAllowance + f.pendingRewards.filter(r => r.earnedDate < payDate(date, c)).reduce((sum, r) => sum + r.amount, 0);
+      incoming = c.salary + c.externalAllowance + f.pendingRewards.filter(r => r.kind !== 'sidejob' && r.earnedDate < payDate(date, c)).reduce((sum, r) => sum + r.amount, 0);
     }
+    if (date) incoming += f.pendingRewards.filter(r => r.kind === 'sidejob' && r.dueDate > date && r.dueDate.slice(0,7) === date.slice(0,7)).reduce((sum,r) => sum+r.amount,0);
     const unpaidCurrentFixed = !date || !f.processed['fixed:' + date.slice(0, 7)] ? c.fixedCosts : 0;
     return { c, income: incoming, spendable: Math.max(0, f.cash + incoming - f.cardPending - f.arrears - f.fixedArrears - unpaidCurrentFixed), budget: Math.max(0, c.personalBudget - f.monthSpent) };
   }
@@ -90,12 +92,14 @@
     if (date === payDate(date, c)) {
       if (c.salary) { f.cash += c.salary; income += c.salary; entry(f, date, 'salary', c.salary, '급여', { income: c.salary }); }
       if (c.externalAllowance) { f.cash += c.externalAllowance; income += c.externalAllowance; entry(f, date, 'allowance', c.externalAllowance, '외부에서 받은 용돈', { income: c.externalAllowance }); }
-      const due = f.pendingRewards.filter(reward => reward.earnedDate < date);
-      f.pendingRewards = f.pendingRewards.filter(reward => reward.earnedDate >= date);
-      for (const reward of due) {
-        f.cash += reward.amount; income += reward.amount; f.pendingPay -= reward.amount;
-        entry(f, date, 'extra-pay', reward.amount, reward.label, { income: reward.amount, earnedDate: reward.earnedDate });
-      }
+    }
+    const isDue = reward => reward.kind === 'sidejob' ? reward.dueDate <= date : date === payDate(date,c) && reward.earnedDate < date;
+    const due = f.pendingRewards.filter(isDue);
+    f.pendingRewards = f.pendingRewards.filter(reward => !isDue(reward));
+    for (const reward of due) {
+      f.cash += reward.amount; income += reward.amount; f.pendingPay -= reward.amount;
+      entry(f, date, 'extra-pay', reward.amount, reward.label, { income: reward.amount, earnedDate: reward.earnedDate,
+        ...(reward.kind === 'sidejob' ? {kind:'sidejob',reference:reward.reference,dueDate:reward.dueDate,cause:'sidejob'} : {}) });
     }
     if (date.slice(8) === '01' && !f.processed['fixed:' + date.slice(0, 7)]) {
       f.processed['fixed:' + date.slice(0, 7)] = true;
@@ -130,10 +134,30 @@
     f.pendingRewards.push({ earnedDate: date, amount, label: label || '추가근무 보상' });
     return entry(f, date, 'pending-pay', amount, label || '다음 급여일 지급 예정', { cause: 'earned' });
   }
+  // A side job earns money during an activity. It is paid at the next day's
+  // income stage, ahead of fixed costs and debt, rather than injecting cash
+  // between today's activity and card-settlement stages. References survive
+  // payout in the ledger, so retrying a completed activity never pays twice.
+  function addEarnedPay(f, date, amount, label, options) {
+    const reference=options&&options.reference, name=label===undefined?'부업 보상':label;
+    const fail=(reason,cause)=>({ok:false,reason,cause});
+    if(!C.validDate(date)||!Number.isSafeInteger(amount)||amount<0||typeof name!=='string'||!name.length||name.length>200||typeof reference!=='string'||!reference.trim()||reference.length>160)return fail('부업 보상의 날짜·금액·이름·고유 기록을 확인하세요.','invalid');
+    const previous=f.ledger.find(t=>t.type==='pending-pay'&&t.reference===reference);
+    if(previous){
+      if(previous.kind!=='sidejob'||previous.date!==date||previous.amount!==amount||previous.label!==name)return fail('같은 부업 기록에 서로 다른 보상을 등록할 수 없습니다.','reference-conflict');
+      return {ok:true,duplicate:true,entry:previous};
+    }
+    if(f.processed['end:'+date])return fail('이미 정산된 날짜입니다.','closed-day');
+    if(f.currentDate!==date||!f.processed['begin:'+date])return fail('그날 수입과 고정비를 먼저 처리하세요.','unopened-day');
+    const reward={earnedDate:date,amount,label:name,dueDate:C.addDays(date,1),kind:'sidejob',reference};
+    f.pendingPay+=amount;f.pendingRewards.push(reward);
+    const transaction=entry(f,date,'pending-pay',amount,name,{cause:'sidejob',kind:'sidejob',reference,earnedDate:date,dueDate:reward.dueDate});
+    return {ok:true,duplicate:false,entry:transaction,reward};
+  }
   function summary(f) {
     const sum = field => f.ledger.reduce((value, item) => value + (item[field] || 0), 0);
     return { income: sum('income'), consumption: sum('consumption'), paid: sum('paid'), cash: f.cash,
       debt: f.cardPending + f.arrears + f.fixedArrears, pendingPay: f.pendingPay };
   }
-  return { create, available, canSpend, spend, beginDay, endDay, addPendingPay, summary, ORDER };
+  return { create, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, summary, ORDER };
 });

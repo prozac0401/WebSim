@@ -1,5 +1,83 @@
 # 주말 계획표 시즌2 검증 기록
 
+## 2026-10-17 자동 진행·부업·컨디션·미래 연도 최종 추가
+
+최종 범위는 아래 생활 업데이트에 더해 **추가 클릭 없는 기본 자동 진행**, 중요한 선택 후 자동 재개하는 선택 모드, 배달·시간제 일·개인 프로젝트, 교통사고·컨디션 저하·잠을 설친 날·평일 과로로 쉬는 토요일, 가을 독감 예방접종, **2026~2100년 시작 연도 선택**입니다. 총 활동31종·사건47종입니다.
+
+- 기본 자동 모드는 반복 예약·시간 및 예산 문제·사건을 처리하고 실제 선택을 기록합니다. 자동 선택에는 `automatic:true`를 남겨 직접 내린 결정과 구분합니다. 읽기 전용 서랍은 자동 진행을 끄지 않고, 일정 편집은 잠시 멈춥니다. 일시정지·불러오기 후 의도하지 않은 자동 시작은 하지 않습니다.
+- 배달1.8만원·시간제3.2만원, 프로젝트 수락 후2회4만원/4회8만원 보상은 게임 설정입니다. 다음 날 수입 단계에 한 번만 지급하고 필수비용·미납 순서를 유지합니다. 실제 지역 임금 자료라고 표시하지 않습니다. 연말 미지급액과 다음 해 마감은 보존합니다.
+- 회복기간은 실제 활동 시간을 줄이고 못 지킨 이유를 기록합니다. 독감 예방접종의14일 후 게임 가중치0.5는 의학적 예방률이 아니며 독감 사건을 완전히 없애지 않습니다. 실제 치료비·접종비 자료가 없어 비용 계산에서 생략합니다.
+- 2027년 공휴일은 우주항공청 원문 HWPX 표24날짜·대체공휴일7개·주말 포함119일을 대조했습니다. 2028~2100년은 공휴일 미확인 표시와 토·일만 사용합니다. 인구·소득·요금은 기존 기준 시점을 유지하고 미래 물가를 추정하지 않습니다.
+- 독립 검토에서 프로젝트 진척·추가근무 보너스 플래그만 바꿔 보상을 얻던 저장 검증 누락2건을 수정했습니다. 실제 수락·단계별 작업·보상 기록을 대조하며 두 재현 모두 거절되는 것을 확인했습니다. 새 사건의 시작·회복·예방접종과 후속 예약도 연결 검증합니다.
+
+| 검사 | 결과 | 범위 |
+| --- | --- | --- |
+| 최종 Node 통합 | **PASS242 / FAIL0** | 시즌2 175개 + 기존 회귀67개. 새 예방접종 일정·부업 수입에 맞춰 기존 연간 시험의 기대값을 수정하고 전체 재실행 |
+| 실제 Chromium 통합 | **PASS17개 묶음 / FAIL0** | 수동365일·기본 자동 추가 클릭0회365일, 이전 생활 기능·모바일·키보드·저장·회고 |
+| 추가 생활 UI | **PASS4개 묶음 / FAIL0** | 가족·다중 선호·반복 수업 자동확정·원화 저장 |
+| 자동·미래 연도 UI | **PASS4개 묶음 / FAIL0** | 한 달 추가 클릭0회, 중요 결정 뒤 자동 재개·정지,2028년366일·2/29,부업3종실행·입금 |
+| 원본 게임 클라이언트·장면 | **PASS** | 최종 화면 실행·Canvas 캡처·텍스트 훅. 월 회고·사건 대기·부업 삽화 직접 열어 확인 |
+| 독립 통합 검토 | **PASS, 수정 후 재검사** |12년/636시점 저장복원,무현금·돌봄·부채·연말 프로젝트/다음해 지급,저장 주입2건 수정 후 대표3년/159시점 추가 확인 |
+| 최종 독립 모바일 검토 | **PASS7개 확인 / FAIL0** |2027년 한 달 무클릭,Enter 시작·정지,정지 후 날짜·로그 불변,저장 복원 시 자동시작 없음,중요 사건 대기 중 정지·정지 후 선택해도 재시작 없음,가로 넘침·움직임 줄이기 |
+| 공개 배포 후 검사 | **NOT RUN (커밋 전)** | 배포 후 별도 결과 파일과 최종 응답에 기록 |
+| Firefox·Safari·실물 기기·스크린리더·사람의 재미·저사양 성능 | **NOT RUN** | Chromium 검사로 대체했다고 주장하지 않음 |
+
+추가 파일: `automatic-sidejobs.test.cjs`, `automatic-storage.test.cjs`, `finance.test.cjs`, `tests/weekend-season2-automatic.browser.cjs`. 기존 변경에 더해 `calendar.js`, `calendar-finance.test.cjs`, `finance.js`, `journey.test.cjs`를 수정했습니다. 화면: [한 달 자동 진행](../output/playwright/weekend-season2-automatic/automatic-month-paused.png), [중요 선택 대기](../output/playwright/weekend-season2-automatic/important-decision-waiting.png), [배달 삽화](../output/playwright/weekend-season2-automatic/scene-delivery.png). 자동 UI 검사는 `node tests/weekend-season2-automatic.browser.cjs`로 실행합니다.
+
+아래는 이번 최종 추가에 앞서 확인한 생활 업데이트와 이전 배포 이력입니다.
+
+## 2026-10-17 생활 선택·연령·건강·자동 계획 업데이트
+
+자동 모드는 **하고 싶은 일을 여러 개 고르고, 그 안에서 일주일을 살아가는 방식**입니다. 공부·취미를 함께 고를 수 있고 수동 약속을 보존합니다. 여섯 생활 지표와 목표 진척을 분리하고, 일별 회복·반복 효과를 조정했습니다. 청소·질병·성인 자녀·군휴가·평일 저녁 수업과 28개 활동, 35개 사건을 연결했습니다. 플레이 문구는 상황 중심으로 다듬고 계산·근거는 접힌 설명으로 옮겼습니다.
+
+| 검사 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| 통합 Node 자동시험 | **PASS 210 / FAIL 0** | 시즌2 143개 + 기존 플래너 관련·잉크·Boids·차량 회귀 67개 |
+| 실제 Chromium 통합 | **PASS 17개 묶음 / FAIL 0** | 수동·자동 365일 완주, 장부·회고 일치, JSON, 모바일, 키보드, 동작 줄이기, 다중 선호·평일 저녁 강좌 |
+| 추가 UI 집중 검사 | **PASS 4개 묶음 / FAIL 0** | 65세·자녀별 설정, 복무 중 집 비움, 다중 선호와 수동 약속 보존, 예약에서 자동 정지, 원화 입력·저장 재개 |
+| 원본 게임 클라이언트 | **PASS** | 실제 화면 실행, Canvas 캡처와 텍스트 훅, 스크린샷 직접 열어 확인 |
+| 지역 커트 원자료 대조 | **PASS 32/32 값** | 참가격 2026년 9월 16개 지역 × 남·여 커트. 세종 미확인 유지 |
+| 독립 로직 검토 | **PASS, 발견 문제 수정 후 재검사** | 생성 인생 48개 완주, 실제 v3 저장 이전·연말 완주, 신규 요금의 카드 청구·월말 정산, 질병 상태 267회 검사 |
+| 독립 화면 검토 | **PASS, 발견 문제 수정 후 재검사** | 영아만 질병 표시·회복 장면, 아들 휴가·복귀, 수동 약속·키보드·자동 사건 정지 |
+| Firefox·Safari·실물 Android/iOS·스크린리더 | **NOT RUN** | Chromium 에뮬레이션과 구분 |
+| 사람의 재미·장기 균형·저사양 성능 | **NOT RUN** | 자동 완주를 해당 평가로 해석하지 않음 |
+| 공개 배포 후 검사 | **NOT RUN (커밋 시점)** | 배포 후 별도 산출물과 최종 응답에 결과 기록 |
+
+### 수정 후 확인한 핵심
+
+- 건강·행복·지식·기분·대인관계·가족관계는 일별 변화와 활동 영향을 받습니다. 일반 혼합 경로와 자동 8방향의 연간 시험에서 값의 변화와 중간 범위, 방향별 차이를 확인했습니다. 모든 플레이에서 0이나 100이 절대 나오지 않는다는 주장은 하지 않습니다.
+- 미혼·기혼이나 돌봄 역할에서도 자격증 준비·독서·수업을 고를 수 있습니다. 여러 선호가 순환하며, 아무것도 고르지 않은 기본 자동 모드에서는 원하지 않은 유료 공부를 강제로 넣지 않습니다. 현재 역할로 할 수 없는 활동에는 사유를 표시하고, 이전 저장의 선택은 하나씩 해제할 수 있습니다.
+- 22~69세와 어린 자녀·성인 자녀·명시된 복무 조건을 생성합니다. 수족구는 실제 나이 0~2세 자녀만 해당합니다. 6세 미취학 표시와 돌봄 시간도 일치시켰습니다. 해당 가족·연령·군복무 비율은 현실 통계가 아닌 창작 가정입니다.
+- 방치한 집의 청결 하락과 건강·행복 영향, 청소 후 회복을 대조했습니다. 돈을 쓰는 영화·미용·수업에는 즐거움과 시간·예산의 영향이 있으며 돈만으로 점수가 무한 증가하지 않습니다.
+- 진료 후 독감·폐렴·수족구의 일정 축소·분담·회복 장면이 이어집니다. 질병 이름과 배경은 질병관리청 자료를 참고했으며 빈도·게임 지표·7일/14일 후 돌아보기는 실제 의학적 예측이 아닙니다. 실제 병력은 수집하지 않고 미확인 진료비를 추정해 부과하지 않습니다.
+- 만원 표시는 소수 최대 한 자리로 반올림하지만, 180.05만원 입력은 1,800,500원으로 저장됩니다. 지역별 컷·별도 펌/염색·문화센터 견적의 원화 정수가 사용과 정산에 동일하게 적용됩니다.
+- 실제 공개 v3에서 만든 저장 fixture의 이전 날짜 11일, 로그 34개, 거래 8개를 수정하지 않고 v4로 복원했습니다. 새 지표와 집안일만 불러온 날부터 시작합니다. 사건 문구는 확인된 이전 선택만 안전하게 갱신합니다.
+
+### 독립 검토에서 고친 문제
+
+질병의 시작 기록과 회복 예약이 분리된 저장, 회복일을 앞당긴 저장, 사건 없이 만들어진 장기 군휴가를 거절하도록 연결 검증을 추가했습니다. 12월 말에 아파 다음 해 회복 예정일이 남은 정상 상태는 허용합니다. 집중 면접 준비 뒤 취업해도 대기 면접이 다시 나타나던 선행 조건을 고쳤습니다. 역할에 맞지 않는 선호를 선택한 것처럼 보이던 화면과 사건을 선택한 후에도 선택 요청이 남던 안내를 수정했습니다.
+
+### 변경 파일과 화면
+
+추가: `prices.js`, `prices.test.cjs`, `everyday-life.test.cjs`, `expanded-life.test.cjs`, `fixtures/v3-pending-care.json`, `tests/weekend-season2-life-ui.browser.cjs`. 수정: 시즌2의 `data.js`, `engine.js`, `events.js`, `storage.js`, `app.js`, `scene.js`, `index.html`, `style.css`, 관련 기존 시험·문서와 `tests/weekend-season2.browser.cjs`. 다른 실험 구현과 원본 체크아웃의 진행 중 변경은 수정하지 않았습니다.
+
+- [생활 지표와 다중 선호](../output/playwright/weekend-season2-life/six-stats-and-interests-mobile.png), [여러 활동 고르기](../output/playwright/weekend-season2-life/multiple-interests-mobile.png)
+- [성인 자녀·군휴가·질병·집안 장면](../output/playwright/weekend-season2-life-ui/family-health-scenes.png), [평일 저녁 수업](../output/playwright/weekend-season2-life/weekday-evening-class-mobile.png)
+- [17개 통합 검사](../output/playwright/weekend-season2-life/result.json), [추가 UI 검사](../output/playwright/weekend-season2-life-ui/result.json)
+
+```powershell
+node --test weekend_season2/*.test.cjs tests/new-labs.test.cjs tests/preset-scenes.test.cjs ink_time_machine/ink-flow-engine.test.cjs boids_simulation/boids-app.test.cjs evolving_vehicles_2/continuous-race.test.cjs evolving_vehicles_2/racing-guidance.test.cjs
+$env:WEBSIM_URL = 'http://127.0.0.1:8766/'
+$env:WEBSIM_EVIDENCE = 'output/playwright/weekend-season2-life'
+node tests/weekend-season2.browser.cjs
+$env:WEBSIM_EVIDENCE = 'output/playwright/weekend-season2-life-ui'
+node tests/weekend-season2-life-ui.browser.cjs
+```
+
+화면과 원자료 캡처는 Git에서 제외되는 로컬 자료입니다. 공개 후 검사는 `output/playwright/weekend-season2-life-deployed/` 및 `weekend-season2-life-ui-deployed/`에 보관합니다. 아래는 이전 업데이트의 검증 이력입니다.
+
+---
+
 ## 2026-10-17 인구·소득 근거와 인물·집 다양화
 
 새 인생에 공개 집계 자료를 연결하고, 출처와 게임 가정을 구분했습니다. 상세 설명은 시작 화면의 **이 삶은 어떻게 뽑혔나요?**와 [자료 설명](weekend_season2_doc.html#life-sources)에 있습니다. 이전 저장은 새 통계를 소급 적용하지 않고 복원합니다.

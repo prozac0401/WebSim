@@ -85,9 +85,10 @@ test('time includes preparation, travel and care; no role or gender shortcut',()
 
 test('one study session and one cancelled promise do not damage relationships',()=>{
   const s=game();E.addPlan(s,{date:'2026-01-01',slot:'morning',activityId:'study'});const p=E.addPlan(s,{date:'2026-01-03',slot:'afternoon',activityId:'friends'}).plan;E.removePlan(s,p.id,'choice');
-  assert.equal(s.stats.relationship,60);E.advance(s);assert.equal(s.stats.relationship,60);
+  const control=game();assert.equal(s.stats.relationship,control.stats.relationship);E.advance(s);E.advance(control);assert.equal(s.stats.relationship,control.stats.relationship);
+  const beforeRepeatedPostponements=s.stats.relationship;
   for(let n=0;n<2;n++){const fake={id:'f'+n,date:s.date,slot:'evening',activityId:'friends',payment:'cash',originalDate:s.date,ruleId:null};s.plan.push(fake);E.removePlan(s,fake.id,'choice');}
-  assert.equal(s.stats.relationship,52);assert.ok(s.queue.some(q=>q.catalogId==='relationship_boundary'));
+  assert.equal(s.stats.relationship,Number((beforeRepeatedPostponements-8).toFixed(2)));assert.ok(s.queue.some(q=>q.catalogId==='relationship_boundary'));
 });
 
 test('exam result happens at a scheduled decision; failure has recovery choices',()=>{
@@ -122,7 +123,8 @@ test('later-slot conflict does not replay earlier activity or grant duplicate re
   trigger(s,'care_appointment');E.choose(s,'accompany');E.advance(s);assert.equal(s.pendingEvent.catalogId,'constraint');const fatigue=s.stats.fatigue;
   assert.equal(s.activityCounts.study,1);assert.equal(E.addPlan(s,{date:'2026-01-01',slot:'morning',activityId:'study'}).ok,false);
   assert.equal(E.choose(s,'skip').ok,true);s.queue.push({catalogId:'autumn_reflection',date:'2026-01-02',context:{}});E.advance(s);
-  assert.equal(s.activityCounts.study,1);assert.equal(s.log.filter(l=>l.type==='activity'&&l.date==='2026-01-01').length,1);assert.equal(s.stats.fatigue,Math.max(0,fatigue-5-4));
+  assert.equal(s.activityCounts.study,1);assert.equal(s.log.filter(l=>l.type==='activity'&&l.date==='2026-01-01').length,1);
+  assert.ok(s.stats.fatigue<fatigue&&s.stats.fatigue>fatigue-3,'Only the remaining evening and ordinary overnight recovery should reduce fatigue');
 });
 
 test('care conflict can reschedule while keeping original recurring identity',()=>{

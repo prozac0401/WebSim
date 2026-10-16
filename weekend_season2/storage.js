@@ -2,6 +2,9 @@
   'use strict';
   // Keep the browser key stable so v1 players are offered their existing year.
   const KEY='websim-weekend-season2-v1',FORMAT='websim-weekend-season2';
+  // Published v2/v3 text signatures permit a wording update without trusting
+  // replacement actions in an imported pending event. Past logs stay untouched.
+  const LEGACY_EVENTS={care_appointment:'ea889989',care_followup:'81385061',household_repair:'6d254a0a',weather:'684a7431',friend_invitation:'84f296de',transport_delay:'deeef49f',relationship_boundary:'c68e3c17',study_checkpoint:'9b459102',exam_june:'c2314009',exam_nov:'433ad44b',exam_followup:'17c24a39',overtime_boundary:'fbaede74',work_review:'c885f7ef',thesis_presentation:'48c31333',thesis_deadline:'d94a017c',thesis_recovery:'69c4a1e6',job_interview:'63545657',job_offer:'32cc9667',hobby_gathering:'1e5f8a57',hobby_exhibition:'7f17ef47',money_recovery:'43c880d5',fatigue_reset:'7003166d',autumn_reflection:'37c51ac6',partner_weekend:'a4b6dd4f',partner_care:'f6669b1e',partner_followup:'70fe5343',single_weekend:'6e106cd8',single_care:'bbfe2fce',single_followup:'fb31adf4'};
   const object=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
   const money=x=>Number.isSafeInteger(x)&&x>=0&&x<=1000000000000;
   function checksum(text){let n=2166136261;for(let i=0;i<text.length;i++){n^=text.charCodeAt(i);n=Math.imul(n,16777619);}return(n>>>0).toString(16).padStart(8,'0');}
@@ -16,7 +19,12 @@
     if(!inYear(s.date)||!inYear(s.weekStart)||s.weekStart>s.date)bad('진행 날짜가 올바르지 않습니다.');
     if(!['planning','event','review','finished'].includes(s.phase))bad('진행 단계가 올바르지 않습니다.');
     if(!Number.isSafeInteger(s.sequence)||s.sequence<0||s.sequence>1000000||!Number.isInteger(s.weekNumber)||s.weekNumber<1||s.weekNumber>54)bad('진행 번호가 올바르지 않습니다.');
-    if(!object(s.stats)||['fatigue','mood','relationship','preparation','research','work'].some(k=>typeof s.stats[k]!=='number'||!Number.isFinite(s.stats[k])||s.stats[k]<0||s.stats[k]>100))bad('생활 상태 수치를 확인하세요.');
+    if(!object(s.stats)||['health','happiness','knowledge','mood','relationship','family','fatigue','preparation','research','work'].some(k=>typeof s.stats[k]!=='number'||!Number.isFinite(s.stats[k])||s.stats[k]<0||s.stats[k]>100))bad('생활 상태 수치를 확인하세요.');
+    if(!object(s.household)||!Number.isFinite(s.household.cleanliness)||s.household.cleanliness<0||s.household.cleanliness>100||(s.household.lastCleaned!==null&&(!inYear(s.household.lastCleaned)||s.household.lastCleaned>s.date)))bad('집안일 기록을 읽을 수 없습니다.');
+    if(s.healthEpisode!==null){
+      const illness=s.healthEpisode,child=object(illness)&&Number.isInteger(illness.childIndex)?D.getChildren(s.config)[illness.childIndex]:null;
+      if(!object(illness)||!['influenza','pneumonia','hfmd'].includes(illness.kind)||!['self','child'].includes(illness.subject)||!['rest','share'].includes(illness.approach)||!inYear(illness.started)||illness.started>s.date||!C.validDate(illness.recoveryDue)||illness.recoveryDue<illness.started||illness.recoveryDue>C.addDays(illness.started,60)||(illness.subject==='self'?illness.childIndex!==null:!child)||(illness.kind==='hfmd'&&(illness.subject!=='child'||!child||child.age>2)))bad('아팠던 날의 기록을 읽을 수 없습니다.');
+    }
     if(!object(s.rng)||['external','followup'].some(k=>!Number.isInteger(s.rng[k])||s.rng[k]<0||s.rng[k]>4294967295))bad('난수 상태가 올바르지 않습니다.');
     for(const key of ['plan','rules','log','artifacts','queue'])if(!Array.isArray(s[key])||s[key].length>(key==='log'?20000:key==='queue'?100:2000))bad(key+' 목록을 확인하세요.');
     if(errors.length)return errors;
@@ -31,6 +39,66 @@
     if(s.log.filter(l=>l.type==='artifact').length!==s.artifacts.length||s.log.some(l=>l.type==='artifact'&&!s.artifacts.some(a=>a.id===l.artifactId)))bad('결과물 목록과 로그가 일치하지 않습니다.');
     for(const item of s.queue)if(!object(item)||!E.MAP[item.catalogId]||!inYear(item.date)||!object(item.context)||!E.eligible(s,item.catalogId))bad('대기 사건이 손상되었습니다.');
     for(const field of ['skills','activityCounts','flags','eventHistory'])if(!object(s[field]))bad(field+' 상태가 없습니다.');
+    if(object(s.flags)){
+      if(s.flags.autoDecisions!==undefined&&!['auto','important'].includes(s.flags.autoDecisions))bad('자동 선택 방식을 확인하세요.');
+      for(const name of ['sideprojectActive','sideprojectCompleted','sideprojectExtended','sidejobOfferSeen'])if(s.flags[name]!==undefined&&typeof s.flags[name]!=='boolean')bad('부업 진행 상태를 확인하세요.');
+      if(s.flags.sideprojectProgress!==undefined&&(!Number.isInteger(s.flags.sideprojectProgress)||s.flags.sideprojectProgress<0||s.flags.sideprojectProgress>4))bad('프로젝트 진척을 확인하세요.');
+      if(s.flags.sideprojectSerial!==undefined&&(!Number.isInteger(s.flags.sideprojectSerial)||s.flags.sideprojectSerial<1||s.flags.sideprojectSerial>100))bad('프로젝트 번호를 확인하세요.');
+      if(s.flags.sideprojectSerial!==undefined){
+        const progress=s.log.filter(l=>l.type==='work'&&l.activityId==='sideproject'&&l.project===s.flags.sideprojectSerial&&l.category==='completed'&&l.progress!==undefined);
+        if(progress.length!==(s.flags.sideprojectProgress||0)||progress.some((l,i)=>l.progress!==i+1))bad('프로젝트 진척과 실제 작업 기록이 맞지 않습니다.');
+      }
+      if(s.flags.sideprojectActive){
+        const due=s.flags.sideprojectDue,serial=s.flags.sideprojectSerial;
+        const agreement=s.log.some(l=>l.type==='goal'&&l.eventId==='sideproject_offer'&&l.project===serial);
+        const followup=s.queue.filter(q=>q.catalogId==='sideproject_deadline');
+        const pending=s.pendingEvent?.catalogId==='sideproject_deadline';
+        if(!C.validDate(due)||!agreement||!Number.isInteger(s.flags.sideprojectProgress)||s.flags.sideprojectProgress>=4||!(due>s.config.year+'-12-31'?followup.length===0&&!pending:pending?followup.length===0&&s.date>=due:followup.length===1&&followup[0].date===due))bad('프로젝트의 약속과 마감이 이어지지 않습니다.');
+      }else if(s.flags.sideprojectDue!==undefined)bad('마감이 남은 프로젝트의 진행 상태를 확인하세요.');
+      if(s.flags.sidejobBonusRemaining!==undefined){
+        const accepted=s.log.findLastIndex(l=>l.type==='event'&&l.eventId==='sidejob_offer'&&l.choiceId==='accept');
+        const used=accepted<0?[]:s.log.slice(accepted+1).filter(l=>l.type==='work'&&['delivery','parttime'].includes(l.activityId)&&l.amount===D.SIDE_JOBS[l.activityId].reward+10000);
+        if(!Number.isInteger(s.flags.sidejobBonusRemaining)||s.flags.sidejobBonusRemaining<0||s.flags.sidejobBonusRemaining>2||!C.validDate(s.flags.sidejobBonusUntil)||accepted<0||s.flags.sidejobBonusUntil!==C.addDays(s.log[accepted].date,28)||s.flags.sidejobBonusRemaining!==2-used.length)bad('추가 부업 약속과 완료 기록을 확인하세요.');
+      }
+      if(s.flags.illnessLast!==undefined&&(!inYear(s.flags.illnessLast)||s.flags.illnessLast>s.date))bad('아팠던 날짜가 올바르지 않습니다.');
+      if(s.flags.militaryChildIndex!==undefined){const child=D.getChildren(s.config)[s.flags.militaryChildIndex];if(!Number.isInteger(s.flags.militaryChildIndex)||!child||child.militaryStatus!=='serving')bad('자녀의 휴가 기록을 읽을 수 없습니다.');}
+      if(s.flags.militaryLeaveUntil!==undefined&&(!C.validDate(s.flags.militaryLeaveUntil)||!Number.isInteger(s.flags.militaryChildIndex)))bad('휴가 날짜가 올바르지 않습니다.');
+      // An active episode includes its beginning, due date and one future scene.
+      // A valid checksum alone cannot make a disconnected imported story valid.
+      const followupMatches=(id,due,context)=>{
+        const queued=s.queue.filter(item=>item.catalogId===id),pending=s.pendingEvent?.catalogId===id?s.pendingEvent:null;
+        if(due>s.config.year+'-12-31')return queued.length===0&&!pending;
+        const sameContext=value=>Object.entries(context).every(([key,val])=>value?.[key]===val);
+        return pending?queued.length===0&&s.date>=due&&sameContext(pending.context):queued.length===1&&queued[0].date===due&&sameContext(queued[0].context);
+      };
+      const recoveryKeys=['recoveryStarted','recoveryUntil','recoveryCause'];
+      if(s.flags.conditionLast!==undefined&&(!inYear(s.flags.conditionLast)||s.flags.conditionLast>s.date))bad('몸 상태를 돌아본 날짜를 확인하세요.');
+      if(recoveryKeys.some(key=>s.flags[key]!==undefined)){
+        const started=s.flags.recoveryStarted,due=s.flags.recoveryUntil,cause=s.flags.recoveryCause;
+        const causes=['traffic_minor','low_condition_week','sleep_disruption','weekday_overload'];
+        let expected=inYear(started)?C.addDays(started,cause==='sleep_disruption'?3:7):null;
+        if(cause==='weekday_overload'&&inYear(started)){expected=started;while(C.day(expected)!==6)expected=C.addDays(expected,1);}
+        const beginning=s.log.some(l=>l.type==='health'&&l.eventId===cause&&l.cause===cause&&l.started===started&&l.date===started&&l.recoveryDue===due);
+        if(!causes.includes(cause)||!inYear(started)||started>s.date||!C.validDate(due)||due!==expected||s.flags.conditionLast!==started||!beginning||!followupMatches('condition_recovery',C.validDate(due)?C.addDays(due,1):'',{cause,started,recoveryDue:due})||(cause==='weekday_overload'?s.flags.overloadSaturday!==due:s.flags.overloadSaturday!==undefined))bad('쉬어 가는 기간과 다음 약속이 이어지지 않습니다.');
+      }else if(s.flags.overloadSaturday!==undefined)bad('토요일 휴식의 시작 기록이 없습니다.');
+      if(s.flags.vaccineDate!==undefined||s.flags.vaccineProtectionFrom!==undefined){
+        const date=s.flags.vaccineDate,due=s.flags.vaccineProtectionFrom;
+        const start=s.log.some(l=>l.type==='health'&&l.eventId==='flu_vaccination'&&l.vaccinated===true&&l.date===date&&l.protectionFrom===due);
+        const reviewed=s.log.some(l=>l.type==='health'&&l.eventId==='vaccine_followup'&&l.vaccineDate===date&&l.protectionFrom===due&&l.date>=due);
+        const connected=reviewed?!s.queue.some(q=>q.catalogId==='vaccine_followup')&&s.pendingEvent?.catalogId!=='vaccine_followup':followupMatches('vaccine_followup',due,{});
+        if(!inYear(date)||date>s.date||!C.validDate(due)||due!==(inYear(date)?C.addDays(date,14):null)||!start||!connected)bad('예방접종 날짜와 돌아보기 기록이 이어지지 않습니다.');
+      }
+      if(object(s.healthEpisode)){
+        const illness=s.healthEpisode;
+        const beginning=s.log.find(l=>l.type==='health'&&!l.recovered&&l.date===illness.started&&l.kind===illness.kind&&l.subject===illness.subject&&l.childIndex===illness.childIndex&&l.approach===illness.approach&&l.recoveryDue===illness.recoveryDue);
+        if(!beginning||s.flags.illnessLast!==illness.started||!C.validDate(illness.started)||illness.recoveryDue!==C.addDays(illness.started,illness.kind==='pneumonia'?14:7)||!followupMatches('illness_recovery',illness.recoveryDue,{kind:illness.kind,subject:illness.subject,childIndex:illness.childIndex}))bad('아팠던 날과 다음 약속이 이어지지 않습니다.');
+      }
+      const leaveUntil=s.flags.militaryLeaveUntil,index=s.flags.militaryChildIndex;
+      if(leaveUntil!==undefined||index!==undefined){
+        const beginning=s.log.find(l=>l.type==='relationship'&&l.eventId==='military_leave'&&l.childIndex===index&&C.validDate(l.date)&&C.addDays(l.date,7)===leaveUntil);
+        if(!beginning||!C.validDate(leaveUntil)||!followupMatches('military_return',leaveUntil,{childIndex:index}))bad('휴가와 복귀 약속이 이어지지 않습니다.');
+      }
+    }
     if(object(s.skills))for(const [id,value]of Object.entries(s.skills))if(!D.ACTIVITY_MAP[id]||!Number.isFinite(value)||value<0||value>100)bad('숙련 기록이 손상되었습니다.');
     if(object(s.activityCounts))for(const [id,value]of Object.entries(s.activityCounts))if(!D.ACTIVITY_MAP[id]||!Number.isInteger(value)||value!==s.log.filter(l=>l.type==='activity'&&l.activityId===id).length)bad('활동 횟수와 로그가 일치하지 않습니다.');
     if(object(s.activityCounts))for(const a of D.ACTIVITIES)if((s.activityCounts[a.id]||0)!==s.log.filter(l=>l.type==='activity'&&l.activityId===a.id).length)bad('활동 횟수가 로그에서 누락되었습니다.');
@@ -52,6 +120,21 @@
     const sum=(field,type)=>f.ledger.reduce((n,t)=>n+(!type||t.type===type?(t[field]||0):0),0);
     if(s.config.startCash+sum('income')-sum('paid')!==f.cash)bad('현금과 거래 장부가 일치하지 않습니다.');
     if(sum('amount','pending-pay')-sum('amount','extra-pay')!==f.pendingPay||f.pendingRewards.some(r=>!money(r.amount)||!inYear(r.earnedDate))||f.pendingRewards.reduce((n,r)=>n+r.amount,0)!==f.pendingPay)bad('지급 예정액과 장부가 일치하지 않습니다.');
+    const sidejobs=f.ledger.filter(t=>t.kind==='sidejob');
+    const earnedJobs=sidejobs.filter(t=>t.type==='pending-pay'),paidJobs=sidejobs.filter(t=>t.type==='extra-pay');
+    const pendingJobs=f.pendingRewards.filter(r=>r.kind==='sidejob');
+    const validJob=item=>typeof item.reference==='string'&&item.reference.length>0&&item.reference.length<=200&&inYear(item.earnedDate)&&item.earnedDate<=s.date&&C.validDate(item.dueDate)&&item.dueDate===C.addDays(item.earnedDate,1);
+    const sameJob=(a,b)=>a.reference===b.reference&&a.amount===b.amount&&a.label===b.label&&a.earnedDate===b.earnedDate&&a.dueDate===b.dueDate;
+    if(!unique(earnedJobs,'reference')||!unique(paidJobs,'reference')||!unique(pendingJobs,'reference'))bad('부업 보상이 중복되어 있습니다.');
+    for(const item of sidejobs){
+      if(!validJob(item)||!['pending-pay','extra-pay'].includes(item.type)||(item.type==='pending-pay'?item.date!==item.earnedDate:item.date!==item.dueDate))bad('부업의 일한 날과 입금일이 맞지 않습니다.');
+    }
+    for(const reward of pendingJobs){
+      if(!validJob(reward)||reward.dueDate<=f.currentDate||earnedJobs.filter(item=>sameJob(item,reward)).length!==1||paidJobs.some(item=>item.reference===reward.reference))bad('아직 받을 부업 보상이 장부와 맞지 않습니다.');
+    }
+    for(const paid of paidJobs)if(earnedJobs.filter(item=>sameJob(item,paid)).length!==1)bad('부업 입금의 원래 활동 기록이 없습니다.');
+    for(const earned of earnedJobs)if(paidJobs.filter(item=>sameJob(item,earned)).length+pendingJobs.filter(item=>sameJob(item,earned)).length!==1)bad('부업 보상의 지급 상태가 이어지지 않습니다.');
+    if(f.pendingRewards.some(r=>r.kind!==undefined&&r.kind!=='sidejob'||r.kind!=='sidejob'&&(r.reference!==undefined||r.dueDate!==undefined)))bad('부업 보상의 종류를 확인하세요.');
     if(f.ledger.filter(t=>t.type==='purchase'&&t.method==='card').reduce((n,t)=>n+t.amount,0)-sum('amount','card-payment')!==f.cardPending)bad('카드 청구액과 장부가 일치하지 않습니다.');
     if(sum('amount','card-unpaid')-sum('amount','arrears-payment')!==f.arrears||sum('amount','fixed-unpaid')-sum('amount','fixed-arrears-payment')!==f.fixedArrears)bad('미납액과 장부가 일치하지 않습니다.');
     for(const [key,value]of Object.entries(f.processed))if(value!==true||!(/^(begin|end):\d{4}-\d{2}-\d{2}$/.test(key)&&inYear(key.slice(key.indexOf(':')+1))||/^fixed:\d{4}-\d{2}$/.test(key)))bad('정산 처리 기록이 손상되었습니다.');
@@ -67,26 +150,31 @@
   }
   function migrate(state,version){
     if(version===D.VERSION)return state;
-    if(![1,2].includes(version)||!object(state)||state.version!==version||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
+    if(![1,2,3].includes(version)||!object(state)||state.version!==version||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
     const migrated=JSON.parse(JSON.stringify(state));
     migrated.version=D.VERSION;
     // A v1 player did not choose a marital status. Do not invent a spouse or
     // rewrite any past event, financial transaction or random-generator state.
-    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,...migrated.config};
-    if(version===1&&migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
+    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,...migrated.config};
+    migrated.stats={health:70,happiness:60,knowledge:35,family:60,...migrated.stats};
+    if(migrated.household===undefined)migrated.household={cleanliness:70,lastCleaned:null};
+    if(migrated.healthEpisode===undefined)migrated.healthEpisode=null;
+    if(migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
       const event=migrated.pendingEvent,original=E.MAP[event.catalogId];
-      if(!original||original.requires)throw new Error('이전 저장의 사건 종류가 올바르지 않습니다.');
-      const oldChoices=JSON.parse(JSON.stringify(original.choices));
+      if(!original||!LEGACY_EVENTS[event.catalogId]||(version===1&&['partner_weekend','partner_care','partner_followup','single_weekend','single_care','single_followup'].includes(event.catalogId)))throw new Error('이전 저장의 사건 종류가 올바르지 않습니다.');
+      const previous=JSON.parse(JSON.stringify(event));
       const oldLabels={household_repair:{repair:'수리비 35,000원 지출'},exam_june:{take:'시험 응시 · 20,000원'},exam_nov:{take:'시험 응시 · 20,000원'},hobby_gathering:{join:'모임에 참여 · 10,000원'}};
-      for(const choice of oldChoices)if(oldLabels[event.catalogId]&&oldLabels[event.catalogId][choice.id])choice.label=oldLabels[event.catalogId][choice.id];
-      if(JSON.stringify(event.choices)!==JSON.stringify(oldChoices))throw new Error('이전 저장의 사건 선택지가 원본과 일치하지 않습니다.');
+      const publishedLabels={household_repair:{repair:'수리비 3.5만원 지출'},exam_june:{take:'시험 응시 · 2만원'},exam_nov:{take:'시험 응시 · 2만원'},hobby_gathering:{join:'모임에 참여 · 1만원'}};
+      if(version===1&&Array.isArray(previous.choices))for(const choice of previous.choices)if(oldLabels[event.catalogId]?.[choice.id]===choice.label)choice.label=publishedLabels[event.catalogId][choice.id];
+      const signature=value=>checksum(JSON.stringify({title:value.title,source:value.source,choices:value.choices}));
+      if(signature(previous)!==LEGACY_EVENTS[event.catalogId]&&signature(previous)!==signature(original))throw new Error('이전 저장의 선택 내용을 확인할 수 없습니다.');
       event.choices=JSON.parse(JSON.stringify(original.choices));
-      if(event.catalogId==='job_offer')event.description=original.description;
+      event.title=original.title;event.description=original.description;event.source=original.source;
     }
     return migrated;
   }
   function serialize(state){const errors=validate(state);if(errors.length)throw new Error(errors[0]);const payload=JSON.stringify(state);return JSON.stringify({format:FORMAT,version:D.VERSION,savedAt:new Date().toISOString(),checksum:checksum(payload),state},null,2);}
-  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,2,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('지원하는 시즌2 저장 파일이 아닙니다.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일의 검사값이 일치하지 않습니다. 파일이 손상되거나 변경되었습니다.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이전 저장을 호환 형식으로 읽었습니다. 과거 기록·수입·삽화를 유지하며 새 통계를 소급 적용하지 않습니다.':''};}catch(e){return {ok:false,reason:e.message};}}
+  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,2,3,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('시즌2에서 저장한 파일인지 확인해 주세요.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일이 손상되거나 변경되었습니다. 다른 저장 파일을 선택해 주세요.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이어서 살아볼 준비가 됐어요. 지난 기록과 돈, 인물은 그대로 두고 새 생활 지표와 집안일은 오늘부터 시작해요.':''};}catch(e){return {ok:false,reason:e.message};}}
   function save(state,storage){try{(storage||localStorage).setItem(KEY,serialize(state));return {ok:true,reason:''};}catch(e){return {ok:false,reason:'브라우저 저장 실패: '+e.message};}}
   function load(storage){try{const value=(storage||localStorage).getItem(KEY);return value?parse(value):{ok:false,reason:'저장된 게임이 없습니다.'};}catch(e){return {ok:false,reason:'브라우저 저장을 읽지 못했습니다: '+e.message};}}
   function clear(storage){try{(storage||localStorage).removeItem(KEY);return {ok:true};}catch(e){return {ok:false,reason:e.message};}}

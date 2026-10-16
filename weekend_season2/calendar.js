@@ -19,9 +19,23 @@
     '2026-10-03': '개천절', '2026-10-05': '개천절 대체공휴일', '2026-10-09': '한글날',
     '2026-12-25': '성탄절'
   });
+  // Official 2027 almanac, appendix "공휴일", published 2026-06-29.
+  // Local-government-only holidays are not nationwide days off in this game.
+  const holidays2027 = Object.freeze({
+    '2027-01-01': '새해 첫날',
+    '2027-02-06': '설 연휴', '2027-02-07': '설날', '2027-02-08': '설 연휴', '2027-02-09': '설날 대체공휴일',
+    '2027-03-01': '삼일절',
+    '2027-05-01': '노동절', '2027-05-03': '노동절 대체공휴일', '2027-05-05': '어린이날', '2027-05-13': '부처님오신날',
+    '2027-06-06': '현충일',
+    '2027-07-17': '제헌절', '2027-07-19': '제헌절 대체공휴일',
+    '2027-08-15': '광복절', '2027-08-16': '광복절 대체공휴일',
+    '2027-09-14': '추석 연휴', '2027-09-15': '추석', '2027-09-16': '추석 연휴',
+    '2027-10-03': '개천절', '2027-10-04': '개천절 대체공휴일', '2027-10-09': '한글날', '2027-10-11': '한글날 대체공휴일',
+    '2027-12-25': '성탄절', '2027-12-27': '성탄절 대체공휴일'
+  });
   const holidaySources = Object.freeze([
     { title: '우주항공청 · 2026년 월력요항 (2025-06-30)', url: 'https://www.kasa.go.kr/bbs/BBSMSTR_000000000010/view.do?nttId=B000000001860Pe2zT3', note: '음력 명절·대체공휴일·지방선거일의 기본 자료', checked: '2026-10-17' },
-    { title: '우주항공청 · 2027년 월력요항 (2026-06-29)', url: 'https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431', note: '2026년부터 노동절·제헌절 추가 적용, 2026년 주5일제 휴일 120일임을 확인', checked: '2026-10-17' },
+    { title: '우주항공청 · 2027년 월력요항 (2026-06-29)', url: 'https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431', mirrorUrl: 'https://www.korea.kr/briefing/pressReleaseView.do?newsId=156768474', attachmentUrl: 'https://www.korea.kr/common/download.do?fileId=198497802&tblKey=GMN', note: '원본 HWPX 붙임 공휴일 표: 2027년 공휴일 24개 날짜·대체공휴일 7일, 주5일제 휴일 119일. 2026년 노동절·제헌절 추가 적용 후 120일임도 확인. 지방 관공서만의 휴일은 전국 공휴일에 포함하지 않음.', checked: '2026-10-17' },
     { title: '국가법령정보센터 · 관공서의 공휴일에 관한 규정 제2조', url: 'https://law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1018770105', note: '2026년 개정 공휴일 목록 교차 확인', checked: '2026-10-17' }
   ]);
   function validDate(value) {
@@ -61,10 +75,10 @@
     while (cursor <= last) { result.push(cursor); if (cursor === last) break; cursor = addDays(cursor, 1); }
     return result;
   }
-  function holiday(date) { parse(date); return holidays2026[date] || ''; }
+  function holiday(date) { parse(date); return holidays2026[date] || holidays2027[date] || ''; }
   function isOff(date) { const weekday = day(date); return weekday === 0 || weekday === 6 || !!holiday(date); }
   function holidayStatus(year) {
-    return Number(year) === 2026 ? { verified: true, label: '대한민국 2026년 공휴일 확인됨 · 주5일제 가정' } : { verified: false, label: '공휴일 자료 미확인 · 토·일만 휴일로 표시' };
+    return [2026,2027].includes(Number(year)) ? { verified: true, label: '대한민국 '+Number(year)+'년 공휴일 확인됨 · 주5일제 가정' } : { verified: false, label: '공휴일 자료 미확인 · 토·일만 휴일로 표시' };
   }
   function weekDates(date) {
     parse(date);

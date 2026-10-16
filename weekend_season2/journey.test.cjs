@@ -55,7 +55,7 @@ test('active choices across four presets and three seeds complete all 365 days w
     assert.ok(weekdayLogs.every(l=>!C.isOff(l.date)), 'holiday never duplicates basic work');
     assert.ok(Object.values(state.stats).every(n=>Number.isFinite(n)&&n>=0&&n<=100));
     assert.ok(state.finance.ledger.every(l=>Number.isSafeInteger(l.amount)&&l.amount>=0));
-    const scheduled={exam_june:'2026-06-20',exam_nov:'2026-11-14',thesis_presentation:'2026-09-16',thesis_deadline:'2026-11-27',work_review:'2026-12-18',autumn_reflection:'2026-10-01',partner_weekend:'2026-02-07',partner_care:'2026-02-07',single_weekend:'2026-02-07',single_care:'2026-02-07'};
+    const scheduled={exam_june:'2026-06-20',exam_nov:'2026-11-14',thesis_presentation:'2026-09-16',thesis_deadline:'2026-11-27',work_review:'2026-12-18',flu_vaccine_season:'2026-10-01',autumn_reflection:'2026-10-02',partner_weekend:'2026-02-07',partner_care:'2026-02-07',single_weekend:'2026-02-07',single_care:'2026-02-07'};
     for(const log of state.log.filter(l=>l.type==='event'&&l.source==='scheduled'))assert.equal(log.date,scheduled[log.eventId]);
     if(!initial.children)assert.ok(!state.log.some(l=>l.eventId==='care_appointment'));
     const external=state.log.filter(l=>l.type==='event'&&l.source==='external');
@@ -80,9 +80,9 @@ test('active-year result is reproducible from the same environment, seed and cho
 test('zero funds and full care still have a year-long free recovery route with debt visible', () => {
   const initial={...D.PRESETS[3].config,startCash:0,salary:0,externalAllowance:0,personalBudget:0,children:6,careShare:100};
   const state=activeYear(initial), summary=F.summary(state.finance);
-  assert.equal(summary.income,0);
+  assert.equal(summary.income,state.finance.ledger.filter(l=>l.type==='extra-pay'&&l.kind==='sidejob').reduce((sum,l)=>sum+l.amount,0),'only completed side jobs can add income to this unsupported household');
   assert.equal(summary.cash,0);
-  assert.equal(summary.debt,12*initial.fixedCosts);
+  assert.equal(summary.debt,12*initial.fixedCosts-summary.income,'earned side income pays mandatory arrears instead of disappearing');
   assert.ok(state.log.some(l=>l.type==='activity'&&l.cost===0));
   assert.ok(state.log.some(l=>l.type==='care'));
 });

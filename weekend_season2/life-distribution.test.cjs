@@ -57,7 +57,7 @@ test('income is conditioned on residence; support is explicitly a fictional shar
 test('v2 saves keep finances, old appearances and unknown residence without retroactive resampling',()=>{
   const old=E.create(D.PRESETS[0].config);E.advance(old);old.version=2;
   for(const key of ['province','residenceOrigin','appearance','homeStyle','generationModel','incomeOrigin'])delete old.config[key];
-  const before=structuredClone(old),result=S.parse(envelope(old,2));assert.ok(result.ok,result.reason);assert.equal(result.state.version,3);
+  const before=structuredClone(old),result=S.parse(envelope(old,2));assert.ok(result.ok,result.reason);assert.equal(result.state.version,D.VERSION);
   for(const key of ['finance','rng','log','stats','date','phase','pendingEvent'])assert.deepEqual(result.state[key],before[key]);
   assert.equal(result.state.config.province,'unspecified');assert.equal(result.state.config.appearance,null);assert.equal(result.state.config.homeStyle,null);
   assert.equal(result.state.config.salary,before.config.salary);assert.equal(result.state.config.incomeOrigin,null);
