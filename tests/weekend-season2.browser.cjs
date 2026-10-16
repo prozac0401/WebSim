@@ -152,7 +152,7 @@ async function season(page, browser) {
   for(const key of ['mode','date','stats','finance','plan','artifactCount','logCount'])assert.deepEqual(restored[key],saved[key],key);
   const downloadPromise=page.waitForEvent('download');await click(page,'#export-save');
   const download=await downloadPromise, savePath=path.join(output,'ui-save.json');await download.saveAs(savePath);
-  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,4);
+  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,5);
   await click(page,'#continue-week');
   const current=await textState(page), rawBefore=await page.evaluate(()=>localStorage.getItem(S2Storage.KEY));
   await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"version":999}')});
@@ -251,12 +251,12 @@ async function diversity(browser){
   await click(page,'#start-btn');
   const before=await textState(page);assert.equal(before.mode,'planning');assert.equal(before.generation.province,'busan');
   const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,version:r.state?.version,allowance:r.state?.config.externalAllowance};});
-  assert.equal(saved.ok,true);assert.equal(saved.version,4);assert.equal(saved.allowance,1234500);
+  assert.equal(saved.ok,true);assert.equal(saved.version,5);assert.equal(saved.allowance,1234500);
   await shot(page,'diverse-family-mobile');
   await page.reload();await click(page,'#resume-game');
   const restored=await textState(page);assert.deepEqual(restored.generation,before.generation);assert.deepEqual(restored.scene.character.appearance,before.scene.character.appearance);assert.deepEqual(restored.scene.home,before.scene.home);
   await context.close();
-  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v4 저장 복원');
+  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v5 저장 복원');
 }
 async function expandedLife(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});

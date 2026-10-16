@@ -1,0 +1,177 @@
+{
+  "format": "websim-weekend-season2",
+  "version": 4,
+  "savedAt": "2026-10-16T23:46:33.034Z",
+  "checksum": "d2c735d5",
+  "state": {
+    "version": 4,
+    "config": {
+      "year": 2026,
+      "age": 32,
+      "gender": "unspecified",
+      "maritalStatus": "single",
+      "personaName": "",
+      "lifeIntro": "",
+      "generationSeed": null,
+      "role": "worker",
+      "children": 0,
+      "childAge": "none",
+      "careShare": 50,
+      "province": "unspecified",
+      "residenceOrigin": null,
+      "appearance": null,
+      "homeStyle": null,
+      "generationModel": null,
+      "incomeOrigin": null,
+      "childProfiles": null,
+      "housing": "studio",
+      "region": "city",
+      "transport": "transit",
+      "salary": 2800000,
+      "externalAllowance": 0,
+      "personalBudget": 500000,
+      "fixedCosts": 1500000,
+      "startCash": 2000000,
+      "payDay": 1,
+      "cardLimit": 1500000,
+      "preferences": [
+        "walk",
+        "photo"
+      ],
+      "seed": 2026
+    },
+    "presetId": "worker",
+    "date": "2026-01-01",
+    "weekStart": "2026-01-01",
+    "phase": "event",
+    "stats": {
+      "health": 70,
+      "happiness": 60,
+      "knowledge": 35,
+      "mood": 60,
+      "relationship": 60,
+      "family": 60,
+      "fatigue": 25,
+      "preparation": 0,
+      "research": 0,
+      "work": 0
+    },
+    "household": {
+      "cleanliness": 70,
+      "lastCleaned": null
+    },
+    "healthEpisode": null,
+    "finance": {
+      "cash": 3300000,
+      "cardPending": 0,
+      "arrears": 0,
+      "fixedArrears": 0,
+      "pendingPay": 0,
+      "pendingRewards": [],
+      "ledger": [
+        {
+          "id": "tx-1",
+          "date": "2026-01-01",
+          "type": "salary",
+          "amount": 2800000,
+          "label": "급여",
+          "method": "",
+          "income": 2800000,
+          "consumption": 0,
+          "paid": 0,
+          "cause": ""
+        },
+        {
+          "id": "tx-2",
+          "date": "2026-01-01",
+          "type": "fixed-cost",
+          "amount": 1500000,
+          "label": "이번 달 필수 고정비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 1500000,
+          "paid": 1500000,
+          "cause": "unavoidable",
+          "unpaid": 0
+        }
+      ],
+      "processed": {
+        "begin:2026-01-01": true,
+        "fixed:2026-01": true
+      },
+      "currentDate": "2026-01-01",
+      "monthKey": "2026-01",
+      "monthSpent": 0
+    },
+    "plan": [],
+    "rules": [],
+    "log": [],
+    "artifacts": [],
+    "pendingEvent": {
+      "id": "illness_influenza-1",
+      "source": "external",
+      "requires": {
+        "noIllness": true
+      },
+      "title": "독감 때문에 멈춘 며칠",
+      "description": "독감 진료를 받고 돌아왔습니다. 몸이 무겁고 평소 일정도 버겁네요. 치료 안내를 따르면서 이번 주를 어떻게 비울지 생각합니다.",
+      "healthSource": "kdca-influenza",
+      "choices": [
+        {
+          "id": "rest",
+          "label": "일정을 줄이고 집에서 쉴게요",
+          "description": "일주일 동안 쉬는 시간을 넉넉히 남깁니다. 잡아 둔 약속은 다른 시간으로 옮길 수 있어요.",
+          "effects": {
+            "health": -10,
+            "fatigue": 10,
+            "mood": -4
+          },
+          "action": "illness_rest"
+        },
+        {
+          "id": "share",
+          "label": "주변에 도움을 부탁할게요",
+          "description": "진료 후 생활 일을 나눌 사람과 이야기합니다. 매일 챙겨야 할 시간이 줄어듭니다.",
+          "effects": {
+            "health": -10,
+            "fatigue": 7,
+            "mood": -2
+          },
+          "action": "illness_share"
+        }
+      ],
+      "catalogId": "illness_influenza",
+      "date": "2026-01-01",
+      "context": {}
+    },
+    "queue": [],
+    "dayState": {
+      "date": "2026-01-01",
+      "begun": true,
+      "eventHandled": true,
+      "randomChecked": false,
+      "baseDone": false,
+      "done": [],
+      "blocks": {},
+      "extraTravel": 0,
+      "skipWork": false
+    },
+    "skills": {},
+    "activityCounts": {},
+    "flags": {
+      "externalDelivered": "2026-01-01"
+    },
+    "eventHistory": {
+      "illness_influenza": 1
+    },
+    "sequence": 1,
+    "weekNumber": 1,
+    "rng": {
+      "external": 3263193597,
+      "followup": 2246823297
+    },
+    "friendPostponements": 0,
+    "lastExternal": null,
+    "review": null
+  }
+}

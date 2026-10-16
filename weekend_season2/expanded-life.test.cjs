@@ -35,7 +35,7 @@ test('legacy child age bands have an explicit conservative fallback and no infer
 test('actual published v3 pending care save keeps eleven past days and exact financial values',()=>{
   const text=fs.readFileSync(path.join(__dirname,'fixtures/v3-pending-care.json'),'utf8'),old=JSON.parse(text).state;
   assert.equal(old.version,3);assert.equal(old.log.filter(l=>l.type==='daily').length,11);
-  const result=S.parse(text);assert.ok(result.ok,result.reason);assert.equal(result.state.version,4);
+  const result=S.parse(text);assert.ok(result.ok,result.reason);assert.equal(result.state.version,D.VERSION);
   for(const field of ['finance','log','artifacts','rng','plan','rules','date','weekStart'])assert.deepEqual(result.state[field],old[field],field);
   for(const [key,value]of Object.entries(old.stats))assert.equal(result.state.stats[key],value);
   for(const key of ['health','happiness','knowledge','family'])assert.ok(Number.isFinite(result.state.stats[key]));

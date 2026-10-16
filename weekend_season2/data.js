@@ -6,12 +6,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (Demographics, Income, Prices) {
   'use strict';
   const ROLES = { worker: '직장인', seeker: '구직자', graduate: '대학원생', caregiver: '돌봄 중심' };
-  const MARITAL_STATUSES = {single:'미혼',married:'기혼',unspecified:'이전 저장 · 설정하지 않음'};
+  const MARITAL_STATUSES = {single:'미혼',married:'기혼',divorced:'이혼',unspecified:'이전 저장 · 설정하지 않음'};
+  const HOUSING_TENURES = {own:'자가',rent:'월세',jeonse:'전세',unspecified:'이전 저장 · 설정하지 않음'};
+  const HOUSING_MODEL = {id:'fictional-housing-budget-v1',note:'자가·월세·전세의 배정 비중, 월세, 대출 잔액과 금리는 게임용 가정입니다. 실제 지역별 주거 비율이나 시세를 뜻하지 않습니다. 기존 월 생활비를 월세·대출이자·나머지 생활비로 나누며, 이미 있는 대출 잔액을 시작 현금에 더하지 않습니다.'};
   const APPEARANCE_OPTIONS = {faceShape:['round','oval','square','heart','long'],hairStyle:['long-soft','short-swept','side-wave','rounded-crop','curly','bob','ponytail','buzz','bun','braids'],hairColor:['espresso','chestnut','honey','slate','silver'],skinTone:['ivory','warm','tan','deep'],outfitPalette:['moss','terracotta','indigo','rose','mustard','teal']};
   const HOME_OPTIONS = {palette:['oat','sage','rose','sky','clay','lavender'],layout:['window-left','window-right','wide-window'],decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']};
   const base = { year: 2026, age: 32, gender: 'unspecified', maritalStatus:'single', personaName:'', lifeIntro:'', generationSeed:null, role: 'worker', children: 0, childAge: 'none', careShare: 50,
     province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,
-    housing: 'studio', region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
+    housing: 'studio', housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
     personalBudget: 500000, fixedCosts: 1500000, startCash: 2000000, payDay: 1, cardLimit: 1500000,
     preferences: ['walk', 'photo'], seed: 2026 };
   const PRESETS = [
@@ -99,18 +101,35 @@
     config.incomeOrigin={kind:config.role==='worker'?'wage':'support-model',sourceId:sampled.sourceId,bandId:sampled.bandId,provinceId:config.province,sampledMonthly:sampled.amount,assignedMonthly:config.salary+config.externalAllowance,supportShare};
     return config;
   }
+  function assignHousingBudget(config,totalBudget){
+    const next=randomStream(config.generationSeed??config.seed,'housing-tenure-and-budget');
+    config.housingTenure=['own','rent','jeonse'][Math.floor(next()*3)];
+    const rentShare=.25+.25*next(),hasLoan=next()<.55,interestShare=.08+.17*next();
+    const rate=[250,350,450,550,650][Math.floor(next()*5)];
+    config.monthlyRent=config.housingTenure==='rent'?Math.floor(totalBudget*rentShare):0;
+    const targetInterest=hasLoan?Math.floor(totalBudget*interestShare):0;
+    // The whole housing model is fictional. Infer an existing balance from a
+    // bounded interest budget, not an asset price or a new cash disbursement.
+    config.housingLoanPrincipal=Math.min(10000000000,Math.floor(targetInterest*120000/rate/10000)*10000);
+    config.housingLoanRateBps=config.housingLoanPrincipal?rate:0;
+    const interest=Math.round(config.housingLoanPrincipal*config.housingLoanRateBps/120000);
+    config.fixedCosts=totalBudget-config.monthlyRent-interest;
+    return config;
+  }
   function generateLife(seed){
     if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw new RangeError('새 인생의 시드는 0~4294967295 정수여야 합니다.');
     // A private generator constructs a fictional person. It never touches the
     // external-event or followup streams owned by an active simulation.
     const next=randomStream(seed,'fictional-household');
     const pick=values=>values[Math.floor(next()*values.length)];
-    // Sixteen balanced combinations cover every role × marital status × child
-    // presence. Marital status never sets income, abilities or care share.
+    // Sixteen fictional combinations cover every role × partnered/unpartnered
+    // household × child presence. Unpartnered generated parents are divorced;
+    // these are story choices, not observed marriage or divorce frequencies.
     const profile=seed%16,preset=PRESETS[profile%4],config=JSON.parse(JSON.stringify(preset.config));
     config.seed=seed;config.generationSeed=seed;
     config.maritalStatus=Math.floor(profile/4)%2?'married':'single';
     config.children=Math.floor(profile/8)?pick([1,1,2]):0;
+    if(config.maritalStatus==='single'&&config.children>0)config.maritalStatus='divorced';
     config.age=pick([22,26,29,32,35,38,41,45,49,52,56,59,62,65,69]);
     // These ages and household combinations are narrative choices, not sampled
     // age-specific census or military-service probabilities.
@@ -134,8 +153,9 @@
     // Housing costs, starting savings and support shares are explicit game
     // assumptions, not statistics inferred from a person's name or appearance.
     const moneyRandom=randomStream(seed,'living-budget'),income=config.salary+config.externalAllowance;
-    config.fixedCosts=Math.round(income*(.45+.25*moneyRandom()));
-    config.personalBudget=Math.round((income-config.fixedCosts)*.55);
+    const livingBudget=Math.round(income*(.45+.25*moneyRandom()));
+    assignHousingBudget(config,livingBudget);
+    config.personalBudget=Math.round((income-livingBudget)*.55);
     config.startCash=Math.round(income*(.4+1.4*moneyRandom()));
     config.cardLimit=Math.max(100000,Math.min(5000000,Math.round(income*.5)));
     const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'];
@@ -145,13 +165,13 @@
     const name=surname+givenName;config.personaName=name;
     const region=provinceLabel(config.province);
     const role={worker:'일하며',seeker:'새로운 일자리를 찾으며',graduate:'대학원에서 공부하며',caregiver:'가까운 사람들을 돌보며'}[config.role];
-    const family=config.maritalStatus==='married'?'배우자와 함께 살고 있어요.':'미혼이에요. 혼자만의 시간도, 가까운 사람들과의 시간도 소중해요.';
+    const family=config.maritalStatus==='married'?'배우자와 함께 살고 있어요.':config.maritalStatus==='divorced'?'이혼 후 나와 가족의 일상을 꾸려 가고 있어요.':'미혼이에요. 혼자만의 시간도, 가까운 사람들과의 시간도 소중해요.';
     const children=config.children?' 자녀는 '+config.childProfiles.map(child=>child.age+'세 '+(child.gender==='man'?'아들':'딸')+(child.militaryStatus==='serving'?'(군 복무 중)':'')).join(', ')+'입니다.':'';
     const intro=name+', '+config.age+'세. '+region+'에서 '+role+' 지냅니다. '+family+children+' 요즘은 '+config.preferences.map(id=>ACTIVITY_MAP[id].name).join(' · ')+'에 관심이 있어요.';
     config.lifeIntro=intro;
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 4, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,
+  return { VERSION: 5, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

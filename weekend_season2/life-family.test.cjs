@@ -56,6 +56,36 @@ test('generated lives are deterministic, fictional, balanced across 16 household
   assert.throws(()=>D.generateLife(-1));assert.throws(()=>D.generateLife(1.5));
 });
 
+test('generated unpartnered parents are divorced while explicit single parents remain selectable',()=>{
+  for(let seed=0;seed<2048;seed++){
+    const {config,intro}=D.generateLife(seed),profile=seed%16;
+    const expected=profile>=8&&profile<12?'divorced':Math.floor(profile/4)%2?'married':'single';
+    assert.equal(config.maritalStatus,expected);
+    assert.equal(config.maritalStatus==='single'&&config.children>0,false);
+    if(config.maritalStatus==='divorced'){assert.ok(config.children>0);assert.match(intro,/이혼 후/);assert.doesNotMatch(intro,/미혼이에요/);}
+  }
+  const manual=E.create({...D.PRESETS[0].config,maritalStatus:'single',children:2,childAge:'school'});
+  assert.equal(manual.config.maritalStatus,'single');assert.equal(manual.config.children,2);
+  assert.deepEqual(E.validateConfig({...manual.config,maritalStatus:'divorced'}),[]);
+});
+
+test('divorced generation preserves captured low-income budgets, loan balances and identity',()=>{
+  // Captured from the immediately preceding housing-v5 generator. A narrative
+  // change must not silently repair low income, cheap rent, or existing debt.
+  const fixtures=[
+    {seed:635,personaName:'이정숙',children:2,salary:0,externalAllowance:6949,fixedCosts:3536,personalBudget:1877,startCash:3681,monthlyRent:0,housingTenure:'jeonse',housingLoanPrincipal:0,housingLoanRateBps:0,cardLimit:100000},
+    {seed:169,personaName:'이예은',children:1,salary:0,externalAllowance:14587,fixedCosts:2459,personalBudget:3937,startCash:13630,monthlyRent:3502,housingTenure:'rent',housingLoanPrincipal:320000,housingLoanRateBps:550,cardLimit:100000},
+    {seed:107,personaName:'박서연',children:1,salary:0,externalAllowance:16628,fixedCosts:4791,personalBudget:4088,startCash:27940,monthlyRent:2509,housingTenure:'rent',housingLoanPrincipal:350000,housingLoanRateBps:650,cardLimit:100000}
+  ];
+  for(const fixture of fixtures){
+    const config=D.generateLife(fixture.seed).config;
+    assert.equal(config.maritalStatus,'divorced');
+    for(const [key,value]of Object.entries(fixture))assert.equal(config[key],value,fixture.seed+' '+key);
+    const state=E.create(config),manual=E.create({...config,maritalStatus:'single'});
+    assert.deepEqual(state.rng,manual.rng);assert.deepEqual(state.finance,manual.finance);assert.deepEqual(state.stats,manual.stats);
+  }
+});
+
 test('money display rounds to one decimal 만원 without changing integer-won accounting',()=>{
   for(const [value,label]of [[0,'0만원'],[1,'0만원'],[500,'0.1만원'],[12000,'1.2만원'],[55000,'5.5만원'],[2800000,'280만원'],[-500,'-0.1만원'],[3309438,'330.9만원']])assert.equal(D.formatMoney(value),label);
   assert.throws(()=>D.formatMoney(0.1));assert.throws(()=>D.formatMoney(NaN));
@@ -114,14 +144,17 @@ test('zero funds and long travel select feasible free alternatives instead of re
 
 test('marital status alone never sets income, ability or caregiving burden',()=>{
   const config={...D.PRESETS[0].config,children:1,childAge:'school',careShare:60};
-  const single=E.create({...config,maritalStatus:'single'}),married=E.create({...config,maritalStatus:'married'});
-  assert.deepEqual(single.stats,married.stats);assert.deepEqual(single.finance,married.finance);
-  assert.equal(E.careMinutes(single,'2026-01-03','morning'),E.careMinutes(married,'2026-01-03','morning'));
-  assert.equal(single.config.salary,married.config.salary);assert.equal(single.config.careShare,married.config.careShare);
+  const single=E.create({...config,maritalStatus:'single'});
+  for(const maritalStatus of ['married','divorced']){
+    const other=E.create({...config,maritalStatus});
+    assert.deepEqual(single.stats,other.stats);assert.deepEqual(single.finance,other.finance);
+    assert.equal(E.careMinutes(single,'2026-01-03','morning'),E.careMinutes(other,'2026-01-03','morning'));
+    assert.equal(single.config.salary,other.config.salary);assert.equal(single.config.careShare,other.config.careShare);
+  }
 });
 
 test('household events require marital status, child presence and an actual prior choice',()=>{
-  const configs=[['single',0,'single_weekend'],['single',1,'single_care'],['married',0,'partner_weekend'],['married',1,'partner_care']];
+  const configs=[['single',0,'single_weekend'],['single',1,'single_care'],['divorced',0,'single_weekend'],['divorced',1,'single_care'],['married',0,'partner_weekend'],['married',1,'partner_care']];
   for(const [maritalStatus,children,eligible]of configs){
     const s=E.create({...D.PRESETS[0].config,maritalStatus,children,childAge:children?'school':'none'});
     for(const id of ['single_weekend','single_care','partner_weekend','partner_care'])assert.equal(Events.eligible(s,id),id===eligible);
@@ -132,21 +165,21 @@ test('household events require marital status, child presence and an actual prio
   }
 });
 
-test('care-sharing effects require a choice and remain available in either marital status',()=>{
-  for(const maritalStatus of ['single','married']){
+test('care-sharing effects require a choice and remain available in every marital status',()=>{
+  for(const maritalStatus of ['single','divorced','married']){
     const s=E.create({...D.PRESETS[0].config,maritalStatus,children:1,childAge:'preschool',careShare:80});
-    const before=E.careMinutes(s,'2026-01-03','morning');trigger(s,maritalStatus==='single'?'single_care':'partner_care');
+    const before=E.careMinutes(s,'2026-01-03','morning');trigger(s,maritalStatus==='married'?'partner_care':'single_care');
     assert.equal(E.careMinutes(s,'2026-01-03','morning'),before);
-    E.choose(s,maritalStatus==='single'?'ask':'swap');assert.equal(E.careMinutes(s,'2026-01-03','morning'),before/2);
+    E.choose(s,maritalStatus==='married'?'swap':'ask');assert.equal(E.careMinutes(s,'2026-01-03','morning'),before/2);
     assert.equal(s.config.careShare,80);assert.equal(s.config.salary,D.PRESETS[0].config.salary);
   }
 });
 
 test('new household help halves even capped care time without rewriting legacy care rules',()=>{
-  for(const maritalStatus of ['single','married']){
+  for(const maritalStatus of ['single','divorced','married']){
     const s=E.create({...D.PRESETS[0].config,maritalStatus,children:6,childAge:'preschool',careShare:100});
     assert.equal(E.careMinutes(s,'2026-01-03','morning'),180);
-    trigger(s,maritalStatus==='single'?'single_care':'partner_care');E.choose(s,maritalStatus==='single'?'ask':'swap');
+    trigger(s,maritalStatus==='married'?'partner_care':'single_care');E.choose(s,maritalStatus==='married'?'swap':'ask');
     assert.equal(E.careMinutes(s,'2026-01-03','morning'),90);
   }
   const previous=E.create({...D.PRESETS[0].config,children:6,childAge:'preschool',careShare:100});previous.flags.careSharedUntil='2026-01-30';

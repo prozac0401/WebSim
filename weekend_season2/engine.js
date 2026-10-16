@@ -15,10 +15,12 @@
   function validateConfig(c) {
     const errors = [];
     if (!c || typeof c !== 'object' || Array.isArray(c)) return ['시작 설정이 없습니다.'];
-    const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
+    const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],monthlyRent:[0,100000000],housingLoanPrincipal:[0,10000000000],housingLoanRateBps:[0,3000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
     for (const [key,[min,max]] of Object.entries(nums)) if (!Number.isSafeInteger(c[key]) || c[key]<min || c[key]>max) errors.push(key+' 설정 범위를 확인하세요.');
-    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:['single','married','unspecified'],role:Object.keys(D.ROLES),childAge:['none','toddler','preschool','school','teen','adult'],housing:['studio','apartment','shared'],region:['city','town','rural'],transport:['walk','transit','car']};
+    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:['single','married','divorced','unspecified'],role:Object.keys(D.ROLES),childAge:['none','toddler','preschool','school','teen','adult'],housing:['studio','apartment','shared'],housingTenure:['own','rent','jeonse','unspecified'],region:['city','town','rural'],transport:['walk','transit','car']};
     for (const [key,values] of Object.entries(enums)) if (!values.includes(c[key])) errors.push(key+' 설정을 확인하세요.');
+    if(c.housingTenure!=='rent'&&c.monthlyRent!==0)errors.push('월세는 월세 계약에서만 설정할 수 있습니다.');
+    if(c.housingTenure==='unspecified'&&(c.housingLoanPrincipal!==0||c.housingLoanRateBps!==0))errors.push('대출을 설정하려면 자가·월세·전세 중 주거 계약을 선택하세요.');
     if (!Array.isArray(c.preferences) || c.preferences.length>D.ACTIVITIES.length || c.preferences.some(id=>!D.ACTIVITY_MAP[id]) || new Set(c.preferences).size!==c.preferences.length) errors.push('활동 선호를 확인하세요.');
     if (c.children>0 && c.childAge==='none') errors.push('자녀가 있으면 연령대를 선택하세요.');
     if(c.childProfiles!==null&&c.childProfiles!==undefined){
@@ -256,7 +258,7 @@
     if(s.date===vaccineDate&&!s.flags.vaccineDate){if(id==='autumn_reflection')queue(s,'autumn_reflection',C.addDays(s.date,1));id='flu_vaccine_season';}
     if(suffix==='07-25'&&E.eligible(s,'military_leave'))id='military_leave';
     if(suffix==='02-07'&&s.config.maritalStatus==='married')id=children(s).some(child=>child.age<18)?'partner_care':'partner_weekend';
-    if(suffix==='02-07'&&s.config.maritalStatus==='single')id=children(s).some(child=>child.age<18)?'single_care':'single_weekend';
+    if(suffix==='02-07'&&['single','divorced'].includes(s.config.maritalStatus))id=children(s).some(child=>child.age<18)?'single_care':'single_weekend';
     return id&&!s.eventHistory[id]&&E.eligible(s,id)?id:null;
   }
   function maybeEvent(s) {
@@ -727,7 +729,7 @@
       return {month:Number(month),activities:logs.filter(l=>l.type==='activity').length,memories:logs.filter(l=>['artifact','achievement','relationship','event'].includes(l.type)),meanMood:days.length?Math.round(days.reduce((n,l)=>n+l.stats.mood,0)/days.length):null};
     });
     const ranked=monthly.filter(m=>m.meanMood!==null).sort((a,b)=>b.meanMood-a.meanMood||a.month-b.month);
-    return {year:s.config.year,activityCounts:clone(s.activityCounts),calendar,monthly,artifacts:clone(s.artifacts),achievements:s.log.filter(l=>l.type==='achievement'),relationshipScenes:s.log.filter(l=>l.type==='relationship'),finance:F.summary(s.finance),happiestMonth:ranked.length?ranked[0]:null,kept:s.log.filter(l=>l.type==='activity'&&l.ruleId).length,postponed:s.log.filter(l=>['postponed','skipped'].includes(l.type)),cannot:s.log.filter(l=>l.category==='cannot'),choices:s.log.filter(l=>l.category==='choice'),log:s.log.slice(),daysPlayed:s.log.filter(l=>l.type==='daily').length};
+    return {year:s.config.year,activityCounts:clone(s.activityCounts),calendar,monthly,artifacts:clone(s.artifacts),achievements:s.log.filter(l=>l.type==='achievement'),relationshipScenes:s.log.filter(l=>l.type==='relationship'),finance:F.summary(s.finance,s.config),happiestMonth:ranked.length?ranked[0]:null,kept:s.log.filter(l=>l.type==='activity'&&l.ruleId).length,postponed:s.log.filter(l=>['postponed','skipped'].includes(l.type)),cannot:s.log.filter(l=>l.category==='cannot'),choices:s.log.filter(l=>l.category==='choice'),log:s.log.slice(),daysPlayed:s.log.filter(l=>l.type==='daily').length};
   }
   return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,replaceAutoWeek,replanAutoWeek:replaceAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,advanceAutomatic,resolveAutomatic,choose,finishReview,getSummary,activityTime,travelMinutes,careMinutes,conditionMinutes,influenzaWeight,season,SLOT_IDS,SLOT_LABELS,PUBLIC_STATS,AUTO_DIRECTIONS,AUTOMATIC_MAJOR:[...AUTOMATIC_MAJOR]};
 });

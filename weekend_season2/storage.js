@@ -1,4 +1,4 @@
-(function(root,factory){const node=typeof module==='object'&&module.exports;const api=factory(node?require('./data.js'):root.S2Data,node?require('./calendar.js'):root.S2Calendar,node?require('./recurrence.js'):root.S2Recurrence,node?require('./events.js'):root.S2Events,node?require('./engine.js'):root.S2Engine);if(node)module.exports=api;else root.S2Storage=api;})(typeof globalThis!=='undefined'?globalThis:this,function(D,C,R,E,Engine){
+(function(root,factory){const node=typeof module==='object'&&module.exports;const api=factory(node?require('./data.js'):root.S2Data,node?require('./calendar.js'):root.S2Calendar,node?require('./recurrence.js'):root.S2Recurrence,node?require('./events.js'):root.S2Events,node?require('./engine.js'):root.S2Engine,node?require('./finance.js'):root.S2Finance);if(node)module.exports=api;else root.S2Storage=api;})(typeof globalThis!=='undefined'?globalThis:this,function(D,C,R,E,Engine,F){
   'use strict';
   // Keep the browser key stable so v1 players are offered their existing year.
   const KEY='websim-weekend-season2-v1',FORMAT='websim-weekend-season2';
@@ -116,6 +116,21 @@
     if(f.currentDate&&!f.processed['end:'+f.currentDate]&&(!s.dayState||s.dayState.date!==f.currentDate||!s.dayState.begun))bad('진행 중인 날짜 상태가 없습니다.');
     const types=['purchase','fixed-arrears-payment','arrears-payment','salary','allowance','extra-pay','fixed-cost','fixed-unpaid','card-payment','card-unpaid','pending-pay'];
     for(let i=0;i<f.ledger.length;i++){const t=f.ledger[i];if(!object(t)||t.id!=='tx-'+(i+1)||!inYear(t.date)||t.date>s.date||!types.includes(t.type)||!['amount','income','consumption','paid'].every(k=>money(t[k]))||typeof t.label!=='string')bad('거래 장부가 손상되었습니다.');if(t.income!==(['salary','allowance','extra-pay'].includes(t.type)?t.amount:0)||t.consumption!==(['purchase','fixed-cost'].includes(t.type)?t.amount:0)||t.paid>t.amount)bad('거래별 수입·소비·결제가 일치하지 않습니다.');}
+    // Housing terms stay fixed for this one-year game. The monthly breakdown
+    // must agree with the contract and may occur only once per opened month.
+    // Published saves have no breakdown; their existing inclusive fixed cost
+    // remains intact and is never reclassified as invented rent or interest.
+    const monthly=F.monthlyCosts(s.config),housing=F.housingCosts(s.config);
+    const fixed=f.ledger.filter(t=>t.type==='fixed-cost');
+    if(!unique(fixed,'date'))bad('같은 달의 생활비가 두 번 기록되어 있습니다.');
+    for(const t of fixed){
+      if(t.date.slice(8)!=='01'||!f.processed['fixed:'+t.date.slice(0,7)]||t.amount!==monthly.total||!money(t.unpaid)||t.paid+t.unpaid!==t.amount)bad('매달 생활비와 주거비가 계약 내용과 맞지 않습니다.');
+      const details=['livingCosts','rent','loanInterest','housingTenure','loanPrincipal','housingLoanRateBps'];
+      if(s.config.housingTenure!=='unspecified'||details.some(key=>t[key]!==undefined)){
+        if(t.livingCosts!==monthly.living||t.rent!==housing.rent||t.loanInterest!==housing.interest||t.housingTenure!==housing.tenure||t.loanPrincipal!==housing.loanPrincipal||t.housingLoanRateBps!==housing.rateBps)bad('월세와 대출이자 내역을 확인하세요.');
+      }
+    }
+    for(const key of Object.keys(f.processed).filter(key=>key.startsWith('fixed:')))if(fixed.filter(t=>t.date===key.slice(6)+'-01').length!==1)bad('월 생활비 납부 기록이 빠져 있습니다.');
     if(f.monthSpent!==f.ledger.filter(t=>t.type==='purchase'&&t.date.slice(0,7)===f.monthKey).reduce((n,t)=>n+t.amount,0))bad('이번 달 소비와 지출 예산이 일치하지 않습니다.');
     const sum=(field,type)=>f.ledger.reduce((n,t)=>n+(!type||t.type===type?(t[field]||0):0),0);
     if(s.config.startCash+sum('income')-sum('paid')!==f.cash)bad('현금과 거래 장부가 일치하지 않습니다.');
@@ -150,16 +165,23 @@
   }
   function migrate(state,version){
     if(version===D.VERSION)return state;
-    if(![1,2,3].includes(version)||!object(state)||state.version!==version||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
+    if(![1,2,3,4].includes(version)||!object(state)||state.version!==version||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
     const migrated=JSON.parse(JSON.stringify(state));
     migrated.version=D.VERSION;
     // A v1 player did not choose a marital status. Do not invent a spouse or
     // rewrite any past event, financial transaction or random-generator state.
-    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,...migrated.config};
+    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,housingTenure:'unspecified',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,...migrated.config};
+    // The earlier generator labeled every unmarried parent as single. Update
+    // today's description as requested, without changing past scenes, money,
+    // care sharing, family members or any random-generator state.
+    if(migrated.config.maritalStatus==='single'&&migrated.config.children>0){
+      migrated.config.maritalStatus='divorced';
+      migrated.config.lifeIntro=migrated.config.lifeIntro.replace(/미혼이에요\./g,'이혼 후 자녀와 지내고 있어요.').replace(/미혼/g,'이혼');
+    }
     migrated.stats={health:70,happiness:60,knowledge:35,family:60,...migrated.stats};
     if(migrated.household===undefined)migrated.household={cleanliness:70,lastCleaned:null};
     if(migrated.healthEpisode===undefined)migrated.healthEpisode=null;
-    if(migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
+    if(version<4&&migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
       const event=migrated.pendingEvent,original=E.MAP[event.catalogId];
       if(!original||!LEGACY_EVENTS[event.catalogId]||(version===1&&['partner_weekend','partner_care','partner_followup','single_weekend','single_care','single_followup'].includes(event.catalogId)))throw new Error('이전 저장의 사건 종류가 올바르지 않습니다.');
       const previous=JSON.parse(JSON.stringify(event));
@@ -174,7 +196,7 @@
     return migrated;
   }
   function serialize(state){const errors=validate(state);if(errors.length)throw new Error(errors[0]);const payload=JSON.stringify(state);return JSON.stringify({format:FORMAT,version:D.VERSION,savedAt:new Date().toISOString(),checksum:checksum(payload),state},null,2);}
-  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,2,3,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('시즌2에서 저장한 파일인지 확인해 주세요.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일이 손상되거나 변경되었습니다. 다른 저장 파일을 선택해 주세요.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이어서 살아볼 준비가 됐어요. 지난 기록과 돈, 인물은 그대로 두고 새 생활 지표와 집안일은 오늘부터 시작해요.':''};}catch(e){return {ok:false,reason:e.message};}}
+  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,2,3,4,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('시즌2에서 저장한 파일인지 확인해 주세요.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일이 손상되거나 변경되었습니다. 다른 저장 파일을 선택해 주세요.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'지난 기록 그대로 이어갈 수 있어요. 살던 집의 비용은 기존 고정비에 포함하고, 새 월세나 대출은 더하지 않았어요.':''};}catch(e){return {ok:false,reason:e.message};}}
   function save(state,storage){try{(storage||localStorage).setItem(KEY,serialize(state));return {ok:true,reason:''};}catch(e){return {ok:false,reason:'브라우저 저장 실패: '+e.message};}}
   function load(storage){try{const value=(storage||localStorage).getItem(KEY);return value?parse(value):{ok:false,reason:'저장된 게임이 없습니다.'};}catch(e){return {ok:false,reason:'브라우저 저장을 읽지 못했습니다: '+e.message};}}
   function clear(storage){try{(storage||localStorage).removeItem(KEY);return {ok:true};}catch(e){return {ok:false,reason:e.message};}}

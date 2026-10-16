@@ -10,12 +10,31 @@
     if (!Number.isSafeInteger(number) || number < 0) throw new RangeError('금액은 0 이상의 원화 정수여야 합니다.');
     return number;
   }
+  function housingCosts(config) {
+    const c = config || {}, tenure = c.housingTenure === undefined ? 'unspecified' : c.housingTenure;
+    if (!['own', 'rent', 'jeonse', 'unspecified'].includes(tenure)) throw new RangeError('주거 계약 형태를 확인하세요.');
+    const monthlyRent = won(c.monthlyRent), principal = won(c.housingLoanPrincipal), rateBps = c.housingLoanRateBps === undefined ? 0 : c.housingLoanRateBps;
+    if (principal > 10000000000) throw new RangeError('주거 대출 원금은 100억원 이하여야 합니다.');
+    if (!Number.isInteger(rateBps) || rateBps < 0 || rateBps > 3000) throw new RangeError('주거 대출 연이율은 0~30% 범위여야 합니다.');
+    // Legacy, unspecified housing adds no new expense or inferred debt.
+    const loanPrincipal = tenure === 'unspecified' ? 0 : principal;
+    const appliedRate = tenure === 'unspecified' ? 0 : rateBps;
+    const rent = tenure === 'rent' ? monthlyRent : 0;
+    // The bounded integer product is exact; only the monthly won amount rounds.
+    const interest = Math.round(loanPrincipal * appliedRate / 120000);
+    return { tenure, rent, interest, total: won(rent + interest), loanPrincipal, rateBps: appliedRate };
+  }
+  function monthlyCosts(config) {
+    const c = config || {}, housing = housingCosts(c), living = won(c.fixedCosts);
+    return { living, housing: housing.total, rent: housing.rent, interest: housing.interest, total: won(living + housing.total) };
+  }
   function configValues(config) {
     const c = config || {};
     const payDay = c.payDay === undefined ? 1 : c.payDay;
     if (!Number.isInteger(payDay) || payDay < 1 || payDay > 31) throw new RangeError('급여일은 1~31일이어야 합니다.');
     return { salary: won(c.salary), externalAllowance: won(c.externalAllowance), fixedCosts: won(c.fixedCosts), payDay,
-      cardLimit: won(c.cardLimit, 1000000), personalBudget: c.personalBudget === undefined ? Number.MAX_SAFE_INTEGER : won(c.personalBudget) };
+      cardLimit: won(c.cardLimit, 1000000), personalBudget: c.personalBudget === undefined ? Number.MAX_SAFE_INTEGER : won(c.personalBudget),
+      housing: housingCosts(c), monthly: monthlyCosts(c) };
   }
   function create(config) {
     configValues(config);
@@ -42,7 +61,7 @@
       incoming = c.salary + c.externalAllowance + f.pendingRewards.filter(r => r.kind !== 'sidejob' && r.earnedDate < payDate(date, c)).reduce((sum, r) => sum + r.amount, 0);
     }
     if (date) incoming += f.pendingRewards.filter(r => r.kind === 'sidejob' && r.dueDate > date && r.dueDate.slice(0,7) === date.slice(0,7)).reduce((sum,r) => sum+r.amount,0);
-    const unpaidCurrentFixed = !date || !f.processed['fixed:' + date.slice(0, 7)] ? c.fixedCosts : 0;
+    const unpaidCurrentFixed = !date || !f.processed['fixed:' + date.slice(0, 7)] ? c.monthly.total : 0;
     return { c, income: incoming, spendable: Math.max(0, f.cash + incoming - f.cardPending - f.arrears - f.fixedArrears - unpaidCurrentFixed), budget: Math.max(0, c.personalBudget - f.monthSpent) };
   }
   function available(f, config) { const p = projection(f, config); return Math.min(p.spendable, p.budget); }
@@ -103,12 +122,15 @@
     }
     if (date.slice(8) === '01' && !f.processed['fixed:' + date.slice(0, 7)]) {
       f.processed['fixed:' + date.slice(0, 7)] = true;
-      const paid = Math.min(f.cash, c.fixedCosts), unpaid = c.fixedCosts - paid;
+      const paid = Math.min(f.cash, c.monthly.total), unpaid = c.monthly.total - paid;
       f.cash -= paid; f.fixedArrears += unpaid;
-      entry(f, date, 'fixed-cost', c.fixedCosts, '이번 달 필수 고정비', { method: 'cash', consumption: c.fixedCosts, paid, unpaid, cause: 'unavoidable' });
+      entry(f, date, 'fixed-cost', c.monthly.total, '이번 달 필수 고정비', { method: 'cash', consumption: c.monthly.total, paid, unpaid, cause: 'unavoidable',
+        livingCosts: c.monthly.living, rent: c.monthly.rent, loanInterest: c.monthly.interest, housingTenure: c.housing.tenure,
+        loanPrincipal: c.housing.loanPrincipal, housingLoanRateBps: c.housing.rateBps });
       if (unpaid) entry(f, date, 'fixed-unpaid', unpaid, '필수 고정비 미납 기록', { cause: 'unavoidable' });
     }
-    // No loans or interest. Newly received money pays due essentials before old card debt.
+    // Housing principal never creates cash or auto-repayment. Income covers
+    // current rent/interest and living costs before old essentials and card debt.
     if (income > 0) settleOldDebt(f, date);
     return f.ledger.slice(before);
   }
@@ -154,10 +176,14 @@
     const transaction=entry(f,date,'pending-pay',amount,name,{cause:'sidejob',kind:'sidejob',reference,earnedDate:date,dueDate:reward.dueDate});
     return {ok:true,duplicate:false,entry:transaction,reward};
   }
-  function summary(f) {
+  function summary(f, config) {
     const sum = field => f.ledger.reduce((value, item) => value + (item[field] || 0), 0);
+    const housingRent = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.rent || 0 : 0), 0);
+    const housingInterest = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.loanInterest || 0 : 0), 0);
+    const housingLoanPrincipal = housingCosts(config).loanPrincipal, unpaidDebt = f.cardPending + f.arrears + f.fixedArrears;
     return { income: sum('income'), consumption: sum('consumption'), paid: sum('paid'), cash: f.cash,
-      debt: f.cardPending + f.arrears + f.fixedArrears, pendingPay: f.pendingPay };
+      debt: unpaidDebt + housingLoanPrincipal, pendingPay: f.pendingPay, housingRent, housingInterest,
+      housingCosts: housingRent + housingInterest, housingLoanPrincipal, unpaidDebt };
   }
-  return { create, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, summary, ORDER };
+  return { create, housingCosts, monthlyCosts, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, summary, ORDER };
 });

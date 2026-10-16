@@ -1,0 +1,198 @@
+{
+  "format": "websim-weekend-season2",
+  "version": 4,
+  "savedAt": "2026-10-16T23:53:32.108Z",
+  "checksum": "094634b8",
+  "state": {
+    "version": 4,
+    "config": {
+      "year": 2026,
+      "age": 49,
+      "gender": "man",
+      "maritalStatus": "single",
+      "personaName": "김승현",
+      "lifeIntro": "김승현, 49세. 부산광역시에서 새로운 일자리를 찾으며 지냅니다. 미혼이에요. 혼자만의 시간도, 가까운 사람들과의 시간도 소중해요. 자녀는 17세 아들입니다. 요즘은 문화센터 강좌 · 악기 연습에 관심이 있어요.",
+      "generationSeed": 41,
+      "role": "seeker",
+      "children": 1,
+      "childAge": "teen",
+      "careShare": 30,
+      "province": "busan",
+      "residenceOrigin": "population",
+      "appearance": {
+        "faceShape": "round",
+        "hairStyle": "buzz",
+        "hairColor": "espresso",
+        "skinTone": "warm",
+        "outfitPalette": "mustard"
+      },
+      "homeStyle": {
+        "palette": "rose",
+        "layout": "wide-window",
+        "decor": "books",
+        "windowView": "river"
+      },
+      "generationModel": "kr-life-2026-v2",
+      "incomeOrigin": {
+        "kind": "support-model",
+        "sourceId": "nts-wage-address-2024",
+        "bandId": "15133GSD02",
+        "provinceId": "busan",
+        "sampledMonthly": 217433,
+        "assignedMonthly": 65230,
+        "supportShare": 0.3
+      },
+      "childProfiles": [
+        {
+          "age": 17,
+          "gender": "man",
+          "militaryStatus": "none"
+        }
+      ],
+      "housing": "shared",
+      "region": "city",
+      "transport": "walk",
+      "salary": 0,
+      "externalAllowance": 65230,
+      "personalBudget": 12467,
+      "fixedCosts": 42563,
+      "startCash": 85909,
+      "payDay": 1,
+      "cardLimit": 100000,
+      "preferences": [
+        "culture",
+        "music"
+      ],
+      "seed": 41
+    },
+    "presetId": "seeker",
+    "date": "2026-01-01",
+    "weekStart": "2026-01-01",
+    "phase": "event",
+    "stats": {
+      "health": 70,
+      "happiness": 60,
+      "knowledge": 35,
+      "mood": 60,
+      "relationship": 60,
+      "family": 60,
+      "fatigue": 25,
+      "preparation": 0,
+      "research": 0,
+      "work": 0
+    },
+    "household": {
+      "cleanliness": 70,
+      "lastCleaned": null
+    },
+    "healthEpisode": null,
+    "finance": {
+      "cash": 108576,
+      "cardPending": 0,
+      "arrears": 0,
+      "fixedArrears": 0,
+      "pendingPay": 0,
+      "pendingRewards": [],
+      "ledger": [
+        {
+          "id": "tx-1",
+          "date": "2026-01-01",
+          "type": "allowance",
+          "amount": 65230,
+          "label": "외부에서 받은 용돈",
+          "method": "",
+          "income": 65230,
+          "consumption": 0,
+          "paid": 0,
+          "cause": ""
+        },
+        {
+          "id": "tx-2",
+          "date": "2026-01-01",
+          "type": "fixed-cost",
+          "amount": 42563,
+          "label": "이번 달 필수 고정비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 42563,
+          "paid": 42563,
+          "cause": "unavoidable",
+          "unpaid": 0
+        }
+      ],
+      "processed": {
+        "begin:2026-01-01": true,
+        "fixed:2026-01": true
+      },
+      "currentDate": "2026-01-01",
+      "monthKey": "2026-01",
+      "monthSpent": 0
+    },
+    "plan": [],
+    "rules": [],
+    "log": [],
+    "artifacts": [],
+    "pendingEvent": {
+      "id": "single_care-1",
+      "source": "scheduled",
+      "requires": {
+        "maritalStatus": "single",
+        "children": "any"
+      },
+      "title": "돌봄을 함께 나눌 사람",
+      "description": "돌봄과 내 시간을 함께 챙기기가 바쁜 한 주입니다. 친구나 친척에게 조금 도와줄 수 있는지 이야기해 봅니다.",
+      "choices": [
+        {
+          "id": "ask",
+          "label": "도움의 시간을 함께 정하기",
+          "description": "30분간 조율합니다. 합의에 따라 3주간 내 기본 돌봄 시간이 절반이 됩니다.",
+          "effects": {
+            "mood": 3,
+            "relationship": 2
+          },
+          "action": "single_support"
+        },
+        {
+          "id": "own",
+          "label": "지금 분담 안에서 여유 찾기",
+          "description": "기존 돌봄 분담을 유지하고 가능한 60분 안에서 나를 돌봅니다.",
+          "effects": {
+            "mood": 4,
+            "fatigue": -5
+          },
+          "action": "single_care_keep"
+        }
+      ],
+      "catalogId": "single_care",
+      "date": "2026-01-01",
+      "context": {}
+    },
+    "queue": [],
+    "dayState": {
+      "date": "2026-01-01",
+      "begun": true,
+      "eventHandled": true,
+      "randomChecked": false,
+      "baseDone": false,
+      "done": [],
+      "blocks": {},
+      "extraTravel": 0,
+      "skipWork": false
+    },
+    "skills": {},
+    "activityCounts": {},
+    "flags": {},
+    "eventHistory": {
+      "single_care": 1
+    },
+    "sequence": 1,
+    "weekNumber": 1,
+    "rng": {
+      "external": 824125762,
+      "followup": 2246822466
+    },
+    "friendPostponements": 0,
+    "lastExternal": null,
+    "review": null
+  }
+}

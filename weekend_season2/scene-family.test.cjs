@@ -38,10 +38,11 @@ test('scene family: gender selection changes actual drawing commands and appeara
 });
 
 test('scene family: marriage and child count are independent, including six-child and childless families', () => {
-  for (const maritalStatus of ['single','married']) for (let children=0; children<=6; children++) {
+  for (const maritalStatus of ['single','married','divorced','unspecified']) for (let children=0; children<=6; children++) {
     const family=Scene.familyLayout({gender:'woman',maritalStatus,children,childAge:'school'},'cook');
     assert.equal(family.children.length,children);
     assert.equal(family.childCount,children);
+    assert.equal(family.maritalStatus,maritalStatus);
     assert.equal(family.personCount,1+children+(maritalStatus==='married'?1:0));
     assert.equal(!!family.spouse,maritalStatus==='married');
     assert.equal(new Set(members(family).map(person=>person.id)).size,family.personCount);
@@ -65,7 +66,7 @@ test('scene family: age bands change child silhouettes without changing their co
 });
 
 test('scene family: every supported family and activity fits inside the room with separated figures', () => {
-  for(const gender of ['woman','man','other','unspecified'])for(const maritalStatus of ['single','married'])for(let children=0;children<=6;children++)for(const childAge of ['preschool','school','teen'])for(const activity of Data.ACTIVITIES){
+  for(const gender of ['woman','man','other','unspecified'])for(const maritalStatus of ['single','married','divorced'])for(let children=0;children<=6;children++)for(const childAge of ['preschool','school','teen'])for(const activity of Data.ACTIVITIES){
     const family=Scene.familyLayout({gender,maritalStatus,children,childAge},activity.id), figures=members(family);
     for(const figure of figures){const b=figure.bounds;assert.ok(b.left>=0&&b.top>=0&&b.right<=760&&b.bottom<=550,figure.id+' outside room');}
     for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false,`${gender}/${maritalStatus}/${children}/${childAge}/${activity.id}: ${figures[i].id} overlaps ${figures[j].id}`);
@@ -93,6 +94,19 @@ test('scene family: reduced motion stays deterministic while updates preserve se
   assert.equal(h.snapshot(),initial);assert.equal(JSON.stringify(state),before);
   assert.equal(h.api.describe().reducedMotion,true);assert.equal(h.api.describe().seasonMonth,12);assert.equal(h.api.describe().artifacts,3);
   for(const activity of Data.ACTIVITIES){h.api.update(state,activity.id);assert.equal(h.api.describe().character.activity,activity.id);}
+});
+
+test('scene family: divorced metadata keeps the same parent and children without adding a spouse or a visual stereotype',()=>{
+  const h=drawingHarness(true),config={...Data.DEFAULT_CONFIG,gender:'woman',maritalStatus:'single',children:2,childAge:'toddler',childProfiles:[{age:2,gender:'man',militaryStatus:'none'},{age:9,gender:'woman',militaryStatus:'none'}]},state={config,date:'2026-03-01',artifacts:[],rng:{external:12,followup:34}};
+  h.api.attach(h.canvas,state,'care');const single=h.snapshot(),before=JSON.stringify(state);
+  const next={...state,config:{...config,maritalStatus:'divorced'}};
+  h.clear();h.api.update(next,'care');const description=h.api.describe();
+  assert.equal(h.snapshot(),single,'divorce changes the label, not the family appearance');
+  assert.equal(description.family.maritalStatus,'divorced');assert.equal(description.family.spouse,null);
+  assert.equal(description.family.personCount,3);assert.equal(description.family.childCount,2);
+  assert.equal(JSON.stringify(description.family.children.map(child=>child.age)),JSON.stringify([2,9]));
+  assert.equal(description.reducedMotion,true);assert.equal(JSON.stringify(state),before);
+  h.clear();h.api.advance(9000);assert.equal(h.snapshot(),single);
 });
 
 test('scene variety: every face, hairstyle, skin, outfit and hair color changes drawing commands', () => {
