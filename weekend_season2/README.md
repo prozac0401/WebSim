@@ -10,7 +10,7 @@
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-`http://127.0.0.1:8000/weekend_season2/index.html`을 엽니다. 홈 목록과 기존 실험의 다른 실험 메뉴에서도 진입할 수 있습니다. 이 작업은 로컬 구현이며 공개 사이트에는 배포하지 않았습니다.
+`http://127.0.0.1:8000/weekend_season2/index.html`을 엽니다. 홈 목록과 기존 실험의 다른 실험 메뉴에서도 진입할 수 있습니다. 공개 배포 주소는 [주말 계획표 시즌2](https://prozac0401.github.io/WebSim/weekend_season2/index.html)이며, 기존 GitHub Pages 설정(`main` 브랜치의 루트)을 사용합니다.
 
 1. 프리셋을 선택하고 환경·수입·지출 예산·선호를 수정합니다.
 2. 활동과 결제수단을 선택하고 날짜별 오전·오후·저녁에 놓습니다.

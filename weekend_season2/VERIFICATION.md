@@ -1,6 +1,6 @@
 # 주말 계획표 시즌2 검증 기록
 
-2026-10-17 로컬 구현을 검증했습니다. 초기 검증은 구현·시험·독립 검토 범위였습니다. 이후 사용자의 업로드 요청으로 `codex/weekend-season2` 브랜치 커밋·push를 작업 범위에 추가했습니다. PR 생성, 병합, 릴리스, 운영 배포, 계정·Secret 변경은 포함하지 않습니다.
+2026-10-17 로컬 구현을 검증했습니다. 아래 최초 결과 표는 초기 구현·시험·독립 검토 시점의 기록입니다. 이후 사용자의 업로드 요청으로 원격 브랜치 커밋·push를, 다시 배포 요청으로 최신 `main` 통합과 기존 GitHub Pages 공개 배포를 작업 범위에 추가했습니다. 계정·Secret·호스팅 설정은 변경하지 않습니다.
 
 ## 결과
 
@@ -18,7 +18,7 @@
 | 저사양 장치 성능·장기간 저장소 내구성 | **NOT RUN** | FPS·메모리·범용 안정성 보장 없음 |
 | 사람의 장시간 재미·균형·30~45분 소요시간 평가 | **NOT RUN** | 자동 완주와 주관적 플레이 테스트는 별개 |
 | 저장소의 무관한 전체 시험 | **NOT RUN** | 요청과 관련된 회귀만 실행 |
-| 공개 사이트·배포 후 검사 | **NOT RUN** | 원격 브랜치 업로드만 추가 승인되었으며 운영 배포는 범위 밖 |
+| 공개 사이트·배포 후 검사 | **NOT RUN (최초 로컬 검증 시점)** | 후속 배포 요청에 대한 공개 URL 확인은 별도로 수행 |
 
 최종 자동시험 명령:
 
@@ -93,7 +93,18 @@ Chromium 1440×1000 데스크톱과 390×844 터치·동작 줄이기 환경에�
 
 공통 변경은 루트 `README.md`, `index.html`, `assets/simulator.js`의 시즌2 목록·진입 링크와 도구 개수입니다. 새 브라우저 시험은 `tests/weekend-season2.browser.cjs`입니다. 기존 플래너·잉크·Boids 구현 파일은 수정하지 않았습니다.
 
-격리 작업 사본의 브랜치는 `codex/weekend-season2`, 시작 커밋은 `0520531`입니다. 원본 작업 폴더는 별도 작업 중 `main`의 `9862ad9`로 진행된 것을 최종 읽기 검사에서 확인했습니다. 이 작업에서 원본 checkout·미커밋 `progress.md`를 변경하거나 다른 작업을 되돌리지 않았습니다. 원본의 새 커밋으로 rebase·merge하지 않았으므로 향후 통합 시 현재 main과 차이를 확인해야 합니다.
+격리 작업 사본의 브랜치는 `codex/weekend-season2`, 시작 커밋은 `0520531`입니다. 이후 배포 요청에 따라 최신 `origin/main`의 `9862ad9`를 격리 브랜치에 병합했습니다. 두 작업의 변경 파일은 겹치지 않았으며, 차량 시뮬레이터와 루트 `progress.md`가 최신 main과 같은 내용을 유지하는지 확인했습니다. 원본 작업 폴더의 미커밋 변경은 수정하지 않았습니다.
+
+## 후속 배포 준비
+
+- 기존 GitHub Pages는 `main` 브랜치의 `/` 경로를 배포합니다. 별도 호스팅이나 계정 설정을 추가하지 않습니다.
+- 최신 main 통합 후 **PASS 127 / FAIL 0**: 기존 합산 99개와 최신 차량 시뮬레이터 관련 검사 28개를 함께 실행했습니다.
+- 독립 읽기 검토에서 경로·정적 자산 참조 22개가 모두 존재하고 기존 기능의 변경이 보존됨을 확인했습니다.
+- 공개 사이트 검사는 배포 후 같은 브라우저 검사에 `WEBSIM_URL=https://prozac0401.github.io/WebSim/`을 지정해 수행합니다. 배포 검사 산출물은 Git에서 제외되는 `output/playwright/weekend-season2-deployed/`에 따로 보관합니다.
+
+```powershell
+node --test weekend_season2/*.test.cjs tests/new-labs.test.cjs tests/preset-scenes.test.cjs ink_time_machine/ink-flow-engine.test.cjs boids_simulation/boids-app.test.cjs evolving_vehicles_2/continuous-race.test.cjs evolving_vehicles_2/racing-guidance.test.cjs
+```
 
 ## 남은 범위와 해석 한계
 
