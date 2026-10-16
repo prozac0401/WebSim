@@ -135,5 +135,76 @@
     return dx * dx + dy * dy;
   }
 
-  return Object.freeze({ modes, contains, advect, diffuse, displacementSquared, phase });
+  // Free ink is an independent, deliberately non-reversible visual flow. This
+  // prescribed velocity field and decaying brush impulses are not a fluid solver.
+  function createLive(options = {}) {
+    const requested = Number(options.limit);
+    return { particles: [], limit: Number.isFinite(requested) ? Math.max(64, Math.min(3600, Math.floor(requested))) : 3600,
+      seed: (options.seed ?? 731) >>> 0, time: 0, next: 0, injections: 0, stirs: 0 };
+  }
+  function liveRandom(state) {
+    state.seed = (Math.imul(state.seed, 1664525) + 1013904223) >>> 0;
+    return (state.seed + .5) / 4294967296;
+  }
+  function injectLive(state, x, y, color, count = 45, radius = .045) {
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !contains('vortices', x, y)) return 0;
+    const amount = Math.max(0, Math.min(160, Math.floor(count) || 0));
+    const size = Number.isFinite(radius) ? Math.max(.004, Math.min(.15, radius)) : .045;
+    for (let i = 0; i < amount; i++) {
+      const angle = liveRandom(state) * TAU, r = Math.sqrt(liveRandom(state)) * size;
+      const p = { x, y, px: x, py: y, vx: 0, vy: 0, age: 0, c: ((Math.floor(color) || 0) % 4 + 4) % 4 };
+      diffuse('vortices', p, Math.cos(angle) * r, Math.sin(angle) * r);
+      p.px = p.x; p.py = p.y;
+      if (state.particles.length < state.limit) state.particles.push(p);
+      else { state.particles[state.next] = p; state.next = (state.next + 1) % state.limit; }
+    }
+    state.injections += amount;
+    return amount;
+  }
+  function stirLive(state, x, y, dx, dy) {
+    if (![x, y, dx, dy].every(Number.isFinite) || !contains('vortices', x, y)) return;
+    const length = Math.hypot(dx, dy);
+    if (!length) return;
+    const scale = Math.min(1, .2 / length); dx *= scale; dy *= scale;
+    for (const p of state.particles) {
+      const rx = p.x - x, ry = p.y - y, r2 = rx * rx + ry * ry;
+      if (r2 > .22) continue;
+      const weight = (1 - r2 / .22) ** 2;
+      // Curl around the dragged brush, plus a local displacement that makes the
+      // touch response visible immediately, including while playback is paused.
+      const curl = (rx * dy - ry * dx) * 28;
+      p.vx = Math.max(-2, Math.min(2, p.vx + (dx * 22 - ry * curl) * weight));
+      p.vy = Math.max(-2, Math.min(2, p.vy + (dy * 22 + rx * curl) * weight));
+      p.px = p.x; p.py = p.y;
+      diffuse('vortices', p, dx * .35 * weight, dy * .35 * weight);
+    }
+    state.stirs++;
+  }
+  function stepLive(state, seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return;
+    // Bound each step independently from presentation quality and frame rate.
+    const dt = Math.min(seconds, .05), t = state.time;
+    const cores = [[-.48 + .09 * Math.sin(t * .27), -.06 + .09 * Math.cos(t * .31), .49],
+      [.49 + .08 * Math.cos(t * .23), .08 + .12 * Math.sin(t * .29), -.43]];
+    const drag = Math.exp(-dt * 2.8);
+    for (const p of state.particles) {
+      p.px = p.x; p.py = p.y;
+      let vx = .045 * Math.sin(p.y * 3.4 + t * .24), vy = .035 * Math.cos(p.x * 3.7 - t * .19);
+      for (const [cx, cy, spin] of cores) {
+        const x = p.x - cx, y = p.y - cy, r2 = x * x + y * y;
+        const rotation = spin * Math.exp(-r2 * 2.4) / (.12 + r2);
+        vx -= y * rotation; vy += x * rotation;
+      }
+      p.vx *= drag; p.vy *= drag;
+      // Small seeded spreading keeps neighboring dye paths from staying rigid.
+      const spread = .0035 * Math.sqrt(dt);
+      diffuse('vortices', p, (vx + p.vx) * dt + (liveRandom(state) - .5) * spread,
+        (vy + p.vy) * dt + (liveRandom(state) - .5) * spread);
+      p.age += dt;
+    }
+    state.time += dt;
+  }
+
+  return Object.freeze({ modes, contains, advect, diffuse, displacementSquared, phase,
+    live: Object.freeze({ create: createLive, inject: injectLive, stir: stirLive, step: stepLive }) });
 });
