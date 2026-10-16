@@ -6,6 +6,7 @@
   const current = new URL(location.href);
   const folder = current.pathname.split('/').filter(Boolean).slice(-2, -1)[0];
   const labs = [
+    ['weekend_season2', '주말 계획표 시즌2', '생활·도구', '한 해의 생활', '환경을 정하고 주말과 연휴의 선택을 쌓아 한 해의 기록을 돌아봅니다.'],
     ['weekend_recovery_simulator', '주말 회복 플래너', '생활·도구', '계획 비교', '활동과 휴식의 배치를 바꾸고, 같은 가정 안에서 주말 계획의 여유를 비교하세요.'],
     ['qr_generator', 'QR 코드 만들기', '생활·도구', '정보 부호화', '글과 웹주소를 스캔할 수 있는 그림으로 바꿉니다. 입력한 내용, 보정 수준, 저장 크기를 함께 확인하세요.'],
     ['conway-game-of-life', '생명 게임', '패턴·성장', '세포 자동자', '살아 있는 이웃의 수만으로 다음 세대를 정합니다. 작은 시작 무늬가 어떻게 반복하고 이동하는지 관찰하세요.'],
@@ -68,7 +69,7 @@
   header.innerHTML = `<div class="lab-topbar-inner">
     <a class="lab-brand websim-home" href="${homeUrl}" aria-label="WebSim 전체 도구 목록"><span class="lab-brand-mark" aria-hidden="true">W<span>·</span></span><span>WebSim<small>Interactive labs</small></span></a>
     <div class="lab-topbar-right">
-      <details class="lab-switcher"><summary>다른 실험 <span aria-hidden="true">⌄</span></summary><div class="lab-switcher-menu"><p>다음 실험을 골라 보세요</p><nav aria-label="${labs.length}개 도구 목록">${labs.map(([slug, name, group]) => `<a href="${new URL(`${slug}/${slug === 'dla_simulator' ? 'standalone' : slug}.html`, base).href}"${slug === id ? ' aria-current="page"' : ''}><span>${name}</span><small>${group}</small></a>`).join('')}</nav><a class="lab-all-tools" href="${homeUrl}">전체 도구 목록 보기 <span aria-hidden="true">↗</span></a></div></details>
+      <details class="lab-switcher"><summary>다른 실험 <span aria-hidden="true">⌄</span></summary><div class="lab-switcher-menu"><p>다음 실험을 골라 보세요</p><nav aria-label="${labs.length}개 도구 목록">${labs.map(([slug, name, group]) => `<a href="${new URL(`${slug}/${slug === 'dla_simulator' ? 'standalone' : slug === 'weekend_season2' ? 'index' : slug}.html`, base).href}"${slug === id ? ' aria-current="page"' : ''}><span>${name}</span><small>${group}</small></a>`).join('')}</nav><a class="lab-all-tools" href="${homeUrl}">전체 도구 목록 보기 <span aria-hidden="true">↗</span></a></div></details>
       <a class="lab-help-link" href="${helpUrl}">이론·사용법 <span aria-hidden="true">↗</span></a>
     </div>
   </div>`;

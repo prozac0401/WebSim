@@ -1,11 +1,12 @@
 # WebSim
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 28개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 29개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
 ## 생활과 도구
 
+- [주말 계획표 시즌2](weekend_season2/index.html) — 시작 환경을 정하고 실제 2026년의 선택·반복 활동·카드 정산을 거쳐 한 해의 기록을 돌아보는 생활 게임 · [사용법](weekend_season2/weekend_season2_doc.html) · [구현과 검사](weekend_season2/README.md)
 - [이상한 카메라](rolling_shutter/rolling_shutter.html) — 줄마다 다른 순간을 찍는 카메라로, 휘어진 사진의 촬영 조건을 찾아봅니다. · [사용법](rolling_shutter/rolling_shutter_doc.html)
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
 - [QR 코드 만들기](qr_generator/qr_generator.html) — 글·웹주소를 스캔용 PNG·SVG 그림으로 저장 · [사용법](qr_generator/qr_generator_doc.html) · 관련 글 미등록
