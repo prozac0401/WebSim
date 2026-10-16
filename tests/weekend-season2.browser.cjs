@@ -136,7 +136,7 @@ async function season(page, browser) {
   assert.ok((await textState(page)).artifactCount>0);
   await click(page,'#replay-next');
   await reveal(page,page.locator('.review-records .review-list'));
-  assert.ok((await page.locator('.review-records .review-list').innerText()).includes('다른 선택을 위해 스스로 조정한 일정입니다.'));
+  assert.ok((await page.locator('.review-records .review-list').innerText()).includes('다른 일을 챙기려고 직접 바꾼 일정이에요.'));
   await shot(page,'week-scenes-desktop');
   await click(page,'#continue-week');
   await click(page,'.tab[data-tab="routines"]'); await click(page,'#confirm-reservations');

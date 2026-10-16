@@ -19,10 +19,12 @@
 | 원본 게임 클라이언트·장면 | **PASS** | 최종 화면 실행·Canvas 캡처·텍스트 훅. 월 회고·사건 대기·부업 삽화 직접 열어 확인 |
 | 독립 통합 검토 | **PASS, 수정 후 재검사** |12년/636시점 저장복원,무현금·돌봄·부채·연말 프로젝트/다음해 지급,저장 주입2건 수정 후 대표3년/159시점 추가 확인 |
 | 최종 독립 모바일 검토 | **PASS7개 확인 / FAIL0** |2027년 한 달 무클릭,Enter 시작·정지,정지 후 날짜·로그 불변,저장 복원 시 자동시작 없음,중요 사건 대기 중 정지·정지 후 선택해도 재시작 없음,가로 넘침·움직임 줄이기 |
-| 공개 배포 후 검사 | **NOT RUN (커밋 전)** | 배포 후 별도 결과 파일과 최종 응답에 기록 |
+| 공개 배포 후 검사 | **PASS25개 묶음 / FAIL0** | 실제 Pages 주소에서 통합17·생활UI4·자동/미래연도4.365일·366일 완주 및 콘솔/페이지 오류0.공개 파일17개가 게임 커밋1a4efe1과 일치 |
 | Firefox·Safari·실물 기기·스크린리더·사람의 재미·저사양 성능 | **NOT RUN** | Chromium 검사로 대체했다고 주장하지 않음 |
 
 추가 파일: `automatic-sidejobs.test.cjs`, `automatic-storage.test.cjs`, `finance.test.cjs`, `tests/weekend-season2-automatic.browser.cjs`. 기존 변경에 더해 `calendar.js`, `calendar-finance.test.cjs`, `finance.js`, `journey.test.cjs`를 수정했습니다. 화면: [한 달 자동 진행](../output/playwright/weekend-season2-automatic/automatic-month-paused.png), [중요 선택 대기](../output/playwright/weekend-season2-automatic/important-decision-waiting.png), [배달 삽화](../output/playwright/weekend-season2-automatic/scene-delivery.png). 자동 UI 검사는 `node tests/weekend-season2-automatic.browser.cjs`로 실행합니다.
+
+배포 후 통합 검사의 오래된 회고 문구 기대값1곳을 현재의 직접/자동 구분 문구로 수정하고 전체17개 검사를 다시 통과했습니다. 게임 소스 수정은 없었습니다. 공개 검증 결과와 화면은 `output/playwright/weekend-season2-life-deployed/`, `weekend-season2-life-ui-deployed/`, `weekend-season2-automatic-deployed/`에 있습니다.
 
 아래는 이번 최종 추가에 앞서 확인한 생활 업데이트와 이전 배포 이력입니다.
 
