@@ -10,6 +10,12 @@
   const smooth = (lo, hi, v) => { const t = clamp((v - lo) / (hi - lo), 0, 1); return t * t * (3 - 2 * t); };
   const COLORS = Object.freeze({ brake: Object.freeze([239, 68, 68]), coast: Object.freeze([250, 204, 21]), accelerate: Object.freeze([34, 197, 94]) });
   const MODEL = 'watched-vehicle-physics-advisory';
+  const yellowGate = acceleration => smooth(0, .3, -acceleration);
+  function colorFor(weights, acceleration) {
+    const red = weights[0], yellow = weights[2] * yellowGate(acceleration), green = 1 - red - yellow;
+    return COLORS.brake.map((v, c) => v * red + COLORS.accelerate[c] * green + COLORS.coast[c] * yellow);
+  }
+  const fillFor = color => 'rgba(' + color.map(v => Math.round(v)).join(',') + ',0.52)';
 
   // These are the same wheel-force limits and resistances used by _advance.
   // Using wheel force (not just negative acceleration) avoids calling uphill
@@ -97,37 +103,41 @@
       const brake = clamp(-wheel / Math.max(.01, f.brake), 0, 1);
       const throttle = clamp(wheel / Math.max(.01, f.drive), 0, 1);
       const lateralLoad = speed * speed * curvature[i] / Math.max(.01, race._lateralCapacity(car, speed, grades[i]));
-      const coast = release[i] && throttle < .4 && brake < .4 ? 1 : 0;
+      const coastDemand = release[i] && throttle < .4 && brake < .4 ? 1 : 0;
       return { s: i * spacing, targetSpeed: speed, sourceTargetSpeed: original[i], acceleration, wheelAcceleration: wheel,
-        throttle, brake, coast, lateralLoad, grade: grades[i], lookaheadM: clamp(speed * 4, 100, 250), anticipation: 0, nextBrakeM: null };
+        throttle, brake, coastDemand, coast: 0, lateralLoad, grade: grades[i], lookaheadM: clamp(speed * 2, 40, 100), anticipationDemand: 0, anticipation: 0, nextBrakeM: null };
     });
-    // The warning begins 100–250 m before a substantial braking demand. It
-    // blends in over the first 24 m, then remains yellow up to brake onset.
+    // The warning begins 40–100 m before a substantial braking demand. It
+    // blends in over the first 15 m, then remains yellow up to brake onset.
     // Distance is measured around the closed lap, including the timing seam.
-    const scan = Math.min(count - 1, Math.ceil(250 / spacing));
+    const scan = Math.min(count - 1, Math.ceil(100 / spacing));
     for (let i = 0; i < count; i++) {
       const p = samples[i];
       for (let k = 0; k <= scan; k++) {
         if (samples[(i + k) % count].brake < .65) continue;
         p.nextBrakeM = k * spacing;
-        if (p.brake < .65) p.anticipation = smooth(0, 24, p.lookaheadM - p.nextBrakeM);
+        if (p.brake < .65) p.anticipationDemand = smooth(0, 15, p.lookaheadM - p.nextBrakeM);
         break;
       }
       const red = smooth(.06, .9, p.brake);
-      const green = (1 - red) * smooth(.15, .9, p.throttle) * (1 - p.coast) * (1 - p.anticipation);
+      const green = (1 - red) * smooth(.15, .9, p.throttle) * (1 - p.coastDemand) * (1 - p.anticipationDemand);
       const yellow = 1 - red - green;
-      p.color = COLORS.brake.map((v, channel) => v * red + COLORS.accelerate[channel] * green + COLORS.coast[channel] * yellow);
+      p.colorWeights = [red, green, yellow];
     }
     // Spatial smoothing is periodic. Interpolation below remains continuous at
     // every knot and at s=0, without switching palette at a lap boundary.
-    const colors = samples.map(p => p.color), radius = Math.max(1, Math.ceil(4 / spacing));
+    const weights = samples.map(p => p.colorWeights), radius = Math.max(1, Math.ceil(4 / spacing));
     for (let i = 0; i < count; i++) {
       const result = [0, 0, 0]; let total = 0;
       for (let k = -radius; k <= radius; k++) {
         const weight = Math.exp(-.5 * (k * spacing / 2) ** 2); total += weight;
-        for (let c = 0; c < 3; c++) result[c] += colors[mod(i + k, count)][c] * weight;
+        for (let c = 0; c < 3; c++) result[c] += weights[mod(i + k, count)][c] * weight;
       }
-      samples[i].color = Object.freeze(result.map(v => v / total));
+      samples[i].colorWeights = Object.freeze(result.map(v => v / total));
+      samples[i].color = Object.freeze(colorFor(samples[i].colorWeights, samples[i].acceleration));
+      samples[i].yellowWeight = samples[i].colorWeights[2] * yellowGate(samples[i].acceleration);
+      samples[i].coast = samples[i].coastDemand * yellowGate(samples[i].acceleration);
+      samples[i].anticipation = samples[i].anticipationDemand * yellowGate(samples[i].acceleration);
       Object.freeze(samples[i]);
     }
     return Object.freeze({ model: MODEL, length, spacing, samples: Object.freeze(samples), apexCount: apexes.length });
@@ -147,18 +157,77 @@
     const s = mod(Number.isFinite(distance) ? distance : 0, data.length), u = s / data.spacing;
     const i = Math.floor(u) % data.samples.length, t = smooth(0, 1, u - Math.floor(u));
     const a = data.samples[i], b = data.samples[(i + 1) % data.samples.length], mix = key => a[key] + (b[key] - a[key]) * t;
-    const color = a.color.map((v, channel) => v + (b.color[channel] - v) * t);
-    const brake = mix('brake'), throttle = mix('throttle'), coast = mix('coast'), anticipation = mix('anticipation');
+    // Reapply eligibility after interpolation: neighbouring yellow samples
+    // must never tint a point whose own predicted speed is increasing.
+    const acceleration = mix('acceleration'), gate = yellowGate(acceleration);
+    const colorWeights = a.colorWeights.map((v, channel) => v + (b.colorWeights[channel] - v) * t), color = colorFor(colorWeights, acceleration);
+    const brake = mix('brake'), throttle = mix('throttle'), coastDemand = mix('coastDemand'), anticipationDemand = mix('anticipationDemand');
+    const coast = coastDemand * gate, anticipation = anticipationDemand * gate;
     return { model: MODEL, s, targetSpeed: mix('targetSpeed'), sourceTargetSpeed: mix('sourceTargetSpeed'),
-      throttle, brake, coast, anticipation, acceleration: mix('acceleration'), wheelAcceleration: mix('wheelAcceleration'),
+      throttle, brake, coast, anticipation, coastDemand, anticipationDemand, acceleration, wheelAcceleration: mix('wheelAcceleration'),
       lateralLoad: mix('lateralLoad'), grade: mix('grade'), lookaheadM: mix('lookaheadM'), nextBrakeM: a.nextBrakeM,
-      phase: brake >= .55 ? 'brake' : coast >= .5 ? 'coast' : anticipation >= .5 ? 'prepare-brake' : throttle >= .75 ? 'accelerate' : 'balance',
-      color, alpha: .52, fill: 'rgba(' + color.map(v => Math.round(v)).join(',') + ',0.52)' };
+      phase: brake >= .55 ? 'brake' : acceleration > 0 ? 'accelerate' : coast >= .5 ? 'coast' : anticipation >= .5 ? 'prepare-brake' : throttle >= .75 ? 'accelerate' : 'balance',
+      color, yellowWeight: colorWeights[2] * gate, alpha: .52, fill: fillFor(color) };
   }
 
   function sample(race, car, distance) { return sampleProfile(profile(race, car), distance); }
 
-  const api = Object.freeze({ sample, profile, sampleProfile, COLORS, MODEL });
+  // Short live forecast from the watched car's actual state, using the engine's
+  // own target rather than the advisory coast envelope. Nothing is written back
+  // to the race. Absolute requested distances may be unsorted or duplicated.
+  function preview(race, car, distances) {
+    if (!Array.isArray(distances) || distances.length > 256) throw new RangeError('preview requires at most 256 distances.');
+    if (!distances.length) return [];
+    if (!Number.isFinite(car?.distance) || !Number.isFinite(car?.speed) || car.speed < 0) throw new RangeError('preview requires a finite current vehicle state.');
+    const origin = car.distance;
+    if (distances.some(s => !Number.isFinite(s) || s < origin - 1e-8 || s - origin > 500)) throw new RangeError('preview distances must be within 0–500 metres ahead of the car.');
+    const data = profile(race, car); if (!data) return distances.map(() => null);
+    const points = car.pathPoints || race.pathPoints, length = car.trackLength || race.track.length, spacing = length / car.speedProfile.length;
+    const physical = distance => {
+      const u = mod(distance, length) / spacing, i = Math.floor(u) % points.length, t = u - Math.floor(u), j = (i + 1) % points.length;
+      return { grade: (points[i].grade || 0) + ((points[j].grade || 0) - (points[i].grade || 0)) * t,
+        target: Math.sqrt(car.speedProfile[i] ** 2 + (car.speedProfile[j] ** 2 - car.speedProfile[i] ** 2) * t) };
+    };
+    const targetAt = distance => typeof race._target === 'function' ? race._target(car, distance) : physical(distance).target;
+    let position = origin, speed = car.speed, acceleration = Number.isFinite(car.acceleration) ? car.acceleration : 0;
+    let state = forces(race, car, speed, physical(position).grade), wheel = acceleration + state.resistance;
+    const requests = distances.map((distance, index) => ({distance:Math.max(origin, distance),index})).sort((a,b) => a.distance - b.distance), result = new Array(distances.length);
+    for (const request of requests) {
+      while (position < request.distance - 1e-8) {
+        const ds = Math.min(1, request.distance - position), nextPosition = position + ds;
+        state = forces(race, car, speed, physical(position).grade);
+        const target = targetAt(nextPosition);
+        const lower = Math.max(0, speed * speed + 2 * (-state.brake - state.resistance) * ds);
+        const upper = Math.max(0, speed * speed + 2 * state.acceleration * ds);
+        const nextSquared = clamp(target * target, lower, upper);
+        acceleration = (nextSquared - speed * speed) / (2 * ds); wheel = acceleration + state.resistance;
+        speed = Math.sqrt(nextSquared); position = nextPosition;
+      }
+      if (request.distance > origin + 1e-8) {
+        // The last metre's average acceleration can still be negative just
+        // after a corner starts opening. Evaluate the engine's instantaneous
+        // 120 Hz control at the arrow itself, using its predicted endpoint
+        // speed and the same continuous target lookahead as _advance.
+        state = forces(race, car, speed, physical(position).grade);
+        const dt = 1 / 120, target = targetAt(position + Math.max(.1, speed * dt));
+        acceleration = clamp((target - speed) / dt, -state.brake - state.resistance, state.acceleration);
+        wheel = acceleration + state.resistance;
+      }
+      const base = sampleProfile(data, request.distance), brake = clamp(-wheel / Math.max(.01, state.brake), 0, 1), throttle = clamp(wheel / Math.max(.01, state.drive), 0, 1);
+      const gate = yellowGate(acceleration), coastDemand = throttle < .4 && brake < .4 ? base.coastDemand : 0;
+      const anticipationDemand = brake < .65 ? base.anticipationDemand : 0, coast = coastDemand * gate, anticipation = anticipationDemand * gate;
+      const red = smooth(.06, .9, brake), green = (1-red) * smooth(.15,.9,throttle) * (1-coastDemand) * (1-anticipationDemand);
+      const weights = [red,green,1-red-green], color = colorFor(weights,acceleration);
+      result[request.index] = { ...base, basis:'actual-speed-force-preview', predictionDistanceM:request.distance-origin,
+        targetSpeed:targetAt(request.distance), advisoryTargetSpeed:base.targetSpeed,
+        forecastSpeed:speed, forecastAcceleration:acceleration, acceleration, wheelAcceleration:wheel, brake, throttle, coast, anticipation,
+        coastDemand, anticipationDemand, yellowWeight:weights[2]*gate, color, fill:fillFor(color),
+        phase:brake>=.55?'brake':acceleration>0?'accelerate':coast>=.5?'coast':anticipation>=.5?'prepare-brake':throttle>=.75?'accelerate':'balance' };
+    }
+    return result;
+  }
+
+  const api = Object.freeze({ sample, profile, sampleProfile, preview, COLORS, MODEL });
   root.RacingGuidance = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

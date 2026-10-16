@@ -583,20 +583,14 @@
     }
     _queueRacingGuidance(car,camera,queue){
       if(!root.RacingGuidance)return;
-      const data=root.RacingGuidance.profile(this.race,car);if(!data)return;
       const length=car.trackLength||this.race.track.length,count=Math.ceil(length/7.5),step=length/count;
-      // Once the launch blend ends, overview arrows also use the periodic
-      // flying path. Reusing absolute s=0 would redraw the first-start tangent
-      // on every later lap even while the car follows its normal racing line.
-      const launching=(root.DrivingPose?.startBlend?.(car)??1)<1,lap=Math.max(launching?0:1,Math.floor(car.distance/length));
-      let first=lap*count,last=first+count-1;
-      // Restrict close cameras to the nearby section; distant loop geometry
-      // must not appear over a hill. Triangles share the scene's near clipping
-      // and depth sort so the road/terrain can also occlude them.
-      if(this.mode==='follow'){first=Math.ceil((car.distance-22)/step);last=Math.floor((car.distance+280)/step);}
-      else if(this.mode==='eau-rouge'){first=Math.ceil(Math.max(0,(this.landmark?.low.s||890)-100)/step);last=Math.floor(((this.landmark?.high.s||1130)+260)/step);}
-      for(let index=first;index<=last;index++){
-        const distance=index*step,guidance=root.RacingGuidance.sampleProfile(data,distance);if(!guidance)continue;
+      // Keep fifteen road-fixed arrows ahead of the watched car in every view.
+      // Absolute distance preserves the flying path at later lap boundaries;
+      // spacing stays uniform as the trailing arrow is replaced at the front.
+      const first=Math.ceil((car.distance+5)/step),distances=Array.from({length:15},(_,i)=>(first+i)*step);
+      const preview=root.RacingGuidance.preview(this.race,car,distances);
+      for(let index=0;index<distances.length;index++){
+        const distance=distances[index],guidance=preview[index];if(!guidance)continue;
         this._queue({vertices:this._racingGuidanceTriangle(car,distance),fill:guidance.fill,stroke:guidance.fill,width:.45,priority:2},camera,queue);
       }
     }

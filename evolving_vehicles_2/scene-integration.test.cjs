@@ -137,10 +137,10 @@ test('all real circuits share watched-car, camera and arrow coordinates with phy
       assert.deepEqual(entry.position,{...expected,z:displayHeight(race.track,expected.z),elevation:displayHeight(race.track,expected.elevation),grade:expected.grade*1.75},id+' displayed render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
       close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.8,id+' camera height');
-      const step=length/Math.ceil(length/7.5),firstIndex=Math.ceil((car.distance-22)/step),lastIndex=Math.floor((car.distance+280)/step);
-      assert.equal(arrows.length,lastIndex-firstIndex+1,id+' only the nearby 302 metre window');
+      const step=length/Math.ceil(length/7.5),firstIndex=Math.ceil((car.distance+5)/step);
+      assert.equal(arrows.length,15,id+' fifteen arrows ahead of the watched car');
       assert.ok(arrows.every(face=>face.vertices.length===3&&face.fill.endsWith(',0.52)')),id+' translucent world triangles');
-      for(const index of [0,10,25,arrows.length-1]) {
+      for(const index of [0,5,10,arrows.length-1]) {
         const s=(firstIndex+index)*step,tip=Pose.sampleCar(race,car,s+2.6),rear=Pose.sampleCar(race,car,s-2),vertices=arrows[index].vertices;
         close(vertices[0].x,tip.x,id+' arrow tip x');close(vertices[0].y,tip.y,id+' arrow tip y');
         close(vertices[0].z,displayHeight(race.track,tip.z)+.11,id+' arrow tip surface clearance');

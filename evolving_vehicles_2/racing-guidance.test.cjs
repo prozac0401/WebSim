@@ -38,22 +38,28 @@ test('a physically limited bend gets advance warning, strong braking, release to
   assert.ok(Math.max(...red.map(s => s.s)) < Math.min(...coast.map(s => s.s)), 'braking precedes throttle release');
   assert.ok(coast.some(s => Math.abs(s.s - 600) < 9), 'release reaches the apex');
   assert.ok(p.some(s => s.s > 630 && s.s < 850 && s.throttle > .99 && s.anticipation === 0), 'full acceleration on exit');
-  assert.ok(p.some(s => s.anticipation > .9 && s.nextBrakeM > 100 && s.brake === 0), 'yellow warning more than 100 metres before red');
-  const warningStart = p.find(s => s.anticipation > 0);
-  assert.ok(warningStart.nextBrakeM <= warningStart.lookaheadM && warningStart.lookaheadM >= 100 && warningStart.lookaheadM <= 250);
+  assert.ok(p.some(s => s.anticipationDemand > .9 && s.nextBrakeM > 40 && s.nextBrakeM < 100 && s.brake === 0), 'compact preparation demand before red');
+  assert.ok(p.every(s => s.nextBrakeM === null || s.nextBrakeM <= 100 || s.anticipation === 0), 'no warning beyond 100 metres');
+  const warningStart = p.find(s => s.anticipationDemand > 0);
+  assert.ok(warningStart.nextBrakeM <= warningStart.lookaheadM && warningStart.lookaheadM >= 40 && warningStart.lookaheadM <= 100);
   const redCore = red.find(s => s.color[0] > 235 && s.color[1] < 90);
   const greenCore = p.find(s => s.color[0] < 40 && s.color[1] > 190);
-  const yellowCore = coast.find(s => s.color[0] > 240 && s.color[1] > 195);
-  assert.ok(redCore && greenCore && yellowCore, 'all three requested control colors have interior plateaus');
+  const yellowCore = coast.find(s => s.color[0] > 200 && s.color[1] > 195 && s.acceleration < 0);
+  assert.ok(redCore && greenCore && yellowCore, 'all three requested control colors appear where acceleration permits');
 });
 
 test('grade distinguishes wheel braking from natural speed loss, and changes the modeled release plan', () => {
   const flat = fixture(), uphill = fixture(600,.12), downhill = fixture(600,-.12);
   const a = Guidance.profile(flat.race,flat.car), b = Guidance.profile(uphill.race,uphill.car), c = Guidance.profile(downhill.race,downhill.car);
   const climbCoast = b.samples.filter(s => s.coast && s.acceleration < -.5 && s.brake < .01);
-  const descendCoast = c.samples.filter(s => s.coast && s.acceleration > .3 && s.throttle < .01);
+  const descendCoast = c.samples.filter(s => s.coastDemand && s.acceleration > .3 && s.throttle < .01);
   assert.ok(climbCoast.length > 5, 'uphill natural deceleration is release, not red braking');
   assert.ok(descendCoast.length > 5, 'gravity-assisted acceleration does not become full throttle');
+  for(const p of descendCoast) {
+    assert.equal(p.coast,0,'accelerating release is not shown as yellow coast');
+    assert.equal(p.anticipation,0,'accelerating release is not shown as yellow preparation');
+    noYellowWhileAccelerating(p);
+  }
   assert.notDeepEqual(a.samples.map(s => s.targetSpeed), b.samples.map(s => s.targetSpeed));
   assert.notDeepEqual(a.samples.map(s => s.targetSpeed), c.samples.map(s => s.targetSpeed));
 });
@@ -68,7 +74,90 @@ test('colors interpolate continuously at every knot and across the closed-lap se
   assert.deepEqual(Guidance.sample(race,car,0),Guidance.sample(race,car,data.length * 3));
   const before = Guidance.sample(race,car,-30), after = Guidance.sample(race,car,data.length-30);
   assert.deepEqual(before,after);
-  assert.ok(data.samples.slice(-60).some(p => p.anticipation > .9), 'brake warnings wrap around the timing line');
+  assert.ok(data.samples.slice(-60).some(p => p.anticipationDemand > .9), 'preparation distance wraps around the timing line');
+});
+
+function noYellowWhileAccelerating(p) {
+  if(p.acceleration<0)return;
+  assert.equal(p.yellowWeight,0);
+  assert.equal(p.coast,0);assert.equal(p.anticipation,0);
+  // Check the actual final RGB, not only an eligibility metadata flag. With
+  // yellow absent, the color must lie on the green/red segment of the palette.
+  const red=Guidance.COLORS.brake,green=Guidance.COLORS.accelerate,t=(p.color[0]-green[0])/(red[0]-green[0]);
+  for(let c=1;c<3;c++)close(p.color[c],green[c]+(red[c]-green[c])*t,1e-7);
+}
+
+test('color interpolation never leaks yellow into positive planned acceleration',()=>{
+  for(const grade of [0,.12,-.12]) {
+    const {race,car}=fixture(12,grade),data=Guidance.profile(race,car);
+    for(let s=-10;s<data.length+10;s+=data.spacing/9) noYellowWhileAccelerating(Guidance.sampleProfile(data,s));
+  }
+});
+
+test('live preview starts from actual launch and rolling speed, overriding a conflicting advisory coast',()=>{
+  const {race,car}=fixture();
+  car.acceleration=0;
+  const launch=Guidance.preview(race,car,[0,15,30,60,120]);
+  assert.equal(launch[0].forecastSpeed,0);assert.equal(launch[0].forecastAcceleration,0);
+  assert.ok(launch.slice(1).every(p=>p.forecastSpeed>0&&p.forecastAcceleration>0));
+  launch.forEach(noYellowWhileAccelerating);
+  car.distance=550;car.speed=10;car.acceleration=3;
+  assert.ok(Guidance.sample(race,car,550).acceleration<0,'static coast model conflicts with slow actual car');
+  const before=JSON.stringify(car),rolling=Guidance.preview(race,car,[580,550,557.5,565,580]);
+  assert.equal(JSON.stringify(car),before,'preview leaves all car state unchanged');
+  assert.equal(rolling[1].forecastAcceleration,car.acceleration);
+  assert.equal(rolling[1].forecastSpeed,car.speed);
+  assert.deepEqual(rolling[0],rolling[4],'unsorted and duplicate requests retain their order');
+  for(const p of rolling) {
+    assert.equal(p.basis,'actual-speed-force-preview');
+    assert.ok(p.forecastAcceleration>0);noYellowWhileAccelerating(p);
+  }
+});
+
+test('live preview preserves downhill braking even when net speed still increases',()=>{
+  const {race,car}=fixture(600,-.9);race._brakingCapacity=()=>1;
+  car.speed=60;car.acceleration=3;
+  const future=Guidance.preview(race,car,[5,15,40]);
+  for(const p of future) {
+    assert.ok(p.forecastAcceleration>0);assert.ok(p.brake>.99);assert.equal(p.phase,'brake');
+    noYellowWhileAccelerating(p);assert.deepEqual(p.color,Guidance.COLORS.brake);
+  }
+});
+
+test('live preview reports instantaneous exit acceleration rather than the last braking metre average',()=>{
+  const {race,car}=fixture();
+  race._target=(_car,s)=>Math.sqrt(400+8*Math.abs(s-600));
+  car.distance=590.7;car.speed=race._target(car,car.distance);car.acceleration=-4;
+  // The final half-metre crosses the apex at 600: its speed-squared still
+  // decreases overall, but the endpoint 600.2 is already a full-power exit.
+  const p=Guidance.preview(race,car,[600.2])[0];
+  assert.ok(p.forecastAcceleration>3);assert.ok(p.throttle>.99);assert.equal(p.brake,0);
+  assert.equal(p.phase,'accelerate');noYellowWhileAccelerating(p);
+});
+
+test('live preview rejects nonfinite and excessive ranges and stays finite across a lap boundary',()=>{
+  const {race,car}=fixture();car.distance=1195;car.speed=24;car.acceleration=2;
+  for(const distances of [[NaN],[Infinity],[1194],[1696],new Array(257).fill(1195)]) assert.throws(()=>Guidance.preview(race,car,distances),RangeError);
+  assert.deepEqual(Guidance.preview(race,car,[]),[]);
+  for(const p of Guidance.preview(race,car,[1195,1200,1210,1310,1695])) {
+    for(const key of ['forecastSpeed','forecastAcceleration','yellowWeight','throttle','brake'])assert.ok(Number.isFinite(p[key]),key);
+    assert.ok(p.forecastSpeed>=0);noYellowWhileAccelerating(p);
+  }
+});
+
+test('live preview current color follows actual tuned Supra acceleration through launch and the first corners',()=>{
+  const T=require('./tuning-evolution.js'),entrant=T.createPopulation({vehicleId:'supra',count:8,budget:30,seed:31415})[0];
+  const race=new Race({circuit:circuits.find(c=>c.id==='inje'),entrants:[entrant],laps:1,surface:'dry'}),car=race.cars[0];
+  let accelerating=0,braking=0;
+  for(let i=0;i<2000&&car.distance<900;i++) {
+    race.step(.08);
+    const current=Guidance.preview(race,car,[car.distance,car.distance+30,car.distance+80,car.distance+115]);
+    close(current[0].forecastAcceleration,car.acceleration);
+    if(car.acceleration>0)accelerating++;
+    if(current[0].brake>.8)braking++;
+    current.forEach(noYellowWhileAccelerating);
+  }
+  assert.ok(car.distance>=900);assert.ok(accelerating>100);assert.ok(braking>10);
 });
 
 test('selected vehicle, wet tyres and power limits change advice without mutating race state', () => {
@@ -85,7 +174,7 @@ test('selected vehicle, wet tyres and power limits change advice without mutatin
   assert.notDeepEqual(fast.samples.map(p=>p.color),slippery.samples.map(p=>p.color));
   for (const profile of [fast,slow,slippery]) for (const p of profile.samples) {
     assert.ok(Number.isFinite(p.targetSpeed) && p.targetSpeed <= p.sourceTargetSpeed + 1e-8);
-    assert.ok(p.lookaheadM >= 100 && p.lookaheadM <= 250);
+    assert.ok(p.lookaheadM >= 40 && p.lookaheadM <= 100);
     for (const key of ['throttle','brake','coast','anticipation']) assert.ok(p[key] >= 0 && p[key] <= 1);
   }
   assert.equal(JSON.stringify(dry.cars.map(car => ({speed:car.speed,distance:car.distance,speedProfile:car.speedProfile,pathPoints:car.pathPoints}))),before);
@@ -119,21 +208,28 @@ test('world triangles follow the exact watched trajectory and 3D elevation, incl
   close(renderer._racingGuidanceTriangle(car,1050)[0].z,renderer._racingGuidanceTriangle(car,length+1050)[0].z);
 });
 
-test('overview closes with uniform arrow spacing and close views only queue the nearby section', () => {
+test('every view keeps fifteen road-fixed arrows ahead of the watched car across lap boundaries', () => {
   const race = new Race({circuit:circuits.find(c=>c.id==='spa'),vehicleIds:['supra'],racingLine:true}),car = race.cars[0];
   const renderer = Object.assign(Object.create(Renderer.prototype),{race,mode:'top',_queue:(face,camera,queue)=>queue.push(face)});
-  const whole=[];renderer._queueRacingGuidance(car,{},whole);
-  assert.equal(whole.length,Math.ceil((car.trackLength||race.track.length)/7.5));
-  assert.ok(whole.every(face=>face.vertices.length===3 && face.fill.endsWith(',0.52)')));
-  const length=car.trackLength||race.track.length;car.distance=length*1.2;
-  const flying=[];renderer._queueRacingGuidance(car,{},flying);
-  assert.equal(flying.length,whole.length);
-  const tip=Pose.sampleCar(race,car,length+2.6);
-  close(flying[0].vertices[0].x,tip.x);close(flying[0].vertices[0].y,tip.y);
-  assert.notDeepEqual(flying[0].vertices,whole[0].vertices,'later laps do not redraw the standing-start transition');
-  renderer.mode='follow';car.distance=(car.trackLength||race.track.length)+1000;
-  const nearby=[];renderer._queueRacingGuidance(car,{},nearby);
-  assert.ok(nearby.length>=38&&nearby.length<=43);
+  const length=car.trackLength||race.track.length,step=length/Math.ceil(length/7.5);
+  for(const mode of ['top','overview','follow','eau-rouge'])for(const distance of [0,61.2,length-9,length+1,length*2+1000]){
+    renderer.mode=mode;car.distance=distance;
+    const arrows=[];renderer._queueRacingGuidance(car,{},arrows);
+    assert.equal(arrows.length,15);assert.ok(arrows.every(face=>face.vertices.length===3&&face.fill.endsWith(',0.52)')));
+    const first=Math.ceil((distance+5)/step)*step;
+    assert.ok(first-2>distance,'entire first arrow is ahead of the car');
+    assert.ok(first+14*step+2.6-distance<121,'bounded forward window including grid alignment and triangle tip');
+    for(let i=0;i<15;i++){
+      const expected=renderer._racingGuidanceTriangle(car,first+i*step);
+      for(let v=0;v<3;v++)for(const key of ['x','y','z'])close(arrows[i].vertices[v][key],expected[v][key]);
+    }
+  }
+  car.distance=70;renderer.mode='follow';const before=[];renderer._queueRacingGuidance(car,{},before);
+  car.distance+=step;const after=[];renderer._queueRacingGuidance(car,{},after);
+  for(let i=0;i<14;i++){
+    close(before[i+1].vertices[0].x,after[i].vertices[0].x);
+    close(before[i+1].vertices[0].y,after[i].vertices[0].y);
+  }
 });
 
 test('near-plane clipping keeps a partially visible guidance arrow and finite projected points', () => {
