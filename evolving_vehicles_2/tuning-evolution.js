@@ -11,6 +11,11 @@
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const round = value => Math.round(value * 1000) / 1000;
   const nm = value => round(value * 9.80665);
+  // Nominal unloaded radius from the factory tyre marking, in millimetres.
+  const tireSpec = (width, aspect, rim) => {
+    const tire = `${width}/${aspect}R${rim}`, radius = round(width * aspect / 100 + rim * 12.7);
+    return { frontTire: tire, rearTire: tire, frontTireRadiusMm: radius, rearTireRadiusMm: radius };
+  };
   const STAGE_COSTS = [3, 5, 7, 10, 14, 18];
   const CATEGORIES = freeze([
     { id: 'acceleration', label: '가속력', stageCosts: [...STAGE_COSTS], description: '출력·토크와 저속 감속비 향상' },
@@ -77,21 +82,21 @@
   }
   const VARIANTS = freeze({
     ray: [
-      preset('ray', 'ray-1.0-14', '1.0 가솔린 FWD · 14인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 1085),
+      preset('ray', 'ray-1.0-14', '1.0 가솔린 FWD · 14인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 1085, tireSpec(165, 60, 14)),
       preset('ray', 'ray-1.0-15', '1.0 가솔린 FWD · 15인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 1090),
       preset('ray', 'ray-ev', 'EV FWD · 35.2 kWh', null, '전륜 단일 전기모터', 'fwd', round(64.3 / .73549875), 147, 1295, { sourceUrl: 'https://www.kia.com/kr/vehicles/ray-ev/specification', heightMm: 1710, batteryKwh: 35.2, frontWeightFraction: .56, cgHeightM: .55 })
     ],
     morning: [
-      preset('morning', 'morning-1.0-14', '1.0 가솔린 FWD · 14인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 975),
+      preset('morning', 'morning-1.0-14', '1.0 가솔린 FWD · 14인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 975, tireSpec(175, 65, 14)),
       preset('morning', 'morning-1.0-16', '1.0 가솔린 FWD · 16인치', 998, '직렬 3기통 가솔린', 'fwd', 76, nm(9.7), 1010)
     ],
     avante: [
-      preset('avante', 'avante-2.0-16', '2.0 가솔린 FWD · 16인치', 1999, '직렬 4기통 가솔린', 'fwd', 149, nm(18.3), 1350),
-      preset('avante', 'avante-2.0-18', '2.0 가솔린 FWD · 18인치', 1999, '직렬 4기통 가솔린', 'fwd', 149, nm(18.3), 1400)
+      preset('avante', 'avante-2.0-16', '2.0 가솔린 FWD · 16인치', 1999, '직렬 4기통 가솔린', 'fwd', 149, nm(18.3), 1350, tireSpec(205, 60, 16)),
+      preset('avante', 'avante-2.0-18', '2.0 가솔린 FWD · 18인치', 1999, '직렬 4기통 가솔린', 'fwd', 149, nm(18.3), 1400, tireSpec(215, 45, 18))
     ],
     k5: [
       preset('k5', 'k5-2.0', '2.0 가솔린 FWD · 16인치', 1999, '직렬 4기통 가솔린', 'fwd', 160, nm(20), 1425),
-      preset('k5', 'k5-1.6t', '1.6 터보 FWD · 17인치', 1598, '직렬 4기통 가솔린 터보', 'fwd', 180, nm(27), 1450, { topSpeedMps: 220 / 3.6 }),
+      preset('k5', 'k5-1.6t', '1.6 터보 FWD · 17인치', 1598, '직렬 4기통 가솔린 터보', 'fwd', 180, nm(27), 1450, { ...tireSpec(215, 55, 17), topSpeedMps: 220 / 3.6 }),
       preset('k5', 'k5-2.0lpg', '2.0 LPG FWD · 16인치', 1999, '직렬 4기통 LPG', 'fwd', 146, nm(19.5), 1445)
     ],
     carnival: [
@@ -105,7 +110,7 @@
       preset('g80', 'g80-3.5t-awd', '3.5T AWD · 20인치', 3470, 'V6 가솔린 트윈터보', 'awd', 380, nm(54), 2005, { frontWeightFraction: .525, brakeG: 1.05, topSpeedMps: 250 / 3.6 })
     ],
     ioniq5: [
-      preset('ioniq5', 'ioniq5-standard', 'Standard RWD · 63 kWh · 19인치', null, '후륜 단일 전기모터', 'rwd', 170, 350, 1890, { batteryKwh: 63 }),
+      preset('ioniq5', 'ioniq5-standard', 'Standard RWD · 63 kWh · 19인치', null, '후륜 단일 전기모터', 'rwd', 170, 350, 1890, { ...tireSpec(235, 55, 19), batteryKwh: 63 }),
       preset('ioniq5', 'ioniq5-long-rwd', 'Long Range RWD · 84 kWh · 20인치', null, '후륜 단일 전기모터', 'rwd', 229, 350, 2025, { batteryKwh: 84 }),
       preset('ioniq5', 'ioniq5-long-awd', 'Long Range AWD · 84 kWh · 20인치', null, '전후륜 듀얼 전기모터', 'awd', 325, 605, 2130, { batteryKwh: 84, frontWeightFraction: .50 })
     ],

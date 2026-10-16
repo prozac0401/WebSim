@@ -1,6 +1,6 @@
 /* Manufacturer-checked transmission families and sourced ratios for the HUD.
  * Sources distinguish exact-market specifications from reference-market ratios.
- * The race also uses sourced first-gear/final-drive ratios for its low-speed
+ * The race also uses sourced first-gear/final-drive or EV reductions for its low-speed
  * torque envelope. WOT shift scheduling and rolling-radius correction remain
  * display estimates and never feed the race's forces or lap-time solver. */
 (function(root){
@@ -16,6 +16,7 @@
     'kia-carnival':{title:'기아 카니발 정부 신고 연비·변속기',url:'https://www.kia.com/kr/vehicles/carnival/specification',observation:'3.5 가솔린 9인승 18인치: 자동 8단. 1.6 터보 HEV 9인승 18인치: 자동 6단.'},
     'genesis-g80':{title:'제네시스 G80 국내 제원·연비',url:'https://www.genesis.com/kr/ko/models/luxury-sedan-genesis/g80/specs.html',observation:'G80 2.5T/3.5T, 2WD/AWD: 자동 8단. 같은 페이지의 다른 차종 표와 구분한다.'},
     'hyundai-ioniq5':{title:'현대 2027 아이오닉 5 제원표',url:'https://www.hyundai.com/contents/repn-car/catalog/spec/ioniq5-27my-spec.pdf',observation:'Standard/Long Range 전기 구동 모델. 내연기관 HUD를 표시하지 않는다.'},
+    'hyundai-ioniq5-au-2026-reduction':{title:'Hyundai Australia MY2026 IONIQ 5 specification sheet',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/ioniq5/docs/2026-IONIQ-5-Specification-Sheet.pdf',observation:'PDF 1–2쪽: 84 kWh RWD 및 AWD. 후륜 감속기 2.263, AWD 전륜도 2.263, 종감속 4.706으로 각 구동축 총 감속비 10.649678. 국내 Long Range에 참고 적용하며 국내 일치는 미확인. 63 kWh Standard와 고성능 N은 포함하지 않는다.'},
     'hyundai-grandeur':{title:'현대 2027 그랜저 제원표',url:'https://www.hyundai.com/contents/repn-car/catalog/spec/grandeur-27fl-spec.pdf',observation:'가솔린 2.5 2WD, 가솔린 3.5 2WD/AWD: 자동 8단.'},
     'hyundai-santafe':{title:'현대 싼타페 가격·파워트레인',url:'https://www.hyundai.com/kr/ko/e/vehicles/santafe/price',observation:'국내 2.5 터보: 스마트스트림 습식 8단 DCT. 하이브리드 6AT와 구분한다.'},
     'hyundai-staria':{title:'현대 더 뉴 스타리아 라운지 가격',url:'https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/price',observation:'스마트스트림 LPG 3.5: 8단 자동변속기.'},
@@ -24,8 +25,15 @@
     'hyundai-porter':{title:'현대 포터 II 공식 카탈로그',url:'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',observation:'PDF 5/11쪽: LPG 초장축 슈퍼캡 6단 수동 또는 5단 자동. 최고출력 회전수 3800rpm은 레드라인이 아니다.'},
     'genesis-g70-2019':{title:'전기형 G70 2019 제조사 카탈로그 보관본',url:'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',observation:'국내 2.0T/3.3T, RWD/AWD: 8단 자동. 현행 2.5T 또는 북미 6MT 사양을 혼합하지 않는다.'},
     'toyota-supra-2019':{title:'토요타 2019 일본 수프라 공식 제원표',url:'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf',observation:'RZ 3.0: 8단 스포츠 AT, 1~8단 기어비 및 종감속 3.154. 최고출력 5000rpm은 레드라인이 아니다.'},
+    'toyota-supra-eu-2019-transmission':{title:'Toyota Europe May 2019 GR Supra press kit',url:'https://newsroom.toyota.eu/download/708620/2019-gr-supra-dpl-en-972889.pdf',observation:'PDF 32쪽 3.0 340 DIN hp: 8HP51 8단 스포츠 자동, 일본과 같은 단별 기어비. 변속기 계열 참고 근거이며 이 표의 종감속 3.150은 일본 사양에 적용하지 않는다.'},
+    'toyota-supra-us-2020-crosscheck':{title:'Toyota USA 2020 Supra product information',url:'https://pressroom.toyota.com/2020-supra-product-supra/',observation:'2019년 발표한 미국 MY2020 3.0 8AT 표도 일본과 동일한 8개 기어비 및 종감속 3.154. 일본 원본 수치의 교차 확인에만 사용.'},
     'genesis-g80-au-2026-ratios':{title:'Genesis Australia MY2026 G80 specification sheet',url:'https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf',observation:'호주 2.5T RWD/3.5T AWD 1~8단 기어비, 종감속 3.909/3.727, 최고출력 5800rpm. 국내 전 구동 조합의 기어비 일치 및 레드라인은 미확인. 유럽판 6단 .832와도 구분한다.'},
-    'genesis-g70-us-2019-ratios':{title:'Genesis Motor America: 2019 G70 Equipped To Compete',url:'https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html',observation:'제조사의 2019 미국 전기형 발표. 2.0T/3.3T 8AT 단별 기어비와 종감속 3.727/3.538, 최고출력 6200/6000rpm. 국내 기어비 일치는 미확인. 6MT 열을 사용하지 않고 국내 PS·질량은 변경하지 않는다.'}
+    'genesis-g70-us-2019-ratios':{title:'Genesis Motor America: 2019 G70 Equipped To Compete',url:'https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html',observation:'제조사의 2019 미국 전기형 발표. 2.0T/3.3T 8AT 단별 기어비와 종감속 3.727/3.538, 최고출력 6200/6000rpm. 국내 기어비 일치는 미확인. 6MT 열을 사용하지 않고 국내 PS·질량은 변경하지 않는다.'},
+    'kia-k5-us-2024-ratios':{title:'Kia America 2024 K5 specifications',url:'https://www.kiamedia.com/us/en/models/k5/2024/specifications',observation:'1.6T FWD 8AT의 단별 기어비와 종감속 3.367. AWD의 3.510 및 2.5T DCT와 구분. 국내 일치는 미확인.'},
+    'kia-carnival-us-2025-ratios':{title:'Kia America 2025 Carnival specifications',url:'https://www.kiamedia.com/us/en/models/carnival/2025/specifications',observation:'3.5 가솔린 FWD 8AT의 단별 기어비와 종감속 3.510. 국내 일치는 미확인.'},
+    'kia-carnival-hev-us-2025-ratios':{title:'Kia America 2025 Carnival HEV specifications',url:'https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications',observation:'1.6T HEV FWD 6AT의 단별 기어비와 종감속 3.648. 국내 일치는 미확인.'},
+    'hyundai-santafe-au-mx5-ratios':{title:'Hyundai Australia Santa Fe MX5 specifications',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf',observation:'PDF 1–2쪽: G4KP 2.5T FWD/AWD 8DCT 단별 기어비, 두 종감속비 4.846/3.316. 국내 일치 및 이 표에 없는 단별 종감속 배정은 미확인.'},
+    'hyundai-santafe-au-my21-final-drives':{title:'Hyundai Australia MY21 Santa Fe 8DCT final-drive assignments',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf',observation:'2.2 디젤 8DCT 표: 동일 단별 비율에서 1/2/5/6단은 4.846, 3/4/7/8단은 3.316. MX5 2.5T의 배정에 참고 적용하며 동일 변속기 제어/국내 사양 검증을 뜻하지 않는다.'}
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
   const profiles={};
@@ -35,7 +43,7 @@
     for(const variantId of variantIds)profiles[variantId]={vehicleId,variantId,powertrainType,visible:!electric,transmissionType,gearCount,transmissionLabel:label,
       idleRPM:electric?0:900,shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
       ratioStep:electric?null:({4:.66,5:.71,6:.75,8:.81}[gearCount]??null),
-      ratioStatus:electric?'not-applicable':'estimated',gearRatios:null,finalDriveRatio:null,rollingRadiusScale:1,
+      ratioStatus:electric?'not-applicable':'estimated',gearRatios:null,finalDriveRatio:null,finalDriveRatios:null,rollingRadiusScale:1,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[sourceId],reviewedAt,verifiedFields:['powertrainType','transmissionType',...(gearCount===null?[]:['gearCount'])],...overrides};
   }
   add('ray',['ray-1.0-14','ray-1.0-15'],'gasoline','AT',4,'kia-ray');
@@ -58,16 +66,19 @@
   add('porter2',['porter-lpg-at'],'lpg','AT',5,'hyundai-porter',{shiftRPM:4000,maxRPM:5000});
   add('g70',['g70-2.0t-rwd','g70-2.0t-awd','g70-3.3t-rwd','g70-3.3t-awd'],'gasoline','AT',8,'genesis-g70-2019');
   add('supra',['supra-3.0t-rz'],'gasoline','AT',8,'toyota-supra-2019');
-  function applyRatios(ids, ratios, finalDriveRatio, sourceId, status, ratedPowerRPM, shiftRPM, market) {
+  function applyRatios(ids, ratios, finalDrive, sourceId, status, ratedPowerRPM, shiftRPM, market, drivenAxle = 'rear') {
+    const finalDriveRatios = Array.isArray(finalDrive) ? finalDrive : null;
+    const finalDriveRatio = finalDriveRatios ? null : finalDrive;
+    const ratioFields = ['gearRatios', finalDriveRatios ? 'finalDriveRatios' : 'finalDriveRatio', ...(ratedPowerRPM ? ['ratedPowerRPM'] : [])];
     for (const id of ids) {
       const p = profiles[id];
-      Object.assign(p, { gearRatios: ratios, finalDriveRatio, ratioStatus: status,
+      Object.assign(p, { gearRatios: ratios, finalDriveRatio, finalDriveRatios, ratioStatus: status,
         ratioSourceId: sourceId, ratioMarket: market,
-        ratedPowerRPM, shiftRPM, drivenAxle: 'rear', rollingRadiusScale: .985,
-        total1stReduction: ratios[0] * finalDriveRatio, ratioStep: null,
+        ratedPowerRPM, shiftRPM, drivenAxle, rollingRadiusScale: .985,
+        total1stReduction: ratios[0] * (finalDriveRatios?.[0] ?? finalDriveRatio), ratioStep: null,
         sourceIds: [...new Set([...p.sourceIds, sourceId])],
-        verifiedFields: [...p.verifiedFields, ...(status === 'verified-exact-market' ? ['gearRatios', 'finalDriveRatio', 'ratedPowerRPM'] : [])],
-        referenceFields: status === 'reference-market' ? ['gearRatios', 'finalDriveRatio', 'ratedPowerRPM'] : [],
+        verifiedFields: [...p.verifiedFields, ...(status === 'verified-exact-market' ? ratioFields : [])],
+        referenceFields: status === 'reference-market' ? ratioFields : [],
         estimatedFields: ['idleRPM', 'shiftRPM', 'maxRPM', 'rollingRadiusScale', 'tunedFinalDriveScale', ...(status === 'reference-market' ? ['domesticRatioMatch'] : [])] });
     }
   }
@@ -76,6 +87,31 @@
   applyRatios(['g70-2.0t-rwd','g70-2.0t-awd'], [3.964,2.468,1.610,1.176,1,.832,.652,.565], 3.727, 'genesis-g70-us-2019-ratios', 'reference-market', 6200, 6500, 'US');
   applyRatios(['g70-3.3t-rwd','g70-3.3t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.538, 'genesis-g70-us-2019-ratios', 'reference-market', 6000, 6500, 'US');
   applyRatios(['supra-3.0t-rz'], [5.250,3.360,2.172,1.720,1.316,1,.822,.640], 3.154, 'toyota-supra-2019', 'verified-exact-market', 5000, 6500, 'JP');
+  Object.assign(profiles['supra-3.0t-rz'], {
+    transmissionFamily: 'ZF 8HP51', transmissionFamilySourceId: 'toyota-supra-eu-2019-transmission',
+    referenceFields: ['transmissionFamily'],
+    sourceIds: ['toyota-supra-2019', 'toyota-supra-eu-2019-transmission', 'toyota-supra-us-2020-crosscheck']
+  });
+  applyRatios(['k5-1.6t'], [4.717,2.906,1.864,1.423,1.224,1,.790,.635], 3.367, 'kia-k5-us-2024-ratios', 'reference-market', 5500, 6000, 'US', 'front');
+  applyRatios(['carnival-3.5'], [4.808,2.901,1.864,1.424,1.219,1,.799,.648], 3.510, 'kia-carnival-us-2025-ratios', 'reference-market', 6400, 6500, 'US', 'front');
+  applyRatios(['carnival-1.6heV'], [4.639,2.826,1.841,1.386,1,.772], 3.648, 'kia-carnival-hev-us-2025-ratios', 'reference-market', null, 6000, 'US', 'front');
+  applyRatios(['santafe-2.5t-fwd','santafe-2.5t-awd'], [3.429,2.217,2.217,1.621,.860,.673,.791,.653], [4.846,4.846,3.316,3.316,4.846,4.846,3.316,3.316], 'hyundai-santafe-au-mx5-ratios', 'reference-market', 5800, 6000, 'AU', 'front');
+  for (const id of ['santafe-2.5t-fwd','santafe-2.5t-awd']) {
+    profiles[id].sourceIds.push('hyundai-santafe-au-my21-final-drives');
+    profiles[id].estimatedFields.push('finalDriveGearAssignment');
+  }
+  // A fixed motor-to-wheel reduction is separate from the hidden engine-gear
+  // HUD contract. Both AWD motors have this same reduction, so the race can
+  // retain the existing combined motor torque without multiplying it twice.
+  for (const id of ['ioniq5-long-rwd','ioniq5-long-awd']) {
+    Object.assign(profiles[id], {
+      singleSpeedReduction: 2.263 * 4.706,
+      reductionStatus: 'reference-market',
+      reductionSourceId: 'hyundai-ioniq5-au-2026-reduction', reductionMarket: 'AU',
+      sourceIds: [...profiles[id].sourceIds, 'hyundai-ioniq5-au-2026-reduction'],
+      referenceFields: ['singleSpeedReduction'], estimatedFields: ['domesticReductionMatch']
+    });
+  }
   const PROFILES=freeze(profiles);
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.

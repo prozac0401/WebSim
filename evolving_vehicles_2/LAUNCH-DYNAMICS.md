@@ -23,7 +23,7 @@
 
 ## 출발 토크에 사용하는 기어비
 
-기존에는 모든 내연 원메이크 차량의 저속 토크 계산에 기본 감속비 13.5를 사용했습니다. 자료가 있는 G70·G80·수프라는 이제 `1단 기어비 × 종감속비`를 별도 `driveReduction`으로 계산합니다. 기존 `reduction`은 유지하므로 HUD의 단수·기어별 속도·변속 시점은 이 변경으로 재설정되지 않습니다. 튜닝에 의한 비율 `유효 reduction / 출고 reduction`은 정확히 한 번만 적용합니다.
+기존에는 모든 내연 원메이크 차량의 저속 토크 계산에 기본 감속비 13.5를 사용했습니다. 현재는 자료가 있는 G70·G80·수프라·K5 1.6T·카니발·싼타페의 14개 출고 조합에 `1단 기어비 × 1단의 종감속비`를 별도 `driveReduction`으로 계산합니다. 기존 `reduction`은 유지하며 튜닝에 의한 비율 `유효 reduction / 출고 reduction`은 정확히 한 번만 적용합니다. HUD의 단별 계산도 출고 기어비와 같은 튜닝 배율을 사용하지만, HUD가 선택한 현재 단수를 물리 엔진에 다시 입력하지는 않습니다.
 
 | 모델·엔진 | 1단 | 종감속 | 기본 저속 유효 감속비 | 자료 범위 |
 | --- | ---: | ---: | ---: | --- |
@@ -32,14 +32,22 @@
 | G80 2.5T | 3.665 | 3.909 | 14.326485 | 2026 호주 참고 |
 | G80 3.5T | 3.665 | 3.727 | 13.659455 | 2026 호주 참고 |
 | 수프라 3.0T | 5.250 | 3.154 | 16.558500 | 수록 사양과 같은 2019 일본 RZ |
+| K5 1.6T FWD | 4.717 | 3.367 | 15.882139 | 2024 미국 8AT 참고 |
+| 카니발 3.5 FWD | 4.808 | 3.510 | 16.876080 | 2025 미국 8AT 참고 |
+| 카니발 1.6T HEV FWD | 4.639 | 3.648 | 16.923072 | 2025 미국 6AT 참고 |
+| 싼타페 2.5T FWD/AWD | 3.429 | 4.846 | 16.616934 | 호주 MX5 기어비 참고, 1단 종감속 배정은 구형 디젤 자료에 따른 추정 |
 
-자료: [Genesis Motor America의 2019 G70 기술 발표](https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html), [Genesis Australia 2026 G80 제원표 1–2쪽](https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf), [토요타 2019 일본 수프라 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf). G70·G80의 국내 모든 조합에서 동일한 기어비를 쓴다는 확인은 없으므로 기존과 같이 해외 참고값으로 표시합니다. 국내 출력·토크·중량은 해외 값으로 바꾸지 않습니다.
+자료: [Genesis Motor America의 2019 G70 기술 발표](https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html), [Genesis Australia 2026 G80 제원표 1–2쪽](https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf), [토요타 2019 일본 수프라 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf), Kia America의 [2024 K5](https://www.kiamedia.com/us/en/models/k5/2024/specifications)·[2025 카니발 3.5](https://www.kiamedia.com/us/en/models/carnival/2025/specifications)·[2025 카니발 HEV](https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications) 제원표, [현대 호주 싼타페 MX5 제원표 1–2쪽](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf). 수프라 외에는 국내 동일성을 확인하지 못했으므로 해외 참고값으로 표시합니다. 국내 출력·토크·중량은 해외 값으로 바꾸지 않습니다.
 
-고속에서는 출력에 따른 힘이 제한하므로 이 값은 주로 출발·저속 가속에 영향을 줍니다. HUD의 현재 기어를 물리 계산에 연결하지 않으며 실제 엔진 토크 곡선·토크컨버터 증폭·변속 충격/지연을 추가하지 않습니다. 기어비 자료가 없는 차량과 전기차는 기존 감속비를 사용합니다. 듀얼 모터의 합산 토크를 구동축 수만큼 다시 곱하지 않습니다.
+싼타페 MX5 자료는 두 종감속비를 공개하지만 단별 배정은 생략합니다. 모형의 1·2·5·6단 4.846, 3·4·7·8단 3.316 배정은 [현대 호주 MY2021 공식 표](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf) 1쪽의 동일 단비를 가진 **2.2 디젤 8DCT**를 참고한 추정입니다. 현행 국내 2.5T의 배정 확인값은 아니며, 출발 토크에도 이 1단 배정 추정을 사용합니다. 상세 표와 미확인 차종별 이유는 [파워트레인 자료](POWERTRAIN-SOURCES.md)에 기록합니다.
+
+아이오닉 5 Long Range 84 kWh RWD/AWD에는 [현대 호주 MY2026 공식 PDF](https://www.hyundai.com/content/dam/hyundai/au/en/models/ioniq5/docs/2026-IONIQ-5-Specification-Sheet.pdf) 1–2쪽의 단일 감속비 `2.263 × 4.706 = 10.649678`을 별도로 사용합니다. 국내 동일성은 미확인으로 `reductionStatus:'reference-market'`로 기록합니다. Standard 63 kWh는 자료의 확인 범위 밖이므로 기존 감속비 9를 유지하며, 레이 EV·무쏘 EV의 감속비도 기존 모형값입니다. 단일 감속비를 적용해도 EV의 엔진·변속 HUD는 표시하지 않습니다.
+
+고속에서는 출력에 따른 힘이 제한하므로 이 값은 주로 출발·저속 가속에 영향을 줍니다. HUD의 현재 기어를 물리 계산에 연결하지 않으며 실제 엔진 토크 곡선·토크컨버터 증폭·변속 충격/지연을 추가하지 않습니다. 기어비 자료가 없는 차량은 기존 감속비를 사용합니다. 듀얼 모터의 합산 토크를 구동축 수만큼 다시 곱하지 않습니다.
 
 ## 순정 출발 회귀 검증
 
-아래는 **실차 가속 실측치가 아니라 이 시뮬레이터의 테스트 결과**입니다. 평탄한 2 km 직선 중간에서 정지 출발하며, 가상 튜닝 예산 0, 무적재 출고 사양, 1/120초 고정 적분을 사용합니다. 구간 통과 시간은 마지막 적분 구간에서 보간합니다. 경사·코너와 출발 위치가 결과에 섞이지 않도록 별도 합성 코스를 사용합니다. 실제 차량의 타이어·노면·온도·런치 설정·변속 조건까지 일치시킨 인증값이 아닙니다.
+아래는 **실차 가속 실측치가 아니라 이 시뮬레이터의 테스트 결과**입니다. G70·G80에 처음 출발 감속비를 적용했을 때의 비교를 유지하며, 새로 참고 기어비를 적용한 K5·카니발·싼타페의 가속 성능을 검증한 표는 아닙니다. 평탄한 2 km 직선 중간에서 정지 출발하며, 가상 튜닝 예산 0, 무적재 출고 사양, 1/120초 고정 적분을 사용합니다. 구간 통과 시간은 마지막 적분 구간에서 보간합니다. 경사·코너와 출발 위치가 결과에 섞이지 않도록 별도 합성 코스를 사용합니다. 실제 차량의 타이어·노면·온도·런치 설정·변속 조건까지 일치시킨 인증값이 아닙니다.
 
 | 세부 사양 | 노면 | 변경 후 0–30 km/h (초) | 변경 후 0–60 km/h (초) | 변경 전 0–100 km/h (초) | 변경 후 0–100 km/h (초) |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -60,6 +68,6 @@
 | G80 3.5T RWD | 젖음 | 2.917 | 5.867 | 9.938 | 9.912 |
 | G80 3.5T AWD | 젖음 | 1.450 | 2.909 | 5.286 | 5.286 |
 
-표의 속도는 km/h, 시간은 초입니다. G70 3.3T는 기존 13.5보다 낮은 참고 감속비 12.96677을 적용하므로 토크 제한 영역에서 이전보다 조금 느려집니다. 반대로 G70 2.0T와 G80 2.5T는 더 큰 1단 총감속비가 반영됩니다. 접지 한도에 이미 도달한 조건에서는 기어비를 올려도 더 빨라지지 않습니다. 전기차의 토크·감속비는 그대로지만 공통 차축 하중·접지 보정은 전기차에도 적용됩니다.
+표의 속도는 km/h, 시간은 초입니다. G70 3.3T는 기존 13.5보다 낮은 참고 감속비 12.96677을 적용하므로 토크 제한 영역에서 이전보다 조금 느려집니다. 반대로 G70 2.0T와 G80 2.5T는 더 큰 1단 총감속비가 반영됩니다. 접지 한도에 이미 도달한 조건에서는 기어비를 올려도 더 빨라지지 않습니다. 공통 차축 하중·접지 보정은 전기차에도 적용됩니다. 아이오닉 5 Long Range의 단일 감속비 추가 적용은 위 G70·G80 비교 표의 범위 밖이며, 전기차의 모터 토크 자체는 변경하지 않습니다.
 
 검증 명령: `node --test evolving_vehicles_2/race-engine.test.cjs evolving_vehicles_2/powertrain-telemetry.test.cjs`. 동일 엔진의 RWD/AWD 출고 비교, 젖은 노면, 전체 접지 상한, 차축 하중 보존, 출력이 부족한 AWD의 불리함, 튜닝 감속비 중복 적용 방지, 전기차 토크 보존, HUD 기어비 독립성, 재생 속도별 결정론을 검사합니다.

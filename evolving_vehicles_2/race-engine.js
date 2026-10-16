@@ -1,11 +1,11 @@
 /* Deterministic circuit time trial. Vehicles are independent ghosts.
  * Factory mass, PS and Nm come from shared specs plus circuit-only additions.
  * Drag area, grip, brakes, fallback reduction and efficiency are estimates.
- * Source-backed first-gear/final-drive ratios bound low-speed wheel torque
+ * Source-backed first-gear/final-drive or fixed EV reductions bound wheel torque
  * where available; reference-market ratios are identified in LAUNCH-DYNAMICS.md.
  * Geographic elevations, when supplied, drive
  * road grade, gravity and normal load. No collisions, tyre wear or pits.
- * Entrants follow one bounded, curvature-optimized model racing line. This is
+ * Entrants select a bounded vehicle-performance racing line. This is
  * not a measured professional driver's record trace. Legacy vehicleIds callers
  * retain centreline sampling unless racingLine:true is requested.
  * s is the planar distance along the selected path; the small 3D
@@ -17,6 +17,7 @@
   const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
+  const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
   const CATALOG = [
@@ -252,6 +253,8 @@
       if (!entries && (!Array.isArray(ids) || !ids.length || ids.length > VEHICLES.length || new Set(ids).size !== ids.length || ids.some(id => !Object.hasOwn(BY_ID, id))))
         throw new RangeError('vehicleIds must contain 1–' + VEHICLES.length + ' unique, known vehicle IDs.');
       this.time = 0; this.finished = false; this._ticks = 0; this._accumulator = 0;
+      const initialSpeed = options.initialSpeed ?? 0;
+      if (!Number.isFinite(initialSpeed) || initialSpeed < 0 || initialSpeed > 200) throw new RangeError('initialSpeed must be between 0 and 200 m/s.');
       this.totalDistance = this.track.length * this.laps;
       const gripFactor = this.surface === 'wet' ? .62 : 1;
       this.cars = ids.map((vehicleId, id) => {
@@ -278,7 +281,8 @@
         const car = { id, index: id, uid: entrant ? entrant.uid || 'entrant-' + id : vehicleId, entrant,
           advancedDynamics: !!entrant, vehicleId, name: entrant && entrant.name || spec.name, color: entrant && entrant.color || spec.color, spec,
           powerPs: spec.powerPs * (entrant ? 1 : this.tuning), massKg: spec.massKg, torqueNm: spec.torqueNm * (entrant ? 1 : this.tuning),
-          speed: 0, distance: 0, lap: 0, currentLap: 1, lapTimes: [], bestLap: null,
+          speed: initialSpeed, distance: 0, lap: 0, currentLap: 1, lapTimes: [], bestLap: null,
+          standingStartDistance: initialSpeed > 0 ? null : 0, finishSpeed: null, finishRemainderSeconds: 0,
           finished: false, finishTime: null, dnf: false, retiredAt: null, dnfReason: null, stalledFor: 0,
           targetSpeed: 0, phase: 'accelerating', acceleration: 0,
           maxSpeed: 0, lastLapAt: 0, elevation: this.track.hasElevation ? this.pathPoints[0].z : null, grade: this.pathPoints[0].grade,
@@ -294,16 +298,28 @@
           frontNormalLoad: frontWeightFraction * spec.massKg * G,
           rearNormalLoad: (1 - frontWeightFraction) * spec.massKg * G };
         // Keep the HUD's tuning-relative reduction unchanged. A separate
-        // low-speed torque envelope can use the sourced first gear and final
-        // drive without making display-only gear changes drive the physics.
+        // low-speed torque envelope can use a sourced first gear/final drive
+        // or fixed EV reduction without reading display-only gear changes.
         car.driveReduction = car.reduction;
         const transmission = entrant && POWERTRAIN?.resolve(car);
-        if (transmission?.gearRatios?.[0] > 0 && transmission.finalDriveRatio > 0) {
+        const firstFinalDrive = transmission?.finalDriveRatios?.[0] ?? transmission?.finalDriveRatio;
+        const firstReduction = transmission?.gearRatios?.[0] > 0 && firstFinalDrive > 0
+          ? transmission.gearRatios[0] * firstFinalDrive : null;
+        const electricReduction = transmission?.powertrainType === 'electric' && transmission.singleSpeedReduction > 0
+          && ['reference-market', 'verified-exact-market'].includes(transmission.reductionStatus) ? transmission.singleSpeedReduction : null;
+        const sourcedReduction = firstReduction ?? electricReduction;
+        if (sourcedReduction > 0) {
           const factoryReduction = entrant.factorySpec?.reduction ?? entrant.spec.reduction;
           const tuningScale = factoryReduction > 0 ? car.reduction / factoryReduction : 1;
-          car.driveReduction = transmission.gearRatios[0] * transmission.finalDriveRatio * tuningScale;
-          car.driveReductionSource = transmission.ratioStatus;
+          car.driveReduction = sourcedReduction * tuningScale;
+          car.driveReductionSource = firstReduction ? transmission.ratioStatus : transmission.reductionStatus;
         }
+        const line = this.usesRacingLine && VEHICLE_LINE ? VEHICLE_LINE.build(this, car) : null;
+        car.racingLine = line;
+        car.pathPoints = line?.points || this.pathPoints;
+        car.trackLength = line?.length || this.track.length;
+        car.pathSpacing = line?.spacing || this.track.spacing;
+        car.totalDistance = car.trackLength * this.laps;
         car.speedProfile = this._makeSpeedProfile(car);
         car.targetSpeed = car.speedProfile[0];
         if (TELEMETRY) car.telemetry = TELEMETRY.create(car);
@@ -312,8 +328,13 @@
     }
 
     sample(distance) {
+      return this.sampleForCar(null, distance);
+    }
+
+    sampleForCar(car, distance) {
       if (!Number.isFinite(distance)) throw new TypeError('distance must be finite.');
-      const { length, spacing } = this.track, points = this.pathPoints, position = mod(distance, length) / spacing;
+      const length = car?.trackLength || this.track.length, spacing = car?.pathSpacing || this.track.spacing;
+      const points = car?.pathPoints || this.pathPoints, position = mod(distance, length) / spacing;
       const i = Math.floor(position) % points.length, t = position - Math.floor(position), a = points[i], b = points[(i + 1) % points.length];
       return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t,
         angle: Math.atan2(b.y - a.y, b.x - a.x), curvature: a.curvature + (b.curvature - a.curvature) * t,
@@ -389,7 +410,7 @@
 
     _makeSpeedProfile(car) {
       car.theoreticalTopSpeed = this._equilibriumSpeed(car, 0);
-      const points = this.pathPoints;
+      const points = car.pathPoints || this.pathPoints;
       const limits = points.map(p => {
         const normal = 1 / Math.hypot(1, p.grade);
         const terminal = p.grade === 0 ? car.theoreticalTopSpeed : this._equilibriumSpeed(car, p.grade);
@@ -410,14 +431,14 @@
       for (let pass = 0; pass < 2; pass++) {
         for (let i = limits.length - 1; i >= 0; i--) {
           const next = limits[(i + 1) % limits.length];
-          limits[i] = Math.min(limits[i], Math.sqrt(Math.max(0, next * next + 2 * car.brakingProfile[i] * this.track.spacing)));
+          limits[i] = Math.min(limits[i], Math.sqrt(Math.max(0, next * next + 2 * car.brakingProfile[i] * (car.pathSpacing || this.track.spacing))));
         }
       }
       return limits;
     }
 
     _target(car, distance) {
-      const pos = mod(distance, this.track.length) / this.track.spacing;
+      const pos = mod(distance, car.trackLength || this.track.length) / (car.pathSpacing || this.track.spacing);
       const i = Math.floor(pos) % car.speedProfile.length, t = pos - Math.floor(pos);
       const a = car.speedProfile[i], b = car.speedProfile[(i + 1) % car.speedProfile.length];
       // Interpolating v² preserves the constant-braking relation v²=u²+2as.
@@ -427,7 +448,7 @@
     _advance(car, dt, now) {
       if (car.finished || car.dnf) return;
       const oldDistance = car.distance, oldSpeed = car.speed;
-      const oldPosition = this.sample(oldDistance), grade = oldPosition.grade, normal = 1 / Math.hypot(1, grade), sine = grade * normal;
+      const oldPosition = this.sampleForCar(car, oldDistance), grade = oldPosition.grade, normal = 1 / Math.hypot(1, grade), sine = grade * normal;
       const target = this._target(car, oldDistance + Math.max(.1, oldSpeed * dt));
       const wheelRadius = (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
       const torqueForce = car.torqueNm * car.driveReduction * car.efficiency / wheelRadius;
@@ -442,9 +463,9 @@
       const acceleration = Math.max(minimumAcceleration, Math.min(availableAcceleration, (target - oldSpeed) / dt));
       car.speed = Math.max(0, oldSpeed + acceleration * dt);
       const travel = (oldSpeed + car.speed) * .5 * dt;
-      car.distance = Math.min(this.totalDistance, oldDistance + travel);
+      car.distance = Math.min(car.totalDistance, oldDistance + travel);
       car.acceleration = acceleration; car.targetSpeed = target; car.maxSpeed = Math.max(car.maxSpeed, car.speed);
-      const position = this.sample(car.distance);
+      const position = this.sampleForCar(car, car.distance);
       car.grade = position.grade; car.elevation = position.elevation; car.slopeAcceleration = -G * sine;
       if (car.advancedDynamics) {
         const totalLoad = car.massKg * (G * normal + this._aeroLoadAcceleration(car, car.speed));
@@ -474,15 +495,15 @@
         if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         return;
       }
-      while (car.lap < this.laps && car.distance + 1e-9 >= (car.lap + 1) * this.track.length) {
-        const remaining = (car.lap + 1) * this.track.length - oldDistance;
+      while (car.lap < this.laps && car.distance + 1e-9 >= (car.lap + 1) * car.trackLength) {
+        const remaining = (car.lap + 1) * car.trackLength - oldDistance;
         // Stable constant-acceleration root, including deceleration and launch.
         const endSpeedAtLine = Math.sqrt(Math.max(0, oldSpeed * oldSpeed + 2 * acceleration * remaining));
         const crossingDt = clamp(2 * remaining / Math.max(1e-12, oldSpeed + endSpeedAtLine), 0, dt);
         const crossingTime = now + crossingDt, lapTime = crossingTime - car.lastLapAt;
         car.lapTimes.push(lapTime); car.bestLap = car.bestLap === null ? lapTime : Math.min(car.bestLap, lapTime);
         car.lastLapAt = crossingTime; car.lap++; car.currentLap = Math.min(this.laps, car.lap + 1);
-        if (car.lap === this.laps) { car.finished = true; car.finishTime = crossingTime; car.distance = this.totalDistance; if (TELEMETRY) TELEMETRY.stop(car.telemetry); }
+        if (car.lap === this.laps) { car.finished = true; car.finishTime = crossingTime; car.finishSpeed = endSpeedAtLine; car.finishRemainderSeconds = dt - crossingDt; car.distance = car.totalDistance; if (TELEMETRY) TELEMETRY.stop(car.telemetry); }
       }
     }
 
@@ -503,7 +524,7 @@
 
     standings() {
       return this.cars.slice().sort((a, b) => a.finished && b.finished ? a.finishTime - b.finishTime || a.id - b.id
-        : a.finished ? -1 : b.finished ? 1 : a.dnf !== b.dnf ? a.dnf ? 1 : -1 : b.distance - a.distance || a.id - b.id);
+        : a.finished ? -1 : b.finished ? 1 : a.dnf !== b.dnf ? a.dnf ? 1 : -1 : b.distance / b.trackLength - a.distance / a.trackLength || a.id - b.id);
     }
   }
   TrackRace.VEHICLES = VEHICLES;

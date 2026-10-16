@@ -47,3 +47,5 @@
 .vehicle-picker{display:flex;align-items:center;gap:12px;margin:0 25px 15px}.vehicle-picker select{flex:1;min-width:0;max-width:360px;width:auto;margin:0}
 @media(max-width:1050px){.vehicle-picker{margin-inline:18px}}
 @media(max-width:520px){.vehicle-picker{gap:10px;margin:0 15px 13px}.vehicle-picker select{max-width:none;font-size:11px}}
+
+.racing-legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:0 18px 12px;font-size:11px;color:#59685c}.racing-legend .accelerate{color:#197a44}.racing-legend .coast{color:#8a6500}.racing-legend .brake{color:#b33332}

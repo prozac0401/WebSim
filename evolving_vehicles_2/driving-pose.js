@@ -2,12 +2,15 @@
  * in TrackRace. A periodic cubic B-spline supplies one position and its analytic
  * tangent for the car, follow camera and drawn racing line. It is C2 at every
  * knot, including the timing line; no frame-history or heading lag is involved.
+ * A fresh standing start uses a separate C2 50 m centerline-to-racing-line
+ * trajectory. Its one-time correction is excluded from the ordinary .4 m bound.
  */
 (function (root) {
   'use strict';
   const cache = new WeakMap();
   const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .24, SIGMA_M = 6;
   const MAX_ELEVATION_DEVIATION_M = .025, MAX_ELEVATION_CONTROL_SHIFT_M = .012;
+  const START_TRANSITION_M = 50;
   // Start below the source path's ~4 m point spacing. A 10 m first fit is
   // frequently constrained in a hairpin, leaving the polygon's straight/turn
   // pulses untouched. Short fits remove that ripple before longer fits taper
@@ -96,10 +99,11 @@
     return controls;
   }
 
-  function create(race) {
-    const points = race?.pathPoints, length = race?.track?.length;
+  function create(race, car) {
+    const individual = Array.isArray(car?.pathPoints), owner = individual ? car : race;
+    const points = individual ? car.pathPoints : race?.pathPoints, length = individual ? car.trackLength : race?.track?.length;
     if (!Array.isArray(points) || points.length < 3 || !Number.isFinite(length) || length <= 0) return null;
-    const previous = cache.get(race);
+    const previous = cache.get(owner);
     if (previous?.source === points && previous.length === length && previous.hasElevation === !!race.track.hasElevation) return previous;
     const source = points.map(p => ({ x: p.x, y: p.y, z: Number.isFinite(p.z) ? p.z : 0 }));
     if (source.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return null;
@@ -139,25 +143,93 @@
         smoothingSigmaM: SIGMA_M, subdivisions,
         maximumDeviationM: MAX_DEVIATION_M, deviationBoundM: bound.planar,
         maximumElevationDeviationM: MAX_ELEVATION_DEVIATION_M, elevationDeviationBoundM: bound.vertical }), drawnPath: null };
-    cache.set(race, result); return result;
+    cache.set(owner, result); return result;
   }
 
-  function evaluate(curve, distance) {
+  function evaluate(curve, distance, withDerivatives = false) {
     const s = mod(distance, curve.length), u = s / curve.spacing, i = Math.floor(u), t = u - i, t2 = t * t, t3 = t2 * t;
     const weights = [(1 - t) ** 3 / 6, (3 * t3 - 6 * t2 + 4) / 6, (-3 * t3 + 3 * t2 + 3 * t + 1) / 6, t3 / 6];
     const first = [-.5 * (1 - t) ** 2, 1.5 * t2 - 2 * t, -1.5 * t2 + t + .5, .5 * t2];
     const second = [1 - t, 3 * t - 2, 1 - 3 * t, t];
-    let x = 0, y = 0, z = 0, dx = 0, dy = 0, dz = 0, ddx = 0, ddy = 0;
+    let x = 0, y = 0, z = 0, dx = 0, dy = 0, dz = 0, ddx = 0, ddy = 0, ddz = 0;
     for (let j = 0; j < 4; j++) {
       const p = curve.controls[mod(i + j - 1, curve.controls.length)];
       x += weights[j] * p.x; y += weights[j] * p.y; z += weights[j] * p.z;
       dx += first[j] * p.x; dy += first[j] * p.y; dz += first[j] * p.z;
-      ddx += second[j] * p.x; ddy += second[j] * p.y;
+      ddx += second[j] * p.x; ddy += second[j] * p.y; ddz += second[j] * p.z;
     }
     const planar = Math.hypot(dx, dy);
-    return { x, y, z, elevation: curve.hasElevation ? z : null, angle: Math.atan2(dy, dx),
+    const pose = { x, y, z, elevation: curve.hasElevation ? z : null, angle: Math.atan2(dy, dx),
       grade: curve.hasElevation && planar > 1e-9 ? dz / planar : 0,
       curvature: planar > 1e-9 ? (dx * ddy - dy * ddx) / (planar ** 3) : 0, s };
+    if (withDerivatives) {
+      pose.first = { x: dx / curve.spacing, y: dy / curve.spacing, z: dz / curve.spacing };
+      pose.second = { x: ddx / curve.spacing ** 2, y: ddy / curve.spacing ** 2, z: ddz / curve.spacing ** 2 };
+    }
+    return pose;
+  }
+
+  function createStart(race, curve) {
+    if (curve.start) return curve.start;
+    const a = race.track.points?.[0], b = race.track.points?.[1];
+    if (!a || !b) return null;
+    const run = Math.hypot(b.x - a.x, b.y - a.y);
+    if (!(run > 1e-9)) return null;
+    const position = { x: a.x, y: a.y, z: Number.isFinite(a.z) ? a.z : 0 };
+    const first = { x: (b.x - a.x) / run, y: (b.y - a.y) / run,
+      z: curve.hasElevation && Number.isFinite(b.z) ? (b.z - position.z) / run : 0 };
+    const end = evaluate(curve, START_TRANSITION_M, true), coefficients = {};
+    for (const key of ['x', 'y', 'z']) {
+      const delta = end[key] - position[key], v0 = first[key] * START_TRANSITION_M;
+      const v1 = end.first[key] * START_TRANSITION_M, a1 = end.second[key] * START_TRANSITION_M ** 2;
+      // Quintic Hermite: exact starting position and road-forward tangent,
+      // zero initial curvature, then exact position/first/second derivatives
+      // of the ordinary racing line. It joins both ends with C2 continuity.
+      coefficients[key] = [position[key], v0, 0, 10 * delta - 6 * v0 - 4 * v1 + .5 * a1,
+        -15 * delta + 8 * v0 + 7 * v1 - a1, 6 * delta - 3 * v0 - 3 * v1 + .5 * a1];
+    }
+    curve.start = { position, first, coefficients, drawnPath: null };
+    return curve.start;
+  }
+
+  function startBlend(car) {
+    if (!Number.isFinite(car?.standingStartDistance) || !Number.isFinite(car?.distance)) return 1;
+    const t = Math.max(0, Math.min(1, (car.distance - car.standingStartDistance) / START_TRANSITION_M));
+    return t * t * t * (10 + t * (-15 + 6 * t));
+  }
+
+  function sampleCar(race, car, distance = car?.distance) {
+    if (!Number.isFinite(distance)) throw new TypeError('distance must be finite.');
+    // TrackRace explicitly uses 0 for a fresh starting grid and null for a
+    // rolling generation. Unwrapped distance prevents a new launch each lap.
+    const origin = car?.standingStartDistance;
+    const curve = create(race, car);
+    if (!curve) {
+      const fallback = race?.sampleForCar?.(car, distance);
+      return fallback ? { ...fallback, z: fallback.elevation ?? fallback.z ?? 0 } : sample(race, distance);
+    }
+    if (!Number.isFinite(origin) || distance - origin >= START_TRANSITION_M) return evaluate(curve, distance);
+    const start = createStart(race, curve);
+    if (!start) return evaluate(curve, distance);
+    const travel = distance - origin, t = travel / START_TRANSITION_M, position = {}, first = {}, second = {};
+    for (const key of ['x', 'y', 'z']) {
+      if (travel <= 0) {
+        // Camera/look-behind probes extend the launch tangent rather than
+        // wrapping onto the racing line behind the timing line.
+        position[key] = start.position[key] + travel * start.first[key];
+        first[key] = start.first[key]; second[key] = 0;
+      } else {
+        const c = start.coefficients[key];
+        position[key] = c[0] + t * (c[1] + t * (c[2] + t * (c[3] + t * (c[4] + t * c[5]))));
+        first[key] = (c[1] + t * (2 * c[2] + t * (3 * c[3] + t * (4 * c[4] + t * 5 * c[5])))) / START_TRANSITION_M;
+        second[key] = (2 * c[2] + t * (6 * c[3] + t * (12 * c[4] + t * 20 * c[5]))) / START_TRANSITION_M ** 2;
+      }
+    }
+    const planar = Math.hypot(first.x, first.y);
+    return { ...position, elevation: curve.hasElevation ? position.z : null, angle: Math.atan2(first.y, first.x),
+      grade: curve.hasElevation && planar > 1e-9 ? first.z / planar : 0,
+      curvature: travel > 0 && planar > 1e-9 ? (first.x * second.y - first.y * second.x) / planar ** 3 : 0,
+      s: mod(distance, curve.length) };
   }
 
   function sample(race, distance) {
@@ -170,13 +242,31 @@
   function path(race) {
     const curve = create(race);
     if (!curve) return race?.pathPoints || race?.track?.racingLine?.points || race?.track?.points || [];
+    return curvePath(curve);
+  }
+  function curvePath(curve) {
     if (!curve.drawnPath) {
       const count = Math.max(curve.source.length, Math.ceil(curve.length / 2));
       curve.drawnPath = Object.freeze(Array.from({ length: count }, (_, i) => Object.freeze(evaluate(curve, curve.length * i / count))));
     }
     return curve.drawnPath;
   }
-  const api = { sample, path, info: race => create(race)?.info || null };
+  function pathCar(race, car) {
+    const curve = create(race, car);
+    if (!curve) return car?.pathPoints || path(race);
+    if (startBlend(car) >= 1) return curvePath(curve);
+    const start = createStart(race, curve);
+    if (!start) return curvePath(curve);
+    // This first-lap trajectory is deliberately open: its starting centerline
+    // point differs from the later flying-lap point at the same timing line.
+    if (!start.drawnPath) {
+      const count = Math.max(curve.source.length, Math.ceil(curve.length / 2));
+      start.drawnPath = Object.freeze(Array.from({ length: count + 1 }, (_, i) =>
+        Object.freeze(sampleCar(race, car, curve.length * i / count))));
+    }
+    return start.drawnPath;
+  }
+  const api = { sample, sampleCar, startBlend, path, pathCar, info: (race, car) => create(race, car)?.info || null };
   root.DrivingPose = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

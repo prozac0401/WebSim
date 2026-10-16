@@ -160,6 +160,185 @@ test('exact-market Supra ratios, tuning ratio changes and unsourced fallback rem
   }
 });
 
+test('Supra rear-tyre gearing gives the expected eight-speed WOT display and corner-exit recovery', t => {
+  const car = carFor('supra', 'supra-3.0t-rz'), profile = Profiles.resolve(car);
+  const gearing = Telemetry.describeGearing(car), state = Telemetry.create(car);
+  assert.equal(car.spec.rearTire, '275/35ZR19');
+  assert.notEqual(car.spec.frontTireRadiusMm, car.spec.rearTireRadiusMm, 'staggered tyres expose an incorrect front-axle calculation');
+  assert.equal(gearing.nominalRadiusM, .33755);
+  assert.equal(gearing.effectiveRadiusM, .33755 * .985);
+  assert.equal(profile.shiftRPM, 6500, 'the schedule uses an estimated 6500 RPM shift point');
+  const expectedShiftKph = [49.20370724, 76.88079256, 118.93161281, 150.18573431, 196.29138527, 258.31946301, 314.25725428, 403.62416096];
+  const shiftKph = expectedShiftKph.map((expected, i) => {
+    const actual = Telemetry.gearSpeedAtRPM(car, i + 1, 6500) * 3.6;
+    assert.ok(Math.abs(actual - expected) < 1e-7, 'gear ' + (i + 1) + ': rear tyre and total reduction determine speed');
+    return actual;
+  });
+  // Synthetic telemetry input exercises all eight gears. These speeds are
+  // mathematical gear limits, not claims that the race car reaches them.
+  const expectedAt = { 100: 3, 150: 4, 190: 5, 200: 6, 260: 7, 320: 8 }, at = {};
+  let lastShiftAt = -Infinity, shifts = 0;
+  for (let i = 0; i <= 330 / dt; i++) {
+    const kph = i * dt, previousGear = state.gear;
+    car.speed = kph / 3.6; car.acceleration = 1 / 3.6;
+    Telemetry.update(car, state, dt, { drivePowerW: 200000 });
+    if (state.gear !== previousGear) {
+      assert.equal(state.gear, previousGear + 1);
+      assert.ok(i * dt - lastShiftAt >= Telemetry.MODEL.minimumShiftIntervalSeconds - dt);
+      lastShiftAt = i * dt; shifts++;
+    }
+    const checkpoint = Math.round(kph);
+    if (Object.hasOwn(expectedAt, checkpoint) && Math.abs(kph - checkpoint) < dt / 2) at[checkpoint] = state.gear;
+  }
+  assert.equal(shifts, 7); assert.deepEqual(at, expectedAt);
+  tick(car, state, 3, { speed: 200 / 3.6, acceleration: -4 }, { brakePowerW: 90000 });
+  tick(car, state, 3, { speed: 100 / 3.6, acceleration: -4 }, { brakePowerW: 90000 });
+  tick(car, state, 2, { speed: 100 / 3.6, acceleration: 2 }, { drivePowerW: 200000 });
+  assert.equal(state.gear, 3, 'accelerating out of a 100 km/h corner restores third after 200 km/h braking');
+  const cornerExit100KphGear = state.gear;
+  let thresholdChanges = 0;
+  for (let i = 0; i < 8 / dt; i++) {
+    const previousGear = state.gear;
+    car.speed = shiftKph[2] / 3.6 * (1 + .01 * Math.sin(i * dt * 12)); car.acceleration = .1;
+    Telemetry.update(car, state, dt, { drivePowerW: 15000 });
+    if (state.gear !== previousGear) thresholdChanges++;
+  }
+  assert.equal(thresholdChanges, 1, 'small oscillations at the third-gear shift speed do not hunt');
+  assert.equal(state.gear, 4);
+  t.diagnostic('Supra synthetic HUD: ' + JSON.stringify({ shiftKph: shiftKph.map(kph => Number(kph.toFixed(8))), gearAtKph: at, cornerExit100KphGear, thresholdChanges }));
+});
+
+test('rolling telemetry starts in the speed-appropriate gear without replaying launch or battery work', () => {
+  const stationary = carFor('supra', 'supra-3.0t-rz'), stoppedState = Telemetry.create(stationary);
+  assert.equal(stoppedState.gear, 1); assert.equal(stoppedState.rpmNormalized, 0);
+  for (const [kph, expectedGear] of [[100, 3], [150, 4], [190, 5], [200, 6], [260, 7], [320, 8]]) {
+    const car = carFor('supra', 'supra-3.0t-rz'); car.speed = kph / 3.6;
+    const before = JSON.stringify(car), state = Telemetry.create(car), initial = { ...state };
+    assert.equal(state.gear, expectedGear, kph + ' km/h starts in a suitable gear');
+    assert.ok(state.rpmNormalized > .6 && state.rpmNormalized <= 1);
+    assert.ok(state.shiftLights >= 5);
+    tick(car, state, 1, { acceleration: 1 }, { drivePowerW: 200000 });
+    assert.equal(state.gear, expectedGear, 'holding speed does not trigger a cascade of artificial shifts');
+    assert.ok(Math.abs(state.rpmNormalized - initial.rpmNormalized) < 1e-12);
+    assert.equal(JSON.stringify({ ...car, acceleration: 0 }), before, 'initializing telemetry does not change the car');
+  }
+  const hybrid = carFor('carnival', 'carnival-1.6heV'); hybrid.speed = 30;
+  const hybridState = Telemetry.create(hybrid);
+  assert.ok(hybridState.gear > 1);
+  assert.deepEqual(hybridState.battery, { flow: 0, mode: 'idle', cornerPhase: 'straight' });
+  const electric = carFor('ioniq5', 'ioniq5-long-awd'); electric.speed = 30;
+  const electricState = Telemetry.create(electric);
+  assert.equal(electricState.gear, null); assert.equal(electricState.rpmNormalized, 0);
+});
+
+test('estimated stepped gearing follows both shorter and taller tuning final drives', () => {
+  for (const [vehicleId, variants] of Object.entries(Evolution.VARIANTS)) {
+    for (const variant of variants) {
+      const stockEntry = Evolution.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
+      const stock = { vehicleId, entrant: stockEntry, spec: stockEntry.spec };
+      const profile = Profiles.resolve(stock);
+      if (!profile.gearCount || profile.gearRatios) continue;
+      const stockGearing = Telemetry.describeGearing(stock);
+      for (const levels of [{ acceleration: 1 }, { topSpeed: 1 }]) {
+        const tunedEntry = Evolution.createEntrant({ vehicleId, variantId: variant.id, levels });
+        const tuned = { vehicleId, entrant: tunedEntry, spec: tunedEntry.spec };
+        const gearing = Telemetry.describeGearing(tuned);
+        const scale = tunedEntry.spec.reduction / tunedEntry.factorySpec.reduction;
+        assert.equal(gearing.tunedFinalDriveScale, scale, variant.id);
+        assert.equal(gearing.ratioStatus, 'estimated', 'tuning does not upgrade source confidence');
+        for (let gear = 1; gear <= profile.gearCount; gear++) {
+          assert.ok(Math.abs(gearing.totalRatios[gear - 1] / stockGearing.totalRatios[gear - 1] - scale) < 1e-12, variant.id);
+          const stockSpeed = Telemetry.gearSpeedAtRPM(stock, gear, profile.shiftRPM);
+          const tunedSpeed = Telemetry.gearSpeedAtRPM(tuned, gear, profile.shiftRPM);
+          assert.ok(Math.abs(tunedSpeed / stockSpeed - 1 / scale) < 1e-12, variant.id);
+        }
+      }
+    }
+  }
+});
+
+test('gear-specific final drives take priority over a shared final drive and retain tuning', () => {
+  const filename = require.resolve('./powertrain-telemetry.js'), module = { exports: {} };
+  const profile = { ...Profiles.PROFILES['k5-2.0'], gearCount: 4,
+    gearRatios: [4, 3, 2, 1], finalDriveRatios: [3, 3, 4, 4], finalDriveRatio: 99,
+    ratioStatus: 'reference-market', ratioSourceId: 'test-gear-groups' };
+  vm.runInNewContext(fs.readFileSync(filename, 'utf8'), { module, PowertrainProfiles: { resolve: () => profile } }, { filename });
+  const groupedTelemetry = module.exports, base = carFor();
+  assert.deepEqual(Array.from(groupedTelemetry.describeGearing(base).totalRatios), [12, 9, 8, 4]);
+  delete profile.finalDriveRatio;
+  assert.deepEqual(Array.from(groupedTelemetry.describeGearing(base).totalRatios), [12, 9, 8, 4], 'a scalar final drive is optional');
+  const tuned = { ...base, spec: { ...base.spec, reduction: base.spec.reduction * 1.1 } };
+  const gearing = groupedTelemetry.describeGearing(tuned);
+  assert.equal(gearing.sourceId, 'test-gear-groups');
+  assert.equal(gearing.tunedFinalDriveScale, 1.1);
+  for (let gear = 1; gear <= 4; gear++) {
+    assert.ok(Math.abs(groupedTelemetry.gearSpeedAtRPM(tuned, gear, 6000)
+      / groupedTelemetry.gearSpeedAtRPM(base, gear, 6000) - 1 / 1.1) < 1e-12);
+  }
+});
+
+test('Kia reference-market ratios preserve the exact engine and gearbox combination', () => {
+  for (const [vehicleId, variantId, ratios, finalDrive, sourceId] of [
+    ['k5', 'k5-1.6t', [4.717, 2.906, 1.864, 1.423, 1.224, 1, .790, .635], 3.367, 'kia-k5-us-2024-ratios'],
+    ['carnival', 'carnival-3.5', [4.808, 2.901, 1.864, 1.424, 1.219, 1, .799, .648], 3.510, 'kia-carnival-us-2025-ratios'],
+    ['carnival', 'carnival-1.6heV', [4.639, 2.826, 1.841, 1.386, 1, .772], 3.648, 'kia-carnival-hev-us-2025-ratios']
+  ]) {
+    const car = carFor(vehicleId, variantId), profile = Profiles.resolve(car);
+    assert.deepEqual(profile.gearRatios, ratios, variantId);
+    assert.equal(profile.finalDriveRatio, finalDrive, variantId);
+    assert.equal(profile.ratioMarket, 'US'); assert.equal(profile.ratioStatus, 'reference-market');
+    assert.ok(profile.sourceIds.includes(sourceId)); assert.equal(profile.ratioSourceId, sourceId);
+    assert.ok(profile.referenceFields.includes('gearRatios'));
+    assert.ok(profile.referenceFields.includes('finalDriveRatio'));
+    assert.ok(!profile.verifiedFields.includes('gearRatios'));
+    assert.ok(profile.estimatedFields.includes('domesticRatioMatch'));
+    assert.ok(profile.estimatedFields.includes('shiftRPM'));
+    assert.equal(profile.drivenAxle, 'front');
+    // Unequal fixture radii expose an accidental reuse of the older rear-drive
+    // profiles' axle choice even though these stock cars have matching tyres.
+    car.spec = { ...car.spec, rearTireRadiusMm: car.spec.frontTireRadiusMm + 70 };
+    const gearing = Telemetry.describeGearing(car);
+    assert.equal(gearing.nominalRadiusM, car.spec.frontTireRadiusMm / 1000);
+    assert.equal(gearing.totalRatios[0], ratios[0] * finalDrive);
+    assert.ok(gearing.totalRatios.every((ratio, i, all) => i === 0 || ratio < all[i - 1]));
+  }
+  assert.equal(Profiles.PROFILES['k5-2.0'].gearRatios, null, 'K5 1.6T ratios must not spill into the 2.0 6AT');
+  assert.equal(Profiles.PROFILES['k5-2.0lpg'].gearRatios, null);
+});
+
+test('Santa Fe DCT final-drive groups produce real RPM drops at 2–3 and 6–7 shifts', () => {
+  for (const variant of Evolution.VARIANTS.santafe) {
+    const car = carFor('santafe', variant.id), profile = Profiles.resolve(car);
+    assert.deepEqual(profile.gearRatios, [3.429, 2.217, 2.217, 1.621, .860, .673, .791, .653]);
+    assert.deepEqual(profile.finalDriveRatios, [4.846, 4.846, 3.316, 3.316, 4.846, 4.846, 3.316, 3.316]);
+    assert.equal(profile.finalDriveRatio, null);
+    assert.equal(profile.ratioStatus, 'reference-market'); assert.equal(profile.ratioMarket, 'AU');
+    assert.ok(profile.sourceIds.includes('hyundai-santafe-au-mx5-ratios'));
+    assert.ok(profile.sourceIds.includes('hyundai-santafe-au-my21-final-drives'));
+    assert.ok(profile.estimatedFields.includes('finalDriveGearAssignment'));
+    assert.ok(profile.estimatedFields.includes('domesticRatioMatch'));
+    assert.equal(profile.drivenAxle, 'front');
+    car.spec = { ...car.spec, rearTireRadiusMm: car.spec.frontTireRadiusMm + 70 };
+    const gearing = Telemetry.describeGearing(car), state = Telemetry.create(car);
+    assert.equal(gearing.nominalRadiusM, car.spec.frontTireRadiusMm / 1000);
+    assert.ok(gearing.totalRatios[2] < gearing.totalRatios[1], 'equal 2nd/3rd internal ratios have different final drives');
+    assert.ok(gearing.totalRatios[6] < gearing.totalRatios[5], '7th internal ratio is larger but its total ratio is smaller');
+    const checked = new Set();
+    for (let i = 0; i < 80 / dt; i++) {
+      const previous = { ...state };
+      car.speed = i * dt * 5 / 3.6; car.acceleration = 5 / 3.6;
+      Telemetry.update(car, state, dt, { drivePowerW: 180000 });
+      if (previous.gear !== state.gear && [2, 6].includes(previous.gear)) {
+        assert.equal(state.gear, previous.gear + 1, variant.id);
+        assert.ok(state.rpmNormalized < previous.rpmNormalized - .15, variant.id + ': RPM must drop after upshift');
+        assert.equal(state.shiftLights, 0);
+        checked.add(previous.gear);
+      }
+    }
+    assert.deepEqual([...checked], [2, 6], variant.id + ': acceleration traverses both final-drive groups');
+  }
+});
+
 test('an actual Spa racing-line lap charges on every braking onset and transitions from apex ramp to exit assist', t => {
   const events = [], samples = [], ObservedRace = loadEngine({
     create: Telemetry.create, stop: Telemetry.stop,
@@ -318,7 +497,7 @@ test('engine instrumentation separates gravity-driven speed changes from actual 
     const car = race.cars[0], speed = 20, normal = 1 / Math.hypot(1, grade);
     const resistance = .5 * 1.225 * car.dragArea * speed * speed + car.rollingCoefficient * car.massKg * 9.81 * normal + car.massKg * 9.81 * grade * normal;
     car.speed = speed;
-    race.sample = () => ({ x: 0, y: 0, elevation: 0, grade, curvature: 0 });
+    race.sampleForCar = () => ({ x: 0, y: 0, elevation: 0, grade, curvature: 0 });
     race._target = () => speed - resistance / car.massKg * dt;
     race.step(dt);
     const last = observations.at(-1);

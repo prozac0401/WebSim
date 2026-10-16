@@ -320,7 +320,7 @@ test('sharp-course camera target has no adaptation-switch direction kinks', t =>
     const headings = [];
     for (let s = center - 30; s <= center + 30; s += .1) {
       car.distance = s;
-      const goal = r._followGoal(car), body = global.DrivingPose.sample(r.race, s);
+      const goal = r._followGoal(car), body = global.DrivingPose.sampleCar(r.race, car, s);
       headings.push(goal.heading);
       assert.ok(Math.abs(wrap(goal.heading - body.angle)) < .28, id + ': do not look around the return leg');
     }
@@ -345,7 +345,7 @@ test('actual sharp corners remain rearward and cadence-independent at 1x, 2x and
         const { renderer: r } = fixture(); r.race = race;
         const run = chase(r, 12, center - 45, pattern, 90 / (12 * playback), 0, playback);
         for (const frame of run.frames) {
-          const body = global.DrivingPose.sample(race, frame.distance);
+          const body = global.DrivingPose.sampleCar(race, race.cars[0], frame.distance);
           worstOffset = Math.max(worstOffset, Math.abs(wrap(frame.heading - body.angle)));
         }
         const car = race.cars[0], goal = r._followGoal(car);

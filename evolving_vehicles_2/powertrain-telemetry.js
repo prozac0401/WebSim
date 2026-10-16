@@ -43,15 +43,22 @@
   function describeGearing(car) {
     const profile = PROFILES.resolve(car), spec = car.spec || car.entrant?.spec || {};
     const gearCount = Number.isInteger(profile.gearCount) ? profile.gearCount : 0;
-    const sourced = Array.isArray(profile.gearRatios) && profile.gearRatios.length === gearCount && profile.finalDriveRatio > 0;
+    // Some dual-clutch gearboxes use different final drives for their gear
+    // groups. Preserve the per-gear pairing instead of flattening it to one
+    // scalar; conventional gearboxes retain their shared final drive.
+    const finalDrives = Array.isArray(profile.finalDriveRatios) && profile.finalDriveRatios.length === gearCount
+      ? profile.finalDriveRatios : Array(gearCount).fill(profile.finalDriveRatio);
+    const sourced = gearCount > 0 && Array.isArray(profile.gearRatios) && profile.gearRatios.length === gearCount
+      && profile.gearRatios.every(ratio => Number.isFinite(ratio) && ratio > 0)
+      && finalDrives.every(ratio => Number.isFinite(ratio) && ratio > 0);
     const rear = profile.drivenAxle === 'rear' || spec.factoryDrive === 'rwd';
     const nominalRadiusM = Math.max(.15, finite(rear ? spec.rearTireRadiusMm : spec.frontTireRadiusMm, 320) / 1000);
     const rollingRadiusScale = clamp(finite(profile.rollingRadiusScale, 1), .9, 1.02);
     const factoryReduction = car.entrant?.factorySpec?.reduction;
-    const tunedFinalDriveScale = sourced && factoryReduction > 0 && spec.reduction > 0 ? spec.reduction / factoryReduction : 1;
+    const tunedFinalDriveScale = factoryReduction > 0 && spec.reduction > 0 ? spec.reduction / factoryReduction : 1;
     const totalRatios = Array.from({ length: gearCount }, (_, i) => sourced
-      ? profile.gearRatios[i] * profile.finalDriveRatio * tunedFinalDriveScale
-      : Math.max(1, finite(profile.total1stReduction, 13.5)) * Math.pow(clamp(finite(profile.ratioStep, .75), .5, .92), i));
+      ? profile.gearRatios[i] * finalDrives[i] * tunedFinalDriveScale
+      : Math.max(1, finite(profile.total1stReduction, 13.5)) * Math.pow(clamp(finite(profile.ratioStep, .75), .5, .92), i) * tunedFinalDriveScale);
     return { totalRatios, nominalRadiusM, rollingRadiusScale, effectiveRadiusM: nominalRadiusM * rollingRadiusScale,
       tunedFinalDriveScale, ratioStatus: profile.ratioStatus || 'estimated', sourceId: profile.ratioSourceId || null,
       shiftRPM: finite(profile.shiftRPM, 6000), schedule: 'estimated-wide-open-throttle' };
@@ -74,12 +81,28 @@
       rpmNormalized: 0, shiftLights: 0, shiftCue: false,
       battery: kind === 'hybrid' ? { flow: 0, mode: 'idle', cornerPhase: 'straight' } : null };
     const idle = Math.max(500, finite(profile.idleRPM, 900)), shift = Math.max(idle + 1000, finite(profile.shiftRPM, 6000));
-    internal.set(state, { profile, gearCount, idle, shift, max: Math.max(shift, finite(profile.maxRPM, 7000)),
+    const data = { profile, gearCount, idle, shift, max: Math.max(shift, finite(profile.maxRPM, 7000)),
       gearing: describeGearing(car),
       rpm: idle, sinceShift: MODEL.minimumShiftIntervalSeconds, lampBlank: 0,
       curvature: 0, signedCurvature: 0, lateral: 0, inCorner: false, enterTime: 0, exitTime: 0, assistTime: 0,
       cornerAge: 0, peakCurvature: 0, minSpeed: Infinity, turnSign: 0, reversalTime: 0,
-      apexConfirmTime: 0, postApex: false, apexAssistTime: 0 });
+      apexConfirmTime: 0, postApex: false, apexAssistTime: 0 };
+    internal.set(state, data);
+    const speed = Math.max(0, finite(car.speed));
+    if (kind !== 'electric' && speed >= .1) {
+      // A rolling generation starts at its carried road speed. Initialize its
+      // own gearbox directly instead of replaying stationary launch shifts.
+      // This establishes no wheel work, battery flow or simulated elapsed time.
+      if (gearCount) {
+        const wheelRPM = speed / (2 * Math.PI * data.gearing.effectiveRadiusM) * 60;
+        while (state.gear < gearCount && wheelRPM * data.gearing.totalRatios[state.gear - 1] >= shift) state.gear++;
+        state.gearLabel = String(state.gear);
+        data.rpm = clamp(wheelRPM * data.gearing.totalRatios[state.gear - 1], idle, data.max);
+      } else data.rpm = idle + (shift - idle) * clamp(.08 + speed / 160, .08, 1);
+      state.rpmNormalized = clamp((data.rpm - idle) / (shift - idle), 0, 1);
+      state.shiftLights = Math.min(8, Math.ceil(state.rpmNormalized * 8));
+      state.shiftCue = !!gearCount && state.gear < gearCount && state.rpmNormalized >= .94;
+    }
     if (car.finished || car.dnf) stop(state);
     return state;
   }

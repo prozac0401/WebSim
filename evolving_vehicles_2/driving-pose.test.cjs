@@ -208,11 +208,98 @@ test('display sampling cannot alter physical speeds, positions, scores or source
   for (let i = 0; i < 30 && !observed.finished; i++) {
     observed.step(15); control.step(15);
     DrivingPose.sample(observed, observed.cars[0].distance); DrivingPose.sample(observed, observed.cars[0].distance + 20); DrivingPose.path(observed);
+    DrivingPose.sampleCar(observed, { ...observed.cars[0], standingStartDistance: 0 });
   }
   assert.ok(observed.finished && control.finished, 'complete a physical lap');
   assert.deepEqual(observed.cars, control.cars, 'race outcomes remain bit-for-bit equal');
   assert.equal(JSON.stringify(observed.pathPoints), original, 'source racing line is untouched');
   assert.equal(observed.time, control.time);
+});
+
+test('standing starts are exactly centered and face the painted start line on every course', () => {
+  for (const race of races) {
+    const car = { distance: 0, standingStartDistance: 0 }, before = JSON.stringify(car);
+    const a = race.track.points[0], b = race.track.points[1], pose = DrivingPose.sampleCar(race, car);
+    assert.equal(pose.x, a.x, race.circuit.id + ': lane center X');
+    assert.equal(pose.y, a.y, race.circuit.id + ': lane center Y');
+    assert.equal(pose.z, a.z, race.circuit.id + ': road height');
+    assert.ok(Math.abs(turn(pose.angle - Math.atan2(b.y - a.y, b.x - a.x))) < 1e-14, 'painted line forward direction');
+    assert.equal(pose.curvature, 0, 'wheels begin straight');
+    assert.equal(DrivingPose.startBlend(car), 0, 'camera begins with the exact car tangent');
+    const behind = DrivingPose.sampleCar(race, car, -24);
+    assert.ok(Math.abs(turn(behind.angle - pose.angle)) < 1e-14, 'camera behind uses the same forward tangent');
+    assert.ok(Math.abs(Math.hypot(behind.x - pose.x, behind.y - pose.y) - 24) < 1e-10, 'look-behind does not wrap to an offset race line');
+    assert.equal(JSON.stringify(car), before, 'sampling never changes per-car start state');
+  }
+});
+
+test('the 50 m launch path has matching C2 joins, road contact and a forward analytic tangent', () => {
+  const epsilon = 1e-5, derivativeStep = .001;
+  for (const race of races) {
+    const car = { distance: 0, standingStartDistance: 0 };
+    for (const join of [0, 50]) {
+      const a = DrivingPose.sampleCar(race, car, join - epsilon), b = DrivingPose.sampleCar(race, car, join + epsilon);
+      assert.ok(Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) < .00003, race.circuit.id + ': C0 start join');
+      assert.ok(Math.abs(turn(b.angle - a.angle)) < .000003, race.circuit.id + ': C1 start join');
+      assert.ok(Math.abs(b.grade - a.grade) < .000001, race.circuit.id + ': C1 height join');
+      assert.ok(Math.abs(b.curvature - a.curvature) < .000003, race.circuit.id + ': C2 start join');
+    }
+    for (let s = 0; s <= 50; s += .5) {
+      const pose = DrivingPose.sampleCar(race, car, s);
+      const a = DrivingPose.sampleCar(race, car, s - derivativeStep), b = DrivingPose.sampleCar(race, car, s + derivativeStep);
+      const run = Math.hypot(b.x - a.x, b.y - a.y);
+      assert.ok(run / (2 * derivativeStep) > .85 && run / (2 * derivativeStep) < 1.35, race.circuit.id + ': bounded launch motion without a cusp');
+      assert.ok(Math.abs(turn(pose.angle - Math.atan2(b.y - a.y, b.x - a.x))) < .00001, race.circuit.id + ': body follows its actual path');
+      assert.ok(Math.abs(pose.grade - (b.z - a.z) / run) < .00001, race.circuit.id + ': pitch follows height');
+      let nearest = Infinity, roadHeight = 0;
+      for (let i = 0; i < race.track.points.length; i++) {
+        const from = race.track.points[i], to = race.track.points[(i + 1) % race.track.points.length];
+        const dx = to.x - from.x, dy = to.y - from.y;
+        const t = Math.max(0, Math.min(1, ((pose.x - from.x) * dx + (pose.y - from.y) * dy) / (dx * dx + dy * dy)));
+        const distance = Math.hypot(pose.x - from.x - t * dx, pose.y - from.y - t * dy);
+        if (distance < nearest) { nearest = distance; roadHeight = from.z + (to.z - from.z) * t; }
+      }
+      assert.ok(nearest + 1 < race.track.width / 2, race.circuit.id + ': two-metre-wide body stays on the road');
+      assert.ok(Math.abs(pose.z - roadHeight) < .012, race.circuit.id + ': tires stay within 12 mm of the road');
+    }
+    assert.deepEqual(DrivingPose.sampleCar(race, car, 50), DrivingPose.sample(race, 50), 'exact ordinary trajectory after launch');
+  }
+});
+
+test('launch blending is per car and never repeats at subsequent flying laps', () => {
+  for (const race of races) {
+    const standing = { distance: 0, standingStartDistance: 0 }, flying = { distance: 0, standingStartDistance: null };
+    assert.deepEqual(DrivingPose.sampleCar(race, flying), DrivingPose.sample(race, 0), 'inherited speed keeps the original racing line');
+    assert.equal(DrivingPose.startBlend(flying), 1, 'flying camera retains ordinary smoothing');
+    for (const lap of [1, 2, 3]) for (const offset of [-.01, 0, .01, 12]) {
+      const distance = lap * race.track.length + offset;
+      assert.deepEqual(DrivingPose.sampleCar(race, standing, distance), DrivingPose.sample(race, distance), 'no finish-line center snap');
+    }
+    const progress = [0, 5, 20, 40, 50, 100].map(distance => DrivingPose.startBlend({ ...standing, distance }));
+    assert.equal(progress[0], 0); assert.equal(progress.at(-1), 1);
+    for (let i = 1; i < progress.length; i++) assert.ok(progress[i] >= progress[i - 1], 'smooth monotone camera release');
+    assert.deepEqual(DrivingPose.sampleCar(race, { distance: 0 }), DrivingPose.sample(race, 0), 'legacy callers opt into launch explicitly');
+  }
+});
+
+test('individual physical paths have independent caches and the displayed guide matches the car', () => {
+  const race = races[0], points = race.pathPoints.map(p => ({ ...p, x: p.x + 2 }));
+  const car = { distance: 100, standingStartDistance: null, pathPoints: points,
+    trackLength: race.track.length * 1.01, pathSpacing: race.track.length * 1.01 / points.length };
+  const equivalent = { ...race, pathPoints: car.pathPoints, track: { ...race.track, length: car.trackLength, spacing: car.pathSpacing } };
+  assert.deepEqual(DrivingPose.sampleCar(race, car), DrivingPose.sample(equivalent, 100));
+  const guide = DrivingPose.pathCar(race, car);
+  assert.equal(guide, DrivingPose.pathCar(race, car), 'per-car draw cache');
+  assert.notEqual(guide, DrivingPose.path(race), 'never reuses another physical line');
+  for (let i = 0; i < guide.length; i += 47) assert.deepEqual(guide[i], DrivingPose.sampleCar(race, car, guide[i].s));
+  const standing = { ...car, standingStartDistance: 0, distance: 0 }, launchGuide = DrivingPose.pathCar(race, standing);
+  assert.deepEqual(launchGuide[0], DrivingPose.sampleCar(race, standing, 0));
+  assert.deepEqual(launchGuide.at(-1), DrivingPose.sampleCar(race, standing, standing.trackLength));
+  assert.notDeepEqual(launchGuide[0], launchGuide.at(-1), 'first lap guide remains open at the timing line');
+  standing.distance = 50;
+  assert.deepEqual(DrivingPose.pathCar(race, standing), guide, 'ordinary closed line resumes after the launch');
+  const fallback = { sampleForCar: (_car, s) => ({ x: s, y: 9, elevation: null, angle: 0, grade: 0, s }) };
+  assert.deepEqual(DrivingPose.sampleCar(fallback, { distance: 4 }), { x: 4, y: 9, z: 0, elevation: null, angle: 0, grade: 0, s: 4 });
 });
 
 test('legacy fixtures and missing elevation preserve their contracts', () => {

@@ -9,6 +9,7 @@ const vm = require('node:vm');
 const Race = require('./race-engine.js');
 const circuits = require('./circuits.js');
 const Pose = require('./driving-pose.js');
+const Guidance = require('./racing-guidance.js');
 const Renderer = require('./circuit-renderer.js');
 const Profile = require('./spa-elevation-profile.js');
 const close = (a,b,label,tolerance=1e-8) => assert.ok(Math.abs(a-b)<=tolerance, `${label}: ${a} != ${b}`);
@@ -63,17 +64,20 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('spa-elevation-profile.js')>=0&&index('spa-elevation-profile.js')<index('race-engine.js'));
   assert.ok(index('../evolving_vehicles/vehicle-specs.js')<index('circuit-vehicle-specs.js')&&index('circuit-vehicle-specs.js')<index('race-engine.js'));
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
+  assert.ok(index('vehicle-racing-line.js')>=0&&index('vehicle-racing-line.js')<index('race-engine.js'));
+  assert.ok(index('racing-guidance.js')>index('driving-pose.js')&&index('racing-guidance.js')<index('circuit-renderer.js'));
   assert.ok(index('track-environment-data.js')<index('track-environment.js'));
   assert.ok(index('track-environment.js')<index('circuit-renderer.js'));
   assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
-  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','race-engine.js','driving-pose.js']);
+  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
   assert.equal(context.TrackRace.VEHICLES.length,15);
   assert.equal(race.track.elevationProfile.id,Profile.metadata.id);
   close(race.track.points[0].z,418,'browser start elevation');
   const point=context.DrivingPose.sample(race,1050);assert.ok(point.grade>.09,'browser and Node both apply the real climb');
+  assert.equal(context.RacingGuidance.sample(race,race.cars[0],1050).model,Guidance.MODEL);
 });
 
 test('published profile keeps the start line and geographic projection aligned at the scenic landmarks',()=>{
@@ -116,35 +120,45 @@ test('switching from Spa scenic view to another circuit falls back to that race 
   const mode=r.mode;r.setRace(races.get('everland'));r.setView(mode);
   assert.equal(r.mode,'follow');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
   assert.deepEqual(r.panOffset,{x:0,y:0,z:0});
-  const car=r.race.cars[0],pose=Pose.sample(r.race,car.distance),target=r._interactionCamera().target;
+  const car=r.race.cars[0],pose=Pose.sampleCar(r.race,car,car.distance),target=r._interactionCamera().target;
   close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,displayHeight(r.race.track,pose.z)+.8,'new circuit height');
   r.setRace(races.get('spa'));r.setView('eau-rouge');assert.ok(r.landmark);assert.equal(r.getState().mode,'eau-rouge');
 });
 
-test('all real circuits share continuous car, camera and line coordinates without sinking below displayed path heights',()=>{
+test('all real circuits share watched-car, camera and arrow coordinates with physical road clearance',()=>{
   for(const [id,race]of races) {
-    const r=renderer(race);r.setView('follow');let vehicles,line;
+    const r=renderer(race);r.setView('follow');let vehicles,arrows=[];
     r._background=r._paint=r._startLine=r._labels=r._compass=r._caption=()=>{};
-    r._queue=()=>{};r._mesh=()=>({length:5,width:1.9,height:1.5,faces:[]});
-    r._drawVehicles=entries=>{vehicles=entries;};r._line=points=>{line=points;};
+    r._queue=face=>{if(face.priority===2)arrows.push(face);};r._mesh=()=>({length:5,width:1.9,height:1.5,faces:[]});
+    r._drawVehicles=entries=>{vehicles=entries;};
     for(const fraction of [0,.137,.503,.923]) {
-      const car=race.cars[0];car.distance=race.track.length*fraction;r.advanceCamera(0,{snap:true});r.render({showLine:true});
-      const expected=Pose.sample(race,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
+      const car=race.cars[0],length=car.trackLength||race.track.length;car.distance=length*fraction;arrows=[];r.advanceCamera(0,{snap:true});r.render({showLine:true});
+      const expected=Pose.sampleCar(race,car,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
       assert.deepEqual(entry.position,{...expected,z:displayHeight(race.track,expected.z),elevation:displayHeight(race.track,expected.elevation),grade:expected.grade*1.75},id+' displayed render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
       close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.8,id+' camera height');
-      assert.equal(line.length,86);assert.notDeepEqual(line[0],line.at(-1),'close view does not join a whole-lap line over nearby grass');
-      for(const index of [0,10,45,85]) {
-        const sample=Pose.sample(race,car.distance-20+index*2);
-        close(line[index].x,sample.x,id+' local line x');close(line[index].y,sample.y,id+' local line y');
-        close(line[index].z,displayHeight(race.track,sample.z)+.075,id+' line surface clearance');
+      const step=length/Math.ceil(length/7.5),firstIndex=Math.ceil((car.distance-22)/step),lastIndex=Math.floor((car.distance+280)/step);
+      assert.equal(arrows.length,lastIndex-firstIndex+1,id+' only the nearby 302 metre window');
+      assert.ok(arrows.every(face=>face.vertices.length===3&&face.fill.endsWith(',0.52)')),id+' translucent world triangles');
+      for(const index of [0,10,25,arrows.length-1]) {
+        const s=(firstIndex+index)*step,tip=Pose.sampleCar(race,car,s+2.6),rear=Pose.sampleCar(race,car,s-2),vertices=arrows[index].vertices;
+        close(vertices[0].x,tip.x,id+' arrow tip x');close(vertices[0].y,tip.y,id+' arrow tip y');
+        close(vertices[0].z,displayHeight(race.track,tip.z)+.11,id+' arrow tip surface clearance');
+        close((vertices[1].x+vertices[2].x)/2,rear.x,id+' arrow base x');close((vertices[1].y+vertices[2].y)/2,rear.y,id+' arrow base y');
+        close(vertices[1].z,displayHeight(race.track,rear.z)+.11,id+' arrow base surface clearance');
       }
     }
     // The vehicle render floor has a 55 mm clearance. Verify the display-only
     // spline does not lower the centre of the body through the amplified path
     // height. This does not assert exact contact with every wide road polygon.
-    for(let s=0;s<race.track.length;s+=2) {
-      const p=Pose.sample(race,s),road=displayHeight(race.track,race.sample(s).elevation),height=displayHeight(race.track,p.z);
+    // The standing launch has its own 50 m centreline-to-racing-line blend.
+    // Its s=0 anchor is tested directly; ordinary lap clearance is measured
+    // against this car's physical path, not another car's chainage/trajectory.
+    const car=race.cars[0],launch=Pose.sampleCar(race,car,0),start=race.track.points[0];
+    close(launch.x,start.x,id+' standing launch x');close(launch.y,start.y,id+' standing launch y');close(launch.z,start.z,id+' standing launch height');
+    const flying={...car,standingStartDistance:null};
+    for(let s=0;s<(car.trackLength||race.track.length);s+=2) {
+      const p=Pose.sampleCar(race,flying,s),road=displayHeight(race.track,race.sampleForCar(car,s).elevation),height=displayHeight(race.track,p.z);
       assert.ok(height+.055>=road-1e-6,id+' centre floor below displayed road at '+s);
       assert.ok(height+.055-road<.10,id+' excessive floor gap at '+s);
     }
@@ -168,7 +182,7 @@ test('terrain gain changes displayed relief while preserving source elevations, 
 });
 
 test('vehicle bodies retain their dimensions on the amplified slope and in the isolated preview',()=>{
-  const race=races.get('spa'),r=renderer(race),p=r._displayPose(Pose.sample(race,1050)),faces=[];
+  const race=races.get('spa'),r=renderer(race),p=r._displayPose(Pose.sampleCar(race,race.cars[0],1050)),faces=[];
   const vertices=[{x:0,y:0,z:0},{x:4,y:0,z:0},{x:0,y:0,z:1.5}];
   const mesh={length:4,width:2,height:1.5,manufacturer:{},faces:[{vertices,fill:'#fff'}]};
   r._mesh=()=>mesh;r._queue=face=>faces.push(face);
@@ -177,7 +191,7 @@ test('vehicle bodies retain their dimensions on the amplified slope and in the i
   const [a,b,c]=faces.at(-1).vertices;
   const distance=(u,v)=>Math.hypot(v.x-u.x,v.y-u.y,v.z-u.z);
   close(distance(a,b),4,'body length');close(distance(a,c),1.5,'body height');
-  close((b.z-a.z)/Math.hypot(b.x-a.x,b.y-a.y),Pose.sample(race,1050).grade*1.75,'body follows amplified grade');
+  close((b.z-a.z)/Math.hypot(b.x-a.x,b.y-a.y),Pose.sampleCar(race,race.cars[0],1050).grade*1.75,'body follows amplified grade');
   const surface=surfaceFixture();surface.renderer.render([{mesh,position:p,selected:true}],camera,980,615);
   close(surface.uniforms.get('uCar')[2],p.z+.055,'WebGL anchor matches displayed road');
   close(surface.uniforms.get('uPose')[1],Math.atan(p.grade),'WebGL pitch matches Canvas body');

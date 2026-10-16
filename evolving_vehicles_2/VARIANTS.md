@@ -84,3 +84,18 @@ G80 2.5T는 3.5T에 비해 가속력 15 P, 최고속도 15 P의 추가 보상과
 `getRules(vehicleId, variantId, {budget})`는 선택한 예산의 상한·보정을 반환합니다. 세 번째 인수를 생략하면 기존 API와 같이 유료 튜닝 규칙을 반환합니다. 순정 모드를 판정할 때는 `{budget:0}`을 넘기거나 해당 예산을 넣은 `quote`의 결과를 사용합니다. `quote`와 `createEntrant`는 예산 0에서 하나라도 양의 튜닝 단계가 요청되면 거절합니다. 유효한 순정 견적의 단계 상한·보상·비용·잔액은 모두 0입니다.
 
 검증: `node --test evolving_vehicles_2/tuning-evolution.test.cjs`. 15차종·36사양의 순정 제원 객체 보존, 조합별 정확히 한 대 배정, 단일 사양의 1대 평가, 보정 우회 차단, 재추첨·직접 다음 세대 호출의 조합 수와 0단계 유지, 이전 유료 유전자 차단, 유료 18·30·45 P의 보정·다양성 유지와 기존 평가·진화 동작을 검사합니다.
+
+## 2026-10-15 기어비 점검과 타이어 반경
+
+휠 크기가 다른 프리셋이 공용 차체의 타이어 반경을 상속하던 부분을 아래 공식 규격으로 교정했습니다. `명목 반경(mm) = 단면폭(mm) × 편평비 / 100 + 림 지름(in) × 12.7`이며 실측 동하중 회전반경은 아닙니다. 이 반경은 저속 토크 구동력과 회전수 계산에 쓰입니다. 단별 기어비가 확보된 차량의 HUD에는 별도의 추정 회전반경 보정 0.985를 적용합니다.
+
+| 출고 사양 | 앞·뒤 타이어 | 명목 반경 | 제조사 근거 |
+| --- | --- | ---: | --- |
+| 레이 14인치 | 165/60R14 | 276.8 mm | [기아 레이 제원](https://www.kia.com/kr/vehicles/ray/specification) |
+| 모닝 14인치 | 175/65R14 | 291.55 mm | [기아 모닝 제원](https://www.kia.com/kr/vehicles/morning/specification) |
+| 아반떼 2.0 16인치 | 205/60R16 | 326.2 mm | [현대 2027 아반떼 공식 본문](https://www.hyundai.com/contents/repn-car/html/homepage/model/avante-27fc_intro.content)의 타이어 효율 표 |
+| 아반떼 2.0 18인치 | 215/45R18 | 325.35 mm | 같은 공식 본문. 기존 반경을 유지하며 규격도 명시 |
+| K5 1.6T 17인치 | 215/55R17 | 334.15 mm | [기아 K5 제원](https://www.kia.com/kr/vehicles/k5/specification)의 1.6 가솔린 터보 적용 타이어 |
+| 아이오닉 5 Standard 19인치 | 235/55R19 | 370.55 mm | [현대 2027 아이오닉 5 공식 본문](https://www.hyundai.com/contents/repn-car/html/homepage/model/ioniq5-27my_intro.content)의 타이어 효율 표 |
+
+K5 2.0 가솔린·LPG 16인치의 정확한 프리셋 대응은 이번 공개자료에서 확정하지 못해 기존 반경을 유지했습니다. 다른 엔진·연식의 타이어 표를 해당 사양의 검증값으로 취급하지 않습니다. 변속기와 감속기의 출처·적용 범위는 [파워트레인 근거](POWERTRAIN-SOURCES.md)에 정리합니다.

@@ -471,27 +471,43 @@ test('axle traction stays inside whole-car contact grip even at high CG/grip, wi
 
 test('source-backed first gear limits wheel torque separately from HUD gearing, retaining tuning and EV fallbacks', () => {
   const tuning = require('./tuning-evolution.js'), profiles = require('./powertrain-profiles.js'), telemetry = require('./powertrain-telemetry.js');
-  for (const vehicleId of ['g70', 'g80', 'supra']) {
+  for (const vehicleId of Object.keys(tuning.VARIANTS)) {
     const population = tuning.createPopulation({ vehicleId, budget: 0 });
     const race = new TrackRace({ circuit: launchStraight, entrants: population, laps: 1, racingLine: false });
     for (const car of race.cars) {
       const p = profiles.resolve(car);
-      assert.equal(car.driveReduction, p.gearRatios[0] * p.finalDriveRatio);
+      const sourced = p.gearRatios !== null;
+      const firstFinalDrive = p.finalDriveRatios?.[0] ?? p.finalDriveRatio;
+      assert.equal(car.driveReduction, sourced ? p.gearRatios[0] * firstFinalDrive : p.singleSpeedReduction ?? car.reduction, car.entrant.variantId);
+      assert.equal(car.torqueNm, car.entrant.factorySpec.torqueNm, 'combined motor/engine torque is never multiplied by axle count');
       assert.equal(car.reduction, car.entrant.factorySpec.reduction, 'HUD tuning scale stays nominal');
       const withoutForceRatio = { ...car }; delete withoutForceRatio.driveReduction;
       assert.deepEqual(telemetry.describeGearing(car), telemetry.describeGearing(withoutForceRatio), 'launch envelope cannot change displayed gear speeds');
     }
-    const tuned = tuning.createEntrant({ vehicleId, variantId: population[0].variantId, levels: { acceleration: 1 } });
-    const tunedRace = new TrackRace({ circuit: launchStraight, entrants: [tuned], laps: 1, racingLine: false });
-    const car = tunedRace.cars[0], p = profiles.resolve(car);
-    assert.ok(Math.abs(car.driveReduction / (p.gearRatios[0] * p.finalDriveRatio) - tuned.spec.reduction / tuned.factorySpec.reduction) < 1e-12);
+    for (const entry of population) {
+      const tuned = tuning.createEntrant({ vehicleId, variantId: entry.variantId, levels: { acceleration: 1 } });
+      const tunedRace = new TrackRace({ circuit: launchStraight, entrants: [tuned], laps: 1, racingLine: false });
+      const car = tunedRace.cars[0], p = profiles.resolve(car);
+      const stockReduction = p.gearRatios ? p.gearRatios[0] * (p.finalDriveRatios?.[0] ?? p.finalDriveRatio) : p.singleSpeedReduction ?? tuned.factorySpec.reduction;
+      assert.ok(Math.abs(car.driveReduction / stockReduction - tuned.spec.reduction / tuned.factorySpec.reduction) < 1e-12, entry.variantId);
+    }
   }
-  for (const vehicleId of ['ioniq5', 'musso_ev', 'ray', 'k5']) {
-    const population = tuning.createPopulation({ vehicleId, budget: 0 });
-    const race = new TrackRace({ circuit: launchStraight, entrants: population, laps: 1, racingLine: false });
-    for (const car of race.cars) {
-      assert.equal(car.driveReduction, car.reduction, 'unsourced gearing/EV uses original reduction');
-      assert.equal(car.torqueNm, car.entrant.factorySpec.torqueNm, 'combined motor/engine torque is never multiplied by axle count');
+});
+
+test('IONIQ 5 long-range reduction uses both published stages without doubling AWD motor torque', () => {
+  const tuning = require('./tuning-evolution.js'), profiles = require('./powertrain-profiles.js');
+  const race = new TrackRace({ circuit: launchStraight, entrants: tuning.createPopulation({ vehicleId: 'ioniq5', budget: 0 }), laps: 1, racingLine: false });
+  for (const car of race.cars) {
+    const p = profiles.resolve(car), standard = car.entrant.variantId === 'ioniq5-standard';
+    assert.equal(car.driveReduction, standard ? 9 : 2.263 * 4.706);
+    assert.equal(car.torqueNm, car.entrant.factorySpec.torqueNm);
+    assert.equal(p.visible, false); assert.equal(p.gearCount, null);
+    assert.equal(car.telemetry.gear, null);
+    if (!standard) {
+      assert.equal(p.reductionStatus, 'reference-market');
+      assert.ok(p.referenceFields.includes('singleSpeedReduction'));
+      assert.ok(p.estimatedFields.includes('domesticReductionMatch'));
+      assert.ok(p.sourceIds.includes(p.reductionSourceId));
     }
   }
 });

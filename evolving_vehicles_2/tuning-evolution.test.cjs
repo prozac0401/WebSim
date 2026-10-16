@@ -39,6 +39,26 @@ test('G80 2.5T receives acceleration and speed credits/headroom relative to 3.5T
   assert.equal(compensated.spec.engine, '직렬 4기통 가솔린 터보');
 });
 
+test('factory wheel variants keep their sourced tyre sizes and radii through entrant creation', () => {
+  const expected = [
+    ['ray', 'ray-1.0-14', '165/60R14', 276.8],
+    ['morning', 'morning-1.0-14', '175/65R14', 291.55],
+    ['avante', 'avante-2.0-16', '205/60R16', 326.2],
+    ['avante', 'avante-2.0-18', '215/45R18', 325.35],
+    ['k5', 'k5-1.6t', '215/55R17', 334.15],
+    ['ioniq5', 'ioniq5-standard', '235/55R19', 370.55]
+  ];
+  for (const [vehicleId, variantId, tire, radius] of expected) {
+    for (const budget of [0, 30]) {
+      const entrant = T.createEntrant({ vehicleId, variantId, budget, levels: budget ? levels(1) : levels() });
+      for (const spec of [entrant.factorySpec, entrant.spec]) {
+        assert.deepEqual([spec.frontTire, spec.rearTire], [tire, tire], variantId + ': tyre marking');
+        assert.deepEqual([spec.frontTireRadiusMm, spec.rearTireRadiusMm], [radius, radius], variantId + ': nominal radius');
+      }
+    }
+  }
+});
+
 test('RWD compensation belongs only to grip and cannot fund brakes', () => {
   const rwd = T.getRules('g80', 'g80-3.5t-rwd');
   const awd = T.getRules('g80', 'g80-3.5t-awd');

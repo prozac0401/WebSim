@@ -237,7 +237,12 @@
       const z=this._displayHeight(p.elevation??p.z??0);
       return {...p,z,elevation:p.elevation==null?null:z,grade:(p.grade||0)*ELEVATION_EXAGGERATION};
     }
-    setRace(race){
+    setRace(race,{preserveCamera=false}={}){
+      if(preserveCamera&&this.race?.circuit===race.circuit){
+        const oldCar=this.race.cars.find(c=>c.id===this.watch)||this.race.cars[0];
+        if(this._followState&&oldCar)this._followState.distance-=oldCar.totalDistance??this.race.totalDistance;
+        this.race=race;return;
+      }
       if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();
       this.race=race;
       // Scale only ground elevation. Scenery is rebuilt on this display track,
@@ -304,7 +309,7 @@
     recenter(){this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._changed();}
     resetPan(){this.recenter();}
     _followGoal(car){
-      const sample=distance=>root.DrivingPose?.sample(this.race,distance)||this.race.sample(distance);
+      const sample=distance=>root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance);
       const p=this._displayPose(sample(car.distance)),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
       const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
       // Estimate bend size from chords, not the instantaneous spline curvature.
@@ -330,7 +335,8 @@
       }
       const tangent=Number.isFinite(p.angle)?p.angle:directions[1];
       // Degenerate loops must never put the chase camera in front of the car.
-      const heading=Math.hypot(dx,dy)>.001&&dx*Math.cos(tangent)+dy*Math.sin(tangent)>0?Math.atan2(dy,dx):tangent;
+      const filteredHeading=Math.hypot(dx,dy)>.001&&dx*Math.cos(tangent)+dy*Math.sin(tangent)>0?Math.atan2(dy,dx):tangent;
+      const heading=tangent+wrap(filteredHeading-tangent)*(root.DrivingPose?.startBlend?.(car)??1);
       return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading,distance:car.distance};
     }
     _followPose(car){
@@ -386,7 +392,7 @@
       if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y)}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();}
     _makeRoad(){
       this.roadFaces=[];this.supports=[];if(!this.race)return;
@@ -566,6 +572,34 @@
         this._queue({vertices:[v(x,a),v(x+.65,a),v(x+.65,b),v(x,b)],fill:(i+j)%2?'#eef3eb':'#263632'},camera,queue);
       }
     }
+    _racingGuidanceTriangle(car,distance){
+      const pose=s=>root.DrivingPose?.sampleCar?.(this.race,car,s)||root.DrivingPose?.sample(this.race,s)||this.race.sampleForCar?.(car,s)||this.race.sample(s);
+      // Both the tip and base follow the same curve as the watched car. The
+      // world-space width fits inside the path's existing road-edge allowance.
+      const rear=pose(distance-2),tip=pose(distance+2.6),halfWidth=Math.min(.72,this.race.track.width*.08);
+      const nx=-Math.sin(rear.angle)*halfWidth,ny=Math.cos(rear.angle)*halfWidth;
+      const z=this._displayHeight(rear.elevation??rear.z??0)+.11;
+      return [point(tip.x,tip.y,this._displayHeight(tip.elevation??tip.z??0)+.11),point(rear.x+nx,rear.y+ny,z),point(rear.x-nx,rear.y-ny,z)];
+    }
+    _queueRacingGuidance(car,camera,queue){
+      if(!root.RacingGuidance)return;
+      const data=root.RacingGuidance.profile(this.race,car);if(!data)return;
+      const length=car.trackLength||this.race.track.length,count=Math.ceil(length/7.5),step=length/count;
+      // Once the launch blend ends, overview arrows also use the periodic
+      // flying path. Reusing absolute s=0 would redraw the first-start tangent
+      // on every later lap even while the car follows its normal racing line.
+      const launching=(root.DrivingPose?.startBlend?.(car)??1)<1,lap=Math.max(launching?0:1,Math.floor(car.distance/length));
+      let first=lap*count,last=first+count-1;
+      // Restrict close cameras to the nearby section; distant loop geometry
+      // must not appear over a hill. Triangles share the scene's near clipping
+      // and depth sort so the road/terrain can also occlude them.
+      if(this.mode==='follow'){first=Math.ceil((car.distance-22)/step);last=Math.floor((car.distance+280)/step);}
+      else if(this.mode==='eau-rouge'){first=Math.ceil(Math.max(0,(this.landmark?.low.s||890)-100)/step);last=Math.floor(((this.landmark?.high.s||1130)+260)/step);}
+      for(let index=first;index<=last;index++){
+        const distance=index*step,guidance=root.RacingGuidance.sampleProfile(data,distance);if(!guidance)continue;
+        this._queue({vertices:this._racingGuidanceTriangle(car,distance),fill:guidance.fill,stroke:guidance.fill,width:.45,priority:2},camera,queue);
+      }
+    }
     render({watch=this.watch,mode=this.mode,showLine=false}={}){
       if(!this.race)return;
       if(mode!==this.mode)this.setView(mode);this.watch=watch;
@@ -581,41 +615,34 @@
       this._startLine(camera,queue);
       this.markerPositions=[];
       for(const c of this.race.cars){
-        const p=this._displayPose(root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance)),projected=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);
+        const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance)),projected=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);
         if(!projected)continue;
         const mesh=this._mesh(c);
         if(projected.x>-60&&projected.x<this.width+60&&projected.y>-60&&projected.y<this.height+60)this.markerPositions.push({id:c.id,x:projected.x,y:projected.y,anchorX:projected.x,anchorY:projected.y,color:c.color,length:mesh.length*projected.scale,radius:Math.max(12,mesh.width*projected.scale*.6)});
       }
+      if(showLine&&this.mode!=='pits')this._queueRacingGuidance(car,camera,queue);
       this._paint(queue);
-      if(showLine&&this.mode!=='pits'){
-        let pts=root.DrivingPose?root.DrivingPose.path(this.race):this.race.track.racingLine?.points||this.race.track.points;
-        let closed=true;
-        // A close camera must not paint a distant, hill-hidden part of the lap
-        // across the nearby grass. Show the same curve around this section.
-        if(this.mode==='follow'||this.mode==='eau-rouge'){
-          const from=this.mode==='follow'?car.distance-20:Math.max(0,(this.landmark?.low.s||890)-100);
-          const to=this.mode==='follow'?car.distance+150:(this.landmark?.high.s||1130)+260;
-          pts=[];for(let s=from;s<=to;s+=2){const p=root.DrivingPose?.sample(this.race,s)||this.race.sample(s);pts.push(point(p.x,p.y,p.elevation??p.z??0));}closed=false;
-        }
-        // One shared trajectory. No per-car lane shifts are introduced.
-        this._line((closed?[...pts,pts[0]]:pts).map(p=>point(p.x,p.y,this._displayHeight(p.z)+.075)),camera,'rgba(215,233,133,.72)',this.mode==='follow'?1.35:1.05);
-      }
       // Cars are redrawn after the trajectory so the line never cuts across a roof.
       const visibleCars=[];
-      for(const c of this.race.cars){const p=this._displayPose(root.DrivingPose?root.DrivingPose.sample(this.race,c.distance):this.race.sample(c.distance)),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
+      for(const c of this.race.cars){const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance)),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
       this._drawVehicles(visibleCars,camera);this._labels(car);
       if(this.mode!=='follow'&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
       this._compass(camera);this._caption();
     }
     _labels(selected){
       const ctx=this.ctx,placed=[];ctx.font='600 10px system-ui,sans-serif';
-      const ordered=[...this.markerPositions].sort((a,b)=>(b.id===selected.id)-(a.id===selected.id));
-      const watched=ordered.find(p=>p.id===selected.id);
+      const standings=this.race.standings(),rank=standings.findIndex(c=>c.id===selected.id);
+      const progress=car=>car.distance/(car.trackLength||this.race.track.length);
+      // Use race progress, including completed laps and individual path lengths.
+      // Equal launch positions are not an ahead car; an offscreen predecessor
+      // must not be replaced by a different, merely visible competitor.
+      const preceding=standings[rank-1];
+      const ahead=preceding&&(progress(preceding)>progress(selected)+1e-9||
+        preceding.finished&&(!selected.finished||preceding.finishTime<selected.finishTime))?preceding:null;
+      for(const p of this.markerPositions)p.labelVisible=p.id===selected.id||p.id===ahead?.id;
+      const ordered=this.markerPositions.filter(p=>p.labelVisible).sort((a,b)=>(b.id===selected.id)-(a.id===selected.id));
       for(const p of ordered){
         const selectedCar=p.id===selected.id,car=this.race.cars.find(c=>c.id===p.id);
-        // Overlapping ghost labels obscure the very body the follow camera shows.
-        // Every entrant remains selectable in the timing table.
-        if(this.mode==='follow'&&!selectedCar&&watched&&Math.hypot(p.anchorX-watched.anchorX,p.anchorY-watched.anchorY)<Math.max(28,watched.length*.35)){p.hidden=true;continue;}
         const label=(car.speed*3.6).toFixed(0)+' km/h',bw=Math.max(48,Math.ceil(ctx.measureText(label).width)+14),bh=20,margin=bw/2+4;
         let x=p.anchorX,y=p.anchorY-Math.max(14,p.length*.55);
         x=clamp(x,margin,this.width-margin);y=clamp(y,29,this.height-75);
