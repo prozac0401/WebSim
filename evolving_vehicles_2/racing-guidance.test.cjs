@@ -192,6 +192,126 @@ test('guidance uses a watched-car path and lap length independently of the share
   assert.deepEqual(Guidance.sample(race,car,0),Guidance.sample(race,car,car.trackLength));
 });
 
+function displayFixture(target, distance = 0, speed = 34.6) {
+  const {race,car} = fixture();
+  race.pathPoints = race.pathPoints.map(p=>({...p,curvature:0}));
+  car.speedProfile = car.speedProfile.map(()=>60);
+  race._target = (_car,s)=>target(s);
+  car.distance = distance; car.speed = speed; car.acceleration = 0;
+  const first = Math.ceil((distance+5)/7.5)*7.5;
+  return {race,car,distances:Array.from({length:15},(_,i)=>first+i*7.5)};
+}
+
+function assertSixYellow(result) {
+  const bands = result[0].displayTransitionBands;
+  assert.ok(bands.length>0,'a visible strong-phase transition was detected');
+  for(const band of bands) {
+    assert.equal(band.lastIndex-band.firstIndex+1,6);
+    assert.ok(band.firstIndex>=0&&band.lastIndex<15,'all six stay in the visible window');
+    for(const p of result.slice(band.firstIndex,band.lastIndex+1)) {
+      assert.equal(p.displayTransitionWeight,1);
+      assert.equal(p.displayYellowWeight,1);
+      assert.deepEqual(p.color,Guidance.COLORS.coast,'all six have the actual yellow RGB');
+    }
+  }
+}
+
+test('display transitions keep six yellow arrows at either window edge in both directions',()=>{
+  for(const boundary of [10,55,110]) {
+    const {race,car,distances}=displayFixture(s=>Math.sqrt(Math.max(100,1200-14*Math.max(0,s-boundary))));
+    const p=Guidance.displayPreview(race,car,distances);
+    assertSixYellow(p);
+    assert.ok(p[0].displayTransitionBands.some(b=>b.direction==='accelerate-to-brake'));
+  }
+  for(const distance of [500,550,585]) {
+    const {race,car,distances}=displayFixture(s=>Math.sqrt(400+14*Math.abs(s-600)),distance,Math.sqrt(400+14*(600-distance)));
+    const p=Guidance.displayPreview(race,car,distances);
+    assertSixYellow(p);
+    assert.ok(p[0].displayTransitionBands.some(b=>b.direction==='brake-to-accelerate'));
+    assert.ok(p.some(q=>q.brake>=.85&&q.displayTransitionWeight===0)||!p.some(q=>q.brake>=.85), 'strong braking retains a visible red core');
+  }
+});
+
+test('a single moderate-braking arrow still gets six yellow arrows on both sides of its transition',()=>{
+  const target=s=>Math.sqrt(1200-12*Math.max(0,Math.min(7.5,s-60))+8*Math.max(0,s-67.5));
+  const {race,car,distances}=displayFixture(target),raw=Guidance.preview(race,car,distances);
+  const red=raw.filter(p=>p.brake>=.55);
+  assert.equal(red.length,1);assert.ok(red[0].brake<.85,'the short red run is not a full-brake exception');
+  const display=Guidance.displayPreview(race,car,distances);
+  assertSixYellow(display);
+  assert.deepEqual(display[0].displayTransitionBands.map(b=>b.direction),['accelerate-to-brake','brake-to-accelerate']);
+  const briefExit=s=>Math.sqrt(Math.max(100,1500-12*Math.min(s,42)+8*Math.max(0,Math.min(7,s-42))-12*Math.max(0,s-49)));
+  const reverse=displayFixture(briefExit,0,Math.sqrt(1500)),reverseRaw=Guidance.preview(reverse.race,reverse.car,reverse.distances);
+  assert.equal(reverseRaw.filter(p=>p.forecastAcceleration>0).length,1,'also exercise a single green arrow between red runs');
+  const reverseDisplay=Guidance.displayPreview(reverse.race,reverse.car,reverse.distances);
+  assertSixYellow(reverseDisplay);
+  assert.deepEqual(reverseDisplay[0].displayTransitionBands.map(b=>b.direction),['brake-to-accelerate','accelerate-to-brake']);
+});
+
+test('display bands preserve force forecasts and do not invent transitions on a pure straight or braking zone',()=>{
+  for(const [target,speed] of [[()=>70,20],[()=>5,45]]) {
+    const {race,car,distances}=displayFixture(target,0,speed),raw=Guidance.preview(race,car,distances),before=JSON.stringify(car);
+    const display=Guidance.displayPreview(race,car,distances);
+    assert.equal(JSON.stringify(car),before,'display policy leaves the real vehicle unchanged');
+    assert.equal(display[0].displayTransitionBands.length,0);
+    for(let i=0;i<raw.length;i++) {
+      assert.deepEqual(display[i].color,raw[i].color);
+      assert.equal(display[i].fill,raw[i].fill);
+      assert.equal(display[i].displayTransitionWeight,0);
+    }
+  }
+  const {race,car,distances}=displayFixture(s=>Math.sqrt(Math.max(100,1200-14*Math.max(0,s-55))));
+  const raw=Guidance.preview(race,car,distances),display=Guidance.displayPreview(race,car,distances);
+  assertSixYellow(display);
+  for(let i=0;i<raw.length;i++)for(const key of Object.keys(raw[i]))if(key!=='color'&&key!=='fill')
+    assert.deepEqual(display[i][key],raw[i][key],key+' remains a physical forecast');
+  assert.ok(display.some(p=>p.forecastAcceleration>=0&&p.displayTransitionWeight===1),'explicit display priority can show yellow before speed loss');
+});
+
+test('paused, restarted and later-lap displays are deterministic without hidden temporal state',()=>{
+  const target=s=>Math.sqrt(Math.max(100,1200-14*Math.max(0,wrap(s,1200)-55)));
+  const {race,car,distances}=displayFixture(target),initial=Guidance.displayPreview(race,car,distances);
+  assertSixYellow(initial);
+  assert.deepEqual(Guidance.displayPreview(race,car,distances),initial,'a paused render cannot flicker');
+  car.speed=2;
+  const slow=Guidance.displayPreview(race,car,distances);
+  assert.notDeepEqual(slow[0].displayTransitionBands,initial[0].displayTransitionBands,'a changed physical state is reflected immediately');
+  assert.ok(slow[0].forecastSpeed<initial[0].forecastSpeed);
+  car.speed=34.6;
+  assert.deepEqual(Guidance.displayPreview(race,car,distances),initial,'returning to the original state is exact');
+  car.distance=1200;
+  const later=Guidance.displayPreview(race,car,distances.map(s=>s+1200));
+  assertSixYellow(later);
+  for(let i=0;i<15;i++) {
+    close(later[i].forecastSpeed,initial[i].forecastSpeed);
+    assert.deepEqual(later[i].color,initial[i].color,'absolute arrow order is retained across a lap seam');
+  }
+  assert.deepEqual(Guidance.displayPreview(race,car,[]),[]);
+  assert.throws(()=>Guidance.displayPreview(race,car,[1207.5,1207.5]),RangeError);
+});
+
+test('real Inje transition bands keep all six yellow arrows through overlaps and reserve strong-brake red',()=>{
+  const T=require('./tuning-evolution.js'),entrant=T.createPopulation({vehicleId:'supra',count:8,budget:30,seed:31415})[0];
+  const race=new Race({circuit:circuits.find(c=>c.id==='inje'),entrants:[entrant],laps:1}),car=race.cars[0];
+  const step=car.trackLength/Math.ceil(car.trackLength/7.5);
+  let transitions=0,overlaps=0,reversals=0,previous=null,older=null;
+  while(car.distance<900) {
+    race.step(1/60);
+    const first=Math.ceil((car.distance+5)/step),distances=Array.from({length:15},(_,i)=>(first+i)*step);
+    const result=Guidance.displayPreview(race,car,distances),bands=result[0].displayTransitionBands;
+    if(bands.length) {
+      transitions++;assertSixYellow(result);
+      if(bands.length>1)overlaps++;
+      if(result.some(p=>p.brake>=.85))assert.ok(result.some(p=>p.brake>=.85&&p.displayTransitionWeight===0),'do not hide the entire full-brake zone');
+    }
+    const signature=result.map(p=>p.displayTransitionWeight).join(',');
+    if(previous?.first===first&&older?.first===first&&signature===older.signature&&signature!==previous.signature)reversals++;
+    older=previous;previous={first,signature};
+  }
+  assert.ok(transitions>100&&overlaps>10,'exercise actual entry, exit and overlapping corner windows');
+  assert.equal(reversals,0,'the same grid window has no one-frame band flash');
+});
+
 test('world triangles follow the exact watched trajectory and 3D elevation, including later laps', () => {
   const race = new Race({circuit:circuits.find(c=>c.id==='spa'),vehicleIds:['supra'],racingLine:true});
   const car = race.cars[0], renderer = Object.assign(Object.create(Renderer.prototype),{race});

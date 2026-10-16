@@ -49,6 +49,7 @@ function prepareRace(note,keepWatch=false,continuation=false){
  recorded=false;lastUI=-1;race=session.race;
  if(!keepWatch||!race.cars.some(c=>c.id===watch))watch=race.cars[0].id;
  inspectorKey='';imageId='';renderer.setRace(race,{preserveCamera:continuation});if(!continuation)renderer.setView(camera);camera=renderer.mode;
+ if(continuation)renderer.advanceCamera(0,{watch,snap:true});
  const c=currentCircuit();$('circuit-quick').value=c.id;$('circuit-title').textContent=c.name;
  $('eau-rouge').hidden=c.id!=='spa';['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));
  const env=window.TrackEnvironmentData?.[c.id];
@@ -210,7 +211,7 @@ function simulate(seconds){
   if(fast){fast=false;running=true;}
   for(const t of transitions)recordEvaluation(t.results,t.completedGeneration);
   generation=session.generation;stockRun=session.stockRun;population=session.population;
-  prepareRace(stockMode()?'출고 상태 '+stockRun+'회차 · 속도를 유지하며 다음 측정을 시작합니다.':generation+'세대 · 속도를 유지하며 다음 측정을 시작합니다. 선발 기록은 동일한 정지 출발 기준입니다.',true,true);
+  prepareRace(stockMode()?'출고 상태 '+stockRun+'회차 · 출발선에서 0 km/h로 다음 측정을 시작합니다.':generation+'세대 · 출발선에서 0 km/h로 다음 측정을 시작합니다.',true,true);
  }
  if(race.finished)finishGeneration();
 }
@@ -269,6 +270,7 @@ window.render_game_to_text=()=>JSON.stringify({
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. Performance-dependent per-car racing paths. Independent ghosts. Centre-aligned standing starts.',
  evaluation:{start:'standing',complete:session.evaluationRace.finished,automaticBlocked:session.automaticBlocked},
  guidance:window.RacingGuidance?.preview(race,watching(),[watching().distance])[0],
+ guidanceArrows:renderer.guidanceArrows||[],
  visualPath:DrivingPose.info(race,watching()),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,
  circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),stockComparison:stockMode(),stockRun,lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:!stockMode()&&$('auto-evolve').checked,autoRepeat:stockMode()&&$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
  cars:race.standings().map((c,i)=>{const p=race.sampleForCar(c,c.distance),v=DrivingPose.sampleCar(race,c),e=c.entrant;return{id:c.id,uid:e.uid,vehicleId:c.vehicleId,variantId:e.variantId,variantLabel:e.variantLabel,position:i+1,levels:e.levels,credits:e.credits,cost:e.cost,budget:e.budget,maxLevels:e.maxLevels,massKg:c.massKg,powerPs:c.powerPs,drive:c.spec.factoryDrive,frontWeightFraction:c.spec.frontWeightFraction,x:+p.x.toFixed(2),y:+p.y.toFixed(2),elevationM:p.elevation,grade:p.grade,distanceM:+c.distance.toFixed(2),trackLengthM:c.trackLength,lineModel:c.racingLine?.method,linePerformance:c.racingLine?.performance,visual:{x:v.x,y:v.y,angle:v.angle},standingStart:c.standingStartDistance!==null,speedKmh:+(c.speed*3.6).toFixed(1),bestLap:c.bestLap,finished:c.finished,finishTime:c.finishTime,dnf:c.dnf};})

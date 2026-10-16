@@ -588,13 +588,16 @@
       // Absolute distance preserves the flying path at later lap boundaries;
       // spacing stays uniform as the trailing arrow is replaced at the front.
       const first=Math.ceil((car.distance+5)/step),distances=Array.from({length:15},(_,i)=>(first+i)*step);
-      const preview=root.RacingGuidance.preview(this.race,car,distances);
+      const preview=root.RacingGuidance.displayPreview(this.race,car,distances);
+      this.guidanceArrows=preview.map((p,i)=>p?{distance:distances[i],fill:p.fill,forecastAcceleration:p.forecastAcceleration,
+        yellowWeight:p.displayYellowWeight,phase:p.displayPhase,transitionBands:p.displayTransitionBands}:null);
       for(let index=0;index<distances.length;index++){
         const distance=distances[index],guidance=preview[index];if(!guidance)continue;
         this._queue({vertices:this._racingGuidanceTriangle(car,distance),fill:guidance.fill,stroke:guidance.fill,width:.45,priority:2},camera,queue);
       }
     }
     render({watch=this.watch,mode=this.mode,showLine=false}={}){
+      this.guidanceArrows=[];
       if(!this.race)return;
       if(mode!==this.mode)this.setView(mode);this.watch=watch;
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return;
