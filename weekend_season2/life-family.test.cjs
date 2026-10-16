@@ -8,7 +8,7 @@ const Storage=require('./storage.js');
 function life(seed){const generated=D.generateLife(seed);return E.create(generated.config,generated.presetId);}
 function hash(text){let n=2166136261;for(let i=0;i<text.length;i++){n^=text.charCodeAt(i);n=Math.imul(n,16777619);}return(n>>>0).toString(16).padStart(8,'0');}
 function envelope(state,version=state.version){return JSON.stringify({format:Storage.FORMAT,version,state,checksum:hash(JSON.stringify(state))});}
-function legacy(state){const result=JSON.parse(JSON.stringify(state));result.version=1;for(const key of ['maritalStatus','personaName','lifeIntro','generationSeed'])delete result.config[key];return result;}
+function legacy(state){const result=JSON.parse(JSON.stringify(state));result.version=1;for(const key of ['maritalStatus','personaName','lifeIntro','generationSeed','province','residenceOrigin','appearance','homeStyle','generationModel','incomeOrigin'])delete result.config[key];return result;}
 function resolve(state){
   const event=state.pendingEvent;
   for(const c of event.choices)if(E.choose(state,c.id).ok)return;
@@ -188,7 +188,7 @@ test('auto choice policy and midyear save recover the same result for a generate
 test('v1 saves migrate without inventing a spouse, touching ledger, RNG or past memories',()=>{
   const s=life(1);E.prepareAutoWeek(s);E.advance(s);if(s.phase==='event')resolve(s);
   const old=legacy(s),snapshot=JSON.parse(JSON.stringify(old));const parsed=Storage.parse(envelope(old,1));assert.ok(parsed.ok,parsed.reason);assert.equal(parsed.migrated,true);
-  assert.equal(parsed.state.version,2);assert.equal(parsed.state.config.maritalStatus,'unspecified');assert.equal(parsed.state.config.personaName,'');
+  assert.equal(parsed.state.version,D.VERSION);assert.equal(parsed.state.config.maritalStatus,'unspecified');assert.equal(parsed.state.config.personaName,'');
   for(const key of ['finance','rng','log','artifacts','plan','rules'])assert.deepEqual(parsed.state[key],snapshot[key]);
   assert.ok(Storage.parse(Storage.serialize(parsed.state)).ok);assert.equal(Events.eligible(parsed.state,'partner_weekend'),false);assert.equal(Events.eligible(parsed.state,'single_weekend'),false);
 });

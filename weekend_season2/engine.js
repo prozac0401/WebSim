@@ -21,6 +21,18 @@
     if (c.children>0 && c.childAge==='none') errors.push('자녀가 있으면 연령대를 선택하세요.');
     if(typeof c.personaName!=='string'||c.personaName.length>40||typeof c.lifeIntro!=='string'||c.lifeIntro.length>600)errors.push('가상 인물 소개를 확인하세요.');
     if(c.generationSeed!==null&&(!Number.isInteger(c.generationSeed)||c.generationSeed<0||c.generationSeed>4294967295))errors.push('인생 배정 시드를 확인하세요.');
+    if(c.province!=='unspecified'&&!D.DEMOGRAPHICS.regions.some(r=>r.id===c.province))errors.push('거주 시·도를 확인하세요.');
+    if(![null,'population','custom'].includes(c.residenceOrigin))errors.push('거주지 배정 근거를 확인하세요.');
+    for(const [key,options] of [['appearance',D.APPEARANCE_OPTIONS],['homeStyle',D.HOME_OPTIONS]]){
+      const value=c[key];if(value===null)continue;
+      if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==Object.keys(options).length||Object.entries(options).some(([field,choices])=>!choices.includes(value[field])))errors.push('삽화 설정을 확인하세요.');
+    }
+    if(c.generationModel!==null&&c.generationModel!=='kr-life-2026-v1')errors.push('인생 배정 자료 버전을 확인하세요.');
+    if(c.incomeOrigin!==null){
+      const origin=c.incomeOrigin,band=D.INCOME.BANDS.find(b=>b.id===origin?.bandId);
+      if(!origin||typeof origin!=='object'||Array.isArray(origin)||!['wage','support-model','custom'].includes(origin.kind)||origin.sourceId!==D.INCOME.SOURCE.id||!band||!D.DEMOGRAPHICS.regions.some(r=>r.id===origin.provinceId)||![1,.3,.5,.65].includes(origin.supportShare)||!Number.isSafeInteger(origin.sampledMonthly)||!Number.isSafeInteger(origin.assignedMonthly)||origin.assignedMonthly!==Math.round(origin.sampledMonthly*origin.supportShare)||origin.sampledMonthly<0||origin.sampledMonthly>100000000||(origin.kind==='wage'&&origin.supportShare!==1)||(origin.kind==='support-model'&&origin.supportShare===1))errors.push('수입 배정 근거를 확인하세요.');
+      else if(band.max===null?origin.sampledMonthly!==D.INCOME.MODEL.topMonthlyAmount:origin.sampledMonthly<band.monthlyMin||origin.sampledMonthly>band.monthlyMax)errors.push('수입 구간과 배정액이 일치하지 않습니다.');
+    }
     return errors;
   }
   function create(config,presetId) {

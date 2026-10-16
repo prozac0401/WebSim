@@ -94,3 +94,82 @@ test('scene family: reduced motion stays deterministic while updates preserve se
   assert.equal(h.api.describe().reducedMotion,true);assert.equal(h.api.describe().seasonMonth,12);assert.equal(h.api.describe().artifacts,3);
   for(const activity of Data.ACTIVITIES){h.api.update(state,activity.id);assert.equal(h.api.describe().character.activity,activity.id);}
 });
+
+test('scene variety: every face, hairstyle, skin, outfit and hair color changes drawing commands', () => {
+  const h=drawingHarness(), base={gender:'woman',maritalStatus:'single',children:0,seed:7,generationSeed:7,appearance:{faceShape:'oval',hairStyle:'rounded-crop',hairColor:'espresso',skinTone:'warm',outfitPalette:'moss'}};
+  for(const key of ['faceShape','hairStyle','hairColor','skinTone','outfitPalette']){
+    const drawings=new Set();
+    for(const value of Scene.OPTIONS[key]){
+      const config={...base,appearance:{...base.appearance,[key]:value}};
+      h.clear();h.api.attach(h.canvas,{config,date:'2026-03-01',artifacts:[]},'read');
+      drawings.add(h.snapshot());
+      const shown=h.api.describe().character.appearance;
+      assert.equal(shown.options[key],value,`rendered ${key} must be inspectable`);
+      assert.ok(shown.hairColor.startsWith('#'));
+    }
+    assert.equal(drawings.size,Scene.OPTIONS[key].length,`${key} cannot be metadata-only`);
+  }
+  assert.ok(Scene.OPTIONS.faceShape.length>=5);
+  assert.ok(Scene.OPTIONS.hairStyle.length>=8);
+  assert.ok(Scene.OPTIONS.skinTone.length>=4);
+  assert.ok(Scene.OPTIONS.outfitPalette.length>=6);
+});
+
+test('scene variety: home palettes, structures, decorations and views are visibly distinct',()=>{
+  const h=drawingHarness(),base={region:'city',homeStyle:{palette:'oat',layout:'window-left',decor:'plants',windowView:'skyline'}};
+  for(const key of ['palette','layout','decor','windowView']){
+    const drawings=new Set();
+    for(const value of Scene.OPTIONS[key]){
+      h.clear();h.api.attach(h.canvas,{config:{...base,homeStyle:{...base.homeStyle,[key]:value}},date:'2026-06-20',artifacts:[]},'rest');
+      drawings.add(h.snapshot());const room=h.api.describe().home;
+      assert.equal(room[key],value);assert.equal(room.legacy,false);
+      assert.equal(room.mirrored,value==='window-right'||key!=='layout'&&base.homeStyle.layout==='window-right');
+    }
+    assert.equal(drawings.size,Scene.OPTIONS[key].length,`${key} must change the background`);
+  }
+  assert.ok(Scene.OPTIONS.palette.length>=6);assert.ok(Scene.OPTIONS.layout.length>=3);assert.ok(Scene.OPTIONS.decor.length>=4);
+});
+
+test('scene variety: old saves keep their default faces, outfits, palette and family proportions',()=>{
+  const old={gender:'woman',age:35,maritalStatus:'married',children:1,childAge:'teen',region:'city',generationSeed:7788};
+  const legacy=Scene.familyLayout(old,'rest'),home=Scene.homeStyle(old);
+  assert.deepEqual(legacy.player.appearance,{gender:'woman',hair:'long-soft',top:'#b57879',trim:'#e7ccae',hairColor:'#574a3b'});
+  assert.equal(legacy.player.x,165);assert.equal(legacy.children[0].scale,.53);
+  assert.equal(legacy.spouse.appearance.hair,'side-wave');assert.equal(home.legacy,true);
+  assert.equal(home.colors.wall,'#ece8d7');assert.equal(home.layout,'window-left');
+  assert.equal(legacy.player.appearance.options,undefined);
+});
+
+test('scene variety: seeded family portraits are stable across activities, separate members and never consume game randomness',()=>{
+  const config={seed:123,generationSeed:456,gender:'man',maritalStatus:'married',children:6,childAge:'school',appearance:{faceShape:'heart',hairStyle:'braids',hairColor:'chestnut',skinTone:'tan',outfitPalette:'teal'},homeStyle:{palette:'rose',layout:'window-right',decor:'music',windowView:'river'}};
+  const original=JSON.stringify(config),reference=Scene.familyLayout(config,'rest');
+  const first=members(reference).map(p=>p.appearance);
+  for(const activity of Data.ACTIVITIES)assert.deepEqual(members(Scene.familyLayout(config,activity.id)).map(p=>p.appearance),first);
+  assert.deepEqual(Scene.familyLayout(config,'rest'),reference);
+  assert.ok(new Set(first.map(a=>JSON.stringify(a.options))).size>=4,'family members should have separate visual identities');
+  assert.deepEqual(reference.player.appearance.options,config.appearance);
+  assert.notDeepEqual(Scene.familyLayout({...config,generationSeed:457},'rest').spouse.appearance,reference.spouse.appearance);
+  assert.equal(JSON.stringify(config),original);
+  const h=drawingHarness(true),state={config,date:'2026-08-01',artifacts:[],stats:{mood:60,fatigue:15},rng:{external:123,followup:789}};
+  const before=JSON.stringify(state);h.api.attach(h.canvas,state,'draw');h.clear();h.api.update(state,'draw');const image=h.snapshot();h.clear();h.api.advance(8000);
+  assert.equal(h.snapshot(),image);assert.equal(JSON.stringify(state),before);
+});
+
+test('scene variety: all new hairstyles and room structures keep family members and children clear of furniture',()=>{
+  for(const layout of Scene.OPTIONS.layout)for(const hairStyle of Scene.OPTIONS.hairStyle)for(const children of [0,1,3,6])for(const childAge of ['preschool','school','teen'])for(const activity of ['rest','draw','garden','care'])for(const maritalStatus of ['single','married']){
+    const config={seed:2026,generationSeed:2026,gender:'woman',maritalStatus,children,childAge,appearance:{faceShape:'long',hairStyle,hairColor:'espresso',skinTone:'deep',outfitPalette:'mustard'},homeStyle:{palette:'sage',layout,decor:'music',windowView:'hills'}},family=Scene.familyLayout(config,activity),figures=members(family),room=Scene.homeStyle(config);
+    for(const figure of figures){const b=figure.bounds;assert.ok(b.left>=0&&b.top>=0&&b.right<=760&&b.bottom<=550,`${layout}/${hairStyle}/${figure.id} clipped`);}
+    for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false,`${layout}/${hairStyle}/${children}/${childAge}/${activity}: figures overlap`);
+    for(const child of family.children)for(const object of room.furnitureBounds)assert.equal(overlaps(child.bounds,object),false,`${layout}/${hairStyle}/${childAge}: ${child.id} overlaps ${object.id}`);
+  }
+});
+
+test('scene variety: explicit portraits remain stable when gender changes, while clothing details still reflect the setting',()=>{
+  const h=drawingHarness(),appearance={faceShape:'square',hairStyle:'curly',hairColor:'silver',skinTone:'ivory',outfitPalette:'indigo'},drawings=new Set();
+  for(const gender of ['woman','man','other','unspecified']){
+    h.clear();h.api.attach(h.canvas,{config:{gender,appearance},date:'2026-01-01',artifacts:[]},'rest');
+    const person=h.api.describe().character;
+    assert.equal(person.gender,gender);assert.equal(JSON.stringify(person.appearance.options),JSON.stringify(appearance));drawings.add(h.snapshot());
+  }
+  assert.equal(drawings.size,4,'existing gender edit must still change actual pixels');
+});

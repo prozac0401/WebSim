@@ -67,13 +67,13 @@
   }
   function migrate(state,version){
     if(version===D.VERSION)return state;
-    if(version!==1||!object(state)||state.version!==1||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
+    if(![1,2].includes(version)||!object(state)||state.version!==version||!object(state.config))throw new Error('이전 저장 버전을 읽을 수 없습니다.');
     const migrated=JSON.parse(JSON.stringify(state));
     migrated.version=D.VERSION;
     // A v1 player did not choose a marital status. Do not invent a spouse or
     // rewrite any past event, financial transaction or random-generator state.
-    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,...migrated.config};
-    if(migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
+    migrated.config={maritalStatus:'unspecified',personaName:'',lifeIntro:'',generationSeed:null,province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,...migrated.config};
+    if(version===1&&migrated.pendingEvent&&migrated.pendingEvent.catalogId!=='constraint'){
       const event=migrated.pendingEvent,original=E.MAP[event.catalogId];
       if(!original||original.requires)throw new Error('이전 저장의 사건 종류가 올바르지 않습니다.');
       const oldChoices=JSON.parse(JSON.stringify(original.choices));
@@ -86,7 +86,7 @@
     return migrated;
   }
   function serialize(state){const errors=validate(state);if(errors.length)throw new Error(errors[0]);const payload=JSON.stringify(state);return JSON.stringify({format:FORMAT,version:D.VERSION,savedAt:new Date().toISOString(),checksum:checksum(payload),state},null,2);}
-  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('지원하는 시즌2 저장 파일이 아닙니다.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일의 검사값이 일치하지 않습니다. 파일이 손상되거나 변경되었습니다.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이전 저장을 호환 형식으로 읽었습니다. 과거 기록과 혼인 미설정 상태를 유지합니다.':''};}catch(e){return {ok:false,reason:e.message};}}
+  function parse(text){try{if(typeof text!=='string'||text.length>5000000)throw Error('저장 파일은 5MB 이하 JSON이어야 합니다.');const envelope=JSON.parse(text);if(!object(envelope)||envelope.format!==FORMAT||![1,2,D.VERSION].includes(envelope.version)||!object(envelope.state)||envelope.state.version!==envelope.version)throw Error('지원하는 시즌2 저장 파일이 아닙니다.');if(checksum(JSON.stringify(envelope.state))!==envelope.checksum)throw Error('저장 파일의 검사값이 일치하지 않습니다. 파일이 손상되거나 변경되었습니다.');const state=migrate(envelope.state,envelope.version),errors=validate(state);if(errors.length)throw Error(errors[0]);return {ok:true,state,migrated:envelope.version!==D.VERSION,reason:envelope.version!==D.VERSION?'이전 저장을 호환 형식으로 읽었습니다. 과거 기록·수입·삽화를 유지하며 새 통계를 소급 적용하지 않습니다.':''};}catch(e){return {ok:false,reason:e.message};}}
   function save(state,storage){try{(storage||localStorage).setItem(KEY,serialize(state));return {ok:true,reason:''};}catch(e){return {ok:false,reason:'브라우저 저장 실패: '+e.message};}}
   function load(storage){try{const value=(storage||localStorage).getItem(KEY);return value?parse(value):{ok:false,reason:'저장된 게임이 없습니다.'};}catch(e){return {ok:false,reason:'브라우저 저장을 읽지 못했습니다: '+e.message};}}
   function clear(storage){try{(storage||localStorage).removeItem(KEY);return {ok:true};}catch(e){return {ok:false,reason:e.message};}}

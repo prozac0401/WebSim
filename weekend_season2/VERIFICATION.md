@@ -1,5 +1,59 @@
 # 주말 계획표 시즌2 검증 기록
 
+## 2026-10-17 인구·소득 근거와 인물·집 다양화
+
+새 인생에 공개 집계 자료를 연결하고, 출처와 게임 가정을 구분했습니다. 상세 설명은 시작 화면의 **이 삶은 어떻게 뽑혔나요?**와 [자료 설명](weekend_season2_doc.html#life-sources)에 있습니다. 이전 저장은 새 통계를 소급 적용하지 않고 복원합니다.
+
+| 검사 | 결과 | 직접 확인한 범위 |
+| --- | --- | --- |
+| 시즌2 자동시험 | **PASS 111 / FAIL 0** | 기존 85개 + 인구·이름 6, 소득 8, 생성·저장 6, 그림 6 |
+| 기존 관련 회귀 | **PASS 67 / FAIL 0** | 기존 플래너 관련·잉크·Boids·차량 검사 |
+| 최종 통합 Node | **PASS 178 / FAIL 0** | 아래 명령으로 최종 로직 재검사 |
+| 실제 Chromium 통합 | **PASS 15개 검사 묶음 / FAIL 0** | 기존 수동·자동 365일, 저장, 모바일, 키보드, 동작 줄이기 + 새 인생 다양화 |
+| 최종 문구 수정 후 부분 브라우저 검사 | **PASS 2개 묶음 / FAIL 0** | 16회 새 인생, 지역 선택·직접 수입·v3 저장·오류 없음 |
+| 원본 develop-web-game 클라이언트 | **PASS** | 최종 화면 시작·장면 훅·스크린샷 직접 확인 |
+| 인구 비례 추출 | **PASS** | 100,000개 결정적 시드에서 17시도 및 수도권 비중 확인 |
+| 공식 소득 표 대조 | **PASS 285셀 일치** | 전국·기타·17시도 × 15구간의 원표 캡처와 모듈값을 독립 대조; 행·열 합계 확인 |
+| 독립 극값 완주 | **PASS 8개 시드** | 매우 낮은 소득·상단 구간에서 365일, 7월 저장 복원, 장부·연말 저장 검증 |
+| 실제 이전 공개 v2 저장 | **PASS** | JSON 가져오기·1월 11일 회고 복구; 이전 소스와 새 소스의 동일 저장 장면 Canvas 픽셀 일치 |
+| 독립 UI 검토 | **PASS** | 390×844 시작·자동 버튼 노출, 상세 입력 초점·스크롤 유지, 소수 금액, 오류 0 |
+| Firefox·Safari·실물 Android/iOS·스크린리더 | **NOT RUN** | Chromium 에뮬레이션과 구분 |
+| 사람의 재미·균형·저사양 성능 | **NOT RUN** | 자동 완주를 해당 평가로 해석하지 않음 |
+| 이번 수정의 공개 배포 후 검사 | **NOT RUN (커밋 시점)** | 배포 후 별도 산출물 및 최종 응답에 결과 기록 |
+
+```powershell
+node --test weekend_season2/*.test.cjs tests/new-labs.test.cjs tests/preset-scenes.test.cjs ink_time_machine/ink-flow-engine.test.cjs boids_simulation/boids-app.test.cjs evolving_vehicles_2/continuous-race.test.cjs evolving_vehicles_2/racing-guidance.test.cjs
+$env:WEBSIM_URL = 'http://127.0.0.1:8766/'
+$env:WEBSIM_EVIDENCE = 'output/playwright/weekend-season2-diversity'
+node tests/weekend-season2.browser.cjs
+```
+
+### 적용 자료와 가정
+
+- 주민등록인구: 행정안전부 2024-12-31 스냅샷, 17시도 합계 51,217,221명. 서울·인천·경기 합계 26,047,523명(약 50.86%). 모든 연령·거주불명자·재외국민 포함, 외국인 제외. 수도권은 별도 중복 추출 항목이 아닙니다.
+- 소득: 국세청/KOSIS `DT_133N_427`, 2024년 귀속 주소지별 연간 총급여 구간 인원. 전국 21,078,535명 중 주소지 기타 5,009명을 제외한 17시도 자료를 사용합니다. 과세미달·외국인·중도입퇴사 포함이며 합산하지 않은 이중근로는 중복 가능성이 있습니다. 현재 월 실수령액이나 모든 주민의 소득 자료가 아닙니다.
+- 닫힌 급여 구간의 12개월 환산 정수 범위 내 균등 추출, 연10억원초과의 게임 대표 월1억원은 명시한 가정입니다. 구직자·대학원생·돌봄 역할 지원비는 기준액의30%·50%·65%인 가상 모델입니다. 기본 화면에서 **월 환산 급여 / 월 생활비 / 직접 설정한 월 수입**을 구분합니다.
+- 이름 140개는 실제 공개 집계·보도에서 확인한 부분 목록의 합집합이며 균등 추출합니다. 2차 출처라는 한계를 명시하고 확인하지 못한 빈도를 만들지 않았습니다. 성씨 20개는 2015 한자별 상위 항목 안에서만 인구 비례로 추출합니다. 이름·성씨 조합은 실존 개인의 프로필을 뜻하지 않습니다.
+- 얼굴형 5, 머리 10, 머리색 5, 피부색 4, 의상 6과 집색 6, 배치 3, 장식 4, 창밖 4를 조합합니다. 창작 외모·가족·생활비 설정이며 전체 생성 인생이 한국인의 대표 표본이라는 주장은 하지 않습니다.
+
+### 독립 검토와 수정
+
+취업 사건 뒤 최초 지원비 근거를 현재 수입처럼 표시하던 문제를 수정했습니다. 원래 추첨 시도·금액을 보존하고 이후 수입 변경을 알려 줍니다. 잘못된 출처·구간·지원비 비율·구간 밖 금액·삽화 enum은 저장 검증에서 거절합니다. 지역만 해제한 사용자에게 수입을 직접 수정했다고 표시하던 문구도 고쳤습니다. 마지막 문구 변경 후 부분 브라우저와 원본 게임 클라이언트를 재실행했습니다.
+
+독립 검토자는 소득 극값 시드 `5828/6920/445/6973/9458/13702/1763/1859`의 완주와 취업 후 수입 변경을 재현했고, 다른 검토자는 실제 모바일 입력·스크롤·초점과 이전 저장 장면의 정확한 픽셀 일치를 확인했습니다. 최종 확인 범위의 진행 차단 문제는 남지 않았습니다.
+
+### 파일과 화면
+
+추가: `demographics.js`, `income-data.js` 및 각각의 시험, `life-distribution.test.cjs`. 수정: 시즌2 `data.js`, `engine.js`, `storage.js`, `scene.js`, `app.js`, `index.html`, 관련 시험·문서와 `tests/weekend-season2.browser.cjs`. 기존 플래너·잉크·Boids·차량 구현, 루트 `progress.md`, 원본 체크아웃은 수정하지 않았습니다. 계정·Secret·호스팅 설정은 그대로입니다.
+
+- [얼굴·머리 비교](../output/playwright/weekend-season2/visual-variety-faces.png), [집 구조·색상 비교](../output/playwright/weekend-season2/visual-variety-rooms.png)
+- [최종 모바일 시작](../output/playwright/weekend-season2-diversity/label-check/diverse-first-life-mobile.png), [새 가족의 플레이](../output/playwright/weekend-season2-diversity/diverse-family-mobile.png)
+- [전체 브라우저 결과](../output/playwright/weekend-season2-diversity/result.json), [공식 표 대조 기록](../output/playwright/income-research/source-verification.json)
+
+화면·원표 캡처·검사 저장은 Git에서 제외되는 로컬 자료입니다. 공개 배포 후 검사 산출물은 `output/playwright/weekend-season2-diversity-deployed/`에 보관합니다. 아래는 이전 업데이트의 역사적 검증 기록입니다.
+
+---
+
 ## 2026-10-17 간소화·자동진행·가족 업데이트
 
 이번 업데이트의 기본 흐름은 **자동 배정된 가상 인생 → 이 삶으로 시작 → 자동진행 → 중요한 사건에서 직접 선택 → 연말 회고**입니다. 환경 설정, 세부 일정, 장부, 전체 기록은 접힌 영역에 남겨 두었습니다. 모바일에서는 자동진행·일시정지가 하단에 고정됩니다.
