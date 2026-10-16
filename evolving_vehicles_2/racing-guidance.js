@@ -227,7 +227,84 @@
     return result;
   }
 
-  const api = Object.freeze({ sample, profile, sampleProfile, preview, COLORS, MODEL });
+  // Rendering policy, separate from the force forecast above. The user wants
+  // six clearly yellow arrows at a red/green transition, including when the
+  // transition touches the visible window edge. Positions remain road-fixed;
+  // only this display band shifts inward when six arrows would be clipped.
+  function displayPreview(race, car, distances) {
+    if (!Array.isArray(distances) || distances.length > 240) throw new RangeError('display preview requires at most 240 ordered distances.');
+    if (!distances.length) return [];
+    const step = distances.length > 1 ? distances[1] - distances[0] : 7.5;
+    if (!(step > 0) || distances.some((s, i) => !Number.isFinite(s) || i && Math.abs(s - distances[i - 1] - step) > 1e-6))
+      throw new RangeError('display preview requires uniformly spaced, increasing distances.');
+    const first = distances[0], last = distances.at(-1), origin = car.distance;
+    // Extra future points confirm the far-edge phase before it enters view.
+    // The current point is a safe rear guard; preview never samples behind it.
+    const guards = Array.from({ length: 4 }, (_, i) => last + (i + 1) * step).filter(s => s - origin <= 500);
+    const contextDistances = [origin, ...distances, ...guards];
+    const context = preview(race, car, contextDistances), visible = context.slice(1, distances.length + 1);
+    if (visible.some(p => !p)) return visible;
+    const runs = [];
+    context.forEach((p, i) => {
+      const phase = p.brake >= .55 ? -1 : p.brake <= .2 && (p.throttle >= .5 || p.forecastAcceleration >= 0) ? 1 : 0;
+      if (!phase) return; // A neutral/coasting interval joins its strong neighbours.
+      let run = runs.at(-1);
+      if (!run || run.phase !== phase) { run = { phase, first: contextDistances[i], last: contextDistances[i] }; runs.push(run); }
+      run.last = contextDistances[i];
+    });
+    // A short but clearly red or green run is still a visible transition.
+    // Dropping a one-arrow moderate brake would leave a red/green boundary
+    // without the six yellow arrows requested by the display policy.
+    const confirmed = runs;
+    const boundaries = [];
+    for (let i = 1; i < confirmed.length; i++) {
+      const before = confirmed[i - 1], after = confirmed[i];
+      if (before.phase === after.phase) continue;
+      const distance = (before.last + after.first) / 2;
+      // Both sides must actually be visible. A guard confirms an edge state,
+      // but must not paint an otherwise all-green straight yellow merely
+      // because a brake zone lies just outside this fifteen-arrow window.
+      if (before.last < first - 1e-8 || after.first > last + 1e-8) continue;
+      boundaries.push({ distance, direction: before.phase < 0 ? 'brake-to-accelerate' : 'accelerate-to-brake' });
+    }
+    const minimum = Math.min(6, distances.length), chooseStart = (boundary, protectedIndex = -1) => {
+      const center = (boundary.distance - first) / step;
+      let best = 0, error = Infinity;
+      for (let start = 0; start <= distances.length - minimum; start++) {
+        if (protectedIndex >= start && protectedIndex < start + minimum) continue;
+        const nextError = Math.abs(start + (minimum - 1) / 2 - center);
+        if (nextError < error - 1e-10) { best = start; error = nextError; }
+      }
+      return best;
+    };
+    let starts = boundaries.map(boundary => chooseStart(boundary)), protectedIndex = -1;
+    const brakeCore = visible.map((p, i) => p.brake >= .85 ? i : -1).filter(i => i >= 0);
+    // Never split a six-arrow band into two shorter pieces to save red. Move
+    // whole bands around one strong-braking core instead. With fifteen arrows,
+    // at least one side of any protected point has room for all six arrows.
+    if (distances.length >= 13 && brakeCore.length && starts.length &&
+      brakeCore.every(i => starts.some(start => i >= start - 1 && i <= start + minimum))) {
+      protectedIndex = brakeCore[Math.floor((brakeCore.length - 1) / 2)];
+      starts = boundaries.map(boundary => chooseStart(boundary, protectedIndex));
+    }
+    const bands = Object.freeze(boundaries.map((boundary, i) => Object.freeze({ boundaryM: boundary.distance,
+      direction: boundary.direction, firstIndex: starts[i], lastIndex: starts[i] + minimum - 1,
+      fromM: distances[starts[i]], toM: distances[starts[i] + minimum - 1], minimumArrows: minimum })));
+    return visible.map((base, i) => {
+      let weight = 0;
+      if (i !== protectedIndex) for (const start of starts) {
+        const gap = Math.max(start - i, i - (start + minimum - 1), 0);
+        weight = Math.max(weight, 1 - smooth(0, 2, gap));
+      }
+      const color = base.color.map((v, channel) => v + (COLORS.coast[channel] - v) * weight);
+      return { ...base, color, fill: fillFor(color), displayBasis: 'six-arrow-transition-band',
+        displayPhase: weight >= .5 ? 'transition' : base.phase,
+        displayYellowWeight: base.yellowWeight + (1 - base.yellowWeight) * weight,
+        displayTransitionWeight: weight, displayTransitionBands: bands };
+    });
+  }
+
+  const api = Object.freeze({ sample, profile, sampleProfile, preview, displayPreview, COLORS, MODEL });
   root.RacingGuidance = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

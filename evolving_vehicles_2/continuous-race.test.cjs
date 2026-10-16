@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const ContinuousRace = require('./continuous-race.js');
 const TrackRace = require('./race-engine.js');
 const Evolution = require('./tuning-evolution.js');
+const Pose = require('./driving-pose.js');
 const DT = TrackRace.FIXED_DT;
 const circle = {
   id: 'continuous-test-circle', name: 'Continuous timing test circle', lengthM: 160 * Math.PI,
@@ -37,25 +38,30 @@ function snapshot(controller) {
     cars: controller.race.cars.map(c => ({ distance: c.distance, speed: c.speed, lap: c.lap, finished: c.finished, telemetry: c.telemetry })) };
 }
 
-test('watched timing-line crossing keeps position, exact crossing speed and the unused physics fraction', () => {
-  const controller = make(), transition = untilTransition(controller);
+test('watched finish immediately starts the next generation at rest on the centerline and retains unused time', () => {
+  const controller = make(), watchId = controller.completeEvaluation()[0].id, transition = untilTransition(controller, watchId);
   const previous = transition.previousRace.cars[transition.watchedId], current = controller.race.cars[transition.watchedId];
   assert.equal(transition.completedGeneration, 1); assert.equal(transition.generation, 2);
-  assert.equal(transition.carrySpeed, previous.finishSpeed);
+  assert.equal(transition.initialSpeed, 0);
   assert.ok(previous.finishSpeed > 10);
-  assert.equal(current.speed, previous.finishSpeed, 'there is no standstill at the generation boundary');
+  assert.ok(transition.previousRace.cars.some(car => !car.finished), 'watched finish does not wait for the other display cars');
+  assert.equal(current.speed, 0, 'the next generation starts from rest instead of inheriting finish speed');
   assert.equal(current.distance, 0); assert.equal(current.finished, false);
   assert.equal(controller.race._ticks, 0);
   assert.ok(Math.abs(controller.race._accumulator - previous.finishRemainderSeconds) < 1e-10);
-  const before = transition.previousRace.sampleForCar(previous, previous.distance), after = controller.race.sampleForCar(current, current.distance);
-  assert.ok(Math.hypot(before.x - after.x, before.y - after.y) < 1e-8, 'finish and start are the same track position');
-  assert.ok(controller.race.cars.every(car => car.speed === previous.finishSpeed && car.standingStartDistance === null));
+  const start = controller.race.track.points[0], next = controller.race.track.points[1], heading = Math.atan2(next.y-start.y,next.x-start.x);
+  for (const car of controller.race.cars) {
+    assert.equal(car.speed, 0); assert.equal(car.standingStartDistance, 0);
+    const pose = Pose.sampleCar(controller.race, car, 0);
+    assert.ok(Math.hypot(pose.x-start.x,pose.y-start.y) < 1e-8, 'every entrant is centered on the starting road');
+    assert.ok(Math.abs(Math.atan2(Math.sin(pose.angle-heading),Math.cos(pose.angle-heading))) < 1e-8, 'every entrant faces the road-forward launch direction');
+  }
   assert.ok(controller.evaluationRace.cars.every(car => car.speed === 0 && car.standingStartDistance === 0));
   controller.step(DT, { watchId: transition.watchedId, auto: true });
-  assert.ok(current.distance > 0); assert.ok(current.speed > 10);
+  assert.ok(current.distance > 0); assert.ok(current.speed > 0 && current.speed < 1, 'the first new tick accelerates from rest');
 });
 
-test('three rolling generations use the same canonical standing-start fitness and deterministic breeding', () => {
+test('three standing-start generations keep canonical fitness and deterministic breeding', () => {
   const controller = make();
   for (let generation = 1; generation <= 3; generation++) {
     const expected = finish(new TrackRace({ circuit: circle, entrants: controller.population, laps: 1, surface: 'dry' }));
@@ -66,11 +72,15 @@ test('three rolling generations use the same canonical standing-start fitness an
     });
     assert.deepEqual(controller.population, expectedPopulation);
     assert.equal(transition.completedGeneration, generation);
-    if (generation > 1) {
-      const watched = transition.previousRace.cars[transition.watchedId];
-      const canonical = transition.results.find(car => car.id === watched.id);
-      assert.notEqual(watched.finishTime, canonical.finishTime, 'rolling display times must never replace comparable fitness');
-    }
+    const watched = transition.previousRace.cars[transition.watchedId];
+    const canonical = transition.results.find(car => car.id === watched.id);
+    assert.equal(watched.finishTime, canonical.finishTime, 'display and fitness use the same standing-start conditions');
+    assert.equal(transition.initialSpeed, 0);
+    // A previously retained fraction can leave enough input time for one
+    // fresh physics tick after the restart. That tiny launch acceleration
+    // must be preserved rather than holding the new generation at zero.
+    assert.ok(controller.race._ticks <= 1);
+    assert.ok(controller.race.cars.every(car => car.speed >= 0 && car.speed < 1 && car.standingStartDistance === 0));
   }
 });
 
@@ -83,10 +93,10 @@ test('watching a nonwinning slot preserves that slot without changing the select
   assert.equal(controller.race.cars[watchId].id, watchId);
   assert.deepEqual(controller.population[0].lineage.parents, [winner.uid]);
   assert.deepEqual(controller.population[0].levels, winner.levels);
-  assert.equal(transition.carrySpeed, transition.previousRace.cars[watchId].finishSpeed);
+  assert.equal(transition.initialSpeed, 0); assert.equal(controller.race.cars[watchId].speed, 0);
 });
 
-test('stock repeats preserve entrant objects and UIDs while the watch crosses continuously', () => {
+test('stock repeats preserve entrant objects and UIDs and restart every entrant from rest', () => {
   const entrants = Evolution.createPopulation({ vehicleId: 'g80', budget: 0, seed: 17 });
   const controller = make({ entrants });
   for (let run = 1; run <= 3; run++) {
@@ -96,7 +106,21 @@ test('stock repeats preserve entrant objects and UIDs while the watch crosses co
     assert.deepEqual(controller.race.cars.map(car => car.entrant.uid), entrants.map(entry => entry.uid));
     assert.equal(controller.generation, 1); assert.equal(controller.stockRun, run + 1);
     assert.equal(transition.completedStockRun, run); assert.equal(transition.watchedId, 2);
+    assert.ok(controller.race.cars.every(car => car.speed === 0 && car.distance === 0 && car.standingStartDistance === 0));
   }
+});
+
+test('a multi-lap measurement keeps intermediate laps moving and restarts only at its final finish', () => {
+  const controller = make({ laps: 3 }), original = controller.race, watched = original.cars[0];
+  for (let i = 0; i < 120 / DT && watched.lap === 0; i++) {
+    assert.deepEqual(controller.step(DT, { watchId: 0, auto: true }), []);
+  }
+  assert.equal(watched.lap, 1); assert.equal(watched.finished, false); assert.ok(watched.speed > 10);
+  assert.equal(controller.race, original); assert.equal(controller.generation, 1);
+  const transition = untilTransition(controller, 0);
+  assert.equal(transition.previousRace, original); assert.equal(watched.lap, 3);
+  assert.equal(controller.race.laps, 3); assert.equal(controller.race.cars[0].speed, 0);
+  assert.equal(controller.race.cars[0].standingStartDistance, 0); assert.equal(controller.generation, 2);
 });
 
 test('zero time pauses both races and auto off retains the completed generation', () => {
@@ -130,11 +154,11 @@ test('a retired watched car never triggers an automatic restart, including an al
   }
 });
 
-test('a rolling display finish cannot breed indefinitely when every canonical entrant retires', () => {
+test('an explicitly supplied rolling display cannot breed when every canonical entrant retires', () => {
   const entrants = population().map(entry => ({ ...entry, spec: { ...entry.spec, powerPs: .0001, torqueNm: .0001 } }));
   const controller = make({ entrants });
-  // Model a later generation carrying momentum that a standing start cannot
-  // produce. The independent evaluation must still reject it as all-DNF.
+  // TrackRace still supports an explicit rolling start for other callers.
+  // The independent evaluation must reject momentum unavailable from rest.
   controller.race = new TrackRace({ circuit: circle, entrants, laps: 1, surface: 'dry', initialSpeed: 200 });
   assert.deepEqual(controller.step(90, { watchId: 0, auto: true }), []);
   assert.ok(controller.race.cars[0].finished);

@@ -1,6 +1,6 @@
-/* Continuous viewing across generations, with independent, comparable GA
- * evaluations. Display cars may take a rolling start; fitness always comes
- * from a separate race that starts every entrant from rest. */
+/* Automatic viewing across generations, with independent, comparable GA
+ * evaluations. Every new generation or stock measurement starts every entrant
+ * from rest, using the same standing-start conditions as its fitness race. */
 (function (root) {
   'use strict';
   const TrackRace = root.TrackRace || (typeof require === 'function' ? require('./race-engine.js') : null);
@@ -68,13 +68,12 @@
         });
         this.generation++;
       }
-      const carrySpeed = Number.isFinite(watched.finishSpeed) ? watched.finishSpeed : watched.speed;
-      this.race = this._newRace(carrySpeed);
+      this.race = this._newRace(0);
       this.evaluationRace = this._newRace(0);
       this.evaluationResults = null;
       return { previousRace, previousPopulation, race: this.race, population: this.population,
         generation: this.generation, stockRun: this.stockRun, completedGeneration, completedStockRun,
-        results, watchedId: watched.id, carrySpeed };
+        results, watchedId: watched.id, initialSpeed: 0 };
     }
 
     step(seconds, { watchId, auto = false } = {}) {
@@ -92,7 +91,7 @@
           const remainder = Math.max(0, Math.min(DT, watched.finishRemainderSeconds || 0));
           const transition = this._transition(watched);
           // The old tick only moved the watched car as far as the finish line.
-          // Its unused fraction belongs to the next lap, not to lost time.
+          // Its unused fraction belongs to the next measurement, not to lost time.
           if (transition) { transitions.push(transition); remaining += remainder; }
         }
         if (this.race.finished) break;
