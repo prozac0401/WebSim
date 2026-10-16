@@ -81,6 +81,38 @@ async function reversible(page) {
   await page.click('#mix'); await advance(page, 1800); await page.click('#pause');
   await screenshot(page, 'after-ink-reversible-desktop');
 }
+async function stirPreservesDistantInk(page, touchInput = false) {
+  await page.click('#live-tool-stir');
+  await page.locator('#canvas').scrollIntoViewIfNeeded();
+  const before = (await state(page)).live;
+  assert.equal(before.running, false);
+  const crop = () => page.evaluate(() => {
+    const pixels = document.querySelector('#canvas').getContext('2d').getImageData(85, 105, 270, 390).data;
+    let hash = 2166136261;
+    for (const value of pixels) hash = Math.imul(hash ^ value, 16777619);
+    return hash >>> 0;
+  });
+  const beforePixels = await crop();
+  // Stir at the opposite edge, beyond the brush's support, without advancing time.
+  // High-frequency events formerly erased the whole canvas's existing trails.
+  if (touchInput) {
+    await touch(page, 'touchStart', .87, .22);
+    for (let i = 0; i < 60; i++) await touch(page, 'touchMove', .87 + (i % 2) * .015, .22);
+    await touch(page, 'touchEnd');
+  } else {
+    const r = await page.locator('#canvas').boundingBox();
+    await page.mouse.move(r.x + r.width * .87, r.y + r.height * .22); await page.mouse.down();
+    for (let i = 0; i < 120; i++) await page.mouse.move(r.x + r.width * (.87 + (i % 2) * .015), r.y + r.height * .22);
+    await page.mouse.up();
+  }
+  const after = (await state(page)).live;
+  assert.ok(after.stirs > before.stirs, 'the gesture must reach the stir tool');
+  assert.equal(after.time, before.time);
+  assert.equal(after.injections, before.injections);
+  assert.equal(after.particleCount, before.particleCount);
+  assert.equal(await crop(), beforePixels, 'stirring must preserve distant dye pixels exactly');
+  record(`ink: ${touchInput ? 'touch' : 'mouse'} stirring preserves existing distant ink without fading or darkening`);
+}
 async function liveInk(page) {
   const preserved = await state(page);
   await page.click('#experiment-live');
@@ -102,6 +134,7 @@ async function liveInk(page) {
   await advance(page, 1200);
   assert.deepEqual((await state(page)).live, paused);
   assert.equal(pixelHash(await page.locator('#canvas').screenshot()), pixelHash(pixels), 'paused ink visual stays frozen');
+  await stirPreservesDistantInk(page);
   await screenshot(page, 'after-ink-live-desktop');
   await page.click('#live-tool-stir');
   const beforeStir = (await state(page)).live;
@@ -170,6 +203,7 @@ async function mobileInk(page) {
   assert.equal((await state(page)).live.inputActive, false, 'resize releases an active stroke');
   await touch(page, 'touchEnd');
   await page.click('#live-pause'); s = (await state(page)).live;
+  await stirPreservesDistantInk(page, true);
   await page.setViewportSize({ width: 844, height: 390 });
   assert.deepEqual((await state(page)).live.sample, s.sample);
   await page.setViewportSize({ width: 360, height: 800 });

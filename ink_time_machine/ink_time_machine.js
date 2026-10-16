@@ -20,6 +20,8 @@
   let lowQuality=matchMedia('(max-width: 700px), (pointer: coarse)').matches;
   const liveLayer=document.createElement('canvas'); liveLayer.width=800; liveLayer.height=600;
   const liveCtx=liveLayer.getContext('2d');
+  // Presentation cache only. Replaced dye particles are collectible at the cap.
+  const liveMarks=new WeakMap();
   const livePalettes={classic:['#da526a','#179d91','#397bce','#9b5ec2'],lagoon:['#147fa7','#219d95','#80a846','#686bc3'],sunset:['#df604d','#dca32f','#bd4c8f','#7355be']};
   const isPlaying=()=>experiment==='live'?liveRunning:running;
   const liveEffects=()=>window.WebSimAmbient?.enabled!==false&&!reducedMotion.matches;
@@ -33,23 +35,30 @@
     activePointer = null; pointer = null;
     liveEmitter=0;
   }
-  function paintLive(clear=false, dt=DT) {
-    if(clear || !liveEffects()) liveCtx.clearRect(0,0,800,600);
-    else {
+  function paintLive(clear=false, dt=0) {
+    const effects=liveEffects(), redrawAll=clear||!effects||dt>0;
+    if(clear || !effects) liveCtx.clearRect(0,0,800,600);
+    else if(dt>0) {
+      // Only elapsed simulation time ages a trail, never pointer event count.
       liveCtx.globalCompositeOperation='destination-out'; liveCtx.fillStyle=`rgba(0,0,0,${1-Math.exp(-dt*2.1)})`;
       liveCtx.fillRect(0,0,800,600); liveCtx.globalCompositeOperation='source-over';
     }
+    // A paused gesture must neither erase nor repeatedly darken distant ink.
+    const stamps=redrawAll?live.particles:live.particles.filter(p=>{
+      const mark=liveMarks.get(p);return !mark||mark.x!==p.x||mark.y!==p.y;
+    });
     const inks=livePalettes[$('palette').value];
     liveCtx.lineCap='round'; liveCtx.lineJoin='round';
     for(let c=0;c<4;c++) {
       liveCtx.beginPath();
-      for(const p of live.particles) if(p.c===c) {
+      for(const p of stamps) if(p.c===c) {
         liveCtx.moveTo(CX+p.px*R,CY+p.py*R); liveCtx.lineTo(CX+p.x*R+.08,CY+p.y*R);
       }
       liveCtx.strokeStyle=inks[c];
-      if(liveEffects()&&!lowQuality) {liveCtx.globalAlpha=.10;liveCtx.lineWidth=7;liveCtx.stroke();}
-      liveCtx.globalAlpha=liveEffects()?.43:.72; liveCtx.lineWidth=lowQuality?2.7:2.2;liveCtx.stroke();
+      if(effects&&!lowQuality) {liveCtx.globalAlpha=.10;liveCtx.lineWidth=7;liveCtx.stroke();}
+      liveCtx.globalAlpha=effects?.43:.72; liveCtx.lineWidth=lowQuality?2.7:2.2;liveCtx.stroke();
     }
+    for(const p of stamps){let mark=liveMarks.get(p);if(!mark){mark={};liveMarks.set(p,mark);}mark.x=p.x;mark.y=p.y;}
     liveCtx.globalAlpha=1;
   }
   function resetLive(blank=false) {
