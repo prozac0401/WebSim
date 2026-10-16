@@ -17,7 +17,7 @@
 - [인기곡의 평행우주](music_worlds/music_worlds.html) — 같은 곡으로 여러 음악 시장을 시작하고, 인기 정보와 추천 노출이 서로 다른 성공을 만드는지 비교합니다. · [사용법](music_worlds/music_worlds_doc.html)
 - [줄 선 쪽이 정답일까?](information_cascade/information_cascade.html) — 나만의 힌트와 앞사람의 선택으로 답을 고른 뒤, 숨은 정보를 공개하고 순서를 바꿔 다시 실험합니다. · [사용법](information_cascade/information_cascade_doc.html)
 - [개미의 길 찾기](aco_simulator/aco_simulator.html) — ACO로 지금까지 찾은 가장 짧은 경로 관찰 · [사용법](aco_simulator/aco_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/37)
-- [새 떼의 움직임](boids_simulation/boids_simulation.html) — 피하기·방향 맞추기·모이기 규칙 비교 · [사용법](boids_simulation/boids_simulation_doc.html) · [관련 글](https://prozac0401.tistory.com/34)
+- [새 떼의 움직임](boids_simulation/boids_simulation.html) — 새 모양과 빛 입자로 같은 무리를 관찰하고, 마우스·손가락으로 흐름을 가릅니다. · [사용법](boids_simulation/boids_simulation_doc.html) · [관련 글](https://prozac0401.tistory.com/34)
 - [이웃 선호와 주거 분리](schelling_segregation_simulator/schelling_segregation_simulator.html) — 같은 집단 이웃의 최소 비율과 배치 변화 · [사용법](schelling_segregation_simulator/schelling_segregation_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/91)
 - [무리가 방향을 맞추는 두 방식](vicsek_boids_simulator/vicsek_boids_simulator.html) — Vicsek / Boids와 전체 정렬도 비교 · [사용법](vicsek_boids_simulator/vicsek_boids_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/92)
 
@@ -35,7 +35,7 @@
 
 - [그림자 조각 공방](shadow_sculpture/shadow_sculpture.html) — 두 방향의 그림자를 맞추고, 같은 그림자를 남기는 더 작은 조각을 만듭니다. · [사용법](shadow_sculpture/shadow_sculpture_doc.html)
 - [늘리면 넓어지는 구조물](auxetic_workshop/auxetic_workshop.html) — 회전 판의 비율·시작값 예제 5종, 접힘 격자 2종, 키리가미 절개로 연결과 가로·세로 변화를 비교합니다. · [사용법](auxetic_workshop/auxetic_workshop_doc.html)
-- [잉크 타임머신](ink_time_machine/ink_time_machine.html) — 섞은 잉크를 반대로 돌려 되살리고, 확산이 남기는 차이를 비교합니다. · [사용법](ink_time_machine/ink_time_machine_doc.html)
+- [잉크 타임머신](ink_time_machine/ink_time_machine.html) — 섞고 되돌리는 실험과, 움직이는 잉크에 색을 더하고 휘젓는 자유 실험을 오갑니다. · [사용법](ink_time_machine/ink_time_machine_doc.html)
 - [소리 미로](sound_maze/sound_maze.html) — 음원과 벽을 옮기고 위상을 바꿔, 조용한 자리를 찾습니다. · [사용법](sound_maze/sound_maze_doc.html)
 - [클릭으로 만드는 우주](cosmic-simulator-single-div/cosmic-simulator-single-div.html) — 천체 생성·이동·합쳐짐 관찰 · [사용법](cosmic-simulator-single-div/cosmic-simulator-single-div_doc.html) · [관련 글](https://prozac0401.tistory.com/56)
 - [중력과 위성의 궤도](gravity_simulator/gravity_simulator.html) — 위성 발사와 중력 변화 비교 · [사용법](gravity_simulator/gravity_simulator_doc.html) · [관련 글](https://prozac0401.tistory.com/43)
@@ -54,6 +54,10 @@
 저장소 루트에서 정적 HTTP 서버를 실행하고 안내된 주소로 접속하세요. 예를 들어 Python이 설치되어 있다면 `python -m http.server 8000`을 실행한 뒤 `http://localhost:8000/`을 엽니다. 메인 목록과 사용법은 빌드 없이 제공되며, JavaScript를 끄더라도 전체 목록과 사용법을 읽을 수 있습니다. QR 생성기는 QRCode.js를 CDN에서 불러오므로 인터넷 연결이 필요합니다.
 
 DLA의 공개 실행본은 `dla_simulator/standalone.html`입니다. `dla_simulator/index.html`은 Vite 개발 진입점입니다. 소스를 수정할 때는 해당 폴더에서 `npm ci`, `npm test`, `npm run build`를 실행하고 `dist/index.html`을 `standalone.html`에 반영하세요. 자세한 개발 정보는 [DLA README](dla_simulator/README.md)를 참고하세요.
+
+잉크의 **자유 잉크 · 흘리고 휘젓기**에서는 실행 중에도 색을 더하고 마우스·손가락으로 흐름을 바꿉니다. `ink_time_machine/ink_time_machine.html?experiment=live`로 바로 열 수 있습니다. 기존 되돌리기 실험은 별도 상태로 보관됩니다. 자유 잉크는 정해진 흐름과 붓의 힘을 더한 시각적 근사이며 실제 유체 해석이 아닙니다. 새 떼의 **빛 입자**는 같은 군집 계산을 어두운 화면과 부드러운 빛 꼬리로 보여 줍니다. 화면을 쓸면 무리가 피하고, 짧게 탭하면 개체를 관찰합니다.
+
+두 확장의 계산·입력 회귀 검사는 `node --test ink_time_machine/ink-flow-engine.test.cjs boids_simulation/boids-app.test.cjs`로 실행합니다. Playwright가 설치되어 있다면 정적 서버를 켜고 `node tests/interactive-simulators.browser.cjs`로 실제 Chromium의 마우스·터치·복원·일시정지·화면 크기 변경을 검사할 수 있습니다. 기본 주소는 `http://127.0.0.1:8000/`이며 `WEBSIM_URL`로 바꿉니다. 화면과 결과 JSON은 `output/playwright/ink-boids/final/`에 저장됩니다.
 
 실험 화면은 조작, 관찰 지표, 규칙 설명을 가까이 배치한 반응형 실험실입니다. 실행·멈춤·단일 단계로 변화를 비교하고, 설명서에서 원 논문·저자 자료와 이 구현의 가정을 확인하세요. 시간·거리·양분 등의 단위, 경계 조건, 수치 근사, 지표의 정의를 함께 밝혔습니다. 주말 플래너의 점수는 설정한 가정 안에서 계획을 비교하는 지수입니다.
 

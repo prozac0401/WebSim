@@ -5,6 +5,67 @@ const E = require('./ink-flow-engine.js');
 const modeNames = ['cylinder', 'square', 'vortices', 'plates'];
 const samples = [[.48, .11], [.55, -.22], [-.61, .16], [0, .72], [-.35, -.46], [.66, .37]];
 const particle = ([x, y]) => ({ x, y, x0: x, y0: y, c: 2 });
+
+test('free ink has a hard particle budget and accepts fresh dye after saturation', () => {
+  const state=E.live.create({limit:180});
+  for(let i=0;i<20;i++)E.live.inject(state,.2,-.1,0,160,.04);
+  assert.equal(state.particles.length,180);
+  E.live.inject(state,-.6,.5,3,160,.02);
+  assert.equal(state.particles.length,180);
+  assert.equal(state.particles.filter(p=>p.c===3).length,160);
+  assert.ok(state.particles.filter(p=>p.c===3).every(p=>Math.hypot(p.x+.6,p.y-.5)<.021));
+  assert.equal(E.live.create({limit:100000}).limit,3600);
+  assert.equal(E.live.inject(state,Infinity,0,1),0);
+  assert.equal(E.live.inject(state,2,0,1),0);
+});
+
+test('free ink remains finite and inside its reflecting tank during prolonged forceful strokes', () => {
+  const state=E.live.create({limit:350});
+  for(let i=0;i<8;i++)E.live.inject(state,Math.cos(i)*1.28,Math.sin(i)*.83,i,70,.15);
+  for(let i=0;i<1800;i++) {
+    if(i%6===0)E.live.stir(state,1.28*Math.sin(i*.03),.83*Math.cos(i*.05),90,-80);
+    E.live.step(state,1/60);
+    for(const p of state.particles) {
+      assert.ok([p.x,p.y,p.vx,p.vy,p.age].every(Number.isFinite));
+      assert.ok(E.contains('vortices',p.x,p.y));
+    }
+  }
+  assert.equal(state.particles.length,350);
+  assert.ok(Math.abs(state.time-30)<1e-8);
+});
+
+test('free ink seeded spreading is reproducible and zero or invalid elapsed time does not advance it', () => {
+  const first=E.live.create({limit:100,seed:47}),second=E.live.create({limit:100,seed:47});
+  for(const state of [first,second]) {
+    E.live.inject(state,.4,.2,2,90);
+    for(let i=0;i<120;i++)E.live.step(state,1/60);
+  }
+  assert.deepEqual(first,second);
+  const before=structuredClone(first);
+  for(const elapsed of [0,-1,NaN,Infinity])E.live.step(first,elapsed);
+  assert.deepEqual(first,before);
+  assert.ok(first.particles.some(p=>Math.hypot(p.x-.4,p.y-.2)>.2));
+});
+
+test('a brush stroke immediately shifts nearby ink, leaves distant ink untouched and injects no extra dye', () => {
+  const state=E.live.create({limit:100});
+  E.live.inject(state,0,0,0,30,.02);E.live.inject(state,1.1,.7,1,30,.02);
+  const before=structuredClone(state);
+  E.live.stir(state,0,0,.06,-.04);
+  assert.equal(state.particles.length,60);
+  assert.equal(state.time,0);
+  assert.ok(state.particles.slice(0,30).every((p,i)=>p.x>before.particles[i].x&&p.y<before.particles[i].y));
+  assert.deepEqual(state.particles.slice(30),before.particles.slice(30));
+});
+
+test('free ink state is independent of original reversible particles and the four existing flow definitions', () => {
+  const original=samples.map(particle),before=structuredClone(original);
+  const live=E.live.create({limit:64});E.live.inject(live,.2,.1,1,80);
+  for(let i=0;i<60;i++){E.live.stir(live,.2,.1,.04,.02);E.live.step(live,1/60);}
+  assert.deepEqual(original,before);
+  assert.deepEqual(Object.keys(E.modes),modeNames);
+  for(const mode of modeNames)for(const p of original.map(p=>({...p}))){E.advect(mode,p,0,2.75);E.advect(mode,p,2.75,0);assert.ok(E.displacementSquared(mode,p)<1e-18);}
+});
 function near(actual, expected, tolerance = 1e-10) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} differs from ${expected} by more than ${tolerance}`);
 }

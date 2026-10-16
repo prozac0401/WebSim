@@ -45,6 +45,11 @@
       .sim-stat-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .sim-stat-grid.four dd { font-size: 19px; }
       .sim-stat dd small { display: inline; }
+      .flock-views { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 20px 12px; }
+      .flock-views button[aria-pressed="true"] { background: var(--sim-accent); color: white; border-color: var(--sim-accent); }
+      .flock-views span { color: var(--sim-muted); font-size: 12px; }
+      .flock-hint { margin: 10px 20px; color: var(--sim-muted); font-size: 12px; }
+      #canvas { display: block; cursor: crosshair; }
       @media (max-width: 820px) {
         .sim-card-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .sim-card-stack > .full-width { grid-column: 1 / -1; }
@@ -55,6 +60,7 @@
         .sim-stage-panel > canvas { width: calc(100% - 28px); margin-inline: 14px; }
         .square-stage { width: calc(100% - 28px); }
         .sim-result { margin-inline: 14px; }
+        .flock-views, .flock-hint { margin-inline: 14px; }
         .sim-stat-grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .sim-stat dd small { display: block; margin-top: 4px; }
       }
@@ -89,15 +95,21 @@
             ><button id="boids-reset">새 무리로 초기화</button
             ><label class="sim-playback" for="playback-speed">재생 속도<select id="playback-speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label><span class="compact-stat" id="fps">— FPS</span>
           </div>
+          <div class="flock-views" role="group" aria-label="무리의 모습">
+            <button id="view-birds" aria-pressed="true">새 모양</button>
+            <button id="view-lights" aria-pressed="false">빛 입자</button>
+            <span id="view-note">같은 무리, 다른 모습</span>
+          </div>
           <canvas
             id="canvas"
             width="800"
             height="500"
             tabindex="0"
-            aria-label="세 가지 이웃 규칙에 따라 움직이는 Boids. 포인터를 가까이 대면 주변 개체가 피합니다."
+            aria-label="세 가지 이웃 규칙에 따라 움직이는 Boids. 마우스를 움직이거나 손가락으로 쓸면 주변 개체가 피하고, 짧게 탭하면 개체를 관찰합니다."
           ></canvas>
+          <p class="flock-hint">마우스를 움직이거나 손가락으로 쓸어 무리를 갈라 보세요. 짧게 탭하면 한 개체를 관찰합니다.</p>
           <div class="legend sim-legend">
-            <span><i></i>삼각형 끝 = 이동 방향</span
+            <span id="shape-legend"><i></i>삼각형 끝 = 이동 방향</span
             ><span><i style="background: #c6a16c"></i>포인터의 반발 범위</span
             ><span>화면의 맞은편 경계는 이어집니다</span>
           </div>
@@ -238,7 +250,7 @@
               ><input id="mouseRepel" type="checkbox" checked />포인터에서
               멀어지기</label
             ><label class="check-control"
-              ><input id="heading-colors" type="checkbox" />방향을 색으로 보기</label><div class="button-row"><button id="inspect-next">다음 개체 관찰</button><button id="inspect-clear">관찰 해제</button></div><p class="sim-note" id="inspect-note"></p><label class="check-control"><input id="trails" type="checkbox" />지나온 흔적 보이기</label
+              ><input id="heading-colors" type="checkbox" />방향을 색으로 보기</label><div class="button-row"><button id="inspect-next">다음 개체 관찰</button><button id="inspect-clear">관찰 해제</button></div><p class="sim-note" id="inspect-note"></p><label class="check-control"><input id="trails" type="checkbox" />새 모양의 흔적 보이기</label
             >
             <p class="sim-note">
               초당 60개의 모형 단계를 기준으로 진행합니다. 각 단계는 모든 개체의
@@ -268,6 +280,16 @@
           W = 800,
           H = 500,
           forceLimit = 0.06;
+        const compactScreen = window.matchMedia("(max-width: 600px), (pointer: coarse)"),
+          reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)"),
+          trailHistory = new Map(),
+          lightColors = Array.from({ length: 12 }, (_, i) => `hsl(${i * 30} 72% 73%)`),
+          glowSprites = new Map();
+        let visualMode = "birds",
+          activePointer = null,
+          manualClock = false,
+          slowFrames = 0,
+          lowEffects = false;
         let selectedId = null;
         let boids = [],
           nextId = 0,
@@ -331,9 +353,14 @@
           };
         }
         function setCount() {
-          const n = +$("boidCount").value;
+          const n = clamp(Math.round(+$("boidCount").value), 10, +$("boidCount").max);
+          $("boidCount").value = n;
           while (boids.length < n) boids.push(randomBoid());
           boids.length = n;
+          const liveIds = new Set(boids.map((b) => b.id));
+          for (const id of trailHistory.keys()) if (!liveIds.has(id)) trailHistory.delete(id);
+          if (!liveIds.has(selectedId)) selectedId = null;
+          values();
           stats();
         }
         function limit(x, y, max) {
@@ -428,6 +455,7 @@
             };
           });
           stepCount++;
+          rememberTrails();
         }
         function stats() {
           const n = boids.length;
@@ -462,31 +490,122 @@
         }
         function reset() {
           pause();
+          clearPointer();
+          selectedId = null;
+          trailHistory.clear();
           boids = [];
           nextId = 0;
           setCount();
           stepCount = 0;
-          ctx.clearRect(0, 0, W, H);
           draw();
           buttons();
         }
         function inspectData(){const a=boids.find(b=>b.id===selectedId);if(!a)return null;const p=params(),counts={separation:0,alignment:0,cohesion:0};for(const b of boids){if(b===a)continue;const d=offset(a,b),r=Math.hypot(d.x,d.y);for(const key of Object.keys(counts))if(r<p[key+'Radius'])counts[key]++;}return{...a,neighbors:counts};}
-        function draw() {
-          if ($("trails").checked && running && window.WebSimAmbient?.enabled!==false) {
-            ctx.fillStyle = "rgba(247,249,244,.16)";
-            ctx.fillRect(0, 0, W, H);
-          } else {
-            ctx.fillStyle="#f7f9f4";ctx.fillRect(0, 0, W, H);
+        function effectsEnabled() {
+          return !reducedMotion.matches && window.WebSimAmbient?.enabled !== false;
+        }
+        function trailLimit() { return compactScreen.matches || lowEffects ? 10 : 20; }
+        function rememberTrails() {
+          if (!effectsEnabled() || (visualMode !== "lights" && !$("trails").checked)) return;
+          if (stepCount % 2) return;
+          const limit = trailLimit();
+          for (const b of boids) {
+            let points = trailHistory.get(b.id);
+            if (!points) trailHistory.set(b.id, points = []);
+            const last = points[points.length - 1];
+            // A periodic wrap is a discontinuity in the drawing, never a long streak.
+            if (last && (Math.abs(last.x - b.x) > W / 2 || Math.abs(last.y - b.y) > H / 2)) points.length = 0;
+            points.push({ x: b.x, y: b.y });
+            if (points.length > limit) points.splice(0, points.length - limit);
           }
+        }
+        function boidColor(b, lights) {
+          if (!$("heading-colors").checked) return lights ? "#94edeb" : "#1f6b50";
+          const angle = (Math.atan2(b.vy, b.vx) * 180 / Math.PI + 360) % 360;
+          return lights ? lightColors[Math.floor(angle / 30)] : `hsl(${angle} 34% 42%)`;
+        }
+        function glowSprite(color) {
+          if (glowSprites.has(color)) return glowSprites.get(color);
+          const sprite = document.createElement("canvas");
+          sprite.width = sprite.height = 40;
+          const paint = sprite.getContext("2d"), gradient = paint.createRadialGradient(20, 20, 0, 20, 20, 20);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(0.2, color);
+          gradient.addColorStop(1, "transparent");
+          paint.fillStyle = gradient;
+          paint.fillRect(0, 0, 40, 40);
+          glowSprites.set(color, sprite);
+          return sprite;
+        }
+        function drawTrails(lights) {
+          if (!effectsEnabled() || (!lights && !$("trails").checked)) return;
+          // Batch paths by color and age. Costs stay bounded by the population and
+          // at most 20 points per individual; no full-canvas blur or feedback layer.
+          const groups = new Map();
+          for (const b of boids) {
+            const color = boidColor(b, lights);
+            if (!groups.has(color)) groups.set(color, []);
+            groups.get(color).push(b);
+          }
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          for (const [color, group] of groups) {
+            for (let band = 0; band < 3; band++) {
+              ctx.beginPath();
+              for (const b of group) {
+                const points = trailHistory.get(b.id);
+                if (!points || points.length < 2) continue;
+                const start = Math.floor((points.length - 1) * band / 3),
+                  end = Math.floor((points.length - 1) * (band + 1) / 3);
+                ctx.moveTo(points[start].x, points[start].y);
+                for (let i = start + 1; i <= end; i++) ctx.lineTo(points[i].x, points[i].y);
+                if (band === 2 && Math.abs(points[end].x - b.x) < W / 2 && Math.abs(points[end].y - b.y) < H / 2) ctx.lineTo(b.x, b.y);
+              }
+              ctx.strokeStyle = color;
+              ctx.globalAlpha = lights ? 0.1 + band * 0.13 : 0.07 + band * 0.08;
+              ctx.lineWidth = lights ? 2.3 : 1.4;
+              ctx.stroke();
+              if (lights && !lowEffects && !compactScreen.matches) {
+                ctx.globalAlpha *= 0.22;
+                ctx.lineWidth = 6;
+                ctx.stroke();
+              }
+            }
+          }
+          ctx.globalAlpha = 1;
+          ctx.lineWidth = 1;
+        }
+        function draw() {
+          const lights = visualMode === "lights";
+          ctx.fillStyle = lights ? "#071621" : "#f7f9f4";
+          ctx.fillRect(0, 0, W, H);
+          drawTrails(lights);
           if (mouse && $("mouseRepel").checked) {
             ctx.beginPath();
             ctx.arc(mouse.x, mouse.y, 90, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(188,139,74,.4)";
+            ctx.strokeStyle = lights ? "rgba(186,216,229,.42)" : "rgba(188,139,74,.4)";
             ctx.setLineDash([4, 6]);
             ctx.stroke();
             ctx.setLineDash([]);
           }
           boids.forEach((b) => {
+            if (lights) {
+              const color = boidColor(b, true);
+              if (effectsEnabled() && !lowEffects) {
+                ctx.globalAlpha = 0.3;
+                ctx.drawImage(glowSprite(color), b.x - 11, b.y - 11, 22, 22);
+                ctx.globalAlpha = 1;
+              }
+              ctx.beginPath();
+              ctx.arc(b.x, b.y, 2.3, 0, Math.PI * 2);
+              ctx.fillStyle = color;
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(b.x, b.y, 1, 0, Math.PI * 2);
+              ctx.fillStyle = "#efffff";
+              ctx.fill();
+              return;
+            }
             ctx.save();
             ctx.translate(b.x, b.y);
             ctx.rotate(Math.atan2(b.vy, b.vx));
@@ -496,29 +615,91 @@
             ctx.lineTo(-3, 0);
             ctx.lineTo(-5, 3.5);
             ctx.closePath();
-            ctx.fillStyle = $("heading-colors").checked ? `hsl(${(Math.atan2(b.vy,b.vx)*180/Math.PI+360)%360} 34% 42%)` : "#1f6b50";
+            ctx.fillStyle = boidColor(b, false);
             ctx.fill();
             ctx.restore();
           });
         }
         function drawInspection(){const a=inspectData();if(!a){$('inspect-note').textContent='새를 탭하면 같은 개체를 계속 관찰합니다. 색상 지도는 진행 방향을 나타냅니다.';return;}const p=params();for(const [key,color] of [['separation','#bd7259'],['alignment','#5b819b'],['cohesion','#6e9366']]){ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([3,5]);for(const dx of [-W,0,W])for(const dy of [-H,0,H]){ctx.beginPath();ctx.arc(a.x+dx,a.y+dy,p[key+'Radius'],0,Math.PI*2);ctx.stroke();}}ctx.setLineDash([]);ctx.beginPath();ctx.arc(a.x,a.y,10,0,Math.PI*2);ctx.strokeStyle='#b78137';ctx.lineWidth=2;ctx.stroke();$('inspect-note').textContent=(a.id+1)+'번 · 분리 이웃 '+a.neighbors.separation+' / 정렬 '+a.neighbors.alignment+' / 응집 '+a.neighbors.cohesion+'마리 · 원은 각각의 작용 거리입니다.';}
         const baseDraw=draw;draw=()=>{baseDraw();drawInspection();};
-        canvas.style.touchAction='pan-y';canvas.tabIndex=0;
-        canvas.addEventListener('click',e=>{const p=pointer(e,canvas);selectedId=boids.reduce((best,b)=>Math.hypot(b.x-p.x,b.y-p.y)<Math.hypot(best.x-p.x,best.y-p.y)?b:best,boids[0]).id;draw();});
+        canvas.style.touchAction = "none";
+        function chooseAt(p) {
+          if (!boids.length) return;
+          selectedId = boids.reduce((best, b) => Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y) ? b : best, boids[0]).id;
+        }
+        function clearPointer() {
+          const id = activePointer?.id;
+          activePointer = null;
+          mouse = null;
+          if (id !== undefined && canvas.hasPointerCapture?.(id)) canvas.releasePointerCapture(id);
+        }
+        function pointerPosition(e) {
+          const p = pointer(e, canvas);
+          return p.x >= 0 && p.x <= W && p.y >= 0 && p.y <= H ? p : null;
+        }
+        canvas.addEventListener("pointerdown", (e) => {
+          if (e.isPrimary === false || e.button !== 0 || activePointer) return;
+          activePointer = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, started: performance.now() };
+          mouse = pointerPosition(e);
+          canvas.setPointerCapture(e.pointerId);
+          if (e.pointerType !== "mouse") e.preventDefault();
+          draw();
+        });
+        canvas.addEventListener("pointermove", (e) => {
+          if (activePointer && e.pointerId !== activePointer.id) return;
+          if (activePointer && Math.hypot(e.clientX - activePointer.x, e.clientY - activePointer.y) > 8) activePointer.moved = true;
+          if (e.pointerType === "mouse" || activePointer) mouse = pointerPosition(e);
+          if (!running || manualClock) draw();
+        });
+        canvas.addEventListener("pointerup", (e) => {
+          if (!activePointer || e.pointerId !== activePointer.id) return;
+          const p = pointerPosition(e), gesture = activePointer;
+          if (p && !gesture.moved && Math.hypot(e.clientX - gesture.x, e.clientY - gesture.y) <= 8 && performance.now() - gesture.started < 500) chooseAt(p);
+          clearPointer();
+          if (e.pointerType === "mouse") mouse = p;
+          draw();
+        });
+        canvas.addEventListener("pointerleave", () => { mouse = null; draw(); });
+        canvas.addEventListener("pointercancel", (e) => { if (e.pointerId === activePointer?.id) { clearPointer(); draw(); } });
+        canvas.addEventListener("lostpointercapture", (e) => { if (e.pointerId === activePointer?.id) { clearPointer(); draw(); } });
+        window.addEventListener("blur", () => { clearPointer(); draw(); });
+        window.addEventListener("resize", () => { clearPointer(); draw(); });
+        document.addEventListener("visibilitychange", () => { if (document.hidden) clearPointer(); lastTime = 0; });
+        function selectView(mode) {
+          visualMode = mode;
+          trailHistory.clear();
+          $("view-birds").setAttribute("aria-pressed", String(mode === "birds"));
+          $("view-lights").setAttribute("aria-pressed", String(mode === "lights"));
+          $("shape-legend").textContent = mode === "lights" ? "빛 점 = 현재 위치 · 꼬리 = 지나온 길" : "삼각형 끝 = 이동 방향";
+          $("view-note").textContent = mode === "lights" ? "빛 꼬리를 따라 흐름을 보세요" : "같은 무리, 다른 모습";
+          draw();
+        }
+        $("view-birds").onclick = () => selectView("birds");
+        $("view-lights").onclick = () => selectView("lights");
+        function effectsChanged() { trailHistory.clear(); draw(); }
+        window.addEventListener("websim:ambient-change", effectsChanged);
+        reducedMotion.addEventListener("change", effectsChanged);
         $('inspect-next').onclick=()=>{const i=boids.findIndex(b=>b.id===selectedId);selectedId=boids[(i+1)%boids.length].id;draw();};
         $('inspect-clear').onclick=()=>{selectedId=null;draw();};
         $('heading-colors').onchange=draw;
+        function advanceSimulation(ms) {
+          if (!running) return;
+          accumulator += ms * Number($("playback-speed").value);
+          while (accumulator + 1e-8 >= 1000 / 60) {
+            tick();
+            accumulator = Math.max(0, accumulator - 1000 / 60);
+          }
+        }
         function frame(t) {
           const dt = lastTime ? Math.min(t - lastTime, 250) : 0;
           lastTime = t;
-          if (running) {
-            accumulator += dt * Number($("playback-speed").value);
-            while (accumulator >= 1000 / 60) {
-              tick();
-              accumulator -= 1000 / 60;
-            }
+          if (!manualClock) {
+            advanceSimulation(dt);
+            if (running && dt > 28) slowFrames++;
+            else slowFrames = Math.max(0, slowFrames - 1);
+            if (slowFrames > 45) lowEffects = true;
+            draw();
           }
-          draw();
           fpsFrames++;
           if (!fpsStart) fpsStart = t;
           if (t - fpsStart >= 500) {
@@ -541,7 +722,9 @@
         );
         $("boids-start").onclick = () => {
           running = true;
+          manualClock = false;
           accumulator = 0;
+          lastTime = 0;
           buttons();
         };
         $("playback-speed").onchange = () => { accumulator=0; lastTime=0; };
@@ -553,16 +736,11 @@
           draw();
         };
         $("boids-reset").onclick = reset;
-        $("trails").onchange = () => ctx.clearRect(0, 0, W, H);
+        $("trails").onchange = () => { trailHistory.clear(); draw(); };
         $("mouseRepel").onchange = () => {
-          if (!$("mouseRepel").checked) mouse = null;
+          if (!$("mouseRepel").checked) clearPointer();
+          draw();
         };
-        canvas.addEventListener(
-          "pointermove",
-          (e) => (mouse = pointer(e, canvas)),
-        );
-        canvas.addEventListener("pointerleave", () => (mouse = null));
-        canvas.addEventListener("pointercancel", () => (mouse = null));
         document.querySelectorAll("[data-boids-preset]").forEach(
           (b) =>
             (b.onclick = () => {
@@ -586,6 +764,13 @@
               stepCount,
               params: params(),
               mouse,
+              visualMode,
+              pointerActive: activePointer !== null,
+              effectsEnabled: effectsEnabled(),
+              effectQuality: lowEffects ? "low" : compactScreen.matches ? "compact" : "full",
+              clockMode: manualClock ? "manual" : "animation",
+              trailPointLimit: trailLimit(),
+              trailPoints: Array.from(trailHistory.values()).reduce((n, points) => n + points.length, 0),
             };
           },
           forces,
@@ -594,6 +779,9 @@
           reset,
           setBoids(points) {
             pause();
+            clearPointer();
+            trailHistory.clear();
+            selectedId = null;
             boids = points.map((p) => ({ ...p, id: p.id ?? nextId++ }));
             nextId = Math.max(nextId, ...boids.map((b) => b.id + 1));
             $("boidCount").value = boids.length;
@@ -601,8 +789,16 @@
             draw();
           },
         };
-        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'800×500; top-left origin; periodic boundaries',...app._model.state,inspection:inspectData(),headingColors:$('heading-colors').checked,playbackRate:Number($("playback-speed").value)});
-        window.advanceTime=ms=>{pause();for(let i=0;i<Math.round(ms*60/1000);i++)tick();stats();draw();};
+        window.render_game_to_text=()=>JSON.stringify({coordinateSystem:'800×500; top-left origin; +x right, +y down; periodic boundaries',...app._model.state,inspection:inspectData(),headingColors:$('heading-colors').checked,playbackRate:Number($("playback-speed").value)});
+        window.advanceTime = (ms) => {
+          manualClock = true;
+          if (Number.isFinite(ms) && ms > 0) advanceSimulation(Math.min(ms, 10000));
+          stats();
+          draw();
+        };
+        // Bound the initial touch-device control range without changing an
+        // existing flock when the viewport is rotated or resized.
+        if (compactScreen.matches) $("boidCount").max = "180";
         values();
         setCount();
         buttons();

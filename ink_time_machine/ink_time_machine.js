@@ -15,6 +15,14 @@
   let particles = [], turns = 0, time = 0, target = null, running = false, color = 0, rng = 73, initialRng = 73;
   let colors = palettes.classic, drawing = false, strokes = [], manual = false, last = null, accumulator = 0, pointer = null, activePointer = null;
   const drawings = new Map();
+  let experiment='reversible', live=null, liveRunning=false, liveTool='ink', liveEmitter=0;
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  let lowQuality=matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+  const liveLayer=document.createElement('canvas'); liveLayer.width=800; liveLayer.height=600;
+  const liveCtx=liveLayer.getContext('2d');
+  const livePalettes={classic:['#da526a','#179d91','#397bce','#9b5ec2'],lagoon:['#147fa7','#219d95','#80a846','#686bc3'],sunset:['#df604d','#dca32f','#bd4c8f','#7355be']};
+  const isPlaying=()=>experiment==='live'?liveRunning:running;
+  const liveEffects=()=>window.WebSimAmbient?.enabled!==false&&!reducedMotion.matches;
   const random = () => { rng = (Math.imul(rng,1664525)+1013904223)>>>0; return (rng+.5)/4294967296; };
   const normal = () => Math.sqrt(-2*Math.log(random()))*Math.cos(2*Math.PI*random());
   const unit = () => views[mode].unit;
@@ -23,6 +31,95 @@
   function stopPointer() {
     if(activePointer !== null && canvas.hasPointerCapture(activePointer)) canvas.releasePointerCapture(activePointer);
     activePointer = null; pointer = null;
+    liveEmitter=0;
+  }
+  function paintLive(clear=false, dt=DT) {
+    if(clear || !liveEffects()) liveCtx.clearRect(0,0,800,600);
+    else {
+      liveCtx.globalCompositeOperation='destination-out'; liveCtx.fillStyle=`rgba(0,0,0,${1-Math.exp(-dt*2.1)})`;
+      liveCtx.fillRect(0,0,800,600); liveCtx.globalCompositeOperation='source-over';
+    }
+    const inks=livePalettes[$('palette').value];
+    liveCtx.lineCap='round'; liveCtx.lineJoin='round';
+    for(let c=0;c<4;c++) {
+      liveCtx.beginPath();
+      for(const p of live.particles) if(p.c===c) {
+        liveCtx.moveTo(CX+p.px*R,CY+p.py*R); liveCtx.lineTo(CX+p.x*R+.08,CY+p.y*R);
+      }
+      liveCtx.strokeStyle=inks[c];
+      if(liveEffects()&&!lowQuality) {liveCtx.globalAlpha=.10;liveCtx.lineWidth=7;liveCtx.stroke();}
+      liveCtx.globalAlpha=liveEffects()?.43:.72; liveCtx.lineWidth=lowQuality?2.7:2.2;liveCtx.stroke();
+    }
+    liveCtx.globalAlpha=1;
+  }
+  function resetLive(blank=false) {
+    stopPointer(); live=flow.live.create({limit:lowQuality?2000:3600});
+    if(!blank) {
+      // Start with curved, layered dye ribbons so the first flow is already visible.
+      for(let c=0;c<4;c++) for(let i=0;i<25;i++) {
+        const u=i/24, x=-1.04+2.08*u, y=(c-1.5)*.21+.15*Math.sin(u*Math.PI*2+c*.78);
+        flow.live.inject(live,x,y,c,lowQuality?12:20,.012+.012*Math.sin(u*Math.PI));
+      }
+    }
+    liveRunning=!reducedMotion.matches; accumulator=0; last=null; paintLive(true);
+    message(blank?'빈 물결입니다. 색을 고르고 화면에 그려 보세요.':'색 띠가 서로 다른 속도로 감깁니다. 실행 중에도 색을 넣고 휘저어 보세요.');
+    render();
+  }
+  function setExperiment(next) {
+    if(next===experiment)return;
+    stopPointer(); experiment=next; accumulator=0;last=null;
+    document.querySelectorAll('[data-reversible]').forEach(el=>{el.hidden=next==='live';});
+    document.querySelectorAll('[data-live]').forEach(el=>{el.hidden=next!=='live';});
+    $('experiment-reversible').setAttribute('aria-pressed',String(next==='reversible'));
+    $('experiment-live').setAttribute('aria-pressed',String(next==='live'));
+    $('experiment-kicker').textContent=next==='live'?'FREE FLOWING INK':'REVERSIBLE MIXING';
+    $('experiment-title').textContent=next==='live'?'손끝에서 번지는 색의 물결':'다시 만나는 처음의 그림';
+    $('ink-app').classList.toggle('ink-live-mode',next==='live');
+    if(next==='live') {
+      canvas.setAttribute('aria-label','자유 잉크 수조. 잉크 넣기로 그리거나 휘젓기로 끌어 흐름을 바꿉니다. Space로 일시정지합니다.');
+      if(!live)resetLive();
+      message('색을 골라 그리고, 휘젓기로 물결을 감아 보세요. 되돌리기 실험의 그림과 진행 상태는 보관됩니다.');
+    } else {syncMode();message('보관한 되돌리기 실험으로 돌아왔습니다. 그림과 진행량은 그대로입니다.');}
+    syncSwatches();render();
+  }
+  function drawLive() {
+    ctx.fillStyle='#f4f4ed';ctx.fillRect(0,0,800,600);
+    const gradient=ctx.createLinearGradient(80,80,710,530);gradient.addColorStop(0,'#fffdf7');gradient.addColorStop(1,'#e5eeeb');
+    ctx.fillStyle=gradient;ctx.fillRect(CX-R*1.3,CY-R*.85,R*2.6,R*1.7);
+    ctx.save();ctx.beginPath();ctx.rect(CX-R*1.3,CY-R*.85,R*2.6,R*1.7);ctx.clip();ctx.drawImage(liveLayer,0,0);
+    // Current dye tips stay legible even when decorative traces are disabled.
+    const inks=livePalettes[$('palette').value];ctx.globalAlpha=.42;
+    for(let c=0;c<4;c++){ctx.fillStyle=inks[c];ctx.beginPath();for(const p of live.particles)if(p.c===c){const x=CX+p.x*R,y=CY+p.y*R;ctx.moveTo(x+1.2,y);ctx.arc(x,y,1.2,0,Math.PI*2);}ctx.fill();}
+    ctx.globalAlpha=1;
+    if(pointer&&activePointer!==null){ctx.beginPath();ctx.arc(CX+pointer.x*R,CY+pointer.y*R,liveTool==='ink'?Number($('brush').value)+8:35,0,Math.PI*2);ctx.strokeStyle='#385c6e90';ctx.lineWidth=1.5;ctx.stroke();}
+    ctx.restore();ctx.strokeStyle='#b7cbc6';ctx.lineWidth=1.5;ctx.strokeRect(CX-R*1.3,CY-R*.85,R*2.6,R*1.7);
+    ctx.fillStyle='#365b49';ctx.font='600 21px sans-serif';ctx.textAlign='center';ctx.fillText('자유 잉크',CX,47);
+    ctx.fillStyle='#62706a';ctx.font='17px sans-serif';ctx.fillText(liveRunning?'색을 흘리고 · 손끝으로 휘저어 보세요':'멈춘 물결 · 색을 더하거나 손으로 움직일 수 있어요',CX,558);
+    if(!live.particles.length){ctx.font='20px sans-serif';ctx.fillText('여기에 첫 방울을 놓아 보세요',CX,CY);}
+    $('mode-chip').textContent=liveRunning?'자유롭게 흐르는 중':'물결 일시정지';
+    $('live-pause').textContent=liveRunning?'일시정지':'계속 진행';
+    $('live-status').textContent=`잉크 ${live.particles.length.toLocaleString()} / ${live.limit.toLocaleString()} · ${live.time.toFixed(1)} t${lowQuality?' · 가벼운 효과':''}`;
+    $('draw-hint').textContent='잉크 넣기: 눌러 그리기 · 휘젓기: 끌기 · Space 멈춤';
+    canvas.style.cursor=liveTool==='ink'?'crosshair':'grab';canvas.style.touchAction='none';
+  }
+  function liveInput(e,first=false) {
+    const p=position(e);
+    if(!flow.contains('vortices',p.x,p.y,.008)){pointer=null;return;}
+    const previous=pointer||p,dx=p.x-previous.x,dy=p.y-previous.y;
+    flow.live.stir(live,p.x,p.y,dx,dy);
+    if(liveTool==='ink') {
+      const steps=Math.max(1,Math.min(24,Math.ceil(Math.hypot(dx,dy)/.025)));
+      for(let i=1;i<=steps;i++) flow.live.inject(live,previous.x+dx*i/steps,previous.y+dy*i/steps,color,first?65:10,Number($('brush').value)/R);
+    }
+    pointer=p;paintLive(false);render();
+  }
+  function syncSwatches() {
+    const inks=experiment==='live'?livePalettes[$('palette').value]:colors;
+    document.querySelectorAll('[data-color]').forEach(b=>{
+      b.querySelector('.swatch').style.setProperty('--swatch',inks[Number(b.dataset.color)]);
+      b.setAttribute('aria-pressed',String(Number(b.dataset.color)===color));
+      b.setAttribute('aria-label',`팔레트 ${Number(b.dataset.color)+1}번 색 잉크`);
+    });
   }
   function resetClock() { stopPointer(); turns=0; time=0; target=null; running=false; accumulator=0; last=null; }
   function add(x,y,c) { if(flow.contains(mode,x,y,.012) && particles.length<LIMIT) particles.push({x,y,x0:x,y0:y,c}); }
@@ -84,6 +181,14 @@
     turns+=delta; time+=dt;
   }
   function update(dt) {
+    if(experiment==='live') {
+      if(!liveRunning)return;
+      if(activePointer!==null&&pointer&&liveTool==='ink') {
+        liveEmitter+=dt;
+        if(liveEmitter>=.08){flow.live.inject(live,pointer.x,pointer.y,color,22,Number($('brush').value)/R);liveEmitter=0;}
+      }
+      flow.live.step(live,dt);paintLive(false,dt);return;
+    }
     if(!running || target===null) return;
     const speed=Number($('speed').value),remaining=target-turns;
     const delta=Math.sign(remaining)*Math.min(Math.abs(remaining),speed*dt);
@@ -99,6 +204,7 @@
     message(value===0?'흐름의 순서와 방향을 거꾸로 따라가는 중입니다.':views[mode].description); render();
   }
   function pause() {
+    if(experiment==='live') {liveRunning=!liveRunning;last=null;accumulator=0;message(liveRunning?'물결이 다시 흐릅니다.':'물결을 멈췄습니다. 색을 더하거나 직접 휘저을 수 있습니다.');render();return;}
     if(target===null) return;
     running=!running; last=null; accumulator=0;
     message(running?'이어서 움직입니다.':'잠시 멈췄습니다. 확산이나 속도를 바꿔도 됩니다.'); render();
@@ -188,6 +294,7 @@
     if(!particles.length) { ctx.font='20px sans-serif'; ctx.fillText('그리기를 켜고 나만의 잉크를 놓아 보세요',CX,mode==='cylinder'?125:CY-65); }
   }
   function render() {
+    if(experiment==='live'){drawLive();return;}
     drawField(); drawInk(); drawGuides();
     $('turns-stat').textContent=turns.toFixed(2)+` ${unit()}`; $('error-stat').textContent=error().toFixed(2)+'%'; $('time-stat').textContent=time.toFixed(1)+' t';
     const editable=time===0 && target===null;
@@ -207,10 +314,18 @@
   $('speed').oninput=e=>{ $('speed-value').textContent=Number(e.target.value).toFixed(2)+` ${unit()}/t`; accumulator=0; last=null; };
   $('draw-mode').onclick=()=>{stopPointer(); drawing=!drawing; render();};
   $('undo-stroke').onclick=()=>{if(time!==0||target!==null)return;const prior=strokes.pop();if(!prior)return;particles=prior.particles;rng=initialRng=prior.rng;message('마지막 한 획과 대칭으로 그린 잉크를 함께 되돌렸습니다.');render();};
-  $('palette').onchange=()=>{colors=palettes[$('palette').value];document.querySelectorAll('[data-color]').forEach((b,i)=>{b.querySelector('.swatch').style.setProperty('--swatch',colors[i]);b.setAttribute('aria-label',`팔레트 ${i+1}번 색 잉크`);});render();};
-  window.addEventListener('websim:ambient-change',render);
+  $('palette').onchange=()=>{colors=palettes[$('palette').value];syncSwatches();if(live)paintLive(true);render();};
+  window.addEventListener('websim:ambient-change',()=>{if(live)paintLive(true);render();});
+  reducedMotion.addEventListener('change',()=>{if(live)paintLive(true);render();});
   $('brush').oninput=e=>{$('brush-value').textContent=e.target.value;};
-  document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{color=Number(b.dataset.color);document.querySelectorAll('[data-color]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});
+  document.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{color=Number(b.dataset.color);syncSwatches();});
+  $('experiment-reversible').onclick=()=>setExperiment('reversible');
+  $('experiment-live').onclick=()=>setExperiment('live');
+  for(const tool of ['ink','stir'])$('live-tool-'+tool).onclick=()=>{stopPointer();liveTool=tool;for(const name of ['ink','stir'])$('live-tool-'+name).setAttribute('aria-pressed',String(name===tool));render();};
+  $('live-pause').onclick=pause;
+  $('live-reset').onclick=()=>resetLive();
+  $('live-clear').onclick=()=>resetLive(true);
+  $('live-drop').onclick=()=>{const a=live.injections*.003;flow.live.inject(live,.62*Math.cos(a),.46*Math.sin(a),color,150,.075);paintLive();render();};
   function position(e) {
     const rect=canvas.getBoundingClientRect();
     return {x:((e.clientX-rect.left)*800/rect.width-CX)/R,y:((e.clientY-rect.top)*600/rect.height-CY)/R};
@@ -226,20 +341,28 @@
     if(particles.length>=LIMIT)message('잉크가 가득 찼습니다. 이제 섞어 보세요.');render();
   }
   canvas.onpointerdown=e=>{
+    if(experiment==='live') {
+      if(e.button!==0||activePointer!==null)return;
+      const p=position(e);if(!flow.contains('vortices',p.x,p.y,.008))return;
+      activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});pointer=null;liveInput(e,true);return;
+    }
     if(e.button!==0||!drawing||time!==0||target!==null||activePointer!==null)return;
     const p=position(e);if(!flow.contains(mode,p.x,p.y,.012))return;
     strokes.push({particles:particles.map(p=>({...p})),rng});if(strokes.length>16)strokes.shift();
     activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});pointer=null;paint(e);
   };
-  canvas.onpointermove=e=>{if(e.pointerId===activePointer)paint(e);};
-  canvas.onpointerup=canvas.onpointercancel=e=>{if(e.pointerId===activePointer)stopPointer();};
-  canvas.onlostpointercapture=e=>{if(e.pointerId===activePointer){activePointer=null;pointer=null;}};
+  canvas.onpointermove=e=>{if(e.pointerId===activePointer){if(experiment==='live')liveInput(e);else paint(e);}};
+  canvas.onpointerup=canvas.onpointercancel=e=>{if(e.pointerId===activePointer){stopPointer();render();}};
+  canvas.onlostpointercapture=e=>{if(e.pointerId===activePointer){activePointer=null;pointer=null;liveEmitter=0;render();}};
+  window.addEventListener('blur',()=>{stopPointer();render();});
+  window.addEventListener('resize',()=>{stopPointer();render();});
+  document.addEventListener('visibilitychange',()=>{stopPointer();accumulator=0;last=null;});
   const fullscreen=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen?.();}else if(typeof $('stage').requestFullscreen==='function'){await $('stage').requestFullscreen();}else{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}}catch{message('이 브라우저에서는 전체화면을 사용할 수 없습니다.');}};
   $('fullscreen').onclick=fullscreen;
-  canvas.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();moveTo(turns+(e.key==='ArrowLeft'?-.25:.25));}if(e.code==='Space'){e.preventDefault();pause();}if(e.key.toLowerCase()==='f')fullscreen();};
-  $('save').onclick=()=>{const a=document.createElement('a');a.download=`websim-ink-${mode}.png`;a.href=canvas.toDataURL('image/png');a.click();message('현재 잉크 그림을 PNG로 저장했습니다.');};
-  window.render_game_to_text=()=>JSON.stringify({coordinateSystem:`center (0,0), x right, y down; ${mode==='cylinder'?'inner radius .32, outer radius 1':`halfWidth ${flow.modes[mode].halfWidth}, halfHeight ${flow.modes[mode].halfHeight}`}`,flow:mode,flowLabel:views[mode].label,phase:flow.phase(mode,turns,direction()),boundary:{periodicX:flow.modes[mode].periodicX,periodicY:flow.modes[mode].periodicY},unit:unit(),preset:$('preset').value,mode:running?'running':target===null?'ready':'paused',drawing:drawing&&time===0&&target===null,undo:strokes.length,symmetry:Number($('symmetry').value),palette:$('palette').value,turns,time,diffusion:Number($('diffusion').value),particles:particles.length,errorPercent:error(),target,sample:particles.slice(0,3)});
+  canvas.onkeydown=e=>{if(experiment==='reversible'&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();moveTo(turns+(e.key==='ArrowLeft'?-.25:.25));}if(e.code==='Space'){e.preventDefault();pause();}if(e.key.toLowerCase()==='f')fullscreen();};
+  $('save').onclick=()=>{const a=document.createElement('a');a.download=`websim-ink-${experiment==='live'?'free':mode}.png`;a.href=canvas.toDataURL('image/png');a.click();message('현재 잉크 그림을 PNG로 저장했습니다.');};
+  window.render_game_to_text=()=>JSON.stringify(experiment==='live'?{experiment,coordinateSystem:'center (0,0), x right, y down; halfWidth 1.3, halfHeight .85; reflecting edges',mode:liveRunning?'running':'paused',live:{running:liveRunning,particleCount:live.particles.length,limit:live.limit,inputActive:activePointer!==null,quality:lowQuality?'light':'standard',effects:liveEffects(),tool:liveTool,time:live.time,injections:live.injections,stirs:live.stirs,sample:live.particles.filter((p,i)=>i%Math.max(1,Math.floor(live.particles.length/5))===0).slice(0,5)},particles:live.particles.length,time:live.time,palette:$('palette').value,color,preservedReversible:{flow:mode,turns,time,particles:particles.length,target}}:{experiment,coordinateSystem:`center (0,0), x right, y down; ${mode==='cylinder'?'inner radius .32, outer radius 1':`halfWidth ${flow.modes[mode].halfWidth}, halfHeight ${flow.modes[mode].halfHeight}`}`,flow:mode,flowLabel:views[mode].label,phase:flow.phase(mode,turns,direction()),boundary:{periodicX:flow.modes[mode].periodicX,periodicY:flow.modes[mode].periodicY},unit:unit(),preset:$('preset').value,mode:running?'running':target===null?'ready':'paused',drawing:drawing&&time===0&&target===null,undo:strokes.length,symmetry:Number($('symmetry').value),palette:$('palette').value,turns,time,diffusion:Number($('diffusion').value),particles:particles.length,errorPercent:error(),target,sample:particles.slice(0,3)});
   window.advanceTime=ms=>{manual=true;for(let t=0;t<ms/1000-1e-9;t+=DT)update(Math.min(DT,ms/1000-t));render();};
-  function frame(now){if(!manual&&last!==null&&running){accumulator+=Math.min((now-last)/1000,.1);while(accumulator>=DT){update(DT);accumulator-=DT;}render();}last=now;requestAnimationFrame(frame);}
-  syncMode();preset('heart');requestAnimationFrame(frame);
+  function frame(now){if(!manual&&!document.hidden&&last!==null&&isPlaying()){accumulator+=Math.min((now-last)/1000,.1);while(accumulator>=DT){update(DT);accumulator-=DT;}render();}last=now;requestAnimationFrame(frame);}
+  syncMode();preset('heart');if(new URLSearchParams(location.search).get('experiment')==='live')setExperiment('live');requestAnimationFrame(frame);
 })();

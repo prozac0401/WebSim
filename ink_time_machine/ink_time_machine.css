@@ -6,4 +6,17 @@
 #ink-app #canvas{display:block}
 #ink-app .sim-toolbar label[for=symmetry]{display:flex;align-items:center;gap:8px;font-size:12px}
 #ink-app #symmetry{width:auto}
+#ink-app [hidden]{display:none!important}
+.ink-experiments{display:flex;gap:8px;padding:14px 20px;background:#fff;border-bottom:1px solid var(--sim-border)}
+.ink-experiments button{flex:1;min-height:44px;line-height:1.5}
+#ink-app button[aria-pressed=true]{border-color:var(--sim-accent);background:var(--sim-accent-soft);color:var(--sim-accent)}
+.ink-live-controls{background:#f2f6f1;border-bottom:1px solid var(--sim-border)}
+.ink-live-controls>p{padding:13px 20px 0;margin:0;font-size:12px;line-height:1.7;color:#365b49}
+.ink-live-controls .sim-toolbar{padding-top:10px;padding-bottom:10px}
+.ink-live-controls .sim-toolbar+.sim-toolbar{padding-top:0}
+.live-swatches{display:flex;gap:5px;margin-left:auto}
+#ink-app .live-swatches button{min-width:40px;width:40px;min-height:40px;padding:8px}
+.ink-live-footer{display:grid;gap:8px;padding:14px 20px;border-top:1px solid var(--sim-border);font-size:12px;color:#365b49}
+.ink-live-footer small{color:var(--sim-muted);line-height:1.7}
+@media(max-width:540px){.ink-experiments{padding:12px;gap:6px}.ink-experiments button{font-size:12px}.ink-live-controls>p{padding:12px 14px 0}.live-swatches{margin-left:0}.ink-live-controls .sim-toolbar{gap:6px}.ink-live-footer{padding:12px 14px}}
 @media(max-width:540px){.ink-flow-picker{grid-template-columns:1fr;padding:14px;gap:10px}.ink-flow-picker p{font-size:12px}.ink-flow-picker small{line-height:1.6}}
