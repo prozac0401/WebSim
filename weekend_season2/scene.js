@@ -20,6 +20,10 @@
     palette:['oat','sage','rose','sky','clay','lavender'],layout:['window-left','window-right','wide-window'],
     decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']
   });
+  const GENDER_HAIR_STYLES = Object.freeze({
+    man:Object.freeze(['short-swept','side-wave','rounded-crop','curly','buzz']),
+    woman:Object.freeze(['long-soft','bob','ponytail','bun','braids'])
+  });
   const hairColors={espresso:'#423b34',chestnut:'#79513b',honey:'#b58b4d',slate:'#595f67',silver:'#a4a69d'};
   // Keep the saved palette keys and seeded choices; only the drawing colors change.
   // Four close shades range from light beige to a slightly sun-tanned warm tone.
@@ -36,22 +40,31 @@
   const childScales = { toddler: .23, preschool: .34, school: .44, teen: .53, adult: .88 };
   const childStage = age => age <= 2 ? 'toddler' : age <= 6 ? 'preschool' : age <= 12 ? 'school' : age <= 17 ? 'teen' : 'adult';
   function genderKey(value) { return value === 'female' ? 'woman' : value === 'male' ? 'man' : value === 'nonbinary' ? 'other' : Object.hasOwn(avatarStyles, value) ? value : 'unspecified'; }
+  function displayHairStyle(gender, hairStyle) {
+    const choices=GENDER_HAIR_STYLES[gender];
+    if(!choices||choices.includes(hairStyle))return hairStyle;
+    const previous=GENDER_HAIR_STYLES[gender==='man'?'woman':'man'].indexOf(hairStyle);
+    return choices[previous]||avatarStyles[gender].hair;
+  }
   function normalizedOptions(raw, keys, defaults) { return Object.fromEntries(keys.map(key=>[key,OPTIONS[key].includes(raw?.[key])?raw[key]:defaults[key]])); }
   function appearance(config) {
     const gender=genderKey(config?.gender), legacy={gender,...avatarStyles[gender],hairColor:Number(config?.age||32)>=55?'#8a8c7e':'#574a3b'};
     if(!config?.appearance)return legacy;
     const options=normalizedOptions(config.appearance,['faceShape','hairStyle','hairColor','skinTone','outfitPalette'],{faceShape:'oval',hairStyle:avatarStyles[gender].hair,hairColor:Number(config.age||32)>=55?'silver':'espresso',skinTone:'warm',outfitPalette:'terracotta'});
+    // Older saves sampled hair independently of gender. Adapt only this fresh
+    // drawing description so a setting change never rewrites the saved life.
+    options.hairStyle=displayHairStyle(gender,options.hairStyle);
     return {...legacy,...outfitColors[options.outfitPalette],faceShape:options.faceShape,hairStyle:options.hairStyle,hair:options.hairStyle,hairColor:hairColors[options.hairColor],skinTone:options.skinTone,skin:skinColors[options.skinTone],outfitPalette:options.outfitPalette,options};
   }
   // A separate pure visual hash; never consumes or writes either simulation RNG stream.
   function visualHash(seed,key) { let value=(Number(seed)>>>0)^2166136261;for(const char of key)value=Math.imul(value^char.charCodeAt(0),16777619)>>>0;return value; }
-  function memberAppearance(config,id) {
+  function memberAppearance(config,id,gender='unspecified') {
     const seed=config.generationSeed??config.seed??0;
     const raw=Object.fromEntries(['faceShape','hairStyle','hairColor','skinTone','outfitPalette'].map(key=>[key,OPTIONS[key][visualHash(seed,id+':'+key)%OPTIONS[key].length]]));
     // A shared drawing palette makes a family visually coherent. It is a visual
     // convention, not a claim about ancestry, ethnicity or biological parentage.
     if(id.startsWith('child-'))raw.skinTone=appearance(config).skinTone;
-    return appearance({...config,gender:'unspecified',appearance:raw});
+    return appearance({...config,gender,appearance:raw});
   }
   function homeStyle(config={}) {
     const legacy=!config.homeStyle;
@@ -79,7 +92,7 @@
       const crawling=profile?profile.age<=1:stage==='toddler';
       const scale = crawling ? .6 : modern ? {toddler:.22,preschool:.32,school:.4,teen:.48,adult:.88}[stage] : childScales[stage];
       const onLeave=profile?.militaryStatus==='serving'&&lifeState.flags?.militaryChildIndex===index&&!!lifeState.flags?.militaryLeaveUntil&&lifeState.flags.militaryLeaveUntil>=(lifeState.date||'2026-01-01');
-      const memberStyle=config.appearance?memberAppearance(config,'child-'+(index+1)):{gender:'unspecified',hair:index%2?'side-wave':'rounded-crop',hairColor:index%2?'#695342':'#55483c',top:palette[index],trim:'#f1ddba'};
+      const memberStyle=config.appearance?memberAppearance(config,'child-'+(index+1),profile?.gender):{gender:'unspecified',hair:index%2?'side-wave':'rounded-crop',hairColor:index%2?'#695342':'#55483c',top:palette[index],trim:'#f1ddba'};
       if(profile){memberStyle.gender=genderKey(profile.gender);if(!config.appearance)memberStyle.hair=avatarStyles[memberStyle.gender].hair;}
       if(onLeave){memberStyle.top='#71816a';memberStyle.trim='#c6c6a0';}
       const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage:stage, ...(profile?{age:profile.age,gender:profile.gender,militaryStatus:profile.militaryStatus,onLeave}:{}), x: (hasAdult?400:397) + (index - (children - 1) / 2) * (hasAdult?88:74), y: (stage==='adult'?546:542) - (crawling?26:112) * scale, scale, ...(crawling?{pose:'crawl'}:{}),

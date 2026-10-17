@@ -52,7 +52,7 @@ test('generated lives are deterministic, fictional, balanced across 16 household
     assert.equal(generated.config.personaName,generated.name);assert.ok(generated.intro.includes(generated.name));assert.ok(generated.intro.includes(generated.config.age+'세'));
     combinations.add([generated.config.role,generated.config.maritalStatus,!!generated.config.children].join(':'));genders.add(generated.config.gender);
   }
-  assert.equal(combinations.size,16);assert.equal(genders.size,4);
+  assert.equal(combinations.size,16);assert.deepEqual([...genders].sort(),['man','woman']);
   assert.throws(()=>D.generateLife(-1));assert.throws(()=>D.generateLife(1.5));
 });
 

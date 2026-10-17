@@ -37,6 +37,48 @@ test('scene family: gender selection changes actual drawing commands and appeara
   assert.equal(Scene.familyLayout({gender:'nonbinary'}).player.appearance.gender,'other');
 });
 
+test('scene gender: saved portraits and aliases show the selected hairstyle family without changing the life', () => {
+  const h=drawingHarness(),traits={faceShape:'square',hairColor:'silver',skinTone:'tan',outfitPalette:'rose'};
+  for(const [gender,alias] of [['man','male'],['woman','female']]){
+    const drawings=new Set();
+    for(const hairStyle of Scene.OPTIONS.hairStyle){
+      const saved={config:{gender,appearance:{...traits,hairStyle},seed:19,generationSeed:37},date:'2026-10-17',artifacts:[{activityId:'draw'}],rng:{external:123,followup:456},stats:{mood:71,fatigue:25},cash:250000,history:[{activityId:'pottery',cost:45000}],ledger:[{amount:-45000}]},before=JSON.stringify(saved);
+      Object.freeze(saved.config.appearance);
+      h.clear();h.api.attach(h.canvas,saved,'read');
+      const person=h.api.describe().character.appearance;
+      assert.equal(person.gender,gender);
+      assert.ok(Data.GENDER_HAIR_STYLES[gender].includes(person.hair),`${gender}/${hairStyle} must use its illustration family`);
+      assert.equal(person.hairStyle,person.hair);assert.equal(person.options.hairStyle,person.hair);
+      for(const [key,value] of Object.entries(traits))assert.equal(person.options[key],value,`${key} must keep its saved variation`);
+      if(Data.GENDER_HAIR_STYLES[gender].includes(hairStyle))assert.equal(person.hair,hairStyle,'an already matching portrait stays unchanged');
+      drawings.add(h.snapshot());
+      assert.deepEqual(Scene.appearance({...saved.config,gender:alias}),Scene.appearance(saved.config),'legacy aliases render identically');
+      h.api.advance(8000);h.api.update(saved,'read');
+      assert.equal(JSON.stringify(saved),before,'rendering must not change saved appearance, money, history or RNG');
+    }
+    assert.equal(drawings.size,Data.GENDER_HAIR_STYLES[gender].length,'all five matching silhouettes remain available');
+  }
+  assert.equal(Scene.appearance({gender:'male',appearance:{hairStyle:'bun'}}).hair,'curly');
+  assert.equal(Scene.appearance({gender:'female',appearance:{hairStyle:'buzz'}}).hair,'braids');
+});
+
+test('scene gender: explicit children use matching hair while an unspecified spouse keeps their seeded portrait',()=>{
+  for(let generationSeed=0;generationSeed<64;generationSeed++){
+    const childProfiles=['man','woman','male','female','unspecified','other'].map((gender,index)=>({age:4+index*4,gender,militaryStatus:'none'}));
+    const config={gender:'man',generationSeed,children:6,maritalStatus:'married',appearance:{faceShape:'heart',hairStyle:'bun',skinTone:'warm',outfitPalette:'moss'},childProfiles},before=JSON.stringify(config);
+    const family=Scene.familyLayout(config),otherParent=Scene.familyLayout({...config,gender:'woman'});
+    assert.equal(family.spouse.appearance.gender,'unspecified');
+    assert.deepEqual(family.spouse.appearance,otherParent.spouse.appearance,'do not infer spouse gender from the player');
+    for(const child of family.children){
+      const shown=child.appearance,canonical=shown.gender;
+      if(canonical==='man'||canonical==='woman')assert.ok(Data.GENDER_HAIR_STYLES[canonical].includes(shown.hair),`${child.gender}/${generationSeed} child hair must match`);
+      assert.equal(shown.hair,shown.hairStyle);assert.equal(shown.hair,shown.options.hairStyle);
+      assert.equal(shown.skinTone,'warm');
+    }
+    assert.equal(JSON.stringify(config),before);
+  }
+});
+
 test('scene family: marriage and child count are independent, including six-child and childless families', () => {
   for (const maritalStatus of ['single','married','divorced','unspecified']) for (let children=0; children<=6; children++) {
     const family=Scene.familyLayout({gender:'woman',maritalStatus,children,childAge:'school'},'cook');
@@ -110,7 +152,7 @@ test('scene family: divorced metadata keeps the same parent and children without
 });
 
 test('scene variety: every face, hairstyle, skin, outfit and hair color changes drawing commands', () => {
-  const h=drawingHarness(), base={gender:'woman',maritalStatus:'single',children:0,seed:7,generationSeed:7,appearance:{faceShape:'oval',hairStyle:'rounded-crop',hairColor:'espresso',skinTone:'warm',outfitPalette:'moss'}};
+  const h=drawingHarness(), base={gender:'unspecified',maritalStatus:'single',children:0,seed:7,generationSeed:7,appearance:{faceShape:'oval',hairStyle:'rounded-crop',hairColor:'espresso',skinTone:'warm',outfitPalette:'moss'}};
   for(const key of ['faceShape','hairStyle','hairColor','skinTone','outfitPalette']){
     const drawings=new Set();
     for(const value of Scene.OPTIONS[key]){
@@ -161,7 +203,7 @@ test('scene variety: seeded family portraits are stable across activities, separ
   for(const activity of Data.ACTIVITIES)assert.deepEqual(members(Scene.familyLayout(config,activity.id)).map(p=>p.appearance),first);
   assert.deepEqual(Scene.familyLayout(config,'rest'),reference);
   assert.ok(new Set(first.map(a=>JSON.stringify(a.options))).size>=4,'family members should have separate visual identities');
-  assert.deepEqual(reference.player.appearance.options,config.appearance);
+  assert.deepEqual(reference.player.appearance.options,{...config.appearance,hairStyle:'buzz'});
   assert.notDeepEqual(Scene.familyLayout({...config,generationSeed:457},'rest').spouse.appearance,reference.spouse.appearance);
   assert.equal(JSON.stringify(config),original);
   const h=drawingHarness(true),state={config,date:'2026-08-01',artifacts:[],stats:{mood:60,fatigue:15},rng:{external:123,followup:789}};
@@ -171,19 +213,21 @@ test('scene variety: seeded family portraits are stable across activities, separ
 
 test('scene variety: all new hairstyles and room structures keep family members and children clear of furniture',()=>{
   for(const layout of Scene.OPTIONS.layout)for(const hairStyle of Scene.OPTIONS.hairStyle)for(const children of [0,1,3,6])for(const childAge of ['preschool','school','teen'])for(const activity of ['rest','draw','garden','care'])for(const maritalStatus of ['single','married']){
-    const config={seed:2026,generationSeed:2026,gender:'woman',maritalStatus,children,childAge,appearance:{faceShape:'long',hairStyle,hairColor:'espresso',skinTone:'deep',outfitPalette:'mustard'},homeStyle:{palette:'sage',layout,decor:'music',windowView:'hills'}},family=Scene.familyLayout(config,activity),figures=members(family),room=Scene.homeStyle(config);
+    const config={seed:2026,generationSeed:2026,gender:'unspecified',maritalStatus,children,childAge,appearance:{faceShape:'long',hairStyle,hairColor:'espresso',skinTone:'deep',outfitPalette:'mustard'},homeStyle:{palette:'sage',layout,decor:'music',windowView:'hills'}},family=Scene.familyLayout(config,activity),figures=members(family),room=Scene.homeStyle(config);
     for(const figure of figures){const b=figure.bounds;assert.ok(b.left>=0&&b.top>=0&&b.right<=760&&b.bottom<=550,`${layout}/${hairStyle}/${figure.id} clipped`);}
     for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false,`${layout}/${hairStyle}/${children}/${childAge}/${activity}: figures overlap`);
     for(const child of family.children)for(const object of room.furnitureBounds)assert.equal(overlaps(child.bounds,object),false,`${layout}/${hairStyle}/${childAge}: ${child.id} overlaps ${object.id}`);
   }
 });
 
-test('scene variety: explicit portraits remain stable when gender changes, while clothing details still reflect the setting',()=>{
+test('scene variety: gender edits change hair and clothing while preserving the other saved portrait traits',()=>{
   const h=drawingHarness(),appearance={faceShape:'square',hairStyle:'curly',hairColor:'silver',skinTone:'ivory',outfitPalette:'indigo'},drawings=new Set();
   for(const gender of ['woman','man','other','unspecified']){
     h.clear();h.api.attach(h.canvas,{config:{gender,appearance},date:'2026-01-01',artifacts:[]},'rest');
     const person=h.api.describe().character;
-    assert.equal(person.gender,gender);assert.equal(JSON.stringify(person.appearance.options),JSON.stringify(appearance));drawings.add(h.snapshot());
+    assert.equal(person.gender,gender);
+    assert.equal(JSON.stringify(person.appearance.options),JSON.stringify({...appearance,hairStyle:gender==='woman'?'bun':'curly'}));
+    drawings.add(h.snapshot());
   }
   assert.equal(drawings.size,4,'existing gender edit must still change actual pixels');
 });

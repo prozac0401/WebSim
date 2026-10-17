@@ -11,8 +11,9 @@
   const HOUSING_MODEL = Housing.MODEL;
   const FAMILY_MODEL = Object.freeze({id:'fictional-family-ages-v1',minimumParentAgeGap:25,preferredParentAgeGaps:[28,35],maximumParentAgeGap:45,note:'새 인생의 부모·자녀 나이는 최소 25세 차이, 첫 자녀와는 28~35세 차이에 무게를 둔 창작 규칙입니다. 실제 출산·혼인 연령 분포나 결혼 시점을 뜻하지 않으며, 직접 설정과 저장한 나이는 바꾸지 않습니다.'});
   const APPEARANCE_OPTIONS = {faceShape:['round','oval','square','heart','long'],hairStyle:['long-soft','short-swept','side-wave','rounded-crop','curly','bob','ponytail','buzz','bun','braids'],hairColor:['espresso','chestnut','honey','slate','silver'],skinTone:['ivory','warm','tan','deep'],outfitPalette:['moss','terracotta','indigo','rose','mustard','teal']};
+  const GENDER_HAIR_STYLES = {man:['short-swept','side-wave','rounded-crop','curly','buzz'],woman:['long-soft','bob','ponytail','bun','braids']};
   const HOME_OPTIONS = {palette:['oat','sage','rose','sky','clay','lavender'],layout:['window-left','window-right','wide-window'],decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']};
-  const base = { year: 2026, age: 32, gender: 'unspecified', maritalStatus:'single', personaName:'', lifeIntro:'', generationSeed:null, role: 'worker', children: 0, childAge: 'none', careShare: 50,
+  const base = { year: 2026, age: 32, gender: 'woman', maritalStatus:'single', personaName:'', lifeIntro:'', generationSeed:null, role: 'worker', children: 0, childAge: 'none', careShare: 50,
     province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,economicProfile:null,housingOrigin:null,ageHealthModel:AgeHealth.MODEL.id,
     housing: 'studio', housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,housingMaintenance:0,region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
     personalBudget: 500000, fixedCosts: 1500000, startCash: 2000000, payDay: 1, cardLimit: 1500000,
@@ -113,12 +114,13 @@
       return {age,gender,militaryStatus:gender==='man'&&age>=18&&age<=28&&childRandom()<.35?'serving':'none'};
     });
     config.childAge=config.children?childStage(Math.min(...config.childProfiles.map(child=>child.age))):'none';
-    config.gender=pick(['woman','man','nonbinary','unspecified']);
+    config.gender=pick(['woman','man']);
     config.careShare=pick([30,45,60,75]);
     const householdSize=1+(config.maritalStatus==='married'?1:0)+config.children;
     config.housing=pick(householdSize>2?['apartment','shared']:['studio','apartment','shared']);config.region=pick(['city','town','rural']);config.transport=pick(['walk','transit','car']);
     config.generationModel='kr-life-2026-v3';config.province=sampleProvince(seed);config.residenceOrigin='population';
-    config.appearance=sampleOptions(APPEARANCE_OPTIONS,randomStream(seed,'appearance'));
+    // Keep the appearance stream's property order and number of draws unchanged.
+    config.appearance=sampleOptions({...APPEARANCE_OPTIONS,hairStyle:GENDER_HAIR_STYLES[config.gender]},randomStream(seed,'appearance'));
     config.homeStyle=sampleOptions(HOME_OPTIONS,randomStream(seed,'home'));
     // Income, an actual-sized home and essential living costs are generated
     // together. Source distributions and gameplay support remain distinguishable.
@@ -136,7 +138,7 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
     NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });
