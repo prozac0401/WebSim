@@ -46,8 +46,8 @@ test('each preset completes all calendar days, year-end summary derives from act
   }
 });
 
-test('leap year retains 366 days and unknown holiday status',()=>{
-  const s=run(game('seeker',{year:2028}));assert.equal(E.getSummary(s).daysPlayed,366);assert.equal(C.holidayStatus(2028).verified,false);
+test('leap year retains 366 days and sourced holiday status',()=>{
+  const s=run(game('seeker',{year:2028}));assert.equal(E.getSummary(s).daysPlayed,366);assert.equal(C.holidayStatus(2028).verified,true);
 });
 
 test('recurrence is reserved until explicit confirmation, with moved dates visible',()=>{

@@ -30,9 +30,9 @@ test('verified 2026 holidays include amended May 1 and July 17 without duplicate
   assert.equal(C.isOff('2026-03-02'), true);
   assert.equal(C.isOff('2026-06-08'), false); // Memorial Day has no inferred substitute.
   assert.equal(C.dates(2026).filter(C.isOff).length, 120);
-  assert.equal(C.holidayStatus(2028).verified, false);
-  assert.equal(C.holiday('2028-01-01'), '');
-  assert.equal(C.holidaySources.length, 3);
+  assert.equal(C.holidayStatus(2029).verified, false);
+  assert.equal(C.holiday('2029-01-01'), '');
+  assert.equal(C.holidaySources.length, 4);
 });
 test('official 2027 table has 24 holiday dates, seven substitutes and 119 unique days off', () => {
   const listed=C.dates(2027).filter(date=>C.holiday(date));
@@ -54,7 +54,7 @@ test('2027 boundary weeks and moved reservations use verified dates while later 
   assert.deepEqual(C.weekDates('2027-12-27'),['2027-12-27','2027-12-28','2027-12-29','2027-12-30','2027-12-31']);
   const r=rule({anchor:'2027-05-03'}),[reservation]=R.reservations([r],'2027-05-03','2027-05-09');
   assert.equal(reservation.date,'2027-05-03');assert.equal(reservation.moved,false);
-  for(const year of [2028,2029,2030]){
+  for(const year of [2029,2030,2100]){
     assert.equal(C.holidayStatus(year).verified,false);
     assert.equal(C.dates(year).filter(date=>C.holiday(date)).length,0);
     assert.equal(C.dates(year).filter(C.isOff).length,C.dates(year).filter(date=>[0,6].includes(C.day(date))).length);
