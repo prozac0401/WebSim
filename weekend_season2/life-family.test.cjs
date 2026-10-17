@@ -69,8 +69,8 @@ test('generated unpartnered parents are divorced while explicit single parents r
   assert.deepEqual(E.validateConfig({...manual.config,maritalStatus:'divorced'}),[]);
 });
 
-test('new divorced parents retain identity while the new model provides household essentials',()=>{
-  for(const fixture of [{seed:635,personaName:'이정숙',children:2},{seed:169,personaName:'이예은',children:1},{seed:107,personaName:'박서연',children:1}]){
+test('new divorced parents retain family combinations while the new model provides household essentials',()=>{
+  for(const fixture of [{seed:635,children:2},{seed:169,children:1},{seed:107,children:1}]){
     const config=D.generateLife(fixture.seed).config;
     assert.equal(config.maritalStatus,'divorced');
     for(const [key,value]of Object.entries(fixture))assert.equal(config[key],value);

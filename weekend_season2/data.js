@@ -1,18 +1,19 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./demographics.js') : root.S2Demographics, node ? require('./income-data.js') : root.S2IncomeData, node ? require('./prices.js') : root.S2Prices, node ? require('./lifecycle-economy.js') : root.S2LifecycleEconomy, node ? require('./housing-data.js') : root.S2HousingData);
+  const api = factory(node ? require('./demographics.js') : root.S2Demographics, node ? require('./income-data.js') : root.S2IncomeData, node ? require('./prices.js') : root.S2Prices, node ? require('./lifecycle-economy.js') : root.S2LifecycleEconomy, node ? require('./housing-data.js') : root.S2HousingData, node ? require('./age-health.js') : root.S2AgeHealth, node ? require('./name-cohorts.js') : root.S2NameCohorts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.S2Data = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (Demographics, Income, Prices, Lifecycle, Housing) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Demographics, Income, Prices, Lifecycle, Housing, AgeHealth, Names) {
   'use strict';
   const ROLES = { worker: '직장인', seeker: '구직자', graduate: '대학원생', caregiver: '돌봄 중심' };
   const MARITAL_STATUSES = {single:'미혼',married:'기혼',divorced:'이혼',widowed:'사별',unspecified:'이전 저장 · 설정하지 않음'};
   const HOUSING_TENURES = {own:'자가',rent:'월세',jeonse:'전세',unspecified:'이전 저장 · 설정하지 않음'};
   const HOUSING_MODEL = Housing.MODEL;
+  const FAMILY_MODEL = Object.freeze({id:'fictional-family-ages-v1',minimumParentAgeGap:25,preferredParentAgeGaps:[28,35],maximumParentAgeGap:45,note:'새 인생의 부모·자녀 나이는 최소 25세 차이, 첫 자녀와는 28~35세 차이에 무게를 둔 창작 규칙입니다. 실제 출산·혼인 연령 분포나 결혼 시점을 뜻하지 않으며, 직접 설정과 저장한 나이는 바꾸지 않습니다.'});
   const APPEARANCE_OPTIONS = {faceShape:['round','oval','square','heart','long'],hairStyle:['long-soft','short-swept','side-wave','rounded-crop','curly','bob','ponytail','buzz','bun','braids'],hairColor:['espresso','chestnut','honey','slate','silver'],skinTone:['ivory','warm','tan','deep'],outfitPalette:['moss','terracotta','indigo','rose','mustard','teal']};
   const HOME_OPTIONS = {palette:['oat','sage','rose','sky','clay','lavender'],layout:['window-left','window-right','wide-window'],decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']};
   const base = { year: 2026, age: 32, gender: 'unspecified', maritalStatus:'single', personaName:'', lifeIntro:'', generationSeed:null, role: 'worker', children: 0, childAge: 'none', careShare: 50,
-    province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,economicProfile:null,housingOrigin:null,
+    province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,economicProfile:null,housingOrigin:null,ageHealthModel:AgeHealth.MODEL.id,
     housing: 'studio', housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,housingMaintenance:0,region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
     personalBudget: 500000, fixedCosts: 1500000, startCash: 2000000, payDay: 1, cardLimit: 1500000,
     preferences: ['walk', 'photo'], seed: 2026 };
@@ -89,6 +90,12 @@
     for(const row of rows){cursor-=weight(row);if(cursor<0)return row;}
     return rows.at(-1);
   }
+  function assignPersonaName(config){
+    const seed=config.generationSeed??config.seed;
+    const surname=weightedPick(Demographics.surnames,row=>row.population,randomStream(seed,'surname')).name;
+    config.personaName=surname+Names.sample(config,randomStream(seed,'name')).name;
+    return config;
+  }
   function provinceLabel(id){const found=Demographics.regions.find(r=>r.id===id);return found?(found.capital?'수도권 · ':'')+found.label:'지역 미설정';}
   function sampleProvince(seed,capitalOnly=false){return weightedPick(Demographics.regions.filter(r=>!capitalOnly||r.capital),r=>r.population,randomStream(seed,'residence')).id;}
   function sampleOptions(options,random){return Object.fromEntries(Object.entries(options).map(([key,values])=>[key,values[Math.floor(random()*values.length)]]));}
@@ -125,15 +132,19 @@
     config.maritalStatus=Math.floor(profile/4)%2?'married':'single';
     config.children=Math.floor(profile/8)?pick([1,1,2]):0;
     if(config.maritalStatus==='single'&&config.children>0)config.maritalStatus='divorced';
-    config.age=pick([22,26,29,32,35,38,41,45,49,52,56,59,62,65,69]);
+    const parentAges=[22,26,29,32,35,38,41,45,49,52,56,59,62,65,69];
+    config.age=pick(parentAges.filter(age=>!config.children||age>=FAMILY_MODEL.minimumParentAgeGap+config.children-1));
     // These ages and household combinations are narrative choices, not sampled
     // age-specific census or military-service probabilities.
     const childRandom=randomStream(seed,'children-age-and-life'),childPick=values=>values[Math.floor(childRandom()*values.length)];
-    const oldest=config.age-18,possible=[0,1,2,4,6,9,12,15,17,19,21,23,26,29,32,36,40,45,49].filter(age=>age<=oldest);
-    const preferredAges=config.age>=50?possible.filter(age=>age>=17):possible;
-    const firstAge=config.children?childPick(preferredAges):0;
+    const maximumGap=Math.min(FAMILY_MODEL.maximumParentAgeGap,config.age-config.children+1);
+    const gaps=Array.from({length:Math.max(0,maximumGap-FAMILY_MODEL.minimumParentAgeGap+1)},(_,i)=>FAMILY_MODEL.minimumParentAgeGap+i);
+    const firstAge=config.children?config.age-weightedPick(gaps,gap=>gap>=28&&gap<=35?6:gap<28?2:gap<=40?1:.5,childRandom):0;
+    let previousAge=firstAge;
     config.childProfiles=Array.from({length:config.children},(_,index)=>{
-      const age=Math.max(0,firstAge-index*childPick([1,2,3]));
+      const gap=childPick([1,2,3]);
+      const age=index===0?firstAge:previousAge-Math.min(gap,previousAge-(config.children-index-1));
+      previousAge=age;
       const gender=childPick(['man','woman']);
       return {age,gender,militaryStatus:gender==='man'&&age>=18&&age<=28&&childRandom()<.35?'serving':'none'};
     });
@@ -150,9 +161,8 @@
     assignLifeEconomy(config);
     const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'];
     config.preferences=[pick(interests)];config.preferences.push(pick(interests.filter(id=>id!==config.preferences[0])));
-    const givenName=Demographics.names[Math.floor(randomStream(seed,'name')()*Demographics.names.length)].name;
-    const surname=weightedPick(Demographics.surnames,r=>r.population,randomStream(seed,'surname')).name;
-    const name=surname+givenName;config.personaName=name;
+    assignPersonaName(config);
+    const name=config.personaName;
     const region=provinceLabel(config.province);
     const role={worker:'일하며',seeker:'새로운 일자리를 찾으며',graduate:'대학원에서 공부하며',caregiver:'가까운 사람들을 돌보며'}[config.role];
     const family=config.maritalStatus==='married'?'배우자와 함께 살고 있어요.':config.maritalStatus==='divorced'?'이혼 후 나와 가족의 일상을 꾸려 가고 있어요.':'미혼이에요. 혼자만의 시간도, 가까운 사람들과의 시간도 소중해요.';
@@ -162,6 +172,7 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
+    NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

@@ -1,0 +1,698 @@
+{
+  "format": "websim-weekend-season2",
+  "version": 6,
+  "savedAt": "2026-10-17T00:58:42.103Z",
+  "checksum": "afa2d207",
+  "state": {
+    "version": 6,
+    "config": {
+      "year": 2026,
+      "age": 38,
+      "gender": "woman",
+      "maritalStatus": "divorced",
+      "personaName": "정현우",
+      "lifeIntro": "정현우, 38세. 수도권 · 경기도에서 새로운 일자리를 찾으며 지냅니다. 이혼 후 나와 가족의 일상을 꾸려 가고 있어요. 자녀는 19세 아들입니다. 요즘은 사진 산책 · 영화 보러 가기에 관심이 있어요.",
+      "generationSeed": 121,
+      "role": "seeker",
+      "children": 1,
+      "childAge": "adult",
+      "careShare": 60,
+      "province": "gyeonggi",
+      "residenceOrigin": "population",
+      "appearance": {
+        "faceShape": "long",
+        "hairStyle": "curly",
+        "hairColor": "espresso",
+        "skinTone": "tan",
+        "outfitPalette": "teal"
+      },
+      "homeStyle": {
+        "palette": "oat",
+        "layout": "window-left",
+        "decor": "music",
+        "windowView": "garden"
+      },
+      "generationModel": "kr-life-2026-v3",
+      "incomeOrigin": {
+        "kind": "lifecycle",
+        "modelId": "kr-lifecycle-household-2026-v1",
+        "sourceIds": [
+          "molit-household-income-2024"
+        ],
+        "provinceId": "gyeonggi",
+        "age": 38,
+        "role": "seeker",
+        "household": {
+          "size": 2,
+          "type": "adult-family",
+          "dependentChildren": 0,
+          "adultChildren": 1,
+          "awayChildren": 0,
+          "partnerAdults": 0
+        },
+        "ageBand": "30~39세",
+        "householdBand": "2인",
+        "parentBand": null,
+        "bandId": "household-7",
+        "weights": [
+          0.0016545195168369503,
+          0.01978962739584967,
+          0.055544308353940204,
+          0.10382839485456795,
+          0.14879457014272274,
+          0.12540907273818652,
+          0.1365482486293823,
+          0.17004067745035634,
+          0.06632037163756636,
+          0.0989871327427594,
+          0.0730830765378314
+        ],
+        "sampleHouseholdMonthly": 4117896,
+        "personalEarnedMonthly": 0,
+        "studySupportMonthly": 0,
+        "personalSupportMonthly": 1200000,
+        "householdContributionMonthly": 1500000,
+        "baseMonthly": 2700000,
+        "adjustments": [
+          "nonworker-support-and-contribution-cap"
+        ]
+      },
+      "childProfiles": [
+        {
+          "age": 19,
+          "gender": "man",
+          "militaryStatus": "none"
+        }
+      ],
+      "economicProfile": {
+        "modelId": "kr-lifecycle-household-2026-v1",
+        "active": true,
+        "household": {
+          "size": 2,
+          "type": "adult-family",
+          "dependentChildren": 0,
+          "adultChildren": 1,
+          "awayChildren": 0,
+          "partnerAdults": 0
+        },
+        "minimumLiving": 1343773,
+        "leisureFloor": 150000,
+        "monthlyReserve": 135000,
+        "baseMonthly": 2700000,
+        "baseSalary": 0,
+        "baseExternalAllowance": 2700000,
+        "gameSupport": 0,
+        "totalMonthly": 2700000,
+        "fixedCosts": 1343773,
+        "personalBudget": 270000,
+        "housingTotal": 100000,
+        "startCash": 2230469,
+        "cardLimit": 540000,
+        "floorSourceId": "livelihood-standard-2026",
+        "housingSnapshot": {
+          "tenure": "own",
+          "rent": 0,
+          "principal": 0,
+          "rateBps": 0,
+          "maintenance": 100000
+        }
+      },
+      "housingOrigin": {
+        "model": "kr-housing-market-2026-v1",
+        "kind": "statistical-game-model",
+        "provinceId": "gyeonggi",
+        "referenceRegionId": "gyeonggi",
+        "period": "2026-01~2026-07",
+        "housingTenure": "own",
+        "housingType": "apartment",
+        "householdSize": 2,
+        "ageBand": "30s",
+        "areaM2": 74,
+        "deposit": 0,
+        "propertyValue": 627000000,
+        "loanRatio": 0,
+        "share": 1,
+        "marketReference": {
+          "scope": "apartment",
+          "rentPerHomeWon": 915000,
+          "rentPer3_3M2Won": 57000,
+          "salePer3_3M2Won": 26240000,
+          "jeonsePer3_3M2Won": 16250000,
+          "maxDepositRentRatio": 26.7
+        },
+        "sourceIds": [
+          "kocer-market-202607",
+          "molit-housing-2024"
+        ],
+        "monthlyRent": 0,
+        "loanPrincipal": 0,
+        "rateBps": 0,
+        "interest": 0,
+        "housingMaintenance": 100000,
+        "total": 100000,
+        "housingAdjustment": null,
+        "note": "시작 당시 자료 참고 게임 계약. 월세는 저보증금 계약 평균 면적단가로 근사하고 10만원 단위로 설정(게임 하한 30만원). 보증금은 월세 12~24개월분을 백만원 단위로 내린 게임 계약 조건이며 실거래 한 쌍이 아님. 주택·전세금·대출은 이미 존재하는 시작 자산과 채무로 현금에 입금하지 않음. 금리 3.5~5%와 연령별 자산·대출비율은 게임 가정. 관리·유지비는 최소 5만원의 게임예산이며 월 주거비 합계를 10만원 단위로 맞춘 잔차 포함."
+      },
+      "housing": "apartment",
+      "housingTenure": "own",
+      "monthlyRent": 0,
+      "housingLoanPrincipal": 0,
+      "housingLoanRateBps": 0,
+      "housingMaintenance": 100000,
+      "region": "town",
+      "transport": "transit",
+      "salary": 0,
+      "externalAllowance": 2700000,
+      "personalBudget": 270000,
+      "fixedCosts": 1343773,
+      "startCash": 2230469,
+      "payDay": 1,
+      "cardLimit": 540000,
+      "preferences": [
+        "photo",
+        "cinema"
+      ],
+      "seed": 121
+    },
+    "presetId": "seeker",
+    "date": "2026-01-04",
+    "weekStart": "2026-01-01",
+    "phase": "review",
+    "stats": {
+      "health": 71.79,
+      "happiness": 68.81,
+      "knowledge": 36.78,
+      "mood": 72.08,
+      "relationship": 59.86,
+      "family": 59.86,
+      "fatigue": 21.67,
+      "preparation": 0,
+      "research": 0,
+      "work": 0
+    },
+    "household": {
+      "cleanliness": 65,
+      "lastCleaned": null
+    },
+    "healthEpisode": null,
+    "finance": {
+      "cash": 3459696,
+      "cardPending": 0,
+      "arrears": 0,
+      "fixedArrears": 0,
+      "pendingPay": 0,
+      "pendingRewards": [],
+      "ledger": [
+        {
+          "id": "tx-1",
+          "date": "2026-01-01",
+          "type": "allowance",
+          "amount": 2700000,
+          "label": "가계 지원·분담금",
+          "method": "",
+          "income": 2700000,
+          "consumption": 0,
+          "paid": 0,
+          "cause": ""
+        },
+        {
+          "id": "tx-2",
+          "date": "2026-01-01",
+          "type": "fixed-cost",
+          "amount": 1443773,
+          "label": "이번 달 필수 고정비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 1443773,
+          "paid": 1443773,
+          "cause": "unavoidable",
+          "unpaid": 0,
+          "livingCosts": 1343773,
+          "rent": 0,
+          "loanInterest": 0,
+          "housingMaintenance": 100000,
+          "housingTenure": "own",
+          "loanPrincipal": 0,
+          "housingLoanRateBps": 0
+        },
+        {
+          "id": "tx-3",
+          "date": "2026-01-01",
+          "type": "purchase",
+          "amount": 12000,
+          "label": "사진 산책",
+          "method": "cash",
+          "income": 0,
+          "consumption": 12000,
+          "paid": 12000,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-4",
+          "date": "2026-01-03",
+          "type": "purchase",
+          "amount": 15000,
+          "label": "영화 보러 가기",
+          "method": "cash",
+          "income": 0,
+          "consumption": 15000,
+          "paid": 15000,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-5",
+          "date": "2026-01-04",
+          "type": "purchase",
+          "amount": 0,
+          "label": "아무것도 안 하는 휴식",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        }
+      ],
+      "processed": {
+        "begin:2026-01-01": true,
+        "fixed:2026-01": true,
+        "end:2026-01-01": true,
+        "begin:2026-01-02": true,
+        "end:2026-01-02": true,
+        "begin:2026-01-03": true,
+        "end:2026-01-03": true,
+        "begin:2026-01-04": true,
+        "end:2026-01-04": true
+      },
+      "currentDate": "2026-01-04",
+      "monthKey": "2026-01",
+      "monthSpent": 27000
+    },
+    "plan": [],
+    "rules": [],
+    "log": [
+      {
+        "id": "log-4",
+        "date": "2026-01-01",
+        "type": "activity",
+        "title": "사진 산책 · 오후",
+        "activityId": "photo",
+        "slot": "afternoon",
+        "minutes": 185,
+        "cost": 12000,
+        "payment": "cash",
+        "effects": {
+          "fatigue": 5,
+          "mood": 7.3500000000000005,
+          "knowledge": 1,
+          "happiness": 3.5
+        },
+        "moodAfter": 67.35,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-5",
+        "date": "2026-01-01",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 69.96,
+          "happiness": 63.3,
+          "knowledge": 35.95,
+          "mood": 66.31,
+          "relationship": 59.96,
+          "family": 59.96,
+          "fatigue": 28.26,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 68.75,
+          "lastCleaned": null
+        },
+        "holiday": "새해 첫날",
+        "isOff": true
+      },
+      {
+        "id": "log-6",
+        "date": "2026-01-02",
+        "type": "weekday",
+        "title": "일자리를 알아보며 하루를 보냈어요.",
+        "role": "seeker",
+        "fatigue": 3
+      },
+      {
+        "id": "log-7",
+        "date": "2026-01-02",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 69.92,
+          "happiness": 63.11,
+          "knowledge": 35.9,
+          "mood": 65.39,
+          "relationship": 59.92,
+          "family": 59.92,
+          "fatigue": 30,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 67.5,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-8",
+        "date": "2026-01-03",
+        "type": "activity",
+        "title": "영화 보러 가기 · 오후",
+        "activityId": "cinema",
+        "slot": "afternoon",
+        "minutes": 190,
+        "cost": 15000,
+        "payment": "cash",
+        "effects": {
+          "fatigue": 2,
+          "mood": 7.3500000000000005,
+          "happiness": 5,
+          "knowledge": 1
+        },
+        "moodAfter": 72.74,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-10",
+        "date": "2026-01-03",
+        "type": "artifact",
+        "title": "영화 감상 카드 #1",
+        "artifactId": "artifact-9",
+        "activityId": "cinema"
+      },
+      {
+        "id": "log-11",
+        "date": "2026-01-03",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 69.88,
+          "happiness": 67.73,
+          "knowledge": 36.84,
+          "mood": 71.16,
+          "relationship": 59.89,
+          "family": 59.89,
+          "fatigue": 30.36,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 66.25,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": true
+      },
+      {
+        "id": "log-12",
+        "date": "2026-01-04",
+        "type": "activity",
+        "title": "아무것도 안 하는 휴식 · 오후",
+        "activityId": "rest",
+        "slot": "afternoon",
+        "minutes": 120,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -17,
+          "mood": 2.6,
+          "health": 2,
+          "happiness": 1.5
+        },
+        "moodAfter": 73.76,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-13",
+        "date": "2026-01-04",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 71.79,
+          "happiness": 68.81,
+          "knowledge": 36.78,
+          "mood": 72.08,
+          "relationship": 59.86,
+          "family": 59.86,
+          "fatigue": 21.67,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 65,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": true
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "artifact-9",
+        "date": "2026-01-03",
+        "activityId": "cinema",
+        "name": "영화 감상 카드",
+        "icon": "🎬",
+        "number": 1,
+        "skill": 6,
+        "season": "winter"
+      }
+    ],
+    "pendingEvent": null,
+    "queue": [],
+    "dayState": {
+      "date": "2026-01-04",
+      "begun": true,
+      "eventHandled": false,
+      "randomChecked": false,
+      "baseDone": true,
+      "done": [
+        "slot-morning",
+        "plan-3",
+        "slot-afternoon",
+        "slot-evening"
+      ],
+      "blocks": {},
+      "extraTravel": 0,
+      "skipWork": false
+    },
+    "skills": {
+      "photo": 6,
+      "cinema": 6,
+      "rest": 6
+    },
+    "activityCounts": {
+      "photo": 1,
+      "cinema": 1,
+      "rest": 1
+    },
+    "flags": {
+      "autoPreparedWeek": "2026-01-01",
+      "autoDirection": "balanced"
+    },
+    "eventHistory": {},
+    "sequence": 13,
+    "weekNumber": 1,
+    "rng": {
+      "external": 2965377384,
+      "followup": 2246822418
+    },
+    "friendPostponements": 0,
+    "lastExternal": null,
+    "review": {
+      "from": "2026-01-01",
+      "to": "2026-01-04",
+      "logs": [
+        {
+          "id": "log-4",
+          "date": "2026-01-01",
+          "type": "activity",
+          "title": "사진 산책 · 오후",
+          "activityId": "photo",
+          "slot": "afternoon",
+          "minutes": 185,
+          "cost": 12000,
+          "payment": "cash",
+          "effects": {
+            "fatigue": 5,
+            "mood": 7.3500000000000005,
+            "knowledge": 1,
+            "happiness": 3.5
+          },
+          "moodAfter": 67.35,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-5",
+          "date": "2026-01-01",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 69.96,
+            "happiness": 63.3,
+            "knowledge": 35.95,
+            "mood": 66.31,
+            "relationship": 59.96,
+            "family": 59.96,
+            "fatigue": 28.26,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 68.75,
+            "lastCleaned": null
+          },
+          "holiday": "새해 첫날",
+          "isOff": true
+        },
+        {
+          "id": "log-6",
+          "date": "2026-01-02",
+          "type": "weekday",
+          "title": "일자리를 알아보며 하루를 보냈어요.",
+          "role": "seeker",
+          "fatigue": 3
+        },
+        {
+          "id": "log-7",
+          "date": "2026-01-02",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 69.92,
+            "happiness": 63.11,
+            "knowledge": 35.9,
+            "mood": 65.39,
+            "relationship": 59.92,
+            "family": 59.92,
+            "fatigue": 30,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 67.5,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-8",
+          "date": "2026-01-03",
+          "type": "activity",
+          "title": "영화 보러 가기 · 오후",
+          "activityId": "cinema",
+          "slot": "afternoon",
+          "minutes": 190,
+          "cost": 15000,
+          "payment": "cash",
+          "effects": {
+            "fatigue": 2,
+            "mood": 7.3500000000000005,
+            "happiness": 5,
+            "knowledge": 1
+          },
+          "moodAfter": 72.74,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-10",
+          "date": "2026-01-03",
+          "type": "artifact",
+          "title": "영화 감상 카드 #1",
+          "artifactId": "artifact-9",
+          "activityId": "cinema"
+        },
+        {
+          "id": "log-11",
+          "date": "2026-01-03",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 69.88,
+            "happiness": 67.73,
+            "knowledge": 36.84,
+            "mood": 71.16,
+            "relationship": 59.89,
+            "family": 59.89,
+            "fatigue": 30.36,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 66.25,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": true
+        },
+        {
+          "id": "log-12",
+          "date": "2026-01-04",
+          "type": "activity",
+          "title": "아무것도 안 하는 휴식 · 오후",
+          "activityId": "rest",
+          "slot": "afternoon",
+          "minutes": 120,
+          "cost": 0,
+          "payment": "cash",
+          "effects": {
+            "fatigue": -17,
+            "mood": 2.6,
+            "health": 2,
+            "happiness": 1.5
+          },
+          "moodAfter": 73.76,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-13",
+          "date": "2026-01-04",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 71.79,
+            "happiness": 68.81,
+            "knowledge": 36.78,
+            "mood": 72.08,
+            "relationship": 59.86,
+            "family": 59.86,
+            "fatigue": 21.67,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 65,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": true
+        }
+      ]
+    }
+  }
+}

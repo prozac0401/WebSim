@@ -18,6 +18,7 @@
     const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],monthlyRent:[0,100000000],housingLoanPrincipal:[0,10000000000],housingLoanRateBps:[0,3000],housingMaintenance:[0,100000000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
     for (const [key,[min,max]] of Object.entries(nums)) if (!Number.isSafeInteger(c[key]) || c[key]<min || c[key]>max) errors.push(key+' 설정 범위를 확인하세요.');
     const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:Object.keys(D.MARITAL_STATUSES),role:Object.keys(D.ROLES),childAge:['none','toddler','preschool','school','teen','adult'],housing:['studio','apartment','shared'],housingTenure:['own','rent','jeonse','unspecified'],region:['city','town','rural'],transport:['walk','transit','car']};
+    if(c.ageHealthModel!=null&&c.ageHealthModel!==D.AGE_HEALTH.MODEL.id)errors.push('건강 설정의 버전을 확인하세요.');
     for (const [key,values] of Object.entries(enums)) if (!values.includes(c[key])) errors.push(key+' 설정을 확인하세요.');
     if(c.housingTenure!=='rent'&&c.monthlyRent!==0)errors.push('월세는 월세 계약에서만 설정할 수 있습니다.');
     if(c.housingTenure==='unspecified'&&(c.housingLoanPrincipal!==0||c.housingLoanRateBps!==0||c.housingMaintenance!==0))errors.push('주거비를 설정하려면 자가·월세·전세 중 주거 계약을 선택하세요.');
@@ -56,7 +57,7 @@
     const errors = validateConfig(merged); if (errors.length) throw new Error(errors.join(' '));
     const date = merged.year+'-01-01';
     return {version:D.VERSION,config:merged,presetId:presetId||merged.role,date,weekStart:date,phase:'planning',
-      stats:{health:70,happiness:60,knowledge:35,mood:60,relationship:60,family:60,fatigue:25,preparation:0,research:0,work:0},household:{cleanliness:70,lastCleaned:null},healthEpisode:null,finance:F.create(merged),plan:[],rules:[],log:[],artifacts:[],
+      stats:{health:D.ageHealthProfile(merged).initialHealth,happiness:60,knowledge:35,mood:60,relationship:60,family:60,fatigue:25,preparation:0,research:0,work:0},household:{cleanliness:70,lastCleaned:null},healthEpisode:null,finance:F.create(merged),plan:[],rules:[],log:[],artifacts:[],
       pendingEvent:null,queue:[],dayState:null,skills:{},activityCounts:{},flags:{},eventHistory:{},sequence:0,weekNumber:1,
       rng:{external:(merged.seed^0x9e3779b9)>>>0,followup:(merged.seed^0x85ebca6b)>>>0},friendPostponements:0,lastExternal:null,review:null};
   }
@@ -64,6 +65,7 @@
   function effect(s,values) {
     for(const [key,val] of Object.entries(values||{})) if(Object.prototype.hasOwnProperty.call(s.stats,key)) {
       let delta=val;
+      if((key==='health'&&val>0)||(key==='fatigue'&&val<0))delta*=D.ageHealthProfile(s.config).recoveryRate;
       // High well-being has diminishing returns; ordinary rest cannot erase all
       // fatigue forever. Progress toward actual exams stays a separate measure.
       if(PUBLIC_STATS.includes(key)&&val>0&&s.stats[key]>75)delta*=Math.max(.05,(100-s.stats[key])/25);
@@ -393,11 +395,12 @@
     s.household.cleanliness=clamp(before-1.25);
     if(before>=35&&s.household.cleanliness<35)log(s,'household','미뤄 둔 청소가 눈에 띄기 시작했습니다. 집을 정돈할 시간이 필요해요.',{cleanliness:s.household.cleanliness});
     const dirt=Math.max(0,(35-s.household.cleanliness)/35),debt=s.finance.arrears+s.finance.fixedArrears>0;
-    const ease=(key,target,rate)=>{s.stats[key]=clamp(s.stats[key]+(target-s.stats[key])*rate);};
+    const profile=D.ageHealthProfile(s.config);
+    const ease=(key,target,rate)=>{const recovery=(key==='health'&&target>s.stats[key])||(key==='fatigue'&&target<s.stats[key]);s.stats[key]=clamp(s.stats[key]+(target-s.stats[key])*rate*(recovery?profile.recoveryRate:1));};
     // These bounded rhythms are game assumptions, not psychological or medical
     // scales. A quiet day does not produce unlimited happiness or full recovery.
     ease('fatigue',28,.10);
-    ease('health',68-15*dirt-Math.max(0,s.stats.fatigue-55)*.18-(s.healthEpisode?.subject==='self'?8:0),.022);
+    ease('health',profile.initialHealth-2-15*dirt-Math.max(0,s.stats.fatigue-55)*.18-(s.healthEpisode?.subject==='self'?8:0),.022);
     ease('happiness',58+(s.stats.health-65)*.12+(s.stats.family-60)*.10+(s.stats.relationship-60)*.10-8*dirt-(debt?5:0),.04);
     ease('mood',58+(s.stats.happiness-60)*.2-Math.max(0,s.stats.fatigue-45)*.15-5*dirt-(debt?3:0),.12);
     ease('knowledge',32,.012);

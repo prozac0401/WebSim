@@ -32,3 +32,7 @@ main{max-width:1220px;padding-top:25px;padding-bottom:30px}.site-header{padding-
 .economy-breakdown{max-width:620px}.economy-breakdown .money-row{font-size:13px;gap:15px}.economy-breakdown .money-row strong{white-space:nowrap}.economy-total{border-top:1px solid var(--line);padding-top:10px;margin-top:7px}.economy-adjust{background:var(--mint);border-radius:10px;padding:12px;margin:16px 0}.economy-adjust .small-note{margin:0 0 10px}.economy-adjust button{font-size:12px;min-height:44px}.finance-income{border-top:1px solid var(--line);margin-top:15px;font-size:12px}.finance-income>summary{cursor:pointer;min-height:44px;display:flex;align-items:center}.finance-income .money-row{font-size:12px}.finance-income a,.housing-settings a{font-size:12px;line-height:1.7}.economy-breakdown .small-note{font-size:12px;line-height:1.7}@media(max-width:700px){.economy-breakdown .money-row{font-size:12px;display:flex;align-items:center}.economy-breakdown .money-row strong{margin:0}.economy-adjust button{width:100%}.life-facts{gap:5px}.life-facts span{font-size:11px}}
 
 .housing-preview>span{display:inline-block;white-space:nowrap}
+
+.life-housing{white-space:pre-line}.housing-cost-rows .money-row>span{max-width:68%;word-break:keep-all}.housing-cost-rows .money-row>strong{white-space:nowrap}
+
+.age-health-details{margin-top:16px}.age-health-details a{font-size:12px;line-height:1.7}

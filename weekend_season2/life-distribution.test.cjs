@@ -32,7 +32,8 @@ test('name, appearance, home and income streams are reproducible and independent
   for(let seed=0;seed<500;seed++){
     const a=D.generateLife(seed),b=D.generateLife(seed);assert.deepEqual(a,b);assert.deepEqual(E.validateConfig(a.config),[]);
     names.add(a.name);faces.add(a.config.appearance.faceShape);hair.add(a.config.appearance.hairStyle);rooms.add(JSON.stringify(a.config.homeStyle));
-    assert.ok(D.DEMOGRAPHICS.surnames.some(s=>D.DEMOGRAPHICS.names.some(n=>s.name+n.name===a.name)));
+    const given=D.NAME_COHORTS.sample(a.config,D.randomStream(seed,'name')).name;
+    assert.ok(D.DEMOGRAPHICS.surnames.some(s=>s.name+given===a.name));
     assert.equal(a.config.province,D.sampleProvince(seed));
     if(seed<4)states.push(E.create(a.config));
   }

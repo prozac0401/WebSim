@@ -194,8 +194,8 @@ test('scene life stages: toddlers, schoolchildren and adult children have separa
   const family=Scene.familyLayout(config,'rest');
   assert.deepEqual(family.children.map(c=>c.ageStage),['toddler','preschool','school','teen','adult','adult']);
   assert.deepEqual(family.children.map(c=>c.age),[1,5,10,17,18,35]);
-  assert.equal(family.children[0].activity,'child-toddler');assert.equal(family.children[5].activity,'child-adult');
-  assert.ok(family.children[5].scale>=.7,'adult children must look grown, at a comparable scale to their parents');
+  assert.equal(family.children[0].activity,'child-crawl');assert.equal(family.children[5].activity,'child-adult');
+  assert.ok(family.children[5].scale>=.82,'adult children must look grown, at a comparable scale to their parents');
   assert.equal(family.children[0].appearance.gender,'woman');assert.equal(family.children[1].appearance.gender,'man');
   const h=drawingHarness(),images=new Set();
   for(const age of [1,5,10,17,24]){h.clear();h.api.attach(h.canvas,{config:{children:1,childProfiles:[{age,gender:'woman',militaryStatus:'none'}]},date:'2026-02-04',artifacts:[]},'rest');images.add(h.snapshot());}

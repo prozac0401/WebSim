@@ -31,7 +31,7 @@
     clay:{wall:'#e8d9c8',floor:'#c7a786',floorLine:'#b89776',trim:'#ab8e70',sofa:'#ba9072',sofaDark:'#a0785d',cushion:'#d1ad86',accent:'#91a485',rug:'#b8b68d',rugInner:'#cecca5',curtain:'#c5b590',curtainLine:'#b2a27c'},
     lavender:{wall:'#e4e0e9',floor:'#cec0ad',floorLine:'#beae9a',trim:'#b5a799',sofa:'#aaa0bb',sofaDark:'#91859f',cushion:'#c4b9cf',accent:'#d4bb82',rug:'#b8bba9',rugInner:'#d0d0bd',curtain:'#c5bdd4',curtainLine:'#aea3c0'}
   };
-  const childScales = { toddler: .23, preschool: .34, school: .44, teen: .53, adult: .7 };
+  const childScales = { toddler: .23, preschool: .34, school: .44, teen: .53, adult: .88 };
   const childStage = age => age <= 2 ? 'toddler' : age <= 6 ? 'preschool' : age <= 12 ? 'school' : age <= 17 ? 'teen' : 'adult';
   function genderKey(value) { return value === 'female' ? 'woman' : value === 'male' ? 'man' : value === 'nonbinary' ? 'other' : Object.hasOwn(avatarStyles, value) ? value : 'unspecified'; }
   function normalizedOptions(raw, keys, defaults) { return Object.fromEntries(keys.map(key=>[key,OPTIONS[key].includes(raw?.[key])?raw[key]:defaults[key]])); }
@@ -46,6 +46,9 @@
   function memberAppearance(config,id) {
     const seed=config.generationSeed??config.seed??0;
     const raw=Object.fromEntries(['faceShape','hairStyle','hairColor','skinTone','outfitPalette'].map(key=>[key,OPTIONS[key][visualHash(seed,id+':'+key)%OPTIONS[key].length]]));
+    // A shared drawing palette makes a family visually coherent. It is a visual
+    // convention, not a claim about ancestry, ethnicity or biological parentage.
+    if(id.startsWith('child-'))raw.skinTone=appearance(config).skinTone;
     return appearance({...config,gender:'unspecified',appearance:raw});
   }
   function homeStyle(config={}) {
@@ -55,7 +58,7 @@
     const furniture=[{id:'sofa',left:64,top:330,right:267,bottom:439},{id:'table',left:503,top:348,right:654,bottom:443},{id:'plant-or-instrument',left:!legacy&&values.decor==='music'?671:679,top:!legacy&&values.decor==='music'?250:264,right:731,bottom:426},{id:'toys',left:99,top:437,right:137,bottom:475},{id:'shoes',left:674,top:459,right:732,bottom:471}].map(box=>mirrored?{...box,left:760-box.right,right:760-box.left}:box);
     return {legacy,...values,colors:roomPalettes[values.palette],mirrored,furnitureBounds:furniture};
   }
-  function bounds(person) { const reach=person.activity==='draw'?72:48, high=person.appearance.options?93:74;return {left:person.x-(person.facing===-1?reach:48)*person.scale,top:person.y-high*person.scale,right:person.x+(person.facing===-1?48:reach)*person.scale,bottom:person.y+112*person.scale}; }
+  function bounds(person) { if(person.pose==='crawl')return {left:person.x-60*person.scale,top:person.y-52*person.scale,right:person.x+60*person.scale,bottom:person.y+26*person.scale};const reach=person.activity==='draw'?72:48, high=person.appearance.options?93:74;return {left:person.x-(person.facing===-1?reach:48)*person.scale,top:person.y-high*person.scale,right:person.x+(person.facing===-1?48:reach)*person.scale,bottom:person.y+112*person.scale}; }
   function familyLayout(config = {}, activity = 'rest', lifeState = {}) {
     const number = Number(config.children), children = Number.isFinite(number) ? Math.max(0, Math.min(6, Math.floor(number))) : 0;
     const maritalStatus = ['single','married','divorced','widowed','unspecified'].includes(config.maritalStatus) ? config.maritalStatus : 'unspecified';
@@ -66,24 +69,29 @@
     if (spouse) spouse.bounds = bounds(spouse);
     const palette = ['#d0a15f', '#8fa8a3', '#bc8582', '#a0ad7f', '#b796b1', '#84a3b5'];
     const profiles = Array.isArray(config.childProfiles) && config.childProfiles.length === children ? config.childProfiles : null;
+    const hasAdult=profiles?profiles.some(profile=>profile.age>=18):ageStage==='adult';
     const awayChildren = [];
     const childFigures = Array.from({ length: children }, (_, index) => {
       const profile=profiles?.[index],stage=profile?childStage(profile.age):ageStage;
       const modern=!!profile||!!config.appearance||['adult','toddler'].includes(stage);
-      const scale = modern ? {toddler:.22,preschool:.32,school:.4,teen:.48,adult:.7}[stage] : childScales[stage];
+      const crawling=profile?profile.age<=1:stage==='toddler';
+      const scale = crawling ? .6 : modern ? {toddler:.22,preschool:.32,school:.4,teen:.48,adult:.88}[stage] : childScales[stage];
       const onLeave=profile?.militaryStatus==='serving'&&lifeState.flags?.militaryChildIndex===index&&!!lifeState.flags?.militaryLeaveUntil&&lifeState.flags.militaryLeaveUntil>=(lifeState.date||'2026-01-01');
       const memberStyle=config.appearance?memberAppearance(config,'child-'+(index+1)):{gender:'unspecified',hair:index%2?'side-wave':'rounded-crop',hairColor:index%2?'#695342':'#55483c',top:palette[index],trim:'#f1ddba'};
       if(profile){memberStyle.gender=genderKey(profile.gender);if(!config.appearance)memberStyle.hair=avatarStyles[memberStyle.gender].hair;}
       if(onLeave){memberStyle.top='#71816a';memberStyle.trim='#c6c6a0';}
-      const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage:stage, ...(profile?{age:profile.age,gender:profile.gender,militaryStatus:profile.militaryStatus,onLeave}:{}), x: 397 + (index - (children - 1) / 2) * 74, y: (stage==='adult'?546:542) - 112 * scale, scale,
-        activity: onLeave?'child-leave':stage==='adult'?'child-adult':stage==='toddler'?'child-toddler':activity === 'care' || stage !== 'preschool' ? 'child-book' : 'child-play',
+      const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage:stage, ...(profile?{age:profile.age,gender:profile.gender,militaryStatus:profile.militaryStatus,onLeave}:{}), x: (hasAdult?400:397) + (index - (children - 1) / 2) * (hasAdult?88:74), y: (stage==='adult'?546:542) - (crawling?26:112) * scale, scale, ...(crawling?{pose:'crawl'}:{}),
+        activity: onLeave?'child-leave':stage==='adult'?'child-adult':crawling?'child-crawl':stage==='toddler'?'child-toddler':activity === 'care' || stage !== 'preschool' ? 'child-book' : 'child-play',
         appearance:memberStyle };
       if(profile?.militaryStatus==='serving'&&!onLeave){awayChildren.push({id:child.id,name:child.name,age:profile.age,gender:profile.gender,militaryStatus:'serving',reason:'군 복무 중',onLeave:false});return null;}
       child.bounds = bounds(child); return child;
     }).filter(Boolean);
     // Grown children stand in the foreground. Move the parents farther into the room
     // so all silhouettes stay separate, including a household with six adult children.
-    if(childFigures.some(child=>child.ageStage==='adult')){player.y=288;player.bounds=bounds(player);if(spouse){spouse.y=288;spouse.bounds=bounds(spouse);}}
+    if(childFigures.some(child=>child.ageStage==='adult'))for(const parent of [player,...(spouse?[spouse]:[])]){
+      const inFront=childFigures.filter(child=>parent.bounds.left<child.bounds.right&&parent.bounds.right>child.bounds.left&&parent.bounds.bottom>child.bounds.top);
+      if(inFront.length){parent.y=Math.min(parent.y,Math.min(...inFront.map(child=>child.bounds.top))-112*parent.scale-8);parent.bounds=bounds(parent);}
+    }
     if(lifeState.healthEpisode?.subject==='self')player.ill=true;
     if(lifeState.flags?.recoveryUntil>=(lifeState.date||'2026-01-01'))player.recovering=lifeState.flags.recoveryCause||'low_condition_week';
     if(lifeState.healthEpisode?.subject==='child'){const child=childFigures.find(p=>p.id==='child-'+(lifeState.healthEpisode.childIndex+1));if(child)child.ill=true;}
@@ -167,7 +175,25 @@
     if(kind==='square'){shape(-27,-63,54,57,skin.face,11);return;}
     c.fillStyle=skin.face;c.beginPath();c.moveTo(0,-65);c.bezierCurveTo(29,-67,35,-46,25,-29);c.quadraticCurveTo(18,-12,0,-3);c.quadraticCurveTo(-18,-12,-25,-29);c.bezierCurveTo(-35,-46,-29,-67,0,-65);c.closePath();c.fill();
   }
-  function character(activity, person) { const c = context; const resting = activity === 'rest'; const walk = ['walk', 'run', 'pt', 'garden'].includes(activity); const wave = reduced.matches || person.kind !== 'player' ? 0 : Math.sin(elapsed / 470); const style = person.appearance, skin=style.skin||{face:'#e4ba8e',limb:'#dba77e',neck:'#d8ac7e',blush:'#d89476'}; c.save(); c.translate(person.x, person.y + (walk ? wave * 2 : wave * .5)); c.scale(person.scale*(person.facing||1), person.scale);
+  function crawlingChild(person){
+    const c=context,style=person.appearance,skin=style.skin||{face:'#e4ba8e',limb:'#dba77e',blush:'#d89476'};
+    const motion=reduced.matches?0:Math.sin(elapsed/430),drift=reduced.matches?0:Math.sin(elapsed/1100)*4;
+    c.save();c.translate(person.x,person.y);c.scale(person.scale*(person.facing||1),person.scale);c.translate(drift,0);
+    ellipse(-2,19,44,5,'#9f9d7b35');
+    // Knees and palms stay near the floor; the alternating motion is entirely visual.
+    line([[-22,-4],[-29-motion*4,9],[-40-motion*3,16]],style.top,12);
+    line([[10,-6],[14+motion*4,8],[24+motion*3,17]],skin.limb,9);
+    ellipse(-8,-9,27,16,style.top,-.1);line([[-23,-12],[4,-16]],style.trim,4);
+    line([[-13,0],[-13+motion*4,12],[-23+motion*3,19]],style.top,12);
+    line([[16,-4],[28-motion*4,9],[37-motion*3,18]],skin.limb,10);
+    ellipse(27,-26+motion*.8,19,21,skin.face,.1);
+    line([[15,-43+motion*.8],[23,-47+motion*.8],[31,-45+motion*.8]],style.hairColor,3);
+    ellipse(33,-28+motion*.8,1.5,2,'#574a3b');ellipse(38,-21+motion*.8,3,2,skin.blush);
+    line([[36,-16+motion*.8],[39,-15+motion*.8]],'#a16c50',1.5);
+    if(person.ill){shape(15,-39,25,6,'#d1ded6',2);line([[19,-36],[35,-36]],'#edf1e5',1.5);}
+    c.restore();
+  }
+  function character(activity, person) { if(person.pose==='crawl'){crawlingChild(person);return;}const c = context; const resting = activity === 'rest'; const walk = ['walk', 'run', 'pt', 'garden'].includes(activity); const wave = reduced.matches || person.kind !== 'player' ? 0 : Math.sin(elapsed / 470); const style = person.appearance, skin=style.skin||{face:'#e4ba8e',limb:'#dba77e',neck:'#d8ac7e',blush:'#d89476'}; c.save(); c.translate(person.x, person.y + (walk ? wave * 2 : wave * .5)); c.scale(person.scale*(person.facing||1), person.scale);
     ellipse(0, 102, 42, 9, '#9f9d7b35');
     line(resting ? [[-10,54],[-26,68],[-25,95],[-35,97]] : [[-10, 54], [-13 + (walk ? wave * 8 : 0), 92], [-28 + (walk ? wave * 8 : 0), 94]], '#54645b', 14);
     line(resting ? [[12,54],[30,68],[31,95],[41,97]] : [[12, 54], [20 - (walk ? wave * 8 : 0), 91], [32 - (walk ? wave * 8 : 0), 93]], '#54645b', 14);
