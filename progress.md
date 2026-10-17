@@ -528,3 +528,10 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 - FinalNode354/354passed. Municipalbrowser5, categories5,parenting6, graduate6 andlifecycle5 passed; oldplanner4passed. Independent reviewfoundno blockers and additionallychecked cancellation, same-dayslotorder, equaleventexpiry andyear-end recovery/saving. Corebrowser/real-timerautomatic andproceduresbrowser finalchecks inprogress.
 
 - Final Chromium core17/17, timer-drivenautomatic4/4, sharedplanner4/4, andcosmetic5/5 passed withno consoleerrors. Original develop-web-game client rerun and screenshot/state inspected afterfinalruntimechanges. Older automatictest wronglytreated2028asunknownholidayyear; fixture nowchecks2029unknown plusverified2028leap-yearplay withoutweakeningits366-dayassertion. Readyforauthorizedmain/Pagespublication.
+
+
+## 2026-10-17 시작 연도와 주인공 나이 연동
+- User requested protagonist age to change with the first-screen year selection. Preserve birth year through year deltas and round trips; fresh rerolls/presets remain new people at chosen year. Child settings and historical saves stay unchanged.
+- Reuse setup preview age-dependent economy/health refresh, preserve manually entered money and name, update embedded introduction age, and separate18–100 validation from thegraduate46guard. Browser boundary/save checks inprogress; priorpublishauthorization persists.
+
+- Verified26/26 Chromiumgroups acrossnewyear-age5, current-year5, precisemoney5, family-housing6 andlifecycle5; consoleerrors0. Newtests cover40→41→50→40, manualageanchor, freshpersonanchor, actualintro, scene/health/incomebands, unchangedchildren, precisemoney, savedlife, mobilefocus, signednegative and101age reversals, graduate46/47. Originalgameclient completed and screenshot/state inspected. Updatedfamilynamefixture forpreservedbirthyear andoldermoneyfixture toincludechosenmunicipality. Syntax anddiff checks pass; publishingauthorizedscopedchange.

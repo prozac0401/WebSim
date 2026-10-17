@@ -430,7 +430,12 @@
     stopAutomatic(); const form=$('#setup-form');
     if(form)$$('[data-money-won]',form).forEach(normalizeMoneyInput);
     config=readConfig();syncRoleAgeLimit();
-    if(!S2Data.roleAvailableForNewLife(config.role,config.age)){
+    if(!Number.isInteger(config.age)||config.age<18||config.age>100){
+      openPanels.add('advanced-settings');$('#advanced-settings').open=true;
+      announce('새 삶은 18~100세로 시작할 수 있어요. 연도 또는 나이를 조정해 주세요.',true);
+      $('#setup-form [name=age]')?.focus();return;
+    }
+    if(config.role==='graduate'&&!S2Data.roleAvailableForNewLife(config.role,config.age)){
       openPanels.add('advanced-settings');$('#advanced-settings').open=true;
       announce('대학원생은 46세까지 새로 시작할 수 있어요. 나이 또는 생활 역할을 조정해 주세요.',true);
       $('#setup-form [name=age]')?.focus();return;
@@ -477,7 +482,15 @@
     click('[data-preset]',(_,el)=>{const p=presets.find(p=>p.id===el.dataset.preset);config=clone(p.config);config.year=chosenYear;normalizeSetupGenders();presetId=p.id;config.personaName=config.personaName||({worker:'서윤',seeker:'지후',graduate:'하린',caregiver:'도윤'}[config.role]);config.lifeIntro=config.lifeIntro||p.description;refreshSetupName();openPanels.add('advanced-settings');render();});
     click('#reroll-life',()=>{stopAutomatic();freshLife();render();announce('새로운 가상의 삶을 만났어요.');});
     click('#start-btn',startLife);
-    $('#start-year')?.addEventListener('change',event=>{chosenYear=Number(event.target.value);config.year=chosenYear;refreshSetupName();render();});
+    $('#start-year')?.addEventListener('change',event=>{
+      config=readConfig();
+      const nextYear=Number(event.target.value),delta=nextYear-config.year;
+      // A year change keeps this person's birth year. Rerolls and presets start
+      // a new person at the chosen year; manual age edits establish a new anchor.
+      config.age+=delta;config.year=chosenYear=nextYear;
+      const age=$('#setup-form [name=age]');if(age)age.value=String(config.age);
+      updateSetupPreview({target:{name:'year'}});render();
+    });
     const updateSetupPreview=event=>{
       const oldChildren=config.children,oldChildAge=config.childAge,oldMoney=Object.fromEntries([...moneyFields,'housingLoanRateBps'].map(key=>[key,config[key]]));
       config=readConfig();const changed=event?.target?.name;syncRoleAgeLimit();
@@ -498,7 +511,7 @@
         syncSubregionField();
       }
       if(changed==='subregionId')config.residenceOrigin='custom';
-      const conditions=['age','role','children','childAge','maritalStatus','province','subregionId','housing','housingTenure'];
+      const conditions=['year','age','role','children','childAge','maritalStatus','province','subregionId','housing','housingTenure'];
       if(config.economicProfile?.active&&(conditions.includes(changed)||changed?.startsWith('child-'))&&readyForEconomy(config)){
         const beforeHousing=config.housing;
         S2Data.assignLifeEconomy(config,{preserveTenure:true});syncEconomyInputs();
@@ -517,11 +530,12 @@
       const housingBasis=$('#housing-basis');if(housingBasis)housingBasis.innerHTML=housingBasisHTML(config);
       const budget=$('#economy-breakdown');if(budget)budget.innerHTML=economyBreakdownHTML(config);
       const modeNote=$('#economy-mode-note');if(modeNote)modeNote.textContent=economyModeText(config);
-      if(['age','gender'].includes(changed))refreshSetupName();
+      if(['year','age','gender'].includes(changed))refreshSetupName();
       const nameHeading=$('.meeting-intro h1 strong');if(nameHeading)nameHeading.textContent=config.personaName;
       const family=familyText(config);
       const favorites=(config.preferences||[]).slice(0,2).map(id=>activity(id)?.name).filter(Boolean).join(', ');
-      config.lifeIntro=`${config.province==='unspecified'?'':residenceLabel(config)+' · '}${housingLabels[config.housing]}에서 ${roleLabels[config.role]}의 일과를 보내고 있습니다. ${config.children?`${config.maritalStatus==='divorced'?'이혼 후 ':config.maritalStatus==='widowed'?'사별 후 ':''}자녀 ${config.children}명과 함께 생활하며 돌봄을 ${config.careShare}% 분담합니다.`:config.maritalStatus==='divorced'?'이혼 후 나만의 생활 리듬을 만들어 갑니다.':config.maritalStatus==='widowed'?'사별 후 나만의 생활 리듬을 만들어 갑니다.':'일상 사이에 나를 위한 시간을 찾아갑니다.'}${favorites?` ${favorites} 같은 작은 즐거움을 이어가고 싶습니다.`:''}`;
+      if(changed==='year')config.lifeIntro=config.lifeIntro.replace(/^([^,]+), -?\d+세\./,(_,name)=>`${name}, ${config.age}세.`);
+      else config.lifeIntro=`${config.province==='unspecified'?'':residenceLabel(config)+' · '}${housingLabels[config.housing]}에서 ${roleLabels[config.role]}의 일과를 보내고 있습니다. ${config.children?`${config.maritalStatus==='divorced'?'이혼 후 ':config.maritalStatus==='widowed'?'사별 후 ':''}자녀 ${config.children}명과 함께 생활하며 돌봄을 ${config.careShare}% 분담합니다.`:config.maritalStatus==='divorced'?'이혼 후 나만의 생활 리듬을 만들어 갑니다.':config.maritalStatus==='widowed'?'사별 후 나만의 생활 리듬을 만들어 갑니다.':'일상 사이에 나를 위한 시간을 찾아갑니다.'}${favorites?` ${favorites} 같은 작은 즐거움을 이어가고 싶습니다.`:''}`;
       syncSetupActivityChoices();
       S2Scene.update({config,date:`${config.year}-01-01`,artifacts:[]},'rest');
       const caption=$('.scene-caption strong');if(caption)caption.textContent=housingCaption(config);
@@ -595,7 +609,7 @@
   document.addEventListener('keydown',event=>{if(event.key.toLowerCase()==='f'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)){event.preventDefault();if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>{});}});
   window.addEventListener('pagehide',()=>stopAutomatic());
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&autoPlaying){stopAutomatic('다시 돌아왔을 때 이어갈 수 있도록 멈췄어요.');render();}});
-  window.render_game_to_text=()=>JSON.stringify({generation:((c)=>({model:c.generationModel,province:c.province,subregionId:c.subregionId||'',residenceLabel:residenceLabel(c),residenceOrigin:c.residenceOrigin,incomeOrigin:c.incomeOrigin,economicProfile:c.economicProfile,housingOrigin:c.housingOrigin,appearance:c.appearance,homeStyle:c.homeStyle}))(state?.config||config),autoPlaying,automatic:{active:autoPlaying,running:autoPlaying&&!autoWaiting,awaitingDecision:autoWaiting,decisions:state?.flags?.autoDecisions||'auto',recentNarration:autoNarration},direction,persona:state?.config?.personaName||config.personaName,gender:state?.config?.gender||config.gender,maritalStatus:state?.config?.maritalStatus||config.maritalStatus,mode:state?.phase||'setup',draftAvailability:S2PlannerBridge.completionStatus(state),year:state?.config?.year||config.year,date:state?.date,presetId,tab,selectedActivity:selected,payment,stats:state?.stats,ageHealth:previewAgeHealth(state?.config||config),preferences:state?.config?.preferences||config.preferences,household:state?.household,healthEpisode:state?.healthEpisode,cosmeticRecovery:state?.flags?.cosmeticRecoveryUntil?{until:state.flags.cosmeticRecoveryUntil,activityId:state.flags.cosmeticRecoveryActivity,active:state.flags.cosmeticRecoveryUntil>=state.date}:null,finance:state?financeSummary():null,housing:{...housingCosts(state?.config||config),monthly:monthlyCosts(state?.config||config)},plan:state?.plan,pendingEvent:state?.pendingEvent?{title:state.pendingEvent.title,date:state.pendingEvent.date,choices:state.pendingEvent.choices.map(c=>({id:c.id,label:c.label}))}:null,reservations:state?reservations():[],artifactCount:state?.artifacts.length||0,logCount:state?.log.length||0,scene:S2Scene.describe()});
+  window.render_game_to_text=()=>JSON.stringify({generation:((c)=>({model:c.generationModel,province:c.province,subregionId:c.subregionId||'',residenceLabel:residenceLabel(c),residenceOrigin:c.residenceOrigin,incomeOrigin:c.incomeOrigin,economicProfile:c.economicProfile,housingOrigin:c.housingOrigin,appearance:c.appearance,homeStyle:c.homeStyle}))(state?.config||config),autoPlaying,automatic:{active:autoPlaying,running:autoPlaying&&!autoWaiting,awaitingDecision:autoWaiting,decisions:state?.flags?.autoDecisions||'auto',recentNarration:autoNarration},direction,persona:state?.config?.personaName||config.personaName,gender:state?.config?.gender||config.gender,maritalStatus:state?.config?.maritalStatus||config.maritalStatus,mode:state?.phase||'setup',age:(state?.config||config).age,birthYear:(state?.config||config).year-(state?.config||config).age,draftAvailability:S2PlannerBridge.completionStatus(state),year:state?.config?.year||config.year,date:state?.date,presetId,tab,selectedActivity:selected,payment,stats:state?.stats,ageHealth:previewAgeHealth(state?.config||config),preferences:state?.config?.preferences||config.preferences,household:state?.household,healthEpisode:state?.healthEpisode,cosmeticRecovery:state?.flags?.cosmeticRecoveryUntil?{until:state.flags.cosmeticRecoveryUntil,activityId:state.flags.cosmeticRecoveryActivity,active:state.flags.cosmeticRecoveryUntil>=state.date}:null,finance:state?financeSummary():null,housing:{...housingCosts(state?.config||config),monthly:monthlyCosts(state?.config||config)},plan:state?.plan,pendingEvent:state?.pendingEvent?{title:state.pendingEvent.title,date:state.pendingEvent.date,choices:state.pendingEvent.choices.map(c=>({id:c.id,label:c.label}))}:null,reservations:state?reservations():[],artifactCount:state?.artifacts.length||0,logCount:state?.log.length||0,scene:S2Scene.describe()});
   window.advanceTime=ms=>S2Scene.advance(ms);
   render();
 })();

@@ -97,13 +97,13 @@ fs.mkdirSync(output,{recursive:true});
     await fresh(false);
     await page.locator('[name=province]').selectOption('seoul');
     await page.locator('[name=role]').selectOption('worker');
-    const expected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.role='worker';S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
+    const expected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.subregionId=S2Data.sampleSubregion(c.generationSeed??c.seed,c.province);c.role='worker';S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
     for(const key of ['salary','externalAllowance']){
       assert.equal(await page.locator(`[name=${key}]`).getAttribute('data-money-won'),String(expected[key]));
       assert.equal(await page.locator(`[name=${key}]`).inputValue(),String(Math.round(expected[key]/1000)/10));
     }
     await page.locator('[name=age]').fill('65');
-    const ageExpected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.role='worker';c.age=65;S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
+    const ageExpected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.subregionId=S2Data.sampleSubregion(c.generationSeed??c.seed,c.province);c.role='worker';c.age=65;S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
     for(const key of ['salary','externalAllowance']){assert.equal(await page.locator(`[name=${key}]`).getAttribute('data-money-won'),String(ageExpected[key]));assert.equal(await page.locator(`[name=${key}]`).inputValue(),String(Math.round(ageExpected[key]/1000)/10));}
     await page.locator('#custom-start-btn').click();record=await saved();assert.equal(record.ok,true,record.reason);
     assert.equal(record.state.config.salary,ageExpected.salary);assert.equal(record.state.config.externalAllowance,ageExpected.externalAllowance);
