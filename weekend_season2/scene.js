@@ -21,7 +21,9 @@
     decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']
   });
   const hairColors={espresso:'#423b34',chestnut:'#79513b',honey:'#b58b4d',slate:'#595f67',silver:'#a4a69d'};
-  const skinColors={ivory:{face:'#edc9a6',limb:'#e3b892',blush:'#dba294'},warm:{face:'#dfb184',limb:'#d49f73',blush:'#c8856f'},tan:{face:'#bd895f',limb:'#ab7752',blush:'#a96854'},deep:{face:'#855b43',limb:'#724b38',blush:'#9f6853'}};
+  // Keep the saved palette keys and seeded choices; only the drawing colors change.
+  // Four close shades range from light beige to a slightly sun-tanned warm tone.
+  const skinColors={ivory:{face:'#f2d5b7',limb:'#eac8a8',blush:'#dfa899'},warm:{face:'#e8c5a1',limb:'#dfb891',blush:'#d69b86'},tan:{face:'#ddb58c',limb:'#d3a77d',blush:'#ca9078'},deep:{face:'#d0a179',limb:'#c5936b',blush:'#be826b'}};
   const outfitColors={moss:{top:'#7f916b',trim:'#e5d5ab'},terracotta:{top:'#bc7959',trim:'#f0d6ac'},indigo:{top:'#687995',trim:'#d3d8c3'},rose:{top:'#b67d86',trim:'#f1d4bb'},mustard:{top:'#bb994e',trim:'#f0e2be'},teal:{top:'#5f918b',trim:'#e5d2ab'}};
   const roomPalettes={
     oat:{wall:'#ece8d7',floor:'#d4c49f',floorLine:'#c7b790',trim:'#c0b38e',sofa:'#b7c2a7',sofaDark:'#9eae93',cushion:'#c8d0b3',accent:'#deb786',rug:'#b8c0a1',rugInner:'#c7cbb0',curtain:'#c6cfb7',curtainLine:'#b8c4a8'},
