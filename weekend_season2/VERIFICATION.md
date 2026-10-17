@@ -10,7 +10,8 @@
 - 전체 시즌2 Node **279 PASS / 0 FAIL**. 완주 관련18개는 실제 엔진으로 끝낸365/366일 자료를 사용합니다. 독립 검토는2100년365일, 누락·중복·잘못된 완료 정보와 부작용 없는 차단도 확인했습니다.
 - Chromium **32개 묶음 PASS / 오류0**: 기존17, 완주 연결6, 역할별 완료기록/평균5, 기존43개 활동 추가·편집4. 원본 게임 개발 클라이언트와390px 화면도 확인했습니다.
 - 94개 정적 자산 경로와 대소문자 확인, 캐시 버전completed-year3 갱신, 원본 작업 폴더 보존. 증거: `output/completed-year-node-final.txt`, `output/playwright/completed-year-regression/`, `completed-year-client/`, `weekend-life-plan/`, `weekend-planner-variety/`, `weekend-planner-activities/`.
-- GitHub Pages는 기존main 브랜치 루트 경로를 사용합니다. 공개 배포 검증은 업로드 후 기록합니다.
+- 배포 직전 다른 작업의2028년 공휴일 변경(cf77b34)이 들어와 보존·통합했습니다. 두 문서 기록과 모든 스크립트를 유지하고 calendar 캐시만 새 버전으로 연결했습니다. 통합 후 관련 Node65/65와 실제 Chromium 완주 연결6/6을 다시 확인했습니다.
+- GitHub Pages는 기존main 브랜치 루트 경로를 사용합니다. 공개 배포 확인은 업로드 후 `output/completed-year-deployment.json`과 공개 브라우저 결과에 기록합니다.
 
 ## 2026-10-17 토요일·일요일 추정 일정 다양화
 
@@ -57,6 +58,16 @@
 - 초기 회귀에서 모바일 화면 길이 제한을 넘는 문제가 발견되어 안내를 접었고, 새 모바일 검사에서 1450px 이내를 확인했습니다. 평균30분 블록의 글자 잘림도 수정 후 화면을 다시 확인했습니다.
 
 로컬 전용 변경이며 공개 배포는 실행하지 않았습니다. 검증 증거는 `output/playwright/weekend-life-plan/`, `weekend-bridge-regression-final/`, `bridge-game-client-final/` 및 `output/weekend-bridge-node-final.txt`에 있습니다. 실물 모바일·Firefox·Safari·스크린리더와 공개 배포 확인은 NOT RUN입니다.
+
+## 2026-10-17 2028년 KASI 공휴일
+
+- Workspace API 수집 2026-10-11T02:58:16.614Z, snapshot c33e39ac-d0d3-42f8-a493-ede4d4784195: ready/complete, 12개월 성공, 19건. KASI 현재 2028 달력자료 V1.0a(2026-06-30)와 날짜·명칭 일치. 공식 월력요항 발표 전 상태를 UI·출처에 표시.
+- 18개 날짜, 10월3일 개천절·추석 명칭 보존, 대체10월5일/선거4월12일 포함. 주말 포함123일. 2029~2100 미확인 유지.
+- PASS262/FAIL0: `node --test weekend_season2/*.test.cjs`. 공휴일 전체 목록, 평일 낮 슬롯·자동 배치, 네 역할366일·매주 정확 저장복원·복원 이후 동일 진행·윤일·월말·연말·기존 저장 회귀 포함.
+- PASS7/FAIL0: `node --test tests/new-labs.test.cjs tests/preset-scenes.test.cjs`.
+- Chromium 미설치로 기존 브라우저 검사는 시작되지 못함. 다운로드도 유효한 브라우저 파일을 받지 못함. 실제 화면 조작 검증으로 보고하지 않음.
+- 저장 형식/엔진/기존 데이터 파일 변경 없음. 기존2028 저장은 기록을 유지하며 이후 진행의 휴일 판정에는 새 표를 사용. `calendar.js` 캐시 URL 갱신.
+
 
 ## 2026-10-17 피부 팔레트 범위 조정
 
