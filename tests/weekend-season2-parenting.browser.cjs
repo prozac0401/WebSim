@@ -50,7 +50,7 @@ async function quickAdd(page,id) {
     for(const age of [2,6,12,13]) {
       await desktop.locator('[name="child-age-0"]').fill(String(age));
       const eligible=bands.filter(band=>age>=band.ages[0]&&age<=band.ages[1]).flatMap(band=>band.ids);
-      for(const id of ids)assert.equal(await desktop.locator(`#setup-form [name="preferences"][value="${id}"]`).isDisabled(),!eligible.includes(id),`setup age ${age} preference ${id}`);
+      for(const id of ids){const field=desktop.locator(`#setup-form [name="preferences"][value="${id}"]`);assert.equal(await field.count(),eligible.includes(id)?1:0,`setup age ${age} preference ${id}`);if(eligible.includes(id))assert.equal(await field.isDisabled(),false);}
     }
     for(const ages of [[0],[2],[3],[6],[7],[12],[13],[]]) {
       await loadLife(desktop,ages);
@@ -58,18 +58,16 @@ async function quickAdd(page,id) {
       assert.deepEqual((await desktop.locator('[data-parenting-add]').evaluateAll(items=>items.map(item=>item.dataset.parentingAdd))).sort(),eligible.slice().sort());
       for(const id of ids) {
         const enabled=eligible.includes(id);
-        assert.equal(await desktop.locator(`[data-auto-preference="${id}"]`).isDisabled(),!enabled,`age ${ages} preference ${id}`);
-        assert.equal(await desktop.locator(`#quick-activity option[value="${id}"]`).evaluate(option=>option.disabled),!enabled,`age ${ages} quick option ${id}`);
-        assert.equal(await desktop.locator(`[data-activity="${id}"]`).isDisabled(),!enabled,`age ${ages} manual card ${id}`);
+        for(const selector of [`[data-auto-preference="${id}"]`,`#quick-activity option[value="${id}"]`,`[data-activity="${id}"]`]){const item=desktop.locator(selector);assert.equal(await item.count(),enabled?1:0,`age ${ages} ${selector}`);if(enabled)assert.equal(await item.isDisabled(),false);}
       }
       if(ages[0]===0){
         await click(desktop,'.tab[data-tab="routines"]');
-        for(const id of ids)assert.equal(await desktop.locator(`#rule-form [name="activityId"] option[value="${id}"]`).evaluate(option=>option.disabled),!eligible.includes(id));
+        for(const id of ids){const item=desktop.locator(`#rule-form [name="activityId"] option[value="${id}"]`);assert.equal(await item.count(),eligible.includes(id)?1:0);if(eligible.includes(id))assert.equal(await item.isDisabled(),false);}
         await click(desktop,'.tab[data-tab="planner"]');
         await reveal(desktop,desktop.locator('[data-parenting-add="baby_feed"]'));await shot(desktop,'infant-choices-desktop');
       }
     }
-    pass('ages 0/2, 3/6 and 7/12 enable only their three parenting tasks; age 13 and no children disable all nine across quick, preference and manual controls');
+    pass('ages 0/2, 3/6 and 7/12 show only their three parenting tasks; age 13 and no children hide all nine across quick, preference and manual controls');
 
     await loadLife(desktop,[1,5,10]);
     assert.equal(await desktop.locator('[data-parenting-add]').count(),9);

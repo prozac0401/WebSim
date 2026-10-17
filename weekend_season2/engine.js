@@ -30,6 +30,7 @@
     if(typeof c.personaName!=='string'||c.personaName.length>40||typeof c.lifeIntro!=='string'||c.lifeIntro.length>600)errors.push('가상 인물 소개를 확인하세요.');
     if(c.generationSeed!==null&&(!Number.isInteger(c.generationSeed)||c.generationSeed<0||c.generationSeed>4294967295))errors.push('인생 배정 시드를 확인하세요.');
     if(c.province!=='unspecified'&&!D.DEMOGRAPHICS.regions.some(r=>r.id===c.province))errors.push('거주 시·도를 확인하세요.');
+    if(c.subregionId!=null&&c.subregionId!==''&&D.SUBREGIONS.byId(c.subregionId)?.provinceId!==c.province)errors.push('거주 구·시·군과 시·도가 일치하는지 확인하세요.');
     if(![null,'population','custom'].includes(c.residenceOrigin))errors.push('거주지 배정 근거를 확인하세요.');
     for(const [key,options] of [['appearance',D.APPEARANCE_OPTIONS],['homeStyle',D.HOME_OPTIONS]]){
       const value=c[key];if(value===null)continue;
@@ -94,6 +95,33 @@
     return {allowed:nextDate===date,nextDate,label:cadence.label};
   }
   function activityCadence(s,id,date=s.date) {return cadenceCheck(s,id,date,null);}
+  function procedureRecords(s,ignorePlanId,includePlans=true){
+    const actual=s.log.filter(item=>item.type==='activity'&&D.ACTIVITY_MAP[item.activityId]?.procedure);
+    const planned=includePlans?s.plan.filter(item=>item.id!==ignorePlanId&&D.ACTIVITY_MAP[item.activityId]?.procedure):[];
+    return [...actual,...planned].filter(item=>C.validDate(item.date));
+  }
+  function afterProcedure(date,slot,record){return date>record.date||date===record.date&&SLOT_IDS.indexOf(slot)>=SLOT_IDS.indexOf(record.slot||'morning');}
+  function availability(s,id,date,slot,ignoreId,includePlans){
+    const a=D.ACTIVITY_MAP[id];
+    if(!a||!C.validDate(date)||!SLOT_IDS.includes(slotId(slot)))return {allowed:false,reason:'활동과 날짜·시간을 확인하세요.',cause:'invalid',nextDate:null};
+    if(!a.procedure&&!a.outdoor)return {allowed:true,reason:'',cause:null,nextDate:null};
+    const records=procedureRecords(s,ignoreId,includePlans),same=records.filter(record=>record.activityId===id);
+    if(a.procedure?.oncePerLife&&(same.length||count(s,id)>0))return {allowed:false,reason:a.name+'은 한 삶에서 한 번만 선택할 수 있어요. 이미 마쳤거나 잡아 둔 일정이 있어요.',cause:'procedure-once',nextDate:null};
+    if(a.procedure?.minIntervalDays){
+      const interval=a.procedure.minIntervalDays;let nextDate=date;
+      for(const occupied of [...new Set(same.map(record=>record.date))].sort())if(nextDate>=occupied?nextDate<C.addDays(occupied,interval):C.addDays(nextDate,interval)>occupied)nextDate=C.addDays(occupied,interval);
+      if(nextDate!==date)return {allowed:false,reason:a.name+'는 최소 4주(28일) 간격으로 선택해요. 다음 가능한 날짜는 '+nextDate+'입니다.',cause:'procedure-interval',nextDate};
+    }
+    if(a.outdoor){
+      const conflicts=records.filter(record=>afterProcedure(date,slotId(slot),record)&&date<=C.addDays(record.date,D.ACTIVITY_MAP[record.activityId].procedure.recoveryDays));
+      if(conflicts.length){
+        const end=conflicts.map(record=>({record,until:C.addDays(record.date,D.ACTIVITY_MAP[record.activityId].procedure.recoveryDays)})).sort((x,y)=>y.until.localeCompare(x.until))[0];
+        return {allowed:false,reason:D.ACTIVITY_MAP[end.record.activityId].name+' 뒤 '+end.until+'까지 야외 활동을 쉬어요. '+C.addDays(end.until,1)+'부터 다시 고를 수 있어요.',cause:'procedure-recovery',nextDate:C.addDays(end.until,1),recoveryUntil:end.until};
+      }
+    }
+    return {allowed:true,reason:'',cause:null,nextDate:null};
+  }
+  function activityAvailability(s,id,date=s.date,slot='morning',ignoreId=null){return availability(s,id,date,slot,ignoreId,true);}
   function random(s,stream) { let x=s.rng[stream]>>>0;x=(Math.imul(1664525,x)+1013904223)>>>0;s.rng[stream]=x;return x/4294967296; }
   function travelMinutes(s,a) {
     if (a.location==='home') return 0;
@@ -150,6 +178,11 @@
     if(s.dayState&&s.dayState.date===p.date&&s.dayState.done.includes('slot-'+p.slot))return {ok:false,reason:'이미 처리한 시간대에는 새 활동을 배치할 수 없습니다.'};
     if(!C.isOff(p.date)&&p.slot!=='evening')return {ok:false,reason:'평일 낮에는 일과가 있어요. 저녁이나 쉬는 날에 시간을 내 볼까요?'};
     const unavailable=D.activityReason(s.config,a.id);if(unavailable)return {ok:false,reason:unavailable+'이에요. 다른 활동을 골라 주세요.',cause:a.parenting?'care':'role'};
+    const permitted=activityAvailability(s,a.id,p.date,p.slot,ignoreId);if(!permitted.allowed)return {ok:false,...permitted};
+    if(a.procedure&&!ignoreId){
+      const until=C.addDays(p.date,a.procedure.recoveryDays),conflict=s.plan.find(item=>D.ACTIVITY_MAP[item.activityId]?.outdoor&&afterProcedure(item.date,item.slot,p)&&item.date<=until);
+      if(conflict)return {ok:false,reason:until+'까지 회복 시간을 남겨야 해요. '+conflict.date+'의 '+D.ACTIVITY_MAP[conflict.activityId].name+' 일정을 먼저 옮기거나 취소해 주세요.',cause:'procedure-recovery',nextDate:C.addDays(until,1),recoveryUntil:until};
+    }
     if(s.plan.some(x=>x.id!==ignoreId&&x.date===p.date&&x.slot===p.slot))return {ok:false,reason:'같은 시간대에 이미 활동이 있습니다.'};
     const blocked=(s.dayState&&s.dayState.date===p.date?(s.dayState.blocks[p.slot]||0):0)+(!(s.dayState&&s.dayState.date===p.date&&s.dayState.baseDone)?conditionMinutes(s,p.date,p.slot):0);
     const minutes=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'&&s.dayState&&s.dayState.date===p.date?s.dayState.extraTravel:0);
@@ -247,7 +280,11 @@
   function addRule(s,options) {
     try {
       if(!D.ACTIVITY_MAP[options.activityId])return {ok:false,reason:'반복 활동을 선택하세요.'};
+      const procedure=D.ACTIVITY_MAP[options.activityId].procedure;
+      if(procedure?.oncePerLife)return {ok:false,reason:'쌍꺼풀 수술은 한 삶에서 한 번만 직접 계획할 수 있어 반복 예약으로 만들지 않아요.',cause:'procedure-once'};
+      if(procedure?.minIntervalDays&&(options.kind||'weeks')==='weeks'&&(options.interval||1)*7<procedure.minIntervalDays)return {ok:false,reason:'레이저 제모는 최소 4주(28일) 간격으로 예약해 주세요.',cause:'procedure-interval'};
       const unavailable=D.activityReason(s.config,options.activityId);if(unavailable)return {ok:false,reason:unavailable+'이에요. 다른 반복 활동을 골라 주세요.'};
+      const permitted=activityAvailability(s,options.activityId,options.anchor,slotId(options.slot===undefined?'morning':options.slot));if(!permitted.allowed)return {ok:false,...permitted};
       const rule=R.createRule({...options,id:'rule-'+(++s.sequence),slot:SLOT_IDS.indexOf(slotId(options.slot===undefined?'morning':options.slot))});
       if(rule.anchor<s.date||rule.anchor>s.config.year+'-12-31')return {ok:false,reason:'올해의 남은 날짜에서 시작하세요.'};
       s.rules.push(rule);return {ok:true,rule};
@@ -343,6 +380,7 @@
   function performActivity(s,p) {
     const a=D.ACTIVITY_MAP[p.activityId];
     const unavailable=D.activityReason(s.config,a.id);if(unavailable)return specialEvent(s,p,unavailable+'이어서 이 활동을 다시 조정해야 합니다.',a.parenting?'care':'role');
+    const permitted=availability(s,a.id,p.date,p.slot,p.id,false);if(!permitted.allowed)return specialEvent(s,p,permitted.reason,permitted.cause);
     if(p.automatic&&!p.ruleId&&a.manualOnly)return specialEvent(s,p,a.name+'는 직접 계획하거나 반복 예약으로 고르는 활동이에요.','manual');
     if(p.automatic&&!p.ruleId&&!cadenceCheck(s,a.id,p.date,p.id).allowed)return specialEvent(s,p,a.name+'은 '+a.cadence.label+' 자동으로 챙겨요. 이미 마친 일과 잡아 둔 약속 사이에 간격을 두어요.','cadence');
     const blocked=s.dayState.blocks[p.slot]||0;
@@ -362,7 +400,8 @@
       log(s,'household',a.id==='cleaning'?'묵은 먼지를 걷어 내고 집을 청소했습니다.':'집안일을 하며 생활공간을 정돈했습니다.',{activityId:a.id,cleanliness:s.household.cleanliness});
     }
     effect(s,values);s.activityCounts[a.id]=count(s,a.id)+1;s.skills[a.id]=clamp((s.skills[a.id]||0)+(tired?Math.ceil(a.skillGain*.6):a.skillGain));
-    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,...(a.careOverlap?{careOverlapMinutes:Math.min(a.minutes,careMinutes(s,p.date,p.slot))}:{}),...(a.risk?{planId:p.id}:{}),cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
+    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,...(a.careOverlap?{careOverlapMinutes:Math.min(a.minutes,careMinutes(s,p.date,p.slot))}:{}),...(a.risk?{planId:p.id}:{}),...(a.procedure?{procedureRecoveryUntil:C.addDays(s.date,a.procedure.recoveryDays)}:{}),cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
+    if(a.procedure){const until=C.addDays(s.date,a.procedure.recoveryDays);if(!s.flags.cosmeticRecoveryUntil||until>=s.flags.cosmeticRecoveryUntil){s.flags.cosmeticRecoveryUntil=until;s.flags.cosmeticRecoveryActivity=a.id;s.flags.cosmeticRecoveryStarted=s.date;}}
     if(a.risk)completeRiskActivity(s,p,a);
     if(a.artifact&&count(s,a.id)%a.every===0){const artifact={id:'artifact-'+(++s.sequence),date:s.date,activityId:a.id,name:a.artifact,icon:a.icon,number:Math.floor(count(s,a.id)/a.every),skill:s.skills[a.id],season:season(s.date)};s.artifacts.push(artifact);log(s,'artifact',artifact.name+' #'+artifact.number,{artifactId:artifact.id,activityId:a.id});}
     if(p.ruleId){const rule=s.rules.find(r=>r.id===p.ruleId);if(rule)R.complete(rule,s.date,p.originalDate);}
@@ -791,5 +830,5 @@
     const ranked=monthly.filter(m=>m.meanMood!==null).sort((a,b)=>b.meanMood-a.meanMood||a.month-b.month);
     return {year:s.config.year,activityCounts:clone(s.activityCounts),calendar,monthly,artifacts:clone(s.artifacts),achievements:s.log.filter(l=>l.type==='achievement'),relationshipScenes:s.log.filter(l=>l.type==='relationship'),finance:F.summary(s.finance,s.config),happiestMonth:ranked.length?ranked[0]:null,kept:s.log.filter(l=>l.type==='activity'&&l.ruleId).length,postponed:s.log.filter(l=>['postponed','skipped'].includes(l.type)),cannot:s.log.filter(l=>l.category==='cannot'),choices:s.log.filter(l=>l.category==='choice'),log:s.log.slice(),daysPlayed:s.log.filter(l=>l.type==='daily').length};
   }
-  return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,replaceAutoWeek,replanAutoWeek:replaceAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,advanceAutomatic,resolveAutomatic,choose,finishReview,getSummary,activityTime,activityCadence,travelMinutes,careMinutes,conditionMinutes,influenzaWeight,season,SLOT_IDS,SLOT_LABELS,PUBLIC_STATS,AUTO_DIRECTIONS,AUTOMATIC_MAJOR:[...AUTOMATIC_MAJOR]};
+  return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,replaceAutoWeek,replanAutoWeek:replaceAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,advanceAutomatic,resolveAutomatic,choose,finishReview,getSummary,activityTime,activityCadence,activityAvailability,travelMinutes,careMinutes,conditionMinutes,influenzaWeight,season,SLOT_IDS,SLOT_LABELS,PUBLIC_STATS,AUTO_DIRECTIONS,AUTOMATIC_MAJOR:[...AUTOMATIC_MAJOR]};
 });

@@ -50,15 +50,43 @@
     ['motorbike_tour','모터바이크 체험','🏍️',180000,150,30,'local','alone','가까운 코스를 반나절 체험합니다. 직접 고르는 유료 활동이며 게임 속 사고가 나면 수리비와 병원비가 따로 생겨요.',{fatigue:14,mood:9,happiness:4},null,0],
     ['domestic_trip','반나절 국내여행','🧳',150000,180,15,'local','together','가까운 국내 여행지를 반나절 둘러봅니다. 숙박이나 종일 여행이 아닌 짧은 일정이며 이동 시간도 필요해요.',{fatigue:9,mood:10,happiness:5,relationship:2},null,0],
     ['golf_round','골프 9홀','⛳',250000,180,15,'local','together','가까운 코스에서 9홀을 즐깁니다. 직접 고르는 유료 활동이며 긴 이동까지 있으면 다른 시간을 골라야 해요.',{fatigue:12,mood:8,happiness:4,relationship:2},null,0],
-    ['circuit_drive','서킷 주행 체험','🏁',450000,150,30,'local','alone','안내에 따라 서킷에서 반나절 주행을 체험합니다. 직접 고르는 유료 활동이며 게임 속 사고가 나면 수리비와 병원비가 따로 생겨요.',{fatigue:15,mood:10,happiness:5},null,0]
+    ['circuit_drive','서킷 주행 체험','🏁',450000,150,30,'local','alone','안내에 따라 서킷에서 반나절 주행을 체험합니다. 직접 고르는 유료 활동이며 게임 속 사고가 나면 수리비와 병원비가 따로 생겨요.',{fatigue:15,mood:10,happiness:5},null,0],
+    ['mole_removal','점 제거','✨',50000,45,15,'local','alone','직접 선택한 미용 시술 뒤 실내에서 여유를 보냅니다. 비용·회복 기간·관계 변화는 게임 설정입니다.',{fatigue:3,mood:8,happiness:4,relationship:14},null,0],
+    ['laser_hair_removal','레이저 제모','💡',100000,60,15,'local','alone','최소 4주 간격을 두고 직접 예약합니다. 게임에서는 시술 뒤 잠시 야외 활동을 쉬어요.',{fatigue:3,mood:8,happiness:4,relationship:14},null,0],
+    ['ultherapy','울세라','🌿',1500000,90,15,'local','alone','직접 비용과 회복 일정을 살펴보고 고르는 미용 시술입니다. 효과와 관계 수치는 실제 결과를 예측하지 않습니다.',{fatigue:5,mood:10,happiness:5,relationship:18},null,0],
+    ['botox','보톡스','💧',100000,45,15,'local','alone','미용 시술을 직접 선택하고 오늘은 실내에서 쉬어 갑니다. 비용·회복 기간·관계 변화는 게임 설정입니다.',{fatigue:2,mood:8,happiness:4,relationship:14},null,0],
+    ['fraxel','프락셀','🪞',250000,90,15,'local','alone','직접 고른 시술 뒤 회복할 시간을 남깁니다. 게임의 야외 활동 제한은 실제 의료 지침이 아닙니다.',{fatigue:5,mood:9,happiness:5,relationship:16},null,0],
+    ['eyelid_surgery','쌍꺼풀 수술','🌸',2500000,150,30,'local','alone','이 삶에서 한 번만 직접 선택할 수 있는 수술입니다. 비용·회복 기간·관계 변화는 게임 설정이며 실제 결과를 보장하지 않습니다.',{fatigue:12,mood:12,happiness:6,relationship:25},null,0]
   ];
+  const ACTIVITY_GROUPS=Object.freeze([
+    {id:'want',label:'하고 싶은 일'},
+    {id:'need',label:'해야 하는 일'}
+  ].map(Object.freeze));
+  // These are navigation categories, not extra obligations or automatic plans.
+  const ACTIVITY_CATEGORIES=Object.freeze([
+    {id:'exercise',groupId:'want',label:'운동',activityIds:['walk','run','pt']},
+    {id:'creative',groupId:'want',label:'취미·문화',activityIds:['photo','cook','pottery','draw','music','read','garden','culture','cinema']},
+    {id:'social',groupId:'want',label:'사람과 관계',activityIds:['friends','family_time','volunteer']},
+    {id:'outings',groupId:'want',label:'여행·체험',activityIds:['motorbike_tour','domestic_trip','golf_round','circuit_drive']},
+    {id:'recovery',groupId:'want',label:'휴식',activityIds:['rest']},
+    {id:'household',groupId:'need',label:'집안일',activityIds:['chores','cleaning']},
+    {id:'parenting',groupId:'need',label:'돌봄·육아',activityIds:['care','baby_feed','baby_change','baby_sleep','preschool_hygiene','preschool_play','preschool_ready','school_homework','school_reading','school_tidy']},
+    {id:'study',groupId:'need',label:'공부·준비',activityIds:['study','research','jobstudy']},
+    {id:'work',groupId:'need',label:'일·부업',activityIds:['overtime','delivery','parttime','sideproject']},
+    {id:'personal',groupId:'need',label:'미용·관리',activityIds:['haircut','haircut_men','haircut_women','perm','dye','mole_removal','laser_hair_removal','ultherapy','botox','fraxel','eyelid_surgery']}
+  ].map(category=>Object.freeze({...category,activityIds:Object.freeze(category.activityIds)})));
+  const categoryByActivity=new Map(ACTIVITY_CATEGORIES.flatMap(category=>category.activityIds.map(id=>[id,category])));
+  function activityCategory(id){return categoryByActivity.get(id)||null;}
+  function categoriesForGroup(id){return ACTIVITY_CATEGORIES.filter(category=>category.groupId===id);}
   const parentingGroups={baby:{minAge:0,maxAge:2,group:'baby',label:'0~2세 자녀'},preschool:{minAge:3,maxAge:6,group:'preschool',label:'3~6세 자녀'},school:{minAge:7,maxAge:12,group:'school',label:'7~12세 자녀'}};
   const cadences={haircut:{unit:'weeks',interval:3,group:'haircut',label:'3주에 한 번'},perm:{unit:'months',interval:2,group:'perm',label:'2개월에 한 번'},dye:{unit:'months',interval:3,group:'dye',label:'3개월에 한 번'}};
   const manualActivities={motorbike_tour:{minAge:18,risk:{chance:.06,repairMin:40000,repairMax:320000,medicalMin:20000,medicalMax:200000}},domestic_trip:{},golf_round:{},circuit_drive:{minAge:18,risk:{chance:.04,repairMin:300000,repairMax:1800000,medicalMin:50000,medicalMax:400000}}};
+  const procedures={mole_removal:{recoveryDays:7},laser_hair_removal:{recoveryDays:2,minIntervalDays:28},ultherapy:{recoveryDays:1},botox:{recoveryDays:1},fraxel:{recoveryDays:7},eyelid_surgery:{recoveryDays:7,oncePerLife:true}};
+  const outdoors=new Set(['walk','run','photo','garden','volunteer','motorbike_tour','domestic_trip','golf_round','circuit_drive','delivery']);
   const ACTIVITIES = rows.map(([id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every]) => {
     const parenting=parentingGroups[id.split('_')[0]],cadence=cadences[id.startsWith('haircut')?'haircut':id];
-    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(manualActivities[id]?{manualOnly:true,...manualActivities[id]}:{})};
+    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting||procedures[id]?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(manualActivities[id]?{manualOnly:true,...manualActivities[id]}:{}),...(procedures[id]?{manualOnly:true,procedure:{...procedures[id]}}:{}),categoryId:activityCategory(id)?.id,outdoor:outdoors.has(id)};
   });
   const ACTIVITY_MAP = Object.assign(Object.create(null),Object.fromEntries(ACTIVITIES.map(a => [a.id,a])));
-  return { ACTIVITIES, ACTIVITY_MAP };
+  return { ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS, ACTIVITY_CATEGORIES, activityCategory, categoriesForGroup };
 });

@@ -4,7 +4,7 @@ const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8766').replace(/\/$/,''),o
 (async()=>{
  const browser=await pw.chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,reducedMotion:'reduce'}),checks=[],errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
- await page.addInitScript(()=>{window.crypto.getRandomValues=a=>{a[0]=65702;return a;};});
+ await page.addInitScript(()=>{window.crypto.getRandomValues=a=>{a[0]=5117;return a;};});
  const state=()=>page.evaluate(()=>JSON.parse(render_game_to_text()));const saved=()=>page.evaluate(()=>S2Storage.load());const pass=label=>{checks.push(label);console.log('PASS',label);};
  async function fresh(){if(page.url()!=='about:blank')await page.evaluate(()=>S2Storage.clear());await page.goto(base+'/weekend_season2/index.html');}
  async function openAdvanced(){await page.locator('#advanced-settings>summary').click();}

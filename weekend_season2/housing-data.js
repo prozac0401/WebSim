@@ -1,8 +1,8 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./subregion-housing-data.js') : root.S2SubregionHousingData);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.S2HousingData = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Subregions) {
   'use strict';
   const MODEL = {
     id: 'kr-housing-market-2026-v1', unit: 'KRW', period: '2026-01~2026-07',
@@ -90,7 +90,9 @@
     let housingType=['studio','apartment','shared'].includes(config.housing)?config.housing:'apartment';
     const housingAdjustment=housingType==='studio'&&size>2?'3인 이상 가구의 원룸 설정을 가족용 아파트로 조정':null;
     if (housingAdjustment) housingType='apartment';
-    const marketReference=reference(referenceRegionId,housingType==='apartment'?'apartment':'all');
+    const scope=housingType==='apartment'?'apartment':'all';
+    const municipalModel=Subregions.model(referenceRegionId,config.subregionId,scope);
+    const marketReference=Subregions.adjust(referenceRegionId,config.subregionId,reference(referenceRegionId,scope));
     const odds=row=>row[0]/row[1], nationalOdds=odds(TENURE_REGION.national);
     // Synthetic odds combination, not an observed joint distribution. Free tenure
     // is outside the three supported generated contracts; rental subtype split is a game choice.
@@ -129,8 +131,9 @@
     const housingOrigin={model:MODEL.id,kind:'statistical-game-model',provinceId,referenceRegionId,period:MODEL.period,
       housingTenure,housingType,householdSize:size,ageBand,areaM2,deposit,propertyValue,loanRatio,share,marketReference,
       sourceIds:SOURCES.map(s=>s.id),monthlyRent,loanPrincipal:housingLoanPrincipal,rateBps:housingLoanRateBps,interest,housingMaintenance,total,
-      housingAdjustment,
+      housingAdjustment,...(municipalModel?{subregionId:config.subregionId,municipalModel}:{}),
       note:'시작 당시 자료 참고 게임 계약. 월세는 저보증금 계약 평균 면적단가로 근사하고 10만원 단위로 설정(게임 하한 30만원). 보증금은 월세 12~24개월분을 백만원 단위로 내린 게임 계약 조건이며 실거래 한 쌍이 아님. 주택·전세금·대출은 이미 존재하는 시작 자산과 채무로 현금에 입금하지 않음. 금리 3.5~5%와 연령별 자산·대출비율은 게임 가정. 관리·유지비는 최소 5만원의 게임예산이며 월 주거비 합계를 10만원 단위로 맞춘 잔차 포함.'+(share<1?' 공동주거 비용의 65%를 이 가구가 분담하는 게임 가정. 동거인의 소득을 추가하지 않음.':'')};
+    if(municipalModel)housingOrigin.note+=' '+Subregions.MODEL.note;
     return {housing:housingType,housingTenure,monthlyRent,housingLoanPrincipal,housingLoanRateBps,housingMaintenance,housingOrigin};
   }
   function validateOrigin(origin) {
@@ -146,7 +149,12 @@
     for (const key of ['deposit','propertyValue','monthlyRent','loanPrincipal','interest','housingMaintenance','total']) if (!Number.isSafeInteger(origin[key])||origin[key]<0||origin[key]>10000000000) errors.push('주거 금액이 잘못되었습니다: '+key);
     if (!Number.isInteger(origin.rateBps)||![0,350,400,450,500].includes(origin.rateBps)||!Number.isFinite(origin.loanRatio)||origin.loanRatio<0||origin.loanRatio>.8) errors.push('주거 대출 조건이 잘못되었습니다.');
     if (origin.share!==(origin.housingType==='shared'?.65:1)) errors.push('공동주거 분담이 일치하지 않습니다.');
-    const expected=reference(expectedRegion,origin.housingType==='apartment'?'apartment':'all');
+    const scope=origin.housingType==='apartment'?'apartment':'all';
+    let expected=reference(expectedRegion,scope);
+    if(has(origin,'subregionId')||has(origin,'municipalModel')){
+      errors.push(...Subregions.validateModel(origin.municipalModel,expectedRegion,origin.subregionId,scope));
+      try{expected=Subregions.adjust(expectedRegion,origin.subregionId,expected);}catch(error){errors.push(error.message);}
+    }
     if (!origin.marketReference||Object.keys(expected).some(k=>origin.marketReference[k]!==expected[k])) errors.push('원자료 주거 참고값이 일치하지 않습니다.');
     if (!Array.isArray(origin.sourceIds)||origin.sourceIds.length!==SOURCES.length||SOURCES.some(s=>!origin.sourceIds.includes(s.id))) errors.push('주거 출처가 잘못되었습니다.');
     if (typeof origin.note!=='string'||origin.note.length>2000 || !(origin.housingAdjustment===null||typeof origin.housingAdjustment==='string'&&origin.housingAdjustment.length<100)) errors.push('주거 설명이 잘못되었습니다.');
@@ -158,5 +166,5 @@
     if (origin.housingTenure!=='rent'&&origin.monthlyRent!==0 || origin.housingTenure==='own'&&(origin.deposit!==0||origin.propertyValue<1000000) || origin.housingTenure==='jeonse'&&(origin.propertyValue!==0||origin.deposit<1000000)) errors.push('주거 점유형태와 자산이 일치하지 않습니다.');
     return errors;
   }
-  return {MODEL,SOURCES,MARKET,RAW_MARKET,MARKET_COLUMNS,TENURE_REGION,TENURE_AGE,TENURE_SIZE,AREA_SIZE,AREA_AGE,sample,validateOrigin};
+  return {MODEL,SOURCES,MARKET,RAW_MARKET,MARKET_COLUMNS,TENURE_REGION,TENURE_AGE,TENURE_SIZE,AREA_SIZE,AREA_AGE,SUBREGIONS:Subregions,sample,validateOrigin};
 });

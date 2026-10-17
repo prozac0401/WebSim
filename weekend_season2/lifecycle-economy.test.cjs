@@ -68,7 +68,7 @@ test('ordinary attendance workers retain source draws but receive the explicit g
  const c=config({children:1,childProfiles:[{age:23,militaryStatus:'serving'}],maritalStatus:'divorced'}),s=L.sampleIncome(c,()=>.999999);
  assert.equal(s.origin.householdContributionMonthly,0);assert.equal(s.salary,s.origin.sampleHouseholdMonthly);
  const forged=structuredClone(zero.origin);forged.personalEarnedMonthly=1899999;forged.baseMonthly=1899999;assert.ok(L.validateOrigin(forged).length);
- const D=require('./data.js'),repro=D.generateLife(48).config;assert.equal(repro.salary,1900000);assert.ok(repro.incomeOrigin.sampleHouseholdMonthly<500000);
+ const D=require('./data.js'),repro=D.generateLife(48).config;repro.role='worker';D.assignLifeEconomy(repro,{preserveTenure:true});assert.equal(repro.salary,1900000);assert.ok(repro.incomeOrigin.sampleHouseholdMonthly<500000);
 });
 test('near-zero source income parent receives only the game shortfall, covering living, housing, leisure and reserve',()=>{
  const c=config({role:'seeker',children:2,maritalStatus:'divorced',childProfiles:[{age:0},{age:2}],housingTenure:'rent',monthlyRent:650000,housingLoanPrincipal:10000000,housingLoanRateBps:450});
@@ -122,8 +122,9 @@ test('future season keeps the disclosed snapshot and rejects invalid random valu
 });
 test('reported generation cases and four roles complete a year with paid hobbies and save recovery',()=>{
  const D=require('./data.js'),E=require('./engine.js'),S=require('./storage.js');
- for(const seed of [65702,5098,17401,0,1,2,3]){
-  const c=D.generateLife(seed).config;c.preferences=['pottery','music','read'];let s=E.create(c),calls=0;
+ const fixtures=[...[65702,5098,17401].map(seed=>({seed})),...['worker','seeker','graduate','caregiver'].map((role,seed)=>({seed,role}))];
+ for(const {seed,role} of fixtures){
+  const c=D.generateLife(seed).config;if(role){c.role=role;D.assignLifeEconomy(c,{preserveTenure:true});}c.preferences=['pottery','music','read'];let s=E.create(c),calls=0;
   while(s.phase!=='finished'&&calls++<400){const result=E.advanceAutomatic(s);assert.ok(result.ok,seed+': '+result.reason);assert.deepEqual(S.validate(s),[],seed+' '+s.date);if(calls%10===0){const saved=S.parse(S.serialize(s));assert.ok(saved.ok,saved.reason);s=saved.state;}}
   assert.equal(E.getSummary(s).daysPlayed,365);assert.ok(s.log.some(l=>l.type==='activity'&&['pottery','music'].includes(l.activityId)));
   assert.equal(s.finance.arrears,0);assert.equal(s.finance.fixedArrears,0);

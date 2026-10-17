@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const D=require('./data.js'),E=require('./engine.js'),F=require('./finance.js'),S=require('./storage.js');
 function finish(s){for(let i=0;i<80&&s.phase!=='finished';i++){const r=E.advanceAutomatic(s,{decisions:'auto'});assert.ok(r.ok,r.reason);const loaded=S.parse(S.serialize(s));assert.ok(loaded.ok,loaded.reason);}assert.equal(s.phase,'finished');return E.getSummary(s);}
-function adapted(seed,patch){const c={...D.generateLife(seed).config,...patch};D.assignLifeEconomy(c,{preserveTenure:true});assert.deepEqual(E.validateConfig(c),[]);return c;}
+function adapted(seed,patch){const c={...D.generateLife(seed).config,...patch};if(Object.hasOwn(patch,'province')&&!Object.hasOwn(patch,'subregionId'))c.subregionId=D.sampleSubregion(seed,c.province);D.assignLifeEconomy(c,{preserveTenure:true});assert.deepEqual(E.validateConfig(c),[]);return c;}
 
 test('the reported young single graduate and two-child parents retain usable budgets',()=>{
   for(const province of ['gyeongbuk','seoul','jeju']){
@@ -52,8 +52,8 @@ test('active generated provenance cannot be removed or swapped with another hous
 });
 
 test('all four roles complete the year with twelve housing charges and exact income totals',()=>{
-  for(const seed of [0,1,2,3]){
-    const c=D.generateLife(seed).config,s=E.create(c),summary=finish(s),bills=s.finance.ledger.filter(t=>t.type==='fixed-cost');
+  for(const [seed,role] of ['worker','seeker','graduate','caregiver'].entries()){
+    const c=adapted(seed,{role}),s=E.create(c),summary=finish(s),bills=s.finance.ledger.filter(t=>t.type==='fixed-cost');
     assert.equal(summary.daysPlayed,365);assert.equal(bills.length,12);
     assert.ok(bills.every(t=>t.housingMaintenance===c.housingMaintenance));
     assert.equal(summary.finance.housingCosts,F.housingCosts(c).total*12);

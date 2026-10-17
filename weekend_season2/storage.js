@@ -107,6 +107,21 @@
     if(object(s.skills))for(const [id,value]of Object.entries(s.skills))if(!D.ACTIVITY_MAP[id]||!Number.isFinite(value)||value<0||value>100)bad('숙련 기록이 손상되었습니다.');
     if(object(s.activityCounts))for(const [id,value]of Object.entries(s.activityCounts))if(!D.ACTIVITY_MAP[id]||!Number.isInteger(value)||value!==s.log.filter(l=>l.type==='activity'&&l.activityId===id).length)bad('활동 횟수와 로그가 일치하지 않습니다.');
     if(object(s.activityCounts))for(const a of D.ACTIVITIES)if((s.activityCounts[a.id]||0)!==s.log.filter(l=>l.type==='activity'&&l.activityId===a.id).length)bad('활동 횟수가 로그에서 누락되었습니다.');
+    const procedures=s.log.filter(entry=>entry.type==='activity'&&D.ACTIVITY_MAP[entry.activityId]?.procedure);
+    for(const entry of s.log)if(entry.procedureRecoveryUntil!==undefined||entry.type==='activity'&&D.ACTIVITY_MAP[entry.activityId]?.procedure){
+      const procedure=D.ACTIVITY_MAP[entry.activityId]?.procedure;
+      if(entry.type!=='activity'||!procedure||!C.validDate(entry.date)||!Engine.SLOT_IDS.includes(entry.slot)||entry.procedureRecoveryUntil!==C.addDays(entry.date,procedure.recoveryDays))bad('미용 시술의 완료일과 회복 기간이 일치하지 않습니다.');
+    }
+    for(const a of D.ACTIVITIES.filter(activity=>activity.procedure)){
+      const dates=procedures.filter(entry=>entry.activityId===a.id&&C.validDate(entry.date)).map(entry=>entry.date).sort();
+      if(a.procedure.oncePerLife&&dates.length>1)bad('한 번만 가능한 시술의 완료 기록이 중복되었습니다.');
+      if(a.procedure.minIntervalDays&&dates.some((date,index)=>index&&date<C.addDays(dates[index-1],a.procedure.minIntervalDays)))bad('레이저 제모 완료 기록은 최소 4주 간격이어야 합니다.');
+    }
+    if(object(s.flags)){
+      const latest=procedures.filter(entry=>C.validDate(entry.procedureRecoveryUntil)).reduce((longest,entry)=>!longest||entry.procedureRecoveryUntil>=longest.procedureRecoveryUntil?entry:longest,null);
+      const keys=['cosmeticRecoveryUntil','cosmeticRecoveryActivity','cosmeticRecoveryStarted'];
+      if(latest? s.flags.cosmeticRecoveryUntil!==latest.procedureRecoveryUntil||s.flags.cosmeticRecoveryActivity!==latest.activityId||s.flags.cosmeticRecoveryStarted!==latest.date:keys.some(key=>s.flags[key]!==undefined))bad('미용 시술 회복 상태와 실제 완료 기록이 일치하지 않습니다.');
+    }
     if(!Number.isInteger(s.friendPostponements)||s.friendPostponements<0)bad('약속 기록이 손상되었습니다.');
     if(s.lastExternal!==null&&!inYear(s.lastExternal))bad('외부 사건 날짜가 올바르지 않습니다.');
     if(s.phase==='event'&&!s.pendingEvent||s.phase!=='event'&&s.pendingEvent!==null)bad('사건 진행 단계가 일치하지 않습니다.');

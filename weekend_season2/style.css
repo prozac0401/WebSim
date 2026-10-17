@@ -48,3 +48,8 @@ main{max-width:1220px;padding-top:25px;padding-bottom:30px}.site-header{padding-
 @media(max-width:700px){.parenting-grid{grid-template-columns:1fr}.parenting-grid button{min-height:64px}.parenting-grid button>span{float:left;margin-right:10px}.parenting-tasks>summary{flex-wrap:wrap;gap:4px}.parenting-group strong{font-size:13px}}
 
 .activity-risk,.incident-note{background:var(--paper,#f5ecdc);border:1px solid var(--rust,#a96647);border-radius:14px;padding:14px 16px;margin:12px 0;color:var(--ink,#263b33)}.activity-risk p,.incident-note p{margin:8px 0;line-height:1.65}.activity-risk small{display:block;line-height:1.6}.incident-finance{border-top:1px solid var(--line,#ddd);padding-top:10px;margin-top:10px}.incident-finance h4{margin:0 0 8px}
+
+/* Shared activity categories keep choices and life tasks easy to scan. */
+.category-picker{max-width:30rem;margin:1rem 0}.activity-kind{margin:1.4rem 0}.activity-kind>h3{font-size:1.1rem;color:var(--accent,#368a7c);margin:0 0 .8rem}.activity-category{margin:0 0 1.1rem}.category-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0 0 .45rem}.category-heading h4{font-size:.95rem;margin:0}.category-heading span{font-size:.8rem;opacity:.7}.activity-kind[hidden],.activity-category[hidden],[data-subregion-field][hidden]{display:none}.activity-category .preferences{margin-top:.4rem}
+
+.activity-procedure{padding:1rem;margin:.8rem 0;border:1px solid var(--line,#c5bda8);border-radius:12px;background:var(--paper,#faf7ee)}.activity-procedure p{line-height:1.65}.activity-procedure small{display:block;line-height:1.5;opacity:.8}.procedure-availability{font-weight:600}

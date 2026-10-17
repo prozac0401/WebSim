@@ -1,4 +1,4 @@
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.S2LifecycleEconomy=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./subregion-income-data.js'):root.S2SubregionIncomeData);if(node)module.exports=api;else root.S2LifecycleEconomy=api;})(typeof globalThis!=='undefined'?globalThis:this,function(Subregions){
 'use strict';
 // Published marginal tables are preserved below. The combination is a game model, not an observed joint distribution.
 const RAW_INCOME_ROWS=[
@@ -942,6 +942,7 @@ const SOURCES=[
  {id:'graduate-stipend-2026',label:'2026 이공계 연구생활장려금 참고',url:'https://www.msit.go.kr/bbs/view.do?sCode=user&mId=307&mPid=208&pageIndex=1&bbsSeqNo=94&nttSeqNo=3186672&searchOpt=ALL&searchTxt=',reportUrl:'https://www.hknu.ac.kr/bbs/sanhak/352/106366/download.do',publisher:'과학기술정보통신부',year:2026,unit:'참여 학생/월 원',note:'참여대학 이공계 연구학생의 기존 지원 합계가 석사80만원·박사110만원에 못 미치는 부족분을 보충하는 제도입니다. 모든 대학원생의 보편수입이 아닙니다. 게임 범위80~220만원은 별도 가정입니다.'},
  {id:'livelihood-standard-2026',label:'2026 생계급여 선정·지급기준 참고',url:'https://www.mohw.go.kr/menu.es?mid=a10708010300',publisher:'보건복지부',year:2026,unit:'가구/월 원',note:'기준중위소득32%의 선정기준입니다. 실제 급여는 소득인정액·재산·기타 자격을 확인해 산정합니다. 이 게임은 수급 심사를 하지 않습니다.'}
 ];
+if(Subregions)SOURCES.push({id:Subregions.SOURCE.id,label:'2023 주소지별 시군구 근로소득 · 지역 격차 참고',url:Subregions.SOURCE.url,publisher:Subregions.SOURCE.publisher,year:Subregions.SOURCE.year,unit:'세전 개인/연 원, 원표 금액 백만원',definition:Subregions.SOURCE.scope,note:Subregions.MODEL.note+' '+Subregions.MODEL.formula});
 const SOURCE_IDS=SOURCES.map(x=>x.id),PROVINCES=['seoul','busan','daegu','incheon','gwangju','daejeon','ulsan','sejong','gyeonggi','gangwon','chungbuk','chungnam','jeonbuk','jeonnam','gyeongbuk','gyeongnam','jeju'];
 const NATIONAL=RAW_INCOME_ROWS.find(r=>r.group==='all'),REGIONS=Object.fromEntries(RAW_INCOME_ROWS.filter(r=>r.group==='행정구역').map((r,i)=>[PROVINCES[i],r]));
 const AGES=RAW_INCOME_ROWS.filter(r=>r.group==='가구주 연령'),SIZES=RAW_INCOME_ROWS.filter(r=>r.group==='가구원수');
@@ -975,12 +976,28 @@ function distribution(config){
  const weights=normalize(base.map((v,i)=>v*Math.sqrt(clamp(reg[i]/nat[i],.25,4))*(single?1:Math.sqrt(clamp(ageP[i]/nat[i],.25,4)))));
  return {weights,household:h,regionLabel:region.label,ageBand:age.label,householdBand:size.label,parentBand:parent?.key||null};
 }
+function subregionReference(config){
+ if(config.subregionId===undefined||config.subregionId==='')return null;
+ const row=Subregions?.byId(config.subregionId);
+ if(!row||row.provinceId!==config.province)throw new RangeError('시도와 시군구의 소득 기준을 확인하세요.');
+ return row;
+}
+function municipalAdjustment(row,sampleHouseholdMonthly){
+ if(!row)return null;
+ const factor=Subregions.relativeFactor(row.id,row.provinceId);
+ return {modelId:Subregions.MODEL.id,sourceId:Subregions.SOURCE.id,year:Subregions.SOURCE.year,subregionId:row.id,provinceId:row.provinceId,factor,baseHouseholdMonthly:sampleHouseholdMonthly,adjustedHouseholdMonthly:Math.round(sampleHouseholdMonthly*factor)};
+}
+function sameSubregion(config,origin){return (config.subregionId??'')===(origin.subregionIncome?.subregionId??'');}
 function sampleIncome(config,random){
  if(!ROLES.includes(config.role)||!integer(config.age,18,100))throw new RangeError('역할과 나이를 확인하세요.');
+ const subregion=subregionReference(config);
  const dist=distribution(config),h=dist.household,r=draw(random);let cumulative=0,index=10;
  for(let i=0;i<dist.weights.length;i++){cumulative+=dist.weights[i];if(r<cumulative){index=i;break;}}
  const band=BANDS[index],sampleHouseholdMonthly=band.min+Math.floor(draw(random)*(band.max-band.min+1)),variation=draw(random);
- let personalEarnedMonthly=0,studySupportMonthly=0,personalSupportMonthly=0,householdContributionMonthly=0,baseMonthly=sampleHouseholdMonthly;
+ // Preserve the household survey draw and use the separately recorded wage-gap
+ // adjustment only as the input to the unchanged role allocation rules.
+ const subregionIncome=municipalAdjustment(subregion,sampleHouseholdMonthly),roleInputMonthly=subregionIncome?.adjustedHouseholdMonthly??sampleHouseholdMonthly;
+ let personalEarnedMonthly=0,studySupportMonthly=0,personalSupportMonthly=0,householdContributionMonthly=0,baseMonthly=roleInputMonthly;
  const adjustments=[];
  if(config.role==='worker'){
   // The source includes zero income and partial employment. Daily default
@@ -989,28 +1006,30 @@ function sampleIncome(config,random){
   householdContributionMonthly=baseMonthly-originalPersonal;
   personalEarnedMonthly=Math.max(MODEL.workerMonthlyFloor,originalPersonal);
   baseMonthly=personalEarnedMonthly+householdContributionMonthly;
-  if(baseMonthly!==sampleHouseholdMonthly)adjustments.push('worker-attendance-income-floor');
+  if(baseMonthly!==roleInputMonthly)adjustments.push('worker-attendance-income-floor');
  }else if(config.role==='graduate'){
   studySupportMonthly=Math.round((MODEL.graduateSupportMin+(MODEL.graduateSupportMax-MODEL.graduateSupportMin)*variation)/1000)*1000;
   householdContributionMonthly=clamp(baseMonthly-studySupportMonthly,0,contributionCap(h));
   baseMonthly=studySupportMonthly+householdContributionMonthly;
-  if(baseMonthly!==sampleHouseholdMonthly)adjustments.push('graduate-support-and-household-cap');
+  if(baseMonthly!==roleInputMonthly)adjustments.push('graduate-support-and-household-cap');
  }else{
   const cap=h.size===1?(config.role==='seeker'?1800000:2200000):MODEL.topHouseholdMonthly;
   baseMonthly=Math.min(baseMonthly,cap);
   personalSupportMonthly=h.size===1?baseMonthly:Math.min(baseMonthly,config.role==='seeker'?1200000:1600000);
   householdContributionMonthly=Math.min(baseMonthly-personalSupportMonthly,contributionCap(h));
   baseMonthly=personalSupportMonthly+householdContributionMonthly;
-  if(baseMonthly!==sampleHouseholdMonthly)adjustments.push('nonworker-support-and-contribution-cap');
+  if(baseMonthly!==roleInputMonthly)adjustments.push('nonworker-support-and-contribution-cap');
  }
  const sourceIds=['molit-household-income-2024'];if(dist.parentBand)sourceIds.push('single-parent-income-2024');if(config.role==='graduate')sourceIds.push('graduate-stipend-2026');
+ if(subregionIncome)sourceIds.push(Subregions.SOURCE.id);
  const origin={kind:'lifecycle',modelId:MODEL.id,sourceIds,provinceId:config.province||'unspecified',age:config.age,role:config.role,household:h,ageBand:dist.ageBand,householdBand:dist.householdBand,parentBand:dist.parentBand,bandId:band.id,weights:dist.weights,sampleHouseholdMonthly,personalEarnedMonthly,studySupportMonthly,personalSupportMonthly,householdContributionMonthly,baseMonthly,adjustments};
+ if(subregionIncome)origin.subregionIncome=subregionIncome;
  return {salary:personalEarnedMonthly,externalAllowance:studySupportMonthly+personalSupportMonthly+householdContributionMonthly,origin};
 }
 function housingTotal(config){return (config.housingTenure==='rent'?config.monthlyRent||0:0)+Math.round((config.housingLoanPrincipal||0)*(config.housingLoanRateBps||0)/120000)+(config.housingMaintenance||0);}
 function completeBudget(config,incomeSample,random){
  const originErrors=validateOrigin(incomeSample.origin);if(originErrors.length)throw new RangeError(originErrors.join(' '));
- if(incomeSample.salary!==incomeSample.origin.personalEarnedMonthly||incomeSample.salary+incomeSample.externalAllowance!==incomeSample.origin.baseMonthly||!same(household(config),incomeSample.origin.household)||config.role!==incomeSample.origin.role||config.age!==incomeSample.origin.age||config.province!==incomeSample.origin.provinceId)throw new RangeError('가구와 수입의 생성 근거를 확인하세요.');
+ if(incomeSample.salary!==incomeSample.origin.personalEarnedMonthly||incomeSample.salary+incomeSample.externalAllowance!==incomeSample.origin.baseMonthly||!same(household(config),incomeSample.origin.household)||config.role!==incomeSample.origin.role||config.age!==incomeSample.origin.age||config.province!==incomeSample.origin.provinceId||!sameSubregion(config,incomeSample.origin))throw new RangeError('가구와 수입의 생성 근거를 확인하세요.');
  const h=household(config),baseMonthly=incomeSample.salary+incomeSample.externalAllowance,min=minimumLiving(h.size),housing=housingTotal(config);
  const fixedCosts=Math.max(min,Math.min(min*2,Math.round(baseMonthly*.38))),personalBudget=Math.max(MODEL.leisureFloor,Math.min(800000,Math.round(baseMonthly*.1))),monthlyReserve=Math.max(MODEL.reserveFloor,Math.min(500000,Math.round(baseMonthly*.05)));
  const needed=fixedCosts+housing+personalBudget+monthlyReserve,gameSupport=Math.max(0,needed-baseMonthly),totalMonthly=baseMonthly+gameSupport;
@@ -1024,8 +1043,16 @@ function validateOrigin(origin){
  const errors=[];if(!origin||typeof origin!=='object'||Array.isArray(origin))return ['수입의 생성 근거를 확인하세요.'];
  if(!['lifecycle','custom'].includes(origin.kind)||origin.modelId!==MODEL.id||!ROLES.includes(origin.role)||!integer(origin.age,18,100)||!validHousehold(origin.household)||!['unspecified',...PROVINCES].includes(origin.provinceId))return ['수입의 생애 정보가 올바르지 않습니다.'];
  const band=BANDS.find(b=>b.id===origin.bandId);if(!band||!integer(origin.sampleHouseholdMonthly,band?.min||0,band?.max||0))errors.push('수입의 추첨 구간을 확인하세요.');
- if(!['personalEarnedMonthly','studySupportMonthly','personalSupportMonthly','householdContributionMonthly','baseMonthly'].every(k=>integer(origin[k],0,MODEL.topHouseholdMonthly))||origin.baseMonthly!==origin.personalEarnedMonthly+origin.studySupportMonthly+origin.personalSupportMonthly+origin.householdContributionMonthly)errors.push('수입 구성의 합계가 맞지 않습니다.');
+ let roleInputMonthly=origin.sampleHouseholdMonthly;
+ if(origin.subregionIncome!==undefined){
+  const meta=origin.subregionIncome,row=Subregions?.byId(meta?.subregionId),expected=row?municipalAdjustment(row,origin.sampleHouseholdMonthly):null;
+  if(!meta||typeof meta!=='object'||Array.isArray(meta)||!expected||row.provinceId!==origin.provinceId||Object.keys(meta).length!==Object.keys(expected).length||Object.keys(expected).some(k=>meta[k]!==expected[k]))errors.push('시군구 소득의 출처와 보정액을 확인하세요.');
+  else roleInputMonthly=expected.adjustedHouseholdMonthly;
+ }
+ const maxMonthly=Math.max(MODEL.topHouseholdMonthly,roleInputMonthly);
+ if(!['personalEarnedMonthly','studySupportMonthly','personalSupportMonthly','householdContributionMonthly','baseMonthly'].every(k=>integer(origin[k],0,maxMonthly))||origin.baseMonthly!==origin.personalEarnedMonthly+origin.studySupportMonthly+origin.personalSupportMonthly+origin.householdContributionMonthly)errors.push('수입 구성의 합계가 맞지 않습니다.');
  const expectedSources=['molit-household-income-2024'];if(origin.household.type==='single-parent')expectedSources.push('single-parent-income-2024');if(origin.role==='graduate')expectedSources.push('graduate-stipend-2026');
+ if(origin.subregionIncome!==undefined&&Subregions)expectedSources.push(Subregions.SOURCE.id);
  if(!same(origin.sourceIds,expectedSources))errors.push('수입 출처를 확인하세요.');
  if(!Array.isArray(origin.weights)||origin.weights.length!==11||origin.weights.some(v=>!Number.isFinite(v)||v<0||v>1)||Math.abs(origin.weights.reduce((n,v)=>n+v,0)-1)>1e-9)errors.push('수입 분포를 확인하세요.');
  const sampleConfig={age:origin.age,role:origin.role,province:origin.provinceId,maritalStatus:origin.household.partnerAdults?'married':'single',childProfiles:[...Array.from({length:origin.household.dependentChildren},()=>({age:9})),...Array.from({length:origin.household.adultChildren},(_,i)=>({age:24,militaryStatus:i<origin.household.awayChildren?'serving':'none'}))]};
@@ -1037,18 +1064,18 @@ function validateOrigin(origin){
  if(['worker','graduate'].includes(origin.role)&&origin.personalSupportMonthly!==0)errors.push('개인 생활지원의 구성을 확인하세요.');
  if(origin.role==='graduate'){
   const cap=contributionCap(origin.household);
-  if(origin.householdContributionMonthly!==clamp(origin.sampleHouseholdMonthly-origin.studySupportMonthly,0,cap))errors.push('대학원생의 가구 분담액을 확인하세요.');
+  if(origin.householdContributionMonthly!==clamp(roleInputMonthly-origin.studySupportMonthly,0,cap))errors.push('대학원생의 가구 분담액을 확인하세요.');
  }
  if(['seeker','caregiver'].includes(origin.role)){
   const cap=origin.household.size===1?(origin.role==='seeker'?1800000:2200000):MODEL.topHouseholdMonthly;
-  const original=Math.min(origin.sampleHouseholdMonthly,cap),personal=origin.household.size===1?original:Math.min(original,origin.role==='seeker'?1200000:1600000);
+  const original=Math.min(roleInputMonthly,cap),personal=origin.household.size===1?original:Math.min(original,origin.role==='seeker'?1200000:1600000);
   if(origin.personalSupportMonthly!==personal||origin.householdContributionMonthly!==Math.min(original-personal,contributionCap(origin.household)))errors.push('개인 지원과 가족 분담의 합계를 확인하세요.');
  }
  if(origin.role==='worker'){
-  const h=origin.household,shareMin=h.partnerAdults?.55:h.adultChildren>h.awayChildren?.65:1,shareMax=h.partnerAdults?.8:h.adultChildren>h.awayChildren?.85:1,originalPersonal=origin.sampleHouseholdMonthly-origin.householdContributionMonthly;
-  if(originalPersonal<Math.round(origin.sampleHouseholdMonthly*shareMin)||originalPersonal>Math.round(origin.sampleHouseholdMonthly*shareMax)||origin.personalEarnedMonthly!==Math.max(MODEL.workerMonthlyFloor,originalPersonal))errors.push('근로 가구의 개인수입과 분담을 확인하세요.');
+  const h=origin.household,shareMin=h.partnerAdults?.55:h.adultChildren>h.awayChildren?.65:1,shareMax=h.partnerAdults?.8:h.adultChildren>h.awayChildren?.85:1,originalPersonal=roleInputMonthly-origin.householdContributionMonthly;
+  if(originalPersonal<Math.round(roleInputMonthly*shareMin)||originalPersonal>Math.round(roleInputMonthly*shareMax)||origin.personalEarnedMonthly!==Math.max(MODEL.workerMonthlyFloor,originalPersonal))errors.push('근로 가구의 개인수입과 분담을 확인하세요.');
  }
- const adjustment=origin.baseMonthly===origin.sampleHouseholdMonthly?[]:[origin.role==='worker'?'worker-attendance-income-floor':origin.role==='graduate'?'graduate-support-and-household-cap':'nonworker-support-and-contribution-cap'];
+ const adjustment=origin.baseMonthly===roleInputMonthly?[]:[origin.role==='worker'?'worker-attendance-income-floor':origin.role==='graduate'?'graduate-support-and-household-cap':'nonworker-support-and-contribution-cap'];
  if(!same(origin.adjustments,adjustment))errors.push('원래 추첨액과 역할 조정 기록이 맞지 않습니다.');
  return errors;
 }
@@ -1076,8 +1103,9 @@ function validateProfile(profile,config){
  if(profile.baseMonthly!==profile.baseSalary+profile.baseExternalAllowance||profile.gameSupport!==Math.max(0,profile.fixedCosts+profile.housingTotal+profile.personalBudget+profile.monthlyReserve-profile.baseMonthly)||profile.totalMonthly!==profile.baseMonthly+profile.gameSupport)errors.push('생활안정지원 합계가 맞지 않습니다.');
  if(config?.incomeOrigin?.modelId===MODEL.id&&profile.baseMonthly!==config.incomeOrigin.baseMonthly)errors.push('수입 근거와 생활 예산의 원수입이 다릅니다.');
  if(profile.active&&config){
+  if(config.housingOrigin&&(config.housingOrigin.subregionId??'')!==(config.subregionId??''))errors.push('현재 시군구와 주거의 생성 근거가 다릅니다.');
   if(!same(profile.household,household(config))||profile.housingTotal!==housingTotal(config))errors.push('현재 가구·주거와 자동 예산이 다릅니다.');
-  if(config.incomeOrigin?.kind!=='lifecycle'||config.incomeOrigin?.age!==config.age||config.incomeOrigin?.role!==config.role||config.incomeOrigin?.provinceId!==config.province)errors.push('현재 환경과 수입의 생성 근거가 다릅니다.');
+  if(config.incomeOrigin?.kind!=='lifecycle'||config.incomeOrigin?.age!==config.age||config.incomeOrigin?.role!==config.role||config.incomeOrigin?.provinceId!==config.province||!sameSubregion(config,config.incomeOrigin))errors.push('현재 환경과 수입의 생성 근거가 다릅니다.');
   if(config.salary!==profile.baseSalary||config.externalAllowance!==profile.baseExternalAllowance+profile.gameSupport||['fixedCosts','personalBudget','startCash','cardLimit'].some(k=>config[k]!==profile[k]))errors.push('직접 바꾼 금액을 자동 예산으로 표시할 수 없습니다.');
  }
  return errors;

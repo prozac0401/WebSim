@@ -19,8 +19,8 @@ test('market snapshots retain 17 provinces and national data, original units and
   assert.deepEqual(H.TENURE_AGE['20s'],[5.3,90,4.7]);
   assert.deepEqual(H.AREA_SIZE,[46.8,74.9,80.3,86.3,91.2,96.2]);
 });
-test('module has browser UMD global without requests or dependencies',()=>{
-  const context={};vm.runInNewContext(fs.readFileSync(require.resolve('./housing-data.js'),'utf8'),context);
+test('housing and its municipal catalog expose browser globals without requests',()=>{
+  const context={};vm.runInNewContext(fs.readFileSync(require.resolve('./subregion-housing-data.js'),'utf8'),context);vm.runInNewContext(fs.readFileSync(require.resolve('./housing-data.js'),'utf8'),context);
   assert.equal(context.S2HousingData.MODEL.id,H.MODEL.id);
   assert.equal(typeof context.S2HousingData.sample,'function');
 });

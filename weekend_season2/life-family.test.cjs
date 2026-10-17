@@ -45,14 +45,14 @@ function autoplayThroughChoices(state,direction='balanced'){
 }
 function trigger(state,id){state.queue.unshift({catalogId:id,date:state.date,context:{}});E.advance(state);assert.equal(state.pendingEvent.catalogId,id);}
 
-test('generated lives are deterministic, fictional, balanced across 16 household-role combinations',()=>{
+test('generated lives are deterministic and retain all fictional household combinations',()=>{
   const combinations=new Set(),genders=new Set();
   for(let seed=0;seed<64;seed++){
     const generated=D.generateLife(seed);assert.deepEqual(generated,D.generateLife(seed));assert.deepEqual(E.validateConfig(generated.config),[]);
     assert.equal(generated.config.personaName,generated.name);assert.ok(generated.intro.includes(generated.name));assert.ok(generated.intro.includes(generated.config.age+'세'));
-    combinations.add([generated.config.role,generated.config.maritalStatus,!!generated.config.children].join(':'));genders.add(generated.config.gender);
+    combinations.add([generated.config.maritalStatus,!!generated.config.children].join(':'));genders.add(generated.config.gender);
   }
-  assert.equal(combinations.size,16);assert.deepEqual([...genders].sort(),['man','woman']);
+  assert.deepEqual([...combinations].sort(),['divorced:true','married:false','married:true','single:false']);assert.deepEqual([...genders].sort(),['man','woman']);
   assert.throws(()=>D.generateLife(-1));assert.throws(()=>D.generateLife(1.5));
 });
 
@@ -184,12 +184,16 @@ test('new household help halves even capped care time without rewriting legacy c
 });
 
 test('16 role × marital × child combinations finish an automatically prepared year with real logs',()=>{
+  const combinations=new Set();
   for(let seed=0;seed<16;seed++){
-    const {state,turns}=autoplay(life(seed));assert.ok(turns<600,'unexpectedly repeated auto stops for seed '+seed);
+    const config=D.generateLife(seed).config;config.role=D.PRESETS[seed%4].id;D.assignLifeEconomy(config,{preserveTenure:true});
+    combinations.add([config.role,config.maritalStatus,!!config.children].join(':'));
+    const {state,turns}=autoplay(E.create(config,config.role));assert.ok(turns<600,'unexpectedly repeated auto stops for seed '+seed);
     const summary=E.getSummary(state);assert.equal(summary.daysPlayed,365);assert.ok(summary.log.filter(l=>l.type==='activity').length>30);
     const prefix=state.config.maritalStatus==='married'?'partner':'single';assert.ok(state.eventHistory[prefix+'_followup']);
     assert.deepEqual(Storage.validate(state),[]);assert.ok(Storage.parse(Storage.serialize(state)).ok);
   }
+  assert.equal(combinations.size,16,'the annual matrix explicitly covers every role and household combination');
 });
 
 test('16 generated lives finish through visible event choices without silent plan removal',()=>{

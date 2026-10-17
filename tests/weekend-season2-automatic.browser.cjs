@@ -21,8 +21,10 @@ fs.mkdirSync(output,{recursive:true});
   const pass=message=>{checks.push(message);console.log('PASS',message);};
   try{
     await page.goto(base+'/weekend_season2/index.html');
-    await page.locator('#start-year').selectOption('2028');
+    await page.locator('#start-year').selectOption('2029');
     assert.match(await page.locator('.setup-year-note').innerText(),/미확인/);
+    await page.locator('#start-year').selectOption('2028');
+    assert.equal(await page.locator('.setup-year-note').count(),0,'2028 now has KASI calendar data');
     await page.locator('#reroll-life').click();
     assert.equal(await page.locator('#start-year').inputValue(),'2028');
     await page.locator('#advanced-settings>summary').click();
@@ -36,7 +38,7 @@ fs.mkdirSync(output,{recursive:true});
     assert.equal((await state()).date,'2028-01-01');
     assert.equal((await state()).scene.date,'2028-01-01');
     assert.equal((await state()).automatic.active,false);
-    pass('future year stays selected through reroll/preset, shows unverified holidays and starts on January 1');
+    pass('future year stays selected through reroll/preset, distinguishes missing2029/available2028 holidays and starts on January 1');
 
     await page.locator('#auto-preferences>summary').click();
     for(const id of (await state()).preferences)await page.locator(`[data-auto-preference="${id}"]`).click();
