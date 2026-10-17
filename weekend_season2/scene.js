@@ -38,6 +38,8 @@
     lavender:{wall:'#e4e0e9',floor:'#cec0ad',floorLine:'#beae9a',trim:'#b5a799',sofa:'#aaa0bb',sofaDark:'#91859f',cushion:'#c4b9cf',accent:'#d4bb82',rug:'#b8bba9',rugInner:'#d0d0bd',curtain:'#c5bdd4',curtainLine:'#aea3c0'}
   };
   const childScales = { toddler: .23, preschool: .34, school: .44, teen: .53, adult: .88 };
+  const parentingAges={baby_feed:[0,2],baby_change:[0,2],baby_sleep:[0,2],preschool_hygiene:[3,6],preschool_play:[3,6],preschool_ready:[3,6],school_homework:[7,12],school_reading:[7,12],school_tidy:[7,12]};
+  const outingActivities=['motorbike_tour','domestic_trip','golf_round','circuit_drive'];
   const childStage = age => age <= 2 ? 'toddler' : age <= 6 ? 'preschool' : age <= 12 ? 'school' : age <= 17 ? 'teen' : 'adult';
   function genderKey(value) { return value === 'female' ? 'woman' : value === 'male' ? 'man' : value === 'nonbinary' ? 'other' : Object.hasOwn(avatarStyles, value) ? value : 'unspecified'; }
   function displayHairStyle(gender, hairStyle) {
@@ -94,11 +96,14 @@
       const crawling=profile?profile.age<=1:stage==='toddler';
       const scale = crawling ? .6 : modern ? {toddler:.22,preschool:.32,school:.4,teen:.48,adult:.88}[stage] : childScales[stage];
       const onLeave=profile?.militaryStatus==='serving'&&lifeState.flags?.militaryChildIndex===index&&!!lifeState.flags?.militaryLeaveUntil&&lifeState.flags.militaryLeaveUntil>=(lifeState.date||'2026-01-01');
+      const age=profile?.age??{toddler:1,preschool:4,school:9,teen:15,adult:22}[stage],parenting=parentingAges[activity];
+      const participating=!!parenting&&age>=parenting[0]&&age<=parenting[1];
       const memberStyle=config.appearance?memberAppearance(config,'child-'+(index+1),profile?.gender):{gender:'unspecified',hair:index%2?'side-wave':'rounded-crop',hairColor:index%2?'#695342':'#55483c',top:palette[index],trim:'#f1ddba'};
       if(profile){memberStyle.gender=genderKey(profile.gender);if(!config.appearance)memberStyle.hair=avatarStyles[memberStyle.gender].hair;}
       if(onLeave){memberStyle.top='#71816a';memberStyle.trim='#c6c6a0';}
       const child = { id: 'child-' + (index + 1), kind: 'child', name: '자녀 ' + (index + 1), ageStage:stage, ...(profile?{age:profile.age,gender:profile.gender,militaryStatus:profile.militaryStatus,onLeave}:{}), x: (hasAdult?400:397) + (index - (children - 1) / 2) * (hasAdult?88:74), y: (stage==='adult'?546:542) - (crawling?26:112) * scale, scale, ...(crawling?{pose:'crawl'}:{}),
-        activity: onLeave?'child-leave':stage==='adult'?'child-adult':crawling?'child-crawl':stage==='toddler'?'child-toddler':activity === 'care' || stage !== 'preschool' ? 'child-book' : 'child-play',
+        activity: onLeave?'child-leave':stage==='adult'?'child-adult':crawling?'child-crawl':participating?activity:stage==='toddler'?'child-toddler':activity === 'care' || stage !== 'preschool' ? 'child-book' : 'child-play',
+        ...(participating?{parentingActivity:activity}:{}),
         appearance:memberStyle };
       if(profile?.militaryStatus==='serving'&&!onLeave){awayChildren.push({id:child.id,name:child.name,age:profile.age,gender:profile.gender,militaryStatus:'serving',reason:'군 복무 중',onLeave:false});return null;}
       child.bounds = bounds(child); return child;
@@ -210,6 +215,41 @@
     if(person.ill){shape(15,-39,25,6,'#d1ded6',2);line([[19,-36],[35,-36]],'#edf1e5',1.5);}
     c.restore();
   }
+  function parentingProps(activity,skin){
+    // Show supplies with the existing family figures; never add a second baby.
+    line([[-24,11],[-31,35],[-12,44]],skin.limb,11);line([[24,11],[31,35],[12,44]],skin.limb,11);
+    if(activity==='baby_feed'){
+      shape(-10,22,21,33,'#e6ddc0',5);shape(-8,18,17,6,'#b2c1a1',2);ellipse(1,15,5,5,'#d6bd95');line([[1,31],[7,31]],'#a9bba6',2);line([[1,39],[7,39]],'#a9bba6',2);
+    }else if(activity==='baby_change'){
+      shape(-25,27,50,30,'#eee4c9',7);shape(-30,29,13,10,'#bbcbb8',3);shape(17,29,13,10,'#bbcbb8',3);line([[-19,40],[-11,51],[12,51],[20,40]],'#c3bb9e',2);ellipse(0,37,4,4,'#d5b577');
+    }else if(activity==='baby_sleep'){
+      shape(-27,30,54,29,'#b8c5d3',7);line([[-25,39],[25,39]],'#e0dfc3',3);ellipse(0,49,5,5,'#e9d5a6');ellipse(20,21,7,7,'#dec78e');ellipse(23,18,6,6,'#ece8d7');
+    }else if(activity==='preschool_hygiene'){
+      shape(-22,31,22,25,'#c7d5c2',3);ellipse(-11,31,11,3,'#a1b6a1');line([[16,47],[19,19]],'#d09b75',5);shape(15,15,15,10,'#e5ddc5',2);line([[19,17],[19,22]],'#a7c0b7',2);line([[24,17],[24,22]],'#a7c0b7',2);
+    }else if(activity==='preschool_play'){
+      shape(-27,39,20,20,'#d7af74',3);shape(-5,39,20,20,'#95b9b1',3);shape(-16,17,20,20,'#c58b80',3);ellipse(-17,49,4,4,'#eee2bb');line([[1,54],[6,44],[11,54]],'#e8e1c7',2);
+    }else if(activity==='preschool_ready'){
+      line([[-18,35],[-24,20],[-13,15],[0,28]],'#8ca391',4);shape(-18,24,38,36,'#b39c75',6);shape(-12,38,26,17,'#d5c09a',3);line([[-11,29],[12,29]],'#e4d8b8',3);ellipse(3,45,2,2,'#8b8a68');
+    }else if(activity==='school_homework'){
+      shape(-24,27,48,32,'#eee3bd',2);line([[-16,36],[10,36]],'#b1bba0',2);line([[-16,44],[2,44]],'#b1bba0',2);line([[5,52],[22,31]],'#bd9560',5);line([[4,53],[7,49]],'#746d54',2);
+    }else if(activity==='school_reading'){
+      shape(-25,27,50,32,'#d4c59a',2);line([[0,30],[0,56]],'#9f946f',2);for(const y of [36,44,51]){line([[-18,y],[-6,y]],'#f1e2bd',2);line([[6,y],[18,y]],'#f1e2bd',2);}
+    }else if(activity==='school_tidy'){
+      shape(-20,21,11,25,'#a0b7aa',2);shape(-7,17,11,29,'#c28b76',2);shape(6,24,11,22,'#c6b279',2);shape(-27,39,54,24,'#c7ab7e',3);shape(-10,44,20,7,'#eee0ba',2);line([[-25,40],[25,40]],'#9c8c65',2);
+    }
+  }
+  function outingProps(activity,skin){
+    line([[-24,11],[-31,35],[-15,42]],skin.limb,11);line([[24,11],[31,35],[15,42]],skin.limb,11);
+    if(activity==='motorbike_tour'){
+      line([[-29,34],[-16,39],[16,39],[29,34]],'#647c77',6);line([[-30,33],[-37,21]],'#647c77',3);line([[30,33],[37,21]],'#647c77',3);ellipse(-35,19,7,4,'#a9c1b8');ellipse(35,19,7,4,'#a9c1b8');shape(-14,43,28,17,'#b79462',5);ellipse(0,49,7,4,'#e7d9b3');
+    }else if(activity==='domestic_trip'){
+      line([[-20,37],[-19,23],[-6,23],[-5,37]],'#8e8566',4);shape(-28,35,34,29,'#b79b71',5);line([[-17,37],[-17,62]],'#d9c49d',3);shape(10,26,22,31,'#d9dfbc',2);line([[14,30],[22,37],[16,44],[27,51]],'#8da799',2);ellipse(24,34,3,3,'#c09574');
+    }else if(activity==='golf_round'){
+      shape(-24,28,26,40,'#8a9f8e',6);line([[-18,29],[-24,4]],'#a7ae9d',3);line([[-9,29],[-9,2]],'#a7ae9d',3);line([[20,29],[30,85],[39,87]],'#8d927e',4);ellipse(12,91,6,5,'#e9e2c6');line([[-23,45],[-2,45]],'#d7d8b6',3);
+    }else if(activity==='circuit_drive'){
+      context.strokeStyle='#5f746e';context.lineWidth=6;context.beginPath();context.arc(0,41,24,0,Math.PI*2);context.stroke();line([[-21,34],[0,41],[21,34]],'#5f746e',5);line([[0,42],[0,62]],'#5f746e',5);ellipse(0,41,7,7,'#c9ad75');shape(-10,10,20,8,'#e0c792',2);
+    }
+  }
   function character(activity, person) { if(person.pose==='crawl'){crawlingChild(person);return;}const c = context; const resting = activity === 'rest'; const walk = ['walk', 'run', 'pt', 'garden'].includes(activity); const wave = reduced.matches || person.kind !== 'player' ? 0 : Math.sin(elapsed / 470); const style = person.appearance, skin=style.skin||{face:'#e4ba8e',limb:'#dba77e',neck:'#d8ac7e',blush:'#d89476'}; c.save(); c.translate(person.x, person.y + (walk ? wave * 2 : wave * .5)); c.scale(person.scale*(person.facing||1), person.scale);
     ellipse(0, 102, 42, 9, '#9f9d7b35');
     line(resting ? [[-10,54],[-26,68],[-25,95],[-35,97]] : [[-10, 54], [-13 + (walk ? wave * 8 : 0), 92], [-28 + (walk ? wave * 8 : 0), 94]], '#54645b', 14);
@@ -223,7 +263,9 @@
     shape(-9,-19,18,24,skin.neck||skin.limb,7);face(style,skin);
     hair(style.hair, style.hairColor, false);
     ellipse(-9, -31, 1.6, 2, '#574a3b'); ellipse(9, -31, 1.6, 2, '#574a3b'); line([[-4, -18], [1, -16], [6, -19]], '#a16c50', 1.5); ellipse(-17, -24, 4, 2, skin.blush); ellipse(17, -24, 4, 2, skin.blush);
-    if (['read', 'study', 'research', 'jobstudy', 'child-book'].includes(activity)) { line([[-24, 11], [-30, 40], [-9, 44]], skin.limb, 11); line([[24, 11], [31, 39], [11, 44]], skin.limb, 11); shape(-25, 27, 50, 30, '#f2dfaa', 2); line([[0, 29], [0, 55]], '#b7a06f', 2); }
+    if(parentingAges[activity])parentingProps(activity,skin);
+    else if(outingActivities.includes(activity))outingProps(activity,skin);
+    else if (['read', 'study', 'research', 'jobstudy', 'child-book'].includes(activity)) { line([[-24, 11], [-30, 40], [-9, 44]], skin.limb, 11); line([[24, 11], [31, 39], [11, 44]], skin.limb, 11); shape(-25, 27, 50, 30, '#f2dfaa', 2); line([[0, 29], [0, 55]], '#b7a06f', 2); }
     else if (activity === 'child-play') { line([[-24,11],[-30,35],[-13,43]],skin.limb,11);line([[24,11],[30,35],[13,43]],skin.limb,11);ellipse(0,40,19,18,'#d3b264');line([[-14,34],[13,45]],'#f1dca3',3); }
     else if (activity === 'child-toddler') { line([[-24,11],[-31,29],[-16,33]],skin.limb,11);line([[24,11],[31,29],[16,33]],skin.limb,11);ellipse(0,37,20,21,'#d6b379');ellipse(-15,19,8,8,'#d6b379');ellipse(15,19,8,8,'#d6b379');ellipse(-6,32,2,2,'#7e694d');ellipse(6,32,2,2,'#7e694d'); }
     else if (activity === 'child-adult' || activity === 'child-leave') { line([[-24,11],[-30,39],[-7,43]],skin.limb,11);line([[24,11],[30,38],[14,42]],skin.limb,11);shape(-10,25,22,33,'#607f78',3);shape(-6,29,14,23,'#dbe3cb',2);if(activity==='child-leave'){shape(-24,-4,48,8,'#596e59',2);shape(7,14,15,10,'#bec8a0',1);line([[-16,17],[-2,17]],'#4d6350',3);} }

@@ -41,6 +41,15 @@
     return Array.from({length:config.children||0},()=>({age,gender:'unspecified',militaryStatus:'none'}));
   }
   function childStage(age){return age<=2?'toddler':age<=6?'preschool':age<=12?'school':age<=17?'teen':'adult';}
+  function activityReason(config,id){
+    const activity=ACTIVITY_MAP[id];
+    if(!activity)return '활동을 선택하세요.';
+    if(activity.minAge&&config.age<activity.minAge)return activity.minAge+'세 이상이 선택하는 활동';
+    if(activity.roles&&!activity.roles.includes(config.role))return activity.roles.map(role=>ROLES[role]).join(' · ')+'의 활동';
+    const age=activity.parenting;
+    if(age&&!getChildren(config).some(child=>child.militaryStatus!=='serving'&&child.age>=age.minAge&&child.age<=age.maxAge))return age.label+'와 함께하는 활동';
+    return '';
+  }
   // Each aspect has its own deterministic stream; adding an illustration never
   // changes residence, earnings, or either of the simulation's event streams.
   function randomStream(seed,tag){
@@ -125,7 +134,7 @@
     // Income, an actual-sized home and essential living costs are generated
     // together. Source distributions and gameplay support remain distinguishable.
     assignLifeEconomy(config);
-    const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'];
+    const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'].filter(id=>!ACTIVITY_MAP[id].manualOnly);
     config.preferences=[pick(interests)];config.preferences.push(pick(interests.filter(id=>id!==config.preferences[0])));
     assignPersonaName(config);
     const name=config.personaName;
@@ -138,7 +147,7 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
     NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

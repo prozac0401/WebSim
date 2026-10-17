@@ -78,6 +78,22 @@
     return Array.from({length:s.config.children},()=>({age:{toddler:1,preschool:4,school:9,teen:16,adult:24}[s.config.childAge]||0,gender:'unspecified',militaryStatus:'none'}));
   }
   function activityCost(s,id) {return typeof D.activityPrice==='function'?D.activityPrice(s.config,id).amount:D.ACTIVITY_MAP[id].cost;}
+  function cadenceCheck(s,id,date,ignorePlanId) {
+    const cadence=D.ACTIVITY_MAP[id]?.cadence;
+    if(!cadence)return {allowed:true,nextDate:null,label:''};
+    if(!C.validDate(date))throw new RangeError('활동 날짜를 확인하세요.');
+    const due=from=>cadence.unit==='weeks'?C.addDays(from,cadence.interval*7):C.addMonths(from,cadence.interval);
+    const sameGroup=activityId=>D.ACTIVITY_MAP[activityId]?.cadence?.group===cadence.group;
+    const dates=[...new Set([...s.log.filter(item=>item.type==='activity'&&sameGroup(item.activityId)).map(item=>item.date),...s.plan.filter(item=>item.id!==ignorePlanId&&sameGroup(item.activityId)).map(item=>item.date)].filter(C.validDate))].sort();
+    let nextDate=date;
+    // Respect both the last completed visit and future explicit appointments.
+    // A candidate before an appointment must leave its own full interval, too.
+    for(const occupied of dates){
+      if(nextDate>=occupied?nextDate<due(occupied):due(nextDate)>occupied)nextDate=due(occupied);
+    }
+    return {allowed:nextDate===date,nextDate,label:cadence.label};
+  }
+  function activityCadence(s,id,date=s.date) {return cadenceCheck(s,id,date,null);}
   function random(s,stream) { let x=s.rng[stream]>>>0;x=(Math.imul(1664525,x)+1013904223)>>>0;s.rng[stream]=x;return x/4294967296; }
   function travelMinutes(s,a) {
     if (a.location==='home') return 0;
@@ -104,7 +120,7 @@
   function activityTime(s,activityId,date,slot) {
     const a=D.ACTIVITY_MAP[activityId];if(!a)return 0;
     const care=a.id==='care'?0:careMinutes(s,date,slotId(slot));
-    return a.minutes+a.prep+travelMinutes(s,a)+care;
+    return a.prep+travelMinutes(s,a)+(a.careOverlap?Math.max(a.minutes,care):a.minutes+care);
   }
   function conditionMinutes(s,date,slot) {
     if(!s.flags.recoveryUntil||date<s.flags.recoveryStarted||date>s.flags.recoveryUntil)return 0;
@@ -133,7 +149,7 @@
     if(!SLOT_IDS.includes(p.slot))return {ok:false,reason:'시간대를 선택하세요.'};
     if(s.dayState&&s.dayState.date===p.date&&s.dayState.done.includes('slot-'+p.slot))return {ok:false,reason:'이미 처리한 시간대에는 새 활동을 배치할 수 없습니다.'};
     if(!C.isOff(p.date)&&p.slot!=='evening')return {ok:false,reason:'평일 낮에는 일과가 있어요. 저녁이나 쉬는 날에 시간을 내 볼까요?'};
-    if(a.roles&&!a.roles.includes(s.config.role))return {ok:false,reason:'현재 생활 역할에 맞지 않는 활동입니다.'};
+    const unavailable=D.activityReason(s.config,a.id);if(unavailable)return {ok:false,reason:unavailable+'이에요. 다른 활동을 골라 주세요.',cause:a.parenting?'care':'role'};
     if(s.plan.some(x=>x.id!==ignoreId&&x.date===p.date&&x.slot===p.slot))return {ok:false,reason:'같은 시간대에 이미 활동이 있습니다.'};
     const blocked=(s.dayState&&s.dayState.date===p.date?(s.dayState.blocks[p.slot]||0):0)+(!(s.dayState&&s.dayState.date===p.date&&s.dayState.baseDone)?conditionMinutes(s,p.date,p.slot):0);
     const minutes=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'&&s.dayState&&s.dayState.date===p.date?s.dayState.extraTravel:0);
@@ -159,14 +175,20 @@
     if(s.flags.autoPreparedWeek===s.weekStart)return {ok:true,added:[],issues:[],notes:[],alreadyPrepared:true,reason:''};
     const issues=s.plan.map(p=>({...p,...planCheck(s,p,p.id)})).filter(p=>!p.ok);
     if(issues.length)return {ok:false,added:[],issues,reason:'이번 주에 잡아 둔 일 중 지금은 하기 어려운 일이 있어요. 시간과 비용을 다시 살펴봐 주세요.'};
-    const draft=clone(s),added=[],notes=[],eligiblePreferences=s.config.preferences.filter(id=>!D.ACTIVITY_MAP[id].roles||D.ACTIVITY_MAP[id].roles.includes(s.config.role));
+    const draft=clone(s),added=[],notes=[],eligiblePreferences=s.config.preferences.filter(id=>!D.activityReason(s.config,id)&&!D.ACTIVITY_MAP[id].manualOnly);
     const offset=eligiblePreferences.length?((s.weekNumber-1)*2)%eligiblePreferences.length:0;
     const preferences=[...eligiblePreferences.slice(offset),...eligiblePreferences.slice(0,offset)];
     const preferred=preferences[0]||'read',second=preferences[1]||'walk';
     const goal={worker:'study',seeker:'jobstudy',graduate:'research',caregiver:'study'}[s.config.role];
     const optionsByDirection={balanced:[preferred,second,'rest'],hobby:[preferred,second,'culture'],rest:['rest','walk','read'],selfdev:[goal,'read','culture'],social:['friends','volunteer','culture'],family:['family_time','cook','care'],home:['cleaning','chores','garden'],health:['run','walk','rest']};
     let desired=optionsByDirection[direction].map(id=>D.ACTIVITY_MAP[id]?id:'read');
-    if(direction==='balanced'&&s.stats.fatigue>=65)desired=['rest',preferred,'walk'];
+    const parenting=D.ACTIVITIES.filter(a=>a.parenting&&!D.activityReason(s.config,a.id));
+    const groups=[...new Set(parenting.map(a=>a.parenting.group))],rotation=Math.max(0,s.weekNumber-1);
+    const group=groups[rotation%groups.length],choices=parenting.filter(a=>a.parenting.group===group);
+    const parentTask=choices.length?choices[Math.floor(rotation/groups.length)%choices.length].id:null;
+    if(parentTask&&direction==='balanced')desired=[preferred,parentTask,'rest'];
+    if(parentTask&&direction==='family')desired=[parentTask,'family_time','cook'];
+    if(direction==='balanced'&&s.stats.fatigue>=65)desired=['rest',parentTask||preferred,'walk'];
     if(s.household.cleanliness<38&&!['home'].includes(direction))desired[2]=D.ACTIVITY_MAP.cleaning?'cleaning':'chores';
     if(s.healthEpisode&&s.healthEpisode.subject==='self')desired=['rest','read',s.household.cleanliness<38?'chores':'garden'];
     const occupiedActivities=new Set(draft.plan.map(p=>p.activityId)),needed=Math.max(0,3-draft.plan.length);
@@ -178,6 +200,7 @@
         const slots=['afternoon','morning','evening'];
         candidates.sort((a,b)=>Number(b.off)-Number(a.off)||draft.plan.filter(p=>p.date===a.date).length-draft.plan.filter(p=>p.date===b.date).length||a.date.localeCompare(b.date)||slots.indexOf(a.slot)-slots.indexOf(b.slot));
         for(const candidate of candidates){
+          if(!activityCadence(draft,activityId,candidate.date).allowed)continue;
           const previousSequence=draft.sequence,result=addPlan(draft,{...candidate,activityId,payment:'cash'});
           if(result.ok){
             // A cheap activity early in the week must not consume the budget
@@ -197,7 +220,7 @@
   function replaceAutoWeek(s,options) {
     if(s.phase!=='planning')return {ok:false,added:[],issues:[],reason:'지금의 이야기를 마친 뒤 이번 주 계획을 바꿀 수 있어요.'};
     const draft=clone(s),removed=draft.plan.filter(p=>p.automatic&&!p.ruleId);
-    if(options&&options.preferences!==undefined){draft.config.preferences=clone(options.preferences);const errors=validateConfig(draft.config);if(errors.length)return {ok:false,added:[],issues:[],reason:errors[0]};const unavailable=draft.config.preferences.map(id=>D.ACTIVITY_MAP[id]).find(a=>a.roles&&!a.roles.includes(draft.config.role)&&!s.config.preferences.includes(a.id));if(unavailable)return {ok:false,added:[],issues:[],reason:unavailable.name+'는 '+unavailable.roles.map(role=>D.ROLES[role]).join('·')+'의 활동이에요. 다른 배움과 취미를 골라 주세요.'};}
+    if(options&&options.preferences!==undefined){draft.config.preferences=clone(options.preferences);const errors=validateConfig(draft.config);if(errors.length)return {ok:false,added:[],issues:[],reason:errors[0]};const unavailable=draft.config.preferences.find(id=>(D.activityReason(draft.config,id)||D.ACTIVITY_MAP[id].manualOnly)&&!s.config.preferences.includes(id));if(unavailable)return {ok:false,added:[],issues:[],reason:D.ACTIVITY_MAP[unavailable].name+'는 '+(D.activityReason(draft.config,unavailable)||'직접 계획하거나 반복 예약으로 고르는 활동')+'이에요. 다른 활동을 골라 주세요.'};}
     draft.plan=draft.plan.filter(p=>!p.automatic||p.ruleId);delete draft.flags.autoPreparedWeek;
     const result=prepareAutoWeek(draft,options);
     if(!result.ok)return result;
@@ -224,6 +247,7 @@
   function addRule(s,options) {
     try {
       if(!D.ACTIVITY_MAP[options.activityId])return {ok:false,reason:'반복 활동을 선택하세요.'};
+      const unavailable=D.activityReason(s.config,options.activityId);if(unavailable)return {ok:false,reason:unavailable+'이에요. 다른 반복 활동을 골라 주세요.'};
       const rule=R.createRule({...options,id:'rule-'+(++s.sequence),slot:SLOT_IDS.indexOf(slotId(options.slot===undefined?'morning':options.slot))});
       if(rule.anchor<s.date||rule.anchor>s.config.year+'-12-31')return {ok:false,reason:'올해의 남은 날짜에서 시작하세요.'};
       s.rules.push(rule);return {ok:true,rule};
@@ -318,7 +342,9 @@
   }
   function performActivity(s,p) {
     const a=D.ACTIVITY_MAP[p.activityId];
-    if(a.roles&&!a.roles.includes(s.config.role))return specialEvent(s,p,'생활 역할이 바뀌어 이 활동을 다시 조정해야 합니다.','role');
+    const unavailable=D.activityReason(s.config,a.id);if(unavailable)return specialEvent(s,p,unavailable+'이어서 이 활동을 다시 조정해야 합니다.',a.parenting?'care':'role');
+    if(p.automatic&&!p.ruleId&&a.manualOnly)return specialEvent(s,p,a.name+'는 직접 계획하거나 반복 예약으로 고르는 활동이에요.','manual');
+    if(p.automatic&&!p.ruleId&&!cadenceCheck(s,a.id,p.date,p.id).allowed)return specialEvent(s,p,a.name+'은 '+a.cadence.label+' 자동으로 챙겨요. 이미 마친 일과 잡아 둔 약속 사이에 간격을 두어요.','cadence');
     const blocked=s.dayState.blocks[p.slot]||0;
     const time=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'?s.dayState.extraTravel:0);
     if(time>240){const result=specialEvent(s,p,'돌봄과 이동까지 챙기면 '+a.name+'을 마칠 시간이 부족해요. 다른 때로 옮기거나 오늘은 쉬어 갈 수 있습니다.','time');s.pendingEvent.context.details={requiredMinutes:time,availableMinutes:240};return result;}
@@ -336,7 +362,8 @@
       log(s,'household',a.id==='cleaning'?'묵은 먼지를 걷어 내고 집을 청소했습니다.':'집안일을 하며 생활공간을 정돈했습니다.',{activityId:a.id,cleanliness:s.household.cleanliness});
     }
     effect(s,values);s.activityCounts[a.id]=count(s,a.id)+1;s.skills[a.id]=clamp((s.skills[a.id]||0)+(tired?Math.ceil(a.skillGain*.6):a.skillGain));
-    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
+    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,...(a.careOverlap?{careOverlapMinutes:Math.min(a.minutes,careMinutes(s,p.date,p.slot))}:{}),...(a.risk?{planId:p.id}:{}),cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
+    if(a.risk)completeRiskActivity(s,p,a);
     if(a.artifact&&count(s,a.id)%a.every===0){const artifact={id:'artifact-'+(++s.sequence),date:s.date,activityId:a.id,name:a.artifact,icon:a.icon,number:Math.floor(count(s,a.id)/a.every),skill:s.skills[a.id],season:season(s.date)};s.artifacts.push(artifact);log(s,'artifact',artifact.name+' #'+artifact.number,{artifactId:artifact.id,activityId:a.id});}
     if(p.ruleId){const rule=s.rules.find(r=>r.id===p.ruleId);if(rule)R.complete(rule,s.date,p.originalDate);}
     if(['delivery','parttime','sideproject'].includes(a.id))completeSideWork(s,p,a);
@@ -378,6 +405,20 @@
       queue(s,'sideproject_result',C.addDays(s.date,1));
     }
   }
+  function completeRiskActivity(s,p,a) {
+    const reference='activity-incident:'+p.id;
+    if(s.finance.ledger.some(item=>item.type==='incident-cost'&&item.reference===reference))return;
+    // Risk is rolled only after this paid activity actually finishes. Planning,
+    // rejected attempts and cancelled plans never consume this RNG stream.
+    if(random(s,'followup')>=a.risk.chance)return;
+    const cost=(min,max)=>min+1000*Math.floor(random(s,'followup')*((max-min)/1000+1));
+    const repairCost=cost(a.risk.repairMin,a.risk.repairMax),medicalCost=cost(a.risk.medicalMin,a.risk.medicalMax);
+    const charged=F.chargeIncident(s.finance,s.date,{repairCost,medicalCost,activityId:a.id,reference,label:a.name+' 사고 수리비·병원비'});
+    if(!charged.ok)throw new Error(charged.reason);
+    if(charged.duplicate)return;
+    const effects={health:-8,fatigue:12,mood:-10};effect(s,effects);
+    log(s,'incident',a.name+' 중 사고 · 수리비 '+D.formatMoney(repairCost)+' · 병원비 '+D.formatMoney(medicalCost),{activityId:a.id,reference,repairCost,medicalCost,total:charged.total,paid:charged.paid,unpaid:charged.unpaid,effects,category:'incident'});
+  }
   function activityEffects(s,a) {
     const health={walk:2.2,run:4,pt:4,cook:1.5,rest:2,chores:.4,cleaning:.7,garden:1,care:.2,overtime:-2};
     const knowledge={read:3,study:5,research:5,jobstudy:4,culture:4,cook:1,music:1,photo:1,pottery:1,draw:1,garden:.6};
@@ -394,7 +435,7 @@
     const before=s.household.cleanliness;
     s.household.cleanliness=clamp(before-1.25);
     if(before>=35&&s.household.cleanliness<35)log(s,'household','미뤄 둔 청소가 눈에 띄기 시작했습니다. 집을 정돈할 시간이 필요해요.',{cleanliness:s.household.cleanliness});
-    const dirt=Math.max(0,(35-s.household.cleanliness)/35),debt=s.finance.arrears+s.finance.fixedArrears>0;
+    const dirt=Math.max(0,(35-s.household.cleanliness)/35),debt=s.finance.arrears+s.finance.fixedArrears+(s.finance.incidentArrears||0)>0;
     const profile=D.ageHealthProfile(s.config);
     const ease=(key,target,rate)=>{const recovery=(key==='health'&&target>s.stats[key])||(key==='fatigue'&&target<s.stats[key]);s.stats[key]=clamp(s.stats[key]+(target-s.stats[key])*rate*(recovery?profile.recoveryRate:1));};
     // These bounded rhythms are game assumptions, not psychological or medical
@@ -432,7 +473,7 @@
     dailyBalance(s);
     F.endDay(s.finance,s.date,s.config);
     log(s,'daily','하루의 기록',{stats:clone(s.stats),household:clone(s.household),holiday:C.holiday(s.date),isOff:C.isOff(s.date)});
-    if((s.finance.arrears+s.finance.fixedArrears)>0&&(!s.flags.debtLast||C.addDays(s.flags.debtLast,30)<s.date)){s.flags.debtLast=s.date;queue(s,'money_recovery',C.addDays(s.date,1));}
+    if((s.finance.arrears+s.finance.fixedArrears+(s.finance.incidentArrears||0))>0&&(!s.flags.debtLast||C.addDays(s.flags.debtLast,30)<s.date)){s.flags.debtLast=s.date;queue(s,'money_recovery',C.addDays(s.date,1));}
     return {ok:true,done:true};
   }
   function advance(s,options) {
@@ -463,7 +504,7 @@
   const AUTOMATIC_MAJOR=new Set(['care_appointment','exam_june','exam_nov','exam_followup','work_review','thesis_presentation','thesis_deadline','thesis_recovery','job_interview','job_offer','partner_weekend','partner_care','partner_followup','single_weekend','single_care','single_followup','illness_influenza','illness_pneumonia','child_hfmd','military_leave','military_return','sidejob_offer','sideproject_offer','sideproject_deadline','sideproject_result','traffic_minor','flu_vaccine_season']);
   function automaticNote(s,title,extra) {return log(s,'automation',title,{automatic:true,...extra}).title;}
   function conservativeCash(s,amount) {
-    if(s.finance.arrears||s.finance.fixedArrears)return false;
+    if(s.finance.arrears||s.finance.fixedArrears||s.finance.incidentArrears)return false;
     const promised=s.plan.reduce((sum,p)=>sum+activityCost(s,p.activityId),0);
     return F.canSpend(s.finance,amount,'cash',s.config).ok&&s.finance.cash>=amount+promised&&F.available(s.finance,s.config)>=amount+promised;
   }
@@ -525,13 +566,14 @@
   }
   function automaticPlans(s) {
     const notes=[];
+    const checkPlan=p=>{const result=planCheck(s,p,p.id);if(result.ok&&p.automatic&&!p.ruleId){if(D.ACTIVITY_MAP[p.activityId].manualOnly)return {ok:false,cause:'manual',reason:'직접 고르는 활동이에요.'};if(!cadenceCheck(s,p.activityId,p.date,p.id).allowed)return {ok:false,cause:'cadence',reason:'자동 활동 간격을 기다려요.'};}return result;};
     for(const p of [...s.plan]){
       if(p.payment==='card'){
         p.payment='cash';notes.push(automaticNote(s,D.ACTIVITY_MAP[p.activityId].name+'은 카드 청구를 늘리지 않고 가진 돈 안에서 챙깁니다.',{activityId:p.activityId,planId:p.id,payment:'cash'}));
       }
-      const check=planCheck(s,p,p.id);if(check.ok)continue;
+      const check=checkPlan(p);if(check.ok)continue;
       let target=null;
-      for(const date of C.weekDates(s.date))for(const slot of SLOT_IDS){if(target||date<p.date||date===p.date&&SLOT_IDS.indexOf(slot)<=SLOT_IDS.indexOf(p.slot))continue;if(planCheck(s,{...p,date,slot},p.id).ok)target={date,slot};}
+      for(const date of C.weekDates(s.date))for(const slot of SLOT_IDS){if(target||date<p.date||date===p.date&&SLOT_IDS.indexOf(slot)<=SLOT_IDS.indexOf(p.slot))continue;if(checkPlan({...p,date,slot}).ok)target={date,slot};}
       if(target){log(s,'postponed',D.ACTIVITY_MAP[p.activityId].name+'을 여유 있는 시간으로 옮겼습니다.',{activityId:p.activityId,from:p.date,fromSlot:p.slot,to:target.date,toSlot:target.slot,category:'cannot',reason:check.cause||'time',automatic:true});p.date=target.date;p.slot=target.slot;notes.push(automaticNote(s,D.ACTIVITY_MAP[p.activityId].name+'을 '+p.date+'에 이어가기로 했습니다.',{activityId:p.activityId}));}
       else{removePlan(s,p.id,check.cause||'time');notes.push(automaticNote(s,D.ACTIVITY_MAP[p.activityId].name+'은 이번 주에 무리하지 않고 쉬어 갑니다.',{activityId:p.activityId,category:'cannot',reason:check.cause||'time'}));}
     }
@@ -749,5 +791,5 @@
     const ranked=monthly.filter(m=>m.meanMood!==null).sort((a,b)=>b.meanMood-a.meanMood||a.month-b.month);
     return {year:s.config.year,activityCounts:clone(s.activityCounts),calendar,monthly,artifacts:clone(s.artifacts),achievements:s.log.filter(l=>l.type==='achievement'),relationshipScenes:s.log.filter(l=>l.type==='relationship'),finance:F.summary(s.finance,s.config),happiestMonth:ranked.length?ranked[0]:null,kept:s.log.filter(l=>l.type==='activity'&&l.ruleId).length,postponed:s.log.filter(l=>['postponed','skipped'].includes(l.type)),cannot:s.log.filter(l=>l.category==='cannot'),choices:s.log.filter(l=>l.category==='choice'),log:s.log.slice(),daysPlayed:s.log.filter(l=>l.type==='daily').length};
   }
-  return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,replaceAutoWeek,replanAutoWeek:replaceAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,advanceAutomatic,resolveAutomatic,choose,finishReview,getSummary,activityTime,travelMinutes,careMinutes,conditionMinutes,influenzaWeight,season,SLOT_IDS,SLOT_LABELS,PUBLIC_STATS,AUTO_DIRECTIONS,AUTOMATIC_MAJOR:[...AUTOMATIC_MAJOR]};
+  return {create,validateConfig,currentWeek,addPlan,prepareAutoWeek,replaceAutoWeek,replanAutoWeek:replaceAutoWeek,removePlan,addRule,reservations,confirmReservations,skipReservation,postponeReservation,stopRule,advance,advanceAutomatic,resolveAutomatic,choose,finishReview,getSummary,activityTime,activityCadence,travelMinutes,careMinutes,conditionMinutes,influenzaWeight,season,SLOT_IDS,SLOT_LABELS,PUBLIC_STATS,AUTO_DIRECTIONS,AUTOMATIC_MAJOR:[...AUTOMATIC_MAJOR]};
 });

@@ -177,6 +177,46 @@ test('scene family: care pose draws exactly the configured children and uses a b
   }
 });
 
+test('scene parenting: nine activities show distinct supplies and involve only the existing children in that age band',()=>{
+  const groups={baby_feed:[0,2],baby_change:[0,2],baby_sleep:[0,2],preschool_hygiene:[3,6],preschool_play:[3,6],preschool_ready:[3,6],school_homework:[7,12],school_reading:[7,12],school_tidy:[7,12]};
+  const h=drawingHarness(),state={config:{gender:'woman',maritalStatus:'married',children:6,childAge:'toddler',generationSeed:117,appearance:{hairStyle:'bun',skinTone:'warm'},childProfiles:[0,2,3,6,7,12].map((age,i)=>({age,gender:i%2?'man':'woman',militaryStatus:'none'}))},date:'2026-10-17',artifacts:[],rng:{external:123,followup:456},finance:{cash:250000,ledger:[{amount:-5000}]},log:[]},before=JSON.stringify(state),drawings=new Set();
+  for(const [id,ages]of Object.entries(groups)){
+    h.clear();h.api.attach(h.canvas,state,id);drawings.add(h.snapshot());const described=h.api.describe();
+    assert.equal(described.character.activity,id);assert.equal(described.family.personCount,8);assert.equal(described.family.visibleChildCount,6);
+    const involved=described.family.children.filter(child=>child.parentingActivity===id);
+    assert.equal(involved.length,2);assert.deepEqual(Array.from(involved,child=>child.age),ages);
+    assert.equal(described.family.children[0].pose,'crawl','the baby remains the existing floor figure');
+    assert.equal(h.calls.some(call=>call[0]==='ellipse'&&call[1]===2&&call[2]===19&&call[3]===12&&call[4]===12),false,'parenting must not draw another baby in the parent arms');
+    h.clear();h.api.update(state,id);const still=h.snapshot();h.clear();h.api.advance(5000);assert.equal(h.snapshot(),still);
+    assert.equal(JSON.stringify(state),before,'supplies and poses do not spend money or advance the life');
+  }
+  assert.equal(drawings.size,9,'each parenting activity must have its own visible equipment');
+});
+
+test('scene parenting: age-band poses fit every room without changing child count or family placement',()=>{
+  const ids=['baby_feed','baby_change','baby_sleep','preschool_hygiene','preschool_play','preschool_ready','school_homework','school_reading','school_tidy'];
+  for(const layout of Scene.OPTIONS.layout)for(const children of [0,1,3,6])for(const id of ids){
+    const config={gender:'man',maritalStatus:'married',children,appearance:{hairStyle:'curly'},homeStyle:{layout},childProfiles:[0,2,4,7,12,20].slice(0,children).map((age,i)=>({age,gender:i%2?'woman':'man',militaryStatus:'none'}))};
+    const family=Scene.familyLayout(config,id),figures=members(family);assert.equal(family.personCount,children+2);
+    for(const person of figures){const b=person.bounds;assert.ok(b.left>=0&&b.right<=760&&b.top>=0&&b.bottom<=550,`${id}/${layout}/${person.id} clipped`);}
+    for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false,`${id}/${layout} figures overlap`);
+    const adult=family.children.find(child=>child.age===20);if(adult){assert.equal(adult.activity,'child-adult');assert.equal(adult.parentingActivity,undefined);}
+  }
+});
+
+test('scene outings: handlebars, travel bag, golf equipment and steering wheel are distinct without advancing costs or accident RNG',()=>{
+  const h=drawingHarness(),ids=['motorbike_tour','domestic_trip','golf_round','circuit_drive'],images=new Set();
+  const state={config:{gender:'man',maritalStatus:'married',children:2,childProfiles:[{age:4,gender:'woman',militaryStatus:'none'},{age:9,gender:'man',militaryStatus:'none'}],appearance:{hairStyle:'curly'},homeStyle:{layout:'window-right'}},date:'2026-10-17',rng:{external:73,followup:29},finance:{cash:900000,ledger:[]},log:[],artifacts:[]},before=JSON.stringify(state);
+  for(const id of ids){
+    h.clear();h.api.attach(h.canvas,state,id);images.add(h.snapshot());const shown=h.api.describe();
+    assert.equal(shown.character.activity,id);assert.equal(shown.family.personCount,4);
+    for(const child of shown.family.children)assert.equal(child.parentingActivity,undefined);
+    for(const layout of Scene.OPTIONS.layout){const family=Scene.familyLayout({...state.config,homeStyle:{layout}},id),figures=members(family);for(const person of figures){const b=person.bounds;assert.ok(b.left>=0&&b.right<=760&&b.top>=0&&b.bottom<=550);}for(let i=0;i<figures.length;i++)for(let j=i+1;j<figures.length;j++)assert.equal(overlaps(figures[i].bounds,figures[j].bounds),false);}
+    h.api.advance(9000);assert.equal(JSON.stringify(state),before);
+  }
+  assert.equal(images.size,4);
+});
+
 test('scene family: reduced motion stays deterministic while updates preserve season, collection and simulation state', () => {
   const h=drawingHarness(true), state={config:{...Data.DEFAULT_CONFIG,gender:'woman',maritalStatus:'married',children:6,childAge:'teen'},date:'2026-12-25',artifacts:[{activityId:'photo'},{activityId:'pottery'},{activityId:'music'}]};
   const before=JSON.stringify(state);h.api.attach(h.canvas,state,'run');h.clear();h.api.update(state,'run');const initial=h.snapshot();h.clear();h.api.advance(20000);

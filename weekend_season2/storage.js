@@ -35,6 +35,11 @@
     for(const rule of s.rules){try{R.createRule(rule);if(typeof rule.active!=='boolean'||!D.ACTIVITY_MAP[rule.activityId])throw Error();for(const field of ['completed','skipped','postponed']){if(!object(rule[field]))throw Error();for(const [date,value]of Object.entries(rule[field]))if(!C.validDate(date)||(field==='skipped'?value!==true:!C.validDate(value)))throw Error();}if(!C.validDate(rule.nextOriginal)||(rule.lastCompleted!==null&&!C.validDate(rule.lastCompleted)))throw Error();}catch(e){bad('반복 일정이 손상되었습니다.');}}
     const dayDates=new Set();
     for(const entry of s.log){if(!object(entry)||typeof entry.id!=='string'||typeof entry.type!=='string'||typeof entry.title!=='string'||!inYear(entry.date)||entry.date>s.date)bad('기록 날짜나 내용이 손상되었습니다.');if(entry.type==='daily'){if(dayDates.has(entry.date)||!object(entry.stats)||Object.values(entry.stats).some(v=>!Number.isFinite(v)||v<0||v>100))bad('하루 요약이 중복되거나 손상되었습니다.');dayDates.add(entry.date);}if(entry.activityId&&!D.ACTIVITY_MAP[entry.activityId])bad('알 수 없는 활동 기록입니다.');}
+    for(const entry of s.log)if(entry.careOverlapMinutes!==undefined){
+      const activity=D.ACTIVITY_MAP[entry.activityId],careSlot=C.validDate(entry.date)?C.isOff(entry.date)?'morning':'evening':null;
+      const recordedCare=s.log.filter(item=>item.type==='care'&&item.date===entry.date).reduce((sum,item)=>sum+(Number.isFinite(item.minutes)?Math.max(0,item.minutes):0),0);
+      if(entry.type!=='activity'||!activity?.careOverlap||!Number.isInteger(entry.careOverlapMinutes)||entry.careOverlapMinutes<0||entry.careOverlapMinutes>Math.min(activity?.minutes||0,180,recordedCare)||entry.slot!==careSlot&&entry.careOverlapMinutes!==0||!Number.isFinite(entry.minutes)||entry.careOverlapMinutes>entry.minutes)bad('활동과 기본 돌봄이 겹친 시간을 확인하세요.');
+    }
     for(const artifact of s.artifacts)if(!object(artifact)||!D.ACTIVITY_MAP[artifact.activityId]||!inYear(artifact.date)||artifact.date>s.date||typeof artifact.name!=='string'||!s.log.some(l=>l.type==='artifact'&&l.artifactId===artifact.id))bad('결과물과 로그가 일치하지 않습니다.');
     if(s.log.filter(l=>l.type==='artifact').length!==s.artifacts.length||s.log.some(l=>l.type==='artifact'&&!s.artifacts.some(a=>a.id===l.artifactId)))bad('결과물 목록과 로그가 일치하지 않습니다.');
     for(const item of s.queue)if(!object(item)||!E.MAP[item.catalogId]||!inYear(item.date)||!object(item.context)||!E.eligible(s,item.catalogId))bad('대기 사건이 손상되었습니다.');
@@ -109,13 +114,28 @@
     if(s.dayState!==null){const d=s.dayState;if(!object(d)||d.date!==s.date||!Array.isArray(d.done)||!object(d.blocks)||typeof d.begun!=='boolean'||typeof d.baseDone!=='boolean'||typeof d.eventHandled!=='boolean'||typeof d.skipWork!=='boolean')bad('처리 중인 날짜 상태가 손상되었습니다.');else{for(const [slot,value]of Object.entries(d.blocks))if(!Engine.SLOT_IDS.includes(slot)||!Number.isInteger(value)||value<0||value>240)bad('사용한 시간이 올바르지 않습니다.');if(!Number.isInteger(d.extraTravel)||d.extraTravel<0||d.extraTravel>30)bad('이동 시간이 올바르지 않습니다.');}}
     const f=s.finance;
     if(!object(f)||!['cash','cardPending','arrears','fixedArrears','pendingPay','monthSpent'].every(k=>money(f[k]))||!Array.isArray(f.ledger)||f.ledger.length>20000||!Array.isArray(f.pendingRewards)||!object(f.processed)){bad('금융 상태가 손상되었습니다.');return errors;}
+    if(f.incidentArrears!==undefined&&!money(f.incidentArrears))bad('사고 비용 미납액을 확인하세요.');
     if(f.currentDate!==null&&(!inYear(f.currentDate)||f.currentDate>s.date))bad('장부 날짜를 확인하세요.');
     if(f.monthKey!==(f.currentDate?f.currentDate.slice(0,7):null))bad('월별 장부 기준이 일치하지 않습니다.');
     if(s.phase==='event'&&(!s.dayState||!s.dayState.begun||f.currentDate!==s.date||!f.processed['begin:'+s.date]||f.processed['end:'+s.date]))bad('사건 날짜의 정산 단계가 일치하지 않습니다.');
     if(s.phase==='review'&&(!dayDates.has(s.date)||!f.processed['end:'+s.date]))bad('주간 기록의 마지막 날짜가 정산되지 않았습니다.');
     if(f.currentDate&&!f.processed['end:'+f.currentDate]&&(!s.dayState||s.dayState.date!==f.currentDate||!s.dayState.begun))bad('진행 중인 날짜 상태가 없습니다.');
-    const types=['purchase','fixed-arrears-payment','arrears-payment','salary','allowance','extra-pay','fixed-cost','fixed-unpaid','card-payment','card-unpaid','pending-pay'];
-    for(let i=0;i<f.ledger.length;i++){const t=f.ledger[i];if(!object(t)||t.id!=='tx-'+(i+1)||!inYear(t.date)||t.date>s.date||!types.includes(t.type)||!['amount','income','consumption','paid'].every(k=>money(t[k]))||typeof t.label!=='string')bad('거래 장부가 손상되었습니다.');if(t.income!==(['salary','allowance','extra-pay'].includes(t.type)?t.amount:0)||t.consumption!==(['purchase','fixed-cost'].includes(t.type)?t.amount:0)||t.paid>t.amount)bad('거래별 수입·소비·결제가 일치하지 않습니다.');}
+    const types=['purchase','fixed-arrears-payment','arrears-payment','salary','allowance','extra-pay','fixed-cost','fixed-unpaid','card-payment','card-unpaid','pending-pay','incident-cost','incident-unpaid','incident-arrears-payment'];
+    for(let i=0;i<f.ledger.length;i++){const t=f.ledger[i];if(!object(t)||t.id!=='tx-'+(i+1)||!inYear(t.date)||t.date>s.date||!types.includes(t.type)||!['amount','income','consumption','paid'].every(k=>money(t[k]))||typeof t.label!=='string')bad('거래 장부가 손상되었습니다.');if(t.income!==(['salary','allowance','extra-pay'].includes(t.type)?t.amount:0)||t.consumption!==(['purchase','fixed-cost','incident-cost'].includes(t.type)?t.amount:0)||t.paid>t.amount)bad('거래별 수입·소비·결제가 일치하지 않습니다.');}
+    const incidents=f.ledger.filter(item=>item.type==='incident-cost'),incidentUnpaid=f.ledger.filter(item=>item.type==='incident-unpaid'),incidentLogs=s.log.filter(item=>item.type==='incident');
+    if(!unique(incidents,'reference')||!unique(incidentUnpaid,'reference')||!unique(incidentLogs,'reference'))bad('사고 비용이 중복되어 있습니다.');
+    for(const item of incidents){
+      const activity=D.ACTIVITY_MAP[item.activityId],risk=activity?.risk;
+      const history=incidentLogs.filter(entry=>entry.reference===item.reference);
+      const completed=s.log.filter(entry=>entry.type==='activity'&&entry.activityId===item.activityId&&entry.date===item.date&&typeof entry.planId==='string'&&item.reference==='activity-incident:'+entry.planId);
+      if(!risk||typeof item.reference!=='string'||!/^activity-incident:plan-\d+$/.test(item.reference)||item.reference.length>160||!money(item.repairCost)||!money(item.medicalCost)||item.repairCost<(risk?.repairMin||0)||item.repairCost>(risk?.repairMax||0)||item.medicalCost<(risk?.medicalMin||0)||item.medicalCost>(risk?.medicalMax||0)||item.amount!==item.repairCost+item.medicalCost||!money(item.unpaid)||item.paid+item.unpaid!==item.amount||item.method!=='cash'||item.cause!=='incident'||completed.length!==1||history.length!==1)bad('사고 활동과 수리비·병원비 장부가 일치하지 않습니다.');
+      const historyItem=history[0];
+      if(historyItem&&(historyItem.date!==item.date||historyItem.activityId!==item.activityId||historyItem.repairCost!==item.repairCost||historyItem.medicalCost!==item.medicalCost||historyItem.total!==item.amount||historyItem.paid!==item.paid||historyItem.unpaid!==item.unpaid||s.log.indexOf(historyItem)<=s.log.indexOf(completed[0])))bad('사고 기록의 비용과 결제 내역이 다릅니다.');
+      const unpaid=incidentUnpaid.filter(entry=>entry.reference===item.reference);
+      if(unpaid.length!==(item.unpaid>0?1:0)||unpaid.some(entry=>entry.date!==item.date||entry.activityId!==item.activityId||entry.amount!==item.unpaid||entry.paid!==0||entry.cause!=='incident'))bad('사고 비용의 미납 기록이 일치하지 않습니다.');
+    }
+    for(const item of [...incidentLogs,...incidentUnpaid])if(incidents.filter(entry=>entry.reference===item.reference).length!==1)bad('원래 사고 비용 장부가 없습니다.');
+    for(const item of f.ledger.filter(entry=>entry.type==='incident-arrears-payment'))if(item.amount<=0||item.paid!==item.amount||item.method!=='cash'||item.cause!=='incident')bad('사고 비용 미납의 납부 내역을 확인하세요.');
     // Housing terms stay fixed for this one-year game. The monthly breakdown
     // must agree with the contract and may occur only once per opened month.
     // Published saves have no breakdown; their existing inclusive fixed cost
@@ -131,7 +151,7 @@
       }
     }
     for(const key of Object.keys(f.processed).filter(key=>key.startsWith('fixed:')))if(fixed.filter(t=>t.date===key.slice(6)+'-01').length!==1)bad('월 생활비 납부 기록이 빠져 있습니다.');
-    if(f.monthSpent!==f.ledger.filter(t=>t.type==='purchase'&&t.date.slice(0,7)===f.monthKey).reduce((n,t)=>n+t.amount,0))bad('이번 달 소비와 지출 예산이 일치하지 않습니다.');
+    if(f.monthSpent!==f.ledger.filter(t=>['purchase','incident-cost'].includes(t.type)&&t.date.slice(0,7)===f.monthKey).reduce((n,t)=>n+t.amount,0))bad('이번 달 소비와 지출 예산이 일치하지 않습니다.');
     const sum=(field,type)=>f.ledger.reduce((n,t)=>n+(!type||t.type===type?(t[field]||0):0),0);
     if(s.config.startCash+sum('income')-sum('paid')!==f.cash)bad('현금과 거래 장부가 일치하지 않습니다.');
     if(sum('amount','pending-pay')-sum('amount','extra-pay')!==f.pendingPay||f.pendingRewards.some(r=>!money(r.amount)||!inYear(r.earnedDate))||f.pendingRewards.reduce((n,r)=>n+r.amount,0)!==f.pendingPay)bad('지급 예정액과 장부가 일치하지 않습니다.');
@@ -152,6 +172,7 @@
     if(f.pendingRewards.some(r=>r.kind!==undefined&&r.kind!=='sidejob'||r.kind!=='sidejob'&&(r.reference!==undefined||r.dueDate!==undefined)))bad('부업 보상의 종류를 확인하세요.');
     if(f.ledger.filter(t=>t.type==='purchase'&&t.method==='card').reduce((n,t)=>n+t.amount,0)-sum('amount','card-payment')!==f.cardPending)bad('카드 청구액과 장부가 일치하지 않습니다.');
     if(sum('amount','card-unpaid')-sum('amount','arrears-payment')!==f.arrears||sum('amount','fixed-unpaid')-sum('amount','fixed-arrears-payment')!==f.fixedArrears)bad('미납액과 장부가 일치하지 않습니다.');
+    if(sum('amount','incident-unpaid')-sum('amount','incident-arrears-payment')!==(f.incidentArrears||0))bad('사고 비용 미납액과 장부가 일치하지 않습니다.');
     for(const [key,value]of Object.entries(f.processed))if(value!==true||!(/^(begin|end):\d{4}-\d{2}-\d{2}$/.test(key)&&inYear(key.slice(key.indexOf(':')+1))||/^fixed:\d{4}-\d{2}$/.test(key)))bad('정산 처리 기록이 손상되었습니다.');
     for(const date of C.dates(s.config.year)){
       if(f.currentDate&&date<=f.currentDate&&!f.processed['begin:'+date])bad('수입·고정비 처리 날짜가 누락되었습니다.');

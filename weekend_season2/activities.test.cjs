@@ -6,7 +6,8 @@ const Activities=require('./activities.js'),Data=require('./data.js');
 test('standalone browser catalog exposes the same complete activity definitions as the game',()=>{
   const sandbox={};
   vm.runInNewContext(fs.readFileSync(require.resolve('./activities.js'),'utf8'),sandbox);
-  assert.equal(Activities.ACTIVITIES.length,31);
+  assert.equal(new Set(Activities.ACTIVITIES.map(activity=>activity.id)).size,Activities.ACTIVITIES.length);
+  assert.ok(Activities.ACTIVITIES.some(activity=>activity.id==='circuit_drive'));
   assert.equal(JSON.stringify(sandbox.S2Activities.ACTIVITIES),JSON.stringify(Data.ACTIVITIES));
   assert.equal(Data.ACTIVITIES,Activities.ACTIVITIES);
   assert.equal(Data.ACTIVITY_MAP,Activities.ACTIVITY_MAP);

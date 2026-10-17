@@ -37,9 +37,28 @@
     ['research','논문 조사','🔬',5000,140,10,'home','alone','9월 발표와 11월 마감을 위한 자료를 쌓습니다.',{fatigue:11,mood:1,research:8},'연구 메모',4],
     ['jobstudy','취업·면접 스터디','💬',6000,100,10,'local','together','구직 준비와 모의 면접을 함께 연습합니다.',{fatigue:8,mood:3,preparation:9,relationship:1},'면접 준비 노트',3],
     ['volunteer','동네 봉사','🌱',0,110,10,'local','together','함께 돌보는 장소와 작은 인연이 남습니다.',{fatigue:9,mood:6,relationship:4},'동네 활동 기록',3],
-    ['garden','작은 화분 가꾸기','🪴',9000,60,10,'home','alone','주거 형태에 맞춘 창가 또는 베란다의 화분.',{fatigue:1,mood:6},'자란 화분',3]
+    ['garden','작은 화분 가꾸기','🪴',9000,60,10,'home','alone','주거 형태에 맞춘 창가 또는 베란다의 화분.',{fatigue:1,mood:6},'자란 화분',3],
+    ['baby_feed','수유·이유식 챙기기','🥣',0,45,5,'home','together','0~2세 자녀의 먹는 시간을 함께 챙깁니다. 기본 돌봄과 겹치는 시간은 한 번만 계산해요.',{fatigue:2,mood:2,family:3,happiness:1},null,0],
+    ['baby_change','기저귀·갈아입히기','🧷',0,30,5,'home','together','0~2세 자녀의 기저귀와 옷을 갈아 주며 일상을 돌봅니다.',{fatigue:2,mood:1,family:3,happiness:1},null,0],
+    ['baby_sleep','낮잠 전 함께 쉬기','🌙',0,45,5,'home','together','0~2세 자녀와 조용한 시간을 보내며 낮잠 준비를 함께합니다.',{fatigue:1,mood:3,family:3,happiness:1},null,0],
+    ['preschool_hygiene','씻기·양치 함께하기','🫧',0,30,5,'home','together','3~6세 자녀가 씻고 양치하는 일상을 곁에서 돕습니다.',{fatigue:1,mood:2,family:3,happiness:1},null,0],
+    ['preschool_play','그림책·놀이 함께하기','🧩',0,60,5,'home','together','3~6세 자녀가 고른 그림책과 놀이를 함께 즐깁니다.',{fatigue:2,mood:4,family:4,happiness:2},null,0],
+    ['preschool_ready','등원 준비물·옷 정리','🎒',0,30,5,'home','together','3~6세 자녀와 다음 일상에 쓸 준비물과 옷을 정리합니다.',{fatigue:1,mood:2,family:3,happiness:1},null,0],
+    ['school_homework','숙제·준비물 살피기','✏️',0,45,5,'home','together','7~12세 자녀와 필요한 도움을 이야기하고 숙제와 준비물을 살펴봅니다.',{fatigue:2,mood:2,family:3,happiness:1},null,0],
+    ['school_reading','책 읽고 이야기 나누기','📖',0,45,5,'home','together','7~12세 자녀와 책을 읽고 서로 떠오른 이야기를 나눕니다.',{fatigue:1,mood:3,family:4,happiness:2},null,0],
+    ['school_tidy','책상·방 함께 정리','🧸',0,45,5,'home','together','7~12세 자녀와 책상과 방에서 정리할 것을 함께 고릅니다.',{fatigue:2,mood:2,family:3,happiness:1},null,0],
+    ['motorbike_tour','모터바이크 체험','🏍️',180000,150,30,'local','alone','가까운 코스를 반나절 체험합니다. 직접 고르는 유료 활동이며 게임 속 사고가 나면 수리비와 병원비가 따로 생겨요.',{fatigue:14,mood:9,happiness:4},null,0],
+    ['domestic_trip','반나절 국내여행','🧳',150000,180,15,'local','together','가까운 국내 여행지를 반나절 둘러봅니다. 숙박이나 종일 여행이 아닌 짧은 일정이며 이동 시간도 필요해요.',{fatigue:9,mood:10,happiness:5,relationship:2},null,0],
+    ['golf_round','골프 9홀','⛳',250000,180,15,'local','together','가까운 코스에서 9홀을 즐깁니다. 직접 고르는 유료 활동이며 긴 이동까지 있으면 다른 시간을 골라야 해요.',{fatigue:12,mood:8,happiness:4,relationship:2},null,0],
+    ['circuit_drive','서킷 주행 체험','🏁',450000,150,30,'local','alone','안내에 따라 서킷에서 반나절 주행을 체험합니다. 직접 고르는 유료 활동이며 게임 속 사고가 나면 수리비와 병원비가 따로 생겨요.',{fatigue:15,mood:10,happiness:5},null,0]
   ];
-  const ACTIVITIES = rows.map(([id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every]) => ({id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null}));
+  const parentingGroups={baby:{minAge:0,maxAge:2,group:'baby',label:'0~2세 자녀'},preschool:{minAge:3,maxAge:6,group:'preschool',label:'3~6세 자녀'},school:{minAge:7,maxAge:12,group:'school',label:'7~12세 자녀'}};
+  const cadences={haircut:{unit:'weeks',interval:3,group:'haircut',label:'3주에 한 번'},perm:{unit:'months',interval:2,group:'perm',label:'2개월에 한 번'},dye:{unit:'months',interval:3,group:'dye',label:'3개월에 한 번'}};
+  const manualActivities={motorbike_tour:{minAge:18,risk:{chance:.06,repairMin:40000,repairMax:320000,medicalMin:20000,medicalMax:200000}},domestic_trip:{},golf_round:{},circuit_drive:{minAge:18,risk:{chance:.04,repairMin:300000,repairMax:1800000,medicalMin:50000,medicalMax:400000}}};
+  const ACTIVITIES = rows.map(([id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every]) => {
+    const parenting=parentingGroups[id.split('_')[0]],cadence=cadences[id.startsWith('haircut')?'haircut':id];
+    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(manualActivities[id]?{manualOnly:true,...manualActivities[id]}:{})};
+  });
   const ACTIVITY_MAP = Object.assign(Object.create(null),Object.fromEntries(ACTIVITIES.map(a => [a.id,a])));
   return { ACTIVITIES, ACTIVITY_MAP };
 });

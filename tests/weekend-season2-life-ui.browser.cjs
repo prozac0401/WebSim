@@ -14,8 +14,8 @@ fs.mkdirSync(output,{recursive:true});
 (async()=>{
   const browser = await playwright.chromium.launch({headless:true});
   const page = await browser.newPage({viewport:{width:390,height:844},isMobile:true,reducedMotion:'reduce'});
-  // This life already likes cinema: distinguish the existing automatic visit
-  // from a second visit deliberately added by the player below.
+  // Keep the life reproducible while checking that an explicit cinema plan
+  // remains distinct from whatever automatic activities suit the household.
   await page.addInitScript(()=>{window.crypto.getRandomValues=array=>{array[0]=45;return array;};});
   const errors=[],checks=[];
   page.on('pageerror',error=>errors.push(error.message));
@@ -80,7 +80,6 @@ fs.mkdirSync(output,{recursive:true});
     await page.locator('#quick-plan-tools>summary').click();
     await page.locator('#quick-activity').selectOption('cinema');
     const beforeManual=(await state()).plan;
-    assert.ok(beforeManual.some(item=>item.activityId==='cinema'&&item.automatic));
     await page.locator('#quick-add').click();
     const cinema=(await state()).plan.find(item=>item.activityId==='cinema'&&!beforeManual.some(previous=>previous.id===item.id));
     assert.ok(cinema);

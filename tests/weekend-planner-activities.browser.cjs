@@ -51,8 +51,8 @@ async function add(page,type,day='sat',start=2) {
     }
     await page.locator('#wrs-clear').click();
     await group(page,'season2').click();
-    assert.equal(activities.length,31);
-    assert.equal(await page.locator('#wrs-palette .chip').count(),31);
+    assert.equal(new Set(activities.map(activity=>activity.id)).size,activities.length);
+    assert.equal(await page.locator('#wrs-palette .chip').count(),activities.length);
     assert.equal(await page.evaluate(()=>typeof S2Data),'undefined','standalone planner must not need a running life');
     for(const activity of activities) {
       await page.locator('#wrs-clear').click();
@@ -61,7 +61,7 @@ async function add(page,type,day='sat',start=2) {
       assert.equal(event.type,'s2_'+activity.id);
       assert.equal(event.activity_id,activity.id);
       assert.equal(event.label,activity.name);
-      assert.equal(event.duration_slots,Math.min(8,Math.ceil((activity.minutes+activity.prep+travel)/30)));
+      assert.equal(event.duration_slots,Math.ceil((activity.minutes+activity.prep+travel)/30));
       assert.equal(event.travel_minutes,travel);
       assert.equal(event.sourceKind,undefined,'new activity must not claim to be a recorded life event');
       assert.equal((await state(page)).events.length,1);
@@ -69,7 +69,7 @@ async function add(page,type,day='sat',start=2) {
     }
     await page.locator('#wrs-palette').evaluate(element=>{element.scrollTop=0;});
     await shot(page,'all-season2-desktop');
-    pass('direct entry retains all 12 original blocks and places every one of 31 Season 2 activities with its original name and editable defaults');
+    pass(`direct entry retains all 12 original blocks and places every one of ${activities.length} Season 2 activities with its original name and editable defaults`);
 
     await page.locator('#wrs-clear').click();
     const research = await add(page,'s2_research');
@@ -117,7 +117,7 @@ async function add(page,type,day='sat',start=2) {
     assert.ok(imported.season2Draft);
     assert.equal(imported.season2Draft.source.completed,true);
     assert.equal(await group(page,'season2').getAttribute('aria-pressed'),'true');
-    assert.equal(await page.locator('#wrs-palette .chip').count(),31);
+    assert.equal(await page.locator('#wrs-palette .chip').count(),activities.length);
     const freeStart=Array.from({length:30},(_,start)=>start).find(start=>!imported.events.some(event=>event.day==='sun'&&start<event.start_slot+event.duration_slots&&event.start_slot<start+3));
     assert.notEqual(freeStart,undefined,'the imported draft leaves room for a manual activity');
     await chip(page,'s2_haircut_men').click();
@@ -152,7 +152,7 @@ async function add(page,type,day='sat',start=2) {
     await mobile.locator('#wrs-activity-search').fill('없는 활동 검색어');
     assert.equal(await mobile.locator('#wrs-palette .chip').count(),0);
     await mobile.locator('#wrs-activity-search').fill('');
-    assert.equal(await mobile.locator('#wrs-palette .chip').count(),31);
+    assert.equal(await mobile.locator('#wrs-palette .chip').count(),activities.length);
     await shot(mobile,'catalog-mobile');
     await group(mobile,'basic').focus();await mobile.keyboard.press('Enter');
     assert.equal(await mobile.locator('#wrs-palette .chip').count(),12);

@@ -4,7 +4,7 @@
   else root.S2Finance = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (C) {
   'use strict';
-  const ORDER = '수입 → 당월 필수 고정비 → 밀린 고정비 → 카드 미납 정산 → 활동 거래 → 월말 카드 정산 → 요약';
+  const ORDER = '수입 → 당월 필수 고정비 → 밀린 고정비 → 사고 비용 미납 → 카드 미납 정산 → 활동 거래 → 월말 카드 정산 → 요약';
   function won(value, fallback) {
     const number = value === undefined ? (fallback || 0) : value;
     if (!Number.isSafeInteger(number) || number < 0) throw new RangeError('금액은 0 이상의 원화 정수여야 합니다.');
@@ -40,7 +40,7 @@
   }
   function create(config) {
     configValues(config);
-    return { cash: won((config || {}).startCash), cardPending: 0, arrears: 0, fixedArrears: 0, pendingPay: 0,
+    return { cash: won((config || {}).startCash), cardPending: 0, arrears: 0, fixedArrears: 0, incidentArrears: 0, pendingPay: 0,
       pendingRewards: [], ledger: [], processed: {}, currentDate: null, monthKey: null, monthSpent: 0 };
   }
   function entry(f, date, type, amount, label, fields) {
@@ -64,7 +64,7 @@
     }
     if (date) incoming += f.pendingRewards.filter(r => r.kind === 'sidejob' && r.dueDate > date && r.dueDate.slice(0,7) === date.slice(0,7)).reduce((sum,r) => sum+r.amount,0);
     const unpaidCurrentFixed = !date || !f.processed['fixed:' + date.slice(0, 7)] ? c.monthly.total : 0;
-    return { c, income: incoming, spendable: Math.max(0, f.cash + incoming - f.cardPending - f.arrears - f.fixedArrears - unpaidCurrentFixed), budget: Math.max(0, c.personalBudget - f.monthSpent) };
+    return { c, income: incoming, spendable: Math.max(0, f.cash + incoming - f.cardPending - f.arrears - f.fixedArrears - (f.incidentArrears || 0) - unpaidCurrentFixed), budget: Math.max(0, c.personalBudget - f.monthSpent) };
   }
   function available(f, config) { const p = projection(f, config); return Math.min(p.spendable, p.budget); }
   function canSpend(f, amount, method, config) {
@@ -73,7 +73,7 @@
     if (amount === 0) return { ok: true, reason: '', cause: '' };
     const p = projection(f, config);
     if (amount > p.budget) return { ok: false, reason: '이번 달 개인 지출 예산이 부족합니다. 무료 활동이나 다음 달 일정을 선택할 수 있습니다.', cause: 'budget' };
-    if (method === 'card' && (f.arrears > 0 || f.fixedArrears > 0)) return { ok: false, reason: '미납이 있어 새 카드 사용이 제한됩니다. 무료 활동은 계속할 수 있습니다.', cause: 'arrears' };
+    if (method === 'card' && (f.arrears > 0 || f.fixedArrears > 0 || f.incidentArrears > 0)) return { ok: false, reason: '미납이 있어 새 카드 사용이 제한됩니다. 무료 활동은 계속할 수 있습니다.', cause: 'arrears' };
     if (method === 'card' && f.cardPending + amount > p.c.cardLimit) return { ok: false, reason: '게임 내 카드 한도를 넘습니다.', cause: 'card-limit' };
     if (method !== 'card' && amount > f.cash) return { ok: false, reason: '즉시 지불할 현금이 부족합니다.', cause: 'cash' };
     if (amount > p.spendable) return { ok: false, reason: '예정 청구액과 필수비용을 제외한 가용예산이 부족합니다.', cause: 'money' };
@@ -94,6 +94,11 @@
       const paid = Math.min(f.cash, f.fixedArrears);
       f.cash -= paid; f.fixedArrears -= paid;
       entry(f, date, 'fixed-arrears-payment', paid, '밀린 필수 고정비 납부', { method: 'cash', paid, cause: 'unavoidable' });
+    }
+    if (f.incidentArrears > 0 && f.cash > 0) {
+      const paid = Math.min(f.cash, f.incidentArrears);
+      f.cash -= paid; f.incidentArrears -= paid;
+      entry(f, date, 'incident-arrears-payment', paid, '밀린 사고 수리비·병원비 납부', { method: 'cash', paid, cause: 'incident' });
     }
     if (f.arrears > 0 && f.cash > 0) {
       const paid = Math.min(f.cash, f.arrears);
@@ -158,6 +163,32 @@
     f.pendingRewards.push({ earnedDate: date, amount, label: label || '추가근무 보상' });
     return entry(f, date, 'pending-pay', amount, label || '다음 급여일 지급 예정', { cause: 'earned' });
   }
+  // An accident is an incurred bill, not another optional purchase. Record the
+  // full consumption once, pay available cash, and retain the balance as debt.
+  // References make retries and restored saves unable to charge it twice.
+  function chargeIncident(f, date, details) {
+    const d = details || {}, total = d.repairCost + d.medicalCost;
+    const fail = (reason, cause) => ({ ok: false, reason, cause });
+    if (!C.validDate(date) || ![d.repairCost,d.medicalCost,total].every(n => Number.isSafeInteger(n) && n >= 0 && n <= 1000000000000) || total === 0 ||
+        typeof d.reference !== 'string' || !d.reference.trim() || d.reference.length > 160 ||
+        typeof d.activityId !== 'string' || !d.activityId.trim() || d.activityId.length > 80 ||
+        typeof d.label !== 'string' || !d.label.trim() || d.label.length > 200)
+      return fail('사고 비용의 날짜·금액·활동·고유 기록을 확인하세요.', 'invalid');
+    const previous = f.ledger.find(t => t.type === 'incident-cost' && t.reference === d.reference);
+    if (previous) {
+      if (previous.date !== date || previous.repairCost !== d.repairCost || previous.medicalCost !== d.medicalCost || previous.activityId !== d.activityId || previous.label !== d.label)
+        return fail('같은 사고 기록에 서로 다른 비용을 등록할 수 없습니다.', 'reference-conflict');
+      return { ok: true, duplicate: true, entry: previous, total: previous.amount, paid: previous.paid, unpaid: previous.unpaid };
+    }
+    if (f.processed['end:' + date]) return fail('이미 정산된 날짜입니다.', 'closed-day');
+    if (f.currentDate !== date || !f.processed['begin:' + date]) return fail('그날 수입과 고정비를 먼저 처리하세요.', 'unopened-day');
+    const paid = Math.min(f.cash, total), unpaid = total - paid;
+    f.cash -= paid; f.incidentArrears = (f.incidentArrears || 0) + unpaid; f.monthSpent += total;
+    const transaction = entry(f, date, 'incident-cost', total, d.label, { method: 'cash', consumption: total, paid, unpaid, cause: 'incident',
+      repairCost: d.repairCost, medicalCost: d.medicalCost, activityId: d.activityId, reference: d.reference });
+    if (unpaid) entry(f, date, 'incident-unpaid', unpaid, '사고 수리비·병원비 미납 기록', { cause: 'incident', activityId: d.activityId, reference: d.reference });
+    return { ok: true, duplicate: false, entry: transaction, total, paid, unpaid };
+  }
   // A side job earns money during an activity. It is paid at the next day's
   // income stage, ahead of fixed costs and debt, rather than injecting cash
   // between today's activity and card-settlement stages. References survive
@@ -183,10 +214,13 @@
     const housingRent = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.rent || 0 : 0), 0);
     const housingInterest = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.loanInterest || 0 : 0), 0);
     const housingMaintenance = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.housingMaintenance || 0 : 0), 0);
-    const housingLoanPrincipal = housingCosts(config).loanPrincipal, unpaidDebt = f.cardPending + f.arrears + f.fixedArrears;
+    const incidentCosts = f.ledger.filter(t => t.type === 'incident-cost');
+    const incidentRepair = incidentCosts.reduce((n,t) => n + t.repairCost, 0), incidentMedical = incidentCosts.reduce((n,t) => n + t.medicalCost, 0);
+    const housingLoanPrincipal = housingCosts(config).loanPrincipal, unpaidDebt = f.cardPending + f.arrears + f.fixedArrears + (f.incidentArrears || 0);
     return { income: sum('income'), consumption: sum('consumption'), paid: sum('paid'), cash: f.cash,
       debt: unpaidDebt + housingLoanPrincipal, pendingPay: f.pendingPay, housingRent, housingInterest,
-      housingCosts: housingRent + housingInterest + housingMaintenance, housingMaintenance, housingLoanPrincipal, unpaidDebt };
+      housingCosts: housingRent + housingInterest + housingMaintenance, housingMaintenance, housingLoanPrincipal, unpaidDebt,
+      incidentCosts: incidentRepair + incidentMedical, incidentRepair, incidentMedical, incidentArrears: f.incidentArrears || 0 };
   }
-  return { create, housingCosts, monthlyCosts, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, summary, ORDER };
+  return { create, housingCosts, monthlyCosts, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, chargeIncident, summary, ORDER };
 });
