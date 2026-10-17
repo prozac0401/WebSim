@@ -8,7 +8,7 @@ try{playwright=require('playwright');}catch{playwright=createRequire(path.join(p
 const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8766').replace(/\/$/,'');
 const output=path.resolve(process.env.WEBSIM_EVIDENCE||'output/playwright/weekend-season2-money');
 const fixturePath=path.resolve('weekend_season2/fixtures/v4-low-income-parent.json');
-const amounts={salary:0,externalAllowance:65230,fixedCosts:42563,startCash:10,personalBudget:1877,cardLimit:80001,monthlyRent:3502,housingLoanPrincipal:320001};
+const amounts={salary:0,externalAllowance:65230,fixedCosts:42563,startCash:10,personalBudget:1877,cardLimit:80001,monthlyRent:3502,housingLoanPrincipal:320001,housingMaintenance:0};
 fs.mkdirSync(output,{recursive:true});
 
 (async()=>{
@@ -97,15 +97,17 @@ fs.mkdirSync(output,{recursive:true});
     await fresh(false);
     await page.locator('[name=province]').selectOption('seoul');
     await page.locator('[name=role]').selectOption('worker');
-    const expected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.role='worker';S2Data.assignRegionalIncome(c);return {salary:c.salary,externalAllowance:c.externalAllowance};});
+    const expected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.role='worker';S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
     for(const key of ['salary','externalAllowance']){
       assert.equal(await page.locator(`[name=${key}]`).getAttribute('data-money-won'),String(expected[key]));
       assert.equal(await page.locator(`[name=${key}]`).inputValue(),String(Math.round(expected[key]/1000)/10));
     }
     await page.locator('[name=age]').fill('65');
+    const ageExpected=await page.evaluate(()=>{const c=S2Data.generateLife(41).config;c.province='seoul';c.role='worker';c.age=65;S2Data.assignLifeEconomy(c,{preserveTenure:true});return {salary:c.salary,externalAllowance:c.externalAllowance};});
+    for(const key of ['salary','externalAllowance']){assert.equal(await page.locator(`[name=${key}]`).getAttribute('data-money-won'),String(ageExpected[key]));assert.equal(await page.locator(`[name=${key}]`).inputValue(),String(Math.round(ageExpected[key]/1000)/10));}
     await page.locator('#custom-start-btn').click();record=await saved();assert.equal(record.ok,true,record.reason);
-    assert.equal(record.state.config.salary,expected.salary);assert.equal(record.state.config.externalAllowance,expected.externalAllowance);
-    pass('region and role reassignment synchronizes displayed values and precise backing data before another edit and start');
+    assert.equal(record.state.config.salary,ageExpected.salary);assert.equal(record.state.config.externalAllowance,ageExpected.externalAllowance);
+    pass('automatic region, role and age reassignment synchronizes displayed values and precise backing data before start');
 
     const old=JSON.parse(fs.readFileSync(fixturePath,'utf8')).state;
     page.once('dialog',d=>d.accept());await page.locator('#import-file').setInputFiles(fixturePath);

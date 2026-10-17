@@ -41,15 +41,15 @@ test('name, appearance, home and income streams are reproducible and independent
   assert.notDeepEqual(Array.from({length:10},D.randomStream(42,'home')),Array.from({length:10},D.randomStream(42,'income')));
 });
 
-test('income is conditioned on residence; support is explicitly a fictional share, never extra salary',()=>{
+test('income uses household regional distributions and lists each income source only once',()=>{
   for(let seed=0;seed<64;seed++){
     const c=D.generateLife(seed).config;
-    const sampled=D.INCOME.sample(c.province,D.randomStream(seed,'income:'+c.province));
-    assert.equal(c.incomeOrigin.sampledMonthly,sampled.amount);assert.equal(c.incomeOrigin.bandId,sampled.bandId);
-    if(c.role==='worker'){assert.equal(c.salary,sampled.amount);assert.equal(c.externalAllowance,0);assert.equal(c.incomeOrigin.kind,'wage');}
-    else{assert.equal(c.salary,0);assert.equal(c.externalAllowance,Math.round(sampled.amount*c.incomeOrigin.supportShare));assert.equal(c.incomeOrigin.kind,'support-model');}
+    const sampled=D.LIFECYCLE.sampleIncome(c,D.randomStream(seed,'lifecycle-income:'+c.province));
+    assert.deepEqual(c.incomeOrigin,sampled.origin);
+    assert.equal(c.salary,sampled.salary);
+    assert.equal(c.externalAllowance,sampled.externalAllowance+c.economicProfile.gameSupport);
     assert.ok(Number.isSafeInteger(c.fixedCosts));assert.ok(c.personalBudget<=c.salary+c.externalAllowance-c.fixedCosts);
-    const other={...c,gender:c.gender==='woman'?'man':'woman',maritalStatus:c.maritalStatus==='single'?'married':'single'};
+    const other={...c,gender:c.gender==='woman'?'man':'woman'};
     D.assignRegionalIncome(other);assert.equal(other.salary,c.salary);assert.equal(other.externalAllowance,c.externalAllowance);
   }
 });
@@ -66,7 +66,7 @@ test('v2 saves keep finances, old appearances and unknown residence without retr
 
 test('new generated identity and illustration survive saves, malformed categories do not',()=>{
   const state=E.create(D.generateLife(400).config),loaded=S.parse(S.serialize(state));assert.ok(loaded.ok,loaded.reason);assert.deepEqual(loaded.state.config,state.config);
-  for(const [key,value]of [['incomeOrigin',{...state.config.incomeOrigin,supportShare:'bad'}],['incomeOrigin',{...state.config.incomeOrigin,supportShare:2}],['incomeOrigin',{...state.config.incomeOrigin,sourceId:'invented'}],['incomeOrigin',{...state.config.incomeOrigin,bandId:'invented'}],['incomeOrigin',{...state.config.incomeOrigin,provinceId:'capital'}],['incomeOrigin',{...state.config.incomeOrigin,assignedMonthly:1}],['province','capital'],['residenceOrigin','invented'],['appearance',{...state.config.appearance,hairStyle:'script'}],['homeStyle',{...state.config.homeStyle,layout:'outside'}],['generationModel','unknown'],['incomeOrigin',{...state.config.incomeOrigin,sampledMonthly:-1}],[ 'incomeOrigin',{...state.config.incomeOrigin,kind:'observed-caregiver'}]]){
-    const bad=structuredClone(state);bad.config[key]=value;assert.ok(S.validate(bad).length,key);assert.equal(S.parse(envelope(bad,3)).ok,false,key);
+  for(const [key,value]of [['incomeOrigin',{...state.config.incomeOrigin,baseMonthly:-1}],['incomeOrigin',{...state.config.incomeOrigin,weights:[]}],['incomeOrigin',{...state.config.incomeOrigin,sourceIds:['invented']}],['incomeOrigin',{...state.config.incomeOrigin,bandId:'invented'}],['incomeOrigin',{...state.config.incomeOrigin,provinceId:'capital'}],['incomeOrigin',{...state.config.incomeOrigin,personalEarnedMonthly:1}],['province','capital'],['residenceOrigin','invented'],['appearance',{...state.config.appearance,hairStyle:'script'}],['homeStyle',{...state.config.homeStyle,layout:'outside'}],['generationModel','unknown'],['incomeOrigin',{...state.config.incomeOrigin,sampleHouseholdMonthly:-1}],[ 'incomeOrigin',{...state.config.incomeOrigin,kind:'observed-caregiver'}]]){
+    const bad=structuredClone(state);bad.config[key]=value;assert.ok(S.validate(bad).length,key);assert.equal(S.parse(envelope(bad,D.VERSION)).ok,false,key);
   }
 });

@@ -61,7 +61,7 @@
     const conditionReady=!state.flags?.recoveryUntil&&(!state.flags?.conditionLast||(Date.parse(state.date)-Date.parse(state.flags.conditionLast))/86400000>=28);
     // Keep the published single_* scene definitions intact for saved pending
     // choices. Their household condition means living without a spouse.
-    const maritalMatches=!needs.maritalStatus||(needs.maritalStatus==='single'?['single','divorced'].includes(state.config.maritalStatus):state.config.maritalStatus===needs.maritalStatus);
+    const maritalMatches=!needs.maritalStatus||(needs.maritalStatus==='single'?['single','divorced','widowed'].includes(state.config.maritalStatus):state.config.maritalStatus===needs.maritalStatus);
     return (!needs.role||state.config.role===needs.role)&&maritalMatches&&(!needs.children||(needs.children==='none'?kids.every(child=>child.age>=18):kids.some(child=>child.age<18)))&&(!needs.flag||!!(state.flags&&state.flags[needs.flag]))&&(!needs.youngChild||kids.some(child=>child.age<=2))&&(!needs.servingSon||kids.some(child=>child.age>=18&&child.gender==='man'&&child.militaryStatus==='serving'))&&(!needs.noIllness||illnessReady&&!state.flags?.recoveryUntil)&&(!needs.illness||!!state.healthEpisode)&&(!needs.noRecovery||conditionReady)&&(!needs.recovery||!!state.flags?.recoveryUntil);
   }
   function make(id,date,serial,context) { const source = MAP[id]; if (!source) throw new Error('알 수 없는 사건'); return { ...JSON.parse(JSON.stringify(source)), catalogId:id, id:id+'-'+serial, date, context:context||{} }; }

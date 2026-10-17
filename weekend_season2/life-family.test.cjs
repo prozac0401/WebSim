@@ -8,7 +8,7 @@ const Storage=require('./storage.js');
 function life(seed){const generated=D.generateLife(seed);return E.create(generated.config,generated.presetId);}
 function hash(text){let n=2166136261;for(let i=0;i<text.length;i++){n^=text.charCodeAt(i);n=Math.imul(n,16777619);}return(n>>>0).toString(16).padStart(8,'0');}
 function envelope(state,version=state.version){return JSON.stringify({format:Storage.FORMAT,version,state,checksum:hash(JSON.stringify(state))});}
-function legacy(state){const result=JSON.parse(JSON.stringify(state));result.version=1;for(const key of ['maritalStatus','personaName','lifeIntro','generationSeed','province','residenceOrigin','appearance','homeStyle','generationModel','incomeOrigin'])delete result.config[key];return result;}
+function legacy(state){const result=JSON.parse(JSON.stringify(state));result.version=1;for(const key of ['maritalStatus','personaName','lifeIntro','generationSeed','province','residenceOrigin','appearance','homeStyle','generationModel','incomeOrigin','economicProfile','housingOrigin'])delete result.config[key];return result;}
 function resolve(state){
   const event=state.pendingEvent;
   for(const c of event.choices)if(E.choose(state,c.id).ok)return;
@@ -69,18 +69,14 @@ test('generated unpartnered parents are divorced while explicit single parents r
   assert.deepEqual(E.validateConfig({...manual.config,maritalStatus:'divorced'}),[]);
 });
 
-test('divorced generation preserves captured low-income budgets, loan balances and identity',()=>{
-  // Captured from the immediately preceding housing-v5 generator. A narrative
-  // change must not silently repair low income, cheap rent, or existing debt.
-  const fixtures=[
-    {seed:635,personaName:'이정숙',children:2,salary:0,externalAllowance:6949,fixedCosts:3536,personalBudget:1877,startCash:3681,monthlyRent:0,housingTenure:'jeonse',housingLoanPrincipal:0,housingLoanRateBps:0,cardLimit:100000},
-    {seed:169,personaName:'이예은',children:1,salary:0,externalAllowance:14587,fixedCosts:2459,personalBudget:3937,startCash:13630,monthlyRent:3502,housingTenure:'rent',housingLoanPrincipal:320000,housingLoanRateBps:550,cardLimit:100000},
-    {seed:107,personaName:'박서연',children:1,salary:0,externalAllowance:16628,fixedCosts:4791,personalBudget:4088,startCash:27940,monthlyRent:2509,housingTenure:'rent',housingLoanPrincipal:350000,housingLoanRateBps:650,cardLimit:100000}
-  ];
-  for(const fixture of fixtures){
+test('new divorced parents retain identity while the new model provides household essentials',()=>{
+  for(const fixture of [{seed:635,personaName:'이정숙',children:2},{seed:169,personaName:'이예은',children:1},{seed:107,personaName:'박서연',children:1}]){
     const config=D.generateLife(fixture.seed).config;
     assert.equal(config.maritalStatus,'divorced');
-    for(const [key,value]of Object.entries(fixture))assert.equal(config[key],value,fixture.seed+' '+key);
+    for(const [key,value]of Object.entries(fixture))assert.equal(config[key],value);
+    const p=config.economicProfile;
+    assert.ok(config.fixedCosts>=p.minimumLiving);assert.ok(config.personalBudget>=150000);
+    assert.ok(config.salary+config.externalAllowance-config.fixedCosts-p.housingTotal-config.personalBudget>=100000);
     const state=E.create(config),manual=E.create({...config,maritalStatus:'single'});
     assert.deepEqual(state.rng,manual.rng);assert.deepEqual(state.finance,manual.finance);assert.deepEqual(state.stats,manual.stats);
   }
@@ -138,6 +134,7 @@ test('an already prepared week still stops for a newly added unconfirmed moved r
 
 test('zero funds and long travel select feasible free alternatives instead of retrying forever',()=>{
   const config={...D.generateLife(15).config,personalBudget:0,startCash:0,salary:0,externalAllowance:0,region:'rural',transport:'walk',preferences:['pottery','pt']};
+  config.economicProfile.active=false;config.incomeOrigin.kind='custom';
   const s=E.create(config);const result=E.prepareAutoWeek(s,{direction:'hobby'});assert.ok(result.ok);assert.ok(result.notes.length);assert.ok(result.added.length>0);
   for(const plan of s.plan){assert.equal(D.ACTIVITY_MAP[plan.activityId].cost,0);assert.ok(E.activityTime(s,plan.activityId,plan.date,plan.slot)<=240);}
 });

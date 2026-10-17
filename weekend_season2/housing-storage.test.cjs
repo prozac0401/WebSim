@@ -10,7 +10,7 @@ const config={...D.DEFAULT_CONFIG,housingTenure:'rent',monthlyRent:600001,housin
 test('published v4 save keeps every past transaction and gains no invented housing payment',()=>{
   const text=fs.readFileSync(path.join(__dirname,'fixtures/v4-housing-legacy.json'),'utf8');
   const old=JSON.parse(text).state,loaded=S.parse(text);assert.equal(old.version,4);assert.ok(loaded.ok,loaded.reason);
-  const s=loaded.state;assert.equal(s.version,5);assert.equal(s.config.housingTenure,'unspecified');
+  const s=loaded.state;assert.equal(s.version,D.VERSION);assert.equal(s.config.housingTenure,'unspecified');
   for(const field of ['finance','rng','log','plan','rules','artifacts','stats','household','healthEpisode'])assert.deepEqual(s[field],old[field],field);
   assert.equal(s.config.fixedCosts,old.config.fixedCosts);assert.equal(s.config.housingLoanPrincipal,0);
   const fresh=S.parse(S.serialize(s));assert.ok(fresh.ok,fresh.reason);assert.equal(fresh.migrated,false);

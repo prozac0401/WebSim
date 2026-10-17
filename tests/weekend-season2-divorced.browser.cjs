@@ -36,11 +36,13 @@ fs.mkdirSync(output,{recursive:true});
     await page.screenshot({path:path.join(output,'generated-low-income-parent.png'),fullPage:true});
     await page.locator('#start-btn').click();
     let record=await saved();assert.equal(record.ok,true,record.reason);
-    assert.deepEqual(Object.fromEntries(['salary','externalAllowance','fixedCosts','personalBudget','startCash','monthlyRent','housingLoanPrincipal','housingLoanRateBps'].map(k=>[k,record.state.config[k]])),
-      {salary:0,externalAllowance:14587,fixedCosts:2459,personalBudget:3937,startCash:13630,monthlyRent:3502,housingLoanPrincipal:320000,housingLoanRateBps:550});
+    const config=record.state.config,profile=config.economicProfile;
+    assert.ok(config.fixedCosts>=profile.minimumLiving);assert.ok(config.personalBudget>=150000);
+    assert.ok(config.salary+config.externalAllowance-config.fixedCosts-profile.housingTotal-config.personalBudget>=100000);
+    assert.equal(profile.housingTotal%100000,0);
     await page.locator('#state-details>summary').click();
     assert.match(await page.locator('.family-context').innerText(),/이혼 · 자녀 1명/);
-    pass('generated parent is described as divorced with no spouse while the same low income, expenses and debt are preserved');
+    pass('generated parent is divorced with no spouse and receives the new minimum household budget');
 
     await page.evaluate(()=>S2Storage.clear());await page.reload();
     await page.locator('#advanced-settings>summary').click();

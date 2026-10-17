@@ -14,8 +14,8 @@ function finish(state) {
   return E.getSummary(state);
 }
 
-test('v5 presets keep previous living costs and have no invented housing loan', () => {
-  assert.equal(D.VERSION, 5);
+test('manual presets keep previous living costs and have no invented housing loan', () => {
+  assert.equal(D.VERSION, 6);
   assert.deepEqual(D.PRESETS.map(p => p.config.fixedCosts), [1500000,650000,1050000,1400000]);
   for (const {config} of D.PRESETS) {
     assert.equal(config.housingTenure, 'own');
@@ -25,8 +25,7 @@ test('v5 presets keep previous living costs and have no invented housing loan', 
     assert.deepEqual(E.validateConfig(config), []);
     assert.equal(E.create(config).finance.cash, config.startCash);
   }
-  assert.match(D.HOUSING_MODEL.note, /게임용 가정/);
-  assert.match(D.HOUSING_MODEL.note, /실제 지역별 주거 비율이나 시세/);
+  assert.ok(D.HOUSING.SOURCES.some(s=>s.url.includes('kocer')));
 });
 
 test('housing validation enforces integer bounds and prevents hidden rent or debt', () => {
@@ -48,17 +47,17 @@ test('housing validation enforces integer bounds and prevents hidden rent or deb
   assert.deepEqual(E.validateConfig({...config,housingTenure:'jeonse',housingLoanPrincipal:100000000,housingLoanRateBps:0}), []);
 });
 
-test('generation splits the existing monthly budget exactly without adding loan cash', () => {
+test('generation reserves household living costs and realistic housing before personal spending', () => {
   for (let seed = 0; seed < 2048; seed++) {
     const {config} = D.generateLife(seed);
     const income = config.salary + config.externalAllowance;
-    const beforeHousing = D.randomStream(seed, 'living-budget');
-    const previousFixed = Math.round(income * (.45 + .25 * beforeHousing()));
-    const previousCash = Math.round(income * (.4 + 1.4 * beforeHousing()));
-    const interest = Math.round(config.housingLoanPrincipal * config.housingLoanRateBps / 120000);
-    assert.equal(config.fixedCosts + config.monthlyRent + interest, previousFixed, 'split seed ' + seed);
-    assert.equal(config.personalBudget, Math.round((income - previousFixed) * .55));
-    assert.equal(config.startCash, previousCash);
+    const housing = F.housingCosts(config);
+    assert.equal(housing.total % 100000,0,'10만원 단위 '+seed);
+    assert.ok(config.housingTenure!=='rent'||config.monthlyRent>=300000);
+    assert.ok(config.fixedCosts>=D.LIFECYCLE.minimumLiving(D.LIFECYCLE.household(config).size));
+    assert.ok(config.personalBudget>=150000);
+    assert.ok(income-config.fixedCosts-housing.total-config.personalBudget>=100000);
+    assert.equal(E.create(config).finance.cash,config.startCash,'loan is not deposited');
     assert.ok(Number.isSafeInteger(config.fixedCosts) && config.fixedCosts >= 0);
     assert.ok(config.housingTenure === 'rent' || config.monthlyRent === 0);
     assert.deepEqual(E.validateConfig(config), [], 'valid seed ' + seed);
@@ -79,7 +78,7 @@ test('the housing stream is deterministic and does not consume simulation random
   for (const seed of [0,7,2026,808080,4294967295]) {
     assert.deepEqual(D.generateLife(seed), D.generateLife(seed));
     const generated = E.create(D.generateLife(seed).config);
-    const plain = E.create({...generated.config,housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0});
+    const plain = E.create({...generated.config,economicProfile:{...generated.config.economicProfile,active:false},incomeOrigin:{...generated.config.incomeOrigin,kind:'custom'},housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0});
     assert.deepEqual(generated.rng, plain.rng);
     assert.equal(generated.finance.cash, plain.finance.cash);
   }
@@ -111,6 +110,8 @@ test('automatic years charge generated housing exactly and retain original princ
     assert.equal(summary.daysPlayed, 365);
     assert.equal(summary.finance.housingRent, costs.rent * 12, tenure);
     assert.equal(summary.finance.housingInterest, costs.interest * 12, tenure);
+    assert.equal(summary.finance.housingMaintenance, costs.maintenance * 12, tenure);
+    assert.equal(summary.finance.housingCosts, costs.total * 12, tenure);
     assert.equal(summary.finance.housingLoanPrincipal, config.housingLoanPrincipal, tenure);
     assert.equal(summary.finance.debt, summary.finance.unpaidDebt + config.housingLoanPrincipal, tenure);
     assert.equal(state.config.housingLoanPrincipal, config.housingLoanPrincipal);

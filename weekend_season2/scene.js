@@ -58,7 +58,7 @@
   function bounds(person) { const reach=person.activity==='draw'?72:48, high=person.appearance.options?93:74;return {left:person.x-(person.facing===-1?reach:48)*person.scale,top:person.y-high*person.scale,right:person.x+(person.facing===-1?48:reach)*person.scale,bottom:person.y+112*person.scale}; }
   function familyLayout(config = {}, activity = 'rest', lifeState = {}) {
     const number = Number(config.children), children = Number.isFinite(number) ? Math.max(0, Math.min(6, Math.floor(number))) : 0;
-    const maritalStatus = ['single','married','divorced','unspecified'].includes(config.maritalStatus) ? config.maritalStatus : 'unspecified';
+    const maritalStatus = ['single','married','divorced','widowed','unspecified'].includes(config.maritalStatus) ? config.maritalStatus : 'unspecified';
     const ageStage = Object.hasOwn(childScales, config.childAge) ? config.childAge : 'preschool';
     const player = { id: 'player', kind: 'player', name: config.personaName || '나', x: activity === 'rest' ? 165 : 397, y: activity === 'rest' ? 326 : children ? 329 : 360, scale: 1, activity, appearance: appearance(config) };
     player.bounds = bounds(player);

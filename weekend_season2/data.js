@@ -1,19 +1,19 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./demographics.js') : root.S2Demographics, node ? require('./income-data.js') : root.S2IncomeData, node ? require('./prices.js') : root.S2Prices);
+  const api = factory(node ? require('./demographics.js') : root.S2Demographics, node ? require('./income-data.js') : root.S2IncomeData, node ? require('./prices.js') : root.S2Prices, node ? require('./lifecycle-economy.js') : root.S2LifecycleEconomy, node ? require('./housing-data.js') : root.S2HousingData);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.S2Data = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (Demographics, Income, Prices) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Demographics, Income, Prices, Lifecycle, Housing) {
   'use strict';
   const ROLES = { worker: '직장인', seeker: '구직자', graduate: '대학원생', caregiver: '돌봄 중심' };
-  const MARITAL_STATUSES = {single:'미혼',married:'기혼',divorced:'이혼',unspecified:'이전 저장 · 설정하지 않음'};
+  const MARITAL_STATUSES = {single:'미혼',married:'기혼',divorced:'이혼',widowed:'사별',unspecified:'이전 저장 · 설정하지 않음'};
   const HOUSING_TENURES = {own:'자가',rent:'월세',jeonse:'전세',unspecified:'이전 저장 · 설정하지 않음'};
-  const HOUSING_MODEL = {id:'fictional-housing-budget-v1',note:'자가·월세·전세의 배정 비중, 월세, 대출 잔액과 금리는 게임용 가정입니다. 실제 지역별 주거 비율이나 시세를 뜻하지 않습니다. 기존 월 생활비를 월세·대출이자·나머지 생활비로 나누며, 이미 있는 대출 잔액을 시작 현금에 더하지 않습니다.'};
+  const HOUSING_MODEL = Housing.MODEL;
   const APPEARANCE_OPTIONS = {faceShape:['round','oval','square','heart','long'],hairStyle:['long-soft','short-swept','side-wave','rounded-crop','curly','bob','ponytail','buzz','bun','braids'],hairColor:['espresso','chestnut','honey','slate','silver'],skinTone:['ivory','warm','tan','deep'],outfitPalette:['moss','terracotta','indigo','rose','mustard','teal']};
   const HOME_OPTIONS = {palette:['oat','sage','rose','sky','clay','lavender'],layout:['window-left','window-right','wide-window'],decor:['plants','books','art','music'],windowView:['skyline','hills','garden','river']};
   const base = { year: 2026, age: 32, gender: 'unspecified', maritalStatus:'single', personaName:'', lifeIntro:'', generationSeed:null, role: 'worker', children: 0, childAge: 'none', careShare: 50,
-    province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,
-    housing: 'studio', housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
+    province:'unspecified',residenceOrigin:null,appearance:null,homeStyle:null,generationModel:null,incomeOrigin:null,childProfiles:null,economicProfile:null,housingOrigin:null,
+    housing: 'studio', housingTenure:'own',monthlyRent:0,housingLoanPrincipal:0,housingLoanRateBps:0,housingMaintenance:0,region: 'city', transport: 'transit', salary: 2800000, externalAllowance: 0,
     personalBudget: 500000, fixedCosts: 1500000, startCash: 2000000, payDay: 1, cardLimit: 1500000,
     preferences: ['walk', 'photo'], seed: 2026 };
   const PRESETS = [
@@ -93,6 +93,7 @@
   function sampleProvince(seed,capitalOnly=false){return weightedPick(Demographics.regions.filter(r=>!capitalOnly||r.capital),r=>r.population,randomStream(seed,'residence')).id;}
   function sampleOptions(options,random){return Object.fromEntries(Object.entries(options).map(([key,values])=>[key,values[Math.floor(random()*values.length)]]));}
   function assignRegionalIncome(config){
+    if(config.generationModel==='kr-life-2026-v3')return assignLifeEconomy(config,{preserveTenure:true});
     if(config.province==='unspecified')return config;
     const sampled=Income.sample(config.province,randomStream(config.generationSeed??config.seed,'income:'+config.province));
     const supportShare={seeker:.3,graduate:.5,caregiver:.65}[config.role]||1;
@@ -101,19 +102,13 @@
     config.incomeOrigin={kind:config.role==='worker'?'wage':'support-model',sourceId:sampled.sourceId,bandId:sampled.bandId,provinceId:config.province,sampledMonthly:sampled.amount,assignedMonthly:config.salary+config.externalAllowance,supportShare};
     return config;
   }
-  function assignHousingBudget(config,totalBudget){
-    const next=randomStream(config.generationSeed??config.seed,'housing-tenure-and-budget');
-    config.housingTenure=['own','rent','jeonse'][Math.floor(next()*3)];
-    const rentShare=.25+.25*next(),hasLoan=next()<.55,interestShare=.08+.17*next();
-    const rate=[250,350,450,550,650][Math.floor(next()*5)];
-    config.monthlyRent=config.housingTenure==='rent'?Math.floor(totalBudget*rentShare):0;
-    const targetInterest=hasLoan?Math.floor(totalBudget*interestShare):0;
-    // The whole housing model is fictional. Infer an existing balance from a
-    // bounded interest budget, not an asset price or a new cash disbursement.
-    config.housingLoanPrincipal=Math.min(10000000000,Math.floor(targetInterest*120000/rate/10000)*10000);
-    config.housingLoanRateBps=config.housingLoanPrincipal?rate:0;
-    const interest=Math.round(config.housingLoanPrincipal*config.housingLoanRateBps/120000);
-    config.fixedCosts=totalBudget-config.monthlyRent-interest;
+  function assignLifeEconomy(config,options={}){
+    const seed=config.generationSeed??config.seed;
+    const sample=Lifecycle.sampleIncome(config,randomStream(seed,'lifecycle-income:'+config.province));
+    config.salary=sample.salary;config.externalAllowance=sample.externalAllowance;config.incomeOrigin=sample.origin;
+    Object.assign(config,Housing.sample(config,Lifecycle.household(config),randomStream(seed,'lifecycle-housing:'+config.province),options));
+    Object.assign(config,Lifecycle.completeBudget(config,sample,randomStream(seed,'lifecycle-budget')));
+    config.generationModel='kr-life-2026-v3';
     return config;
   }
   function generateLife(seed){
@@ -145,19 +140,14 @@
     config.childAge=config.children?childStage(Math.min(...config.childProfiles.map(child=>child.age))):'none';
     config.gender=pick(['woman','man','nonbinary','unspecified']);
     config.careShare=pick([30,45,60,75]);
-    config.housing=pick(['studio','apartment','shared']);config.region=pick(['city','town','rural']);config.transport=pick(['walk','transit','car']);
-    config.generationModel='kr-life-2026-v2';config.province=sampleProvince(seed);config.residenceOrigin='population';
+    const householdSize=1+(config.maritalStatus==='married'?1:0)+config.children;
+    config.housing=pick(householdSize>2?['apartment','shared']:['studio','apartment','shared']);config.region=pick(['city','town','rural']);config.transport=pick(['walk','transit','car']);
+    config.generationModel='kr-life-2026-v3';config.province=sampleProvince(seed);config.residenceOrigin='population';
     config.appearance=sampleOptions(APPEARANCE_OPTIONS,randomStream(seed,'appearance'));
     config.homeStyle=sampleOptions(HOME_OPTIONS,randomStream(seed,'home'));
-    assignRegionalIncome(config);
-    // Housing costs, starting savings and support shares are explicit game
-    // assumptions, not statistics inferred from a person's name or appearance.
-    const moneyRandom=randomStream(seed,'living-budget'),income=config.salary+config.externalAllowance;
-    const livingBudget=Math.round(income*(.45+.25*moneyRandom()));
-    assignHousingBudget(config,livingBudget);
-    config.personalBudget=Math.round((income-livingBudget)*.55);
-    config.startCash=Math.round(income*(.4+1.4*moneyRandom()));
-    config.cardLimit=Math.max(100000,Math.min(5000000,Math.round(income*.5)));
+    // Income, an actual-sized home and essential living costs are generated
+    // together. Source distributions and gameplay support remain distinguishable.
+    assignLifeEconomy(config);
     const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'];
     config.preferences=[pick(interests)];config.preferences.push(pick(interests.filter(id=>id!==config.preferences[0])));
     const givenName=Demographics.names[Math.floor(randomStream(seed,'name')()*Demographics.names.length)].name;
@@ -172,6 +162,6 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 5, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ROLES, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,getChildren,childStage,APPEARANCE_OPTIONS,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,assignRegionalIncome,assignLifeEconomy,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

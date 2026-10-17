@@ -8,13 +8,13 @@ test('housing separates rent and monthly loan interest for every declared tenure
   for (const tenure of ['own', 'rent', 'jeonse']) {
     const c = { ...base, housingTenure: tenure, monthlyRent: 500000, housingLoanPrincipal: 120000000, housingLoanRateBps: 350 };
     const rent = tenure === 'rent' ? 500000 : 0;
-    assert.deepEqual(F.housingCosts(c), { tenure, rent, interest: 350000, total: rent + 350000, loanPrincipal: 120000000, rateBps: 350 });
-    assert.deepEqual(F.monthlyCosts(c), { living: 100000, housing: rent + 350000, rent, interest: 350000, total: rent + 450000 });
+    assert.deepEqual(F.housingCosts(c), { tenure, rent, interest: 350000, maintenance:0, total: rent + 350000, loanPrincipal: 120000000, rateBps: 350 });
+    assert.deepEqual(F.monthlyCosts(c), { living: 100000, housing: rent + 350000, rent, interest: 350000, maintenance:0, total: rent + 450000 });
   }
 });
 
 test('legacy missing and unspecified housing add no inferred costs or principal', () => {
-  const empty = { tenure: 'unspecified', rent: 0, interest: 0, total: 0, loanPrincipal: 0, rateBps: 0 };
+  const empty = { tenure: 'unspecified', rent: 0, interest: 0, maintenance:0, total: 0, loanPrincipal: 0, rateBps: 0 };
   assert.deepEqual(F.housingCosts(), empty);
   assert.deepEqual(F.housingCosts({ monthlyRent: 500000, housingLoanPrincipal: 120000000, housingLoanRateBps: 350 }), empty);
   assert.deepEqual(F.housingCosts({ housingTenure: 'unspecified', monthlyRent: 500000, housingLoanPrincipal: 120000000, housingLoanRateBps: 350 }), empty);

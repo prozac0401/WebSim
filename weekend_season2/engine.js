@@ -15,12 +15,12 @@
   function validateConfig(c) {
     const errors = [];
     if (!c || typeof c !== 'object' || Array.isArray(c)) return ['시작 설정이 없습니다.'];
-    const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],monthlyRent:[0,100000000],housingLoanPrincipal:[0,10000000000],housingLoanRateBps:[0,3000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
+    const nums = {year:[2020,2100],age:[18,100],children:[0,6],careShare:[0,100],salary:[0,100000000],externalAllowance:[0,100000000],personalBudget:[0,100000000],fixedCosts:[0,100000000],monthlyRent:[0,100000000],housingLoanPrincipal:[0,10000000000],housingLoanRateBps:[0,3000],housingMaintenance:[0,100000000],startCash:[0,1000000000],payDay:[1,31],cardLimit:[0,100000000],seed:[0,4294967295]};
     for (const [key,[min,max]] of Object.entries(nums)) if (!Number.isSafeInteger(c[key]) || c[key]<min || c[key]>max) errors.push(key+' 설정 범위를 확인하세요.');
-    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:['single','married','divorced','unspecified'],role:Object.keys(D.ROLES),childAge:['none','toddler','preschool','school','teen','adult'],housing:['studio','apartment','shared'],housingTenure:['own','rent','jeonse','unspecified'],region:['city','town','rural'],transport:['walk','transit','car']};
+    const enums = {gender:['unspecified','woman','man','nonbinary','female','male','other'],maritalStatus:Object.keys(D.MARITAL_STATUSES),role:Object.keys(D.ROLES),childAge:['none','toddler','preschool','school','teen','adult'],housing:['studio','apartment','shared'],housingTenure:['own','rent','jeonse','unspecified'],region:['city','town','rural'],transport:['walk','transit','car']};
     for (const [key,values] of Object.entries(enums)) if (!values.includes(c[key])) errors.push(key+' 설정을 확인하세요.');
     if(c.housingTenure!=='rent'&&c.monthlyRent!==0)errors.push('월세는 월세 계약에서만 설정할 수 있습니다.');
-    if(c.housingTenure==='unspecified'&&(c.housingLoanPrincipal!==0||c.housingLoanRateBps!==0))errors.push('대출을 설정하려면 자가·월세·전세 중 주거 계약을 선택하세요.');
+    if(c.housingTenure==='unspecified'&&(c.housingLoanPrincipal!==0||c.housingLoanRateBps!==0||c.housingMaintenance!==0))errors.push('주거비를 설정하려면 자가·월세·전세 중 주거 계약을 선택하세요.');
     if (!Array.isArray(c.preferences) || c.preferences.length>D.ACTIVITIES.length || c.preferences.some(id=>!D.ACTIVITY_MAP[id]) || new Set(c.preferences).size!==c.preferences.length) errors.push('활동 선호를 확인하세요.');
     if (c.children>0 && c.childAge==='none') errors.push('자녀가 있으면 연령대를 선택하세요.');
     if(c.childProfiles!==null&&c.childProfiles!==undefined){
@@ -34,11 +34,20 @@
       const value=c[key];if(value===null)continue;
       if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==Object.keys(options).length||Object.entries(options).some(([field,choices])=>!choices.includes(value[field])))errors.push('삽화 설정을 확인하세요.');
     }
-    if(c.generationModel!==null&&!['kr-life-2026-v1','kr-life-2026-v2'].includes(c.generationModel))errors.push('인생 배정 자료 버전을 확인하세요.');
-    if(c.incomeOrigin!==null){
+    if(c.generationModel!==null&&!['kr-life-2026-v1','kr-life-2026-v2','kr-life-2026-v3'].includes(c.generationModel))errors.push('인생 배정 자료 버전을 확인하세요.');
+    if(c.incomeOrigin?.modelId===D.LIFECYCLE.MODEL.id){
+      errors.push(...D.LIFECYCLE.validateOrigin(c.incomeOrigin));
+    }else if(c.incomeOrigin!==null){
       const origin=c.incomeOrigin,band=D.INCOME.BANDS.find(b=>b.id===origin?.bandId);
       if(!origin||typeof origin!=='object'||Array.isArray(origin)||!['wage','support-model','custom'].includes(origin.kind)||origin.sourceId!==D.INCOME.SOURCE.id||!band||!D.DEMOGRAPHICS.regions.some(r=>r.id===origin.provinceId)||![1,.3,.5,.65].includes(origin.supportShare)||!Number.isSafeInteger(origin.sampledMonthly)||!Number.isSafeInteger(origin.assignedMonthly)||origin.assignedMonthly!==Math.round(origin.sampledMonthly*origin.supportShare)||origin.sampledMonthly<0||origin.sampledMonthly>100000000||(origin.kind==='wage'&&origin.supportShare!==1)||(origin.kind==='support-model'&&origin.supportShare===1))errors.push('수입 배정 근거를 확인하세요.');
       else if(band.max===null?origin.sampledMonthly!==D.INCOME.MODEL.topMonthlyAmount:origin.sampledMonthly<band.monthlyMin||origin.sampledMonthly>band.monthlyMax)errors.push('수입 구간과 배정액이 일치하지 않습니다.');
+    }
+    if(c.economicProfile!==null&&c.economicProfile!==undefined)errors.push(...D.LIFECYCLE.validateProfile(c.economicProfile,c));
+    if(c.housingOrigin!==null&&c.housingOrigin!==undefined)errors.push(...D.HOUSING.validateOrigin(c.housingOrigin));
+    if(c.generationModel==='kr-life-2026-v3'&&(!c.economicProfile||!c.housingOrigin||c.incomeOrigin?.modelId!==D.LIFECYCLE.MODEL.id))errors.push('새 삶의 수입·주거 생성 기록이 빠져 있습니다.');
+    if(c.economicProfile?.active&&c.housingOrigin){
+      const h=c.housingOrigin, pairs={provinceId:c.province,householdSize:D.LIFECYCLE.household(c).size,housingType:c.housing,housingTenure:c.housingTenure,monthlyRent:c.monthlyRent,loanPrincipal:c.housingLoanPrincipal,rateBps:c.housingLoanRateBps,housingMaintenance:c.housingMaintenance};
+      if(Object.entries(pairs).some(([key,value])=>h[key]!==value))errors.push('현재 집과 주거비의 참고 자료가 다릅니다.');
     }
     return errors;
   }
@@ -258,7 +267,7 @@
     if(s.date===vaccineDate&&!s.flags.vaccineDate){if(id==='autumn_reflection')queue(s,'autumn_reflection',C.addDays(s.date,1));id='flu_vaccine_season';}
     if(suffix==='07-25'&&E.eligible(s,'military_leave'))id='military_leave';
     if(suffix==='02-07'&&s.config.maritalStatus==='married')id=children(s).some(child=>child.age<18)?'partner_care':'partner_weekend';
-    if(suffix==='02-07'&&['single','divorced'].includes(s.config.maritalStatus))id=children(s).some(child=>child.age<18)?'single_care':'single_weekend';
+    if(suffix==='02-07'&&['single','divorced','widowed'].includes(s.config.maritalStatus))id=children(s).some(child=>child.age<18)?'single_care':'single_weekend';
     return id&&!s.eventHistory[id]&&E.eligible(s,id)?id:null;
   }
   function maybeEvent(s) {
@@ -684,7 +693,13 @@
       case 'thesis_submit':{s.dayState.skipWork=true;const passed=s.stats.research-s.stats.fatigue*.3>=70;outcome(passed?'올해의 연구 초안을 완성했습니다.':'연구 초안에 추가 수정이 필요합니다.',{passed,research:s.stats.research});s.flags.researchComplete=passed;if(!passed)queue(s,'thesis_recovery',C.addDays(s.date,1));break;}
       case 'thesis_extend':log(s,'postponed','연구 목표의 범위를 줄이고 다음 단계로 넘겼습니다.',{category:'choice',research:s.stats.research});queue(s,'thesis_recovery',C.addDays(s.date,1));break;
       case 'job_attend':{s.dayState.skipWork=true;const passed=s.stats.preparation-s.stats.fatigue*.3+(random(s,'followup')-.5)*14>=38;outcome(passed?'면접을 통과했습니다.':'이번 면접에서 다음 기회를 준비하기로 했습니다.',{passed,preparation:s.stats.preparation});effect(s,{fatigue:8,mood:passed?6:-3});if(passed)queue(s,'job_offer',C.addDays(s.date,3));break;}
-      case 'job_accept':s.config.role='worker';s.config.salary=2400000;s.config.externalAllowance=0;s.queue=s.queue.filter(item=>!['job_interview','job_offer'].includes(item.catalogId));outcome('근무 제안을 수락했습니다. 다음 급여일부터 새 수입이 적용됩니다.',{salary:2400000});break;
+      case 'job_accept':{
+        const income=s.config.economicProfile?D.LIFECYCLE.employmentIncome(s.config,2400000):{salary:2400000,externalAllowance:0};
+        s.config.salary=income.salary;s.config.externalAllowance=income.externalAllowance;s.config.role='worker';
+        if(s.config.economicProfile)s.config.economicProfile.active=false;
+        if(s.config.incomeOrigin)s.config.incomeOrigin.kind='custom';
+        s.queue=s.queue.filter(item=>!['job_interview','job_offer'].includes(item.catalogId));outcome('근무 제안을 수락했습니다. 다음 급여일부터 새 수입이 적용됩니다.',{salary:2400000});break;
+      }
       case 'job_decline':log(s,'postponed','이번 근무·면접 기회를 미뤘습니다.',{category:'choice'});break;
       case 'hobby_join':block(s,120,'취미 모임에 쓴 시간');log(s,'relationship','취미 모임에서 결과물을 나눴습니다.',{activityId:event.context.activityId});break;
       case 'hobby_show':block(s,120,'작은 발표에 쓴 시간');outcome('쌓아 온 취미 결과물을 작은 발표에서 나눴습니다.',{activityId:event.context.activityId});break;

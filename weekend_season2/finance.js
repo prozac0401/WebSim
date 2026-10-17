@@ -20,13 +20,15 @@
     const loanPrincipal = tenure === 'unspecified' ? 0 : principal;
     const appliedRate = tenure === 'unspecified' ? 0 : rateBps;
     const rent = tenure === 'rent' ? monthlyRent : 0;
+    const maintenanceValue = won(c.housingMaintenance);
+    const maintenance = tenure === 'unspecified' ? 0 : maintenanceValue;
     // The bounded integer product is exact; only the monthly won amount rounds.
     const interest = Math.round(loanPrincipal * appliedRate / 120000);
-    return { tenure, rent, interest, total: won(rent + interest), loanPrincipal, rateBps: appliedRate };
+    return { tenure, rent, interest, maintenance, total: won(rent + interest + maintenance), loanPrincipal, rateBps: appliedRate };
   }
   function monthlyCosts(config) {
     const c = config || {}, housing = housingCosts(c), living = won(c.fixedCosts);
-    return { living, housing: housing.total, rent: housing.rent, interest: housing.interest, total: won(living + housing.total) };
+    return { living, housing: housing.total, rent: housing.rent, interest: housing.interest, maintenance: housing.maintenance, total: won(living + housing.total) };
   }
   function configValues(config) {
     const c = config || {};
@@ -110,7 +112,7 @@
     let income = 0;
     if (date === payDate(date, c)) {
       if (c.salary) { f.cash += c.salary; income += c.salary; entry(f, date, 'salary', c.salary, '급여', { income: c.salary }); }
-      if (c.externalAllowance) { f.cash += c.externalAllowance; income += c.externalAllowance; entry(f, date, 'allowance', c.externalAllowance, '외부에서 받은 용돈', { income: c.externalAllowance }); }
+      if (c.externalAllowance) { f.cash += c.externalAllowance; income += c.externalAllowance; entry(f, date, 'allowance', c.externalAllowance, config.economicProfile ? '가계 지원·분담금' : '외부에서 받은 용돈', { income: c.externalAllowance }); }
     }
     const isDue = reward => reward.kind === 'sidejob' ? reward.dueDate <= date : date === payDate(date,c) && reward.earnedDate < date;
     const due = f.pendingRewards.filter(isDue);
@@ -125,7 +127,7 @@
       const paid = Math.min(f.cash, c.monthly.total), unpaid = c.monthly.total - paid;
       f.cash -= paid; f.fixedArrears += unpaid;
       entry(f, date, 'fixed-cost', c.monthly.total, '이번 달 필수 고정비', { method: 'cash', consumption: c.monthly.total, paid, unpaid, cause: 'unavoidable',
-        livingCosts: c.monthly.living, rent: c.monthly.rent, loanInterest: c.monthly.interest, housingTenure: c.housing.tenure,
+        livingCosts: c.monthly.living, rent: c.monthly.rent, loanInterest: c.monthly.interest, ...(c.housing.maintenance ? {housingMaintenance:c.housing.maintenance} : {}), housingTenure: c.housing.tenure,
         loanPrincipal: c.housing.loanPrincipal, housingLoanRateBps: c.housing.rateBps });
       if (unpaid) entry(f, date, 'fixed-unpaid', unpaid, '필수 고정비 미납 기록', { cause: 'unavoidable' });
     }
@@ -180,10 +182,11 @@
     const sum = field => f.ledger.reduce((value, item) => value + (item[field] || 0), 0);
     const housingRent = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.rent || 0 : 0), 0);
     const housingInterest = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.loanInterest || 0 : 0), 0);
+    const housingMaintenance = f.ledger.reduce((value, item) => value + (item.type === 'fixed-cost' ? item.housingMaintenance || 0 : 0), 0);
     const housingLoanPrincipal = housingCosts(config).loanPrincipal, unpaidDebt = f.cardPending + f.arrears + f.fixedArrears;
     return { income: sum('income'), consumption: sum('consumption'), paid: sum('paid'), cash: f.cash,
       debt: unpaidDebt + housingLoanPrincipal, pendingPay: f.pendingPay, housingRent, housingInterest,
-      housingCosts: housingRent + housingInterest, housingLoanPrincipal, unpaidDebt };
+      housingCosts: housingRent + housingInterest + housingMaintenance, housingMaintenance, housingLoanPrincipal, unpaidDebt };
   }
   return { create, housingCosts, monthlyCosts, available, canSpend, spend, beginDay, endDay, addPendingPay, addEarnedPay, summary, ORDER };
 });

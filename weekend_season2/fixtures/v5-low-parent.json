@@ -1,0 +1,565 @@
+{
+  "format": "websim-weekend-season2",
+  "version": 5,
+  "savedAt": "2026-10-17T00:28:15.227Z",
+  "checksum": "46e539eb",
+  "state": {
+    "version": 5,
+    "config": {
+      "year": 2026,
+      "age": 59,
+      "gender": "man",
+      "maritalStatus": "divorced",
+      "personaName": "이예은",
+      "lifeIntro": "이예은, 59세. 수도권 · 경기도에서 새로운 일자리를 찾으며 지냅니다. 이혼 후 나와 가족의 일상을 꾸려 가고 있어요. 자녀는 21세 딸입니다. 요즘은 작은 화분 가꾸기 · 자격증 준비에 관심이 있어요.",
+      "generationSeed": 169,
+      "role": "seeker",
+      "children": 1,
+      "childAge": "adult",
+      "careShare": 60,
+      "province": "gyeonggi",
+      "residenceOrigin": "population",
+      "appearance": {
+        "faceShape": "square",
+        "hairStyle": "curly",
+        "hairColor": "honey",
+        "skinTone": "deep",
+        "outfitPalette": "terracotta"
+      },
+      "homeStyle": {
+        "palette": "sky",
+        "layout": "window-right",
+        "decor": "music",
+        "windowView": "hills"
+      },
+      "generationModel": "kr-life-2026-v2",
+      "incomeOrigin": {
+        "kind": "support-model",
+        "sourceId": "nts-wage-address-2024",
+        "bandId": "15133GSD02",
+        "provinceId": "gyeonggi",
+        "sampledMonthly": 48624,
+        "assignedMonthly": 14587,
+        "supportShare": 0.3
+      },
+      "childProfiles": [
+        {
+          "age": 21,
+          "gender": "woman",
+          "militaryStatus": "none"
+        }
+      ],
+      "housing": "studio",
+      "housingTenure": "rent",
+      "monthlyRent": 3502,
+      "housingLoanPrincipal": 320000,
+      "housingLoanRateBps": 550,
+      "region": "rural",
+      "transport": "transit",
+      "salary": 0,
+      "externalAllowance": 14587,
+      "personalBudget": 3937,
+      "fixedCosts": 2459,
+      "startCash": 13630,
+      "payDay": 1,
+      "cardLimit": 100000,
+      "preferences": [
+        "garden",
+        "study"
+      ],
+      "seed": 169
+    },
+    "presetId": "seeker",
+    "date": "2026-01-04",
+    "weekStart": "2026-01-01",
+    "phase": "review",
+    "stats": {
+      "health": 73.9,
+      "happiness": 63.91,
+      "knowledge": 37.72,
+      "mood": 66.54,
+      "relationship": 59.86,
+      "family": 59.86,
+      "fatigue": 16.33,
+      "preparation": 0,
+      "research": 0,
+      "work": 0
+    },
+    "household": {
+      "cleanliness": 65,
+      "lastCleaned": null
+    },
+    "healthEpisode": null,
+    "finance": {
+      "cash": 20789,
+      "cardPending": 0,
+      "arrears": 0,
+      "fixedArrears": 0,
+      "pendingPay": 0,
+      "pendingRewards": [],
+      "ledger": [
+        {
+          "id": "tx-1",
+          "date": "2026-01-01",
+          "type": "allowance",
+          "amount": 14587,
+          "label": "외부에서 받은 용돈",
+          "method": "",
+          "income": 14587,
+          "consumption": 0,
+          "paid": 0,
+          "cause": ""
+        },
+        {
+          "id": "tx-2",
+          "date": "2026-01-01",
+          "type": "fixed-cost",
+          "amount": 7428,
+          "label": "이번 달 필수 고정비",
+          "method": "cash",
+          "income": 0,
+          "consumption": 7428,
+          "paid": 7428,
+          "cause": "unavoidable",
+          "unpaid": 0,
+          "livingCosts": 2459,
+          "rent": 3502,
+          "loanInterest": 1467,
+          "housingTenure": "rent",
+          "loanPrincipal": 320000,
+          "housingLoanRateBps": 550
+        },
+        {
+          "id": "tx-3",
+          "date": "2026-01-01",
+          "type": "purchase",
+          "amount": 0,
+          "label": "독서",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-4",
+          "date": "2026-01-03",
+          "type": "purchase",
+          "amount": 0,
+          "label": "동네 산책",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        },
+        {
+          "id": "tx-5",
+          "date": "2026-01-04",
+          "type": "purchase",
+          "amount": 0,
+          "label": "아무것도 안 하는 휴식",
+          "method": "cash",
+          "income": 0,
+          "consumption": 0,
+          "paid": 0,
+          "cause": "chosen"
+        }
+      ],
+      "processed": {
+        "begin:2026-01-01": true,
+        "fixed:2026-01": true,
+        "end:2026-01-01": true,
+        "begin:2026-01-02": true,
+        "end:2026-01-02": true,
+        "begin:2026-01-03": true,
+        "end:2026-01-03": true,
+        "begin:2026-01-04": true,
+        "end:2026-01-04": true
+      },
+      "currentDate": "2026-01-04",
+      "monthKey": "2026-01",
+      "monthSpent": 0
+    },
+    "plan": [],
+    "rules": [],
+    "log": [
+      {
+        "id": "log-4",
+        "date": "2026-01-01",
+        "type": "activity",
+        "title": "독서 · 오후",
+        "activityId": "read",
+        "slot": "afternoon",
+        "minutes": 95,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -3,
+          "mood": 3.9000000000000004,
+          "knowledge": 3,
+          "happiness": 1.5
+        },
+        "moodAfter": 63.9,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-5",
+        "date": "2026-01-01",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 69.96,
+          "happiness": 61.38,
+          "knowledge": 37.93,
+          "mood": 63.23,
+          "relationship": 59.96,
+          "family": 59.96,
+          "fatigue": 23.3,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 68.75,
+          "lastCleaned": null
+        },
+        "holiday": "새해 첫날",
+        "isOff": true
+      },
+      {
+        "id": "log-6",
+        "date": "2026-01-02",
+        "type": "weekday",
+        "title": "일자리를 알아보며 하루를 보냈어요.",
+        "role": "seeker",
+        "fatigue": 3
+      },
+      {
+        "id": "log-7",
+        "date": "2026-01-02",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 69.92,
+          "happiness": 61.27,
+          "knowledge": 37.86,
+          "mood": 62.63,
+          "relationship": 59.92,
+          "family": 59.92,
+          "fatigue": 25.66,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 67.5,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": false
+      },
+      {
+        "id": "log-8",
+        "date": "2026-01-03",
+        "type": "activity",
+        "title": "동네 산책 · 오후",
+        "activityId": "walk",
+        "slot": "afternoon",
+        "minutes": 150,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -5,
+          "mood": 3.25,
+          "health": 2.2,
+          "happiness": 1.5
+        },
+        "moodAfter": 65.88,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-9",
+        "date": "2026-01-03",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 72.03,
+          "happiness": 62.61,
+          "knowledge": 37.79,
+          "mood": 65,
+          "relationship": 59.89,
+          "family": 59.89,
+          "fatigue": 23.06,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 66.25,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": true
+      },
+      {
+        "id": "log-10",
+        "date": "2026-01-04",
+        "type": "activity",
+        "title": "아무것도 안 하는 휴식 · 오후",
+        "activityId": "rest",
+        "slot": "afternoon",
+        "minutes": 120,
+        "cost": 0,
+        "payment": "cash",
+        "effects": {
+          "fatigue": -17,
+          "mood": 2.6,
+          "health": 2,
+          "happiness": 1.5
+        },
+        "moodAfter": 67.6,
+        "ruleId": null,
+        "category": "completed"
+      },
+      {
+        "id": "log-11",
+        "date": "2026-01-04",
+        "type": "daily",
+        "title": "하루의 기록",
+        "stats": {
+          "health": 73.9,
+          "happiness": 63.91,
+          "knowledge": 37.72,
+          "mood": 66.54,
+          "relationship": 59.86,
+          "family": 59.86,
+          "fatigue": 16.33,
+          "preparation": 0,
+          "research": 0,
+          "work": 0
+        },
+        "household": {
+          "cleanliness": 65,
+          "lastCleaned": null
+        },
+        "holiday": "",
+        "isOff": true
+      }
+    ],
+    "artifacts": [],
+    "pendingEvent": null,
+    "queue": [],
+    "dayState": {
+      "date": "2026-01-04",
+      "begun": true,
+      "eventHandled": false,
+      "randomChecked": false,
+      "baseDone": true,
+      "done": [
+        "slot-morning",
+        "plan-3",
+        "slot-afternoon",
+        "slot-evening"
+      ],
+      "blocks": {},
+      "extraTravel": 0,
+      "skipWork": false
+    },
+    "skills": {
+      "read": 6,
+      "walk": 6,
+      "rest": 6
+    },
+    "activityCounts": {
+      "read": 1,
+      "walk": 1,
+      "rest": 1
+    },
+    "flags": {
+      "autoPreparedWeek": "2026-01-01",
+      "autoDirection": "balanced"
+    },
+    "eventHistory": {},
+    "sequence": 11,
+    "weekNumber": 1,
+    "rng": {
+      "external": 1922038456,
+      "followup": 2246822594
+    },
+    "friendPostponements": 0,
+    "lastExternal": null,
+    "review": {
+      "from": "2026-01-01",
+      "to": "2026-01-04",
+      "logs": [
+        {
+          "id": "log-4",
+          "date": "2026-01-01",
+          "type": "activity",
+          "title": "독서 · 오후",
+          "activityId": "read",
+          "slot": "afternoon",
+          "minutes": 95,
+          "cost": 0,
+          "payment": "cash",
+          "effects": {
+            "fatigue": -3,
+            "mood": 3.9000000000000004,
+            "knowledge": 3,
+            "happiness": 1.5
+          },
+          "moodAfter": 63.9,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-5",
+          "date": "2026-01-01",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 69.96,
+            "happiness": 61.38,
+            "knowledge": 37.93,
+            "mood": 63.23,
+            "relationship": 59.96,
+            "family": 59.96,
+            "fatigue": 23.3,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 68.75,
+            "lastCleaned": null
+          },
+          "holiday": "새해 첫날",
+          "isOff": true
+        },
+        {
+          "id": "log-6",
+          "date": "2026-01-02",
+          "type": "weekday",
+          "title": "일자리를 알아보며 하루를 보냈어요.",
+          "role": "seeker",
+          "fatigue": 3
+        },
+        {
+          "id": "log-7",
+          "date": "2026-01-02",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 69.92,
+            "happiness": 61.27,
+            "knowledge": 37.86,
+            "mood": 62.63,
+            "relationship": 59.92,
+            "family": 59.92,
+            "fatigue": 25.66,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 67.5,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": false
+        },
+        {
+          "id": "log-8",
+          "date": "2026-01-03",
+          "type": "activity",
+          "title": "동네 산책 · 오후",
+          "activityId": "walk",
+          "slot": "afternoon",
+          "minutes": 150,
+          "cost": 0,
+          "payment": "cash",
+          "effects": {
+            "fatigue": -5,
+            "mood": 3.25,
+            "health": 2.2,
+            "happiness": 1.5
+          },
+          "moodAfter": 65.88,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-9",
+          "date": "2026-01-03",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 72.03,
+            "happiness": 62.61,
+            "knowledge": 37.79,
+            "mood": 65,
+            "relationship": 59.89,
+            "family": 59.89,
+            "fatigue": 23.06,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 66.25,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": true
+        },
+        {
+          "id": "log-10",
+          "date": "2026-01-04",
+          "type": "activity",
+          "title": "아무것도 안 하는 휴식 · 오후",
+          "activityId": "rest",
+          "slot": "afternoon",
+          "minutes": 120,
+          "cost": 0,
+          "payment": "cash",
+          "effects": {
+            "fatigue": -17,
+            "mood": 2.6,
+            "health": 2,
+            "happiness": 1.5
+          },
+          "moodAfter": 67.6,
+          "ruleId": null,
+          "category": "completed"
+        },
+        {
+          "id": "log-11",
+          "date": "2026-01-04",
+          "type": "daily",
+          "title": "하루의 기록",
+          "stats": {
+            "health": 73.9,
+            "happiness": 63.91,
+            "knowledge": 37.72,
+            "mood": 66.54,
+            "relationship": 59.86,
+            "family": 59.86,
+            "fatigue": 16.33,
+            "preparation": 0,
+            "research": 0,
+            "work": 0
+          },
+          "household": {
+            "cleanliness": 65,
+            "lastCleaned": null
+          },
+          "holiday": "",
+          "isOff": true
+        }
+      ]
+    }
+  }
+}

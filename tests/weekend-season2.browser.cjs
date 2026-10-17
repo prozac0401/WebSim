@@ -152,7 +152,7 @@ async function season(page, browser) {
   for(const key of ['mode','date','stats','finance','plan','artifactCount','logCount'])assert.deepEqual(restored[key],saved[key],key);
   const downloadPromise=page.waitForEvent('download');await click(page,'#export-save');
   const download=await downloadPromise, savePath=path.join(output,'ui-save.json');await download.saveAs(savePath);
-  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,5);
+  const imported=JSON.parse(fs.readFileSync(savePath,'utf8'));assert.equal(imported.version,6);
   await click(page,'#continue-week');
   const current=await textState(page), rawBefore=await page.evaluate(()=>localStorage.getItem(S2Storage.KEY));
   await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"version":999}')});
@@ -229,7 +229,7 @@ async function diversity(browser){
   await page.waitForFunction(()=>typeof window.render_game_to_text==='function');
   const identities=new Set(),pictures=new Set(),regions=new Set(),hair=new Set(),rooms=new Set();
   for(let i=0;i<16;i++){
-    const s=await textState(page);assert.equal(s.generation.model,'kr-life-2026-v2');assert.notEqual(s.generation.province,'unspecified');
+    const s=await textState(page);assert.equal(s.generation.model,'kr-life-2026-v3');assert.notEqual(s.generation.province,'unspecified');
     identities.add(s.persona);regions.add(s.generation.province);hair.add(s.generation.appearance.hairStyle);rooms.add(JSON.stringify(s.generation.homeStyle));
     assert.equal(s.scene.character.appearance.options.hairStyle,s.generation.appearance.hairStyle);
     pictures.add(await page.locator('#life-scene').evaluate(canvas=>canvas.toDataURL()));
@@ -237,7 +237,7 @@ async function diversity(browser){
     if(i<15)await click(page,'#reroll-life');
   }
   assert.ok(identities.size>=12);assert.ok(regions.size>=5);assert.ok(hair.size>=5);assert.ok(rooms.size>=12);assert.equal(pictures.size,16);
-  await click(page,'#life-basis > summary');assert.match(await page.locator('#life-basis').innerText(),/기준 인구/);assert.match(await page.locator('#life-basis').innerText(),/실제 소득 분포가 아닙니다/);
+  await click(page,'#life-basis > summary');assert.match(await page.locator('#life-basis').innerText(),/기준 인구/);assert.match(await page.locator('#life-basis').innerText(),/공개 통계의 여러 분포를 조합한 게임 모델/);
   await click(page,'#life-basis > summary');
   await reveal(page,page.locator('[name="province"]'));
   assert.equal(await page.locator('[name="province"] option').count(),18);
@@ -252,12 +252,12 @@ async function diversity(browser){
   await click(page,'#start-btn');
   const before=await textState(page);assert.equal(before.mode,'planning');assert.equal(before.generation.province,'busan');
   const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,version:r.state?.version,allowance:r.state?.config.externalAllowance};});
-  assert.equal(saved.ok,true);assert.equal(saved.version,5);assert.equal(saved.allowance,1235000);
+  assert.equal(saved.ok,true);assert.equal(saved.version,6);assert.equal(saved.allowance,1235000);
   await shot(page,'diverse-family-mobile');
   await page.reload();await click(page,'#resume-game');
   const restored=await textState(page);assert.deepEqual(restored.generation,before.generation);assert.deepEqual(restored.scene.character.appearance,before.scene.character.appearance);assert.deepEqual(restored.scene.home,before.scene.home);
   await context.close();
-  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v5 저장 복원');
+  record('인구·지역수입 근거 표시, 수도권 선택, 이름·외모·집 16회 다양화, 직접수입 수정과 v6 저장 복원');
 }
 async function expandedLife(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
