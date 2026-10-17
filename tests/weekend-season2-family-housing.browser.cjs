@@ -6,7 +6,7 @@ const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8766').replace(/\/$/,''),o
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  await page.addInitScript(()=>{window.crypto.getRandomValues=a=>{a[0]=65702;return a;};});
  const state=()=>page.evaluate(()=>JSON.parse(render_game_to_text())),saved=()=>page.evaluate(()=>S2Storage.load()),pass=s=>{checks.push(s);console.log('PASS',s);};
- async function fresh(){if(page.url()!=='about:blank')await page.evaluate(()=>S2Storage.clear());await page.goto(base+'/weekend_season2/index.html');}
+ async function fresh(){if(page.url()!=='about:blank')await page.evaluate(()=>S2Storage.clear());await page.goto(base+'/weekend_season2/index.html');await page.locator('#start-year').selectOption('2026');}
  async function preset(){await page.locator('#advanced-settings>summary').click();await page.locator('[data-preset=worker]').click();}
  async function fill(name,value){await page.locator('[name='+name+']').fill(String(value));await page.locator('[name='+name+']').press('Tab');}
  try{

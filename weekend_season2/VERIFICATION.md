@@ -1,5 +1,15 @@
 # 주말 계획표 시즌2 검증 기록
 
+## 2026-10-17 새로 접속할 때 현재 연도를 기본 선택
+
+시작 연도의 고정2026 값을 한국 날짜 기준 현재 연도로 바꿨습니다. 기존 선택 범위2026~2100년을 유지하며, 직접 고른 연도는 인물 재생성·프리셋·시작에 이어집니다. 저장·가져오기와 엔진의 과거 기본값은 바꾸지 않습니다.
+
+- 새 Chromium **5개 묶음 PASS / 오류0**: UTC·미국 LA 시간대에서 한국 새해 직전2026과 직후2027, 이후2028·2030, 선택 범위와 윤년366일, 직접2026 선택 후 재생성·프리셋4종·시작·재접속을 확인했습니다.
+- 실제14일 진행 기록이 있는2026 저장을 실제 시간2027에서 이어 하기·가져오기 했을 때 연도·날짜·돈·기록·RNG 전체가 유지됩니다.390px 모바일의2027 기본 화면·키보드 시작·자동 진행·멈춤도 확인했습니다.
+- 기존2026년 시나리오를 검증하는 브라우저 시험4종은 시작 연도를 명시적으로 선택하도록 바꿔 실제 해가 바뀌어도 반복 가능합니다. 주거4·생활 UI4·가족 주거6개 묶음 PASS, 오류0입니다. 증거: `output/playwright/current-year-regression-housing/`, `current-year-regression-life-ui/`, `current-year-regression-family-housing/`.
+- 기존 전체 통합17개 묶음도 PASS, 오류0입니다.365일 완료와 실제 타이머 자동 진행을 포함하며 이번 변경의 Chromium 검증은 총36개 묶음입니다. 증거: `output/playwright/current-year-regression/`.
+- 원본 게임 개발 클라이언트의 플레이 화면과 텍스트 상태를 확인했고2027년 모바일 설정·플레이 스크린샷을 직접 검토했습니다. 앱 캐시는 `current-year6`입니다. 증거: `output/playwright/weekend-season2-default-year/`, `current-year-client/`; 공개 결과는 `output/current-year-deployment.json`, `output/playwright/current-year-public/`에 기록합니다.
+
 ## 2026-10-17 배우자 삽화 보완
 
 배우자는 성별 미지정으로 그려져 이전 성별별 머리 모양 교정이 빠져 있었습니다. 기혼 남성 주인공의 배우자는 여성, 기혼 여성 주인공의 배우자는 남성으로 표현합니다. 이전 `male`/`female` 저장과 외형 데이터 없는 저장에도 적용하며, 다른 예전 성별 값의 배우자는 기존 미지정 표현을 유지합니다. 변경은 그리는 단계에만 적용됩니다.
@@ -8,6 +18,7 @@
 - 배우자 확장 Chromium **5개 묶음 PASS / 오류0**. PC·390px 성별 전환, 시작·이어하기, 생성64가구·재생성8회, 이전 저장7종, ‘신상현·기혼 남성·0세 아들’ 모바일 사례를 확인했습니다. 부부·자녀 Canvas를 직접 검토했고 원본 게임 클라이언트의 시작·플레이 화면과 텍스트 상태도 확인했습니다.
 - 기존 가족·주거 Chromium **6개 묶음 PASS / 오류0**, 총11개 묶음입니다. 성인 딸·자녀6명 화면과 저장·재정·동작 설정도 확인했습니다. 증거: `output/playwright/spouse-family-regression/`.
 - 증거: `output/spouse-data-regression.txt`, `output/playwright/weekend-season2-gender/`, `spouse-client/`. 장면 캐시 `spouse5`를 사용하며 공개 확인은 `output/spouse-deployment.json`, `output/playwright/spouse-public/`에 기록합니다.
+- 공개 배포 완료:2148a50, Pages workflow38998733041 성공. 공개 배우자 검사5개 묶음 PASS, 오류0이며 모바일 가족 삽화를 확인했습니다.
 
 ## 2026-10-17 성별 두 가지와 삽화 일치
 

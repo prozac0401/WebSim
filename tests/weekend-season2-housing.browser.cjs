@@ -20,6 +20,7 @@ fs.mkdirSync(output,{recursive:true});
   const pass=message=>{checks.push(message);console.log('PASS',message);};
   try{
     await page.goto(base+'/weekend_season2/index.html');
+    await page.locator('#start-year').selectOption('2026');
     const start=await page.locator('#start-btn').boundingBox();
     assert.ok(start.y+start.height<=844,'first-screen start remains visible');
     assert.ok(await page.locator('.life-housing').isVisible());

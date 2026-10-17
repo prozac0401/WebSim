@@ -42,7 +42,8 @@
   const activities = S2Data.ACTIVITIES;
   const presets = S2Data.PRESETS;
   let state = null, presetId = presets[0].id, config = clone(presets[0].config), selected = 'walk', payment = 'cash', tab = 'planner', filter = 'all', noticeTimer, lastPhase = 'setup', replayIndex = 0, replayEntries = [];
-  let saveAvailable = false, chosenYear = 2026;
+  // New visits use the current Korean year within the selectable season range.
+  let saveAvailable = false, chosenYear = Math.min(2100,Math.max(2026,Number(plannerToday().slice(0,4))));
   let life = null, autoPlaying = false, autoWaiting = false, autoNarration = [], autoTimer = null, autoBusy = false, direction = 'balanced', autoNote = '', sceneActivity = 'rest';
   const openPanels = new Set();
   function refreshSetupName() {

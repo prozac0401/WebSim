@@ -54,6 +54,7 @@ async function season(page, browser) {
   const requests=[];
   page.on('request',request=>requests.push(request.url()));
   await page.goto(base+'weekend_season2/index.html');
+  await page.locator('#start-year').selectOption('2026');
   await page.waitForFunction(()=>typeof window.render_game_to_text==='function');
   await shot(page,'setup-desktop');
   assert.equal(await page.locator('#advanced-settings').getAttribute('open'),null);
@@ -194,6 +195,7 @@ async function season(page, browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
   const mobile=await context.newPage();observe(mobile);
   await mobile.goto(base+'weekend_season2/index.html');
+  await mobile.locator('#start-year').selectOption('2026');
   await reveal(mobile,mobile.locator('[data-preset="caregiver"]'));
   await mobile.locator('[data-preset="caregiver"]').tap();
   await mobile.locator('#advanced-settings > summary').tap();
@@ -226,6 +228,7 @@ async function diversity(browser){
   const page=await context.newPage();observe(page);
   await page.addInitScript(()=>{let seed=0;Object.defineProperty(window.crypto,'getRandomValues',{value:array=>{array[0]=seed++;return array;}});});
   await page.goto(base+'weekend_season2/index.html');
+  await page.locator('#start-year').selectOption('2026');
   await page.waitForFunction(()=>typeof window.render_game_to_text==='function');
   const identities=new Set(),pictures=new Set(),regions=new Set(),hair=new Set(),rooms=new Set();
   for(let i=0;i<16;i++){
@@ -263,6 +266,7 @@ async function expandedLife(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
   const page=await context.newPage();observe(page);
   await page.goto(base+'weekend_season2/index.html');
+  await page.locator('#start-year').selectOption('2026');
   await click(page,'[data-preset="caregiver"]');
   await reveal(page,page.locator('[name="age"]'));await page.locator('[name="age"]').fill('62');
   await page.locator('[name="children"]').fill('2');await page.locator('[name="childAge"]').selectOption('adult');
@@ -324,6 +328,7 @@ async function compactLife(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
   const page=await context.newPage();observe(page);
   await page.goto(base+'weekend_season2/index.html');
+  await page.locator('#start-year').selectOption('2026');
   await page.waitForFunction(()=>typeof render_game_to_text==='function');
   const setupSize=await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth,view:innerWidth}));
   assert.ok(setupSize.height<=1350,`default setup is too long: ${setupSize.height}px`);
