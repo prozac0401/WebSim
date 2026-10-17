@@ -80,7 +80,9 @@
     const ageStage = Object.hasOwn(childScales, config.childAge) ? config.childAge : 'preschool';
     const player = { id: 'player', kind: 'player', name: config.personaName || '나', x: activity === 'rest' ? 165 : 397, y: activity === 'rest' ? 326 : children ? 329 : 360, scale: 1, activity, appearance: appearance(config) };
     player.bounds = bounds(player);
-    const spouse = maritalStatus === 'married' ? { id: 'spouse', kind: 'spouse', name: '배우자', x: activity === 'rest' ? 327 : 306, y: children ? 329 : 350, scale: .82, activity: 'companion', appearance: config.appearance ? memberAppearance(config,'spouse') : { gender: 'unspecified', hair: 'side-wave', hairColor: Number(config.age || 32) >= 55 ? '#85897c' : '#645546', top: '#7c927d', trim: '#dfc89f' } } : null;
+    // The game's spouse illustration uses the other gender; this is display-only.
+    const spouseGender=player.appearance.gender==='man'?'woman':player.appearance.gender==='woman'?'man':'unspecified';
+    const spouse = maritalStatus === 'married' ? { id: 'spouse', kind: 'spouse', name: '배우자', x: activity === 'rest' ? 327 : 306, y: children ? 329 : 350, scale: .82, activity: 'companion', appearance: config.appearance ? memberAppearance(config,'spouse',spouseGender) : { gender: spouseGender, hair: spouseGender==='unspecified'?'side-wave':avatarStyles[spouseGender].hair, hairColor: Number(config.age || 32) >= 55 ? '#85897c' : '#645546', top: '#7c927d', trim: '#dfc89f' } } : null;
     if (spouse) spouse.bounds = bounds(spouse);
     const palette = ['#d0a15f', '#8fa8a3', '#bc8582', '#a0ad7f', '#b796b1', '#84a3b5'];
     const profiles = Array.isArray(config.childProfiles) && config.childProfiles.length === children ? config.childProfiles : null;
