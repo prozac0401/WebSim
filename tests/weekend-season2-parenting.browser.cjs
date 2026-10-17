@@ -62,7 +62,7 @@ async function quickAdd(page,id) {
       }
       if(ages[0]===0){
         await click(desktop,'.tab[data-tab="routines"]');
-        for(const id of ids){const item=desktop.locator(`#rule-form [name="activityId"] option[value="${id}"]`);assert.equal(await item.count(),eligible.includes(id)?1:0);if(eligible.includes(id))assert.equal(await item.isDisabled(),false);}
+        for(const id of ids){const item=desktop.locator(`#rule-form [name="activityId"] option[value="${id}"]`);assert.equal(await item.count(),0,'age-specific parenting is chosen daily rather than as a recurring rule');}
         await click(desktop,'.tab[data-tab="planner"]');
         await reveal(desktop,desktop.locator('[data-parenting-add="baby_feed"]'));await shot(desktop,'infant-choices-desktop');
       }

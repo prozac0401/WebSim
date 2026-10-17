@@ -43,10 +43,10 @@ async function shot(page,name,target){await (target?page.locator(target):page).s
    assert.equal(await page.locator(`#quick-activity option[value="${item.id}"]`).isDisabled(),false);
   }
   await click(page,'.tab[data-tab="routines"]');
-  assert.deepEqual(await ids(page,'#rule-form [name="activityId"] option','value'),allIds);
+  assert.deepEqual(await ids(page,'#rule-form [name="activityId"] option','value'),catalog.activities.filter(a=>!a.parenting).map(a=>a.id).sort());
   assert.equal(await page.locator('#rule-form [name="activityId"] optgroup').count(),catalog.categories.length);
   await click(page,'.tab[data-tab="planner"]');
-  pass(`all ${allIds.length} canonical activities occur once in each eligible selector; automatic-only restrictions and manual grouped options agree`);
+  pass(`all ${allIds.length} canonical activities occur once in eligible manual selectors; recurrence excludes the nine age-specific parenting tasks and preserves other grouped choices`);
 
   await choose(page,'#auto-category','creative');await click(page,'[data-auto-preference="read"]');
   await choose(page,'#auto-category','household');await click(page,'[data-auto-preference="cleaning"]');
@@ -101,9 +101,9 @@ async function shot(page,name,target){await (target?page.locator(target):page).s
    assert.deepEqual(await ids(page,'[data-activity]','data-activity'),available);
    assert.ok(available.includes('care'));
    if(!ages.length||ages[0]===13)assert.equal(await page.locator('#auto-category option[value="parenting"]').textContent(),'가족·지인 돌봄');
-   await click(page,'.tab[data-tab="routines"]');assert.deepEqual(await ids(page,'#rule-form [name="activityId"] option','value'),available);
+   await click(page,'.tab[data-tab="routines"]');assert.deepEqual(await ids(page,'#rule-form [name="activityId"] option','value'),catalog.activities.filter(a=>!a.parenting).map(a=>a.id).sort());
   }
-  pass('all planner, automatic, quick and recurring selectors hide parenting activities for no child or the wrong age; generic care remains available');
+  pass('manual and automatic selectors hide parenting for no child or the wrong age, recurrence omits all age-specific parenting, and generic care remains available');
 
   const mobile=await pageFor(browser,true);await fixture(mobile,[]);
   await choose(mobile,'#auto-category','creative');await mobile.locator('[data-auto-preference="read"]').focus();await mobile.keyboard.press('Enter');

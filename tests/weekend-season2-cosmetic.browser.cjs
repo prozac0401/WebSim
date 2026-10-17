@@ -34,7 +34,7 @@ async function manualSlot(page,id,date,slot){await click(page,`[data-activity="$
   const planned=await stored(page);assert.deepEqual(planned.finance,original.finance);assert.deepEqual(planned.rng,original.rng);assert.deepEqual(planned.stats,original.stats);
   await click(page,'.tab[data-tab="routines"]');
   await page.locator('#rule-form [name="activityId"]').selectOption('laser_hair_removal');assert.equal(await page.locator('#rule-form [name="kind"]').inputValue(),'weeks');assert.equal(await page.locator('#rule-form [name="interval"]').inputValue(),'4');
-  await page.locator('#rule-form [name="activityId"]').selectOption('eyelid_surgery');assert.equal(await page.locator('#rule-form [type="submit"]').isDisabled(),true);assert.match(await page.locator('#rule-form').innerText(),/한 번/);
+  await page.locator('#rule-form [name="activityId"]').selectOption('eyelid_surgery');assert.equal(await page.locator('#rule-form [type="submit"]').isDisabled(),false);assert.match(await page.locator('#rule-form').innerText(),/한 번/);assert.match(await page.locator('#rule-form').innerText(),/실제로 마치면.*자동 종료/);
   pass('all six procedures display costs, relationship effects and game-only recovery assumptions, can be deliberately added/cancelled without spending, remain unavailable for automatic preferences, and show correct repeat-rule limits');
 
   await fresh(page);await quick(page,'mole_removal');await click(page,'#quick-add');await click(page,'#step-week');

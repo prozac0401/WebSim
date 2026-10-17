@@ -1,4 +1,4 @@
-(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./subregion-income-data.js'):root.S2SubregionIncomeData);if(node)module.exports=api;else root.S2LifecycleEconomy=api;})(typeof globalThis!=='undefined'?globalThis:this,function(Subregions){
+(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./subregion-income-data.js'):root.S2SubregionIncomeData,node?require('./child-living-costs.js'):root.S2ChildLivingCosts);if(node)module.exports=api;else root.S2LifecycleEconomy=api;})(typeof globalThis!=='undefined'?globalThis:this,function(Subregions,ChildLiving){
 'use strict';
 // Published marginal tables are preserved below. The combination is a game model, not an observed joint distribution.
 const RAW_INCOME_ROWS=[
@@ -1031,10 +1031,11 @@ function completeBudget(config,incomeSample,random){
  const originErrors=validateOrigin(incomeSample.origin);if(originErrors.length)throw new RangeError(originErrors.join(' '));
  if(incomeSample.salary!==incomeSample.origin.personalEarnedMonthly||incomeSample.salary+incomeSample.externalAllowance!==incomeSample.origin.baseMonthly||!same(household(config),incomeSample.origin.household)||config.role!==incomeSample.origin.role||config.age!==incomeSample.origin.age||config.province!==incomeSample.origin.provinceId||!sameSubregion(config,incomeSample.origin))throw new RangeError('가구와 수입의 생성 근거를 확인하세요.');
  const h=household(config),baseMonthly=incomeSample.salary+incomeSample.externalAllowance,min=minimumLiving(h.size),housing=housingTotal(config);
- const fixedCosts=Math.max(min,Math.min(min*2,Math.round(baseMonthly*.38))),personalBudget=Math.max(MODEL.leisureFloor,Math.min(800000,Math.round(baseMonthly*.1))),monthlyReserve=Math.max(MODEL.reserveFloor,Math.min(500000,Math.round(baseMonthly*.05)));
+ const livingCosts=ChildLiving.calculate(config,baseMonthly,min),fixedCosts=livingCosts.total,personalBudget=Math.max(MODEL.leisureFloor,Math.min(800000,Math.round(baseMonthly*.1))),monthlyReserve=Math.max(MODEL.reserveFloor,Math.min(500000,Math.round(baseMonthly*.05)));
  const needed=fixedCosts+housing+personalBudget+monthlyReserve,gameSupport=Math.max(0,needed-baseMonthly),totalMonthly=baseMonthly+gameSupport;
  const startCash=Math.round(totalMonthly*(.8+.6*draw(random))),cardLimit=clamp(Math.round(personalBudget*2),300000,3000000),externalAllowance=incomeSample.externalAllowance+gameSupport;
  const economicProfile={modelId:MODEL.id,active:true,household:h,minimumLiving:min,leisureFloor:MODEL.leisureFloor,monthlyReserve,baseMonthly,baseSalary:incomeSample.salary,baseExternalAllowance:incomeSample.externalAllowance,gameSupport,totalMonthly,fixedCosts,personalBudget,housingTotal:housing,startCash,cardLimit,floorSourceId:'livelihood-standard-2026',housingSnapshot:{tenure:config.housingTenure||'unspecified',rent:config.monthlyRent||0,principal:config.housingLoanPrincipal||0,rateBps:config.housingLoanRateBps||0,maintenance:config.housingMaintenance||0}};
+ economicProfile.livingCosts=livingCosts;
  return {fixedCosts,personalBudget,startCash,cardLimit,externalAllowance,economicProfile};
 }
 function validHousehold(h){return h&&integer(h.size,1,8)&&TYPES.includes(h.type)&&['dependentChildren','adultChildren','awayChildren'].every(k=>integer(h[k],0,6))&&integer(h.partnerAdults,0,1)&&h.size===1+h.partnerAdults+h.dependentChildren+h.adultChildren&&h.awayChildren<=h.adultChildren;}
@@ -1099,7 +1100,10 @@ function validateProfile(profile,config){
  if(!h||!['own','rent','jeonse','unspecified'].includes(h.tenure)||!integer(h.rent)||!integer(h.principal,0,10000000000)||!integer(h.rateBps,0,3000)||!integer(h.maintenance)||h.tenure!=='rent'&&h.rent!==0)return ['생성 당시의 주거 예산을 확인하세요.'];
  const housing=(h.tenure==='rent'?h.rent:0)+Math.round(h.principal*h.rateBps/120000)+h.maintenance;
  if(profile.housingTotal!==housing||profile.minimumLiving!==minimumLiving(profile.household.size)||profile.leisureFloor!==MODEL.leisureFloor||profile.fixedCosts<profile.minimumLiving||profile.personalBudget<MODEL.leisureFloor||profile.monthlyReserve<MODEL.reserveFloor||profile.floorSourceId!=='livelihood-standard-2026')errors.push('최소 생활 예산과 출처를 확인하세요.');
- if(profile.fixedCosts!==Math.max(profile.minimumLiving,Math.min(profile.minimumLiving*2,Math.round(profile.baseMonthly*.38)))||profile.personalBudget!==Math.max(MODEL.leisureFloor,Math.min(800000,Math.round(profile.baseMonthly*.1)))||profile.monthlyReserve!==Math.max(MODEL.reserveFloor,Math.min(500000,Math.round(profile.baseMonthly*.05)))||profile.cardLimit!==clamp(Math.round(profile.personalBudget*2),300000,3000000)||profile.startCash<Math.round(profile.totalMonthly*.8)||profile.startCash>Math.round(profile.totalMonthly*1.4))errors.push('생성 당시의 예산 계산을 확인하세요.');
+ // No snapshot means the previously published budget: never reprice an old save.
+ const expectedLiving=profile.livingCosts===undefined?Math.max(profile.minimumLiving,Math.min(profile.minimumLiving*2,Math.round(profile.baseMonthly*.38))):profile.livingCosts?.total;
+ if(profile.livingCosts!==undefined)errors.push(...ChildLiving.validate(profile.livingCosts,profile.baseMonthly,profile.minimumLiving,profile.household,profile.active?config:null));
+ if(profile.fixedCosts!==expectedLiving||profile.personalBudget!==Math.max(MODEL.leisureFloor,Math.min(800000,Math.round(profile.baseMonthly*.1)))||profile.monthlyReserve!==Math.max(MODEL.reserveFloor,Math.min(500000,Math.round(profile.baseMonthly*.05)))||profile.cardLimit!==clamp(Math.round(profile.personalBudget*2),300000,3000000)||profile.startCash<Math.round(profile.totalMonthly*.8)||profile.startCash>Math.round(profile.totalMonthly*1.4))errors.push('생성 당시의 예산 계산을 확인하세요.');
  if(profile.baseMonthly!==profile.baseSalary+profile.baseExternalAllowance||profile.gameSupport!==Math.max(0,profile.fixedCosts+profile.housingTotal+profile.personalBudget+profile.monthlyReserve-profile.baseMonthly)||profile.totalMonthly!==profile.baseMonthly+profile.gameSupport)errors.push('생활안정지원 합계가 맞지 않습니다.');
  if(config?.incomeOrigin?.modelId===MODEL.id&&profile.baseMonthly!==config.incomeOrigin.baseMonthly)errors.push('수입 근거와 생활 예산의 원수입이 다릅니다.');
  if(profile.active&&config){
@@ -1111,5 +1115,5 @@ function validateProfile(profile,config){
  return errors;
 }
 function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
-return freeze({MODEL,SOURCES,RAW_INCOME_ROWS,AGE_WAGES,SINGLE_PARENT,BANDS,LIVING,PROVINCES,household,distribution,sampleIncome,completeBudget,employmentIncome,validateOrigin,validateProfile,minimumLiving});
+return freeze({MODEL,SOURCES,CHILD_LIVING:ChildLiving,RAW_INCOME_ROWS,AGE_WAGES,SINGLE_PARENT,BANDS,LIVING,PROVINCES,household,distribution,sampleIncome,completeBudget,employmentIncome,validateOrigin,validateProfile,minimumLiving});
 });

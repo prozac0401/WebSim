@@ -52,18 +52,19 @@ test('generated lives are deterministic and retain all fictional household combi
     assert.equal(generated.config.personaName,generated.name);assert.ok(generated.intro.includes(generated.name));assert.ok(generated.intro.includes(generated.config.age+'세'));
     combinations.add([generated.config.maritalStatus,!!generated.config.children].join(':'));genders.add(generated.config.gender);
   }
-  assert.deepEqual([...combinations].sort(),['divorced:true','married:false','married:true','single:false']);assert.deepEqual([...genders].sort(),['man','woman']);
+  assert.deepEqual([...combinations].sort(),['divorced:false','divorced:true','married:false','married:true','single:false']);assert.deepEqual([...genders].sort(),['man','woman']);
   assert.throws(()=>D.generateLife(-1));assert.throws(()=>D.generateLife(1.5));
 });
 
-test('generated unpartnered parents are divorced while explicit single parents remain selectable',()=>{
+test('generated parents can be married or divorced while explicit single parents remain selectable',()=>{
+  const parentStatuses=new Set();
   for(let seed=0;seed<2048;seed++){
-    const {config,intro}=D.generateLife(seed),profile=seed%16;
-    const expected=profile>=8&&profile<12?'divorced':Math.floor(profile/4)%2?'married':'single';
-    assert.equal(config.maritalStatus,expected);
+    const {config,intro}=D.generateLife(seed);
+    if(config.children)parentStatuses.add(config.maritalStatus);
     assert.equal(config.maritalStatus==='single'&&config.children>0,false);
-    if(config.maritalStatus==='divorced'){assert.ok(config.children>0);assert.match(intro,/이혼 후/);assert.doesNotMatch(intro,/미혼이에요/);}
+    if(config.maritalStatus==='divorced'){assert.match(intro,/이혼 후/);assert.doesNotMatch(intro,/미혼이에요/);}
   }
+  assert.deepEqual([...parentStatuses].sort(),['divorced','married']);
   const manual=E.create({...D.PRESETS[0].config,maritalStatus:'single',children:2,childAge:'school'});
   assert.equal(manual.config.maritalStatus,'single');assert.equal(manual.config.children,2);
   assert.deepEqual(E.validateConfig({...manual.config,maritalStatus:'divorced'}),[]);
@@ -71,7 +72,7 @@ test('generated unpartnered parents are divorced while explicit single parents r
 
 test('new divorced parents retain family combinations while the new model provides household essentials',()=>{
   for(const fixture of [{seed:635,children:2},{seed:169,children:1},{seed:107,children:1}]){
-    const config=D.generateLife(fixture.seed).config;
+    const config={...D.generateLife(fixture.seed).config,maritalStatus:'divorced'};D.assignLifeEconomy(config,{preserveTenure:true});
     assert.equal(config.maritalStatus,'divorced');
     for(const [key,value]of Object.entries(fixture))assert.equal(config[key],value);
     const p=config.economicProfile;
@@ -186,7 +187,10 @@ test('new household help halves even capped care time without rewriting legacy c
 test('16 role × marital × child combinations finish an automatically prepared year with real logs',()=>{
   const combinations=new Set();
   for(let seed=0;seed<16;seed++){
-    const config=D.generateLife(seed).config;config.role=D.PRESETS[seed%4].id;D.assignLifeEconomy(config,{preserveTenure:true});
+    const config=D.generateLife(seed).config;config.role=D.PRESETS[seed%4].id;
+    // This is an explicit annual household matrix, independent of the sampled marital stock.
+    config.maritalStatus=Math.floor(seed/4)%2?'married':config.children?'divorced':'single';
+    D.assignLifeEconomy(config,{preserveTenure:true});
     combinations.add([config.role,config.maritalStatus,!!config.children].join(':'));
     const {state,turns}=autoplay(E.create(config,config.role));assert.ok(turns<600,'unexpectedly repeated auto stops for seed '+seed);
     const summary=E.getSummary(state);assert.equal(summary.daysPlayed,365);assert.ok(summary.log.filter(l=>l.type==='activity').length>30);

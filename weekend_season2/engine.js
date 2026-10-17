@@ -280,14 +280,15 @@
   function addRule(s,options) {
     try {
       if(!D.ACTIVITY_MAP[options.activityId])return {ok:false,reason:'반복 활동을 선택하세요.'};
-      const procedure=D.ACTIVITY_MAP[options.activityId].procedure;
-      if(procedure?.oncePerLife)return {ok:false,reason:'쌍꺼풀 수술은 한 삶에서 한 번만 직접 계획할 수 있어 반복 예약으로 만들지 않아요.',cause:'procedure-once'};
+      const activity=D.ACTIVITY_MAP[options.activityId],procedure=activity.procedure;
+      if(activity.parenting)return {ok:false,reason:'자녀 나이에 맞춘 육아는 이번 주에 직접 담거나 가족 중심 자동 계획으로 챙겨요. 반복 예약에서는 제외합니다.',cause:'parenting'};
+      if(procedure?.oncePerLife&&s.rules.some(rule=>rule.activityId===activity.id&&rule.active))return {ok:false,reason:activity.name+' 예약이 이미 있어요. 기존 예약을 중단한 뒤 새로 정할 수 있어요.',cause:'procedure-once'};
       if(procedure?.minIntervalDays&&(options.kind||'weeks')==='weeks'&&(options.interval||1)*7<procedure.minIntervalDays)return {ok:false,reason:'레이저 제모는 최소 4주(28일) 간격으로 예약해 주세요.',cause:'procedure-interval'};
       const unavailable=D.activityReason(s.config,options.activityId);if(unavailable)return {ok:false,reason:unavailable+'이에요. 다른 반복 활동을 골라 주세요.'};
       const permitted=activityAvailability(s,options.activityId,options.anchor,slotId(options.slot===undefined?'morning':options.slot));if(!permitted.allowed)return {ok:false,...permitted};
-      const rule=R.createRule({...options,id:'rule-'+(++s.sequence),slot:SLOT_IDS.indexOf(slotId(options.slot===undefined?'morning':options.slot))});
+      const rule=R.createRule({...options,id:'rule-'+(s.sequence+1),slot:SLOT_IDS.indexOf(slotId(options.slot===undefined?'morning':options.slot))});
       if(rule.anchor<s.date||rule.anchor>s.config.year+'-12-31')return {ok:false,reason:'올해의 남은 날짜에서 시작하세요.'};
-      s.rules.push(rule);return {ok:true,rule};
+      s.sequence++;s.rules.push(rule);return {ok:true,rule};
     }catch(error){return {ok:false,reason:error.message};}
   }
   function reservations(s) {
@@ -312,6 +313,16 @@
     try{R.postpone(rule,item.originalDate,date);log(s,'postponed',D.ACTIVITY_MAP[item.activityId].name+' 예약을 미뤘습니다.',{activityId:item.activityId,from:item.date,to:date,category:'choice'});if(item.activityId==='friends')postponedFriend(s,'choice');return {ok:true};}catch(e){return {ok:false,reason:e.message};}
   }
   function stopRule(s,id) {const rule=s.rules.find(r=>r.id===id);if(!rule)return {ok:false,reason:'반복 일정이 없습니다.'};R.stop(rule);log(s,'rule-stopped',D.ACTIVITY_MAP[rule.activityId].name+' 반복을 중단했습니다.',{category:'choice'});return {ok:true};}
+  function finishOnceRules(s,activity,plan) {
+    if(!activity.procedure?.oncePerLife)return;
+    for(const rule of s.rules.filter(rule=>rule.activityId===activity.id&&rule.active)){
+      R.stop(rule);rule.stoppedReason='completed-once';rule.stoppedOn=s.date;
+      log(s,'rule-stopped',activity.name+'을 마쳐 예약을 자동 종료했습니다.',{activityId:activity.id,ruleId:rule.id,reason:'completed-once',category:'completed'});
+    }
+    // A previously saved or manually confirmed duplicate must not keep asking
+    // for a second performance of an activity that has now been completed.
+    for(const pending of s.plan.filter(item=>item.id!==plan.id&&item.activityId===activity.id))removePlan(s,pending.id,'procedure-once');
+  }
   function startEvent(s,id,context) {
     s.pendingEvent=E.make(id,s.date,++s.sequence,context);s.phase='event';s.eventHistory[id]=(s.eventHistory[id]||0)+1;
     if(s.pendingEvent.source==='external')s.flags.externalDelivered=s.date;
@@ -405,6 +416,7 @@
     if(a.risk)completeRiskActivity(s,p,a);
     if(a.artifact&&count(s,a.id)%a.every===0){const artifact={id:'artifact-'+(++s.sequence),date:s.date,activityId:a.id,name:a.artifact,icon:a.icon,number:Math.floor(count(s,a.id)/a.every),skill:s.skills[a.id],season:season(s.date)};s.artifacts.push(artifact);log(s,'artifact',artifact.name+' #'+artifact.number,{artifactId:artifact.id,activityId:a.id});}
     if(p.ruleId){const rule=s.rules.find(r=>r.id===p.ruleId);if(rule)R.complete(rule,s.date,p.originalDate);}
+    finishOnceRules(s,a,p);
     if(['delivery','parttime','sideproject'].includes(a.id))completeSideWork(s,p,a);
     if(a.id==='overtime'){F.addPendingPay(s.finance,s.date,90000,'추가근무 보상');if(count(s,'overtime')%3===0)queue(s,'overtime_boundary',C.addDays(s.date,1));}
     if(a.id==='study'&&count(s,'study')===4)queue(s,'study_checkpoint',C.addDays(s.date,1));

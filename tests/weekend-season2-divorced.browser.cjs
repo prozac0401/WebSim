@@ -5,7 +5,7 @@ const path=require('node:path');
 const {createRequire}=require('node:module');
 let playwright;
 try{playwright=require('playwright');}catch{playwright=createRequire(path.join(process.env.USERPROFILE||process.env.HOME,'.codex/skills/develop-web-game/package.json'))('playwright');}
-const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8766').replace(/\/$/,'');
+const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8774').replace(/\/$/,'');
 const output=path.resolve(process.env.WEBSIM_EVIDENCE||'output/playwright/weekend-season2-divorced');
 const fixturePath=path.resolve('weekend_season2/fixtures/v4-low-income-parent.json');
 fs.mkdirSync(output,{recursive:true});
@@ -13,8 +13,9 @@ fs.mkdirSync(output,{recursive:true});
 (async()=>{
   const browser=await playwright.chromium.launch({headless:true});
   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,reducedMotion:'reduce'});
-  // Fix the documented life-generation seed while exercising the normal UI.
-  await page.addInitScript(()=>{window.crypto.getRandomValues=array=>{array[0]=169;return array;};});
+  // Representative outcomes of the age-band marital-status stream, independent
+  // of the unchanged child-generation stream; percentages belong to model tests.
+  await page.addInitScript(()=>{window.crypto.getRandomValues=array=>{array[0]=Number(sessionStorage.getItem('divorce-test-seed')||331);return array;};});
   const errors=[],checks=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -23,14 +24,14 @@ fs.mkdirSync(output,{recursive:true});
   const pass=message=>{checks.push(message);console.log('PASS',message);};
   try{
     await page.goto(base+'/weekend_season2/index.html');
-    assert.match(await page.locator('.life-byline').innerText(),/이혼 · 자녀 1명/);
+    assert.match(await page.locator('.life-byline').innerText(),/이혼 · 자녀 2명/);
     assert.match(await page.locator('.life-intro').innerText(),/이혼/);
     assert.doesNotMatch(await page.locator('.life-intro').innerText(),/미혼/);
     let current=await state();
     assert.equal(current.maritalStatus,'divorced');
     assert.equal(current.scene.family.maritalStatus,'divorced');
     assert.equal(current.scene.family.spouse,null);
-    assert.equal(current.scene.family.childCount,1);
+    assert.equal(current.scene.family.childCount,2);
     const start=await page.locator('#start-btn').boundingBox();
     assert.ok(start.y+start.height<=844);
     await page.screenshot({path:path.join(output,'generated-low-income-parent.png'),fullPage:true});
@@ -41,10 +42,13 @@ fs.mkdirSync(output,{recursive:true});
     assert.ok(config.salary+config.externalAllowance-config.fixedCosts-profile.housingTotal-config.personalBudget>=100000);
     assert.equal(profile.housingTotal%100000,0);
     await page.locator('#state-details>summary').click();
-    assert.match(await page.locator('.family-context').innerText(),/이혼 · 자녀 1명/);
+    assert.match(await page.locator('.family-context').innerText(),/이혼 · 자녀 2명/);
     pass('generated parent is divorced with no spouse and receives the new minimum household budget');
 
-    await page.evaluate(()=>S2Storage.clear());await page.reload();
+    await page.evaluate(()=>{S2Storage.clear();sessionStorage.setItem('divorce-test-seed','23');});await page.reload();
+    current=await state();assert.equal(current.maritalStatus,'divorced');assert.equal(current.scene.family.spouse,null);assert.equal(current.scene.family.childCount,0);
+    assert.match(await page.locator('.life-byline').innerText(),/이혼 · 자녀 없음/);assert.match(await page.locator('.life-intro').innerText(),/이혼/);assert.equal((await saved()).ok,false);
+    pass('a separately generated childless adult can also be divorced, without a spouse or fabricated children');
     await page.locator('#advanced-settings>summary').click();
     await page.locator('[data-preset=worker]').click();
     await page.locator('[name=children]').fill('2');

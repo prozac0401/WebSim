@@ -7,7 +7,8 @@ const profile=age=>({age,gender:'woman',militaryStatus:'none'});
 test('new parent ages use the documented fictional gap and coherent sibling spacing, with older families retained',()=>{
   let parents=0,central=0,eligibleForWholeRange=0,olderParents=0,olderWithAdult=0;
   const combinations=new Set(),stages=new Set();
-  for(let seed=0;seed<8192;seed++){
+  // Rare graduate × divorced families need a larger deterministic sample.
+  for(let seed=0;seed<32768;seed++){
     const c=D.generateLife(seed).config;
     combinations.add([c.role,c.maritalStatus,c.children>0].join('/'));
     if(!c.children)continue;
@@ -21,7 +22,7 @@ test('new parent ages use the documented fictional gap and coherent sibling spac
     if(c.age>=46){eligibleForWholeRange++;if(gap>=28&&gap<=35)central++;}
     if(c.age>=50){olderParents++;if(c.childProfiles.some(child=>child.age>=18))olderWithAdult++;}
   }
-  assert.equal(parents,4096);assert.equal(combinations.size,16);
+  assert.equal(parents,16384);assert.equal(combinations.size,20);
   assert.ok(central/eligibleForWholeRange>.7&&central/eligibleForWholeRange<.9,'the documented central weights should dominate without being exclusive');
   assert.ok(olderWithAdult/olderParents>.8,'50s and 60s retain adult-child families');
   assert.deepEqual([...stages].sort(),['adult','preschool','school','teen','toddler']);

@@ -117,6 +117,12 @@
       if(a.procedure.oncePerLife&&dates.length>1)bad('한 번만 가능한 시술의 완료 기록이 중복되었습니다.');
       if(a.procedure.minIntervalDays&&dates.some((date,index)=>index&&date<C.addDays(dates[index-1],a.procedure.minIntervalDays)))bad('레이저 제모 완료 기록은 최소 4주 간격이어야 합니다.');
     }
+    for(const rule of s.rules)if(rule.stoppedReason!==undefined||rule.stoppedOn!==undefined){
+      const completed=procedures.filter(entry=>entry.activityId===rule.activityId&&entry.date===rule.stoppedOn);
+      const ended=s.log.filter(entry=>entry.type==='rule-stopped'&&entry.ruleId===rule.id&&entry.activityId===rule.activityId&&entry.reason==='completed-once'&&entry.date===rule.stoppedOn);
+      if(!D.ACTIVITY_MAP[rule.activityId]?.procedure?.oncePerLife||rule.active||rule.stoppedReason!=='completed-once'||!inYear(rule.stoppedOn)||completed.length!==1||ended.length!==1||s.log.indexOf(ended[0])<=s.log.indexOf(completed[0]))bad('한 번만 하는 활동의 예약 종료와 실제 완료 기록이 일치하지 않습니다.');
+    }
+    for(const entry of s.log.filter(entry=>entry.type==='rule-stopped'&&entry.reason==='completed-once'))if(!s.rules.some(rule=>rule.id===entry.ruleId&&rule.activityId===entry.activityId&&rule.stoppedReason==='completed-once'&&rule.stoppedOn===entry.date&&!rule.active))bad('자동 종료한 예약의 규칙이 없습니다.');
     if(object(s.flags)){
       const latest=procedures.filter(entry=>C.validDate(entry.procedureRecoveryUntil)).reduce((longest,entry)=>!longest||entry.procedureRecoveryUntil>=longest.procedureRecoveryUntil?entry:longest,null);
       const keys=['cosmeticRecoveryUntil','cosmeticRecoveryActivity','cosmeticRecoveryStarted'];

@@ -75,7 +75,7 @@ test('near-zero source income parent receives only the game shortfall, covering 
  const s=L.sampleIncome(c,()=>0);Object.assign(c,{salary:s.salary,externalAllowance:s.externalAllowance,incomeOrigin:s.origin},L.completeBudget(c,s,()=>.5));
  const p=c.economicProfile;
  assert.equal(p.minimumLiving,1714892);assert.equal(p.housingTotal,787500);
- assert.equal(p.baseMonthly,1);assert.equal(p.gameSupport,1714892+787500+150000+100000-p.baseMonthly);
+ assert.equal(p.baseMonthly,1);assert.equal(p.gameSupport,1714892+p.livingCosts.childLiving+787500+150000+100000-p.baseMonthly);
  assert.equal(c.salary+c.externalAllowance-c.fixedCosts-p.housingTotal,p.personalBudget+p.monthlyReserve);
  assert.equal(c.externalAllowance,p.baseExternalAllowance+p.gameSupport);assert.deepEqual(L.validateProfile(p,c),[]);
 });

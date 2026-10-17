@@ -28,7 +28,7 @@ test('conditional role sampling gives graduates2percent and equal remaining weig
 
 test('generated graduates are uncommon, age-bounded and available across all fictional household types',()=>{
   const counts={worker:0,seeker:0,graduate:0,caregiver:0},families=new Set();let eligible=0;
-  const n=16384;
+  const n=32768; // Includes rare graduate × divorced families under the age-specific stock model.
   for(let seed=0;seed<n;seed++){
     const life=D.generateLife(seed),c=life.config;
     counts[c.role]++;assert.equal(life.presetId,c.role);
@@ -42,7 +42,7 @@ test('generated graduates are uncommon, age-bounded and available across all fic
   assert.ok(counts.graduate/n>.007&&counts.graduate/n<.014,'overall graduate share stays near1percent, not the former25percent');
   assert.ok(Math.abs(counts.graduate/eligible-.02)<.004,'eligible-age graduates follow the2percent game weight');
   for(const role of ['worker','seeker','caregiver'])assert.ok(Math.abs(counts[role]/(n-counts.graduate)-1/3)<.015);
-  assert.deepEqual([...families].sort(),['divorced:true','married:false','married:true','single:false']);
+  assert.deepEqual([...families].sort(),['divorced:false','divorced:true','married:false','married:true','single:false']);
 });
 
 test('changing the role sampler leaves existing age, household, identity and illustration streams intact',()=>{

@@ -40,7 +40,7 @@ test('actual laser completion preserves the exact earliest date through save/imp
   assert.ok(S.validate(bad).some(message=>/4주/.test(message)));
 });
 
-test('eyelid surgery permits only one pending or completed visit per life and cannot be turned into a recurring rule',()=>{
+test('eyelid surgery permits only one pending or completed visit and rejects a rule conflicting with that visit',()=>{
   const s=game();assert.ok(add(s,'eyelid_surgery').ok);const before=JSON.stringify(s);
   assert.equal(add(s,'eyelid_surgery','2026-01-03','afternoon').cause,'procedure-once');assert.equal(JSON.stringify(s),before);
   assert.equal(E.addRule(s,{activityId:'eyelid_surgery',anchor:'2026-01-03',kind:'months',interval:12}).ok,false);assert.equal(JSON.stringify(s),before);

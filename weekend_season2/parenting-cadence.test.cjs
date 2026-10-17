@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const D=require('./data.js'),E=require('./engine.js'),S=require('./storage.js'),C=require('./calendar.js');
+const D=require('./data.js'),E=require('./engine.js'),S=require('./storage.js'),C=require('./calendar.js'),R=require('./recurrence.js');
 const clone=value=>JSON.parse(JSON.stringify(value));
 const parenting=D.ACTIVITIES.filter(activity=>activity.parenting);
 function game(ages=[],overrides={}){
@@ -52,10 +52,12 @@ test('parenting occupies the union of its work and basic care, including shared 
   assert.equal(E.activityTime(state,'care','2026-01-03','morning'),130,'legacy generic care keeps its historical time formula');
 });
 
-test('completed parenting and repeated parenting preserve actual overlap, daily care, counts and storage',()=>{
+test('completed parenting and previously saved parenting rules preserve actual overlap, daily care, counts and storage',()=>{
   const state=game([1,5,10],{careShare:100});
   assert.ok(E.addPlan(state,{activityId:'preschool_play',date:'2026-01-01',slot:'morning'}).ok);
-  const rule=E.addRule(state,{activityId:'school_reading',anchor:'2026-01-03',slot:'morning',interval:1}).rule;
+  // Existing published saves may contain parenting rules; only new registration is excluded.
+  const rule=R.createRule({id:'rule-'+(++state.sequence),activityId:'school_reading',anchor:'2026-01-03',slot:0,interval:1});state.rules.push(rule);
+  assert.deepEqual(S.parse(S.serialize(state)).state,state);
   assert.ok(E.confirmReservations(state).ok);manualWeek(state);
   const first=state.log.find(log=>log.type==='activity'&&log.activityId==='preschool_play');
   assert.equal(first.minutes,185);assert.equal(first.careOverlapMinutes,60);assert.equal(first.cost,0);

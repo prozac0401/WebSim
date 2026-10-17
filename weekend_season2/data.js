@@ -10,6 +10,19 @@
     sources:[{id:'kedi-graduate-2026',url:'https://www.kedi.re.kr/khome/main/announce/selectBroadAnnounceForm.do?article_sq_no=36467&board_sq_no=3&selectTp=0',count:363330},{id:'kosis-population-22-69-2026',url:'https://kosis.kr/visual/populationKorea/PopulationPyramidDetail.do?year=2026',count:36200944}],
     note:'2026년 대학원 재적학생과 22~69세 추계인구의 단순 비율 약 1%를 참고한 게임용 추첨입니다. 46세 이하의 대학원생 선택 확률은 2%이며, 나머지 세 역할은 같은 상대 가중치입니다. 46세 상한은 새 삶을 위한 설정으로 실제 입학 제한이 아니며, 기존 저장의 나이·역할은 바꾸지 않습니다.'});
   const MARITAL_STATUSES = {single:'미혼',married:'기혼',divorced:'이혼',widowed:'사별',unspecified:'이전 저장 · 설정하지 않음'};
+  const MARITAL_MODEL = Object.freeze({id:'fictional-marital-stock-2020-v1',
+    source:Object.freeze({id:'census-marital-stock-2020',publisher:'통계청',year:2020,published:'2021-09-27',
+      title:'2020 인구주택총조사 표본집계 결과 · 성, 연령 및 혼인상태별 인구(15세 이상, 내국인)',
+      url:'https://www.kostat.go.kr/boardDownload.es?bid=203&list_no=403144&seq=9',locator:'PDF62쪽 / 인쇄50쪽 통계표2, 전국 계',
+      denominator:'해당 연령 구간의 내국인 전체 인구',measure:'현재 혼인상태가 이혼인 인구. 연간 이혼 건수나 혼인 대비 이혼 비율이 아님.'}),
+    ageBands:Object.freeze([
+      [15,19,2422002,66],[20,24,3193316,3833],[25,29,3423231,18863],
+      [30,34,3032832,44446],[35,39,3594213,114484],[40,44,3758298,207477],
+      [45,49,4195327,374605],[50,54,4245683,478830],[55,59,4091920,472687],
+      [60,64,3795217,401412],[65,69,2685773,232336],[70,74,2009542,113414],
+      [75,79,1593192,54307],[80,84,1115804,20487],[85,null,801197,8160]
+    ].map(([minAge,maxAge,total,divorced])=>Object.freeze({minAge,maxAge,total,divorced}))),
+    note:'2020 인구총조사에서 같은 연령대의 전체 내국인 중 현재 이혼 상태인 인구 비중으로 새 삶의 이혼 여부를 추첨합니다. 자녀 유무와 독립된 게임 추첨이며 실제 연령·자녀별 교차분포가 아닙니다. 이혼을 뽑지 않은 유자녀 가구는 기혼, 무자녀 가구는 기존 미혼·기혼 조합을 유지합니다. 나머지 혼인상태와 자녀 구성 전체가 실제 인구 비율은 아니며, 직접 설정과 기존 저장은 바꾸지 않습니다.'});
   const HOUSING_TENURES = {own:'자가',rent:'월세',jeonse:'전세',unspecified:'이전 저장 · 설정하지 않음'};
   const HOUSING_MODEL = Housing.MODEL;
   const FAMILY_MODEL = Object.freeze({id:'fictional-family-ages-v1',minimumParentAgeGap:25,preferredParentAgeGaps:[28,35],maximumParentAgeGap:45,note:'새 인생의 부모·자녀 나이는 최소 25세 차이, 첫 자녀와는 28~35세 차이에 무게를 둔 창작 규칙입니다. 실제 출산·혼인 연령 분포나 결혼 시점을 뜻하지 않으며, 직접 설정과 저장한 나이는 바꾸지 않습니다.'});
@@ -75,6 +88,17 @@
     const graduate=roleAvailableForNewLife('graduate',age)?ROLE_MODEL.graduateEligibleProbability:0;
     return weightedPick(Object.keys(ROLES),role=>role==='graduate'?graduate:(1-graduate)/3,random);
   }
+  function divorcedShare(age){
+    if(!Number.isInteger(age)||age<18||age>100)throw new RangeError('새 삶의 나이를 확인하세요.');
+    const band=MARITAL_MODEL.ageBands.find(row=>age>=row.minAge&&(row.maxAge===null||age<=row.maxAge));
+    return band.divorced/band.total;
+  }
+  function sampleMaritalStatus(age,children,originalStatus,random){
+    const share=divorcedShare(age);
+    if(!Number.isInteger(children)||children<0||children>6||!['single','married'].includes(originalStatus))throw new RangeError('새 삶의 가구 구성을 확인하세요.');
+    const draw=random();if(!Number.isFinite(draw)||draw<0||draw>=1)throw new RangeError('혼인상태 추첨값을 확인하세요.');
+    return draw<share?'divorced':children>0?'married':originalStatus;
+  }
   function assignPersonaName(config){
     const seed=config.generationSeed??config.seed;
     const surname=weightedPick(Demographics.surnames,row=>row.population,randomStream(seed,'surname')).name;
@@ -111,17 +135,16 @@
     // external-event or followup streams owned by an active simulation.
     const next=randomStream(seed,'fictional-household');
     const pick=values=>values[Math.floor(next()*values.length)];
-    // Keep the existing fictional household draws independent of the role draw.
-    // Unpartnered generated parents are divorced; these family combinations are
-    // story choices, not observed marriage or divorce frequencies.
+    // Keep the original household draws independent of both role and marital
+    // status. Child presence alone must not imply that the parent is divorced.
     const profile=seed%16,config=JSON.parse(JSON.stringify(base));
     config.seed=seed;config.generationSeed=seed;
     config.maritalStatus=Math.floor(profile/4)%2?'married':'single';
     config.children=Math.floor(profile/8)?pick([1,1,2]):0;
-    if(config.maritalStatus==='single'&&config.children>0)config.maritalStatus='divorced';
     const parentAges=[22,26,29,32,35,38,41,45,49,52,56,59,62,65,69];
     config.age=pick(parentAges.filter(age=>!config.children||age>=FAMILY_MODEL.minimumParentAgeGap+config.children-1));
     config.role=sampleRole(config.age,randomStream(seed,'life-role'));
+    config.maritalStatus=sampleMaritalStatus(config.age,config.children,config.maritalStatus,randomStream(seed,'marital-status'));
     const preset=PRESETS.find(item=>item.id===config.role);
     // These ages and household combinations are narrative choices, not sampled
     // age-specific census or military-service probabilities.
@@ -162,7 +185,7 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS:Activities.ACTIVITY_GROUPS, ACTIVITY_CATEGORIES:Activities.ACTIVITY_CATEGORIES, ROLES, ROLE_MODEL,roleAvailableForNewLife,sampleRole, MARITAL_STATUSES, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,residenceLabel,sampleSubregion,SUBREGIONS:Subregions,assignRegionalIncome,assignLifeEconomy,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS:Activities.ACTIVITY_GROUPS, ACTIVITY_CATEGORIES:Activities.ACTIVITY_CATEGORIES, ROLES, ROLE_MODEL,roleAvailableForNewLife,sampleRole, MARITAL_STATUSES,MARITAL_MODEL,divorcedShare,sampleMaritalStatus, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,residenceLabel,sampleSubregion,SUBREGIONS:Subregions,assignRegionalIncome,assignLifeEconomy,
     NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });
