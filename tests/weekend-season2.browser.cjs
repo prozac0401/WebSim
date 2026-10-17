@@ -245,13 +245,14 @@ async function diversity(browser){
   assert.match(await page.locator('.life-location').innerText(),/수도권.*서울/);
   assert.equal((await textState(page)).generation.incomeOrigin.provinceId,'seoul');
   await page.locator('[name="externalAllowance"]').fill('123.45');
+  await page.locator('[name="externalAllowance"]').blur();
   assert.equal((await textState(page)).generation.incomeOrigin.kind,'custom');
   await page.locator('[name="province"]').selectOption('busan');
-  assert.equal(await page.locator('[name="externalAllowance"]').inputValue(),'123.45','manual income is preserved when residence changes');
+  assert.equal(await page.locator('[name="externalAllowance"]').inputValue(),'123.5','rounded manual income is preserved when residence changes');
   await click(page,'#start-btn');
   const before=await textState(page);assert.equal(before.mode,'planning');assert.equal(before.generation.province,'busan');
   const saved=await page.evaluate(()=>{const r=S2Storage.load();return {ok:r.ok,version:r.state?.version,allowance:r.state?.config.externalAllowance};});
-  assert.equal(saved.ok,true);assert.equal(saved.version,5);assert.equal(saved.allowance,1234500);
+  assert.equal(saved.ok,true);assert.equal(saved.version,5);assert.equal(saved.allowance,1235000);
   await shot(page,'diverse-family-mobile');
   await page.reload();await click(page,'#resume-game');
   const restored=await textState(page);assert.deepEqual(restored.generation,before.generation);assert.deepEqual(restored.scene.character.appearance,before.scene.character.appearance);assert.deepEqual(restored.scene.home,before.scene.home);
@@ -279,7 +280,7 @@ async function expandedLife(browser) {
   assert.equal(await page.locator('.compact-status [data-stat]').count(),6);
   assert.deepEqual(await page.locator('.compact-status [data-stat] > span').allTextContents(),['건강','행복','지식','기분','대인관계','가족관계']);
   assert.ok(await page.locator('.cash-and-home').innerText().then(text=>text.includes('180.1만원')));
-  assert.equal((await textState(page)).finance.cash,1800500);
+  assert.equal((await textState(page)).finance.cash,1801000);
   const genderPrice=await page.evaluate(()=>({men:S2Data.activityPrice(S2Storage.load().state.config,'haircut_men'),women:S2Data.activityPrice(S2Storage.load().state.config,'haircut_women')}));
   assert.equal(genderPrice.men.amount,11286);assert.equal(genderPrice.women.amount,19614);
   await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption('haircut_men');await click(page,'#quick-add');
@@ -355,7 +356,7 @@ async function compactLife(browser) {
   await page.locator('#advanced-settings > summary').click();
   await shot(page,'family-woman-children-mobile');
   await click(page,'#start-btn');
-  assert.equal((await textState(page)).finance.cash,1800500,'만원 input preserves integer won');
+  assert.equal((await textState(page)).finance.cash,1801000,'edited 만원 input rounds to one decimal and stores integer won');
   const auto=page.locator('#auto-play');
   await page.evaluate(()=>scrollTo(0,0));
   const autoBox=await auto.boundingBox();

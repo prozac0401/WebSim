@@ -1,5 +1,22 @@
 # 주말 계획표 시즌2 검증 기록
 
+## 2026-10-17 금액 표시·입력 소수 한 자리 통일
+
+금액 표시와 설정 입력은 **만원 단위, 소수 최대 한 자리**입니다. 직접 입력한 금액만 0.1만원(1,000원) 단위로 반올림하고, 수정하지 않은 생성 금액·이전 저장·원화 장부는 1원까지 보존합니다. 설정 열기·포커스 이동·다른 항목 변경으로 원래 금액이 줄어들지 않습니다. 예를 들어 기존 65,230원은 6.5만원으로 보여도 저장값은 그대로입니다. 금액이 아닌 연이율은 기존 0.01% 단위를 유지합니다. 아래 이전 기록의 1원 단위 직접 입력 설명은 이 변경으로 대체됩니다.
+
+| 검사 | 결과 | 범위 |
+| --- | --- | --- |
+| 관련 Node 회귀 | **PASS32 / FAIL0** | 주거 계산·생성·저장 및 생활 확장. 직전 전체274개 통과 이후 엔진 변경 없음 |
+| 기존 Chromium 통합·생활·주거 | **PASS17 + 4 + 4개 묶음 / FAIL0** | 수동·자동365일, 모바일·키보드·움직임 줄이기·저장, 12회 주거비 부과 |
+| 새 금액 Chromium 검사 | **PASS5개 묶음 / FAIL0** | 미수정 원금 보존, 실제 편집·명시적0·Enter 반올림, 무효 입력과 다시 그리기, 지역·역할 변경, 실제 v4 저소득 저장 복원 |
+| 원본 게임 클라이언트·화면 | **PASS** | Canvas·텍스트 상태 및 설정·재정·복원 화면 직접 확인. 브라우저 콘솔/페이지 오류0 |
+| 독립 검토 | **PASS, 수정 후 재검사** | 미세 음수·상한 초과값이 다시 그릴 때 정상값으로 반올림되던 문제 수정, 실제 helper 소스로 경계 재현 |
+| 실물 기기·Firefox·Safari·스크린리더·사람의 재미·저사양 성능 | **NOT RUN** | 모바일은 Chromium 390px 화면 검사 |
+
+기존 생활 UI 검사는 자동 배치된 영화 일정과 새로 직접 추가한 영화 일정을 구분하도록 새 일정 ID를 확인합니다. 자동 영화가 존재하는 고정 시드45로 두 경우를 함께 검사합니다. 게임 실행 오류가 아닌 검사 대상 선택 오류를 수정한 것입니다.
+
+변경 파일: `app.js`, `index.html`, `README.md`, `weekend_season2_doc.html`, `progress.md`, 이 검증 기록, 새 `tests/weekend-season2-money.browser.cjs` 및 기존 브라우저 검사3개. 로컬 증거: `output/money-core-tests.txt`, `output/playwright/weekend-season2-money/`, `weekend-season2-money-regression*`, `weekend-season2-money-client/`. 화면 자료는 `one-decimal-housing-inputs.png`, `rounded-edits-finance.png`, `original-save-money-preserved.png`입니다. 공개 배포 후 검사는 별도 `weekend-season2-money-deployed*` 디렉터리에 기록합니다.
+
 ## 2026-10-17 주거 계약·월세·대출이자·이혼 가구 표시
 
 집 모양과 별도로 자가·월세·전세를 선택하고 월세·대출 잔액·연이율을 수정할 수 있습니다. 시작 화면의 **환경을 직접 고르고 싶다면 → 이 집에서 사는 비용**에서 설정합니다. 자동 생성 인생에도 주거 계약을 배정합니다. 계약·월세·금리는 실측 시세가 아닌 게임 가정이며, 기존 총생활비를 주거비와 나머지 생활비로 나눠 이중 부과하지 않습니다. 기본 프리셋은 자가·대출 없음입니다.
@@ -19,6 +36,7 @@
 | 이혼 가구 UI | **PASS3개 묶음 / FAIL0** | 자동·직접 설정·키보드, 배우자 없이 자녀 보존, 매우 낮은 생활비 보존, 실제 v4 파일 가져오기·이어하기 |
 | 원본 게임 클라이언트·화면 | **PASS** | Canvas·텍스트 상태, 설정·월 장부·연말·이전 저장 화면 직접 확인. 콘솔/페이지 오류0 |
 | 독립 검토 | **PASS** | 실제 이전 버전 비교, 월세/무이자/최대금액·미납·회고 검산, 159회 저장복원 |
+| 공개 배포 후 검사 | **PASS32개 묶음 / FAIL0** | 게임 커밋063f5a4, Pages38984072035 성공. 공개17파일 일치, 기존17·생활4·자동4·주거4·이혼3, 브라우저 오류0 |
 | 실물 기기·Firefox·Safari·스크린리더·사람의 재미·저사양 성능 | **NOT RUN** | 모바일은 Chromium 390px 화면 검사 |
 
 변경 파일: `data.js`, `engine.js`, `finance.js`, `storage.js`, `events.js`, `scene.js`, `app.js`, `index.html`, `style.css`, `README.md`, `weekend_season2_doc.html`, `progress.md`, 이 검증 기록. 시험은 `housing-finance.test.cjs`, `housing-generation.test.cjs`, `housing-storage.test.cjs`, `divorced-events.test.cjs`, 실제 v4 fixture 3개, `tests/weekend-season2-housing.browser.cjs`, `tests/weekend-season2-divorced.browser.cjs`를 추가하고 기존 가족·그림 시험 및 현재 저장 버전 기대값을 수정했습니다.

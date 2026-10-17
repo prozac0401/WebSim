@@ -14,6 +14,9 @@ fs.mkdirSync(output,{recursive:true});
 (async()=>{
   const browser = await playwright.chromium.launch({headless:true});
   const page = await browser.newPage({viewport:{width:390,height:844},isMobile:true,reducedMotion:'reduce'});
+  // This life already likes cinema: distinguish the existing automatic visit
+  // from a second visit deliberately added by the player below.
+  await page.addInitScript(()=>{window.crypto.getRandomValues=array=>{array[0]=45;return array;};});
   const errors=[],checks=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
@@ -75,9 +78,12 @@ fs.mkdirSync(output,{recursive:true});
     await page.locator('#auto-preferences>summary').click();
     await page.locator('#quick-plan-tools>summary').click();
     await page.locator('#quick-activity').selectOption('cinema');
+    const beforeManual=(await state()).plan;
+    assert.ok(beforeManual.some(item=>item.activityId==='cinema'&&item.automatic));
     await page.locator('#quick-add').click();
-    const cinema=(await state()).plan.find(item=>item.activityId==='cinema');
+    const cinema=(await state()).plan.find(item=>item.activityId==='cinema'&&!beforeManual.some(previous=>previous.id===item.id));
     assert.ok(cinema);
+    assert.notEqual(cinema.automatic,true);
     await page.locator('[data-direction=selfdev]').click();
     current=await state();
     assert.equal(current.direction,'selfdev');
@@ -105,7 +111,7 @@ fs.mkdirSync(output,{recursive:true});
     await page.locator('#save-game').click();
     const saved=await page.evaluate(()=>S2Storage.load());
     assert.equal(saved.ok,true,saved.reason);
-    assert.equal(saved.state.config.salary,3501234);
+    assert.equal(saved.state.config.salary,3501000);
     const favorites=[...current.preferences];
     await page.reload();
     await page.locator('#resume-game').click();
@@ -113,7 +119,7 @@ fs.mkdirSync(output,{recursive:true});
     assert.deepEqual(current.preferences,favorites);
     assert.equal(current.scene.family.awayChildren[0].age,22);
     assert.equal(current.direction,'selfdev');
-    pass('integer-won input precision and preferences, direction, family survive save/resume');
+    pass('one-decimal money editing and integer-won saves preserve preferences, direction and family');
 
     assert.deepEqual(errors,[]);
     fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({checks,errors},null,2));
