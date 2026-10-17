@@ -36,3 +36,10 @@ main{max-width:1220px;padding-top:25px;padding-bottom:30px}.site-header{padding-
 .life-housing{white-space:pre-line}.housing-cost-rows .money-row>span{max-width:68%;word-break:keep-all}.housing-cost-rows .money-row>strong{white-space:nowrap}
 
 .age-health-details{margin-top:16px}.age-health-details a{font-size:12px;line-height:1.7}
+
+/* Transfer a fictional life into an editable real-weekend draft. */
+.planner-transfer{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:26px;align-items:center;padding:24px;margin:24px 0;background:#e9eee2;border:1px solid #cdd9c3;border-radius:16px}.planner-transfer .eyebrow{margin-bottom:10px}.planner-transfer h2{margin:0 0 10px;font-size:20px}.planner-transfer p{font-size:12px;line-height:1.8;margin:5px 0;color:var(--muted)}.planner-transfer p strong{color:var(--ink)}.planner-transfer-link{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--teal);color:white;text-decoration:none;border-radius:10px;min-height:48px;padding:12px 17px;font-weight:700;font-size:13px}.planner-transfer-link:hover{background:var(--teal-dark)}.planner-transfer-action small{display:block;color:var(--muted);line-height:1.8;margin-top:10px}@media(max-width:700px){.planner-transfer{grid-template-columns:1fr;gap:14px;padding:18px}.planner-transfer h2{font-size:19px}}
+
+.planner-transfer details summary{font-size:12px;cursor:pointer;min-height:36px;padding:7px 0;font-weight:700}.planner-transfer details p{margin-top:8px}@media(max-width:700px){.planner-transfer .eyebrow{display:none}.planner-transfer{padding:16px;gap:10px;margin:18px 0}.planner-transfer h2{margin-bottom:6px}.planner-transfer details summary{min-height:32px;padding:5px 0}}
+
+.planner-transfer-link:disabled{width:100%;justify-content:center;cursor:not-allowed;background:#d7ded2;color:#52614f;border:1px solid #c0cbb9;opacity:1}.planner-transfer-locked p{max-width:60ch}

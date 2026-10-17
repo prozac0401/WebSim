@@ -62,6 +62,12 @@
 #weekend-recovery-simulator-app .ev { position: absolute; left: 5px; right: 5px; overflow: hidden; padding: 7px; border: 1px solid rgba(23, 46, 39, .15); border-radius: 8px; font-size: 10px; line-height: 1.25; pointer-events: auto; cursor: pointer; }
 #weekend-recovery-simulator-app .ev b { display: block; overflow: hidden; font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
 #weekend-recovery-simulator-app .ev.sel { outline: 2px solid var(--sim-accent); }
+#weekend-recovery-simulator-app .ev.compact { padding: 4px 5px; }
+#weekend-recovery-simulator-app .ev.compact b { font-size: 10px; line-height: 10px; }
+#weekend-recovery-simulator-app .ev.compact .event-time { display: none; }
+#weekend-recovery-simulator-app .ev.compact .rz { height: 3px; }
+#weekend-recovery-simulator-app .ev.compact .rz.top { top: 0; }
+#weekend-recovery-simulator-app .ev.compact .rz.bottom { bottom: 0; }
 #weekend-recovery-simulator-app .rz { position: absolute; left: 8px; right: 8px; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, .18); cursor: ns-resize; touch-action: none; z-index: 2; }
 #weekend-recovery-simulator-app .rz.top { top: 2px; }
 #weekend-recovery-simulator-app .rz.bottom { bottom: 2px; }
@@ -98,6 +104,12 @@
 #weekend-recovery-simulator-app .planner-summary b { color: var(--sim-accent); font-size: 23px; font-variant-numeric: tabular-nums; }
 #weekend-recovery-simulator-app .planner-summary a { font-size: 11px; }
 #weekend-recovery-simulator-app .planner-summary small { font-size: 10px; }
+#weekend-recovery-simulator-app .season2-draft { margin: 0 0 18px; padding: 20px; border: 1px solid var(--sim-border); border-radius: var(--sim-radius); background: var(--sim-accent-soft); line-height: 1.8; }
+#weekend-recovery-simulator-app .season2-draft h2 { font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; }
+#weekend-recovery-simulator-app .season2-draft p, #weekend-recovery-simulator-app .season2-draft ul { margin: 9px 0; font-size: 12px; }
+#weekend-recovery-simulator-app .season2-draft .draft-kicker { margin-top: 0; color: var(--sim-accent); font-weight: 700; }
+#weekend-recovery-simulator-app .season2-draft a { display: inline-block; min-height: 44px; padding-top: 10px; font-size: 12px; font-weight: 700; }
+#weekend-recovery-simulator-app .source-origin { margin: 8px 0; color: var(--sim-muted); font-size: 11px; line-height: 1.6; }
 @media (max-width: 860px) {
   #weekend-recovery-simulator-app .layout { grid-template-columns: 1fr; }
   #weekend-recovery-simulator-app .wrs-wrap { padding-bottom: 24px; }
@@ -116,9 +128,18 @@
   #weekend-recovery-simulator-app .ev { left: 3px; right: 3px; padding: 6px 4px; }
 }
 #weekend-recovery-simulator-app [hidden]{display:none!important}#weekend-recovery-simulator-app .remembered-note{padding:16px 18px;margin:14px 0;background:var(--sim-accent-soft);border:1px solid var(--sim-border);border-radius:var(--sim-radius);font-size:12px;line-height:1.8}#weekend-recovery-simulator-app .remembered-note strong,#weekend-recovery-simulator-app .remembered-note span,#weekend-recovery-simulator-app .remembered-note small{display:block}#weekend-recovery-simulator-app .remembered-note strong{font-size:15px;color:var(--sim-accent)}#weekend-recovery-simulator-app .remembered-note small{color:var(--sim-muted)}#weekend-recovery-simulator-app .compare-actions button{min-height:44px;width:100%;margin-top:8px}#weekend-recovery-simulator-app.motion-enabled .bar i{transition:width .28s ease}#weekend-recovery-simulator-app .planner-toolbar button{min-height:44px}@media(max-width:560px){#weekend-recovery-simulator-app .planner-toolbar>div{display:grid;width:100%;grid-template-columns:1fr 1fr}#weekend-recovery-simulator-app .planner-toolbar button{font-size:12px;padding:8px 5px}}
+#weekend-recovery-simulator-app .palette-group{display:flex;gap:8px;margin:14px 0 12px;flex-wrap:wrap}
+#weekend-recovery-simulator-app .palette-group button{min-height:44px;padding:10px 14px;border:1px solid var(--sim-border);border-radius:8px;background:var(--sim-surface);font:inherit;font-size:12px;font-weight:700;color:var(--sim-ink);cursor:pointer}
+#weekend-recovery-simulator-app .palette-group button[aria-pressed="true"]{background:var(--sim-accent);color:white;border-color:var(--sim-accent)}
+#weekend-recovery-simulator-app .palette-group span{opacity:.75;margin-left:4px}
+#weekend-recovery-simulator-app .activity-search-label{display:block;font-size:11px;font-weight:700;margin-bottom:6px}
+#weekend-recovery-simulator-app #wrs-activity-search{box-sizing:border-box;width:100%;min-height:44px;border:1px solid var(--sim-border);border-radius:8px;background:var(--sim-surface);color:var(--sim-ink);font:inherit;font-size:13px;padding:10px 12px}
+#weekend-recovery-simulator-app #wrs-palette{max-height:300px;overflow-y:auto;overscroll-behavior:contain;padding:4px;margin-left:-4px;margin-right:-4px;scrollbar-gutter:stable}
+#weekend-recovery-simulator-app .catalog-empty{grid-column:1/-1;font-size:12px;line-height:1.8;color:var(--sim-muted)}
 </style>
 
 <div class="wrs-wrap sim-app sim-app--weekend">
+<section id="wrs-season2-draft" class="season2-draft" aria-labelledby="wrs-draft-title" hidden></section>
 <div class="planner-toolbar sim-toolbar sim-panel"><span class="sim-note">계획을 배치하고, 가정을 바꾸고, 다른 안과 비교하세요.</span><div><button type="button" class="btn primary" id="wrs-sample">샘플 계획</button><button type="button" class="btn" id="wrs-clear">계획 비우기</button><button type="button" class="btn" id="wrs-remember">현재 계획 기억</button><button type="button" class="btn" id="wrs-restore" disabled>기억한 계획으로 되돌리기</button></div></div>
 <div id="wrs-remembered" class="remembered-note" hidden aria-live="polite"></div><p id="wrs-status" class="status" role="status" aria-live="polite"></p>
 <div class="layout"><main class="planner-main">
@@ -128,7 +149,7 @@
         <div class="row"><div class="row-top"><span>밀린 집안일 압박</span><span class="val" id="wrs-chores-v">3</span></div><input id="wrs-chores" type="range" min="0" max="5" step="1" value="3"></div>
         <div class="row"><div class="row-top"><span>월요일 불안감</span><span class="val" id="wrs-anx-v">3</span></div><input id="wrs-anx" type="range" min="0" max="5" step="1" value="3"></div>
         <div class="row"><div class="row-top"><span>일정 사이 마진</span><span class="val" id="wrs-gap-v">0분</span></div><input id="wrs-gap" type="range" min="0" max="4" step="1" value="0"></div>
-      </div></section></div></details><section class="card"><div class="body"><h2>① 활동을 고르세요</h2><p class="hint">활동을 고른 뒤 원하는 시간 칸을 누르세요. 드래그로도 배치할 수 있습니다.</p><div id="wrs-palette" class="palette"></div><p id="wrs-picked" class="picked">선택된 블록: 없음</p></div></section><section class="card"><div class="body"><h2>② 토요일과 일요일에 배치하세요</h2><p class="hint">활동을 선택하면 길이·이동 시간을 편집할 수 있습니다. 표는 30분 단위입니다.</p>
+      </div></section></div></details><section class="card"><div class="body"><h2>① 활동을 고르세요</h2><p class="hint">활동을 고른 뒤 원하는 시간 칸을 누르세요. 드래그로도 배치할 수 있습니다.</p><div id="wrs-palette-group" class="palette-group" role="group" aria-label="활동 목록 선택"><button type="button" data-palette-group="basic" aria-pressed="true">기본 활동 <span>12</span></button><button type="button" data-palette-group="season2" aria-pressed="false">시즌2 활동 <span>31</span></button></div><label class="activity-search-label" for="wrs-activity-search">활동 찾기</label><input id="wrs-activity-search" type="search" placeholder="독서, 도예, 산책…" autocomplete="off"><p id="wrs-catalog-note" class="hint"></p><p id="wrs-catalog-count" class="hint" role="status" aria-live="polite"></p><div id="wrs-palette" class="palette"></div><p id="wrs-picked" class="picked">선택된 블록: 없음</p></div></section><section class="card"><div class="body"><h2>② 토요일과 일요일에 배치하세요</h2><p class="hint">활동을 선택하면 길이·이동 시간을 편집할 수 있습니다. 표는 30분 단위입니다.</p>
         <div class="planner-summary"><span>계획 비교 지수 <b id="wrs-score-summary">0</b> <small>/ 100</small></span><a href="#wrs-score">결과와 가정 보기 ↓</a></div><div class="planner-scroll"><div class="planner">
           <div class="axis" id="wrs-axis"></div>
           <div class="day sat"><div class="dh">토요일</div><div class="slots" data-day="sat"></div><div class="events" data-day="sat"></div></div>
@@ -149,6 +170,8 @@
         <div id="wrs-badges" class="badges"></div>
         <div class="copy"><p id="wrs-d1">일정을 배치하면 결과 해석이 나옵니다.</p><p id="wrs-d2"></p><p id="wrs-d3"></p></div>
       </div></section><section class="card" id="wrs-ins"></section><section class="card"><div class="body"><div class="ana"><h2>③ 다른 안과 비교하세요</h2><button id="wrs-refresh" class="btn" type="button">추천안 갱신</button></div><p class="hint">미리보기는 점선만 보여 줍니다. 적용은 시간표를 바꿉니다.</p><div id="wrs-sugs" class="sugs"></div></div></section><details class="model-details"><summary>이 지수는 어떻게 계산하나요?</summary><p>수면·혼자 있는 시간을 기회로, 이동·약속 전환·밀린 일·밤 스크린을 비용으로 둔 설계자의 휴리스틱입니다. 계수와 가중치는 연구에서 추정한 값이 아닙니다.</p><p id="wrs-assumptions"></p><p>일정의 길이와 이동 분은 별도로 입력합니다. 이동 시간을 늘려도 시간표의 블록이 자동으로 늘어나지는 않습니다.</p></details></aside></div></div>
+<script src="../weekend_season2/activities.js?v=20261017-activities1"></script>
+<script src="../weekend_season2/planner-bridge.js?v=20261017-completed-year3"></script>
 <script>
 (() => {
   const SLOT_MIN = 30;
@@ -179,6 +202,19 @@
     early_sleep: { label: "일찍 눕기", tone: "sleep", color: "#667bd3", dur: 3, travel: 0, strain: 2, meta: "20:00 이후" }
   };
 
+  const BASIC_TEMPLATES = new Set(Object.keys(TEMPLATES));
+  const SEASON_ACTIVITIES = window.S2Activities.ACTIVITIES;
+  SEASON_ACTIVITIES.forEach(activity => {
+    const baseType = S2PlannerBridge.activityType(activity.id), base = TEMPLATES[baseType];
+    const travel = activity.location === 'home' ? 0 : activity.location === 'local' ? 30 : 60;
+    const dur = Math.ceil((activity.minutes + activity.prep + travel) / SLOT_MIN);
+    TEMPLATES['s2_' + activity.id] = {
+      ...base, label:activity.name, dur, travel, strain:activity.mode==='together'?3:1,
+      meta:`${dur * SLOT_MIN}분 · 이동 ${travel}분 포함`, activityId:activity.id,
+      activityMinutes:activity.minutes, preparationMinutes:activity.prep, baseType
+    };
+  });
+
   const TIME_RULES = {
     late_screen: { start: 22 * 60, end: 24 * 60, label: "22:00~24:00" },
     early_sleep: { start: 20 * 60, end: 24 * 60, label: "20:00~24:00" },
@@ -203,12 +239,15 @@
     gapSlots: 0,
     events: [],
     selectedTpl: null,
+    paletteGroup: "basic",
+    activitySearch: "",
     selectedEvent: null,
     drag: null,
     compare: null,
     remembered: null,
     metrics: null,
     resizing: null,
+    season2Draft: null,
     seq: 0
   };
 
@@ -251,6 +290,8 @@
   let statusTimer = null;
 
   const clamp = (v, mi, ma) => Math.min(ma, Math.max(mi, v));
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const eventLabel = event => event.sourceLabel || TEMPLATES[event.type].label;
   const aSlot = (e) => DAY_ORDER[e.day] * SLOT_COUNT + e.start;
   const sortEvents = () => st.events.sort((a, b) => aSlot(a) - aSlot(b));
 
@@ -327,23 +368,33 @@
   }
 
   function renderPalette() {
+    const scrollTop=el.palette.scrollTop;
     el.palette.innerHTML = "";
-    Object.entries(TEMPLATES).forEach(([k, t]) => {
-      const c = document.createElement("button");
-      c.type = "button";
-      c.draggable = true;
-      c.className = `chip${st.selectedTpl === k ? " sel" : ""}`;
-      c.setAttribute("aria-pressed", String(st.selectedTpl === k));
-      c.style.borderLeftColor = t.color;
-      c.innerHTML = `<span class="t">${t.label}</span><span class="m">${t.meta}</span>`;
-      c.onclick = () => {
-        st.selectedTpl = st.selectedTpl === k ? null : k;
+    document.querySelectorAll('[data-palette-group]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.paletteGroup===st.paletteGroup)));
+    const query=st.activitySearch.trim().toLocaleLowerCase('ko').replace(/\s/g,'');
+    const entries=Object.entries(TEMPLATES).filter(([key,t])=>(st.paletteGroup==='season2'?!BASIC_TEMPLATES.has(key):BASIC_TEMPLATES.has(key))&&(!query||(t.label+' '+t.meta).toLocaleLowerCase('ko').replace(/\s/g,'').includes(query)));
+    document.getElementById('wrs-catalog-count').textContent=`${st.paletteGroup==='season2'?'시즌2':'기본'} 활동 ${entries.length}개`;
+    document.getElementById('wrs-catalog-note').textContent=st.paletteGroup==='season2'?'활동·준비·기본 이동을 포함해 30분 단위로 올림합니다. 가까운 외출은 왕복 30분, 수업·근무 장소는 60분으로 시작하니 배치 후 실제 이동에 맞게 고쳐 주세요.':'활동을 고르고 시간 칸을 눌러 배치하세요. 시즌2 활동도 같은 시간표에 함께 담을 수 있어요.';
+    entries.forEach(([key,template]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.draggable = true;
+      button.dataset.template=key;
+      button.className = `chip${st.selectedTpl === key ? " sel" : ""}`;
+      button.setAttribute("aria-pressed", String(st.selectedTpl === key));
+      button.style.borderLeftColor = template.color;
+      button.innerHTML = `<span class="t">${escapeHTML(template.label)}</span><span class="m">${escapeHTML(template.meta)}</span>`;
+      button.onclick = () => {
+        st.selectedTpl = st.selectedTpl === key ? null : key;
         el.picked.textContent = `선택된 블록: ${st.selectedTpl ? TEMPLATES[st.selectedTpl].label : "없음"}`;
         renderPalette();
+        el.palette.querySelector(`[data-template="${key}"]`)?.focus({preventScroll:true});
       };
-      c.ondragstart = (e) => { st.drag = { kind: "tpl", key: k }; e.dataTransfer.effectAllowed = "copy"; };
-      el.palette.appendChild(c);
+      button.ondragstart = (event) => { st.drag = { kind: "tpl", key }; event.dataTransfer.effectAllowed = "copy"; };
+      el.palette.appendChild(button);
     });
+    if(!entries.length){const empty=document.createElement('p');empty.className='catalog-empty';empty.textContent='찾는 활동이 없어요. 검색어를 줄이거나 다른 활동 목록을 골라 보세요.';el.palette.appendChild(empty);}
+    el.palette.scrollTop=scrollTop;
   }
 
   function renderAxis() {
@@ -445,16 +496,17 @@
       st.events.filter((x) => x.day === day).forEach((ev) => {
         const t = TEMPLATES[ev.type];
         const d = document.createElement("article");
-        d.className = `ev tone-${t.tone}${st.selectedEvent === ev.id ? " sel" : ""}`;
+        d.className = `ev tone-${t.tone}${ev.dur === 1 ? ' compact' : ''}${st.selectedEvent === ev.id ? " sel" : ""}`;
         d.style.top = `${ev.start * 24 + 2}px`;
         d.style.height = `${ev.dur * 24 - 4}px`;
         d.draggable = true;
         d.dataset.id = ev.id;
         d.tabIndex = 0;
         d.setAttribute("role", "button");
-        d.setAttribute("aria-label", `${t.label}, ${ev.day === 'sat' ? '토요일' : '일요일'} ${clock(ev.start)}부터 ${clock(ev.start + ev.dur)}까지, 편집`);
+        d.setAttribute("aria-label", `${eventLabel(ev)}, ${ev.day === 'sat' ? '토요일' : '일요일'} ${clock(ev.start)}부터 ${clock(ev.start + ev.dur)}까지, 편집`);
         d.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); d.click(); } };
-        d.innerHTML = `<span class="rz top" data-edge="top"></span><b>${t.label}</b><span>${clock(ev.start)}-${clock(ev.start + ev.dur)}</span><span class="rz bottom" data-edge="bottom"></span>`;
+        d.innerHTML = `<span class="rz top" data-edge="top"></span><b>${escapeHTML(eventLabel(ev))}</b><span class="event-time">${clock(ev.start)}-${clock(ev.start + ev.dur)}</span><span class="rz bottom" data-edge="bottom"></span>`;
+        d.title = `${eventLabel(ev)} · ${clock(ev.start)}-${clock(ev.start + ev.dur)}${ev.sourceReason ? ' · ' + ev.sourceReason : ''}`;
         d.onclick = (e) => { e.stopPropagation(); st.selectedEvent = ev.id; renderInspector(); renderEvents(); };
         d.ondragstart = (e) => { st.drag = { kind: "ev", id: ev.id }; e.dataTransfer.effectAllowed = "move"; };
         d.querySelectorAll(".rz").forEach((handle) => {
@@ -525,15 +577,29 @@
     ev.strain = clamp(Math.round(ev.strain), 1, 5);
     if (!canPlace(ev, ev.id)) {
       Object.assign(ev, prev);
+      refreshInspectorValues(ev);
       return status(st.gapSlots > 0 ? `변경 후 일정 간 마진 ${st.gapSlots * SLOT_MIN}분이 확보되지 않습니다.` : "변경 후 블록이 겹칩니다.", 1500);
     }
     if (!inTimeRule(ev.type, ev.start, ev.dur)) {
       Object.assign(ev, prev);
+      refreshInspectorValues(ev);
       return status(timeRuleMessage(ev.type), 1700);
     }
     st.compare = null;
     sortEvents();
-    renderAll();
+    renderEvents();
+    refreshInspectorValues(ev);
+    renderAnalytics();
+  }
+
+  function refreshInspectorValues(ev) {
+    // Keep the range inputs mounted during a drag or consecutive arrow keys.
+    const values = { "ins-dur": [ev.dur, durTxt(ev.dur)], "ins-tr": [ev.travel, `${ev.travel}분`], "ins-c": [ev.strain, `${ev.strain}`] };
+    Object.entries(values).forEach(([id, [value, label]]) => {
+      document.getElementById(id).value = value;
+      document.getElementById(`${id}-v`).textContent = label;
+    });
+    document.getElementById("ins-time").textContent = `${ev.day === "sat" ? "토" : "일"} ${clock(ev.start)}-${clock(ev.start + ev.dur)}`;
   }
 
   function renderInspector() {
@@ -553,7 +619,9 @@
     const box = document.createElement("div");
     box.className = "ins-box";
     box.innerHTML = `
-      <div class="ins-head"><b>${t.label}</b><br><small>${ev.day === "sat" ? "토" : "일"} ${clock(ev.start)}-${clock(ev.start + ev.dur)}</small></div>
+      <div class="ins-head"><b>${escapeHTML(eventLabel(ev))}</b><br><small id="ins-time">${ev.day === "sat" ? "토" : "일"} ${clock(ev.start)}-${clock(ev.start + ev.dur)}</small></div>
+      ${ev.sourceLabel ? `<p class="source-origin">${escapeHTML(ev.sourceReason || '시즌2의 삶에서 가져온 활동입니다.')}<br>회복 계산 분류: ${escapeHTML(t.label)}. 시간·이동·심리 소모도는 이 계획표에서 수정할 수 있어요.</p>` : ''}
+      ${t.activityId ? `<p class="source-origin">이 플래너에서 직접 추가한 시즌2 활동이에요. 주인공의 실제 경험 기록에는 추가되지 않습니다.<br>기본 길이: 활동 ${t.activityMinutes}분 + 준비 ${t.preparationMinutes}분 + 이동 ${t.travel}분을 30분 단위로 올림.<br>비교 분류: ${escapeHTML(TEMPLATES[t.baseType].label)}. 게임의 비용·보상·역할 제한은 적용하지 않아요.</p>` : ''}
       <div class="ins-row"><label for="ins-dur">길이 <span id="ins-dur-v">${durTxt(ev.dur)}</span></label><input id="ins-dur" type="range" min="1" max="8" step="1" value="${ev.dur}"></div>
       <div class="ins-row"><label for="ins-tr">이동시간 <span id="ins-tr-v">${ev.travel}분</span></label><input id="ins-tr" type="range" min="0" max="180" step="5" value="${ev.travel}"></div>
       <div class="ins-row"><label for="ins-c">심리 소모도 <span id="ins-c-v">${strainValue}</span></label><input id="ins-c" type="range" min="1" max="5" step="1" value="${strainValue}"></div>
@@ -824,12 +892,14 @@
   }
 
   function rememberPlan() {
-    st.remembered = { events: st.events.map(e => ({ ...e })), goal: st.goal, baseSleep: st.baseSleep, chores: st.chores, anxiety: st.anxiety, gapSlots: st.gapSlots, seq: st.seq, metrics: metrics(st.events) };
+    st.remembered = { events: st.events.map(e => ({ ...e })), goal: st.goal, baseSleep: st.baseSleep, chores: st.chores, anxiety: st.anxiety, gapSlots: st.gapSlots, seq: st.seq, metrics: metrics(st.events), season2Draft: st.season2Draft ? JSON.parse(JSON.stringify(st.season2Draft)) : null };
     st.compare = null; status('현재 일정과 목표·시작 조건을 기억했습니다. 한 가지를 바꿔 차이를 살펴보세요.', 2500); renderAnalytics();
   }
   function restorePlan() {
     if (!st.remembered) return;
     const r = st.remembered;
+    if (r.season2Draft) { st.season2Draft = JSON.parse(JSON.stringify(r.season2Draft)); showSeason2Source(st.season2Draft); }
+    else clearSeason2Source('기억한 계획으로 되돌렸어요.');
     st.events = r.events.map(e => ({ ...e }));
     for (const key of ['goal', 'baseSleep', 'chores', 'anxiety', 'gapSlots', 'seq']) st[key] = r[key];
     el.sleep.value=st.baseSleep;el.chores.value=st.chores;el.anx.value=st.anxiety;el.gap.value=st.gapSlots;
@@ -850,8 +920,10 @@
         origin: "sat slot 0"
       },
       goal: st.goal,
+      catalog: {group:st.paletteGroup,query:st.activitySearch,basicCount:BASIC_TEMPLATES.size,season2Count:SEASON_ACTIVITIES.length,selected:st.selectedTpl},
       baseline: { base_sleep_hours: st.baseSleep, chores_pressure: st.chores, monday_anxiety: st.anxiety, schedule_margin_minutes: st.gapSlots * SLOT_MIN },
-      events: st.events.map((e) => ({ id: e.id, type: e.type, label: TEMPLATES[e.type].label, tone: TEMPLATES[e.type].tone, day: e.day, start_slot: e.start, duration_slots: e.dur, travel_minutes: e.travel, social_strain: e.strain })),
+      events: st.events.map((e) => ({ id: e.id, type: e.type, ...(TEMPLATES[e.type].activityId?{activity_id:TEMPLATES[e.type].activityId,origin:"planner-added"}:{}), label: eventLabel(e), tone: TEMPLATES[e.type].tone, day: e.day, start_slot: e.start, duration_slots: e.dur, travel_minutes: e.travel, social_strain: e.strain, ...(e.sourceLabel ? {sourceLabel:e.sourceLabel,sourceReason:e.sourceReason,sourceKind:e.sourceKind,sourceDate:e.sourceDate,sourceMinutes:e.sourceMinutes} : {}) })),
+      season2Draft: st.season2Draft,
       remembered: st.remembered ? { score: st.remembered.metrics.score, eventCount: st.remembered.events.length, goal: st.remembered.goal, difference: rememberedDifference(m) } : null,
       current_state: m.score,
       score: m.score,
@@ -913,6 +985,7 @@
   }
 
   function loadSample() {
+    clearSeason2Source('샘플 계획으로 바꾸었어요.');
     const arr = [
       { type: "sleep_in", day: "sat", start: 2, dur: 4, travel: 0, strain: 2 },
       { type: "brunch", day: "sat", start: 8, dur: 4, travel: 70, strain: 3 },
@@ -933,6 +1006,8 @@
   }
 
   function bind() {
+    document.querySelectorAll('[data-palette-group]').forEach(button=>{button.onclick=()=>{st.paletteGroup=button.dataset.paletteGroup;st.selectedTpl=null;st.activitySearch='';document.getElementById('wrs-activity-search').value='';el.palette.scrollTop=0;el.picked.textContent='선택된 블록: 없음';renderPalette();};});
+    document.getElementById('wrs-activity-search').addEventListener('input',event=>{st.activitySearch=event.target.value;el.palette.scrollTop=0;renderPalette();});
     el.sleep.setAttribute('aria-label', '예상 평균 수면');
     el.chores.setAttribute('aria-label', '밀린 집안일 압박');
     el.anx.setAttribute('aria-label', '월요일 불안감');
@@ -951,8 +1026,73 @@
     };
     document.getElementById('wrs-remember').onclick=rememberPlan;document.getElementById('wrs-restore').onclick=restorePlan;document.getElementById('wrs-restore-near').onclick=restorePlan;document.getElementById('wrs-show-remembered').onclick=()=>{st.compare=null;renderAnalytics();};
     el.sample.onclick = loadSample;
-    el.clear.onclick = () => { st.events = []; st.selectedEvent = null; st.compare = null; status("계획을 초기화했습니다.", 1200); renderAll(); };
+    el.clear.onclick = () => { clearSeason2Source('새 계획을 작성할 수 있도록 비웠어요.'); st.events = []; st.selectedEvent = null; st.compare = null; status("계획을 초기화했습니다.", 1200); renderAll(); };
     el.refresh.onclick = () => { st.compare = null; renderAnalytics(); status("추천안을 다시 계산했습니다.", 1200); };
+  }
+
+  function clearSeason2Source(message) {
+    if (!st.season2Draft) return;
+    st.season2Draft = null;
+    document.querySelector('.day.sat .dh').textContent = '토요일';
+    document.querySelector('.day.sun .dh').textContent = '일요일';
+    const banner = document.getElementById('wrs-season2-draft');
+    banner.innerHTML = '<h2 id="wrs-draft-title"></h2><p>시즌2에서 가져온 초안을 새 계획으로 바꿨어요. 새로고침하면 처음 가져온 초안으로 돌아옵니다.</p><a href="../weekend_season2/index.html">← 주말 계획표 시즌2로 돌아가기</a>';
+    banner.querySelector('h2').textContent = message;
+  }
+
+  function showSeason2Source(draft) {
+    const banner = document.getElementById('wrs-season2-draft');
+    banner.hidden = false;
+    banner.replaceChildren();
+    const append = (tag, text, className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; banner.appendChild(node); return node; };
+    append('p', '시즌2의 삶으로 작성한 모의 초안 · 직접 수정 가능', 'draft-kicker');
+    append('h2', draft.source.persona + '의 이번 주말 계획표').id = 'wrs-draft-title';
+    append('p', draft.weekend.saturday + ' 토요일 — ' + draft.weekend.sunday + ' 일요일');
+    append('p', draft.source.explanation);
+    append('p', `${draft.source.year}년 ${draft.source.completedDays}일 완주 · 참고한 주말 ${draft.source.sampleDays}일${Number.isInteger(draft.source.sampleWeekends) ? ' / ' + draft.source.sampleWeekends + '개 주말' : ''}. 활동 블록을 선택하면 원래 활동과 배치 근거를 볼 수 있어요.`);
+    const details = append('details', '');
+    const summary = document.createElement('summary');summary.textContent = '작성 방식과 초안 보관 안내';details.appendChild(summary);
+    if (draft.notes.length) { const list = document.createElement('ul'); draft.notes.forEach(note => { const item=document.createElement('li');item.textContent=note;list.appendChild(item); }); details.appendChild(list); }
+    const note = document.createElement('p');note.textContent = '원본 삶의 기록은 그대로 보존됩니다. 이 초안은 비교와 편집을 위한 제안이며, 새로고침하면 처음 가져온 초안으로 돌아와요.';details.appendChild(note);
+    const back = append('a', '← 주말 계획표 시즌2로 돌아가기');
+    back.href = '../weekend_season2/index.html';
+    document.querySelector('.day.sat .dh').textContent = draft.weekend.saturday + ' 토요일';
+    document.querySelector('.day.sun .dh').textContent = draft.weekend.sunday + ' 일요일';
+  }
+
+  function importSeason2Draft() {
+    const token = new URLSearchParams(location.search).get('season2Draft');
+    if (token === null) return '';
+    const banner = document.getElementById('wrs-season2-draft');
+    banner.hidden = false;
+    const append = (tag, text, className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; banner.appendChild(node); return node; };
+    const back = () => { const link = append('a', '← 주말 계획표 시즌2로 돌아가기'); link.href = '../weekend_season2/index.html'; };
+    try {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) throw new Error('이 계획의 연결 주소를 확인해 주세요.');
+      const raw = sessionStorage.getItem('websim-season2-draft:' + token);
+      if (!raw) throw new Error('이 탭에 전달된 계획이 없어요. 시즌2에서 다시 열어 주세요.');
+      if (raw.length > 200000) throw new Error('전달된 계획이 너무 커서 불러오지 못했어요.');
+      let draft;
+      try { draft = JSON.parse(raw); } catch { throw new Error('전달된 계획을 읽을 수 없어요. 시즌2에서 다시 작성해 주세요.'); }
+      if (!window.S2PlannerBridge) throw new Error('계획 연결 기능을 불러오지 못했어요. 새로고침해 주세요.');
+      const checked = S2PlannerBridge.validateDraft(draft);
+      if (!checked.ok) throw new Error(checked.reason || '전달된 계획의 형식을 확인해 주세요.');
+      for (const key of ['goal','baseSleep','chores','anxiety','gapSlots','seq']) st[key] = draft.planner[key];
+      st.events = draft.planner.events.map(event => ({...event}));
+      st.paletteGroup="season2";
+      st.season2Draft = {source:draft.source,weekend:draft.weekend,notes:draft.notes};
+      el.sleep.value=st.baseSleep;el.chores.value=st.chores;el.anx.value=st.anxiety;el.gap.value=st.gapSlots;
+      sortEvents();
+      showSeason2Source(st.season2Draft);
+      return '시즌2에서 가져온 초안을 배치했어요. 블록을 고르고 자유롭게 수정해 보세요.';
+    } catch (error) {
+      append('h2', '모의 계획을 불러오지 못했어요').id = 'wrs-draft-title';
+      append('p', error.message || '이 탭에서 계획을 읽을 수 없어요.');
+      append('p', '샘플 계획을 열었어요. 시즌2로 돌아가 새 초안을 가져올 수 있어요.');
+      back();
+      loadSample();
+      return '전달된 계획을 불러오지 못해 샘플 계획을 표시했어요.';
+    }
   }
 
   window.render_game_to_text = () => {
@@ -970,9 +1110,10 @@
   renderAxis();
   buildSlots();
   bind();
+  const importMessage = importSeason2Draft();
   window.addEventListener("resize", () => { if (st.metrics) draw(st.metrics.trace, st.compare ? st.compare.trace : st.remembered ? st.remembered.metrics.trace : null); });
   renderAll();
-  status("블록을 배치하면 회복 곡선이 바로 변합니다.", 1800);
+  status(importMessage || "블록을 배치하면 회복 곡선이 바로 변합니다.", importMessage ? 0 : 1800);
 })();
 </script>
 </div>

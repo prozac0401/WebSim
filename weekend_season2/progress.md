@@ -114,3 +114,42 @@ Original prompt: prozac0401/WebSim에 주말 계획표 시즌2를 별도 진입�
 - Change only scene palette RGB values and its cache URL. Keep all four saved identifiers, generation order/probabilities and pure visual hashes; new and saved modern figures receive light beige through modestly sun-tanned warm shades. Children retain the protagonist palette, spouse uses the same bounded palette; legacy fallback is already within this range.
 - Game state, identity, finance and event RNG are untouched. Targeted existing regressions, real browser screenshots and independent review precede existing authorized Pages upload.
 - Targeted existing26testsPASS/0FAIL. ActualChromium390px four palette family captures and original game clientPASS; images directly inspected. Saved colors update without state/RNG mutations and reduced motion stays still. Independent30family combinations match old metadata except RGB. No new permanent tests for this cosmetic edit; full298/48suites NOT RUN this turn. Source ready for authorized existing Pages upload.
+
+
+## 2026-10-17 — Season 2 home feature and life-based weekend draft
+- User: 주말시즌 계획표2 를 전면으로 내세워줘요. 그리고 주말시즌계획표2 의 삶을 기반으로 주말 시즌 계획표를 모의로 작성해줘요.
+- Isolated worktree weekend-life-plan, branch codex/weekend-life-plan from origin/main 52df056. Original main checkout and other task changes preserved.
+- Homepage now leads to Season 2; adding explicit read-only life-based weekend preview, reasons/time/cost breakdown, review/apply/discard. Existing direct commitments retained and no time, money, stats or random stream consumed during preview.
+- Validation in progress: model invariants, Chromium desktop/mobile interactions, original game client and independent review. Publication was not requested in this turn.
+
+- User clarified: link from the game into the original planner, drafting the real upcoming/current weekend from corresponding experienced game activities; for another simulated year, use that year's observed weekend averages. Supersedes the initial in-game apply preview. Replaced that UI with a same-tab bridge. Plain sessionStorage transfer; no game-state mutation; observed vs estimated sources distinguished.
+
+- Final bridge model15/15 and full Season2 Node274/274 pass. New Chromium bridge5 groups pass with no page/console errors; desktop/mobile source+target screenshots directly viewed. Original game client passes and active scene/text inspected. Initial full browser regression caught mobile1561px; folded source explanation and verified1450px limit; final old regression is finishing one-click annual autoplay.
+- Independent review fixed historical exam/time blocks misclassified as rest,09/14/18 mapping, completed-only average denominator, missing weekday provenance, year-boundary source matching, shared weekend budget and future Sunday reservation preallocation. Generated400-case audit retained input state and valid payloads. No code work pending; waiting final long browser check.
+
+- Final old Chromium regression completed 17 groups PASS/errors0, including default mobile height, single-start365-day autoplay, save/restore and old planner. Total final browser groups 22. All requested local implementation/verification complete; no remaining TODOs. Public deployment not run. Preview: http://127.0.0.1:8774/ .
+
+
+## 2026-10-17 — existing planner activity catalog
+- User: 초안은 이전 주말 계획세우기 페이지에서 보이고 현재 추가할 수 있는 주말계획들도 그곳에서 추가 가능해야 함.
+- Kept the draft on the original recovery planner. Added basic12/Season2-31 palette groups, text search, accessible selection and scrollable list. Imported drafts select Season2 by default; plain entry retains basic default with both groups available.
+- Extracted exact canonical31 activities into standalone activities.js, shared by source game and legacy planner. Source JSON SHA256 matches before/after; role/effect/order metadata unchanged. Manual additions use shared bridge category mapping and explicit planner-added provenance, editable duration/travel/strain; source life remains unchanged.
+- Browser testing exposed inspector input rerender losing keyboard focus and pointer drag. Keep range inputs mounted, sync accepted values including rejected overlap/time edits, and update timeline/analytics separately. Consecutive keys and continuous pointer drag verified.
+- Final targeted Node74/74 PASS (catalog/engine/life/prices59 + bridge15). Chromium catalog4 + bridge5 + existing legacy/home/docs3 grouped checks PASS, console/page errors0. Every43 activity option inserted, manual editing/copy/drag/delete/remember/restore and imported draft/source storage integrity checked. Desktop/mobile full screenshots and original game client output inspected. Independent review has no blockers.
+- Evidence output/playwright/weekend-planner-activities, catalog-bridge-regression, catalog-legacy-regression, catalog-client. No pending implementation TODO. Local changes only; no public deployment in this turn. Full annual browser suite was already passed for the prior bridge work and was not repeated for this extraction/palette addition.
+
+
+## 2026-10-17 — varied Saturday/Sunday estimates
+- User: 토요일과 일요일이 서로 다른 계획으로 채워지게 해줘요. 일정이 너무 단조로움.
+- Replaced per-day identical preference ordering with shared weekend activity usage. Seed usage from both days' actual/average evidence and fixed appointments before filling estimates, so Saturday also avoids a protected Sunday activity.
+- Estimated days now consider morning/afternoon/evening. Saturday favors hobbies/outings; Sunday favors home tasks and a quiet finish, while preferences/role preparation and health/cash constraints still apply. A separate stable life/date hash breaks ties without consuming game RNG. Same life/date reproduces the same draft.
+- Morning activity plus baseline care must fit240 minutes. Manual care is not synthesized on top of baseline morning care. Necessary baseline care and Sunday evening rest may repeat; no eligible new choice leaves a free interval. Actual records, scheduled plans and observed means are not rewritten for novelty.
+- New meaningful model tests10 plus bridge15 PASS25/25. New Chromium variety5 groups PASS/errors0; default mobile, worker/graduate/caregiver, tired zero-cash and actual-record fixtures all transfer through the game's UI. Original client run passed and scene/text inspected; desktop and mobile planner screenshots directly inspected. Final existing bridge5 and catalog4 also PASS after the last runtime change: total14 Chromium groups/errors0. Independent review found no blockers. No pending implementation TODO; no deployment requested or run.
+
+
+## 2026-10-17 — completed-year prerequisite and authorized publication
+- User explicitly asks to publish when done and clarifies a weekend draft is only allowed after a full year of life. This supersedes previous support for partial-year draft creation.
+- Reusing attached weekend-life-plan worktree; original main checkout unchanged. Remote origin/main still52df056 with no intervening changes. GitHub Pages main/root publication confirmed; user authorization covers deployment of this task's accumulated home feature, planner bridge and activity catalog.
+- UI shows completed-day count and disabled action until full-year eligibility; handler checks before side effects. Model/create/import gates and real365/366-day browser fixtures are under verification. In-progress/event/December31-before-final-settlement and old incomplete transfers must stay blocked.
+
+- Final full Node279/279PASS/0FAIL, existing Chromium17 plus completion bridge6/factual averages5/catalog4 =32groupsPASS/errors0. Genuine365/366 fixture coverage; independent2100/365 check; no exposed test bypass. Source/target guard, old payload rejection, source purity and mobile screenshots verified. Static94 paths valid with exact case. Preparing explicit authorized main/root GitHub Pages publication; source HEAD and remote main remain52df056 before commit.
