@@ -6,16 +6,16 @@ const levels = require('./levels.js');
 const solutions = require('./solutions.cjs');
 // Hand-counted stored nodes, including containers, both branches and function
 // definitions. Deliberately independent of engine counting and level metadata.
-const REFERENCE_BUDGETS = Object.freeze([3, 5, 6, 2, 5, 7, 4, 4, 6, 11, 9, 6, 9, 10, 9]);
+const REFERENCE_BUDGETS = Object.freeze([3, 5, 6, 2, 6, 7, 4, 5, 6, 11, 9, 7, 9, 10, 11]);
 let serial = 0;
 const node = (type, extra = {}) => ({ id: 'test-' + (++serial), type, ...extra });
-const forward = () => node('forward'), left = () => node('left'), right = () => node('right');
+const forward = () => node('forward'), left = () => node('left'), right = () => node('right'), wait = () => node('wait');
 const repeat = (count, body) => node('repeat', { count, body });
 const iff = (condition, yes, no = []) => node('if', { condition, then: yes, else: no });
 const call = target => node('call', { target });
 const program = (main = [], F1 = [], F2 = []) => ({ main, F1, F2 });
 const fixture = (extra = {}) => ({
-  unlocks: ['forward', 'left', 'right', 'repeat', 'if', 'blocked', 'mark', 'call', 'F1', 'F2'],
+  unlocks: ['forward', 'left', 'right', 'wait', 'repeat', 'if', 'blocked', 'mark', 'call', 'F1', 'F2'],
   maxCommands: 128, maxSteps: 1000,
   maps: [{ rows: ['#####', '#..H#', '#.*.#', '#...#', '#####'], start: { x: 1, y: 3, dir: 0 } }], ...extra
 });
@@ -179,9 +179,128 @@ test('unknown metadata is ignored instead of serialized or executed', () => {
   assert.deepEqual(r.step().robot, { x: 1, y: 2, dir: 0 });
 });
 test('malformed maps produce friendly terminal state', () => {
-  for (const map of [null, { rows: ['..'], start: { x: 0, y: 0, dir: 0 } }, { rows: ['H.', '...'], start: { x: 0, y: 0, dir: 0 } }, { rows: ['.H'], start: { x: 0, y: 0, dir: 4 } }]) {
+  for (const map of [null, { rows: ['..'], start: { x: 0, y: 0, dir: 0 } }, { rows: ['H.', '...'], start: { x: 0, y: 0, dir: 0 } }, { rows: ['.H'], start: { x: 0, y: 0, dir: 4 } }, { rows: [, '.H'], start: { x: 0, y: 1, dir: 0 } }, { rows: ['.H', ,], start: { x: 0, y: 0, dir: 0 } }]) {
     assert.equal(E.createRunner(program(), fixture({ maps: [map] })).snapshot().event.reason, 'map');
   }
+});
+
+const timedMap = (hazards, extra = {}) => ({ rows: ['...H'], start: { x: 0, y: 0, dir: 1 }, hazards, ...extra });
+const hazard = (x, activePhases = [1], period = 2) => ({ x, y: 0, period, activePhases });
+
+test('hazard phases and next-phase preview match a hand-written periodic schedule', () => {
+  const map = timedMap([hazard(1, [0, 2], 3), hazard(2, [1], 2)]), original = JSON.stringify(map);
+  const expected = [[1], [2], [1], [1, 2], [], [1, 2]];
+  for (let time = 0; time < expected.length; time++) {
+    const state = E.hazardState(map, time);
+    assert.equal(state.time, time); assert.deepEqual(state.active.map(cell => cell.x), expected[time]);
+    if (time + 1 < expected.length) assert.deepEqual(state.nextActive.map(cell => cell.x), expected[time + 1]);
+    assert.equal(state.cells[0].phase, time % 3);
+  }
+  const exposed = E.hazardState(map, 0); exposed.cells[0].active = false; exposed.active[0].x = 99;
+  assert.equal(JSON.stringify(map), original); assert.deepEqual(E.hazardState(map, 0).active, [{ x: 1, y: 0 }]);
+  for (const time of [-1, 0.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '1']) assert.equal(E.hazardState(map, time).time, 0);
+  assert.equal(E.hazardState(map, Number.MAX_SAFE_INTEGER).cells[0].nextPhase, 2);
+});
+
+test('entering an active cell fails after movement and identifies the exact command, time and cell', () => {
+  const f = forward(), r = E.createRunner(program([f, forward()]), fixture({ maps: [timedMap([hazard(1)])] }));
+  assert.equal(r.snapshot().movementCount, 0);
+  const s = r.step();
+  assert.equal(s.status, 'failure'); assert.equal(s.event.reason, 'hazard'); assert.equal(s.event.action, 'move');
+  assert.equal(s.steps, 1); assert.equal(s.movementCount, 1); assert.equal(s.event.time, 1);
+  assert.equal(s.currentId, f.id); assert.deepEqual(s.event.at, { x: 1, y: 0 }); assert.deepEqual(s.robot, { x: 1, y: 0, dir: 1 });
+  assert.equal(s.collision, null); assert.deepEqual(s.hazards.active, [{ x: 1, y: 0 }]); assert.deepEqual(r.step(), s);
+});
+
+test('one wait shifts crossing safely and leaving a cell before it activates is allowed', () => {
+  const r = E.createRunner(program([wait(), forward(), forward(), forward()]), fixture({ maps: [timedMap([hazard(1)])] }));
+  const states = [r.step(), r.step(), r.step(), r.step()];
+  assert.deepEqual(states.map(s => [s.robot.x, s.movementCount, s.status]), [[0, 1, 'running'], [1, 2, 'running'], [2, 3, 'running'], [3, 4, 'success']]);
+  assert.equal(states[0].event.type, 'wait'); assert.equal(states[0].steps, 1);
+  assert.deepEqual(states[2].hazards.active, [{ x: 1, y: 0 }], 'the cell just left may activate after departure');
+});
+
+test('turning or waiting on a newly active cell fails even without translation', () => {
+  for (const command of [right, left, wait]) {
+    const r = E.createRunner(program([command()]), fixture({ maps: [timedMap([hazard(0)])] }));
+    const s = r.step(); assert.equal(s.event.reason, 'hazard'); assert.equal(s.movementCount, 1);
+    assert.deepEqual(s.event.at, { x: 0, y: 0 });
+    assert.equal(s.robot.dir, command === right ? 2 : command === left ? 0 : 1);
+  }
+});
+
+test('time-zero start hazards fail before all execution, including a start on home', () => {
+  for (const rows of [['...H'], ['H...']]) {
+    const r = E.createRunner(program([wait()]), fixture({ maps: [timedMap([hazard(0, [0])], { rows })] }));
+    const s = r.snapshot(); assert.equal(s.status, 'failure'); assert.equal(s.event.reason, 'hazard');
+    assert.equal(s.event.action, 'start'); assert.equal(s.movementCount, 0); assert.equal(s.steps, 0); assert.equal(s.currentId, null);
+    assert.deepEqual(r.step(), s);
+  }
+});
+
+test('a hazard on home wins over arrival, while the same destination at a safe phase succeeds', () => {
+  const level = fixture({ maps: [timedMap([hazard(1)], { rows: ['.H'] })] });
+  const failed = E.createRunner(program([forward()]), level).step();
+  assert.equal(failed.event.reason, 'hazard'); assert.equal(failed.robot.x, 1); assert.equal(failed.status, 'failure');
+  const { state } = finish(E.createRunner(program([wait(), forward()]), level));
+  assert.equal(state.status, 'success'); assert.equal(state.movementCount, 2);
+});
+
+test('repeats, branches, calls and returns do not advance hazard time', () => {
+  const p = program([repeat(2, [call('F1')])], [iff('blocked', [], [wait()])]);
+  const { state, frames } = finish(E.createRunner(p, fixture({ maps: [timedMap([hazard(1)], { rows: ['.H'] })] })));
+  assert.deepEqual(frames.map(s => s.event.type), ['repeat', 'call', 'condition', 'wait', 'return', 'repeat', 'call', 'condition', 'wait', 'return', 'failure']);
+  assert.deepEqual(frames.map(s => s.movementCount), [0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2]);
+  assert.equal(state.steps, 8); assert.equal(state.event.reason, 'exhausted');
+  assert.equal(frames[7].event.result, false, 'an active hazard ahead is still not a wall');
+});
+
+test('wall collisions consume one action tick and report collision before a current-cell hazard', () => {
+  const r = E.createRunner(program([forward()]), fixture({ maps: [timedMap([hazard(0)], { start: { x: 0, y: 0, dir: 0 } })] }));
+  const s = r.step(); assert.equal(s.event.reason, 'collision'); assert.equal(s.movementCount, 1); assert.equal(s.steps, 1);
+  assert.deepEqual(s.hazards.active, [{ x: 0, y: 0 }]); assert.deepEqual(s.robot, { x: 0, y: 0, dir: 0 });
+});
+
+test('wait is one saved node and one executed action, remains locked until offered, and obeys execution limits', () => {
+  assert.equal(E.validate(program([wait()]), fixture()).count, 1);
+  assert.equal(E.validate(program([wait()]), levels[0]).ok, false);
+  const r = E.createRunner(program([wait(), wait()]), fixture({ maxSteps: 1 }));
+  assert.equal(r.step().movementCount, 1); const limited = r.step();
+  assert.equal(limited.event.reason, 'limit'); assert.equal(limited.movementCount, 1); assert.equal(limited.steps, 1);
+});
+
+test('cancel freezes hazard time and fresh/reset/map-transition runners each start at time zero', () => {
+  const p = program([wait(), forward()]);
+  const level = fixture({ maps: [timedMap([hazard(1)]), timedMap([hazard(2, [0], 3)])] });
+  const r = E.createRunner(p, level); r.step(); const cancelled = r.cancel();
+  assert.equal(cancelled.movementCount, 1); assert.deepEqual(r.step(), cancelled);
+  for (const mapIndex of [0, 1]) {
+    const fresh = E.createRunner(p, level, mapIndex).snapshot();
+    assert.equal(fresh.movementCount, 0); assert.equal(fresh.steps, 0); assert.equal(fresh.status, 'ready');
+    assert.deepEqual(fresh.hazards.active, mapIndex === 0 ? [] : [{ x: 2, y: 0 }]);
+  }
+});
+
+test('running hazard maps and returned previews are isolated from later source mutations', () => {
+  const map = timedMap([hazard(1)]), r = E.createRunner(program([forward()]), fixture({ maps: [map] }));
+  map.hazards[0].activePhases.length = 0; map.rows[0] = 'H...';
+  const preview = r.snapshot(); preview.hazards.nextActive[0].x = 3; preview.hazards.cells[0].nextActive = false;
+  assert.equal(r.step().event.reason, 'hazard');
+});
+
+test('invalid hazard coordinates, periods, phase lists and duplicate cells fail map validation safely', () => {
+  const invalid = [null, {}, 'hazards', [null], new Array(1), [hazard(1, new Array(1))], [hazard(-1)], [hazard(4)], [{ ...hazard(1), y: 1 }],
+    [hazard(1, [1], 1)], [hazard(1, [1], 13)], [hazard(1, [1], 2.5)], [hazard(1, [], 2)],
+    [hazard(1, [2], 2)], [hazard(1, [-1], 2)], [hazard(1, [0.5], 2)], [hazard(1, [1, 1], 2)],
+    [hazard(1), hazard(1, [0])], Array.from({ length: 901 }, () => hazard(1))];
+  for (const hazards of invalid) {
+    const map = timedMap(hazards); assert.equal(E.validMap(map), false);
+    assert.equal(E.createRunner(program(), fixture({ maps: [map] })).snapshot().event.reason, 'map');
+    assert.deepEqual(E.hazardState(map, 1), { time: 1, cells: [], active: [], nextActive: [] });
+  }
+  assert.equal(E.validMap(timedMap([hazard(1)], { rows: ['.#.H'] })), false);
+  assert.equal(E.validMap(timedMap([hazard(1, [0, 1])])), true, 'always-active cells are valid, though unsafe to enter');
+  assert.equal(E.validMap(timedMap([hazard(1)], { rows: ['.*.H'] })), true);
 });
 test('levels expose exactly 12 core levels and 3 post-core challenges', () => {
   assert.deepEqual(levels.map(l => l.id), Array.from({ length: 15 }, (_, i) => i + 1));
@@ -198,10 +317,10 @@ test('reference budgets limit total nodes without imposing per-type quotas or re
   // program below its five-node budget, even though that program does not win.
   const checked = E.validate(program([left(), left(), left()]), levels[1]);
   assert.equal(checked.ok, true); assert.equal(checked.count, 3);
-  // A direct wall follower also solves both level-12 maps with four saved
-  // nodes, below its six-node function-based reference. The budget is a cap.
-  const alternate = program([repeat(12, [iff('blocked', [right()], [forward()])])]);
-  assert.equal(E.validate(alternate, levels[11]).count, 4);
+  // A direct timed wall follower also solves both level-12 maps with five
+  // saved nodes, below its seven-node function reference. The budget is a cap.
+  const alternate = program([repeat(12, [iff('blocked', [right()], [wait(), forward()])])]);
+  assert.equal(E.validate(alternate, levels[11]).count, 5);
   for (let mapIndex = 0; mapIndex < 2; mapIndex++) {
     assert.equal(finish(E.createRunner(alternate, levels[11], mapIndex)).state.status, 'success');
   }

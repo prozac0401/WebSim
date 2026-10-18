@@ -13,7 +13,7 @@ function fixture() {
   data.programs[12] = {
     main: [{ id: 'r', type: 'repeat', count: 3, body: [{ id: 'c', type: 'call', target: 'F1' }] }],
     F1: [{ id: 'i', type: 'if', condition: 'blocked', then: [{ id: 't', type: 'right' }], else: [{ id: 'e', type: 'forward' }] }],
-    F2: [{ id: 'm', type: 'if', condition: 'mark', then: [{ id: 'l', type: 'left' }], else: [] }]
+    F2: [{ id: 'm', type: 'if', condition: 'mark', then: [{ id: 'l', type: 'left' }], else: [{ id: 'w', type: 'wait' }] }]
   };
   data.settings = { speed: 2, muted: false };
   return data;
@@ -50,6 +50,22 @@ test('valid backup survives a corrupt primary, and corrupt primary never replace
   assert.deepEqual(S.create(storage).load(), { status: 'recovered', data: fixture() });
   persistence.save({ ...fixture(), currentLevel: 14 });
   assert.deepEqual(JSON.parse(storage.getItem(S.BACKUP_KEY)), fixture());
+});
+
+test('wait blocks survive primary, backup recovery and denied storage without retaining unknown fields', () => {
+  const data = fixture();
+  data.programs[5] = { main: [{ id: 'wait-main', type: 'wait', duration: 999, source: 'ignored' }], F1: [], F2: [] };
+  const expected = { main: [{ id: 'wait-main', type: 'wait' }], F1: [], F2: [] };
+  const storage = fakeStorage(), persistence = S.create(storage);
+  assert.equal(persistence.save(data).ok, true);
+  assert.deepEqual(S.create(storage).load().data.programs[5], expected);
+  persistence.save({ ...data, currentLevel: 5 });
+  storage.setItem(S.KEY, '{broken');
+  const recovered = S.create(storage).load();
+  assert.equal(recovered.status, 'recovered'); assert.deepEqual(recovered.data.programs[5], expected);
+  const denied = S.create({ getItem() { throw new Error('denied'); }, setItem() { throw new Error('quota'); } });
+  assert.equal(denied.save(data).ok, false);
+  assert.deepEqual(denied.load().data.programs[5], expected);
 });
 
 test('denied reads and writes keep playing with session data and explicit failure status', () => {

@@ -6,7 +6,7 @@
   'use strict';
   const LIMITS = Object.freeze({ commands: 128, nesting: 4, repeat: 12, steps: 1000, callDepth: 2 });
   const DIRECTIONS = Object.freeze([{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }]);
-  const TYPES = ['forward', 'left', 'right', 'repeat', 'if', 'call'];
+  const TYPES = ['forward', 'left', 'right', 'wait', 'repeat', 'if', 'call'];
   const copy = value => JSON.parse(JSON.stringify(value));
 
   function validate(program, level) {
@@ -58,26 +58,59 @@
     return { ok: errors.length === 0, errors, count };
   }
 
+  function validHazards(map) {
+    if (map.hazards === undefined) return true;
+    if (!Array.isArray(map.hazards) || map.hazards.length > 900) return false;
+    const positions = new Set();
+    return Array.from(map.hazards).every(hazard => {
+      if (!hazard || !Number.isInteger(hazard.x) || !Number.isInteger(hazard.y) ||
+          !map.rows[hazard.y] || !['.', '*', 'H'].includes(map.rows[hazard.y][hazard.x]) ||
+          !Number.isInteger(hazard.period) || hazard.period < 2 || hazard.period > 12 ||
+          !Array.isArray(hazard.activePhases) || !hazard.activePhases.length || hazard.activePhases.length > hazard.period ||
+          !Array.from(hazard.activePhases).every(phase => Number.isInteger(phase) && phase >= 0 && phase < hazard.period) ||
+          new Set(hazard.activePhases).size !== hazard.activePhases.length) return false;
+      const position = hazard.x + ',' + hazard.y;
+      if (positions.has(position)) return false;
+      positions.add(position);
+      return true;
+    });
+  }
+
   function validMap(map) {
-    return map && Array.isArray(map.rows) && map.rows.length > 0 && map.rows.length <= 30 &&
-      map.rows.every(row => typeof row === 'string' && row.length === map.rows[0].length && row.length <= 30 && /^[#.*H]+$/.test(row)) &&
+    return !!(map && Array.isArray(map.rows) && map.rows.length > 0 && map.rows.length <= 30 && typeof map.rows[0] === 'string' &&
+      Array.from(map.rows).every(row => typeof row === 'string' && row.length === map.rows[0].length && row.length <= 30 && /^[#.*H]+$/.test(row)) &&
       map.rows.join('').split('H').length === 2 && map.start && Number.isInteger(map.start.x) && Number.isInteger(map.start.y) &&
       Number.isInteger(map.start.dir) && map.start.dir >= 0 && map.start.dir <= 3 &&
-      map.rows[map.start.y] && ['.', '*', 'H'].includes(map.rows[map.start.y][map.start.x]);
+      map.rows[map.start.y] && ['.', '*', 'H'].includes(map.rows[map.start.y][map.start.x]) && validHazards(map));
+  }
+
+  function hazardState(map, time = 0) {
+    time = Number.isSafeInteger(time) && time >= 0 ? time : 0;
+    const cells = validMap(map) ? (map.hazards || []).map(hazard => {
+      const phase = time % hazard.period, nextPhase = (phase + 1) % hazard.period;
+      return { x: hazard.x, y: hazard.y, period: hazard.period, phase, nextPhase,
+        active: hazard.activePhases.includes(phase), nextActive: hazard.activePhases.includes(nextPhase) };
+    }) : [];
+    const coordinates = cell => ({ x: cell.x, y: cell.y });
+    return { time, cells, active: cells.filter(cell => cell.active).map(coordinates), nextActive: cells.filter(cell => cell.nextActive).map(coordinates) };
   }
 
   function createRunner(program, level, mapIndex) {
     mapIndex = mapIndex === undefined ? 0 : mapIndex;
     const checked = validate(program, level);
-    const map = level && Array.isArray(level.maps) ? level.maps[mapIndex] : null;
+    const sourceMap = level && Array.isArray(level.maps) ? level.maps[mapIndex] : null;
+    const map = validMap(sourceMap) ? { rows: sourceMap.rows.slice(), start: { x: sourceMap.start.x, y: sourceMap.start.y, dir: sourceMap.start.dir },
+      hazards: (sourceMap.hazards || []).map(h => ({ x: h.x, y: h.y, period: h.period, activePhases: h.activePhases.slice() })) } : null;
     const state = { status: 'ready', robot: validMap(map) ? copy(map.start) : { x: 0, y: 0, dir: 0 }, steps: 0,
-      event: null, currentId: null, message: '명령을 실행하면 로봇이 출발해요.', callStack: [], collision: null, mapIndex };
-    const snapshot = () => copy(state);
+      movementCount: 0, event: null, currentId: null, message: '명령을 실행하면 로봇이 출발해요.', callStack: [], collision: null, mapIndex };
+    const snapshot = () => copy({ ...state, hazards: hazardState(map, state.movementCount) });
     const fail = (reason, message, extra) => {
       state.status = 'failure'; state.message = message; state.event = Object.assign({ type: 'failure', reason }, extra); return snapshot();
     };
     if (!checked.ok) fail('validation', checked.errors.join(' '));
     else if (!validMap(map)) fail('map', '지도를 읽지 못했어요. 다른 레벨을 열어 주세요.');
+    else if (hazardState(map, 0).active.some(cell => cell.x === state.robot.x && cell.y === state.robot.y))
+      fail('hazard', '시간 0에 출발 칸이 켜져 있어요. 이 지도에서는 안전하게 출발할 수 없어요.', { action: 'start', time: 0, at: { x: state.robot.x, y: state.robot.y } });
     function cloneNodes(nodes) {
       return nodes.map(node => {
         const result = { id: node.id, type: node.type };
@@ -107,7 +140,7 @@
           yield { type: 'call', id: node.id, target: node.target };
           yield* sequence(saved[node.target]);
           yield { type: 'return', id: node.id, target: node.target };
-        } else yield { type: node.type === 'forward' ? 'move' : 'turn', id: node.id, command: node.type };
+        } else yield { type: node.type === 'forward' ? 'move' : node.type === 'wait' ? 'wait' : 'turn', id: node.id, command: node.type };
       }
     }
     const iterator = sequence(saved.main);
@@ -121,6 +154,8 @@
       if (event.type !== 'return' && state.steps >= maxSteps) return fail('limit', '실행 ' + maxSteps + '단계에 도달했어요. 반복 횟수나 이동 방향을 확인해 주세요.');
       state.status = 'running'; state.event = event;
       if (event.type !== 'return') state.steps++;
+      const timedAction = ['move', 'turn', 'wait'].includes(event.type);
+      if (timedAction) { state.movementCount++; event.time = state.movementCount; }
       if (event.type === 'move') {
         const target = ahead(); event.from = copy(state.robot); event.to = target;
         if (tile(target.x, target.y) === '#') {
@@ -135,12 +170,18 @@
         event.fromDir = state.robot.dir;
         state.robot.dir = (state.robot.dir + (event.command === 'right' ? 1 : 3)) % 4;
         event.toDir = state.robot.dir; state.message = event.command === 'right' ? '오른쪽으로 돌아요.' : '왼쪽으로 돌아요.';
-      } else if (event.type === 'repeat') state.message = '반복 ' + event.iteration + ' / ' + event.count + '회.';
+      } else if (event.type === 'wait') state.message = '한 박자 기다려요. 시간 ' + state.movementCount + '.';
+      else if (event.type === 'repeat') state.message = '반복 ' + event.iteration + ' / ' + event.count + '회.';
       else if (event.type === 'condition') state.message = (event.condition === 'blocked' ? '앞이 막혔나요?' : '지금 별 표식 위인가요?') + ' → ' + (event.result ? '예' : '아니요');
       else if (event.type === 'call') {
         if (state.callStack.length >= LIMITS.callDepth) return fail('depth', '함수는 두 겹까지만 부를 수 있어요.');
         state.callStack.push({ target: event.target, callId: event.id }); state.message = event.target + ' 안으로 들어가요.';
       } else if (event.type === 'return') { state.callStack.pop(); state.message = event.target + '에서 돌아왔어요. 다음 명령을 이어가요.'; }
+      if (timedAction && hazardState(map, state.movementCount).active.some(cell => cell.x === state.robot.x && cell.y === state.robot.y)) {
+        const { type: action, ...detail } = event;
+        return fail('hazard', '시간 ' + state.movementCount + '에 이 칸이 켜졌어요. 기다리기나 명령 순서를 바꿔 지나가 보세요.',
+          { ...detail, action, at: { x: state.robot.x, y: state.robot.y } });
+      }
       if (tile(state.robot.x, state.robot.y) === 'H') {
         state.status = 'success'; state.message = '집에 도착했어요!'; state.event = Object.assign({}, event, { type: 'success', action: event.type });
       }
@@ -152,5 +193,5 @@
     }
     return { step, snapshot, cancel };
   }
-  return Object.freeze({ LIMITS, DIRECTIONS, validate, createRunner, validMap });
+  return Object.freeze({ LIMITS, DIRECTIONS, validate, createRunner, validMap, hazardState });
 });
