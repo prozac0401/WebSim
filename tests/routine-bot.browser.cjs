@@ -11,7 +11,8 @@ const phase = process.argv[2] || 'final';
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8123/WebSim/').replace(/\/?$/, '/');
 const output = path.resolve(process.env.WEBSIM_EVIDENCE || `output/playwright/routine-bot/${phase}`);
 fs.mkdirSync(output,{recursive:true});
-const report = {phase,base,started:new Date().toISOString(),checks:[],errors:[],progression:[],classification:'solution-informed rendered UI replay; independent blind review is separate',android:'NOT RUN'};
+const blockCaps = [3,5,6,2,5,7,4,4,6,11,9,6,9,10,9];
+const report = {phase,base,started:new Date().toISOString(),checks:[],errors:[],progression:[],blockCaps,classification:'solution-informed rendered UI replay; independent blind review is separate',android:'NOT RUN'};
 const record = name => { report.checks.push({name,status:'PASS'}); console.log('PASS',name); fs.writeFileSync(path.join(output,'browser-report.json'),JSON.stringify(report,null,2)); };
 const read = page => page.evaluate(()=>JSON.parse(window.render_game_to_text()));
 const wait = (page, ms) => page.waitForTimeout(ms);
@@ -47,7 +48,7 @@ async function build(page,program,touch=false){
   for(const root of ['main','F1','F2']) if(program[root]?.length){await press(page,`[data-scope="${root}"]`,touch);await addList(page,program[root],touch);}
   await press(page,'[data-scope="main"]',touch);
 }
-async function finish(page,touch=false){await press(page,'#run',touch);await page.waitForFunction(()=>{const s=JSON.parse(window.render_game_to_text());return s.status==='failure'||(s.status==='success'&&document.querySelector('#success-panel').hidden===false);},{},{timeout:90000});assert.equal((await read(page)).status,'success');}
+async function finish(page,touch=false){await press(page,'#run',touch);await page.waitForFunction(()=>{const s=JSON.parse(window.render_game_to_text());return s.status==='failure'||(s.status==='success'&&document.querySelector('#success-panel').hidden===false);},{},{timeout:90000});const state=await read(page);assert.equal(state.status,'success');assert.ok(state.stored<=blockCaps[state.level-1]);assert.match(await page.locator('#command-count').innerText(),new RegExp('\\/\\s*'+blockCaps[state.level-1]+'개'));}
 const move=type=>({type});
 const early=[
   {main:['forward','forward','forward'].map(move),F1:[],F2:[]},
