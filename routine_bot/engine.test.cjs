@@ -4,6 +4,9 @@ const assert = require('node:assert/strict');
 const E = require('./engine.js');
 const levels = require('./levels.js');
 const solutions = require('./solutions.cjs');
+// Hand-counted stored nodes, including containers, both branches and function
+// definitions. Deliberately independent of engine counting and level metadata.
+const REFERENCE_BUDGETS = Object.freeze([3, 5, 6, 2, 5, 7, 4, 4, 6, 11, 9, 6, 9, 10, 9]);
 let serial = 0;
 const node = (type, extra = {}) => ({ id: 'test-' + (++serial), type, ...extra });
 const forward = () => node('forward'), left = () => node('left'), right = () => node('right');
@@ -184,12 +187,31 @@ test('levels expose exactly 12 core levels and 3 post-core challenges', () => {
   assert.deepEqual(levels.map(l => l.id), Array.from({ length: 15 }, (_, i) => i + 1));
   assert.deepEqual(levels.map(l => l.chapter), [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5]);
   assert.ok(levels.some(l => l.id >= 10 && l.maps.length > 1));
+  assert.equal(levels.reduce((total, level) => total + level.maps.length, 0), 18);
+});
+test('each hard stored-block budget matches the independently counted reference budget', () => {
+  assert.deepEqual(levels.map(level => level.maxCommands), REFERENCE_BUDGETS);
+  assert.deepEqual(levels.map(level => E.validate(solutions[level.id], level).count), REFERENCE_BUDGETS);
+});
+test('reference budgets limit total nodes without imposing per-type quotas or requiring the reference structure', () => {
+  // Level 2's reference has no left turns. Three left turns still form a legal
+  // program below its five-node budget, even though that program does not win.
+  const checked = E.validate(program([left(), left(), left()]), levels[1]);
+  assert.equal(checked.ok, true); assert.equal(checked.count, 3);
+  // A direct wall follower also solves both level-12 maps with four saved
+  // nodes, below its six-node function-based reference. The budget is a cap.
+  const alternate = program([repeat(12, [iff('blocked', [right()], [forward()])])]);
+  assert.equal(E.validate(alternate, levels[11]).count, 4);
+  for (let mapIndex = 0; mapIndex < 2; mapIndex++) {
+    assert.equal(finish(E.createRunner(alternate, levels[11], mapIndex)).state.status, 'success');
+  }
 });
 
 for (const level of levels) test('reference level ' + level.id + ': all maps solved with one unchanged program inside limits', () => {
   const p = solutions[level.id], serialized = JSON.stringify(p), checked = E.validate(p, level);
   assert.equal(checked.ok, true, checked.errors.join('; '));
-  assert.ok(checked.count <= level.maxCommands); assert.ok(checked.count <= level.compactTarget);
+  assert.equal(checked.count, REFERENCE_BUDGETS[level.id - 1]);
+  assert.equal(checked.count, level.maxCommands);
   assert.equal(level.hints.length, 3);
   for (let mapIndex = 0; mapIndex < level.maps.length; mapIndex++) {
     const map = level.maps[mapIndex]; assert.equal(E.validMap(map), true);
@@ -197,5 +219,22 @@ for (const level of levels) test('reference level ' + level.id + ': all maps sol
     assert.equal(state.status, 'success', 'map ' + mapIndex + ': ' + state.message);
     assert.equal(map.rows[state.robot.y][state.robot.x], 'H'); assert.ok(state.steps <= level.maxSteps);
     assert.equal(JSON.stringify(p), serialized);
+  }
+});
+
+for (const level of levels) test('reference level ' + level.id + ': one extra saved block is rejected before any execution', () => {
+  const oversized = JSON.parse(JSON.stringify(solutions[level.id]));
+  // Appending after the winning code also proves that unreachable trailing
+  // commands count toward the stored budget; reaching home cannot bypass it.
+  oversized.main.push({ id: 'over-budget-' + level.id, type: 'forward' });
+  const checked = E.validate(oversized, level);
+  assert.equal(checked.count, REFERENCE_BUDGETS[level.id - 1] + 1);
+  assert.equal(checked.ok, false);
+  assert.deepEqual(checked.errors, ['이 레벨은 저장 블록 ' + level.maxCommands + '개까지 사용할 수 있어요.']);
+  for (let mapIndex = 0; mapIndex < level.maps.length; mapIndex++) {
+    const runner = E.createRunner(oversized, level, mapIndex), rejected = runner.snapshot();
+    assert.equal(rejected.status, 'failure'); assert.equal(rejected.event.reason, 'validation');
+    assert.equal(rejected.steps, 0); assert.deepEqual(rejected.robot, level.maps[mapIndex].start);
+    assert.deepEqual(runner.step(), rejected);
   }
 });

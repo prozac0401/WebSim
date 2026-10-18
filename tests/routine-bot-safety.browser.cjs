@@ -162,10 +162,10 @@ async function pendingFirstArrival(page) {
     pass('fifth nesting level is rejected with unchanged code and responsive editor');
 
     await page.locator('#level-select').selectOption('1'); await clear(page);
-    for (let i = 0; i < 6; i++) await click(page, '[data-add="forward"]');
+    for (let i = 0; i < 3; i++) await click(page, '[data-add="forward"]');
     const atBudget = (await read(page)).program; await click(page, '[data-add="forward"]'); state = await read(page);
-    assert.equal(state.stored, 6); assert.deepEqual(state.program, atBudget); assert.match(state.message, /6개/);
-    await page.waitForTimeout(350); assert.match((await read(page)).message, /6개/);
+    assert.equal(state.stored, 3); assert.deepEqual(state.program, atBudget); assert.match(state.message, /3개/);
+    await page.waitForTimeout(350); assert.match((await read(page)).message, /3개/);
     await capture(page, 'size-limit'); pass('level block budget rejects only the attempted edit and keeps its explanation');
 
     await page.locator('#level-select').selectOption('12'); await clear(page);

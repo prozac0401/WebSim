@@ -11,10 +11,10 @@ catch { ({ chromium } = createRequire(path.join(process.env.USERPROFILE || proce
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8123/WebSim/').replace(/\/?$/, '/');
 const output = path.resolve(process.env.WEBSIM_EVIDENCE || 'output/playwright/routine-bot/tree');
 fs.mkdirSync(output, { recursive: true });
-const report = { started: new Date().toISOString(), base, suiteRevision: 'inline-tree-active-leaf-v2',
+const report = { started: new Date().toISOString(), base, suiteRevision: 'inline-tree-answer-budgets-v3',
   viewports: [{ width: 1440, height: 900, touch: false }, { width: 320, height: 740, touch: true }, { width: 390, height: 844, touch: true }],
   reducedMotion: 'reduce', checks: [], errors: [], android: 'NOT RUN',
-  classification: 'Source-informed visible-control tree regression, with completion 1–11 seeded only for access. Not blind play or full progression.' };
+  classification: 'Source-informed visible-control tree regression, with completion 1–13 seeded only for access. Not blind play or full progression.' };
 const write = () => fs.writeFileSync(path.join(output, 'tree-report.json'), JSON.stringify(report, null, 2));
 const pass = (name, detail = {}) => { report.checks.push({ name, status: 'PASS', ...detail }); write(); console.log('PASS', name); };
 const read = page => page.evaluate(() => JSON.parse(window.render_game_to_text()));
@@ -111,10 +111,10 @@ async function treeScene(page, label, touch) {
 
   await press(page, '#clear', touch); await add(page, 'repeat', touch);
   const boundedId = (await read(page)).program.main[0].id;
-  for (let count = 0; count < 9; count++) await add(page, 'forward', touch);
+  await add(page, 'forward', touch);
   const beforeReject = (await read(page)).program;
   await add(page, 'forward', touch); state = await read(page);
-  assert.equal(state.stored, 10); assert.deepEqual(state.program, beforeReject); assert.match(state.message, /10개/);
+  assert.equal(state.stored, 2); assert.deepEqual(state.program, beforeReject); assert.match(state.message, /2개/);
   // A rejected edit replaces the program with a rollback copy. A repeat's DOM
   // listener must resolve the live node, rather than mutating a stale closure.
   await page.locator(selector('data-repeat', boundedId)).selectOption('5');
@@ -123,7 +123,8 @@ async function treeScene(page, label, touch) {
   await press(page, '#undo', touch); assert.deepEqual((await read(page)).program, beforeReject);
   pass(label + ': after a rejected over-budget edit, repeat count changes affect the live program and undo restores it');
 
-  await press(page, '#clear', touch);
+  await page.locator('#level-select').selectOption('6');
+  if (!await page.locator('#clear').isDisabled()) await press(page, '#clear', touch);
   for (let depth = 0; depth < 4; depth++) await add(page, 'repeat', touch);
   await add(page, 'forward', touch);
   const foldedId = (await read(page)).program.main[0].id;
@@ -185,7 +186,7 @@ async function keyboardScene(page) {
       const key = 'routinebot-tree-access-seeded';
       if (sessionStorage.getItem(key)) return;
       localStorage.setItem('routinebot-save-v1', JSON.stringify({ version: 1, currentLevel: level,
-        completed: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, true])), programs: {}, settings: { speed: 1, muted: true } }));
+        completed: Object.fromEntries(Array.from({ length: 13 }, (_, i) => [i + 1, true])), programs: {}, settings: { speed: 1, muted: true } }));
       sessionStorage.setItem(key, '1');
     }, level);
     const page = await context.newPage();
@@ -196,7 +197,7 @@ async function keyboardScene(page) {
   try {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 320, height: 740 }, { width: 390, height: 844 }]) {
       const touch = viewport.width < 500, label = touch ? 'touch-' + viewport.width : 'desktop';
-      const { context, page } = await session(viewport, touch, 12);
+      const { context, page } = await session(viewport, touch, 14);
       await treeScene(page, label, touch); await context.tracing.stop({ path: path.join(output, label + '-trace.zip') }); await context.close();
     }
     const { context, page } = await session({ width: 1440, height: 900 }, false, 4);

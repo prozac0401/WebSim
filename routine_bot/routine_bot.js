@@ -26,6 +26,10 @@
     $('save-status').textContent = saveProblem || '✓ 기기에 자동 저장';
   }
   function tell(text) { message = text; $('message').textContent = text; }
+  // Older saves may exceed a newer level cap while remaining safe data.
+  // Relax only that cap for migration/editing; all structural rules still apply.
+  function validateWithoutLevelCap(candidate) { return E.validate(candidate,{...level,maxCommands:E.LIMITS.commands}); }
+  function budgetNotice(count) { return `저장 ${count}개가 제한 ${level.maxCommands}개를 넘어요. 코드는 유지했어요. ${count-level.maxCommands}개 줄인 뒤 실행해 주세요.`; }
   function nodeKey(node) { return node.type === 'if' ? node.condition : node.type === 'call' ? node.target : node.type; }
   function listAt(where = scope) {
     let list = program[where.root];
@@ -58,12 +62,16 @@
   }
   function edit(change, after) {
     const before = clone(program), previousScope = clone(scope), previousSelected = selected;
+    const previousCount = E.validate(before,level).count;
     change();
     const validation = E.validate(program, level);
-    if (!validation.ok) { program = before; scope = previousScope; selected = previousSelected; tell(validation.errors[0]); return false; }
+    const repairing = previousCount > level.maxCommands && validation.count <= previousCount && validateWithoutLevelCap(program).ok;
+    if (!validation.ok && !repairing) { program = before; scope = previousScope; selected = previousSelected; tell(validation.errors[0]); return false; }
     history.push({program:before,scope:previousScope,selected:previousSelected}); if(history.length > 40) history.shift();
     stop(true); mapIndex = 0; if(after) after();
-    persist(); renderEditor(); renderMapDescription(); draw(); return true;
+    persist(); renderEditor(); renderMapDescription(); draw();
+    if(previousCount>level.maxCommands)tell(validation.count>level.maxCommands?budgetNotice(validation.count):'블록 제한 안에 들어왔어요. 실행해서 길을 확인해 보세요.');
+    return true;
   }
   function add(kind) {
     const id = uid(); let n = {id,type:kind};
@@ -83,7 +91,10 @@
     revealScope();
     const checked=E.validate(program,level);
     $('command-count').textContent=`저장 ${checked.count} / ${level.maxCommands}개`;
+    $('command-count').setAttribute('aria-label',`저장한 블록 ${checked.count}개, 이 레벨의 제한 ${level.maxCommands}개`);
     $('command-count').classList.toggle('over',!checked.ok);
+    $('budget-rule').textContent=checked.count>level.maxCommands?budgetNotice(checked.count):`저장 블록 ${level.maxCommands}개 안에서 집에 도착해요.`;
+    $('budget-rule').classList.toggle('over',checked.count>level.maxCommands);
     const paletteKeys=['forward','left','right','repeat','blocked','mark','F1','F2'].filter(k=>level.unlocks.includes(k));
     $('palette').replaceChildren(...paletteKeys.map(kind=>{const b=document.createElement('button');b.dataset.add=kind;b.setAttribute('aria-label',labels[kind]+' 넣기');b.innerHTML=`<span class="symbol" aria-hidden="true">${symbols[kind]}</span><span>${labels[kind]}</span>`;b.onclick=()=>add(kind);return b;}));
     $('scope-tabs').replaceChildren(...['main','F1','F2'].filter(root=>root==='main'||level.unlocks.includes(root)).map(root=>{const b=document.createElement('button');b.dataset.scope=root;b.textContent=root==='main'?'시작':root+' 보관함';b.setAttribute('aria-pressed',String(scope.root===root));b.onclick=()=>{scope={root,trail:[]};selected=null;renderEditor();};return b;}));
@@ -183,13 +194,14 @@
   function loadLevel(id) {
     stop(true);level=levels.find(l=>l.id===Number(id))||levels[0];mapIndex=0;
     program=clone(saved.programs[level.id]||blank());
-    if(!E.validate(program,level).ok){program=blank();saveProblem='이 레벨의 잘못된 코드를 초기화했어요';}
+    if(!validateWithoutLevelCap(program).ok){program=blank();saveProblem='이 레벨의 잘못된 코드를 초기화했어요';}
     scope={root:'main',trail:[]};selected=null;history=[];hintIndex=0;collapsedBranches.clear();
     $('chapter-name').textContent=chapters[level.chapter];$('level-title').textContent=String(level.id).padStart(2,'0')+' · '+level.title;$('brief').textContent=level.brief;
     $('map-choice').hidden=level.maps.length<2;
     $('map-select').replaceChildren(...level.maps.map((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent='지도 '+(i+1);return o;}));
     $('hint-text').textContent='막히면, 길을 다른 눈으로 바라봐요.';$('hint').textContent='✦ 작은 힌트';$('hint').disabled=false;
-    tell(level.id===1?'↑ 앞으로를 눌러 블록을 넣어요. 집까지 이어 볼까요?':level.brief);
+    const count=E.validate(program,level).count;
+    tell(count>level.maxCommands?budgetNotice(count):level.id===1?'↑ 앞으로를 눌러 블록을 넣어요. 집까지 이어 볼까요?':level.brief);
     persist();renderLevels();renderEditor();renderMapDescription();renderPlayback();draw();
   }
   function renderPlayback() {
@@ -229,7 +241,7 @@
     const previous=saved.completed[level.id];if(!previous||previous===true||count<previous.stored)saved.completed[level.id]={stored:count,executed};
     persist();renderLevels();$('success-panel').hidden=false;
     $('success-title').textContent=level.id===15?'모든 길이 집으로 이어졌어요!':level.id===12?'본편 완주! 더 먼 길이 열렸어요.':'집에 도착했어요!';
-    $('success-detail').textContent=`저장 ${count}개 · 실행 ${executed}회`+(level.maps.length>1?` · 지도 ${verifiedMaps}개 통과`:'')+(level.id>3?(count<=level.compactTarget?' · ✦ 간결한 코드 배지!':` · 선택 도전: ${level.compactTarget}개 안에 담아 보기`):' · 멋진 첫걸음이에요.');
+    $('success-detail').textContent=`저장 ${count} / ${level.maxCommands}개 · 실행 ${executed}회`+(level.maps.length>1?` · 지도 ${verifiedMaps}개 통과`:'')+' · 블록 제한 안에서 도착!';
     $('next-level').textContent=level.id===15?'여정 돌아보기 ↗':level.id===12?'응용 도전으로 →':'다음 길 →';
     tell(level.id===15?'15개 레벨 완주! 루틴봇에게 집으로 가는 방법을 알려 줬어요.':'도착! 로봇의 작은 일상이 한 걸음 더 이어졌어요.');
   }

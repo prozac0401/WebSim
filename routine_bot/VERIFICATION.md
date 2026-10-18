@@ -145,3 +145,48 @@ node tests/routine-bot-tree.browser.cjs
 ```
 
 UI suite는 충분한 브라우저 자원이 있는 환경에서 순차 실행하면 trace 수집 경쟁을 줄일 수 있다. `WEBSIM_EVIDENCE`를 생략하면 트리 전용 검사는 `output/playwright/routine-bot/tree/`에 쓴다. 발견한 좁은 화면 조건 이름 줄바꿈, 거절된 편집 뒤 횟수 변경, 활성 명령이 화면을 벗어나던 장면과 수정 후 실제 캡처 검토는 [PLAYTEST.md](PLAYTEST.md)의 같은 날짜 절에 기록했다. 이번 후속 수정의 원격 PR/병합/운영 반영은 별도 게시 확인으로 갱신한다.
+
+## 2026-10-19 · 기준해답 저장 블록 제한
+
+`feat/routinebot-answer-budgets`의 후속 변경이다. 1~15레벨의 필수 저장 블록 제한은 `3, 5, 6, 2, 5, 7, 4, 4, 6, 11, 9, 6, 9, 10, 9`개다. 시작·반복·조건 양쪽·F1/F2를 모두 합산하며 실제 실행 횟수와 구분한다. 기준해답의 수와 일치하는 상한이지 증명된 최솟값이나 명령 종류별 할당량은 아니다. 12레벨은 기준 6개보다 적은 4개짜리 다른 프로그램도 같은 두 지도에서 통과함을 따로 검증했다.
+
+새 한도만 넘는 이전 코드는 보존하고, 구조·명령 해제·깊이·순환·전역 크기 검증은 유지했다. 제한을 넘는 실행과 추가는 거부한다. 아직 초과 상태인 부분 삭제·같은 개수의 횟수 수정·재배치·실행 취소는 보존하며 다시 불러올 수 있다. 기존 완료 기록은 삭제하지 않지만 모든 새 실행은 현재 제한을 따른다. 독립 코드 검토에서 부분 삭제 뒤 상단 초과 수치가 오래된 채 남는 문제를 찾아 갱신했고, 세 화면에서 같은 수리 장면을 다시 시험했다.
+
+| 분류 | 결과 | 증거 |
+| --- | --- | --- |
+| 엔진·15레벨·18지도·저장·서버 | PASS 73/73 | `output/playwright/routine-bot/budgets/unit-tests.txt`: 엔진57, 저장13, 서버3. 각 기준해답 수=제한 및 1블록 초과 15건 실행 전 거부 포함 |
+| 실제 접두 경로·목록·기존 HTML | PASS | `budgets/deployment.json`, 자원/복귀와 기존 59개 링크 |
+| 기존 초과 저장 보존·수리 | PASS 21/21 | `budgets/migration/budget-report.json`, desktop1440×900·320×740/390×844 터치, 5→4→3 삭제·취소·복원·실행/추가 거절·수리 후 실제 성공 |
+| 중첩 트리·키보드·모바일 | PASS 26/26 | `budgets/tree/tree-report.json`, revision `inline-tree-answer-budgets-v3` |
+| 중단·복수 지도·순환·한도·소리 | PASS 13/13 | `budgets/safety/safety-report.json`, 기존 150단계 실행 한도와 깊이4 경계 유지 |
+| 독립 실제 조작 검토 | PASS 7/7 | `output/playwright/routine-bot/budget-review/review.json`, 191행동. 새 저장1–4 세 화면과 별도 legacy/F1F2 fixture를 분리 |
+| 전체 15레벨 UI 진행 | PASS 30/30 | `budgets/full/browser-report.json`, 실제 블록 입력으로15레벨·최종 클리어,320/390터치·복원/손상/저장 실패, 화면 제한 수와 독립 기대 수열 일치 |
+| 기본 develop-web-game 클라이언트 | PASS — 입력·렌더 smoke | `budgets/client/shot-0.png`, `state-0.json`: 종료0, 저장2·실행0·ready를 캡처/상태로 확인. 실제 실행·승리 증거는 전체 UI 검사와 구분 |
+| 프로젝트 스킬 직접 재적용·형식 | PASS | 두 스킬에 hard cap/migration 명령·판정·증거 분류 추가 후 직접 실행. `budgets/skill-verification-format.txt`, `skill-playtest-format.txt` |
+| 브라우저 오류 | PASS — 0건 | migration/tree/safety/full 및 독립 검토 보고서 |
+| 실제 Android/iOS·사람의 만족도 | NOT RUN | 브라우저 에뮬레이션과 에이전트 조작만 수행 |
+| 이번 변경의 원격 push·PR·main 병합·운영 배포 | NOT RUN | 앞 절의 출시 기록과 분리. 로컬 작업 이후 게시 확인이 필요 |
+
+Chromium 145.0.7632.6을 사용했다. migration은 UTC 2026-10-18 21:56:33.441–21:56:58.638, tree는 21:57:06.313–21:58:06.361, safety는 21:58:16.389–21:59:51.016에 각각 순차 실행해 trace까지 정상 저장했다. migration의 세 화면 모두 부분 삭제 후 최신 초과 수치와 제한 충족 안내를 단언한다. 독립 검토의 브라우저 실행은 그 안내 수정 전이며 최종 migration이 해당 수정을 재검증했다. 정답 파일을 읽는 전체 진행 재생과 정답 미열람 독립 초반 탐색, 저장 fixture, 후반 접근 fixture는 서로 다른 증거다.
+
+전체 UI 검사는 UTC 22:00:21.315–22:04:49.505에 실행해 exit0으로 종료했다. 데스크톱은 새 저장에서 15레벨·18지도를 실제로 진행했고 최종 클리어를 확인했다. 모바일은 초반과 별도 접근 fixture를 통한 후반 편집/복수 지도 범위다. 기본 클라이언트는 버튼 입력과 텍스트/Canvas 캡처 smoke로 따로 실행했고, PNG와 상태 JSON을 직접 검토했다. 모든 브라우저 검사는 종료 후 닫았다.
+
+트리 fixture는 기존 9블록 구조/10번째 삽입 검사를 수행할 수 있는 14레벨로 옮겼고, 깊이4 실행 가시성은 6레벨에서 유지했다. 4레벨의 rollback 검사는 반복+앞으로 2블록 뒤 세 번째 추가를 거절한다. 전역128개·중첩·실행 제한 독립 시험을 유지했으며 더 작은 레벨 예산에 맞추느라 검증 항목을 삭제하거나 실패를 숨기지 않았다. 초기·이전 릴리스의 실패 기록은 앞 절과 원래 증거 경로에 그대로 남아 있다.
+
+재실행(정적 서버를 켜고 저장소 루트 PowerShell에서):
+
+```powershell
+node --test routine_bot/engine.test.cjs routine_bot/storage.test.cjs tests/routine-bot-server.test.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/budgets'
+node tests/routine-bot-deployment.cjs budgets
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/budgets/migration'
+node tests/routine-bot-budgets.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/budgets/tree'
+node tests/routine-bot-tree.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/budgets/safety'
+node tests/routine-bot-safety.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/budgets/full'
+node tests/routine-bot.browser.cjs final
+```
+
+이미 존재하는 증거를 보존하려면 `WEBSIM_EVIDENCE`를 새 폴더로 바꿔 재실행한다. 다른 게임 코드를 바꾸지 않아 이전 전체 저장소765건과 다른 게임 브라우저 회귀는 이번에 다시 실행하지 않았으며, 앞 절의 과거 결과와 구분한다. 변경 범위의 엔진·저장·전체 루틴봇 UI 및 실제 HTTP 기존 링크를 검증한다.
