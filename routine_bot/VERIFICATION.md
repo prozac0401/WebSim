@@ -83,15 +83,28 @@ node --test @legacyTests
 
 ## 실행·게시 상태 구분
 
-로컬 정적 실행과 위 논리/HTTP 검증은 PASS이며 원격 브랜치와 PR도 생성했습니다. main 병합·GitHub Pages 운영 배포는 별도의 GitHub/공개 URL 결과를 확인한 후 이 표를 갱신합니다. localhost 테스트를 운영 배포 성공으로 간주하지 않습니다.
+로컬 정적 실행과 위 논리/HTTP 검증, 원격 push·PR·main 병합·GitHub Pages 운영 배포를 각각 확인했습니다. 공개 사이트는 별도 새 브라우저 문맥에서 다시 검사했습니다.
 
 | 작업 | 현재 기록 |
 | --- | --- |
 | 코드 및 로컬 정적 실행 | PASS |
 | 원격 push | PASS — `feat/routinebot-home-code`, 초기 커밋 `089ab8bd1862c5745cc81c544a02ab8a04d29c8e` |
-| PR 생성 | PASS — [PR #103](https://github.com/prozac0401/WebSim/pull/103), 초안 생성·현재 작업에 연결 |
-| main 병합 | NOT RUN — 게시 담당의 최종 결과 확인 전 |
-| 운영 Pages 배포 및 공개 URL smoke | NOT RUN — 게시 담당의 최종 결과 확인 전 |
+| PR 생성 | PASS — [PR #103](https://github.com/prozac0401/WebSim/pull/103), 생성·현재 작업에 연결·검토 완료 |
+| main 병합 | PASS — `8bbdae1518c7355850725bedc8d4e8ce5987fde3`, 2026-10-18 13:45:41 UTC |
+| 운영 Pages 배포 | PASS — [배포 39132962649](https://github.com/prozac0401/WebSim/actions/runs/39132962649), main/root 기존 구성, build/deploy 모두 success |
+| 공개 파일 일치 | PASS — 목록·공통 메뉴·게임 HTML/CSS/JS·엔진·레벨·저장·안내9개 파일이 위 병합 커밋과 SHA-256 일치. `public/public-bytes.json` |
+| 공개 URL 브라우저 smoke | PASS — Chromium 145.0.7632.6,15개 검사, 오류0. 실제 목록→1–3 플레이/수정/중단/저장,320·390px 터치. 공개59개 기존 HTML 링크도200. `public/browser-report.json`, `public/deployment.json` |
+
+공개 게임: https://prozac0401.github.io/WebSim/routine_bot/routine_bot.html . 공개 브라우저 smoke는 2026-10-18 13:47:52–13:48:31 UTC에 수행했습니다. 데스크톱 첫 화면/성공과 두 모바일 성공 PNG를 직접 확인했습니다. 운영 사이트에서 전체15레벨을 다시 푼 것은 아니며, 전체 진행은 동일한 런타임 파일의 로컬 검증 결과입니다.
+
+공개 경로 재시험은 다음과 같습니다. 브라우저는 별도 임시 프로필에서 실행하며 실제 사용자의 저장 데이터를 건드리지 않습니다.
+
+```powershell
+$env:WEBSIM_URL='https://prozac0401.github.io/WebSim/'
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/public'
+node tests/routine-bot-deployment.cjs public
+node tests/routine-bot.browser.cjs early
+```
 
 ## 최종 수정의 추가 확인
 
