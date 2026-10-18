@@ -24,7 +24,7 @@
       unlocks: basic, maxCommands: 12, maxSteps: 35, compactTarget: 6,
       maps: [{ rows: ['######', '##.H##', '##.###', '#..###', '######'], start: { x: 1, y: 3, dir: 1 } }] },
     { id: 4, title: '햇살 보도', chapter: 2, brief: '같은 발걸음은 반복 상자에 담아 보세요.',
-      hints: ['똑같은 앞으로 블록이 여러 개 필요해 보여요.', '반복 블록 안에 넣은 명령은 정한 횟수만큼 다시 해요.', '반복 상자를 고른 뒤 안쪽을 열고, 필요한 발걸음을 넣어 보세요.'],
+      hints: ['똑같은 앞으로 블록이 여러 개 필요해 보여요.', '반복 블록 안에 넣은 명령은 정한 횟수만큼 다시 해요.', '펼쳐진 반복 가지의 ＋ 버튼으로 위치를 고르고, 필요한 발걸음을 넣어 보세요.'],
       unlocks: loops, maxCommands: 10, maxSteps: 40, compactTarget: 2,
       maps: [{ rows: ['########', '#.....H#', '########'], start: { x: 1, y: 1, dir: 1 } }] },
     { id: 5, title: '통통 계단', chapter: 2, brief: '걸음뿐 아니라 회전도 함께 반복할 수 있어요.',

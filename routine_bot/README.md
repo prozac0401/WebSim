@@ -12,7 +12,7 @@ node tests/routine-bot-server.cjs
 
 `http://127.0.0.1:8123/WebSim/`의 게임 목록에서 **루틴봇: 집으로 가는 코드**를 선택합니다. 직접 주소는 `http://127.0.0.1:8123/WebSim/routine_bot/routine_bot.html`입니다. `PORT` 환경 변수로 포트를 바꿀 수 있습니다. 배포 파일은 저장소에 있는 정적 HTML/CSS/JavaScript 그대로이며 빌드 단계가 없습니다. `/WebSim/` 접두 경로를 포함하는 서버는 GitHub Pages 프로젝트 경로의 상대 링크도 함께 검사합니다.
 
-블록을 눌러 넣고 **실행**합니다. 블록을 선택하면 그 뒤에 삽입하고, **이 범위 맨 뒤에 넣기**를 누르면 마지막 위치로 돌아갑니다. 선택한 블록을 앞으로/뒤로 옮기거나 삭제할 수 있습니다. 반복·조건 블록의 내부 편집 버튼으로 범위에 들어가고 **위로**로 돌아갑니다. F1/F2 탭은 함수 본문 편집입니다. 현재 범위 이름과 실행 경로는 별도로 표시합니다.
+블록을 눌러 넣고 **실행**합니다. 블록을 선택하면 같은 가지에서 그 뒤에 삽입하고, **이 범위 맨 뒤에 넣기**를 누르면 해당 가지의 마지막 위치로 돌아갑니다. 선택한 블록을 앞으로/뒤로 옮기거나 삭제할 수 있습니다. 반복·조건의 본문은 부모 아래 들여쓴 가지로 펼쳐지며, 앞뒤 명령도 함께 보입니다. **펼치기 / 접기**는 코드의 표시만 바꿉니다. 가지의 **＋ 추가** 버튼으로 새 블록을 넣을 곳을 고르고 반복 카드에서 횟수를 바꿉니다. 현재 편집 중인 가지를 접으면 삽입 위치가 부모 쪽으로 돌아가 숨은 코드에 명령이 들어가지 않습니다. F1/F2 탭은 함수 본문 편집입니다. 현재 범위 이름과 실행 경로는 별도로 표시합니다.
 
 **멈춤**, **한 단계**, **처음 위치**, **속도**로 실행을 관찰합니다. 처음 위치는 코드를 유지합니다. **코드 비우기**가 프로그램을 지우며 **실행 취소**로 최근 편집을 되돌립니다. 힌트는 관찰할 지점부터 단계적으로 제시합니다. 도착이 성공이며, 간결한 코드 도전은 선택 사항입니다. 제시한 목표 블록 수는 증명된 최적해가 아닙니다. 자세한 조작은 [놀이 방법](routine_bot_doc.html)에 있습니다.
 
@@ -57,9 +57,10 @@ node tests/routine-bot-deployment.cjs final
 node tests/routine-bot.browser.cjs early
 node tests/routine-bot.browser.cjs final
 node tests/routine-bot-safety.browser.cjs
+node tests/routine-bot-tree.browser.cjs
 ```
 
-HTTP 검사는 먼저 위 정적 서버를 켭니다. 브라우저 검사는 기존 프로젝트와 같은 Playwright를 사용하며 로컬 설치 또는 개발 환경의 `develop-web-game` 런타임을 찾습니다. `WEBSIM_URL`로 다른 서버(반드시 실제 접두 경로 포함)를 지정하고 `WEBSIM_EVIDENCE`로 증거 폴더를 지정할 수 있습니다. 안전성 브라우저 검사는 후반 접근용 진행 fixture를 사용하고 실제 UI로 프로그램을 편집하므로 전체 순차 진행·정답 미열람 탐색과 구분합니다. 해당 증거는 `final/safety/`에 기록합니다. Node 기본 시험은 추가 패키지 없이 실행됩니다. 브라우저 시험 의존성은 게임 배포물에 포함되지 않습니다.
+HTTP 검사는 먼저 위 정적 서버를 켭니다. 브라우저 검사는 기존 프로젝트와 같은 Playwright를 사용하며 로컬 설치 또는 개발 환경의 `develop-web-game` 런타임을 찾습니다. `WEBSIM_URL`로 다른 서버(반드시 실제 접두 경로 포함)를 지정하고 `WEBSIM_EVIDENCE`로 증거 폴더를 지정할 수 있습니다. 안전성/트리 브라우저 검사는 후반 접근용 진행 fixture를 사용하고 실제 UI로 프로그램을 편집하므로 전체 순차 진행·정답 미열람 탐색과 구분합니다. 안전성 증거는 `final/safety/`, 트리 펼침·접힘·중첩 편집·모바일·키보드 회귀는 `tree/`에 기록합니다. Node 기본 시험은 추가 패키지 없이 실행됩니다. 브라우저 시험 의존성은 게임 배포물에 포함되지 않습니다.
 
 프로젝트 스킬은 [game-verification](../.agents/skills/game-verification/SKILL.md)과 [game-playtest](../.agents/skills/game-playtest/SKILL.md)입니다. Codex에서 프로젝트를 연 뒤 `$game-verification`, `$game-playtest`로 요청할 수 있습니다. [공식 스킬 문서](https://learn.chatgpt.com/docs/build-skills)의 `.agents/skills/<name>/SKILL.md`와 `name`/`description` frontmatter 형식을 사용했습니다. 이 작업의 기존 세션에서는 신규 스킬의 자동 발견을 확인할 수 없어 파일을 직접 읽고 절차를 실행했습니다. 전역 설정이나 사용자 계정 설정은 바꾸지 않았습니다.
 

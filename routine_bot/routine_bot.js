@@ -10,6 +10,7 @@
   const dirs = ['북쪽 ↑','동쪽 →','남쪽 ↓','서쪽 ←'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let level, program, scope = {root: 'main', trail: []}, selected = null, history = [], runner = null, snapshot = null;
+  const collapsedBranches = new Set();
   let running = false, clock = 0, mapIndex = 0, verifiedMaps = 0, totalSteps = 0, transitioning = false, hintIndex = 0;
   let sequence = 0, generation = 0, message = '', celebration = 0, anim = null, audio = null, lastTime = performance.now();
   const initialSaveNotice = loaded.status === 'unavailable' ? '저장 불가 · 이 탭에서만 유지' : loaded.status === 'corrupt' ? '저장 손상 · 새 여정 시작' : loaded.status === 'recovered' ? '이전 저장 복구됨' : loaded.status === 'repaired' ? '일부 코드 손상 · 정상 기록 복구' : '';
@@ -31,11 +32,6 @@
     for (const part of where.trail) { const parent = list.find(n => n.id === part.id); if (!parent || !Array.isArray(parent[part.branch])) return null; list = parent[part.branch]; }
     return list;
   }
-  function parentAt(where = scope) {
-    if (!where.trail.length) return null;
-    const upper = {root: where.root, trail: where.trail.slice(0,-1)}, last = where.trail.at(-1);
-    return listAt(upper)?.find(n => n.id === last.id);
-  }
   function locate(id) {
     function visit(list, root, trail) {
       for (const n of list) { if (n.id === id) return {root, trail};
@@ -49,10 +45,12 @@
     const parts = [scope.root === 'main' ? '시작' : scope.root];
     let list = program[scope.root];
     for (const p of scope.trail) { const n = list.find(n => n.id === p.id); if (!n) break;
-      parts.push(p.branch === 'body' ? n.count + '회 반복 안쪽' : (n.condition === 'blocked' ? '벽?' : '별?') + (p.branch === 'then' ? ' 예' : ' 아니요')); list = n[p.branch];
+      parts.push(p.branch === 'body' ? n.count + '회 반복' : (n.condition === 'blocked' ? '벽?' : '별?') + (p.branch === 'then' ? ' 예' : ' 아니요')); list = n[p.branch];
     }
     return parts.join(' › ');
   }
+  function revealScope() { scope.trail.forEach(p => collapsedBranches.delete(p.id + ':' + p.branch)); }
+  function sameScope(a, b) { return a.root === b.root && JSON.stringify(a.trail) === JSON.stringify(b.trail); }
   function stop(reset = false) {
     generation++; running = false; clock = 0;
     if (reset) { if (runner) runner.cancel(); runner = null; snapshot = null; transitioning = false; verifiedMaps = 0; totalSteps = 0; anim = null; celebration = 0; $('success-panel').hidden = true; }
@@ -75,13 +73,14 @@
     const ok = edit(() => { const list = listAt(); const i = list.findIndex(n => n.id === selected); list.splice(i < 0 ? list.length : i + 1,0,n); selected = id;
       if (n.type === 'repeat' || n.type === 'if') { scope.trail.push({id,branch:n.type === 'repeat' ? 'body' : 'then'}); selected = null; }
     });
-    if(ok) tell(n.type === 'repeat' ? '반복 안쪽이에요. 되풀이할 블록을 넣어 주세요.' : n.type === 'if' ? '조건이 맞을 때의 코드예요. 위로 돌아가면 아니요 쪽도 고칠 수 있어요.' : labels[kind] + ' 블록을 넣었어요.');
+    if(ok) tell(n.type === 'repeat' ? '반복을 펼쳤어요. 되풀이할 블록을 넣어 주세요.' : n.type === 'if' ? '예 가지에 코드를 넣어요. 아니요 가지의 추가 버튼으로 위치를 바꿀 수 있어요.' : labels[kind] + ' 블록을 넣었어요.');
   }
   function renderEditor() {
     const previousFocus=document.activeElement;
-    const focusField=['data-add','data-scope','data-node','data-enter','data-function'].find(key=>previousFocus?.hasAttribute(key));
+    const focusField=['data-add','data-scope','data-node','data-enter','data-insert','data-repeat','data-function'].find(key=>previousFocus?.hasAttribute(key));
     const focusValue=focusField?previousFocus.getAttribute(focusField):null;
     if(!listAt()) {scope={root:'main',trail:[]};selected=null;}
+    revealScope();
     const checked=E.validate(program,level);
     $('command-count').textContent=`저장 ${checked.count} / ${level.maxCommands}개`;
     $('command-count').classList.toggle('over',!checked.ok);
@@ -89,36 +88,65 @@
     $('palette').replaceChildren(...paletteKeys.map(kind=>{const b=document.createElement('button');b.dataset.add=kind;b.setAttribute('aria-label',labels[kind]+' 넣기');b.innerHTML=`<span class="symbol" aria-hidden="true">${symbols[kind]}</span><span>${labels[kind]}</span>`;b.onclick=()=>add(kind);return b;}));
     $('scope-tabs').replaceChildren(...['main','F1','F2'].filter(root=>root==='main'||level.unlocks.includes(root)).map(root=>{const b=document.createElement('button');b.dataset.scope=root;b.textContent=root==='main'?'시작':root+' 보관함';b.setAttribute('aria-pressed',String(scope.root===root));b.onclick=()=>{scope={root,trail:[]};selected=null;renderEditor();};return b;}));
     $('scope-name').textContent=scopeTitle();$('scope-back').hidden=!scope.trail.length;
-    const parent=parentAt();$('scope-repeat-wrap').hidden=parent?.type!=='repeat';
-    if(parent?.type==='repeat')$('scope-repeat').value=parent.count;
     $('program').replaceChildren();
-    const list=listAt();
-    if(!list.length){const empty=document.createElement('div');empty.className='empty-program';empty.textContent=scope.root==='main'&&!scope.trail.length?'↑ 위의 블록을 눌러 첫 발걸음을 넣어 주세요.':scope.trail.length?'이 안에서 할 일을 위의 블록으로 넣어 주세요.':'자주 쓰는 움직임을 담아 주세요. 시작에서 '+scope.root+'을 부르면 실행돼요.';$('program').append(empty);}
+    $('program').setAttribute('aria-label',(scope.root==='main'?'시작':scope.root)+' 명령 트리');
+    function renderList(list, where, container) {
+    if(!list.length&&!where.trail.length){const empty=document.createElement('div');empty.className='empty-program';empty.textContent=where.root==='main'?'↑ 위의 블록을 눌러 첫 발걸음을 넣어 주세요.':'자주 쓰는 움직임을 담아 주세요. 시작에서 '+where.root+'을 부르면 실행돼요.';container.append(empty);}
     list.forEach((n,index)=>{
+      const treeNode=document.createElement('div');treeNode.className='tree-node';
       const key=nodeKey(n),card=document.createElement('div');card.className='block '+n.type;card.dataset.block=n.id;
       card.classList.toggle('selected',selected===n.id);card.classList.toggle('executing',snapshot?.currentId===n.id&&snapshot?.status!=='failure');card.classList.toggle('crashed',snapshot?.currentId===n.id&&snapshot?.status==='failure');
       const b=document.createElement('button');b.className='block-main';b.dataset.node=n.id;b.setAttribute('aria-label',`${index+1}번 ${labels[key]} 선택`);b.setAttribute('aria-pressed',String(selected===n.id));
       b.innerHTML=`<span class="block-number">${String(index+1).padStart(2,'0')}</span><span class="symbol" aria-hidden="true">${symbols[key]}</span><span>${labels[key]}${n.type==='repeat'?' × '+n.count:''}</span>`;
-      b.onclick=()=>{selected=n.id;renderEditor();};card.append(b);
-      const enter=(branch,label)=>{const e=document.createElement('button');e.className='enter';e.dataset.enter=n.id+':'+branch;e.textContent=label;e.onclick=()=>{scope.trail.push({id:n.id,branch});selected=null;renderEditor();};card.append(e);};
-      if(n.type==='repeat')enter('body','안쪽 '+n.body.length+'개 ↳');
-      if(n.type==='if'){enter('then','예 '+n.then.length+'개');enter('else','아니요 '+n.else.length+'개');}
+      b.onclick=()=>{scope=clone(where);selected=n.id;renderEditor();};card.append(b);treeNode.append(card);
+      const children=document.createElement('div');children.className='tree-children';
+      const enter=(branch,label)=>{
+        const branchKey=n.id+':'+branch,expanded=!collapsedBranches.has(branchKey);
+        const branchLabel=branch==='body'?'반복':label+' 가지';
+        const childScope={root:where.root,trail:where.trail.concat({id:n.id,branch})};
+        const e=document.createElement('button');e.className='enter';e.dataset.enter=branchKey;e.textContent=(branch==='body'?'':label+' ')+(expanded?'접기 ▾':'펼치기 ▸');
+        e.setAttribute('aria-expanded',String(expanded));e.setAttribute('aria-controls','branch-'+branchKey);e.setAttribute('aria-label',label+' '+(expanded?'접기':'펼치기'));
+        e.onclick=()=>{
+          if(expanded){collapsedBranches.add(branchKey);if(scope.root===where.root&&scope.trail.some(p=>p.id===n.id&&p.branch===branch)){scope=clone(where);selected=n.id;}tell(branchLabel+(branch==='body'?'을':'를')+' 접었어요. 명령은 그대로예요.');}
+          else{collapsedBranches.delete(branchKey);tell(branchLabel+(branch==='body'?'을':'를')+' 펼쳤어요. 추가할 위치를 골라 주세요.');}
+          renderEditor();
+        };card.append(e);
+        const group=document.createElement('div');group.className='tree-branch';group.id='branch-'+branchKey;group.hidden=!expanded;group.setAttribute('role','group');group.setAttribute('aria-label',label+' 명령');
+        group.classList.toggle('insertion-scope',sameScope(scope,childScope));
+        const insertion=document.createElement('button');insertion.className='branch-insert';insertion.dataset.insert=branchKey;
+        insertion.textContent='＋ '+branchLabel+'에 추가'+(sameScope(scope,childScope)?' · 선택됨':'');insertion.setAttribute('aria-pressed',String(sameScope(scope,childScope)));
+        insertion.onclick=()=>{scope=clone(childScope);selected=null;renderEditor();tell(scopeTitle()+' 맨 뒤에 넣어요. 위에서 블록을 골라 주세요.');};group.append(insertion);
+        const branchList=document.createElement('div');branchList.className='tree-list';renderList(n[branch],childScope,branchList);group.append(branchList);
+        if(!n[branch].length){const hint=document.createElement('p');hint.className='branch-empty';hint.textContent='위의 명령 블록을 골라 담아 주세요.';group.append(hint);}
+        children.append(group);
+      };
+      if(n.type==='repeat'){
+        const countLabel=document.createElement('label');countLabel.className='repeat-count';countLabel.append('횟수 ');
+        const count=document.createElement('select');count.dataset.repeat=n.id;count.setAttribute('aria-label',`${index+1}번 반복 횟수`);
+        for(let v=2;v<=12;v++){const option=document.createElement('option');option.value=v;option.textContent=v+'회';count.append(option);}count.value=n.count;
+        count.onchange=()=>edit(()=>{const current=listAt(where).find(node=>node.id===n.id);current.count=Number(count.value);});countLabel.append(count);card.append(countLabel);
+        enter('body','반복');
+      }
+      if(n.type==='if'){enter('then','예');enter('else','아니요');}
       if(n.type==='call'){const e=document.createElement('button');e.className='enter';e.textContent=n.target+' 편집 ↗';e.dataset.function=n.target;e.onclick=()=>{scope={root:n.target,trail:[]};selected=null;renderEditor();};card.append(e);}
-      if(n.type==='repeat'||n.type==='if'){const summary=document.createElement('div');summary.className='block-summary';const brief=ls=>ls.length?ls.map(c=>symbols[nodeKey(c)]).join(' · '):'비어 있음';summary.textContent=n.type==='repeat'?brief(n.body):'예: '+brief(n.then)+' / 아니요: '+brief(n.else);card.append(summary);}
-      $('program').append(card);
+      if(children.childElementCount)treeNode.append(children);
+      container.append(treeNode);
     });
+    }
+    renderList(program[scope.root],{root:scope.root,trail:[]},$('program'));
+    const list=listAt();
     const i=list.findIndex(n=>n.id===selected);$('move-up').disabled=i<=0;$('move-down').disabled=i<0||i===list.length-1;$('delete').disabled=i<0;
     $('selected-name').textContent=i<0?'블록을 선택하면 옮길 수 있어요':`${i+1}번 ${labels[nodeKey(list[i])]} 다음에 넣어요`;
     $('insert-end').textContent=selected?'＋ 선택 해제 · 맨 뒤에 넣기':'＋ 이 범위 맨 뒤에 넣기';
     $('undo').disabled=!history.length;$('clear').disabled=!checked.count;
     $('save-status').textContent=saveProblem||'✓ 기기에 자동 저장';
-    $('editor-tip').textContent=level.id===1?'↑ 앞으로를 세 번 누른 다음, ▶ 실행해 보세요.':level.id===4?'↻ 반복을 넣고, 안쪽에 되풀이할 일을 담아 보세요.':level.id===7?'조건의 예 / 아니요 안쪽에 각각 할 일을 넣어요.':level.id===10?'F1 보관함에 코드를 담고 시작에서 불러 보세요.':'블록 선택 → 그 뒤에 추가 · 안쪽 버튼 → 범위 편집';
+    $('editor-tip').textContent=level.id===1?'↑ 앞으로를 세 번 누른 다음, ▶ 실행해 보세요.':level.id===4?'↻ 반복 아래로 가지가 펼쳐져요. 되풀이할 일을 담아 보세요.':level.id===7?'예 / 아니요 가지의 추가 버튼으로 넣을 위치를 골라요.':level.id===10?'F1 보관함에 코드를 담고 시작에서 불러 보세요.':'블록 선택 → 그 뒤에 추가 · 가지의 ＋ 버튼 → 넣을 위치 선택';
     const stack=snapshot?.callStack.map(s=>s.target)||[];
     $('execution-path').textContent=snapshot?.event?'실행: 시작'+(stack.length?' → '+stack.join(' → '):'')+' · '+snapshot.message:'편집: '+scopeTitle();
     $('execution-path').classList.toggle('active',!!snapshot?.event);
     // Rebuilding the cards must not strand keyboard users on the document body.
     let nextFocus=focusField?document.querySelector(`[${focusField}="${CSS.escape(focusValue)}"]`):null;
-    if(!nextFocus&&focusField==='data-enter')nextFocus=$('scope-back');
+    if(!nextFocus&&['data-enter','data-insert','data-repeat'].includes(focusField))nextFocus=document.querySelector(`[data-scope="${scope.root}"]`);
     if(!nextFocus&&focusField==='data-function')nextFocus=document.querySelector(`[data-scope="${scope.root}"]`);
     if(previousFocus?.id==='scope-back'&&$('scope-back').hidden)nextFocus=document.querySelector(`[data-scope="${scope.root}"]`);
     if(nextFocus&&!nextFocus.hidden)nextFocus.focus({preventScroll:true});
@@ -127,6 +155,22 @@
     const max=unlocked();$('progress-count').textContent=Object.keys(saved.completed).length+' / 15';
     $('level-select').replaceChildren(...levels.map(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=(saved.completed[l.id]?'✓ ':'')+l.id+'. '+l.title;o.disabled=l.id>max;return o;}));$('level-select').value=level.id;
     $('level-buttons').replaceChildren(...levels.map(l=>{const b=document.createElement('button');b.dataset.level=l.id;b.textContent=(saved.completed[l.id]?'✓ ':l.id>max?'🔒 ':'')+l.id+'. '+l.title;b.disabled=l.id>max;b.setAttribute('aria-current',String(l.id===level.id));b.onclick=()=>{loadLevel(l.id);$('level-panel').hidden=true;$('levels-toggle').setAttribute('aria-expanded','false');};return b;}));
+  }
+  function showCurrentCommand() {
+    if(!snapshot?.currentId)return;
+    const card=$('program').querySelector(`[data-block="${CSS.escape(snapshot.currentId)}"]`);
+    if(!card)return;
+    const tree=$('program');let rect=card.getBoundingClientRect();
+    if(getComputedStyle(tree).overflowY==='auto'){
+      const bounds=tree.getBoundingClientRect();
+      if(rect.top<bounds.top+4)tree.scrollTop+=rect.top-bounds.top-4;
+      else if(rect.bottom>bounds.bottom-4)tree.scrollTop+=rect.bottom-bounds.bottom+4;
+    }
+    rect=card.getBoundingClientRect();
+    const top=matchMedia('(max-width:740px)').matches?document.querySelector('.stage').getBoundingClientRect().bottom+12:12;
+    const bottom=window.innerHeight-12;
+    if(rect.top<top)window.scrollBy({top:rect.top-top,behavior:'instant'});
+    else if(rect.bottom>bottom)window.scrollBy({top:rect.bottom-bottom,behavior:'instant'});
   }
   function renderMapDescription() {
     const map=level.maps[mapIndex],r=snapshot?.robot||map.start;
@@ -140,7 +184,7 @@
     stop(true);level=levels.find(l=>l.id===Number(id))||levels[0];mapIndex=0;
     program=clone(saved.programs[level.id]||blank());
     if(!E.validate(program,level).ok){program=blank();saveProblem='이 레벨의 잘못된 코드를 초기화했어요';}
-    scope={root:'main',trail:[]};selected=null;history=[];hintIndex=0;
+    scope={root:'main',trail:[]};selected=null;history=[];hintIndex=0;collapsedBranches.clear();
     $('chapter-name').textContent=chapters[level.chapter];$('level-title').textContent=String(level.id).padStart(2,'0')+' · '+level.title;$('brief').textContent=level.brief;
     $('map-choice').hidden=level.maps.length<2;
     $('map-select').replaceChildren(...level.maps.map((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent='지도 '+(i+1);return o;}));
@@ -177,7 +221,7 @@
       else complete();
     } else if(snapshot.status==='failure'){running=false;sound('failure');}
     else sound('step');
-    renderEditor();renderPlayback();renderMapDescription();
+    renderEditor();renderPlayback();renderMapDescription();showCurrentCommand();
   }
   function complete() {
     running=false;celebration=reduced.matches?0:1100;sound('success');
@@ -196,8 +240,6 @@
   $('speed').value=saved.settings.speed;$('speed').onchange=()=>{saved.settings.speed=Number($('speed').value);clock=0;persist();};
   $('map-select').onchange=()=>{const i=Number($('map-select').value);stop(true);mapIndex=i;tell('지도 '+(i+1)+' 미리 보기. 실행하면 첫 지도부터 같은 코드를 시험해요.');renderMapDescription();renderEditor();draw();};
   $('scope-back').onclick=()=>{scope.trail.pop();selected=null;renderEditor();};
-  $('scope-repeat').replaceChildren(...Array.from({length:11},(_,i)=>{const o=document.createElement('option');o.value=i+2;o.textContent=i+2+'회';return o;}));
-  $('scope-repeat').onchange=()=>edit(()=>{parentAt().count=Number($('scope-repeat').value);});
   $('insert-end').onclick=()=>{selected=null;renderEditor();tell('지금 범위의 맨 뒤에 넣어요. 위에서 블록을 골라 주세요.');};
   $('move-up').onclick=()=>edit(()=>{const list=listAt(),i=list.findIndex(n=>n.id===selected);if(i>0)[list[i-1],list[i]]=[list[i],list[i-1]];});
   $('move-down').onclick=()=>edit(()=>{const list=listAt(),i=list.findIndex(n=>n.id===selected);if(i>=0&&i<list.length-1)[list[i+1],list[i]]=[list[i],list[i+1]];});

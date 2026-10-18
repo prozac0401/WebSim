@@ -53,9 +53,10 @@ async function keyboardReplay(page) {
 }
 async function buildWallFollower(page) {
   await clear(page);
-  await click(page, '[data-add="repeat"]'); await page.locator('#scope-repeat').selectOption('12');
+  await click(page, '[data-add="repeat"]'); await page.locator(`[data-repeat="${(await read(page)).program.main[0].id}"]`).selectOption('12');
   await click(page, '[data-add="blocked"]'); await click(page, '[data-add="right"]'); await click(page, '#scope-back');
-  await click(page, '.block:last-child [data-enter$=":else"]'); await click(page, '[data-add="forward"]');
+  const conditionId = (await read(page)).program.main[0].body[0].id;
+  await click(page, `[data-insert="${conditionId}:else"]`); await click(page, '[data-add="forward"]');
   await click(page, '#scope-back'); await click(page, '#scope-back');
   assert.equal((await read(page)).stored, 4);
 }
@@ -168,8 +169,8 @@ async function pendingFirstArrival(page) {
     await capture(page, 'size-limit'); pass('level block budget rejects only the attempted edit and keeps its explanation');
 
     await page.locator('#level-select').selectOption('12'); await clear(page);
-    await click(page, '[data-add="repeat"]'); await page.locator('#scope-repeat').selectOption('12');
-    await click(page, '[data-add="repeat"]'); await page.locator('#scope-repeat').selectOption('12');
+    await click(page, '[data-add="repeat"]'); await page.locator(`[data-repeat="${(await read(page)).program.main[0].id}"]`).selectOption('12');
+    await click(page, '[data-add="repeat"]'); await page.locator(`[data-repeat="${(await read(page)).program.main[0].body[0].id}"]`).selectOption('12');
     await click(page, '[data-add="right"]'); await click(page, '#scope-back'); await click(page, '#scope-back');
     state = await stepUntil(page, current => current.status === 'failure');
     assert.equal(state.event.reason, 'limit'); assert.equal(state.executed, 150); assert.equal(state.stored, 3); assert.match(state.message, /150단계/);
