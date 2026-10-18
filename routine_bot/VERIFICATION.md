@@ -8,15 +8,21 @@
 | --- | --- | --- |
 | 초기 3레벨 검증 | PASS | 독립 예상 좌표/회전/충돌 및 기준해답 1~3, 7/7. `output/playwright/routine-bot/early/engine-tests.txt` |
 | 초기 저장·서버 | PASS | 저장 13 + 접두 경로 서버 3 = 16/16. `early/storage-server-tests.txt` |
-| 전체 엔진·레벨·저장·서버 | PASS | 55/55. 엔진 39, 저장 13, 서버 3. `output/playwright/routine-bot/final/unit-tests.txt` |
+| 초기 렌더링 조작 재생 | PASS | Chromium 145.0.7632.6, 12/12. 초기 1~3 순차 해결·충돌 수정·저장·좁은 화면 조작. `early/browser-report.json` |
+| 전체 렌더링 조작 재생 | PASS | 30/30, 콘솔/페이지 오류 0. 데스크톱 1~15 순차 해결과 마지막 화면, 320×740/390×844 실제 터치 에뮬레이션 편집·반복/조건/함수·다중지도, 저장 실패/손상/복구. `final/browser-report.json` |
+| 독립 UI 안전성 재시험 | PASS | 12/12, 콘솔/페이지 오류 0. 다중지도 전환 중 멈춤/초기화/레벨 전환·화면 위치, 순환호출/중첩/블록/실행 한도, 음소거와 재방문 자동재생 방지. 후반 접근만 fixture를 사용한 안전성 재생. `final/safety/safety-report.json`, `safety-trace.zip`, PNG 8개 |
+| 전체 엔진·레벨·저장·서버 | PASS | 56/56. 엔진 40, 저장 13, 서버 3. `output/playwright/routine-bot/final/unit-tests.txt` |
 | 전 레벨 해결 가능성 | PASS | 15레벨·18지도, 각 레벨마다 동일 기준 프로그램을 게임의 실제 실행기로 수행. 레벨별 저장/실행 한도 통과. `engine.test.cjs`의 reference level 1~15 및 `LEVELS.md` |
 | 독립적인 엔진 기대값 | PASS | 수작업 기대 좌표·방향·반복 순서·함수 복귀·조건 양쪽 분기·정확한 한도 경계와 비교. 기준해답을 자기 검증한 것과 구분 |
 | 저장·복원 | PASS | 정상 왕복, 독립 복사, JSON/버전 손상, 부분 구조 손상, 과대/깊은 데이터, 순환 구조, 저장 접근 차단, 쓰기/보조 저장 실패, 이전 정상 코드 복구 |
 | 실제 접두 경로 HTTP 통합 | PASS | 메뉴 진입, 게임 파일/MIME, 상대 복귀 링크, 게임/메뉴의 로컬 자원, 기존 HTML 59개 링크 HTTP 200. `early/deployment.json`, `final/deployment.json` |
 | 기존 주말 게임 브라우저 회귀 | PASS | `weekend-season2.browser.cjs` 17개 장면: 1년 완주·저장/복원·기존 플래너·390px 터치·키보드·오류 0건. `final/regression-weekend.txt`, `final/regression-weekend/result.json` |
 | 기존 플래너 연결 브라우저 회귀 | PASS | `weekend-season2-planner-bridge.browser.cjs` 6개 장면: 새 30개 메뉴·키보드 진입·365/366일 완료 전송·원본 보존·모바일·손상 거절. `final/regression-bridge.txt`, `final/regression-bridge/result.json` |
+| 기존 Node 전체 회귀(82파일) | 최초 FAIL 1 / PASS 764; 해당 파일 재시험 PASS | 765개 검사, 약 361초. 유일한 실패는 Windows checkout 줄바꿈으로 모델 바이트가 2개 늘어난 문제. HEAD 원본 바이트 복원 후 해당 파일 11/11 PASS. 전체 765개를 다시 실행한 것은 아님. 아래 원인 확인 참조. |
 | 프로젝트 스킬 형식 | PASS | 공식 `skill-creator/scripts/quick_validate.py` 두 파일 검사. `early/skill-verification-format.txt`, `early/skill-playtest-format.txt` |
+| 기존 develop-web-game 기본 클라이언트 | PASS | 기본 캡처/텍스트 smoke 실행 종료 0, 화면·텍스트 검토. `final/safety/original-client/shot-0.png`, `state-0.json`. 실제 레벨 플레이 범위는 위 브라우저 재생/독립 탐색과 구분 |
 | 실제 Android 기기 | NOT RUN | 브라우저 터치 에뮬레이션과 실제 기기 검증은 별개 |
+| 실제 스피커 음색·음량 청취 | NOT RUN | Web Audio 생성·사용자 조작 후 활성화·음소거는 관찰용 API 계측으로 확인 |
 | 실제 사람의 재미·만족도 | NOT RUN | 자동화·에이전트 관찰은 사용자 반응 연구를 대신하지 않음 |
 
 취소된 실행기에서 여러 번 `step()`을 호출해도 상태가 변하지 않음을 엔진 단위 시험에서 확인했습니다. 예약 프레임/애니메이션의 UI 취소, 렌더링된 편집, 실제 순차 진행, 화면 크기별 터치는 브라우저 시험 결과와 [PLAYTEST.md](PLAYTEST.md)에 별도 기록합니다. 기존 59개 HTML 링크 확인은 기존 모든 게임의 상호작용 재시험을 의미하지 않습니다.
@@ -53,21 +59,43 @@ $env:WEBSIM_EVIDENCE='output/playwright/routine-bot/final/regression-bridge'
 node tests/weekend-season2-planner-bridge.browser.cjs
 ```
 
+기존 Node 회귀는 새 게임 시험과 구분해 기존 `*.test.cjs` 82파일을 모두 실행했습니다.
+
+```powershell
+$legacyTests = @(rg --files -g '*.test.cjs' -g '!node_modules/**' -g '!output/**' -g '!dist/**' | Where-Object { $_ -notmatch '^(routine_bot[\\/]|tests[\\/]routine-bot)' })
+node --test @legacyTests
+```
+
+### 기존 회귀 실패의 원인 확인
+
+`evolving_vehicles_2/supra-model.test.cjs:48`은 `supra-runtime.js`의 전체 바이트 수와 메타데이터의 `runtimeBytes`를 엄격 비교합니다. Windows 작업 사본은 6,234,273바이트, 메타데이터와 기준 커밋 `5cce2489a8c8f40b5e8cec5646b7b15d136e5f38`의 Git 원본은 6,234,271바이트입니다. 작업 사본의 CRLF가 2개이고 이를 LF로 정규화하면 Git 원본과 완전히 같습니다. 이 모델·메타데이터·시험 파일의 기준 커밋 대비 diff는 모두 비어 있습니다.
+
+최초 단독 `node --test evolving_vehicles_2/supra-model.test.cjs` 재실행도 같은 위치에서 10 PASS / 1 FAIL이었습니다. 근거는 `final/regression-supra-repeat.txt`, `final/regression-baseline-supra.json`에 보존했습니다. 이후 작업 경로를 검증하고 이 파일 하나만 `git show HEAD:evolving_vehicles_2/assets/models/supra-runtime.js`의 원본 바이트로 복원했습니다. 복원 파일은 HEAD와 byte-identical이고 SHA-256은 `5155e06f2c64f9535601869750880f718800f2c67f1c62dfb672c8dbd5627158`이며 Git diff는 없습니다. 소스/시험 로직이나 바이트 단언을 변경하거나 시험을 제외하지 않았습니다.
+
+원본 바이트 복원 후 같은 Supra 파일 재시험은 **11/11 PASS**입니다. `final/regression-supra-byte-restoration.json`에 복원 경로·전후 크기·일치/해시를, `final/regression-supra-restored.txt`에 결과를 기록했습니다. 전체 회귀의 첫 결과는 764 PASS / 1 FAIL이며, 원인을 제거한 해당 파일의 재시험만 수행했습니다. 전체 765개를 다시 실행해 전부 통과했다고 주장하지 않습니다.
+
 ## 발견과 수정
 
 1. **부분 저장 손상이 조용히 사라질 수 있음**: JSON 자체는 정상이나 한 레벨의 반복 횟수/명령 구조가 깨졌을 때 초기 sanitizer가 그 레벨 코드를 버리고 정상 로드로 보고했습니다. `repaired` 상태를 추가하고 손상된 레벨만 이전 정상 보조 저장에서 복구하도록 수정했습니다. 정상 레벨의 최신 코드는 유지하고 손상된 primary로 정상 backup을 덮어쓰지 않습니다. 같은 장면을 재현하는 회귀 2개가 PASS입니다.
-2. **저장 복구 안내가 초기 저장 성공에 가려질 수 있음**: UI 초기 `loadLevel()`이 저장하면서 초기 손상/복구 안내를 지우는 경로를 발견해 UI 구현 담당에게 전달했습니다. 실제 화면 재시험 결과는 PLAYTEST의 저장 안내 항목에 기록합니다.
+2. **저장 복구 안내가 초기 저장 성공에 가려질 수 있음**: UI 초기 `loadLevel()`이 저장하면서 초기 손상/복구 안내를 지우는 경로를 수정했습니다. 최종 브라우저 시험에서 `corrupt`, `unavailable`, `write-failure`, `recovered`, `repaired` 상황 모두 안내를 확인하고 실제 버튼으로 한 레벨을 해결했습니다. `final/browser-report.json`의 저장 5개 장면 PASS입니다.
 3. **초반 충돌 안내가 아직 열리지 않은 조건을 언급함**: 독립 탐색에서 발견한 문구를 초기 레벨은 방향·이동 횟수 안내로 수정했습니다. `early collision guidance does not mention locked conditional blocks` 회귀 시험 PASS입니다.
 4. **초기 스킬 증거 경로의 phase 누락**: 스킬 작성자와 다른 검토 에이전트가 문서 명령과 실제 스크립트를 대조해 배포 검사의 인수 생략 시 초기 실행 증거가 기본 `final` 폴더에 기록될 수 있음을 발견했습니다. 스킬에 `early`/`final` 인수를 명시하고 실제 CLI·경로와 두 스킬 형식을 재검사했습니다.
 
 ## 실행·게시 상태 구분
 
-로컬 정적 실행과 위 논리/HTTP 검증은 PASS입니다. 원격 push·PR·main 병합·GitHub Pages 운영 배포는 별도의 GitHub/공개 URL 결과를 확인한 후 이 표를 갱신합니다. 여기의 localhost 테스트를 운영 배포 성공으로 간주하지 않습니다.
+로컬 정적 실행과 위 논리/HTTP 검증은 PASS이며 원격 브랜치와 PR도 생성했습니다. main 병합·GitHub Pages 운영 배포는 별도의 GitHub/공개 URL 결과를 확인한 후 이 표를 갱신합니다. localhost 테스트를 운영 배포 성공으로 간주하지 않습니다.
 
 | 작업 | 현재 기록 |
 | --- | --- |
 | 코드 및 로컬 정적 실행 | PASS |
-| 원격 push | NOT RUN — 게시 담당의 최종 결과 확인 전 |
-| PR 생성 | NOT RUN — 게시 담당의 최종 결과 확인 전 |
+| 원격 push | PASS — `feat/routinebot-home-code`, 초기 커밋 `089ab8bd1862c5745cc81c544a02ab8a04d29c8e` |
+| PR 생성 | PASS — [PR #103](https://github.com/prozac0401/WebSim/pull/103), 초안 생성·현재 작업에 연결 |
 | main 병합 | NOT RUN — 게시 담당의 최종 결과 확인 전 |
 | 운영 Pages 배포 및 공개 URL smoke | NOT RUN — 게시 담당의 최종 결과 확인 전 |
+
+## 최종 수정의 추가 확인
+
+- 독립 코드 검토에서 지도 전환 뒤 이전 지도 애니메이션 좌표가 남는 경로를 발견했다. 다음 지도 시작 시 애니메이션을 초기화하고 실제 한 단계 입력으로 전환한 캡처와 렌더 좌표를 재확인했다. safety12개 중 해당 전환·취소·같은 프로그램 성공 항목 PASS.
+- 로봇 아래 별이 가려지는 관찰 문제는 별 테두리와 현재 타일 배지로 수정했다. 독립 탐색의 같은 실패 장면 재시험 PASS. 상세 전후 증거는 PLAYTEST.md에 있다.
+- 독립 키보드 검토에서 블록 삽입 뒤 포커스 소실을 재현해 수정했다. 별도 `node tests/routine-bot-safety.browser.cjs --keyboard-only` 1/1 PASS. 원래 safety12/12와 별도 실행이며 한 번에13개를 실행했다고 합치지 않는다. 수정 뒤 초기 플레이·모바일·저장 장애15개 장면 재시험 PASS(`final/keyboard-retest/browser-report.json`).
+- 최종 UI 기준해답 진행은 전체15레벨30개 브라우저 검사 PASS, 정답 미열람 탐색은 실제 본편1–12 PASS. 응용13–15의 독립 블라인드 탐색과 실제 Android/iOS 하드웨어·사람의 만족도 조사는 NOT RUN이다.

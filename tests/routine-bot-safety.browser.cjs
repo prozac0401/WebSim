@@ -9,7 +9,8 @@ let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = createRequire(path.join(process.env.USERPROFILE || process.env.HOME, '.codex/skills/develop-web-game/package.json'))('playwright')); }
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8123/WebSim/').replace(/\/?$/, '/');
-const output = path.resolve(process.env.WEBSIM_EVIDENCE || 'output/playwright/routine-bot/final/safety');
+const keyboardOnly = process.argv.includes('--keyboard-only');
+const output = path.resolve(process.env.WEBSIM_EVIDENCE || (keyboardOnly ? 'output/playwright/routine-bot/final/safety/keyboard' : 'output/playwright/routine-bot/final/safety'));
 fs.mkdirSync(output, { recursive: true });
 const report = { started: new Date().toISOString(), base,
   classification: 'Independent source-informed safety regression using visible UI controls. Levels 1–11 completion is seeded solely for level-12 access. This is not blind play or end-to-end progression.',
@@ -24,6 +25,32 @@ async function stepUntil(page, predicate, max = 400) {
   throw new Error('UI stepping did not reach expected condition within ' + max + ' events');
 }
 async function clear(page) { if (!await page.locator('#clear').isDisabled()) await click(page, '#clear'); await click(page, '[data-scope="main"]'); }
+async function tabTo(page, attribute, value) {
+  for (let i = 0; i < 80; i++) {
+    if (await page.evaluate(({ attribute, value }) => document.activeElement.getAttribute(attribute) === value, { attribute, value })) return;
+    await page.keyboard.press('Tab');
+  }
+  throw new Error('Keyboard could not reach ' + attribute + '=' + value);
+}
+async function keyboardReplay(page) {
+  assert.equal((await read(page)).level, 1); assert.equal((await read(page)).stored, 0);
+  await tabTo(page, 'data-add', 'forward');
+  for (let count = 1; count <= 3; count++) {
+    await page.keyboard.press('Enter');
+    assert.equal((await read(page)).stored, count);
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.add), 'forward', 'Palette focus must survive its DOM replacement');
+  }
+  const firstId = (await read(page)).program.main[0].id;
+  await tabTo(page, 'data-node', firstId); await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.node), firstId, 'Selected block must retain keyboard focus');
+  await page.keyboard.press('Enter'); assert.equal((await read(page)).stored, 3);
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.node), firstId);
+  await page.keyboard.press('Control+Enter');
+  await page.waitForFunction(() => JSON.parse(window.render_game_to_text()).status === 'success', {}, { timeout: 10000 });
+  assert.deepEqual((await read(page)).completed, [1]);
+  await capture(page, 'keyboard-focus-after');
+  pass('Tab/Enter alone inserts three blocks, preserves palette/block focus across rerenders, and solves level 1');
+}
 async function buildWallFollower(page) {
   await clear(page);
   await click(page, '[data-add="repeat"]'); await page.locator('#scope-repeat').selectOption('12');
@@ -63,6 +90,8 @@ async function pendingFirstArrival(page) {
   page.on('console', message => { if (message.type() === 'error') report.errors.push(message.text()); });
   try {
     await page.goto(base + 'routine_bot/routine_bot.html'); await page.waitForFunction(() => window.render_game_to_text);
+    await keyboardReplay(page);
+    if (keyboardOnly) { report.classification = 'Focused keyboard regression on a fresh save, no progress fixture; actual Tab/Enter inputs.'; assert.deepEqual(report.errors, []); report.status = 'PASS'; return; }
     await page.evaluate(() => {
       const fixture = { version: 1, currentLevel: 12, completed: {}, programs: {}, settings: { speed: 0.5, muted: true } };
       for (let level = 1; level <= 11; level++) fixture.completed[level] = true;

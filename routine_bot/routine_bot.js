@@ -78,6 +78,9 @@
     if(ok) tell(n.type === 'repeat' ? '반복 안쪽이에요. 되풀이할 블록을 넣어 주세요.' : n.type === 'if' ? '조건이 맞을 때의 코드예요. 위로 돌아가면 아니요 쪽도 고칠 수 있어요.' : labels[kind] + ' 블록을 넣었어요.');
   }
   function renderEditor() {
+    const previousFocus=document.activeElement;
+    const focusField=['data-add','data-scope','data-node','data-enter','data-function'].find(key=>previousFocus?.hasAttribute(key));
+    const focusValue=focusField?previousFocus.getAttribute(focusField):null;
     if(!listAt()) {scope={root:'main',trail:[]};selected=null;}
     const checked=E.validate(program,level);
     $('command-count').textContent=`저장 ${checked.count} / ${level.maxCommands}개`;
@@ -113,6 +116,12 @@
     const stack=snapshot?.callStack.map(s=>s.target)||[];
     $('execution-path').textContent=snapshot?.event?'실행: 시작'+(stack.length?' → '+stack.join(' → '):'')+' · '+snapshot.message:'편집: '+scopeTitle();
     $('execution-path').classList.toggle('active',!!snapshot?.event);
+    // Rebuilding the cards must not strand keyboard users on the document body.
+    let nextFocus=focusField?document.querySelector(`[${focusField}="${CSS.escape(focusValue)}"]`):null;
+    if(!nextFocus&&focusField==='data-enter')nextFocus=$('scope-back');
+    if(!nextFocus&&focusField==='data-function')nextFocus=document.querySelector(`[data-scope="${scope.root}"]`);
+    if(previousFocus?.id==='scope-back'&&$('scope-back').hidden)nextFocus=document.querySelector(`[data-scope="${scope.root}"]`);
+    if(nextFocus&&!nextFocus.hidden)nextFocus.focus({preventScroll:true});
   }
   function renderLevels() {
     const max=unlocked();$('progress-count').textContent=Object.keys(saved.completed).length+' / 15';
@@ -203,6 +212,7 @@
   function updateSound(){ $('sound').textContent=saved.settings.muted?'♪ 소리 꺼짐':'♪ 소리 켜짐';$('sound').setAttribute('aria-pressed',String(!saved.settings.muted));$('sound').setAttribute('aria-label',saved.settings.muted?'소리 켜기':'소리 끄기'); }
   $('sound').onclick=()=>{saved.settings.muted=!saved.settings.muted;unlockAudio();updateSound();persist();sound('step');};
   document.addEventListener('keydown',event=>{if(event.target.closest('input,select,textarea,[contenteditable]'))return;
+    if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();(running?$('pause'):$('run')).click();return;}
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();$('undo').click();return;}
     if(event.ctrlKey||event.metaKey||event.altKey)return;
     if(event.code==='Space'&&!event.target.closest('button,a,summary')){event.preventDefault();(running?$('pause'):$('run')).click();}
