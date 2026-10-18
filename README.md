@@ -2,7 +2,7 @@
 
 **지금 만나 볼 이야기: [주말 계획표 시즌2](weekend_season2/index.html)** — 가상의 다른 삶에서 일·가족·취미·휴식을 챙기며 주말을 계획하고, 한 해의 이야기를 만들어 보세요. 홈페이지 첫 화면에서 바로 시작할 수 있습니다.
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 29개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 30개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
@@ -26,6 +26,7 @@
 
 ## 패턴과 성장
 
+- [루틴봇: 집으로 가는 코드](routine_bot/routine_bot.html) — 명령 블록을 조합하고 움직임을 고쳐 가며 반복·조건·함수를 배우는 12개 기본 퍼즐과 3개 응용 도전 · [사용법](routine_bot/routine_bot_doc.html) · [실행과 검증](routine_bot/README.md)
 - [진화하는 탈것](evolving_vehicles/evolving_vehicles.html) — 코스를 달리는 탈것을 선발하고, 다음 세대의 모양과 주행을 비교합니다. · [사용법](evolving_vehicles/evolving_vehicles_doc.html)
 - [진화하는 탈것 2](evolving_vehicles_2/evolving_vehicles_2.html) — 실제 서킷의 3D 지도와 레이싱 라인에서 원메이크 레이스를 열고, 사양별 예산 안에서 튜닝을 세대별로 진화시킵니다. · [사용법](evolving_vehicles_2/evolving_vehicles_2_doc.html)
 - [생명 게임](conway-game-of-life/conway-game-of-life.html) — 격자 이웃 규칙이 만드는 세대별 무늬 · [사용법](conway-game-of-life/conway-game-of-life_doc.html) · [관련 글](https://prozac0401.tistory.com/16)

@@ -40,11 +40,11 @@ async function legacy(page) {
   assert.ok(await page.locator('.lab-switcher a[href$="weekend_season2/index.html"]').count());
   record('기존 플래너 샘플·기억·비우기·복원 및 시즌2 탐색 링크');
   await page.goto(base);
-  assert.equal(await page.locator('.tool-card').count(), 29);
+  assert.equal(await page.locator('.tool-card').count(), 30);
   await page.locator('#search').fill('시즌2');
   assert.equal(await page.locator('.tool-card:visible').count(), 1);
   assert.equal(await page.locator('.tool-card:visible h3').innerText(), '주말 계획표 시즌2');
-  record('홈 29개 도구·검색·기존 플래너와 별도 진입점');
+  record('홈 30개 도구·검색·기존 플래너와 별도 진입점');
   await page.goto(base + 'weekend_season2/weekend_season2_doc.html');
   assert.ok(await page.locator('.doc-toc').count());
   await shot(page, 'guide');

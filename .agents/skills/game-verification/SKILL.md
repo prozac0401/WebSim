@@ -1,0 +1,27 @@
+---
+name: game-verification
+description: Verify WebSim Routine Bot engine rules, level solvability, persistence, cancellation, and static-site integration after gameplay or storage changes. Use alongside game-playtest for rendered usability evidence.
+---
+
+# Routine Bot verification
+
+Work from the WebSim repository root. Read `routine_bot/README.md` for execution semantics and `routine_bot/LEVELS.md` for each level's intent, reference program, command budget, and execution budget. Treat saved data as untrusted. Do not replace a failing assertion with a weaker one to obtain a pass.
+
+Prerequisites: Node.js, a Chromium browser supported by Playwright, and Playwright available locally or through the existing develop-web-game runtime. The game itself has no runtime dependencies. This skill lives in `.agents/skills`; invoke it as `$game-verification` when the project skill catalog is refreshed. If this session does not discover newly created skills, explicitly read this file and execute the same procedure; report that limitation rather than claiming automatic loading.
+
+## Run and preserve evidence
+
+1. Create an evidence directory `output/playwright/routine-bot/<phase>/`, where phase is `early` for the first three playable levels or `final` for the completed game. Run `node --test routine_bot/engine.test.cjs routine_bot/storage.test.cjs tests/routine-bot-server.test.cjs`. Save stdout and the exact command as `unit-tests.txt` in that directory. Engine tests must compare hand-derived coordinates, directions, and event order, not only the engine against itself. Level tests execute all reference programs through the production engine; label these as solution verification, not exploratory play.
+2. Run `node tests/routine-bot-server.cjs` in another terminal. Its mounted URL is `http://127.0.0.1:8123/WebSim/`, matching the GitHub Pages project prefix. Run `node tests/routine-bot-deployment.cjs early` or `node tests/routine-bot-deployment.cjs final` to match the phase; the script otherwise defaults to `final`. This checks the actual menu link, game files, and local relative resources over HTTP. Save stdout as `deployment.txt` in the matching phase directory.
+3. Run `node tests/routine-bot.browser.cjs early` or `node tests/routine-bot.browser.cjs final`. This is the separate rendered/UI suite: pause, reset, level-switch cancellation, retention of programs, desktop and touch controls. In the final phase also run `node tests/routine-bot-safety.browser.cjs` for multi-map transition cancellation and editor/runtime limits; its screenshots/report go under `output/playwright/routine-bot/final/safety/`. That safety replay uses a disclosed access fixture for later levels, so it is not full-progression or blind-play evidence. Set `WEBSIM_URL` only when testing a different static origin; preserve the `/WebSim/` prefix. Keep screenshots and the JSON reports produced by the suites.
+4. Record PASS/FAIL/NOT RUN per category in `routine_bot/VERIFICATION.md`, with evidence paths and environment. Re-run affected tests after each fix and retain the observed failure and correction in the report. A tool setup failure is NOT RUN, never a game pass. Local static HTTP evidence is distinct from the deployed public site's smoke test.
+
+## Required decision points
+
+- Engine: movement/rotation, boundary and wall collision, condition evaluation before its selected branch, both branches of blocked and marker conditions, minimum/maximum repeat counts, function entry/return order, immediate goal termination, unsupported command rejection, program/depth/step budgets, and rejection of direct/indirect recursive calls.
+- Cancellation: start then pause, reset, or change levels during delayed execution; wait longer than the old delay and ensure the old robot, count, event, or completion never returns. Reset must preserve the program. A separate clear action removes it.
+- Persistence: round trip all supported blocks/settings, reload level programs and completion, malformed JSON, unknown version, invalid structure, hostile/deep/oversized values, unavailable storage, failed writes, and recovery from the last valid backup. Failed storage must leave play responsive and tell the player what was not saved.
+- Levels: verify every map of every level with one unchanged reference program per level, within declared budgets. Record stored node count separately from executed instructions. Do not label a target “optimal” without proof.
+- Integration: menu entry and return link, the project prefix, HTTP file/MIME availability, no missing game assets, and unchanged existing-game smoke checks.
+
+Safety, false wins, unsolvable levels, lost saves, broken mobile editing, and broken existing menu/game paths block completion. Fix the cause and re-run its regression; do not hide exceptions. Browser usability and fun observations belong to `$game-playtest`, not this logic report.
