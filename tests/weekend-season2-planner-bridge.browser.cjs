@@ -90,7 +90,7 @@ async function openDraft(page, keyboard=false) {
     const desktop = await newPage(browser);
     await desktop.goto(base);
     assert.match(await desktop.locator('h1').innerText(),/주말 계획표[\s\S]*시즌2/);
-    assert.equal(await desktop.locator('.tool-card').count(),29);
+    assert.equal(await desktop.locator('.tool-card').count(),30);
     assert.match(await desktop.locator('.tool-card').first().locator('h3').innerText(),/시즌2/);
     for(const selector of ['.hero-link','.featured-link','.tool-card:first-child .try-link'])
       assert.equal(await desktop.locator(selector).getAttribute('href'),'weekend_season2/index.html');
@@ -100,7 +100,7 @@ async function openDraft(page, keyboard=false) {
     await desktop.locator('#search').fill('');
     await desktop.locator('.hero-link').focus();await desktop.keyboard.press('Enter');
     await desktop.waitForURL('**/weekend_season2/index.html');
-    pass('homepage features Season 2, retains 29 tools, searches alternate title and opens by keyboard');
+    pass('homepage features Season 2, retains 30 tools, searches alternate title and opens by keyboard');
 
     await desktop.locator('#start-btn').click();
     await assertLocked(desktop,'newly started life');
