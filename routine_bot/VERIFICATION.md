@@ -165,7 +165,7 @@ UI suite는 충분한 브라우저 자원이 있는 환경에서 순차 실행�
 | 프로젝트 스킬 직접 재적용·형식 | PASS | 두 스킬에 hard cap/migration 명령·판정·증거 분류 추가 후 직접 실행. `budgets/skill-verification-format.txt`, `skill-playtest-format.txt` |
 | 브라우저 오류 | PASS — 0건 | migration/tree/safety/full 및 독립 검토 보고서 |
 | 실제 Android/iOS·사람의 만족도 | NOT RUN | 브라우저 에뮬레이션과 에이전트 조작만 수행 |
-| 이번 변경의 원격 push·PR·main 병합·운영 배포 | NOT RUN | 앞 절의 출시 기록과 분리. 로컬 작업 이후 게시 확인이 필요 |
+| 블록 제한 변경의 원격 push·PR·main 병합·운영 배포 | PASS | [PR #105](https://github.com/prozac0401/WebSim/pull/105) 병합 `e208fdca9fdde348807a61dfe13c52bc901805a9`, Pages 실행 `39170862616` 성공. 공개 자원9개가 병합 SHA와 동일(`budgets/public/public-bytes.json`), 공개 저장 migration 21/21 PASS(`budgets/public/migration/budget-report.json`) |
 
 Chromium 145.0.7632.6을 사용했다. migration은 UTC 2026-10-18 21:56:33.441–21:56:58.638, tree는 21:57:06.313–21:58:06.361, safety는 21:58:16.389–21:59:51.016에 각각 순차 실행해 trace까지 정상 저장했다. migration의 세 화면 모두 부분 삭제 후 최신 초과 수치와 제한 충족 안내를 단언한다. 독립 검토의 브라우저 실행은 그 안내 수정 전이며 최종 migration이 해당 수정을 재검증했다. 정답 파일을 읽는 전체 진행 재생과 정답 파일 미열람 독립 조작 회귀, 저장 fixture, 후반 접근 fixture는 서로 다른 증거다.
 
@@ -190,4 +190,56 @@ node tests/routine-bot.browser.cjs final
 ```
 
 이미 존재하는 증거를 보존하려면 `WEBSIM_EVIDENCE`를 새 폴더로 바꿔 재실행한다. 다른 게임 코드를 바꾸지 않아 이전 전체 저장소765건과 다른 게임 브라우저 회귀는 이번에 다시 실행하지 않았으며, 앞 절의 과거 결과와 구분한다. 변경 범위의 엔진·저장·전체 루틴봇 UI 및 실제 HTTP 기존 링크를 검증한다.
+
+## 2026-10-19 · 기다리기와 시간 위험 검증
+
+`feat/routinebot-timed-hazards`는 위 PR #105 배포본에 이어지는 변경이다. 위험칸은 5·8·12·15레벨의 7지도, 총13칸에만 배치했다. `wait`를 5레벨부터 공개하고 새 기준해답에 맞춰 저장 제한을 `3, 5, 6, 2, 6, 7, 4, 5, 6, 11, 9, 7, 9, 10, 11`개로 갱신했다. 각 레벨의 기준해답과 상한이 일치하고 18지도 모두 같은 레벨의 동일 프로그램으로 해결된다. 12레벨의 다른5블록 프로그램도 두 지도를 통과하므로 기준7블록 구조를 강제하지 않는다.
+
+논리시간은 성공한 이동뿐 아니라 회전·기다리기·충돌 시도에도1씩 증가한다. 반복·조건·호출·복귀는 시간을 보내지 않는다. 벽 충돌은 충돌로 종료하고, 정상 행동 뒤에는 현재 칸의 위험을 집 도착보다 먼저 검사한다. 시작 시간0 위험과 제자리 위험도 독립 시험에 포함한다. 일시정지·벽시계 지연·속도는 논리시간에 영향을 주지 않으며 새 지도는0부터 시작한다. 저장 스키마 버전은 유지하고 기다리기 노드의 왕복·보조 저장·거부 저장을 검증했다.
+
+| 분류 | 결과 | 증거와 범위 |
+| --- | --- | --- |
+| 엔진·18지도·위험 설계·저장·서버 | PASS 94/94 | `output/playwright/routine-bot/hazards/unit-tests.txt`: 엔진69, 저장14, 위험 레벨8, 서버3. 손으로 계산한 위험 좌표·시간, 기다림 제거/한 박자/출발만 지연 실패 및 기준해답 성공 비교 |
+| 접두 경로·기존 목록·자원 | PASS | `hazards/deployment.json`, `deployment.txt`: `/WebSim/` 진입/복귀/MIME 및 기존 HTML59개 링크 |
+| 시간 위험 실제 UI 회귀 | PASS 25/25 | `hazards/focused-retest/hazard-report.json`: 세 화면에서 실패·기다리기 삽입·재생/저장, 제자리 활성 실패, 속도 변경 시 그림 유지, 별·함수·복수 지도 시간0 |
+| 중단·복수 지도·함수/실행 한도·키보드·소리 | PASS 13/13 | `hazards/safety/safety-report.json`: 새 기다리기 프로그램 두 지도 실행합76, 전환 취소·시간0·150단계 중단 유지 |
+| 기존 트리·터치·키보드 회귀 | PASS 26/26 | `hazards/tree/tree-report.json`: 중첩/양분기/펼침/삽입/실행 취소/rollback/깊이4 활성 명령 가시성, 세 화면과 키보드 |
+| 이전 초과 저장 수리 회귀 | PASS 21/21 | `hazards/budgets/budget-report.json`: desktop/320/390에서 기존5블록 보존·실행/추가 차단·부분 삭제·취소·재열기·3블록 수리 후 실제 성공 |
+| 정답 미열람 독립 조작 회귀 | PASS 7/7 | `output/playwright/routine-bot/hazard-review/review.json`: 122행동, desktop 새 저장1–5, 모바일5/8 접근 fixture, 이전 경로 지식 있음. 오류/가로 넘침0 |
+| 전체15레벨 UI·최종 클리어 | PASS 30/30 | `hazards/full/browser-report.json`: 새 저장에서 실제 블록 입력으로15레벨·18지도·마지막 클리어. 320/390터치 후반 편집/복수 지도와 손상·읽기/쓰기 실패·보조/부분 복원도 통과, 오류0 |
+| 기본 develop-web-game 클라이언트 | PASS — 실제1레벨 성공 | `hazards/client/shot-0.png`, `state-0.json`: 버튼/Enter로앞으로3개 → 지도클릭 → Space실행. 저장3·실행3·시간3·집(4,1)·success, 종료0. Canvas 캡처와 JSON을 직접 확인 |
+| 프로젝트 스킬 직접 적용·형식 | PASS | 두 파일을 읽고 시간 규칙·UI 수정 재시험·새 명령/증거 절차 적용. `hazards/skill-verification-format.txt`, `skill-playtest-format.txt` |
+| 실제 Android/iOS·사람의 만족도·물리 음향 | NOT RUN | Chromium 터치 에뮬레이션/에이전트 조작 및 Web Audio 관찰과 구분 |
+| 시간 위험 변경의 push·PR·main·Pages | NOT RUN — 로컬 검증 기록 시점 | 실제 게시 결과는 해당 PR와 최종 보고 및 별도 공개 검증 증거에 기록. 위 PR #105의 확정 배포 기록과 구분 |
+
+Chromium145.0.7632.6, Windows/Node24.13.1, 1440×900 데스크톱과320×740·390×844 터치를 사용했다. focused 최종 실행은 UTC2026-10-18 22:24:47.850–22:25:54.847, safety는22:23:29.502–22:24:32.696이다. 실패 강조, 수정된 모바일 칸 이름, 데스크톱 열린 시간표, 두 번째 지도 시간0과 두 지도 성공 PNG를 직접 열어 확인했다. 전체 페이지 PNG는 sticky 요소를 전체 문서 안에 그리므로 실제 viewport 동시 노출은 별도의 좌표 단언으로 판정한다.
+
+### 발견·수정 및 실패 증거 보존
+
+- 완료된4× 애니메이션 뒤0.5× 변경이 로봇/위험 시각을 되감던 경로를 고쳤다. 생성 당시 지속 시간을 저장하며 세 viewport에서 같은 입력과 시각 비교를 재시험했다.
+- 320px A/B/C가 지나치게 작았던 문제를 키운 글꼴로 고쳤다. 독립 검토가 같은 시간4 제자리 실패 화면을 다시 확인했다.
+- desktop 열린 시간표에서 실패 메시지 아래끝923.8px가900px 화면을 벗어나는 실제 FAIL을 `hazards/open-guide-repro/`에 남겼다. 지도 높이 수정 뒤 같은 장면은869.8px 이내이며 실행·단계도 함께 보인다. 자세한 전후는 PLAYTEST.md에 있다.
+- 초기 focused는20개 그룹을 통과한 뒤 8레벨에서 반복 제어 이벤트를 예상 순서에 빠뜨려 FAIL이었다(`hazards/focused/hazard-report.json`). 게임 동작을 바꾸지 않고 명시된 반복→조건 순서를 시험에 추가했다. `focused-final/`과 `open-guide-repro/`의 열린 시간표 실패도 보존했다. 마지막 `focused-retest/`는 수정된 기대 순서와 엄격한 viewport 단언을 모두 유지해25개를 통과했다. 예외를 숨기거나 판정을 약화하지 않았다.
+
+재실행은 서버 `node tests/routine-bot-server.cjs`를 켜고 다음 순서로 한다. 증거가 이미 있으면 새 폴더를 지정한다. 브라우저/trace는 순차 실행한다.
+
+```powershell
+node --test routine_bot/engine.test.cjs routine_bot/storage.test.cjs routine_bot/hazards.test.cjs tests/routine-bot-server.test.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards'
+node tests/routine-bot-deployment.cjs hazards
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards/focused-retest'
+node tests/routine-bot-hazards.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards/safety'
+node tests/routine-bot-safety.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards/tree'
+node tests/routine-bot-tree.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards/budgets'
+node tests/routine-bot-budgets.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/hazards/full'
+node tests/routine-bot.browser.cjs final
+```
+
+이번 변경에서 다른 게임의 상호작용과 전체 저장소765건을 다시 실행하지 않았다. 위 과거 회귀 결과, 이번 실제 기존 링크 HTTP 검증, 루틴봇의 전체 기능 검증을 각각 구분한다. 실제 사용자 연구와 실기기만 남은 확인으로 특정하며 자동 조작을 사람의 재미 검증으로 표현하지 않는다.
+
+전체 UI 최종 실행은 UTC2026-10-18 22:28:07.420–22:32:17.802에 종료0으로 끝났다. 15레벨은 저장11/제한11, 지도3개와 실행합422로 성공했으며 최종 클리어 PNG를 직접 확인했다. 기본 클라이언트는 전체 UI 종료 뒤 단독 실행했다. 팔레트 초기 클릭, Enter 두 번, Canvas 클릭, Space,100프레임 대기만으로 첫 레벨을 해결했고 성공 상태를 주입하지 않았다. 실행기 시간 진행 훅은 기본 클라이언트의 애니메이션 진행 용도로만 사용했다. 원래 클라이언트의 외부 package.json 모듈 형식 경고는 있었으나 종료0이며 해당 전역 파일은 수정하지 않았다.
 

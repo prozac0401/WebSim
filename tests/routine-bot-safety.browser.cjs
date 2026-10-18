@@ -56,14 +56,14 @@ async function buildWallFollower(page) {
   await click(page, '[data-add="repeat"]'); await page.locator(`[data-repeat="${(await read(page)).program.main[0].id}"]`).selectOption('12');
   await click(page, '[data-add="blocked"]'); await click(page, '[data-add="right"]'); await click(page, '#scope-back');
   const conditionId = (await read(page)).program.main[0].body[0].id;
-  await click(page, `[data-insert="${conditionId}:else"]`); await click(page, '[data-add="forward"]');
+  await click(page, `[data-insert="${conditionId}:else"]`); await click(page, '[data-add="wait"]'); await click(page, '[data-add="forward"]');
   await click(page, '#scope-back'); await click(page, '#scope-back');
-  assert.equal((await read(page)).stored, 4);
+  assert.equal((await read(page)).stored, 5);
 }
 async function pendingFirstArrival(page) {
   await click(page, '#reset');
   await page.locator('#speed').selectOption('0.5');
-  const before = await stepUntil(page, state => state.executed === 32);
+  const before = await stepUntil(page, state => state.executed === 41);
   assert.equal(before.mapIndex, 0); assert.equal(before.status, 'running');
   await click(page, '#run'); // The next move reaches home; auto transition remains pending.
   const pending = await read(page);
@@ -114,6 +114,8 @@ async function pendingFirstArrival(page) {
     assert.equal(state.mapIndex, 1); assert.equal(state.status, 'ready'); assert.equal(state.event, null);
     assert.deepEqual(state.robot, { x: 1, y: 1, dir: 1 });
     assert.deepEqual(state.renderedRobot, state.robot, 'Old-map animation must not override the new-map start');
+    assert.equal(state.movementCount, 0); assert.equal(state.renderedTime, 0);
+    assert.deepEqual(state.renderedHazards, state.hazards, 'Old-map hazard phase must not override the new-map start');
     await page.waitForTimeout(250); state = await read(page); assert.deepEqual(state.renderedRobot, state.robot);
     await capture(page, 'second-map-start');
     pass('new-map rendered robot matches logical start with no stale animation', { state });
@@ -121,8 +123,8 @@ async function pendingFirstArrival(page) {
     await page.locator('#speed').selectOption('4'); await click(page, '#run');
     await page.waitForFunction(() => { const s = JSON.parse(window.render_game_to_text()); return s.completed.includes(12) && s.status === 'success'; }, {}, { timeout: 30000 });
     state = await read(page); assert.equal(state.verifiedMaps, 2); assert.deepEqual(state.program, program);
-    assert.equal(state.executed, 60); await capture(page, 'two-map-success');
-    pass('only both maps produce completion; same UI-entered program is retained and counts sum to 60');
+    assert.equal(state.executed, 76); await capture(page, 'two-map-success');
+    pass('only both maps produce completion; same UI-entered waiting program is retained and counts sum to 76');
 
     // Remove only the earned completion and reload so it cannot hide a false win.
     await page.evaluate(() => { const data = JSON.parse(localStorage.getItem('routinebot-save-v1')); delete data.completed[12]; localStorage.setItem('routinebot-save-v1', JSON.stringify(data)); });

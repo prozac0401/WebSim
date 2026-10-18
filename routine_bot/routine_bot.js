@@ -4,8 +4,8 @@
   const store = window.RoutineBotStorage.create(), loaded = store.load();
   let saved = loaded.data;
   const blank = () => ({main: [], F1: [], F2: []}), clone = value => JSON.parse(JSON.stringify(value));
-  const labels = {forward: '앞으로', left: '왼쪽 회전', right: '오른쪽 회전', repeat: '반복', blocked: '앞이 벽?', mark: '별 위인가?', F1: 'F1 부르기', F2: 'F2 부르기'};
-  const symbols = {forward: '↑', left: '↶', right: '↷', repeat: '↻', blocked: '▥?', mark: '★?', F1: 'F1', F2: 'F2'};
+  const labels = {forward: '앞으로', left: '왼쪽 회전', right: '오른쪽 회전', wait: '기다리기', repeat: '반복', blocked: '앞이 벽?', mark: '별 위인가?', F1: 'F1 부르기', F2: 'F2 부르기'};
+  const symbols = {forward: '↑', left: '↶', right: '↷', wait: '◷', repeat: '↻', blocked: '▥?', mark: '★?', F1: 'F1', F2: 'F2'};
   const chapters = ['','01 · 첫 번째 발걸음','02 · 되풀이의 정원','03 · 생각하는 갈림길','04 · 주머니 속 작은 코드','BONUS · 조금 더 먼 집'];
   const dirs = ['북쪽 ↑','동쪽 →','남쪽 ↓','서쪽 ←'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -15,6 +15,7 @@
   let sequence = 0, generation = 0, message = '', celebration = 0, anim = null, audio = null, lastTime = performance.now();
   const initialSaveNotice = loaded.status === 'unavailable' ? '저장 불가 · 이 탭에서만 유지' : loaded.status === 'corrupt' ? '저장 손상 · 새 여정 시작' : loaded.status === 'recovered' ? '이전 저장 복구됨' : loaded.status === 'repaired' ? '일부 코드 손상 · 정상 기록 복구' : '';
   let saveProblem = initialSaveNotice;
+  let hazardViewKey = '';
   const ctx = $('canvas').getContext('2d');
   function unlocked() { let n = 1; while (n < levels.length && saved.completed[n]) n++; return n; }
   function uid() { return 'b' + Date.now().toString(36) + '-' + (++sequence); }
@@ -95,7 +96,7 @@
     $('command-count').classList.toggle('over',!checked.ok);
     $('budget-rule').textContent=checked.count>level.maxCommands?budgetNotice(checked.count):`저장 블록 ${level.maxCommands}개 안에서 집에 도착해요.`;
     $('budget-rule').classList.toggle('over',checked.count>level.maxCommands);
-    const paletteKeys=['forward','left','right','repeat','blocked','mark','F1','F2'].filter(k=>level.unlocks.includes(k));
+    const paletteKeys=['forward','left','right','repeat','wait','blocked','mark','F1','F2'].filter(k=>level.unlocks.includes(k));
     $('palette').replaceChildren(...paletteKeys.map(kind=>{const b=document.createElement('button');b.dataset.add=kind;b.setAttribute('aria-label',labels[kind]+' 넣기');b.innerHTML=`<span class="symbol" aria-hidden="true">${symbols[kind]}</span><span>${labels[kind]}</span>`;b.onclick=()=>add(kind);return b;}));
     $('scope-tabs').replaceChildren(...['main','F1','F2'].filter(root=>root==='main'||level.unlocks.includes(root)).map(root=>{const b=document.createElement('button');b.dataset.scope=root;b.textContent=root==='main'?'시작':root+' 보관함';b.setAttribute('aria-pressed',String(scope.root===root));b.onclick=()=>{scope={root,trail:[]};selected=null;renderEditor();};return b;}));
     $('scope-name').textContent=scopeTitle();$('scope-back').hidden=!scope.trail.length;
@@ -186,7 +187,8 @@
   function renderMapDescription() {
     const map=level.maps[mapIndex],r=snapshot?.robot||map.start;
     const cells=[];map.rows.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!=='#')cells.push(`${x},${y}${c==='H'?' 집':c==='*'?' 별':''}`);}));
-    $('map-description').textContent=`왼쪽 위가 0,0. x는 오른쪽, y는 아래. 로봇 ${r.x},${r.y}, ${dirs[r.dir]}. 걸을 수 있는 칸: ${cells.join(' / ')}. 그 외는 벽.`;
+    const hazards=E.hazardState(map,snapshot?.movementCount||0);
+    $('map-description').textContent=`왼쪽 위가 0,0. x는 오른쪽, y는 아래. 로봇 ${r.x},${r.y}, ${dirs[r.dir]}. 걸을 수 있는 칸: ${cells.join(' / ')}. 그 외는 벽.`+(hazards.cells.length?` 시간 ${hazards.time}. 지금 위험: ${hazards.active.map(c=>c.x+','+c.y).join(' / ')||'없음'}. 다음 행동 뒤 위험: ${hazards.nextActive.map(c=>c.x+','+c.y).join(' / ')||'없음'}.`:'');
     $('canvas').setAttribute('aria-label',`${level.title}. 지도 ${mapIndex+1}/${level.maps.length}. 로봇 ${r.x},${r.y}, ${dirs[r.dir]}.`);
     $('tile-state').hidden=map.rows[r.y][r.x]!=='*';
     $('map-select').value=mapIndex;
@@ -195,7 +197,7 @@
     stop(true);level=levels.find(l=>l.id===Number(id))||levels[0];mapIndex=0;
     program=clone(saved.programs[level.id]||blank());
     if(!validateWithoutLevelCap(program).ok){program=blank();saveProblem='이 레벨의 잘못된 코드를 초기화했어요';}
-    scope={root:'main',trail:[]};selected=null;history=[];hintIndex=0;collapsedBranches.clear();
+    scope={root:'main',trail:[]};selected=null;history=[];hintIndex=0;collapsedBranches.clear();hazardViewKey='';$('hazard-guide').open=false;
     $('chapter-name').textContent=chapters[level.chapter];$('level-title').textContent=String(level.id).padStart(2,'0')+' · '+level.title;$('brief').textContent=level.brief;
     $('map-choice').hidden=level.maps.length<2;
     $('map-select').replaceChildren(...level.maps.map((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent='지도 '+(i+1);return o;}));
@@ -223,8 +225,8 @@
   function oneStep() {
     if(transitioning){totalSteps+=snapshot.steps;mapIndex++;runner=E.createRunner(program,level,mapIndex);snapshot=runner.snapshot();anim=null;transitioning=false;scope={root:'main',trail:[]};selected=null;tell('같은 코드로 지도 '+(mapIndex+1)+'도 출발!');renderEditor();renderMapDescription();renderPlayback();return;}
     if(!runner)return;
-    const from=snapshot?.robot||level.maps[mapIndex].start;snapshot=runner.step();
-    anim={from:clone(from),to:clone(snapshot.robot),elapsed:0};
+    const from=snapshot?.robot||level.maps[mapIndex].start,fromTime=snapshot?.movementCount||0;snapshot=runner.step();
+    anim=snapshot.event?.reason==='hazard'?null:{from:clone(from),to:clone(snapshot.robot),fromTime,elapsed:0,duration:190/saved.settings.speed};
     const where=locate(snapshot.currentId);if(where){scope=where;selected=snapshot.status==='failure'?snapshot.currentId:null;}
     tell(snapshot.message);
     if(snapshot.status==='success') {
@@ -287,14 +289,31 @@
   function visualRobot(){
     const robot=snapshot?.robot||level.maps[mapIndex].start;
     if(!anim||reduced.matches)return {...robot};
-    const t=Math.min(1,anim.elapsed/(190/saved.settings.speed)),smooth=t*t*(3-2*t);let d=anim.to.dir-anim.from.dir;if(d>2)d-=4;if(d<-2)d+=4;
+    const t=Math.min(1,anim.elapsed/anim.duration),smooth=t*t*(3-2*t);let d=anim.to.dir-anim.from.dir;if(d>2)d-=4;if(d<-2)d+=4;
     return {x:anim.from.x+(anim.to.x-anim.from.x)*smooth,y:anim.from.y+(anim.to.y-anim.from.y)*smooth,dir:anim.from.dir+d*smooth};
+  }
+  function visualTime(){return anim&&!reduced.matches&&anim.elapsed<anim.duration?anim.fromTime:snapshot?.movementCount||0;}
+  function renderHazards(){
+    const map=level.maps[mapIndex],time=visualTime(),state=E.hazardState(map,time),target=snapshot?.movementCount||0;
+    $('hazard-guide').hidden=!state.cells.length;
+    const key=level.id+':'+mapIndex+':'+time+':'+target;if(key===hazardViewKey)return state;hazardViewKey=key;
+    $('hazard-time').textContent='시간 '+time+(time!==target?' → '+target:'');
+    const future=Array.from({length:6},(_,offset)=>E.hazardState(map,time+offset));
+    $('hazard-schedule').replaceChildren(...state.cells.map((cell,index)=>{
+      const row=document.createElement('div');row.className='hazard-row';
+      const label=document.createElement('strong');label.textContent=String.fromCharCode(65+index);label.title=`위험 칸 ${cell.x},${cell.y}`;row.append(label);
+      for(let tick=time;tick<=time+5;tick++){
+        const active=future[tick-time].cells[index].active,slot=document.createElement('span');slot.className='hazard-slot'+(active?' danger':'');
+        slot.textContent=(active?'×':'·')+' '+tick;slot.setAttribute('aria-label',`시간 ${tick}: ${active?'위험':'안전'}`);row.append(slot);
+      }
+      return row;
+    }));return state;
   }
   function draw(){
     if(!level)return;const W=820,H=570;ctx.clearRect(0,0,W,H);ctx.fillStyle='#e8efdf';ctx.fillRect(0,0,W,H);
     // Quiet pencil grid and a hand-built garden island. No external art or fonts.
     ctx.fillStyle='#d7e0ca';for(let y=25;y<H;y+=30)for(let x=20;x<W;x+=30){ctx.beginPath();ctx.arc(x,y,.9,0,Math.PI*2);ctx.fill();}
-    const map=level.maps[mapIndex],rows=map.rows.length,cols=map.rows[0].length;
+    const map=level.maps[mapIndex],rows=map.rows.length,cols=map.rows[0].length,hazards=renderHazards();
     const tile=Math.min(83,650/cols,430/rows),ox=(W-cols*tile)/2,oy=(H-rows*tile)/2+9;
     rounded(ox-14,oy+12,cols*tile+28,rows*tile+10,26,'#b9c8a7');rounded(ox-14,oy-12,cols*tile+28,rows*tile+18,26,'#d3dfc4');
     for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
@@ -314,10 +333,32 @@
       }
     }
     const start=map.start;ctx.fillStyle='#b1bb9d';ctx.beginPath();ctx.arc(ox+(start.x+.5)*tile,oy+(start.y+.55)*tile,tile*.21,0,Math.PI*2);ctx.fill();
+    hazards.cells.forEach((cell,index)=>{
+      const x=ox+cell.x*tile,y=oy+cell.y*tile;
+      if(cell.active){
+        rounded(x+3,y+2,tile-6,tile-7,9,'#eec1ae','#a54432');
+        line(x+tile*.28,y+tile*.27,x+tile*.73,y+tile*.72,'#a54432',Math.max(2,tile*.06));line(x+tile*.73,y+tile*.27,x+tile*.28,y+tile*.72,'#a54432',Math.max(2,tile*.06));
+      }else{
+        ctx.save();ctx.setLineDash([4,4]);rounded(x+4,y+3,tile-8,tile-9,8,null,cell.nextActive?'#a15b24':'#999c86');ctx.restore();
+        if(cell.nextActive){ctx.fillStyle='#9b5424';ctx.textAlign='center';ctx.font=`bold ${tile*.34}px system-ui`;ctx.fillText('!',x+tile*.5,y+tile*.64);}
+      }
+      ctx.fillStyle=cell.active?'#843a2b':'#62694e';ctx.font=`bold ${Math.max(21,tile*.3)}px system-ui`;ctx.textAlign='left';ctx.fillText(String.fromCharCode(65+index),x+tile*.07,y+tile*.29);
+      if(cell.active&&cell.nextActive){ctx.font=`bold ${tile*.22}px system-ui`;ctx.textAlign='right';ctx.fillText('!',x+tile*.87,y+tile*.85);}
+      const underlying=map.rows[cell.y][cell.x];
+      if(underlying==='*'||underlying==='H'){
+        rounded(x+tile*.66,y+tile*.04,tile*.28,tile*.27,3,'#fff6da','#be9761');
+        if(underlying==='*')star(x+tile*.8,y+tile*.17,tile*.1,'#ad7524');
+        else {ctx.fillStyle='#70542e';ctx.font=`bold ${Math.max(9,tile*.17)}px system-ui`;ctx.textAlign='center';ctx.fillText('집',x+tile*.8,y+tile*.23);}
+      }
+    });
     if(snapshot?.collision){const c=snapshot.collision,x=ox+c.x*tile,y=oy+c.y*tile;rounded(x+3,y+2,tile-6,tile-6,10,'#e9bd9e','#bd5b37');line(x+tile*.34,y+tile*.34,x+tile*.66,y+tile*.66,'#aa452b',4);line(x+tile*.66,y+tile*.34,x+tile*.34,y+tile*.66,'#aa452b',4);}
     const visual=visualRobot(),rx=visual.x,ry=visual.y,angle=visual.dir*Math.PI/2;
     const cx=ox+(rx+.5)*tile,cy=oy+(ry+.5)*tile,bounce=celebration>0?Math.abs(Math.sin(celebration/110))*5:0;
     const actual=snapshot?.robot||map.start;
+    if(snapshot?.event?.reason==='hazard'){
+      rounded(ox+actual.x*tile+1,oy+actual.y*tile,tile-2,tile-3,10,null,'#9d3129');
+      ctx.fillStyle='#9d3129';ctx.font=`bold ${tile*.28}px system-ui`;ctx.textAlign='center';ctx.fillText('×',cx+tile*.42,cy-tile*.28);
+    }
     if(map.rows[actual.y][actual.x]==='*'){
       ctx.strokeStyle='#bd8126';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(cx,cy+tile*.13,tile*.42,tile*.32,0,0,Math.PI*2);ctx.stroke();
       star(cx+tile*.39,cy+tile*.3,tile*.12,'#b07824');
@@ -333,7 +374,7 @@
     if(!snapshot){ctx.fillStyle='#506d4a';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('출발',cx,cy+tile*.65);}
     if(celebration>0){for(let i=0;i<18;i++){const a=i*2.4,t=(1100-celebration)/1100,d=30+t*110,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d-t*20;ctx.globalAlpha=1-t;star(x,y,3+(i%3),i%2?'#c88c38':'#50876c');}ctx.globalAlpha=1;}
   }
-  window.render_game_to_text=()=>JSON.stringify({game:'routinebot',coordinates:'origin top-left; x right; y down; dir 0 N,1 E,2 S,3 W',level:level.id,mapIndex,maps:level.maps.length,rows:level.maps[mapIndex].rows,robot:snapshot?.robot||level.maps[mapIndex].start,renderedRobot:visualRobot(),status:running?'running':snapshot?.status||'ready',paused:!running&&snapshot?.status==='running',stored:E.validate(program,level).count,executed:totalSteps+(snapshot?.steps||0),currentId:snapshot?.currentId||null,event:snapshot?.event||null,callStack:snapshot?.callStack||[],collision:snapshot?.collision||null,editing:scopeTitle(),program:clone(program),completed:Object.keys(saved.completed).map(Number),unlocked:unlocked(),verifiedMaps,message,saveStatus:saveProblem||'saved',reducedMotion:reduced.matches,generation});
+  window.render_game_to_text=()=>JSON.stringify({game:'routinebot',coordinates:'origin top-left; x right; y down; dir 0 N,1 E,2 S,3 W',level:level.id,mapIndex,maps:level.maps.length,rows:level.maps[mapIndex].rows,robot:snapshot?.robot||level.maps[mapIndex].start,renderedRobot:visualRobot(),movementCount:snapshot?.movementCount||0,renderedTime:visualTime(),hazards:E.hazardState(level.maps[mapIndex],snapshot?.movementCount||0),renderedHazards:E.hazardState(level.maps[mapIndex],visualTime()),status:running?'running':snapshot?.status||'ready',paused:!running&&snapshot?.status==='running',stored:E.validate(program,level).count,executed:totalSteps+(snapshot?.steps||0),currentId:snapshot?.currentId||null,event:snapshot?.event||null,callStack:snapshot?.callStack||[],collision:snapshot?.collision||null,editing:scopeTitle(),program:clone(program),completed:Object.keys(saved.completed).map(Number),unlocked:unlocked(),verifiedMaps,message,saveStatus:saveProblem||'saved',reducedMotion:reduced.matches,generation});
   window.advanceTime=ms=>{update(Math.max(0,Math.min(Number(ms)||0,600000)));draw();};
   function frame(now){const dt=Math.min(100,Math.max(0,now-lastTime));lastTime=now;update(dt);draw();requestAnimationFrame(frame);}
   updateSound();loadLevel(Math.min(saved.currentLevel,unlocked()));if(initialSaveNotice)tell(initialSaveNotice+' · 플레이는 계속할 수 있어요.');requestAnimationFrame(frame);

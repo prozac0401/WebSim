@@ -28,7 +28,7 @@
         if (!record(node) || seen.has(node) || ++count > 128 || typeof node.id !== 'string' || !node.id.length || node.id.length > 80 || ids.has(node.id)) throw new Error('node');
         seen.add(node); ids.add(node.id);
         const safe = { id: node.id, type: node.type };
-        if (['forward', 'left', 'right'].includes(node.type)) return safe;
+        if (['forward', 'left', 'right', 'wait'].includes(node.type)) return safe;
         if (node.type === 'repeat' && integer(node.count, 2, 12)) return { ...safe, count: node.count, body: cleanList(node.body, depth + 1) };
         if (node.type === 'if' && ['blocked', 'mark'].includes(node.condition)) return { ...safe, condition: node.condition, then: cleanList(node.then, depth + 1), else: cleanList(node.else, depth + 1) };
         if (node.type === 'call' && ['F1', 'F2'].includes(node.target)) return { ...safe, target: node.target };

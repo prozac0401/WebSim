@@ -11,7 +11,7 @@ const phase = process.argv[2] || 'final';
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8123/WebSim/').replace(/\/?$/, '/');
 const output = path.resolve(process.env.WEBSIM_EVIDENCE || `output/playwright/routine-bot/${phase}`);
 fs.mkdirSync(output,{recursive:true});
-const blockCaps = [3,5,6,2,5,7,4,4,6,11,9,6,9,10,9];
+const blockCaps = [3,5,6,2,6,7,4,5,6,11,9,7,9,10,11];
 const report = {phase,base,started:new Date().toISOString(),checks:[],errors:[],progression:[],blockCaps,classification:'solution-informed rendered UI replay; independent blind review is separate',android:'NOT RUN'};
 const record = name => { report.checks.push({name,status:'PASS'}); console.log('PASS',name); fs.writeFileSync(path.join(output,'browser-report.json'),JSON.stringify(report,null,2)); };
 const read = page => page.evaluate(()=>JSON.parse(window.render_game_to_text()));
