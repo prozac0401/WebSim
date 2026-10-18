@@ -17,18 +17,27 @@ const read = page => page.evaluate(()=>JSON.parse(window.render_game_to_text()))
 const wait = (page, ms) => page.waitForTimeout(ms);
 const image = (page,name) => page.screenshot({path:path.join(output,name+'.png'),fullPage:true});
 const key = n => n.type==='if'?n.condition:n.type==='call'?n.target:n.type;
+const nodes = program => {
+  const result = [];
+  function visit(list) { for (const node of list) { result.push(node); for (const branch of ['body','then','else']) if (node[branch]) visit(node[branch]); } }
+  for (const root of ['main','F1','F2']) visit(program[root]); return result;
+};
 async function press(page,selector,touch=false){const locator=page.locator(selector);await locator.scrollIntoViewIfNeeded();touch?await locator.tap():await locator.click();}
 async function ready(page){await page.goto(base+'routine_bot/routine_bot.html');await page.waitForFunction(()=>typeof window.render_game_to_text==='function');}
 async function addList(page,list,touch=false){
   for(const node of list){
+    const previousIds = new Set(nodes((await read(page)).program).map(item=>item.id));
     await press(page,`[data-add="${key(node)}"]`,touch);
+    const added = nodes((await read(page)).program).find(item=>!previousIds.has(item.id));
+    assert.ok(added, 'The visible palette action must add one command');
     if(node.type==='repeat'){
-      await page.locator('#scope-repeat').selectOption(String(node.count));
+      await page.locator(`[data-repeat="${added.id}"]`).selectOption(String(node.count));
       await addList(page,node.body,touch);await press(page,'#scope-back',touch);
     } else if(node.type==='if'){
       await addList(page,node.then,touch);await press(page,'#scope-back',touch);
-      // The just-added condition is the last block in the current rendered scope.
-      await press(page,'.block:last-child [data-enter$=":else"]',touch);
+      // Expansion is visual only. The branch insertion control chooses where
+      // subsequent palette taps go, without relying on flat child selectors.
+      await press(page,`[data-insert="${added.id}:else"]`,touch);
       await addList(page,node.else,touch);await press(page,'#scope-back',touch);
     }
   }
@@ -59,7 +68,7 @@ const early=[
     await addList(page,[move('forward'),move('forward'),move('forward')]);await press(page,'#run');await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).status==='failure');
     let s=await read(page);assert.equal(s.event.reason,'collision');assert.equal(s.stored,3);assert.equal(await page.locator('.block.crashed').count(),1);await image(page,'desktop-collision');
     await press(page,'#delete');assert.equal((await read(page)).stored,2);await press(page,'#undo');assert.equal((await read(page)).stored,3);
-    await press(page,'.block:first-child .block-main');await press(page,'#move-down');await press(page,'#undo');
+    await press(page,'#program > .tree-node:first-child > .block .block-main');await press(page,'#move-down');await press(page,'#undo');
     await build(page,early[1]);record('collision locates the wall and failing block; program retained, delete/reorder/undo respond');
     await page.locator('#speed').selectOption('0.5');await press(page,'#run');await press(page,'#pause');const paused=await read(page);await wait(page,1250);assert.equal((await read(page)).executed,paused.executed);assert.deepEqual((await read(page)).robot,paused.robot);
     await press(page,'#step');assert.equal((await read(page)).executed,paused.executed+1);
@@ -86,7 +95,7 @@ const early=[
     for(const width of [320,390]){
       const context=await browser.newContext({viewport:{width,height:width===320?740:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,reducedMotion:'reduce'});const mobile=await context.newPage();observe(mobile);await ready(mobile);
       await mobile.locator('#speed').selectOption('4');await build(mobile,early[0],true);await finish(mobile,true);await image(mobile,`mobile-${width}-success`);
-      await press(mobile,'#next-level',true);await build(mobile,early[1],true);await press(mobile,'.block:last-child .block-main',true);await press(mobile,'#move-up',true);await press(mobile,'#undo',true);await press(mobile,'#delete',true);await press(mobile,'#undo',true);await finish(mobile,true);
+      await press(mobile,'#next-level',true);await build(mobile,early[1],true);await press(mobile,'#program > .tree-node:last-child > .block .block-main',true);await press(mobile,'#move-up',true);await press(mobile,'#undo',true);await press(mobile,'#delete',true);await press(mobile,'#undo',true);await finish(mobile,true);
       await press(mobile,'#next-level',true);await build(mobile,early[2],true);await finish(mobile,true);
       if(phase==='final'){
         const solutions=require('../routine_bot/solutions.cjs'),all=Array.isArray(solutions)?solutions:solutions.solutions||solutions;

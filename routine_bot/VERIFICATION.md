@@ -112,3 +112,36 @@ node tests/routine-bot.browser.cjs early
 - 로봇 아래 별이 가려지는 관찰 문제는 별 테두리와 현재 타일 배지로 수정했다. 독립 탐색의 같은 실패 장면 재시험 PASS. 상세 전후 증거는 PLAYTEST.md에 있다.
 - 독립 키보드 검토에서 블록 삽입 뒤 포커스 소실을 재현해 수정했다. 별도 `node tests/routine-bot-safety.browser.cjs --keyboard-only` 1/1 PASS. 원래 safety12/12와 별도 실행이며 한 번에13개를 실행했다고 합치지 않는다. 수정 뒤 초기 플레이·모바일·저장 장애15개 장면 재시험 PASS(`final/keyboard-retest/browser-report.json`).
 - 최종 UI 기준해답 진행은 전체15레벨30개 브라우저 검사 PASS, 정답 미열람 탐색은 실제 본편1–12 PASS. 응용13–15의 독립 블라인드 탐색과 실제 Android/iOS 하드웨어·사람의 만족도 조사는 NOT RUN이다.
+
+## 2026-10-19 · 펼치기/접기 트리 편집 후 검증
+
+앞의 게시 표는 최초 출시(PR #103)의 기록이다. 이번 변경은 명령 엔진과 저장 구조를 유지하면서 반복·조건을 같은 트리 안에서 펼치고 접도록 바꾼 후속 수정이다. 두 프로젝트 스킬을 직접 다시 읽고 절차를 적용했다. 기존 세션에 자동 등록됐다고 주장하지 않는다. 새 UI 검사는 프로그램이나 성공 상태를 주입하지 않으며, 후반 접근 fixture 사용 여부를 보고서에 구분한다.
+
+| 분류 | 결과 | 새 증거 |
+| --- | --- | --- |
+| 엔진·레벨·저장·서버 | PASS 56/56 | `output/playwright/routine-bot/tree/unit-tests.txt` |
+| 접두 경로·기존 목록 | PASS | 게임/자원/복귀 및 기존 HTML 59개 링크. `tree/deployment.json` |
+| 전체 15레벨 UI 진행 | PASS 30/30 | 실제 블록 입력과 타이머 실행, 320/390px 터치, 손상/실패 저장. `tree/progression/browser-report.json` |
+| 키보드 포함 UI 안전성 | PASS 13/13 | 단일 실행에서 키보드·지도 전환 취소·함수 순환·중첩/블록/실행 한도·소리 설정. `tree/safety/safety-report.json` |
+| 최종 트리 전용 회귀 | PASS 26/26 | 데스크톱·320×740/390×844 터치에서 중첩/양분기/접힘/숨은 삽입 방지/수정·취소/새로고침/반복 해결/한도 거절 뒤 횟수 변경/4단계 활성 명령 가시성, 키보드 반복 편집·성공. `tree/final-regression/tree-report.json` |
+| 독립 정답 미열람 탐색 | PASS 6/6 | 새 저장에서 세 viewport 각각 1–4레벨, 193개 실제 조작. 코드/성공 주입·해제 fixture·정답 파일 열람 없음. 오류 0건, 모바일 활성 명령 재시험 포함. `output/playwright/routine-bot/tree-review/review.json` |
+| 브라우저 오류 | PASS — 0건 | 위 세 UI 보고서의 `errors: []` |
+| 프로젝트 스킬 갱신·직접 적용 | PASS | 트리 검사 명령·선택자·증거 범위 반영, 두 형식 검사 PASS. `tree/skill-verification-format.txt`, `tree/skill-playtest-format.txt` |
+| 실제 Android/iOS 및 사람의 만족도 | NOT RUN | 기존 실제 기기·사용자 연구 한계를 유지 |
+
+전체 진행 UI는 UTC 2026-10-18 21:34:56.444–21:41:46.269, 안전성 UI는 21:36:21.931–21:40:37.351에 실행했다. 진행 검사 중 활성 명령 스크롤 개선이 추가됐으므로 그 개선의 최종 근거는 별도의 트리 전용 재시험이다. 최신 소스 고정 뒤 UTC 21:42:18.612–21:43:13.141에 단독 실행한 트리 검사의 revision은 `inline-tree-active-leaf-v2`다. 이 실행은 한도 거절 뒤 횟수 수정 회귀와 **접어 둔 4단계 반복에서 실행 중인 명령을 자동 펼치고 화면 안에 표시하는 검사**를 모두 포함한다. 데스크톱은 편집기 내부 잘림과 viewport 경계를, 모바일은 viewport 경계와 고정 지도 하단을 함께 검사했다.
+
+중간 트리 재시험은 조작 14개 그룹 PASS 뒤 Playwright trace 내보내기 오류(`file data stream has unexpected number of bytes`)로 끝나 전체 FAIL로 남겼다. `tree/intermediate-trace-failure.txt/json`을 보존했다. 최종 검사는 기존 zip을 재사용하지 않는 새 `tree/final-regression/` 경로에서 동일 단언과 추가 가시성 단언을 실행해 trace 저장까지 정상 종료했다. 중간 실패를 지우거나 단언을 완화하지 않았다.
+
+재실행(서버를 먼저 켜고 저장소 루트의 PowerShell에서):
+
+```powershell
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/tree/progression'
+node tests/routine-bot.browser.cjs final
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/tree/safety'
+node tests/routine-bot-safety.browser.cjs
+$env:WEBSIM_EVIDENCE='output/playwright/routine-bot/tree/final-regression'
+node tests/routine-bot-tree.browser.cjs
+```
+
+UI suite는 충분한 브라우저 자원이 있는 환경에서 순차 실행하면 trace 수집 경쟁을 줄일 수 있다. `WEBSIM_EVIDENCE`를 생략하면 트리 전용 검사는 `output/playwright/routine-bot/tree/`에 쓴다. 발견한 좁은 화면 조건 이름 줄바꿈, 거절된 편집 뒤 횟수 변경, 활성 명령이 화면을 벗어나던 장면과 수정 후 실제 캡처 검토는 [PLAYTEST.md](PLAYTEST.md)의 같은 날짜 절에 기록했다. 이번 후속 수정의 원격 PR/병합/운영 반영은 별도 게시 확인으로 갱신한다.
