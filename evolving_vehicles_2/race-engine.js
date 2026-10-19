@@ -15,6 +15,7 @@
   'use strict';
   const SPECS = root.CircuitVehicleSpecs || (typeof require === 'function' ? require('./circuit-vehicle-specs.js') : root.VehicleSpecs);
   const SPA_PROFILE = root.SpaElevationProfile || (typeof require === 'function' ? require('./spa-elevation-profile.js') : null);
+  const TAEBAEK_PROFILE = root.TaebaekElevationProfile || (typeof require === 'function' ? require('./taebaek-elevation-profile.js') : null);
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
@@ -186,6 +187,9 @@
         p.z = weights.reduce((sum, w, j) => sum + rawZ[mod(i + j - radius, count)] * w, 0) / totalWeight;
       });
     }
+    // Regrade Taebaek's first hill for the whole simulation, before deriving
+    // either racing line. Road, terrain, vehicle poses and gravity share z.
+    const elevationRefinement = hasElevation ? TAEBAEK_PROFILE?.apply(circuit, points, spacing) : null;
     // The official Spa plan supplies published altitude markers along
     // the correctly aligned 7004 m route. Retain the DEM and original API data;
     // only this track's simulated z is replaced by the bounded interpolation.
@@ -223,6 +227,7 @@
       elevationSmoothingSigmaM: elevationProfile ? 0 : elevationSmoothingSigmaM,
       elevationSmoothingMethod: elevationProfile ? elevationProfile.metadata.method : elevationSmoothingSigmaM ? 'periodic-gaussian' : 'local-geometric',
       elevationProfile: elevationProfile ? elevationProfile.metadata : null,
+      ...(elevationRefinement ? { elevationRefinement } : {}),
       elevationSource: elevationProfile ? elevationProfile.metadata.source : hasElevation ? circuit.elevationSource || null : null,
       elevationResolutionM: elevationProfile ? null : hasElevation ? circuit.elevationResolutionM || null : null };
   }

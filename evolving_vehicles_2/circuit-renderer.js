@@ -279,7 +279,7 @@
     _isFollowView(){return this.mode==='follow'||this.mode==='follow-classic';}
     setView(mode){
       if(!['overview','follow','follow-classic','top','eau-rouge','pits'].includes(mode))return;
-      if(mode==='eau-rouge'&&this.race?.track.id!=='spa')mode='follow';
+      if(mode==='eau-rouge'&&this.race?.track.id!=='spa')mode='follow-classic';
       if(mode==='pits'&&!this.pits?.focus)mode='overview';
       this.mode=mode;this.zoomLevel=1;this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._followState=null;this._classicFollowState=null;
       if(mode==='top'){this.pitch=Math.PI/2-.008;this.yaw=0;}

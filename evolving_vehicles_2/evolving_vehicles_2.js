@@ -2,7 +2,7 @@
 'use strict';
 const DEFAULT_VEHICLE='supra',DEFAULT_CIRCUIT='inje';
 const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=[...RaceCircuits].sort((a,b)=>Number(b.id===DEFAULT_CIRCUIT)-Number(a.id===DEFAULT_CIRCUIT)),canvas=$('canvas');
-let population=[],race,session,generation=1,history=[],watch=0,camera='follow',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='';
+let population=[],race,session,generation=1,history=[],watch=0,camera='follow-classic',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='';
 let paidPopulationSize=Number($('population-size').value),autoEvolution=true,autoStockRepeat=true,stockRun=1;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
 const renderer=new CircuitRenderer(canvas,{onSelect:id=>selectCar(id),onChange:state=>{camera=state.mode;['overview','follow','follow-classic','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));$('orbit-mode').setAttribute('aria-pressed',String(state.interactionMode!=='pan'));$('pan-mode').setAttribute('aria-pressed',String(state.interactionMode==='pan'));draw();}});
@@ -108,7 +108,8 @@ function updateElevation(){
   const link=document.createElement('a');link.href=t.elevationProfile.sourceUrl;link.target='_blank';link.rel='noopener';link.textContent='Spa 2026 공식 지도 · 거리별 고도';
   $('elevation-note').replaceChildren(link,document.createTextNode(' · 18개 측점 사이를 보간했습니다. 오 루주 391 m → 라디용 415 m. 측점 사이 경사·노면 캠버는 추정입니다.'));
  }else $('elevation-note').innerHTML='<a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener">Copernicus DEM · Open-Meteo · 90 m 해상도</a> · 거리 기준 평활화. 실제 노면·교량 높이와 다를 수 있습니다.';
- $('elevation-note').append(document.createTextNode(' 3D 고저차 '+CircuitRenderer.ELEVATION_EXAGGERATION+'배 · 고도·경사 수치와 주행 계산은 원래 고도 기준입니다.'));
+ if(t.elevationRefinement)$('elevation-note').append(document.createTextNode(' 태백 첫 오르막은 코너의 급격한 기울기 변화를 줄이도록 높이 상승을 접근 구간에 분산한 추정 노면입니다.'));
+ $('elevation-note').append(document.createTextNode(' 3D 고저차 '+CircuitRenderer.ELEVATION_EXAGGERATION+'배 · 고도·경사 수치와 주행 계산은 강조하기 전의 노면 고도 기준입니다.'));
 }
 function updateTuning(car){
  const p=car.entrant,spec=car.spec,key=p.uid+':'+generation+':'+JSON.stringify(p.levels);if(inspectorKey===key)return;inspectorKey=key;
@@ -287,7 +288,7 @@ window.render_game_to_text=()=>JSON.stringify({
  evaluation:{start:'standing',complete:session.evaluationRace.finished,automaticBlocked:session.automaticBlocked},
  guidance:window.RacingGuidance?.preview(race,watching(),[watching().distance])[0],
  guidanceArrows:renderer.guidanceArrows||[],
- visualPath:DrivingPose.info(race,watching()),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,
+ visualPath:DrivingPose.info(race,watching()),environment:renderer.environment?.stats||null,pitFacilities:renderer.pits?.stats||null,elevationProfile:race.track.elevationProfile||null,elevationRefinement:race.track.elevationRefinement||null,
  circuit:currentCircuit().id,vehicleId:$('vehicle-model').value,generation,seed:seedValue(),budget:Number($('budget').value),stockComparison:stockMode(),stockRun,lengthM:race.track.length,centerlineLengthM:race.track.centerlineLength||currentCircuit().lengthM,time:+race.time.toFixed(3),laps:race.laps,surface:race.surface,playback:Number($('speed').value),autoEvolve:!stockMode()&&$('auto-evolve').checked,autoRepeat:stockMode()&&$('auto-evolve').checked,watch,camera:renderer.getState(),showLine:$('show-line').checked,history:history.slice(-30),elevation:{available:race.track.hasElevation,minM:race.track.elevationMin,maxM:race.track.elevationMax},
  cars:race.standings().map((c,i)=>{const p=race.sampleForCar(c,c.distance),v=DrivingPose.sampleCar(race,c),e=c.entrant;return{id:c.id,uid:e.uid,vehicleId:c.vehicleId,variantId:e.variantId,variantLabel:e.variantLabel,position:i+1,levels:e.levels,credits:e.credits,cost:e.cost,budget:e.budget,maxLevels:e.maxLevels,massKg:c.massKg,powerPs:c.powerPs,drive:c.spec.factoryDrive,frontWeightFraction:c.spec.frontWeightFraction,x:+p.x.toFixed(2),y:+p.y.toFixed(2),elevationM:p.elevation,grade:p.grade,distanceM:+c.distance.toFixed(2),trackLengthM:c.trackLength,lineModel:c.racingLine?.method,linePerformance:c.racingLine?.performance,visual:{x:v.x,y:v.y,angle:v.angle},standingStart:c.standingStartDistance!==null,speedKmh:+(c.speed*3.6).toFixed(1),bestLap:c.bestLap,finished:c.finished,finishTime:c.finishTime,dnf:c.dnf};})
 });

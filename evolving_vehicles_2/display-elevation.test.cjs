@@ -3,8 +3,10 @@ const test = require('node:test'), assert = require('node:assert/strict');
 const Pose = require('./driving-pose.js'), Race = require('./race-engine.js');
 const Evolution = require('./tuning-evolution.js'), circuits = require('./circuits.js'), Renderer = require('./circuit-renderer.js');
 const rms = xs => Math.sqrt(xs.reduce((sum, x) => sum + x * x, 0) / xs.length);
-function fixture(id, vehicleId = 'supra') {
-  const race = new Race({ circuit: circuits.find(c => c.id === id), entrants: Evolution.createPopulation({ vehicleId, budget: 0 }), laps: 1 });
+function fixture(id, vehicleId = 'supra', preserveDem = false) {
+  const source = circuits.find(c => c.id === id);
+  const circuit = preserveDem ? { ...source, id: id + '-dem-contact-reference' } : source;
+  const race = new Race({ circuit, entrants: Evolution.createPopulation({ vehicleId, budget: 0 }), laps: 1 });
   const canvas = { style: {}, getContext: () => ({}), addEventListener() {}, removeEventListener() {},
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 980, height: 615 }) };
   const renderer = new Renderer(canvas); renderer.setRace(race);
@@ -35,10 +37,12 @@ test('surface projection uses the continuous ribbon including its analytic grade
   assert.equal(Pose.surfaceAt({ ...road, stats: { method: 'legacy-offset-fallback' } }, { x: 80, y: 0 }), null, 'the existing folded-source fallback is preserved');
 });
 
-test('actual Taebaek uphill and later crests lose the short pitch pulses without moving the driven XY line', t => {
+test('the original Taebaek DEM uphill and later crests lose contact pitch pulses without moving the driven XY line', t => {
   const reports = [];
   for (const vehicleId of ['supra', 'avante_n', 'staria']) {
-    const { race, car, renderer: r } = fixture('taebaek', vehicleId), before = JSON.stringify(race.cars);
+    // Keep the original steep DEM here to isolate the road-contact fix. The
+    // separate regrading regression compares the new hill with this baseline.
+    const { race, car, renderer: r } = fixture('taebaek', vehicleId, true), before = JSON.stringify(race.cars);
     for (const [from, to] of [[480, 650], [1000, car.trackLength]]) {
       const oldPitch = [], pitch = [];
       for (let s = from; s < to; s += .1) {

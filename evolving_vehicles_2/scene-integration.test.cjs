@@ -62,6 +62,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   const scripts=[...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
   const index=name=>scripts.indexOf(name);
   assert.ok(index('spa-elevation-profile.js')>=0&&index('spa-elevation-profile.js')<index('race-engine.js'));
+  assert.ok(index('taebaek-elevation-profile.js')>=0&&index('taebaek-elevation-profile.js')<index('race-engine.js'));
   assert.ok(index('../evolving_vehicles/vehicle-specs.js')<index('circuit-vehicle-specs.js')&&index('circuit-vehicle-specs.js')<index('race-engine.js'));
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
   assert.ok(index('vehicle-racing-line.js')>=0&&index('vehicle-racing-line.js')<index('race-engine.js'));
@@ -72,7 +73,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('terrain-surfaces.js')>=0&&index('terrain-surfaces.js')<index('circuit-renderer.js'));
   assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
-  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
+  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','taebaek-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
   assert.equal(context.TrackRace.VEHICLES.length,18);
@@ -80,6 +81,10 @@ test('browser HTML order installs the official profile before TrackRace and shar
   close(race.track.points[0].z,418,'browser start elevation');
   const point=context.DrivingPose.sample(race,1050);assert.ok(point.grade>.09,'browser and Node both apply the real climb');
   assert.equal(context.RacingGuidance.sample(race,race.cars[0],1050).model,Guidance.MODEL);
+  const taebaek=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='taebaek'),vehicleIds:['supra'],racingLine:true})",context);
+  assert.equal(taebaek.track.elevationRefinement.kind,'simulation-adjustment');
+  const taebaekNode=new Race({circuit:circuits.find(c=>c.id==='taebaek'),vehicleIds:['supra'],racingLine:true});
+  assert.equal(JSON.stringify(taebaek.track.points),JSON.stringify(taebaekNode.track.points),'browser and Node share the adjusted Taebaek road');
 });
 
 test('published profile keeps the start line and geographic projection aligned at the scenic landmarks',()=>{
@@ -120,10 +125,10 @@ test('scenic desktop/mobile dragging, cursor zoom and repeated view reset preser
 test('switching from Spa scenic view to another circuit falls back to that race without stale targets',()=>{
   const r=renderer();r.setView('eau-rouge');r.pan(120,30);r.zoom(2.4);
   const mode=r.mode;r.setRace(races.get('everland'));r.setView(mode);
-  assert.equal(r.mode,'follow');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
+  assert.equal(r.mode,'follow-classic');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
   assert.deepEqual(r.panOffset,{x:0,y:0,z:0});
   const car=r.race.cars[0],pose=Pose.sampleCar(r.race,car,car.distance),target=r._interactionCamera().target;
-  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,r._displayPose(pose,car).z+.65,'new circuit height');
+  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,r._displayPose(pose,car).z+.8,'new circuit height');
   r.setRace(races.get('spa'));r.setView('eau-rouge');assert.ok(r.landmark);assert.equal(r.getState().mode,'eau-rouge');
 });
 

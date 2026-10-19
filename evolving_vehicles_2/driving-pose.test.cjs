@@ -219,6 +219,32 @@ test('the actual Taebaek wide-apex car reduces repeated steering pulses without 
     headingSecondRMS: rms(second), deviationBoundM: DrivingPose.info(race, car).deviationBoundM }));
 });
 
+test('Taebaek regrading preserves the established racing-line XY fit without refining the road centreline', () => {
+  const { race, car } = actualCorners[0];
+  const before = new TrackRace({ circuit: { ...race.circuit, id: 'taebaek-dem-curve-reference' }, laps: 1,
+    entrants: Evolution.createPopulation({ vehicleId: 'supra', count: 8, seed: 31415, budget: 30 }).slice(0, 1) });
+  const oldCar = before.cars[0], info = DrivingPose.info(race, car);
+  assert.equal(car.racingLine.id, oldCar.racingLine.id);
+  assert.equal(info.minimumDisplaySubdivisions, 6);
+  assert.equal(info.subdivisions, DrivingPose.info(before, oldCar).subdivisions);
+  assert.ok(info.deviationBoundM <= .4 && info.elevationDeviationBoundM <= .025);
+  let heightChange = 0;
+  for (let s = 0; s < car.trackLength; s += 2) {
+    const now = DrivingPose.sampleCar(race, car, s), old = DrivingPose.sampleCar(before, oldCar, s);
+    for (const key of ['x', 'y', 'angle', 'curvature']) assert.equal(now[key], old[key], key + ' at ' + s);
+    heightChange = Math.max(heightChange, Math.abs(now.z - old.z));
+  }
+  assert.ok(heightChange > 30, 'the comparison includes the actually regraded hill');
+  const centre = { pathPoints: race.track.points, track: race.track };
+  const oldCentre = { pathPoints: before.track.points, track: before.track };
+  assert.equal(DrivingPose.info(centre).minimumDisplaySubdivisions, 2);
+  assert.equal(DrivingPose.info(centre).subdivisions, DrivingPose.info(oldCentre).subdivisions);
+  for (let s = 0; s < race.track.centerlineLength; s += 5) {
+    const now = DrivingPose.sample(centre, s), old = DrivingPose.sample(oldCentre, s);
+    for (const key of ['x', 'y', 'angle', 'curvature']) assert.equal(now[key], old[key], 'road ' + key + ' at ' + s);
+  }
+});
+
 test('Spa first hairpin retains its tight arc instead of being widened by a stronger smoothing filter', () => {
   const { race, car, from, to, baseline } = actualCorners[1];
   const poses = Array.from({ length: to - from + 1 }, (_, i) => DrivingPose.sampleCar(race, car, from + i));

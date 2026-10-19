@@ -120,8 +120,18 @@
     const individual = Array.isArray(car?.pathPoints), owner = individual ? car : race;
     const points = individual ? car.pathPoints : race?.pathPoints, length = individual ? car.trackLength : race?.track?.length;
     if (!Array.isArray(points) || points.length < 3 || !Number.isFinite(length) || length <= 0) return null;
+    const refinement = race.track.elevationRefinement;
+    // Regrading Taebaek removes the crest that previously required six knots
+    // per racing-line segment. Preserve that established XY fit resolution:
+    // lowering the hill must not bring back its 12–15 m steering pulses.
+    // The road centreline already used two subdivisions and stays unchanged.
+    // This explicit compatibility floor does not inspect old DEM elevations.
+    const minimumDisplaySubdivisions = points !== race.track.points &&
+      refinement?.kind === 'simulation-adjustment' && refinement.method === 'c2-grade-redistribution' &&
+      refinement.minimumDisplaySubdivisions === 6 ? 6 : 2;
     const previous = cache.get(owner);
-    if (previous?.source === points && previous.length === length && previous.hasElevation === !!race.track.hasElevation) return previous;
+    if (previous?.source === points && previous.length === length && previous.hasElevation === !!race.track.hasElevation &&
+        previous.minimumDisplaySubdivisions === minimumDisplaySubdivisions) return previous;
     const source = points.map(p => ({ x: p.x, y: p.y, z: Number.isFinite(p.z) ? p.z : 0 }));
     if (source.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return null;
     const baseBound = deviationBound(source, source);
@@ -130,7 +140,7 @@
     // Height needs its own rounding budget: a planar hairpin may be gentle in
     // XY yet cross a sharp crest. Keep the complete C2 curve within 25 mm of
     // the original road height, below both renderers' vehicle-floor clearance.
-    const subdivisions = Math.max(2, Math.ceil(baseBound.planar / .18), Math.ceil(baseBound.vertical / .012));
+    const subdivisions = Math.max(minimumDisplaySubdivisions, Math.ceil(baseBound.planar / .18), Math.ceil(baseBound.vertical / .012));
     const original = [];
     for (let i = 0; i < source.length; i++) {
       const a = source[i], b = source[(i + 1) % source.length];
@@ -154,10 +164,10 @@
       p.z = original[i].z + Math.max(-elevationShiftLimit, Math.min(elevationShiftLimit, z));
     });
     const bound = deviationBound(controls, original);
-    const result = { source: points, length, spacing, controls, hasElevation: !!race.track.hasElevation,
+    const result = { source: points, length, spacing, controls, hasElevation: !!race.track.hasElevation, minimumDisplaySubdivisions,
       info: Object.freeze({ method: 'periodic-c2-b-spline', planarMethod: 'progressive-local-cubic-fit',
         planarScalesM: Object.freeze(PLANAR_SCALES_M.slice()), constraintTransitionM: LIMIT_TRANSITION_M,
-        smoothingSigmaM: SIGMA_M, subdivisions,
+        smoothingSigmaM: SIGMA_M, subdivisions, minimumDisplaySubdivisions,
         maximumDeviationM: MAX_DEVIATION_M, deviationBoundM: bound.planar,
         maximumElevationDeviationM: MAX_ELEVATION_DEVIATION_M, elevationDeviationBoundM: bound.vertical }), drawnPath: null };
     cache.set(owner, result); return result;
