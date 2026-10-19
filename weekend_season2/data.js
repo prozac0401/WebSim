@@ -43,6 +43,13 @@
   const { ACTIVITIES, ACTIVITY_MAP } = Activities;
   function canonicalActivityId(id){return ACTIVITY_MAP[id]?.canonicalId||id;}
   function preferenceActivityIds(config){return [...new Set((config?.preferences||[]).map(canonicalActivityId))];}
+  function activityMinutes(config,id,override){
+    const activity=ACTIVITY_MAP[id];if(!activity)throw new RangeError('활동을 확인하세요.');
+    if(!activity.education)return activity.minutes;
+    const minutes=override!==undefined?override:config?.educationMinutes?.[id]??activity.minutes;
+    if(!Number.isInteger(minutes)||minutes<1||minutes>1440)throw new RangeError('자녀 교육 시간은 1~1440분 사이의 정수로 입력하세요.');
+    return minutes;
+  }
   function formatMoney(won){
     if(!Number.isSafeInteger(won))throw new TypeError('금액은 원화 정수여야 합니다.');
     const rounded=Math.round(Math.abs(won)/1000)/10;
@@ -188,6 +195,6 @@
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
   return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, canonicalActivityId,preferenceActivityIds, ACTIVITY_GROUPS:Activities.ACTIVITY_GROUPS, ACTIVITY_CATEGORIES:Activities.ACTIVITY_CATEGORIES, ROLES, ROLE_MODEL,roleAvailableForNewLife,sampleRole, MARITAL_STATUSES,MARITAL_MODEL,divorcedShare,sampleMaritalStatus, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,residenceLabel,sampleSubregion,SUBREGIONS:Subregions,assignRegionalIncome,assignLifeEconomy,
-    NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
+    activityMinutes,NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

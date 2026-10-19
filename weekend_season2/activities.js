@@ -84,11 +84,12 @@
   // Published plans, logs and preferences retain these IDs and their old timing
   // and effects. New menus and automatic choices use the canonical activity.
   const legacyAliases={haircut_men:'haircut',haircut_women:'haircut'};
+  const educationActivities=new Set(['preschool_play','school_homework','school_reading']);
   const procedures={mole_removal:{recoveryDays:7},laser_hair_removal:{recoveryDays:2,minIntervalDays:28},ultherapy:{recoveryDays:1},botox:{recoveryDays:1},fraxel:{recoveryDays:7},eyelid_surgery:{recoveryDays:7,oncePerLife:true}};
   const outdoors=new Set(['walk','run','photo','garden','volunteer','motorbike_tour','domestic_trip','golf_round','circuit_drive','delivery']);
   const ACTIVITIES = rows.map(([id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every]) => {
     const parenting=parentingGroups[id.split('_')[0]],cadence=cadences[id.startsWith('haircut')?'haircut':id];
-    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting||procedures[id]?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(preferenceActivities[id]?{requiresPreference:true,...preferenceActivities[id]}:{}),...(legacyAliases[id]?{legacyOnly:true,canonicalId:legacyAliases[id]}:{}),...(procedures[id]?{manualOnly:true,procedure:{...procedures[id]}}:{}),categoryId:activityCategory(id)?.id,outdoor:outdoors.has(id)};
+    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting||procedures[id]?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(educationActivities.has(id)?{education:{familyCapMinutes:60}}:{}),...(cadence?{cadence:{...cadence}}:{}),...(preferenceActivities[id]?{requiresPreference:true,...preferenceActivities[id]}:{}),...(legacyAliases[id]?{legacyOnly:true,canonicalId:legacyAliases[id]}:{}),...(procedures[id]?{manualOnly:true,procedure:{...procedures[id]}}:{}),categoryId:activityCategory(id)?.id,outdoor:outdoors.has(id)};
   });
   const ACTIVITY_MAP = Object.assign(Object.create(null),Object.fromEntries(ACTIVITIES.map(a => [a.id,a])));
   return { ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS, ACTIVITY_CATEGORIES, activityCategory, categoriesForGroup };

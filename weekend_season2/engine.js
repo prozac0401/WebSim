@@ -23,6 +23,7 @@
     if(c.housingTenure!=='rent'&&c.monthlyRent!==0)errors.push('월세는 월세 계약에서만 설정할 수 있습니다.');
     if(c.housingTenure==='unspecified'&&(c.housingLoanPrincipal!==0||c.housingLoanRateBps!==0||c.housingMaintenance!==0))errors.push('주거비를 설정하려면 자가·월세·전세 중 주거 계약을 선택하세요.');
     if (!Array.isArray(c.preferences) || c.preferences.length>D.ACTIVITIES.length || c.preferences.some(id=>!D.ACTIVITY_MAP[id]) || new Set(c.preferences).size!==c.preferences.length) errors.push('활동 선호를 확인하세요.');
+    if(c.educationMinutes!==undefined&&(!c.educationMinutes||typeof c.educationMinutes!=='object'||Array.isArray(c.educationMinutes)||Object.entries(c.educationMinutes).some(([id,minutes])=>!D.ACTIVITY_MAP[id]?.education||!Number.isInteger(minutes)||minutes<1||minutes>1440)))errors.push('자녀 교육 시간은 해당 활동별 1~1440분 사이의 정수로 입력하세요.');
     if (c.children>0 && c.childAge==='none') errors.push('자녀가 있으면 연령대를 선택하세요.');
     if(c.childProfiles!==null&&c.childProfiles!==undefined){
       if(!Array.isArray(c.childProfiles)||c.childProfiles.length!==c.children||c.childProfiles.some(child=>!child||typeof child!=='object'||Array.isArray(child)||!Number.isInteger(child.age)||child.age<0||child.age>49||child.age>=c.age||!['man','woman','unspecified'].includes(child.gender)||!['none','serving'].includes(child.militaryStatus)||(child.militaryStatus==='serving'&&(child.gender!=='man'||child.age<18||child.age>35))))errors.push('자녀별 나이·성별·복무 설정을 확인하세요.');
@@ -151,10 +152,11 @@
       capacity:240,careMinutes:careMinutes(s,date,id),reservedMinutes:(s.dayState&&s.dayState.date===date?(s.dayState.blocks[id]||0):0)+(!(s.dayState&&s.dayState.date===date&&s.dayState.baseDone)?conditionMinutes(s,date,id):0)
     }))}));
   }
-  function activityTime(s,activityId,date,slot) {
+  function activityTime(s,activityId,date,slot,override) {
     const a=D.ACTIVITY_MAP[activityId];if(!a)return 0;
+    const minutes=D.activityMinutes(s.config,activityId,override);
     const care=a.id==='care'?0:careMinutes(s,date,slotId(slot));
-    return a.prep+travelMinutes(s,a)+(a.careOverlap?Math.max(a.minutes,care):a.minutes+care);
+    return a.prep+travelMinutes(s,a)+(a.careOverlap?Math.max(minutes,care):minutes+care);
   }
   function conditionMinutes(s,date,slot) {
     if(!s.flags.recoveryUntil||date<s.flags.recoveryStarted||date>s.flags.recoveryUntil)return 0;
@@ -179,6 +181,7 @@
     const p={...options,slot:slotId(options.slot),payment:options.payment||'cash'},a=D.ACTIVITY_MAP[p.activityId];
     if(s.phase==='finished'||s.phase==='review')return {ok:false,reason:'다음 주를 연 뒤 배치하세요.'};
     if(!a)return {ok:false,reason:'활동을 선택하세요.'};
+    if(p.activityMinutes!==undefined&&(!a.education||!Number.isInteger(p.activityMinutes)||p.activityMinutes<1||p.activityMinutes>1440))return {ok:false,reason:'자녀 교육 시간은 1~1440분 사이의 정수로 입력하세요.'};
     if(!C.validDate(p.date)||p.date<s.date||p.date>s.config.year+'-12-31'||!C.weekDates(s.date).includes(p.date))return {ok:false,reason:'이번 주의 남은 날짜를 선택하세요.'};
     if(!SLOT_IDS.includes(p.slot))return {ok:false,reason:'시간대를 선택하세요.'};
     if(s.dayState&&s.dayState.date===p.date&&s.dayState.done.includes('slot-'+p.slot))return {ok:false,reason:'이미 처리한 시간대에는 새 활동을 배치할 수 없습니다.'};
@@ -191,15 +194,17 @@
     }
     if(s.plan.some(x=>x.id!==ignoreId&&x.date===p.date&&x.slot===p.slot))return {ok:false,reason:'같은 시간대에 이미 활동이 있습니다.'};
     const blocked=(s.dayState&&s.dayState.date===p.date?(s.dayState.blocks[p.slot]||0):0)+(!(s.dayState&&s.dayState.date===p.date&&s.dayState.baseDone)?conditionMinutes(s,p.date,p.slot):0);
-    const minutes=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'&&s.dayState&&s.dayState.date===p.date?s.dayState.extraTravel:0);
+    const minutes=activityTime(s,a.id,p.date,p.slot,p.activityMinutes??a.minutes)+blocked+(a.location!=='home'&&s.dayState&&s.dayState.date===p.date?s.dayState.extraTravel:0);
     if(minutes>240)return {ok:false,reason:'이동하고 돌봄까지 챙기면 '+a.name+'을 마칠 시간이 부족해요. 다른 시간대를 골라 볼까요?',cause:'time',details:{requiredMinutes:minutes,availableMinutes:240}};
     const money=F.canSpend(projection(s,p.date,p.slot,ignoreId),activityCost(s,a.id),p.payment,s.config);
     return money.ok?{ok:true,reason:'',minutes}:{...money};
   }
   function addPlan(s,options) {
     if(s.phase==='event')return {ok:false,reason:'현재 사건의 선택을 먼저 마치세요.'};
+    const a=D.ACTIVITY_MAP[options.activityId];
+    if(a?.education){try{options={...options,activityMinutes:D.activityMinutes(s.config,a.id,options.activityMinutes)};}catch(error){return {ok:false,reason:error.message};}}
     const check=planCheck(s,options);if(!check.ok)return check;
-    const p={id:'plan-'+(++s.sequence),date:options.date,slot:slotId(options.slot),activityId:options.activityId,payment:options.payment||'cash',ruleId:options.ruleId||null,originalDate:options.originalDate||options.date};
+    const p={id:'plan-'+(++s.sequence),date:options.date,slot:slotId(options.slot),activityId:options.activityId,payment:options.payment||'cash',ruleId:options.ruleId||null,originalDate:options.originalDate||options.date,...(a.education?{activityMinutes:options.activityMinutes}:{})};
     s.plan.push(p);return {ok:true,reason:'',plan:p,minutes:check.minutes};
   }
   function prepareAutoWeek(s,options){
@@ -402,12 +407,13 @@
     if(autoReason)return specialEvent(s,p,autoReason,'manual');
     if(p.automatic&&!p.ruleId&&!cadenceCheck(s,a.id,p.date,p.id).allowed)return specialEvent(s,p,a.name+'은 '+a.cadence.label+' 자동으로 챙겨요. 이미 마친 일과 잡아 둔 약속 사이에 간격을 두어요.','cadence');
     const blocked=s.dayState.blocks[p.slot]||0;
-    const time=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'?s.dayState.extraTravel:0);
+    const actualMinutes=p.activityMinutes??a.minutes;
+    const time=activityTime(s,a.id,p.date,p.slot,actualMinutes)+blocked+(a.location!=='home'?s.dayState.extraTravel:0);
     if(time>240){const result=specialEvent(s,p,'돌봄과 이동까지 챙기면 '+a.name+'을 마칠 시간이 부족해요. 다른 때로 옮기거나 오늘은 쉬어 갈 수 있습니다.','time');s.pendingEvent.context.details={requiredMinutes:time,availableMinutes:240};return result;}
     const cost=activityCost(s,a.id),paid=F.spend(s.finance,s.date,cost,p.payment,a.name,s.config);
     if(!paid.ok)return specialEvent(s,p,paid.reason,paid.cause||'money');
     if(a.location!=='home')s.dayState.extraTravel=0;
-    const values=activityEffects(s,a);
+    const values=activityEffects(s,a,actualMinutes);
     const tired=s.stats.fatigue>=70;
     if(tired){if(values.preparation)values.preparation=Math.ceil(values.preparation*.55);if(values.research)values.research=Math.ceil(values.research*.55);if(values.work)values.work=Math.ceil(values.work*.55);if(values.mood>0)values.mood=Math.ceil(values.mood*.5);}
     if(D.preferenceActivityIds(s.config).includes(D.canonicalActivityId(a.id))){values.mood=(values.mood||0)+1.5;values.happiness=(values.happiness||0)+1;}
@@ -418,7 +424,7 @@
       log(s,'household',a.id==='cleaning'?'묵은 먼지를 걷어 내고 집을 청소했습니다.':'집안일을 하며 생활공간을 정돈했습니다.',{activityId:a.id,cleanliness:s.household.cleanliness});
     }
     effect(s,values);s.activityCounts[a.id]=count(s,a.id)+1;s.skills[a.id]=clamp((s.skills[a.id]||0)+(tired?Math.ceil(a.skillGain*.6):a.skillGain));
-    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,...(a.careOverlap?{careOverlapMinutes:Math.min(a.minutes,careMinutes(s,p.date,p.slot))}:{}),...(a.risk?{planId:p.id}:{}),...(a.procedure?{procedureRecoveryUntil:C.addDays(s.date,a.procedure.recoveryDays)}:{}),cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
+    log(s,'activity',a.name+' · '+SLOT_LABELS[SLOT_IDS.indexOf(p.slot)],{activityId:a.id,slot:p.slot,minutes:time,...(a.education?{activityMinutes:actualMinutes}:{}),...(a.careOverlap?{careOverlapMinutes:Math.min(actualMinutes,careMinutes(s,p.date,p.slot))}:{}),...(a.risk?{planId:p.id}:{}),...(a.procedure?{procedureRecoveryUntil:C.addDays(s.date,a.procedure.recoveryDays)}:{}),cost,payment:p.payment,effects:values,moodAfter:s.stats.mood,ruleId:p.ruleId||null,category:'completed'});
     if(a.procedure){const until=C.addDays(s.date,a.procedure.recoveryDays);if(!s.flags.cosmeticRecoveryUntil||until>=s.flags.cosmeticRecoveryUntil){s.flags.cosmeticRecoveryUntil=until;s.flags.cosmeticRecoveryActivity=a.id;s.flags.cosmeticRecoveryStarted=s.date;}}
     if(a.risk)completeRiskActivity(s,p,a);
     if(a.artifact&&count(s,a.id)%a.every===0){const artifact={id:'artifact-'+(++s.sequence),date:s.date,activityId:a.id,name:a.artifact,icon:a.icon,number:Math.floor(count(s,a.id)/a.every),skill:s.skills[a.id],season:season(s.date)};s.artifacts.push(artifact);log(s,'artifact',artifact.name+' #'+artifact.number,{artifactId:artifact.id,activityId:a.id});}
@@ -477,13 +483,14 @@
     const effects={health:-8,fatigue:12,mood:-10};effect(s,effects);
     log(s,'incident',a.name+' 중 사고 · 수리비 '+D.formatMoney(repairCost)+' · 병원비 '+D.formatMoney(medicalCost),{activityId:a.id,reference,repairCost,medicalCost,total:charged.total,paid:charged.paid,unpaid:charged.unpaid,effects,category:'incident'});
   }
-  function activityEffects(s,a) {
+  function activityEffects(s,a,minutes=a.minutes) {
     const health={walk:2.2,run:4,pt:4,cook:1.5,rest:2,chores:.4,cleaning:.7,garden:1,care:.2,overtime:-2};
     const knowledge={read:3,study:5,research:5,jobstudy:4,culture:4,cook:1,music:1,photo:1,pottery:1,draw:1,garden:.6};
     const family={care:4,cook:2,family_time:8};
     const values={...a.effects};
     if(['delivery','parttime','sideproject'].includes(a.id)&&s.stats.fatigue>=65){values.happiness=(values.happiness||0)-4;values.mood=(values.mood||0)-4;values.health=(values.health||0)-1;}
     for(const [key,map]of Object.entries({health,knowledge,family}))if(values[key]===undefined&&map[a.id]!==undefined)values[key]=map[a.id];
+    if(a.education)values.family=(values.family||0)*Math.min(minutes,a.education.familyCapMinutes)/a.education.familyCapMinutes;
     if(values.happiness===undefined)values.happiness=a.id==='overtime'?-.8:['photo','pottery','music','draw','friends'].includes(a.id)?2.5:a.id==='study'||a.id==='research'?1.2:1.5;
     values.mood=(values.mood||0)*.65;
     if(s.healthEpisode&&s.healthEpisode.subject==='self'&&['run','pt','overtime'].includes(a.id)){values.fatigue=(values.fatigue||0)+4;values.health=(values.health||0)-2;}
@@ -665,7 +672,7 @@
   }
   function changeOutside(s) {
     for(const p of s.plan.filter(p=>p.date===s.date&&D.ACTIVITY_MAP[p.activityId].location!=='home')){
-      const old=p.activityId;p.activityId='read';p.payment='cash';
+      const old=p.activityId;p.activityId='read';p.payment='cash';delete p.activityMinutes;
       if(p.ruleId){const rule=s.rules.find(r=>r.id===p.ruleId);if(rule)R.skip(rule,p.originalDate,p.date);p.ruleId=null;}
       log(s,'changed',D.ACTIVITY_MAP[old].name+' 대신 독서',{activityId:old,replacement:'read',category:'cannot',reason:'event'});
     }
@@ -833,7 +840,7 @@
         log(s,'goal',action==='single_continue'?'선택한 연락·개인 시간·돌봄 도움의 리듬을 이어가기로 했습니다.':'내 주말에 필요한 시간을 다시 정했습니다.',{eventId:event.catalogId,previousPlan:s.flags.singlePlan,category:'choice'});break;
       }
       case 'budget_reduce':
-        for(const p of s.plan.filter(p=>activityCost(s,p.activityId)>0)){const original=p.activityId;removePlan(s,p.id,event.catalogId==='money_recovery'?'money':'choice');const remaining=planCheck(s,{...p,activityId:'rest',ruleId:null});if(remaining.ok)s.plan.push({...p,activityId:'rest',payment:'cash',ruleId:null});log(s,'changed',D.ACTIVITY_MAP[original].name+' 대신 여유를 남겼습니다.',{category:event.catalogId==='money_recovery'?'cannot':'choice',reason:event.catalogId==='money_recovery'?'money':'choice'});}break;
+        for(const p of s.plan.filter(p=>activityCost(s,p.activityId)>0)){const original=p.activityId;removePlan(s,p.id,event.catalogId==='money_recovery'?'money':'choice');const replacement={...p,activityId:'rest',payment:'cash',ruleId:null};delete replacement.activityMinutes;const remaining=planCheck(s,replacement);if(remaining.ok)s.plan.push(replacement);log(s,'changed',D.ACTIVITY_MAP[original].name+' 대신 여유를 남겼습니다.',{category:event.catalogId==='money_recovery'?'cannot':'choice',reason:event.catalogId==='money_recovery'?'money':'choice'});}break;
     }
     log(s,'event',event.title+' · '+choice.label,{eventId:event.catalogId,source:event.source,choiceId:id,description:choice.description,category:'choice'});
     s.pendingEvent=null;s.phase='planning';if(action==='sideproject_extend')queue(s,'sideproject_deadline',s.flags.sideprojectDue);return {ok:true};

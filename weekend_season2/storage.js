@@ -32,13 +32,24 @@
     if(!unique(s.plan,'id')||!unique(s.rules,'id')||!unique(s.log,'id')||!unique(s.artifacts,'id'))bad('중복된 기록 ID가 있습니다.');
     const occupied=new Set();
     for(const p of s.plan){const key=p.date+':'+p.slot;if(!object(p)||typeof p.id!=='string'||!D.ACTIVITY_MAP[p.activityId]||!inYear(p.date)||p.date<s.date||!Engine.SLOT_IDS.includes(p.slot)||!['cash','card','debit'].includes(p.payment)||!C.validDate(p.originalDate)||occupied.has(key))bad('활동 배치가 손상되었습니다.');occupied.add(key);if(p.ruleId&&!s.rules.some(r=>r.id===p.ruleId))bad('반복 배치의 원래 규칙이 없습니다.');}
+    for(const p of s.plan)if(p.activityMinutes!==undefined){
+      const activity=D.ACTIVITY_MAP[p.activityId];
+      if(!activity?.education||!Number.isInteger(p.activityMinutes)||p.activityMinutes<1||p.activityMinutes>1440||p.activityMinutes+activity.prep>240)bad('계획한 자녀 교육 시간을 확인하세요.');
+    }
     for(const rule of s.rules){try{R.createRule(rule);if(typeof rule.active!=='boolean'||!D.ACTIVITY_MAP[rule.activityId])throw Error();for(const field of ['completed','skipped','postponed']){if(!object(rule[field]))throw Error();for(const [date,value]of Object.entries(rule[field]))if(!C.validDate(date)||(field==='skipped'?value!==true:!C.validDate(value)))throw Error();}if(!C.validDate(rule.nextOriginal)||(rule.lastCompleted!==null&&!C.validDate(rule.lastCompleted)))throw Error();}catch(e){bad('반복 일정이 손상되었습니다.');}}
     const dayDates=new Set();
     for(const entry of s.log){if(!object(entry)||typeof entry.id!=='string'||typeof entry.type!=='string'||typeof entry.title!=='string'||!inYear(entry.date)||entry.date>s.date)bad('기록 날짜나 내용이 손상되었습니다.');if(entry.type==='daily'){if(dayDates.has(entry.date)||!object(entry.stats)||Object.values(entry.stats).some(v=>!Number.isFinite(v)||v<0||v>100))bad('하루 요약이 중복되거나 손상되었습니다.');dayDates.add(entry.date);}if(entry.activityId&&!D.ACTIVITY_MAP[entry.activityId])bad('알 수 없는 활동 기록입니다.');}
     for(const entry of s.log)if(entry.careOverlapMinutes!==undefined){
       const activity=D.ACTIVITY_MAP[entry.activityId],careSlot=C.validDate(entry.date)?C.isOff(entry.date)?'morning':'evening':null;
       const recordedCare=s.log.filter(item=>item.type==='care'&&item.date===entry.date).reduce((sum,item)=>sum+(Number.isFinite(item.minutes)?Math.max(0,item.minutes):0),0);
-      if(entry.type!=='activity'||!activity?.careOverlap||!Number.isInteger(entry.careOverlapMinutes)||entry.careOverlapMinutes<0||entry.careOverlapMinutes>Math.min(activity?.minutes||0,180,recordedCare)||entry.slot!==careSlot&&entry.careOverlapMinutes!==0||!Number.isFinite(entry.minutes)||entry.careOverlapMinutes>entry.minutes)bad('활동과 기본 돌봄이 겹친 시간을 확인하세요.');
+      const duration=entry.activityMinutes??activity?.minutes??0;
+      if(entry.type!=='activity'||!activity?.careOverlap||!Number.isInteger(entry.careOverlapMinutes)||entry.careOverlapMinutes<0||entry.careOverlapMinutes>Math.min(duration,180,recordedCare)||entry.slot!==careSlot&&entry.careOverlapMinutes!==0||!Number.isFinite(entry.minutes)||entry.careOverlapMinutes>entry.minutes)bad('활동과 기본 돌봄이 겹친 시간을 확인하세요.');
+    }
+    for(const entry of s.log)if(entry.activityMinutes!==undefined){
+      const activity=D.ACTIVITY_MAP[entry.activityId],minutes=entry.activityMinutes;
+      // A later family agreement can change care after the day's care record.
+      // Keep overlap upper bounds above; do not infer an exact past care basis.
+      if(entry.type!=='activity'||!activity?.education||!Number.isInteger(minutes)||minutes<1||minutes>1440||!Engine.SLOT_IDS.includes(entry.slot)||!Number.isInteger(entry.minutes)||entry.minutes>240||entry.minutes<(activity?.prep||0)+minutes||!Number.isInteger(entry.careOverlapMinutes)||entry.effects?.family!==(activity?.effects.family||0)*Math.min(minutes,activity?.education?.familyCapMinutes||60)/(activity?.education?.familyCapMinutes||60))bad('실제로 마친 자녀 교육 시간·돌봄·가족관계 효과가 일치하지 않습니다.');
     }
     for(const artifact of s.artifacts)if(!object(artifact)||!D.ACTIVITY_MAP[artifact.activityId]||!inYear(artifact.date)||artifact.date>s.date||typeof artifact.name!=='string'||!s.log.some(l=>l.type==='artifact'&&l.artifactId===artifact.id))bad('결과물과 로그가 일치하지 않습니다.');
     if(s.log.filter(l=>l.type==='artifact').length!==s.artifacts.length||s.log.some(l=>l.type==='artifact'&&!s.artifacts.some(a=>a.id===l.artifactId)))bad('결과물 목록과 로그가 일치하지 않습니다.');

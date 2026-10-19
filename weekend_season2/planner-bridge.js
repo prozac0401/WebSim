@@ -38,10 +38,14 @@
     if(id==='rest')return 'deep_rest';
     return 'solo_cafe';
   }
+  function recordedActivityMinutes(record){
+    const a=D.ACTIVITY_MAP[record.activityId];
+    return a.education&&Number.isInteger(record.activityMinutes)&&record.activityMinutes>0?record.activityMinutes:a.minutes;
+  }
   function sourceRows(state,date){
     const logs=state.log.filter(log=>log.date===date),activities=logs.filter(log=>log.type==='activity'&&D.ACTIVITY_MAP[log.activityId]);
     const care=logs.filter(log=>log.type==='care').reduce((sum,log)=>sum+Math.max(0,Number(log.minutes)||0),0);
-    const overlapFor=log=>log.slot==='morning'&&D.ACTIVITY_MAP[log.activityId]?.careOverlap?clamp(Number(log.careOverlapMinutes)||0,0,Math.min(care,D.ACTIVITY_MAP[log.activityId].minutes)):0;
+    const overlapFor=log=>log.slot==='morning'&&D.ACTIVITY_MAP[log.activityId]?.careOverlap?clamp(Number(log.careOverlapMinutes)||0,0,Math.min(care,recordedActivityMinutes(log))):0;
     const overlap=activities.reduce((sum,log)=>sum+overlapFor(log),0),remainingCare=Math.max(0,care-overlap);
     const blocks={morning:0,afternoon:0,evening:0},titles={morning:[],afternoon:[],evening:[]};
     for(const log of logs.filter(log=>log.type==='time'&&SLOT_START[log.slot]!==undefined)){
@@ -55,10 +59,13 @@
     }
     for(const log of activities){
       const a=D.ACTIVITY_MAP[log.activityId],slot=SLOT_START[log.slot]===undefined?'afternoon':log.slot;
-      const recorded=Number.isFinite(log.minutes)?log.minutes:a.minutes+a.prep;
+      const activityMinutes=recordedActivityMinutes(log),recorded=Number.isFinite(log.minutes)?log.minutes:activityMinutes+a.prep;
       const embeddedCare=slot==='morning'&&a.id!=='care'?Math.max(0,care-overlapFor(log)):0;
-      const minutes=Math.max(1,recorded-embeddedCare-blocks[slot]);
-      const travel=Math.max(0,minutes-a.minutes-a.prep);
+      // Education records retain the actual learning time. Household help can
+      // change after the day's baseline-care log; do not subtract that earlier
+      // baseline from the snapshotted home activity a second time.
+      const minutes=a.education&&Number.isInteger(log.activityMinutes)?activityMinutes+a.prep:Math.max(1,recorded-embeddedCare-blocks[slot]);
+      const travel=Math.max(0,minutes-activityMinutes-a.prep);
       rows.push({key:a.id,slot,type:mappedType(a.id),label:a.name,minutes,travel,strain:a.mode==='together'?3:1,kind:'actual',date,reason:'실제로 마친 활동 기록이에요. 함께 기록된 기본 돌봄·별도 사용 시간은 분리해 한 번만 계산했어요.'+(overlapFor(log)?` 기본 돌봄과 겹치는 ${overlapFor(log)}분은 이 육아 활동에 포함돼요.`:'')});
     }
     return rows;
@@ -68,7 +75,7 @@
     const rows=[],hasCare=existing.some(row=>row.key==='baseline-care'||row.slot==='morning'&&(row.key==='care'||D.ACTIVITY_MAP[row.key]?.careOverlap));
     const care=E.careMinutes(state,date,'morning');
     const scheduled=state.plan.filter(plan=>plan.date===date&&!existing.some(row=>row.slot===plan.slot&&D.ACTIVITY_MAP[row.key]));
-    const scheduledOverlap=scheduled.filter(plan=>plan.slot==='morning'&&D.ACTIVITY_MAP[plan.activityId]?.careOverlap).reduce((sum,plan)=>sum+Math.min(care,D.ACTIVITY_MAP[plan.activityId].minutes),0);
+    const scheduledOverlap=scheduled.filter(plan=>plan.slot==='morning'&&D.ACTIVITY_MAP[plan.activityId]?.careOverlap).reduce((sum,plan)=>sum+Math.min(care,recordedActivityMinutes(plan)),0);
     const remainingCare=Math.max(0,care-scheduledOverlap);
     if(remainingCare&&!hasCare&&!scheduled.some(plan=>plan.slot==='morning'&&plan.activityId==='care'))rows.push({key:'baseline-care',slot:'morning',type:'family_dining',label:scheduledOverlap?'남은 기본 돌봄 시간':'기본 돌봄 시간',minutes:remainingCare,travel:0,strain:3,kind:'estimated',date,reason:scheduledOverlap?'자녀 나이와 돌봄 분담으로 추정한 기본 시간 중 예정한 육아 활동과 겹치지 않는 나머지예요.':'자녀 나이와 현재 돌봄 분담으로 추정한 시간이에요.'});
     const occupied=new Set(existing.filter(row=>D.ACTIVITY_MAP[row.key]).map(row=>row.slot));
@@ -76,7 +83,7 @@
     for(const plan of scheduled){
       const a=D.ACTIVITY_MAP[plan.activityId];if(!a)continue;
       const travel=E.travelMinutes(state,a);
-      rows.push({key:a.id,slot:plan.slot,type:mappedType(a.id),label:a.name,minutes:a.minutes+a.prep+travel,travel,strain:a.mode==='together'?3:1,kind:'scheduled',date,reason:'이 날짜에 잡아 둔 일정이에요. 아직 실행한 기록은 아니에요.'});occupied.add(plan.slot);
+      rows.push({key:a.id,slot:plan.slot,type:mappedType(a.id),label:a.name,minutes:recordedActivityMinutes(plan)+a.prep+travel,travel,strain:a.mode==='together'?3:1,kind:'scheduled',date,reason:'이 날짜에 잡아 둔 일정이에요. 아직 실행한 기록은 아니에요.'});occupied.add(plan.slot);
     }
     const rate=D.ageHealthProfile(state.config).recoveryRate,tired=state.stats.fatigue>=Math.round(65*rate)||state.stats.health<60||state.healthEpisode?.subject==='self';
     const roleGoal={seeker:'jobstudy',graduate:'research'}[state.config.role];
@@ -111,8 +118,8 @@
         // already present anywhere in this weekend leave room for other choices.
         if(budgetState.used.has(id)&&!(id==='rest'&&!saturday&&slot==='evening'))return false;
         if(tired&&((a.effects.fatigue||0)>8||state.healthEpisode?.subject==='self'&&a.location!=='home'))return false;
-        const overlap=a.careOverlap&&slot==='morning'?Math.min(a.minutes,rows.find(row=>row.key==='baseline-care')?.minutes||0):0;
-        return a.minutes+a.prep+E.travelMinutes(state,a)+reserved-overlap<=240&&D.activityPrice(state.config,id).amount<=Math.max(0,budget);
+        const activityMinutes=D.activityMinutes(state.config,id),overlap=a.careOverlap&&slot==='morning'?Math.min(activityMinutes,rows.find(row=>row.key==='baseline-care')?.minutes||0):0;
+        return activityMinutes+a.prep+E.travelMinutes(state,a)+reserved-overlap<=240&&D.activityPrice(state.config,id).amount<=Math.max(0,budget);
       });
       const score=id=>{
         let points=variation(id)+(themes[slot].includes(id)?24:0)+(preferences.includes(id)?32:0);
@@ -124,13 +131,13 @@
       };
       eligible.sort((a,b)=>score(b)-score(a)||a.localeCompare(b));
       const id=eligible[0];if(!id)continue;
-      const a=D.ACTIVITY_MAP[id],travel=E.travelMinutes(state,a);
+      const a=D.ACTIVITY_MAP[id],travel=E.travelMinutes(state,a),activityMinutes=D.activityMinutes(state.config,id);
       if(a.careOverlap&&slot==='morning'){
         const baseline=rows.find(row=>row.key==='baseline-care');
-        if(baseline){baseline.minutes=Math.max(0,baseline.minutes-a.minutes);baseline.label='남은 기본 돌봄 시간';baseline.reason='추정한 기본 돌봄 중 이 시간에 할 육아 활동과 겹치지 않는 나머지예요.';if(!baseline.minutes)rows.splice(rows.indexOf(baseline),1);}
+        if(baseline){baseline.minutes=Math.max(0,baseline.minutes-activityMinutes);baseline.label='남은 기본 돌봄 시간';baseline.reason='추정한 기본 돌봄 중 이 시간에 할 육아 활동과 겹치지 않는 나머지예요.';if(!baseline.minutes)rows.splice(rows.indexOf(baseline),1);}
       }
       const rhythm=saturday?'토요일은 취미·외출에 조금 더 무게를 두고':'일요일은 집에서 할 일과 차분한 마무리에 조금 더 무게를 두고';
-      rows.push({key:id,slot,type:mappedType(id),label:a.name,minutes:a.minutes+a.prep+travel,travel,strain:a.mode==='together'?3:1,kind:'estimated',date,reason:`해당 날짜의 완료 기록이 없어 현재 역할·선호·건강·피로·가용예산으로 만든 모의 일정이에요. ${rhythm}, 주말 전체의 활동 중복을 줄였어요.`});
+      rows.push({key:id,slot,type:mappedType(id),label:a.name,minutes:activityMinutes+a.prep+travel,travel,strain:a.mode==='together'?3:1,kind:'estimated',date,reason:`해당 날짜의 완료 기록이 없어 현재 역할·선호·건강·피로·가용예산으로 만든 모의 일정이에요. ${rhythm}, 주말 전체의 활동 중복을 줄였어요.`});
       budget-=D.activityPrice(state.config,id).amount;used.add(id);budgetState.used.add(id);if(a.cadence)budgetState.cadenceUsed.add(a.cadence.group);
     }
     budgetState.remaining=Math.max(0,budget);
