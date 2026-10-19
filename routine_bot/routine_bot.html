@@ -2,21 +2,23 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#eef4e9"><meta name="description" content="작은 로봇의 귀갓길을 코딩하세요. 이동, 반복, 조건, 함수로 풀어가는 15개의 명령 퍼즐.">
+  <meta name="theme-color" content="#eef4e9"><meta name="description" content="공통 프로그램으로 로봇의 귀갓길과 상자 배송을 코딩하세요. 이동, 반복, 조건, 함수와 협동으로 풀어가는 명령 퍼즐.">
   <title>루틴봇: 집으로 가는 코드 · WebSim</title>
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="routine_bot.css">
-  <script src="engine.js" defer></script><script src="levels.js" defer></script><script src="storage.js" defer></script><script src="routine_bot.js" defer></script>
+  <script src="engine.js" defer></script><script src="levels.js" defer></script><script src="storage.js" defer></script><script src="timing.js" defer></script><script src="routine_bot.js" defer></script>
 </head>
 <body>
-  <header class="site-bar"><a href="../index.html" class="websim">W<span>·</span> <span>WebSim</span></a><a href="routine_bot_doc.html">놀이 방법 ↗</a></header>
+  <header class="site-bar"><a href="../index.html" class="websim">W<span>·</span> <span>WebSim</span></a><a href="routine_bot_doc.html" id="help-open">게임 방법 · 튜토리얼</a></header>
   <main class="game" id="game">
-    <div class="game-heading"><div><p class="eyebrow">A LITTLE CODE. A WAY HOME.</p><h1>루틴봇 <span>집으로 가는 코드</span></h1></div><div class="header-actions"><button id="sound" aria-pressed="false" aria-label="소리 켜기">♪ 소리 꺼짐</button><button id="levels-toggle" aria-expanded="false" aria-controls="level-panel">여정 <span id="progress-count">0 / 15</span></button></div></div>
-    <section id="level-panel" class="level-panel" hidden aria-label="레벨 선택"><div class="panel-heading"><h2>작은 발걸음, 긴 여행</h2><button id="levels-close">닫기 ×</button></div><div id="level-buttons"></div><p>12개의 본편을 마치면, 응용 도전 3개가 열려요.</p></section>
+    <div class="game-heading"><div><p class="eyebrow">A LITTLE CODE. A WAY HOME.</p><h1>루틴봇 <span>집으로 가는 코드</span></h1></div><div class="header-actions"><button id="sound" aria-pressed="false" aria-label="소리 켜기">♪ 소리 꺼짐</button><button id="levels-toggle" aria-expanded="false" aria-controls="level-panel">여정 <span id="progress-count">0 / …</span></button></div></div>
+    <section id="level-panel" class="level-panel" hidden aria-label="레벨 선택"><div class="panel-heading"><h2>작은 발걸음, 긴 여행</h2><button id="levels-close">닫기 ×</button></div><div id="level-buttons"></div><p>✓ 완료한 길은 계속 열려 있어요. 새 도전은 기존 코드와 기록을 그대로 두고 사이에 이어집니다.</p></section>
+    <section class="challenge-bar" aria-label="활성 풀이 시간"><div><strong id="solve-time">도전 시작 전</strong><span id="record-summary"></span></div><div><button id="challenge-start" class="primary">도전 시작</button><button id="rest">쉬기</button><button id="new-record">새 기록 도전</button><button id="tutorial-open">짧은 튜토리얼</button></div><p id="timing-note">도전 시작부터 생각·편집·실행 관찰 시간을 기록해요. 쉬기·도움말·숨겨진 시간은 제외해요.</p></section>
     <div class="workspace">
       <section class="stage" aria-labelledby="level-title">
         <div class="level-heading"><div><p class="eyebrow" id="chapter-name"></p><h2 id="level-title"></h2></div><label class="level-picker"><span class="sr-only">레벨</span><select id="level-select" aria-label="레벨 선택"></select></label></div>
         <p id="brief" class="brief"></p>
-        <details id="hazard-guide" class="hazard-guide" hidden><summary><strong id="hazard-time">시간 0</strong><span>× 지금 위험 · ! 다음 위험</span><span>시간표 ▾</span></summary><div id="hazard-schedule"></div><p>이동·회전·기다리기마다 시간 +1. 그때 × 칸에 있으면 실패해요. 판단·반복·함수 호출은 시간을 보내지 않아요.</p></details>
+        <div id="robot-select" class="robot-select" role="group" aria-label="관찰할 로봇"></div><p id="coop-legend" class="coop-legend" hidden>공통 코드 · A ○ / B ◇는 같은 표식의 집으로 · ▣는 상자 목적지</p>
+        <details id="hazard-guide" class="hazard-guide" hidden><summary><strong id="hazard-time">시간 0</strong><span>× 지금 위험 · ! 다음 위험</span><span>시간표 ▾</span></summary><div id="hazard-schedule"></div><p>이동·회전·기다리기는 한 턴. 협동은 로봇 수와 무관하게 전체 턴마다 시간 +1이에요. 그때 × 칸에 있으면 실패해요. 판단·반복·함수 호출은 시간을 보내지 않아요.</p></details>
         <div class="board-wrap"><canvas id="canvas" width="820" height="570" role="img" aria-label="루틴봇의 귀갓길 지도" aria-describedby="map-description"></canvas><div class="board-stamp">HOME IS A PROGRAM AWAY</div><span id="tile-state" class="tile-state" hidden>★ 지금 별 위에 있어요</span><div id="map-choice" hidden><label>같은 코드, 다른 길 <select id="map-select" aria-label="미리 볼 지도"></select></label></div></div>
         <details class="map-access"><summary>지도 글로 읽기</summary><p id="map-description"></p></details>
         <div class="playback"><div class="transport"><button id="run" class="primary">▶ 실행</button><button id="pause" aria-label="일시정지" disabled>Ⅱ 멈춤</button><button id="step">한 단계</button><button id="reset" title="프로그램을 유지하고 출발 위치로 돌아갑니다">↶ 처음 위치</button></div><label class="speed">속도 <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
@@ -41,5 +43,6 @@
     <footer class="game-footer"><span>순서대로 생각하고, 틀려도 다시.</span><span>Ctrl+Enter 실행·멈춤 · R 처음 위치 · Ctrl+Z 취소 · F 전체화면</span></footer>
     <noscript>게임을 실행하려면 JavaScript를 켜 주세요. <a href="routine_bot_doc.html">놀이 방법 읽기</a></noscript>
   </main>
+  <dialog id="help-dialog" aria-labelledby="tutorial-title"><div class="panel-heading"><span id="tutorial-page"></span><button id="help-close">닫기 ×</button></div><h2 id="tutorial-title"></h2><p id="tutorial-text"></p><div id="tutorial-scene" class="tutorial-scene" aria-live="polite"></div><button id="tutorial-act">예시 한 턴 실행</button><p id="tutorial-result" role="status"></p><div class="tutorial-controls"><button id="tutorial-prev">이전</button><button id="tutorial-next">다음 규칙</button><button id="tutorial-practice" class="primary">이 도전에서 연습</button></div><p><button id="tutorial-skip">건너뛰기 · 게임으로</button> <a href="routine_bot_doc.html" target="_blank" rel="noopener">게임 방법 페이지 ↗</a></p><small>읽는 동안 기록과 실행은 멈춥니다. 규칙 예시 열람도 도움 받은 기록으로 구분해요. 닫은 뒤 ▶ 이어서 버튼으로 실행을 재개하세요.</small></dialog>
   <script>/* Module errors remain visible instead of a silent blank board. */window.addEventListener('error',function(){var e=document.getElementById('message');if(e&&!window.render_game_to_text)e.textContent='게임 파일을 불러오지 못했어요. 새로고침해 주세요.';});</script>
 </body></html>

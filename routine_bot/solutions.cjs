@@ -23,5 +23,14 @@ module.exports = {
   12: program([call('F2')], [iff('blocked', [r()], [w(), f()])], [repeat(12, [call('F1')])]),
   13: program([call('F2'), call('F2')], [guide()], [repeat(12, [call('F1')])]),
   14: program([repeat(6, [iff('mark', [call('F1')], [call('F2')])])], [f(), r(), f(), l()], [f(), f()]),
-  15: program([repeat(12, [repeat(2, [call('F2')])])], [repeat(2, [w()]), f()], [iff('blocked', [r()], [iff('mark', [l()]), call('F1')])])
+  15: program([repeat(12, [repeat(2, [call('F2')])])], [repeat(2, [w()]), f()], [iff('blocked', [r()], [iff('mark', [l()]), call('F1')])]),
+  'box-intro': program([f()]),
+  'box-detour': program([l(), f(), r(), f(), f(), r(), f(), r(), r(), f(), l(), f(), f(), l(), f(), l(), f()]),
+  'wait-beat': program([w(), f()]),
+  'condition-fork': program([iff('blocked', [r()]), f()]),
+  'function-reuse': program([call('F1'), f(), call('F1')], [f(), r(), f(), l()]),
+  'coop-intro': program([f(), f()]),
+  'coop-gate': program([iff('box', [f(), r(), r(), f()], [w(), w(), w(), w(), f(), f(), f(), f()])]),
+  'coop-delivery': program([f(), r(), r(), f()]),
+  'coop-finale': program([iff('box', [f(), r(), r(), f()], [repeat(5, [call('F1')])])], [w(), f()])
 };

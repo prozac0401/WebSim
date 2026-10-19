@@ -26,7 +26,7 @@
 
 ## 패턴과 성장
 
-- [루틴봇: 집으로 가는 코드](routine_bot/routine_bot.html) — 명령 블록을 조합하고 움직임을 고쳐 가며 반복·조건·함수를 배우는 12개 기본 퍼즐과 3개 응용 도전 · [사용법](routine_bot/routine_bot_doc.html) · [실행과 검증](routine_bot/README.md)
+- [루틴봇: 집으로 가는 코드](routine_bot/routine_bot.html) — 기존 15레벨에 상자·대기·조건·함수 필수 도전과 공통 코드 협동을 통합한 24단계·28지도. 직접 움직이는 튜토리얼과 활성 풀이 시간 기록 · [게임 방법](routine_bot/routine_bot_doc.html) · [실행과 검증](routine_bot/README.md)
 - [진화하는 탈것](evolving_vehicles/evolving_vehicles.html) — 코스를 달리는 탈것을 선발하고, 다음 세대의 모양과 주행을 비교합니다. · [사용법](evolving_vehicles/evolving_vehicles_doc.html)
 - [진화하는 탈것 2](evolving_vehicles_2/evolving_vehicles_2.html) — 실제 서킷의 3D 지도와 레이싱 라인에서 원메이크 레이스를 열고, 사양별 예산 안에서 튜닝을 세대별로 진화시킵니다. · [사용법](evolving_vehicles_2/evolving_vehicles_2_doc.html)
 - [생명 게임](conway-game-of-life/conway-game-of-life.html) — 격자 이웃 규칙이 만드는 세대별 무늬 · [사용법](conway-game-of-life/conway-game-of-life_doc.html) · [관련 글](https://prozac0401.tistory.com/16)

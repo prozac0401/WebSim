@@ -4,7 +4,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const E = require('./engine.js');
-const levels = require('./levels.js');
+const levels = require('./levels.js').filter(level => typeof level.id === 'number').sort((a, b) => a.id - b.id);
 const solutions = require('./solutions.cjs');
 const clone = value => JSON.parse(JSON.stringify(value));
 function finish(program, level, mapIndex = 0) {
