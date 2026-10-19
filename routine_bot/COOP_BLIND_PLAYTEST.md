@@ -50,4 +50,3 @@
 - The cooperative introduction is an easy two-forward bridge. The gate is a marked reasoning increase, but its level text and prior interactive rule explain the two routes. A failed attempt was recoverable without losing the branch structure. No unexplained difficulty blocker remained in the sampled sequence.
 - Selecting B follows B's current branch, which was especially useful when A waited and B pushed. At phone widths this scrolls the selected command into the editor; seeing the map again requires scrolling upward. This is a tradeoff of the non-overlapping layout, not a broken control.
 - The displayed active time included editing, review and pauses, and excluded help/rest as described. Agent/tool delays are part of these observations; these times are not benchmarks of human puzzle difficulty.
-
