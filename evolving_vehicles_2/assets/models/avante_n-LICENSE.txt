@@ -1,0 +1,28 @@
+2022 Hyundai Elantra N — tonielpro520
+
+Original model: https://sketchfab.com/3d-models/2022-hyundai-elantra-n-cd5741852515425aa3c058b7e081dd2c
+Creator: https://sketchfab.com/tonielpro520
+
+Licensed under Creative Commons Attribution 4.0 International (CC-BY-4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+Legal code: https://creativecommons.org/licenses/by/4.0/legalcode.en
+
+The public model page and downloaded GLB identify this author, source and
+license. Verified 2026-10-19. Keep the attribution, license link and change
+notice with redistributed copies. No endorsement by Hyundai or the creator
+is implied. This is a community model, not official manufacturer CAD.
+
+Acquired through the normal Sketchfab download after user sign-in.
+Input: 2022_hyundai_elantra_n.glb (51701716 bytes)
+SHA-256: c614c473220709478794b641eea76f49047b1f8338b27300a8d33eb65ff289b5
+
+WebSim modifications:
+- Applied world transforms and [world +Z, -X, +Y] to match the renderer forward/up/screen-right convention; corrected reflected normals and winding. This preserves readable ELANTRA lettering and original N-badge/fuel-flap/steering side in the rendered view. Uniformly scaled to 4.675 m and tire ground zero.
+- Removed unused UVs from untextured parts, welded equivalent positions/normals, and joined source draw fragments by material without excluding source parts before simplification.
+- Simplified indexed geometry with normal-aware Meshopt; retained source body, spoiler, N badges, red trim, lamp, grille, interior, wheel and tire geometry without adding replacement body shapes.
+- Converted linear glTF base factors to display-space colors, mapped materials to the existing renderer, and retained original glass alpha, Ceramic White paint and red accents.
+- Embedded the sole original JPEG license-plate texture byte-for-byte; retained its original overseas plate artwork. No raster editing or generated images.
+- Created a separate topology- and normal-aware simplified fallback with extra body/glass/tire budget; no spatial-clustering simplification. Compacted vertices and embedded a gzip-compressed local JavaScript payload. Wheels remain static under the existing runtime contract.
+
+See avante_n-source.json, avante_n-runtime-summary.json and
+build-free-avante-n.mjs for provenance and reproducible processing.

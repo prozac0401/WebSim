@@ -20,7 +20,7 @@ function finish(race) {
 }
 
 test('all circuit presets use the original or circuit-only factory mass, power and torque', () => {
-  assert.equal(TrackRace.VEHICLES.length, 16);
+  assert.equal(TrackRace.VEHICLES.length, 17);
   for (const vehicle of TrackRace.VEHICLES) {
     assert.equal(vehicle.massKg, specifications[vehicle.id].curbMassKg);
     assert.equal(vehicle.powerPs, specifications[vehicle.id].powerPs);
@@ -267,7 +267,7 @@ test('a downhill approach plans and starts braking earlier than the same flat co
   assert.ok(brakingStarts[2] > brakingStarts[1] + 10, 'uphill gravity allows a later braking point');
 });
 
-test('all 16 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
+test('all 17 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
   assert.equal(circuits.length, 11);
   const retirements = [];
   for (const circuit of circuits) {
@@ -561,7 +561,7 @@ test('one-make variant and tuning entrants complete every elevated layout in dry
   t.diagnostic(runs + ' one-make entrant runs completed on actual elevated racing lines.');
 });
 
-test('generated factory variants run for all 16 models and tuning generations preserve the measured elite', t => {
+test('generated factory variants run for all 17 models and tuning generations preserve the measured elite', t => {
   const tuning = require('./tuning-evolution.js');
   const circuit = circuits.find(c => c.id === 'inje');
   let runs = 0;
@@ -595,4 +595,23 @@ test('generated factory variants run for all 16 models and tuning generations pr
     runs += race.cars.length;
   }
   t.diagnostic(runs + ' generated-entrant runs; G80 elite finish times: ' + winners.map(v => v.toFixed(3)).join(' → '));
+});
+
+test('both stock CN7 Avante N transmissions finish dry/wet racing-line laps with their own launch reductions', () => {
+  const tuning = require('./tuning-evolution.js');
+  for (const surface of ['dry', 'wet']) {
+    const population = tuning.createPopulation({ vehicleId: 'avante_n', budget: 0 }), before = JSON.stringify(population);
+    const race = new TrackRace({ circuit: circuits.find(c => c.id === 'inje'), entrants: population, surface, laps: 1 });
+    assert.equal(race.cars.length, 2);
+    for (const car of race.cars) {
+      const dct = car.entrant.variantId === 'avante-n-2.0t-dct';
+      assert.equal(car.driveReduction, dct ? 3.714 * 3.8 : 3.083 * 4.154);
+      assert.equal(car.driveReductionSource, 'reference-market');
+      assert.equal(car.massKg, dct ? 1485 : 1450); assert.equal(car.powerPs, 280);
+      assert.equal(car.torqueNm, 392.266); assert.equal(car.spec.factoryDrive, 'fwd');
+    }
+    while (!race.finished && race.time < 600) race.step(30);
+    assert.ok(race.cars.every(car => car.finished && !car.dnf && car.finishTime > 0));
+    assert.equal(JSON.stringify(population), before, 'race and eLSD metadata must not mutate or boost stock inputs');
+  }
 });

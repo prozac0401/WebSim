@@ -1,0 +1,83 @@
+{
+  "id": "avante_n",
+  "title": "2022 Hyundai Elantra N",
+  "author": "tonielpro520",
+  "authorUrl": "https://sketchfab.com/tonielpro520",
+  "sourceUrl": "https://sketchfab.com/3d-models/2022-hyundai-elantra-n-cd5741852515425aa3c058b7e081dd2c",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "manufacturerOfficial": false,
+  "verifiedDate": "2026-10-19",
+  "configuration": {
+    "generation": "CN7",
+    "modelYear": 2022,
+    "facelift": false,
+    "exterior": "2022 Elantra N / Avante N CN7 pre-facelift production exterior. Original Ceramic White material and red N trim; export ELANTRA lettering, amber details and overseas plate retained. Not N Line or TCR."
+  },
+  "download": {
+    "method": "Normal Sketchfab download after user sign-in; GLB supplied by the user. No viewer extraction or authentication bypass.",
+    "sourcePage": "https://sketchfab.com/3d-models/2022-hyundai-elantra-n-cd5741852515425aa3c058b7e081dd2c",
+    "files": [
+      {
+        "name": "2022_hyundai_elantra_n.glb",
+        "bytes": 51701716,
+        "sha256": "c614c473220709478794b641eea76f49047b1f8338b27300a8d33eb65ff289b5"
+      }
+    ],
+    "embeddedAttribution": {
+      "author": "tonielpro520 (https://sketchfab.com/tonielpro520)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/2022-hyundai-elantra-n-cd5741852515425aa3c058b7e081dd2c",
+      "title": "2022 Hyundai Elantra N"
+    }
+  },
+  "sourceGeometry": {
+    "downloadedTriangles": 500248,
+    "downloadedMeshes": 169,
+    "downloadedMaterials": 25,
+    "downloadedImages": 1
+  },
+  "conversion": {
+    "builder": "build-free-avante-n.mjs",
+    "changes": [
+      "Applied world transforms and [world +Z, -X, +Y] to match the renderer forward/up/screen-right convention; corrected reflected normals and winding. This preserves readable ELANTRA lettering and original N-badge/fuel-flap/steering side in the rendered view. Uniformly scaled to 4.675 m and tire ground zero.",
+      "Removed unused UVs from untextured parts, welded equivalent positions/normals, and joined source draw fragments by material without excluding source parts before simplification.",
+      "Simplified indexed geometry with normal-aware Meshopt; retained source body, spoiler, N badges, red trim, lamp, grille, interior, wheel and tire geometry without adding replacement body shapes.",
+      "Converted linear glTF base factors to display-space colors, mapped materials to the existing renderer, and retained original glass alpha, Ceramic White paint and red accents.",
+      "Embedded the sole original JPEG license-plate texture byte-for-byte; retained its original overseas plate artwork. No raster editing or generated images.",
+      "Created a separate topology- and normal-aware simplified fallback with extra body/glass/tire budget; no spatial-clustering simplification. Compacted vertices and embedded a gzip-compressed local JavaScript payload. Wheels remain static under the existing runtime contract."
+    ],
+    "geometryAdded": false,
+    "fullBodySimplifiedByWebSim": true,
+    "sourceParts": 169,
+    "triangles": 214650,
+    "fallbackTriangles": 26757,
+    "drawGroups": 25,
+    "fallbackDrawGroups": 25,
+    "runtimeBytes": 8891425,
+    "scale": 0.027174545576138687,
+    "bounds": {
+      "min": [
+        -2.3373913764953613,
+        -1.0282440185546875,
+        0
+      ],
+      "max": [
+        2.3375000953674316,
+        1.0282440185546875,
+        1.4063098430633545
+      ]
+    },
+    "textures": [
+      {
+        "materialName": "Philippine_License_Plate_Recovered",
+        "mimeType": "image/jpeg",
+        "bytes": 114499,
+        "width": 2048,
+        "height": 1024,
+        "sha256": "d02541b7d32bb25f501faa8c09c90b653989d88c523b8b627bed805df0e82d73"
+      }
+    ]
+  },
+  "attribution": "2022 Hyundai Elantra N by tonielpro520, CC BY 4.0. Mesh simplified and coordinates/render materials adapted for WebSim; see avante_n-source.json and avante_n-LICENSE.txt."
+}

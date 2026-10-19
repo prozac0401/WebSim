@@ -8,6 +8,8 @@
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
   const reviewedAt='2026-10-15';
   const SOURCES=freeze({
+    'hyundai-avante-n-2021':{title:'현대 2021 아반떼 N 국내 가격·제원',url:'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf',observation:'2021년 7월 14일 출시 CN7 N. 2.0 터보 280 PS, FWD eLSD, 6MT 1450 kg 또는 습식 8DCT 1485 kg. NGS 일시 출력 증대는 모형에 적용하지 않는다.'},
+    'hyundai-avante-n-au-2021-ratios':{title:'Hyundai Australia i30 Sedan N November 2021 specifications',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/i30-sedan-n/spec-sheet/i30-Sedan-N_Spec-Table_Nov_2021.pdf',observation:'PDF 1쪽: 6MT 및 8DCT의 단별 기어비와 종감속 배정, 최고출력 5500–6000 rpm. ratedPowerRPM은 이 범위 상단 6000을 사용한다. 국내 동일성은 미확인인 해외 참고값이며, 6500 rpm 변속 및 7000 rpm 표시 상한은 추정이다.'},
     'bmw-m2-2016-de':{title:'BMW M2 10/2015 ACEA technical specifications',url:'https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713',observation:'2016 전기형 F87 일반 M2. 1쪽 DIN 질량 MT 1495/DCT 1520 kg, 370 PS·465 Nm·최고출력 6500rpm. 2쪽 6MT/7DCT 단별 기어비와 공통 종감속 3.462. 독일·ACEA 기준을 그대로 수록하며 Competition 및 미국 bhp 사양을 혼합하지 않는다.'},
     'bmw-m2-2016-uk-engine':{title:'BMW UK: The new BMW M2, April 2016',url:'https://www.press.bmwgroup.com/united-kingdom/article/detail/T0238509EN_GB/the-new-bmw-m2',observation:'같은 전기형 370 hp 엔진의 최대 7000rpm을 명시. 일반 465 Nm와 일시 오버부스트 500 Nm를 구분하며 고정 토크에는 일반값만 적용. 이 본문은 WOT 변속 시점을 제공하지 않는다.'},
     'kia-ray':{title:'기아 레이 정부 신고 연비·변속기',url:'https://www.kia.com/kr/vehicles/ray/specification',observation:'1.0 가솔린 14/15인치: 자동 4단.'},
@@ -52,6 +54,8 @@
   add('ray',['ray-ev'],'electric','EV',null,'kia-ray-ev');
   add('morning',['morning-1.0-14','morning-1.0-16'],'gasoline','AT',4,'kia-morning');
   add('avante',['avante-2.0-16','avante-2.0-18'],'gasoline','IVT',null,'hyundai-avante');
+  add('avante_n',['avante-n-2.0t-dct'],'gasoline','DCT',8,'hyundai-avante-n-2021',{reviewedAt:'2026-10-19'});
+  add('avante_n',['avante-n-2.0t-mt'],'gasoline','MT',6,'hyundai-avante-n-2021',{reviewedAt:'2026-10-19'});
   add('k5',['k5-2.0'],'gasoline','AT',6,'kia-k5');
   add('k5',['k5-1.6t'],'gasoline','AT',8,'kia-k5');
   add('k5',['k5-2.0lpg'],'lpg','AT',6,'kia-k5');
@@ -113,6 +117,8 @@
     profiles[id].sourceIds.push('hyundai-santafe-au-my21-final-drives');
     profiles[id].estimatedFields.push('finalDriveGearAssignment');
   }
+  applyRatios(['avante-n-2.0t-dct'], [3.714,2.261,2.174,1.621,.927,.767,.878,.698], [3.8,3.8,2.714,2.714,3.8,3.8,2.714,2.714], 'hyundai-avante-n-au-2021-ratios', 'reference-market', 6000, 6500, 'AU', 'front');
+  applyRatios(['avante-n-2.0t-mt'], [3.083,1.931,1.696,1.276,1.027,.854], [4.154,4.154,3.176,3.176,3.176,3.176], 'hyundai-avante-n-au-2021-ratios', 'reference-market', 6000, 6500, 'AU', 'front');
   // A fixed motor-to-wheel reduction is separate from the hidden engine-gear
   // HUD contract. Both AWD motors have this same reduction, so the race can
   // retain the existing combined motor torque without multiplying it twice.
@@ -129,7 +135,7 @@
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.
   const FALLBACKS=freeze({ray:'ray-1.0-15',morning:'morning-1.0-16',avante:'avante-2.0-18',k5:'k5-2.0',carnival:'carnival-1.6heV',
-    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz',bmw_m2:'bmw-m2-3.0t-dct'});
+    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz',bmw_m2:'bmw-m2-3.0t-dct',avante_n:'avante-n-2.0t-dct'});
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',

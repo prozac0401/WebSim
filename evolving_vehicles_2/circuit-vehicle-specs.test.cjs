@@ -10,9 +10,9 @@ const Profiles = require('./powertrain-profiles.js');
 
 test('circuit additions preserve all original presets and work in a script-tag browser', () => {
   const originalIds = Object.keys(shared);
-  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined); assert.equal(shared.bmw_m2, undefined);
+  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined); assert.equal(shared.bmw_m2, undefined); assert.equal(shared.avante_n, undefined);
   for (const id of Object.keys(shared)) assert.equal(specs[id], shared[id]);
-  assert.equal(Object.keys(specs).length, originalIds.length + 3);
+  assert.equal(Object.keys(specs).length, originalIds.length + 4);
   const sandbox = { window: { VehicleSpecs: shared } };
   vm.runInNewContext(fs.readFileSync(require.resolve('./circuit-vehicle-specs.js'), 'utf8'), sandbox);
   for (const id of Object.keys(shared)) assert.equal(sandbox.window.CircuitVehicleSpecs[id], shared[id]);
@@ -87,4 +87,27 @@ test('2016 F87 M2 retains German DIN masses and both factory transmissions witho
   assert.equal(Profiles.resolve('bmw_m2').variantId, 'bmw-m2-3.0t-dct');
   assert.equal(specs.bmw_m2.curbMassKg, 1520);
   assert.ok(Object.isFrozen(specs.bmw_m2.driveVariants.rwd));
+});
+
+test('CN7 Avante N keeps Korean DCT/manual masses and base power separate from ordinary Avante and NGS', () => {
+  assert.ok(Object.isFrozen(specs.avante_n.driveVariants.fwd));
+  assert.notEqual(specs.avante_n, shared.avante);
+  assert.deepEqual(Evolution.VARIANTS.avante_n.map(v => v.id), ['avante-n-2.0t-dct', 'avante-n-2.0t-mt']);
+  assert.equal(Profiles.resolve('avante_n').variantId, 'avante-n-2.0t-dct', 'the circuit baseline is the DCT');
+  for (const [id, mass, transmission, gears] of [
+    ['avante-n-2.0t-dct', 1485, 'DCT', 8], ['avante-n-2.0t-mt', 1450, 'MT', 6]
+  ]) {
+    const entry = Evolution.createEntrant({ vehicleId: 'avante_n', variantId: id, budget: 0 }), s = entry.spec;
+    assert.equal(s, entry.factorySpec);
+    assert.deepEqual([s.modelYear, s.market, s.displacementCc, s.powerPs, s.torqueNm, s.massKg, s.curbMassKg], [2021, 'KR', 1998, 280, 392.266, mass, mass]);
+    assert.deepEqual([s.lengthMm, s.widthMm, s.heightMm, s.wheelbaseMm], [4675, 1825, 1415, 2720]);
+    assert.deepEqual([s.factoryDrive, s.differential, s.transmissionType, s.gearCount], ['fwd', 'eLSD', transmission, gears]);
+    assert.deepEqual([s.frontTire, s.rearTire, s.frontTireRadiusMm, s.rearTireRadiusMm], ['245/35ZR19', '245/35ZR19', 327.05, 327.05]);
+    assert.deepEqual(Evolution.getRules('avante_n', id).credits, { acceleration: 0, topSpeed: 0, brakes: 0, grip: 0 }, 'equal-power FWD variants create no fictional compensation');
+    assert.match(s.sourceUrl, /hyundai\.com\/contents\/repn-car\/catalog\/avante-n-price\.pdf$/);
+    assert.ok(s.modeledFields.includes('gripG') && s.modeledFields.includes('dragArea'));
+  }
+  const stock = Evolution.createPopulation({ vehicleId: 'avante_n', budget: 0, seed: 17 });
+  assert.deepEqual(stock.map(e => e.variantId).sort(), ['avante-n-2.0t-dct', 'avante-n-2.0t-mt']);
+  assert.equal(Profiles.resolve('avante').transmissionType, 'IVT', 'ordinary Avante remains unchanged');
 });

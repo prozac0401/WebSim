@@ -565,3 +565,42 @@ test('telemetry makes no difference to any physical state, score inputs, termina
     assert.deepEqual(Evolution.breed(options.entrants, withHUD.cars, { seed: 812 }), Evolution.breed(options.entrants, withoutHUD.cars, { seed: 812 }));
   }
 });
+
+test('Avante N DCT/manual references retain grouped final drives and shift sequentially through every gear', () => {
+  for (const [id, transmission, ratios, finalDrives] of [
+    ['avante-n-2.0t-dct', 'DCT', [3.714, 2.261, 2.174, 1.621, .927, .767, .878, .698], [3.8, 3.8, 2.714, 2.714, 3.8, 3.8, 2.714, 2.714]],
+    ['avante-n-2.0t-mt', 'MT', [3.083, 1.931, 1.696, 1.276, 1.027, .854], [4.154, 4.154, 3.176, 3.176, 3.176, 3.176]]
+  ]) {
+    const car = carFor('avante_n', id), profile = Profiles.resolve(car);
+    assert.equal(profile.transmissionType, transmission); assert.equal(profile.gearCount, ratios.length);
+    assert.deepEqual(profile.gearRatios, ratios); assert.deepEqual(profile.finalDriveRatios, finalDrives);
+    assert.equal(profile.finalDriveRatio, null); assert.equal(profile.ratioStatus, 'reference-market');
+    assert.equal(profile.ratioMarket, 'AU'); assert.equal(profile.drivenAxle, 'front');
+    assert.equal(profile.ratioSourceId, 'hyundai-avante-n-au-2021-ratios');
+    assert.ok(profile.sourceIds.includes(profile.ratioSourceId));
+    assert.ok(profile.referenceFields.includes('gearRatios') && profile.referenceFields.includes('finalDriveRatios'));
+    assert.ok(!profile.verifiedFields.includes('gearRatios'));
+    assert.ok(!profile.estimatedFields.includes('finalDriveGearAssignment'), 'the AU table explicitly assigns every final drive');
+    for (const key of ['domesticRatioMatch', 'shiftRPM', 'maxRPM', 'rollingRadiusScale']) assert.ok(profile.estimatedFields.includes(key));
+    assert.deepEqual([profile.ratedPowerRPM, profile.shiftRPM, profile.maxRPM], [6000, 6500, 7000]);
+    car.spec = { ...car.spec, rearTireRadiusMm: 400 };
+    const gearing = Telemetry.describeGearing(car), state = Telemetry.create(car);
+    assert.equal(gearing.nominalRadiusM, .32705, 'FWD HUD uses the front tyre even with unequal fixture tyres');
+    assert.equal(gearing.effectiveRadiusM, .32705 * .985);
+    const expectedTotal = ratios.map((ratio, i) => ratio * finalDrives[i]);
+    assert.deepEqual(gearing.totalRatios, expectedTotal);
+    assert.ok(expectedTotal.every((ratio, i) => i === 0 || ratio < expectedTotal[i - 1]));
+    const shifts = [];
+    // Synthetic HUD ramp verifies all groups; these are not reachable race-speed claims.
+    for (let i = 0; i < 72 / dt; i++) {
+      const previous = { ...state }; car.speed = i * dt * 5 / 3.6; car.acceleration = 5 / 3.6;
+      Telemetry.update(car, state, dt, { drivePowerW: 200000 });
+      if (state.gear !== previous.gear) {
+        assert.equal(state.gear, previous.gear + 1, id);
+        assert.ok(state.rpmNormalized < previous.rpmNormalized - .08, id + ': each upshift drops RPM');
+        shifts.push(state.gear);
+      }
+    }
+    assert.deepEqual(shifts, Array.from({ length: ratios.length - 1 }, (_, i) => i + 2));
+  }
+});

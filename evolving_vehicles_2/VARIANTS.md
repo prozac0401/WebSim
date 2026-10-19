@@ -22,12 +22,15 @@
 | G70 전기형 | 2019 국내 2.0T/3.3T RWD/AWD · 8AT | [제조사 카탈로그 보관본](https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf), [2편 추가 차량의 출처·연식 구분](ADDITIONAL-VEHICLES.md) |
 | GR 수프라 A90 | 2019 일본 RZ 3.0T RWD · 8AT · 19인치 단일 사양 | [일본 공식 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf), [2편 추가 차량의 출처·연식 구분](ADDITIONAL-VEHICLES.md) |
 | BMW M2 F87 | 2016 독일·ACEA N55 3.0T RWD · 7DCT/6MT · 19인치 | [BMW 공식 제원 PDF](https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713), [DIN 질량과 초기형 범위](ADDITIONAL-VEHICLES.md#bmw-m2-f87-전기형) |
+| 아반떼 N CN7 | 2021 국내 2.0T FWD · 8DCT/6MT · 19인치 | [현대 국내 가격·제원 PDF](https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf), [2021 출시형 제원](https://www.hyundai.com/kr/ko/brand/brandstory/model/avante-history/2021-avante-n) |
 
-KGM 수치는 공식 쇼룸 `specific.htmlList`의 기술 제원·공차중량 표에서 확인했습니다. 단위 PS는 미터마력, `kgf·m × 9.80665 = Nm`입니다. 레이 EV의 64.3 kW는 PS로 환산합니다. 기존 13종의 전장·축거 등 공통 치수는 원본 `vehicle-specs.js`를 공유하고, G70·수프라는 `circuit-vehicle-specs.js`에 명시한 2019 국내·일본 사양을 사용합니다. 한 프리셋 안에 서로 다른 연식·시장의 출력·질량을 섞지 않습니다. 현재 아반떼 하이브리드의 공식 공차중량은 미공개이므로 무작위 출고 목록에서 제외했습니다. 스타리아는 확인된 라운지 LPG 조합만 쓰며 튜닝 유전자는 개체별로 달라집니다. 포터의 파트타임 4WD는 AWD처럼 취급하지 않고, 동일한 초장축 슈퍼캡 RWD 두 변속기만 수록했습니다.
+KGM 수치는 공식 쇼룸 `specific.htmlList`의 기술 제원·공차중량 표에서 확인했습니다. 단위 PS는 미터마력, `kgf·m × 9.80665 = Nm`입니다. 레이 EV의 64.3 kW는 PS로 환산합니다. 기존 13종의 전장·축거 등 공통 치수는 원본 `vehicle-specs.js`를 공유하고, G70·수프라는 `circuit-vehicle-specs.js`에 명시한 2019 국내·일본 사양, M2는 2016 독일·ACEA 사양, 아반떼 N은 2021 국내 사양을 사용합니다. 한 프리셋 안에 서로 다른 연식·시장의 출력·질량을 섞지 않습니다. 현재 아반떼 하이브리드의 공식 공차중량은 미공개이므로 무작위 출고 목록에서 제외했습니다. 스타리아는 확인된 라운지 LPG 조합만 쓰며 튜닝 유전자는 개체별로 달라집니다. 포터의 파트타임 4WD는 AWD처럼 취급하지 않고, 동일한 초장축 슈퍼캡 RWD 두 변속기만 수록했습니다.
 
 제원은 해당 휠·좌석 구성의 공차 기준이며 승객·화물은 추가하지 않습니다. 모든 판매 트림을 수록했다는 뜻은 아닙니다. 차체 모델은 공통 외형을 사용하므로 그릴·휠 등 개별 트림의 세부 외관은 다를 수 있습니다.
 
 2026-10-19에 추가한 M2는 별도 2016 독일·ACEA 조합입니다. 7DCT 1,520 kg / 6MT 1,495 kg을 모두 DIN 질량으로 사용하며 EU 운전자 포함 질량을 섞지 않습니다. 두 사양 모두 370 PS·일반 토크 465 Nm·RWD입니다. 일시 오버부스트 500 Nm 및 Competition은 포함하지 않습니다. 순정 모드는 두 변속기가 한 대씩, 유료 모드는 이 두 조합을 순환 배정합니다. 동일 출력과 구동 방식이므로 추가 보정 예산은 없습니다.
+
+아반떼 N은 별도 차종 `avante_n`이며 `avante-n-2.0t-dct`와 `avante-n-2.0t-mt` 두 국내 출고 조합을 수록합니다. 2021년 1,998 cc·280 PS·40 kgf·m(392.266 Nm)·FWD를 유지하고 공차중량은 각각 1,485/1,450 kg입니다. NGS 일시 출력 증대를 기본 출력에 더하지 않습니다. eLSD 장비 표기는 별도 능동 제어를 뜻하지 않습니다. 두 사양의 출력과 구동 방식이 같아 보정 예산이 없고, 순정 모드에는 한 대씩 참가합니다. 호주 공식 단별 기어비는 국내 제원과 분리한 해외 참고값으로 [파워트레인 문서](POWERTRAIN-SOURCES.md)에 기록합니다.
 
 ## 실측값과 모형 가정의 경계
 
@@ -88,7 +91,7 @@ G80 2.5T는 3.5T에 비해 가속력 15 P, 최고속도 15 P의 추가 보상과
 
 `getRules(vehicleId, variantId, {budget})`는 선택한 예산의 상한·보정을 반환합니다. 세 번째 인수를 생략하면 기존 API와 같이 유료 튜닝 규칙을 반환합니다. 순정 모드를 판정할 때는 `{budget:0}`을 넘기거나 해당 예산을 넣은 `quote`의 결과를 사용합니다. `quote`와 `createEntrant`는 예산 0에서 하나라도 양의 튜닝 단계가 요청되면 거절합니다. 유효한 순정 견적의 단계 상한·보상·비용·잔액은 모두 0입니다.
 
-검증: `node --test evolving_vehicles_2/tuning-evolution.test.cjs`. 16차종·38사양의 순정 제원 객체 보존, 조합별 정확히 한 대 배정, 단일 사양의 1대 평가, 보정 우회 차단, 재추첨·직접 다음 세대 호출의 조합 수와 0단계 유지, 이전 유료 유전자 차단, 유료 18·30·45 P의 보정·다양성 유지와 기존 평가·진화 동작을 검사합니다.
+검증: `node --test evolving_vehicles_2/tuning-evolution.test.cjs`. 17차종·40사양의 순정 제원 객체 보존, 조합별 정확히 한 대 배정, 단일 사양의 1대 평가, 보정 우회 차단, 재추첨·직접 다음 세대 호출의 조합 수와 0단계 유지, 이전 유료 유전자 차단, 유료 18·30·45 P의 보정·다양성 유지와 기존 평가·진화 동작을 검사합니다.
 
 ## 2026-10-15 기어비 점검과 타이어 반경
 
@@ -100,6 +103,7 @@ G80 2.5T는 3.5T에 비해 가속력 15 P, 최고속도 15 P의 추가 보상과
 | 모닝 14인치 | 175/65R14 | 291.55 mm | [기아 모닝 제원](https://www.kia.com/kr/vehicles/morning/specification) |
 | 아반떼 2.0 16인치 | 205/60R16 | 326.2 mm | [현대 2027 아반떼 공식 본문](https://www.hyundai.com/contents/repn-car/html/homepage/model/avante-27fc_intro.content)의 타이어 효율 표 |
 | 아반떼 2.0 18인치 | 215/45R18 | 325.35 mm | 같은 공식 본문. 기존 반경을 유지하며 규격도 명시 |
+| 아반떼 N 8DCT/6MT 19인치 | 245/35ZR19 | 327.05 mm | [현대 2021 국내 제원](https://www.hyundai.com/kr/ko/brand/brandstory/model/avante-history/2021-avante-n). 일반 아반떼와 다른 규격 |
 | K5 1.6T 17인치 | 215/55R17 | 334.15 mm | [기아 K5 제원](https://www.kia.com/kr/vehicles/k5/specification)의 1.6 가솔린 터보 적용 타이어 |
 | 아이오닉 5 Standard 19인치 | 235/55R19 | 370.55 mm | [현대 2027 아이오닉 5 공식 본문](https://www.hyundai.com/contents/repn-car/html/homepage/model/ioniq5-27my_intro.content)의 타이어 효율 표 |
 

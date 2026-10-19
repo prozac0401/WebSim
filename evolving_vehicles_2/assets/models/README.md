@@ -87,3 +87,11 @@ BMW M2 F87은 Manuel Contento의 CC BY 4.0 모델이다. `bmw_m2-source.json`에
 원본을 `output/new-car-candidates/bmw-m2/bmw-m2-source.glb`에 저장한 뒤 저장소 루트에서 `node evolving_vehicles_2/assets/models/build-free-bmw-m2.mjs`를 실행한다. 다른 경로는 마지막 인자로 전달할 수 있다. 빌더는 입력 SHA를 검증하고 파일을 자동 다운로드하거나 덮어쓰지 않는다. 기존 변환 도구 의존성에 `sharp`가 필요하며 Meshopt decoder를 사용한다.
 
 실행 파일에는 촬영용 바닥을 제외한 차량의 228,676개 삼각형과 6개 원본 base-color 텍스처를 보존한다. 차체 두 파트만 스트라이프 텍스처 연결을 제거하고 출고색 Long Beach Blue Metallic(C16)의 고정 근사색을 적용했다. 배지·유리·램프·그릴·휠의 재질은 유지한다. 별도 6,658삼각형 경량 메시는 Canvas 및 멀리 있는 차량에 사용하며 텍스처 대신 표본 평균색을 사용한다. 생성 파일의 줄바꿈은 LF로 고정해 플랫폼별 파일 크기·출처 검사가 일치하도록 한다. 원본과 공식 비교 사진은 공개 실행 파일에 추가로 복제하지 않는다.
+
+## 아반떼 N CN7 공개 커뮤니티 모델
+
+CN7 전기형 N은 tonielpro520의 `2022 Hyundai Elantra N` CC BY 4.0 모델을 사용한다. 정상 Sketchfab 로그인 후 받은 GLB의 내장 출처·저자·라이선스를 게시 정보와 대조했다. `avante_n-source.json`에 원본 페이지, 파일 크기와 SHA-256, 실제 변환 내용을 기록하고 `avante_n-LICENSE.txt`에 크레딧을 보존한다. 해외 ELANTRA 표기·번호판·램프 등은 원본을 유지하며 국내 외형과 완전히 일치한다고 표시하지 않는다.
+
+원본을 `output/cn7-n/source.glb`에 저장한 뒤 저장소 루트에서 `node evolving_vehicles_2/assets/models/build-free-avante-n.mjs`를 실행한다. 다른 원본 경로는 마지막 인자로 전달한다. 빌더는 SHA-256을 검증하며 원본을 자동 다운로드하지 않는다. 의존성은 위 변환 도구와 같고 Meshopt를 사용한다.
+
+실행용 모델은 원본 169개 부품을 변환에 포함하고 25개 재질을 유지하면서 500,248개 삼각형을 214,650개로 줄였다. Canvas 및 원거리 표시에는 별도 26,757삼각형 메시를 사용한다. 원본 Ceramic White 차체·빨간 N 장식·배지·스포일러·실내·바퀴를 보존하고 유일한 번호판 JPEG를 그대로 내장한다. 압축 실행 파일은 약 8.48 MiB이며 실제 실행 시에는 Sketchfab 로그인이나 원격 모델 요청이 필요 없다. 휠은 기존 차량 표시 방식과 같이 정적인 형상을 사용한다.

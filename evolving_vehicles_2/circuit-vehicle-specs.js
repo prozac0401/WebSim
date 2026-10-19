@@ -8,6 +8,7 @@
   const freeze = value => { if (value && typeof value === 'object' && !Object.isFrozen(value)) { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
   const g70Source = 'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf';
   const supraSource = 'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf';
+  const avanteNSource = 'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf';
   // Nominal unloaded radii calculated from tyre markings, not rolling radii.
   const g70 = {
     variant: '2019 국내 2.0T RWD · 8AT · 18인치', modelYear: 2019, market: 'KR',
@@ -48,6 +49,18 @@
     sourceNote: '2016 전기형 F87 · BMW 10/2015 ACEA·독일 제원 · DIN 질량(운전자 제외), 일반 토크 465 Nm. EU 질량·일시 오버부스트·Competition 사양을 혼합하지 않습니다.',
     driveVariants: { rwd: {} }, driveVerificationDate: '2026-10-19'
   };
-  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra, bmw_m2 });
+  const avante_n = {
+    variant: '2021 국내 2.0T FWD · 8DCT · 19인치', modelYear: 2021, market: 'KR',
+    lengthMm: 4675, widthMm: 1825, heightMm: 1415, wheelbaseMm: 2720,
+    curbMassKg: 1485, powerPs: 280, torqueNm: 392.266, displacementCc: 1998,
+    engine: '직렬 4기통 가솔린 터보', factoryDrive: 'fwd', powertrainType: 'gasoline', electric: false,
+    differential: 'eLSD', frontTire: '245/35ZR19', rearTire: '245/35ZR19',
+    frontTireRadiusMm: 327.05, rearTireRadiusMm: 327.05,
+    transmissionType: 'DCT', gearCount: 8, sourceUrl: avanteNSource,
+    sourcePage: 'https://www.hyundai.com/kr/ko/brand/brandstory/model/avante-history/2021-avante-n',
+    sourceNote: '2021 국내 CN7 아반떼 N 출시 사양 · 기본 280 PS, NGS 일시 출력 증대는 적용하지 않습니다. eLSD 제어·변속 지연은 별도로 모사하지 않습니다.',
+    driveVariants: { fwd: {} }, driveVerificationDate: '2026-10-19'
+  };
+  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra, bmw_m2, avante_n });
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CircuitVehicleSpecs;
 })(typeof window !== 'undefined' ? window : globalThis);

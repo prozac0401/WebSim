@@ -75,7 +75,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
-  assert.equal(context.TrackRace.VEHICLES.length,16);
+  assert.equal(context.TrackRace.VEHICLES.length,17);
   assert.equal(race.track.elevationProfile.id,Profile.metadata.id);
   close(race.track.points[0].z,418,'browser start elevation');
   const point=context.DrivingPose.sample(race,1050);assert.ok(point.grade>.09,'browser and Node both apply the real climb');

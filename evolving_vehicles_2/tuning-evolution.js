@@ -42,7 +42,8 @@
     porter2: ['현대 포터 II', 1.14, .68, .76, .65, .79, 1740, 1.40, 150],
     g70: ['제네시스 G70 (전기형)', .66, 1.00, 1.05, .52, .49, 1850, 1.61, 240],
     supra: ['토요타 GR 수프라 A90', .62, 1.04, 1.12, .50, .45, 1865, 1.60, 250],
-    bmw_m2: ['BMW M2 F87', .7735, 1.04, 1.12, .52, .49, 1854, 1.590, 250]
+    bmw_m2: ['BMW M2 F87', .7735, 1.04, 1.12, .52, .49, 1854, 1.590, 250],
+    avante_n: ['현대 아반떼 N (CN7)', .68, 1.04, 1.10, .61, .49, 1825, 1.58, 250]
   };
   const SOURCE = {
     ray: 'https://www.kia.com/kr/vehicles/ray/specification',
@@ -60,7 +61,8 @@
     porter2: 'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',
     g70: SHARED.g70.sourceUrl,
     supra: SHARED.supra.sourceUrl,
-    bmw_m2: SHARED.bmw_m2.sourceUrl
+    bmw_m2: SHARED.bmw_m2.sourceUrl,
+    avante_n: SHARED.avante_n.sourceUrl
   };
   function preset(vehicleId, id, label, cc, engine, drive, powerPs, torqueNm, massKg, overrides = {}) {
     const [name, dragArea, gripG, brakeG, front, cg, widthMm, trackWidthM, capKph] = MODEL_ROWS[vehicleId];
@@ -156,6 +158,14 @@
       preset('bmw_m2', 'bmw-m2-3.0t-mt', '2016 독일 3.0T RWD · 6MT · 19인치', 2979, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 370, 465, 1495, {
         sourceNote: SHARED.bmw_m2.sourceNote, transmissionType: 'MT', gearCount: 6, factoryZeroTo100S: 4.5,
         modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'gripG', 'brakeG', 'downforceArea', 'reduction']
+      })
+    ],
+    avante_n: [
+      preset('avante_n', 'avante-n-2.0t-dct', '2021 국내 2.0T FWD · 8DCT · 19인치', 1998, '직렬 4기통 가솔린 터보', 'fwd', 280, nm(40), 1485, {
+        sourceNote: SHARED.avante_n.sourceNote
+      }),
+      preset('avante_n', 'avante-n-2.0t-mt', '2021 국내 2.0T FWD · 6MT · 19인치', 1998, '직렬 4기통 가솔린 터보', 'fwd', 280, nm(40), 1450, {
+        transmissionType: 'MT', gearCount: 6, sourceNote: SHARED.avante_n.sourceNote
       })
     ]
   });

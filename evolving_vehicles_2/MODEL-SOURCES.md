@@ -1,20 +1,23 @@
 # 실차 외형 참조와 3D 모델 출처
 
-확인일: 기존 모델 2026-10-15, BMW M2 2026-10-19.
+확인일: 기존 모델 2026-10-15, BMW M2·CN7 아반떼 N 2026-10-19.
 
 ## 무료 커뮤니티 메시 추가
 
-G70·GR 수프라 A90·BMW M2 F87은 제조사 공식 모델이 아닌 **CC BY 4.0 커뮤니티 모델**이다. 공개 배포본의 원작자·원 게시물·라이선스가 내부 메타데이터와 일치하는지 확인했다. 실행용 파일과 아래 출처 표시는 로그인 없이 사용할 수 있다. 이전에 보류한 Genesis Canada의 MY26 공식 G70 파일은 사용하지 않았다.
+G70·GR 수프라 A90·BMW M2 F87·CN7 아반떼 N은 제조사 공식 모델이 아닌 **CC BY 4.0 커뮤니티 모델**이다. 공개 배포본의 원작자·원 게시물·라이선스가 내부 메타데이터와 일치하는지 확인했다. 실행용 파일과 아래 출처 표시는 로그인 없이 사용할 수 있다. 이전에 보류한 Genesis Canada의 MY26 공식 G70 파일은 사용하지 않았다.
 
 | 차량 | 원작자·원 게시물 | 실제 취득 경로 | 라이선스·변경 기록 |
 | --- | --- | --- | --- |
 | G70 전기형 | [Genesis G70 — Lucas.Karlsmoen](https://sketchfab.com/3d-models/genesis-g70-ded2c8428fb9499ebd2bfc69c5592b02) | [AllenAI Objaverse의 개별 GLB](https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-067/ded2c8428fb9499ebd2bfc69c5592b02.glb) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [출처·원본 해시·변경 내역](assets/models/g70-model-source.json) |
 | GR 수프라 A90 3.0T | [Toyota Supra 3D Model (Free) — Mpgs Studios](https://sketchfab.com/3d-models/toyota-supra-3d-model-free-41b83cfb912b4eab9af19a802bcf5ffc) | [원작자·라이선스를 보존한 공개 배포본](https://github.com/ReloadDesigner/Car-Viewer-Test/tree/3c61e52a5243d730705ecffebebf91c5f9d012fa/public/models/toyota/Supra/gr_supra) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [원본 크레딧](assets/models/supra-LICENSE.txt), [출처·해시·변경 내역](assets/models/supra-source.json) |
 | BMW M2 F87 전기형 | [BMW M2 — Manuel Contento](https://sketchfab.com/3d-models/394feedd0a0742c595917c7b0f6edcad) | [원작자·라이선스를 보존한 공개 GLB](https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [크레딧](assets/models/bmw_m2-LICENSE.txt), [출처·해시·변경 내역](assets/models/bmw_m2-source.json) |
+| CN7 아반떼 N 전기형 | [2022 Hyundai Elantra N — tonielpro520](https://sketchfab.com/3d-models/2022-hyundai-elantra-n-cd5741852515425aa3c058b7e081dd2c) | 원 게시물의 로그인 후 무료 GLB 다운로드 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [크레딧](assets/models/avante_n-LICENSE.txt), [출처·해시·변경 내역](assets/models/avante_n-source.json) |
 
-세 모델의 저작자는 위 제작자이며 WebSim은 기하 단순화, 좌표 변환, 크기 조정, 표시 재질 보정과 소프트웨어 렌더러용 경량 메시를 적용했다. 사이드바의 `g70-model-preview.png`, `supra-model-preview.png`, `bmw_m2-model-preview.png`도 해당 모델을 렌더링한 파생 이미지다. 모델과 파생 메시·이미지에는 동일한 저작자 표시와 CC BY 4.0 링크가 적용된다. 제조사나 제작자의 후원·승인을 뜻하지 않는다.
+네 모델의 저작자는 위 제작자이며 WebSim은 기하 단순화, 좌표 변환, 크기 조정, 표시 재질 보정과 소프트웨어 렌더러용 경량 메시를 적용했다. 사이드바의 `g70-model-preview.png`, `supra-model-preview.png`, `bmw_m2-model-preview.png`, `avante_n-model-preview.png`도 해당 모델을 렌더링한 파생 이미지다. 모델과 파생 메시·이미지에는 동일한 저작자 표시와 CC BY 4.0 링크가 적용된다. 제조사나 제작자의 후원·승인을 뜻하지 않는다.
 
 BMW M2는 제작자가 Maya로 모델링하고 Substance Painter로 텍스처를 제작했다고 밝힌 원본이다. 공개 GLB의 원작 URL·저자·라이선스가 원 게시물과 일치하며 별도 요청·로그인 없이 파일을 취득했다. 전기형 F87의 차체·범퍼·램프를 사용하고, 원작자의 차체 스트라이프 재질을 제거하고 실제 출고색 Long Beach Blue Metallic(C16)을 적용했다. 차체 형상과 배지·유리·램프·그릴·휠은 유지했다. 색상명·코드는 BMW 자료 기준이며 화면 RGB는 조명과 디스플레이를 고려한 근사값이다. 주행은 2016 유럽 사양의 일반 M2 370 PS, 6MT·7DCT를 적용하며 M2 Competition의 엔진이나 외형으로 표시하지 않는다.
+
+CN7 아반떼 N은 전기형의 N 전용 범퍼·스포일러·원형 듀얼 배기구를 갖춘 커뮤니티 모델이다. 흰 차체와 빨간 장식을 보존했으며 해외 ELANTRA 표기·번호판 등의 차이가 있다. 국내 2021 출시형 2.0T의 6MT·8DCT를 같은 외형으로 비교한다. 원본은 로그인 후 정상 다운로드로 취득했으며, 배포된 실행 모델을 이용할 때는 로그인이 필요하지 않다.
 
 모델 원본은 제작자가 정밀 측량·정확한 연식·모든 트림을 보증한 자료가 아니다. [추가 차량 제원 문서](ADDITIONAL-VEHICLES.md)에 외형과 주행 사양의 적용 범위, 제조사 제원과 모형 성능을 구분했다. G70의 네 가지 출고 사양은 같은 전기형 외관을 사용한다. 수프라는 3.0T 단일 트림이고, M2는 같은 외형으로 6MT·7DCT를 비교한다. WebGL이 없으면 동일 원본에서 만든 경량 메시를 사용하며, 파일 자체를 읽지 못한 경우 다른 차종의 외관을 대신 표시하지 않는다.
 
@@ -24,7 +27,7 @@ M340i는 계정 없이 취득할 수 있고 원본 크레딧까지 확인되는 
 
 2026-10-15 공개 배포 구성: 실행용 `*-runtime.js`, 생성 도구, 출처·보정 기록과 검사용 구조 정보는 저장소에 포함한다. 아래 표의 원본 GLB·ZIP·회전 사진·카탈로그와 대형 구성기 캐시는 제작용 로컬 자료로 보존하며 공개 배포 파일에는 포함하지 않는다. 원본 재생성에는 출처 기록에 따른 해당 자료의 별도 취득이 필요하다.
 
-기존 13종의 외형은 다음처럼 구분한다. **제조사 공개 구성기의 실제 3D 메시 5종**, **기아 딜러 캠페인의 실제 3D 메시 1종**, **공식 회전 사진에서 재구성한 3D 메시 6종**, **공식 도면·사진을 기준으로 곡면을 제작한 포터 II 1종**이다. 새로 추가한 커뮤니티 메시 3종과 함께 총 16종이며 출처를 화면과 데이터에서 구별한다.
+기존 13종의 외형은 다음처럼 구분한다. **제조사 공개 구성기의 실제 3D 메시 5종**, **기아 딜러 캠페인의 실제 3D 메시 1종**, **공식 회전 사진에서 재구성한 3D 메시 6종**, **공식 도면·사진을 기준으로 곡면을 제작한 포터 II 1종**이다. 새로 추가한 커뮤니티 메시 4종과 함께 총 17종이며 출처를 화면과 데이터에서 구별한다.
 
 - 제조사 메시: G80, 아이오닉 5, 싼타페, 스타리아, 카니발.
 - 딜러 공개 메시: 모닝에 사용하는 유럽형 2024 Picanto 캠페인 기본 구성.
@@ -106,4 +109,4 @@ G80 제품 페이지 경로는 `my26`, 연결된 구성기 제목은 `G80_2.5T A
 | [Hyundai Ioniq 5 2022 Lowpoly](https://sketchfab.com/3d-models/hyundai-ioniq-5-lowpoly-675e78311e8440d88714bd212cb7a8fb) | andikapratamaw, CC Attribution, 약 12.4k triangles | 공식 다운로드 API가 인증을 요구하여 원본 파일 미획득. 현재 수록 실차의 연식과 외관 차이도 검토 필요. |
 | [Genesis G80 2021](https://sketchfab.com/3d-models/genesis-g80-2021-8f74d7fbc7f64504a9a36f064ca78ada) | SQUIR3D, 유료 Royalty Free 상품, 약 760.2k triangles | 미구매/미다운로드. 현행 페이스리프트와 전면부 및 휠 차이 있음. |
 
-이 후보들의 로그인 제한 우회, 유료 파일 추출, 출처 불명의 게임 리핑 파일은 사용하지 않았다. 현재 실제 제조사 메시는 5종, 딜러 공개 메시는 1종이다. 나머지는 위에서 구분한 사진 재구성 또는 직접 제작 모델이며, 13종 전체의 원본 메시나 재배포 라이선스를 확보했다고 주장하지 않는다.
+이 후보들의 로그인 제한 우회, 유료 파일 추출, 출처 불명의 게임 리핑 파일은 사용하지 않았다. 기존 13종 중 제조사 메시는 5종, 딜러 공개 메시는 1종이다. 그 외 7종은 위에서 구분한 사진 재구성 또는 직접 제작 모델이다. 별도로 추가한 CC BY 커뮤니티 4종과 출처·라이선스를 구분하며, 기존 13종 전체의 원본 메시나 재배포 라이선스를 확보했다고 주장하지 않는다.

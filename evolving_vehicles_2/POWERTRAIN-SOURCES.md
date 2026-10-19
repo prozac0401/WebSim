@@ -17,6 +17,7 @@
 | 전기형 G70 `g70-2.0t-rwd`, `g70-2.0t-awd`, `g70-3.3t-rwd`, `g70-3.3t-awd` | 모두 8단 자동 | [2019 국내 제조사 카탈로그 보관본](https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf). 북미 6MT는 선택 목록에 포함하지 않는다. |
 | A90 수프라 `supra-3.0t-rz` | 8단 스포츠 자동 | [토요타 2019 일본 공식 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf). RZ 3.0T 단일 트림. |
 | F87 M2 `bmw-m2-3.0t-dct`, `bmw-m2-3.0t-mt` | 각각 7단 M DCT, 6단 수동 | [BMW 10/2015 공식 제원 PDF](https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713) 2쪽. 2016 독일·ACEA 초기형 370 PS 모델. |
+| CN7 아반떼 N `avante-n-2.0t-dct`, `avante-n-2.0t-mt` | 각각 습식 8단 DCT, 6단 수동 | [현대 2021 국내 가격·제원 PDF](https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf). 일반 아반떼의 IVT와 구분한다. |
 | 그랜저 `grandeur-2.5`, `grandeur-3.5-fwd`, `grandeur-3.5-awd` | 모두 8단 자동 | [현대 2027 그랜저 제원 PDF](https://www.hyundai.com/contents/repn-car/catalog/spec/grandeur-27fl-spec.pdf) 1쪽 |
 | 싼타페 `santafe-2.5t-fwd`, `santafe-2.5t-awd` | 습식 8단 DCT | [현대 싼타페 가격·기본 파워트레인](https://www.hyundai.com/kr/ko/e/vehicles/santafe/price), [2026 가격표 PDF](https://www.hyundai.com/contents/repn-car/catalog/santafe-2026-price.pdf) |
 | 스타리아 `staria-lpg` | 8단 자동 | [현대 더 뉴 스타리아 라운지 가격](https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-lounge/price)의 LPG 3.5 파워트레인 |
@@ -27,11 +28,11 @@
 | 아이오닉 5 `ioniq5-standard`, `ioniq5-long-rwd`, `ioniq5-long-awd` | 전기 구동, 이 HUD 숨김 | [현대 2027 아이오닉 5 제원 PDF](https://www.hyundai.com/contents/repn-car/catalog/spec/ioniq5-27my-spec.pdf) |
 | 무쏘 EV `musso-ev-fwd`, `musso-ev-awd` | 전기 구동, 이 HUD 숨김 | [KGM 2026년 3월 무쏘 EV 가격·제원 PDF](https://www.kg-mobility.com/attached/contents/display/file/200000200010012/20260228234258004_JNYcqu.pdf) PDF 2쪽 |
 
-현재 무작위 출고 목록 38개 중 하이브리드는 카니발 한 조합이다. 다른 차체에도 하이브리드 판매 모델이 있다는 이유만으로 가솔린 출고 차량을 하이브리드로 표시하지 않는다. 예를 들어 [싼타페 국내 파워트레인 설명](https://www.hyundaimotorgroup.com/ko/amp/CONT0000000000106808)의 HEV는 6AT이고, 위 그랜저 PDF의 1.6 HEV 역시 6AT이며, [KGM 토레스 HEV 제원](https://www.kg-mobility.com/attached/contents/display/file/2000001000100170001/20260520173147792_o7faV8.pdf)은 e-DHT다. 이들은 현재의 가솔린 `variantId`에 매핑하지 않는다. 향후 출고 조합을 추가할 때 해당 엔진·연식·구동계의 ID와 근거를 함께 추가해야 한다. e-DHT의 운전 모드 수를 변속기 전진 단수로 사용해서도 안 된다.
+현재 무작위 출고 목록 40개 중 하이브리드는 카니발 한 조합이다. 다른 차체에도 하이브리드 판매 모델이 있다는 이유만으로 가솔린 출고 차량을 하이브리드로 표시하지 않는다. 예를 들어 [싼타페 국내 파워트레인 설명](https://www.hyundaimotorgroup.com/ko/amp/CONT0000000000106808)의 HEV는 6AT이고, 위 그랜저 PDF의 1.6 HEV 역시 6AT이며, [KGM 토레스 HEV 제원](https://www.kg-mobility.com/attached/contents/display/file/2000001000100170001/20260520173147792_o7faV8.pdf)은 e-DHT다. 이들은 현재의 가솔린 `variantId`에 매핑하지 않는다. 향후 출고 조합을 추가할 때 해당 엔진·연식·구동계의 ID와 근거를 함께 추가해야 한다. e-DHT의 운전 모드 수를 변속기 전진 단수로 사용해서도 안 된다.
 
 ## 기어비를 적용한 레이스 변속 표시
 
-`RPM = 속도(m/s) ÷ (2π × 유효 회전반경(m)) × 60 × 해당 단 기어비 × 해당 단의 종감속비`로 계산한다. 아래 차량은 등비 간격 대신 공개된 **단별 기어비**를 사용한다. 현재 출고 조합 38개 중 기어비 자료를 적용한 다단변속기 조합은 16개(동일 시장 확인 3개, 다른 시장 참고 13개), 기어비 미확인 다단변속기는 14개, IVT는 2개, EV는 6개다. EV 중 2개는 별도로 해외 단일 감속비 자료를 물리에 적용하며, 나머지 4개의 감속비는 미확인이다. EV 6개 모두 이 엔진·변속 HUD는 표시하지 않는다.
+`RPM = 속도(m/s) ÷ (2π × 유효 회전반경(m)) × 60 × 해당 단 기어비 × 해당 단의 종감속비`로 계산한다. 아래 차량은 등비 간격 대신 공개된 **단별 기어비**를 사용한다. 현재 출고 조합 40개 중 기어비 자료를 적용한 다단변속기 조합은 18개(동일 시장 확인 3개, 다른 시장 참고 15개), 기어비 미확인 다단변속기는 14개, IVT는 2개, EV는 6개다. EV 중 2개는 별도로 해외 단일 감속비 자료를 물리에 적용하며, 나머지 4개의 감속비는 미확인이다. EV 6개 모두 이 엔진·변속 HUD는 표시하지 않는다.
 
 | 적용 차량 | 1단 → 최고단 | 종감속비 | 출처와 적용 범위 |
 | --- | --- | --- | --- |
@@ -42,18 +43,20 @@
 | 수프라 2019 일본 RZ | 5.250 / 3.360 / 2.172 / 1.720 / 1.316 / 1.000 / 0.822 / 0.640 | 3.154 | [일본 공식 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf)의 동일 연식·시장·트림. |
 | M2 2016 독일 7DCT | 4.806 / 2.593 / 1.701 / 1.277 / 1.000 / 0.844 / 0.671 | 3.462 | [BMW 공식 제원 PDF](https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713) 2쪽 괄호 안의 M DCT 값. |
 | M2 2016 독일 6MT | 4.110 / 2.315 / 1.542 / 1.179 / 1.000 / 0.846 | 3.462 | 같은 PDF 괄호 밖의 수동변속기 값. 7단은 없다. |
+| CN7 아반떼 N 8DCT | 3.714 / 2.261 / 2.174 / 1.621 / 0.927 / 0.767 / 0.878 / 0.698 | 3.800 / 2.714, 아래 배정 참조 | [현대 호주 November 2021 i30 Sedan N 공식 PDF](https://www.hyundai.com/content/dam/hyundai/au/en/models/i30-sedan-n/spec-sheet/i30-Sedan-N_Spec-Table_Nov_2021.pdf) 1쪽. 국내 일치는 미확인이다. |
+| CN7 아반떼 N 6MT | 3.083 / 1.931 / 1.696 / 1.276 / 1.027 / 0.854 | 4.154 / 3.176, 아래 배정 참조 | 같은 공식 PDF의 수동변속기 열. 국내 일치는 미확인이다. |
 | K5 1.6T FWD | 4.717 / 2.906 / 1.864 / 1.423 / 1.224 / 1.000 / 0.790 / 0.635 | 3.367 | [Kia America MY2024 공식 표](https://www.kiamedia.com/us/en/models/k5/2024/specifications)의 1.6T FWD 8AT. 미국 AWD의 3.510, 2.5T DCT와 구분한다. 국내 일치는 미확인이다. |
 | 카니발 3.5 FWD | 4.808 / 2.901 / 1.864 / 1.424 / 1.219 / 1.000 / 0.799 / 0.648 | 3.510 | [Kia America MY2025 공식 표](https://www.kiamedia.com/us/en/models/carnival/2025/specifications)의 3.5 가솔린 8AT. 국내 일치는 미확인이다. |
 | 카니발 1.6T HEV FWD | 4.639 / 2.826 / 1.841 / 1.386 / 1.000 / 0.772 | 3.648 | [Kia America MY2025 HEV 공식 표](https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications)의 6AT. 국내 일치는 미확인이다. |
 | 싼타페 2.5T FWD/AWD | 3.429 / 2.217 / 2.217 / 1.621 / 0.860 / 0.673 / 0.791 / 0.653 | 4.846 / 3.316, 아래 배정 참조 | [현대 호주 MX5 공식 PDF](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf) 1–2쪽의 G4KP 2.5T 8DCT. 국내 일치 및 단별 종감속 배정은 미확인이다. |
 
-G80의 [2024 영국 공식 제원표](https://www.genesis.com/content/dam/genesis-web-eu/documents/uk/pricelists/genesis_g80_pricelist_uk.pdf)에는 6단이 0.832인 표도 있어 시장 차이를 무시하지 않는다. 프로필에서 G80·G70·K5 1.6T·카니발·싼타페는 `ratioStatus:'reference-market'`, 수프라·M2는 `verified-exact-market`로 구분한다. 해외 참고값을 적용한 국내 차량의 실제 기어비 일치, 엔진별 레드라인·WOT 변속 맵은 이번 자료로 확정하지 못했다.
+G80의 [2024 영국 공식 제원표](https://www.genesis.com/content/dam/genesis-web-eu/documents/uk/pricelists/genesis_g80_pricelist_uk.pdf)에는 6단이 0.832인 표도 있어 시장 차이를 무시하지 않는다. 프로필에서 G80·G70·K5 1.6T·카니발·싼타페·아반떼 N은 `ratioStatus:'reference-market'`, 수프라·M2는 `verified-exact-market`로 구분한다. 해외 참고값을 적용한 국내 차량의 실제 기어비 일치, 엔진별 레드라인·WOT 변속 맵은 이번 자료로 확정하지 못했다.
 
 싼타페 MX5 표는 두 종감속비 `4.846 / 3.316`을 공개하지만 어느 단에 적용하는지는 생략한다. [현대 호주 MY2021 싼타페 공식 PDF](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf) 1쪽의 **구형 2.2 디젤 8DCT**는 동일한 단별 기어비에 `1·2·5·6단 = 4.846`, `3·4·7·8단 = 3.316`을 명시한다. 모형은 이 배정을 현행 2.5T에 참고 적용하며 `estimatedFields`의 `finalDriveGearAssignment`로 추정임을 표시한다. 단별 `finalDriveRatios`는 `[4.846, 4.846, 3.316, 3.316, 4.846, 4.846, 3.316, 3.316]`이고, 단일 `finalDriveRatio`는 `null`이다. 이 배정은 현행 국내 2.5T의 확인값이 아니다. DCT의 2·3단 원 기어비가 같거나 6→7단 원 기어비가 커지더라도 **각 단의 기어비 × 종감속비**는 순서대로 낮아진다. 종감속비 하나를 모든 단에 곱해서는 안 된다.
 
-기어비 자료를 적용한 차량은 출고 타이어 규격에서 계산한 바퀴 반경에 **0.985의 추정 보정**을 적용한다. G70·G80·수프라·M2는 뒤 타이어, 전륜 기반 K5·카니발·싼타페는 앞 타이어를 기준으로 한다. 실측 타이어 회전수나 동하중 변형값은 아니다. G80의 275/35R20 뒤 타이어는 명목 반경 0.35025 m, 모형 유효 반경 약 0.3450 m다. 튜닝 시에는 기존 `reduction / factoryReduction` 비율을 표시용 총감속비에 한 번 곱하며, 기어비 미확인 차량의 추정 총감속비에도 같은 배율을 반영한다. 종감속 튜닝이나 타이어 보정도 출고 기어비 자체의 공식값과 구분한다.
+기어비 자료를 적용한 차량은 출고 타이어 규격에서 계산한 바퀴 반경에 **0.985의 추정 보정**을 적용한다. G70·G80·수프라·M2는 뒤 타이어, 전륜 기반 K5·카니발·싼타페·아반떼 N은 앞 타이어를 기준으로 한다. 실측 타이어 회전수나 동하중 변형값은 아니다. G80의 275/35R20 뒤 타이어는 명목 반경 0.35025 m, 모형 유효 반경 약 0.3450 m다. 튜닝 시에는 기존 `reduction / factoryReduction` 비율을 표시용 총감속비에 한 번 곱하며, 기어비 미확인 차량의 추정 총감속비에도 같은 배율을 반영한다. 종감속 튜닝이나 타이어 보정도 출고 기어비 자체의 공식값과 구분한다.
 
-변속 스케줄은 **레이스 전개 가속(WOT)용 추정값**이다. 일정 속도로 순항할 때 연비를 위해 높은 단을 고르는 자동변속기 제어와 다르다. G80은 6200 rpm, G70·수프라·M2·카니발 3.5는 6500 rpm, K5 1.6T·카니발 HEV·싼타페는 6000 rpm을 표시 업시프트 기준으로 쓴다. 제조사 최고출력 회전수(G80 5800, G70 2.0/3.3 6200/6000, 수프라 5000, K5 1.6T 5500, 카니발 3.5 6400, 싼타페 5800 rpm)를 레드라인이나 실제 변속 시점으로 단정하지 않는다. 카니발 HEV의 미국 기어비 자료에는 최고출력 회전수가 없어 `ratedPowerRPM:null`로 남긴다.
+변속 스케줄은 **레이스 전개 가속(WOT)용 추정값**이다. 일정 속도로 순항할 때 연비를 위해 높은 단을 고르는 자동변속기 제어와 다르다. G80은 6200 rpm, G70·수프라·M2·카니발 3.5·아반떼 N은 6500 rpm, K5 1.6T·카니발 HEV·싼타페는 6000 rpm을 표시 업시프트 기준으로 쓴다. 제조사 최고출력 회전수(G80 5800, G70 2.0/3.3 6200/6000, 수프라 5000, K5 1.6T 5500, 카니발 3.5 6400, 싼타페 5800 rpm)를 레드라인이나 실제 변속 시점으로 단정하지 않는다. 카니발 HEV의 미국 기어비 자료에는 최고출력 회전수가 없어 `ratedPowerRPM:null`로 남긴다.
 
 다음은 순정 G80의 6200 rpm 업시프트 이론 차속이다. 실제 코드의 `gearSpeedAtRPM(car, gear, 6200) × 3.6`으로 계산해 1 km/h 단위로 반올림했다. 무튜닝, 275/35R20 뒤 타이어의 명목 반경 0.35025 m에 0.985를 곱한 유효 반경 0.34499625 m, 앞서 구분한 호주 시장 참고 기어비·종감속비를 사용한다.
 
@@ -87,6 +90,12 @@ G80의 [2024 영국 공식 제원표](https://www.genesis.com/content/dam/genesi
 아이오닉 5 Long Range 84 kWh RWD/AWD의 물리 계산에는 [현대 호주 MY2026 공식 PDF](https://www.hyundai.com/content/dam/hyundai/au/en/models/ioniq5/docs/2026-IONIQ-5-Specification-Sheet.pdf) 1–2쪽의 **감속기 2.263 × 종감속 4.706 = 총감속 10.649678**을 참고 적용한다. 국내 일치는 미확인이다. 이는 다단변속기 표와 별도인 `singleSpeedReduction`, `reductionStatus:'reference-market'`, `reductionSourceId`, `reductionMarket`으로 기록한다. 이 EV의 `ratioStatus:'not-applicable'`, `gearCount:null`과 HUD 숨김은 유지한다. 같은 자료의 확인 범위 밖인 Standard 63 kWh에는 Long Range 수치를 적용하지 않고 기존 감속비 9를 유지한다. 레이 EV·무쏘 EV FWD/AWD 역시 해당 조합의 감속비 미확인으로 기존 모형값을 사용한다.
 
 회전수·변속 표시와 HEV 게이지는 계산된 주행 상태를 읽기만 하며 물리 결과를 바꾸지 않는다. 별도로 물리 엔진은 기어비 출처가 있는 G70·G80·수프라·M2·K5 1.6T·카니발·싼타페의 **1단 × 1단의 종감속비**, 아이오닉 5 Long Range RWD/AWD의 **단일 총감속비**를 저속 토크 구동력의 한도로 사용한다. 수프라·M2 외에는 위에 명시한 다른 시장의 참고값이며, 싼타페의 종감속 배정 추정도 그대로 적용된다. 기존 튜닝 감속비 배율은 보존한다. HUD가 선택한 단수를 물리에 다시 입력하지 않으며, 토크컨버터 슬립·변속 지연·클러치 조작은 모델링하지 않는다. 출발 접지력과 검증 조건은 [출발 구동력 설명](LAUNCH-DYNAMICS.md)에 기록한다.
+
+## 아반떼 N의 단별 종감속과 회전수
+
+호주 November 2021 표는 DCT의 `1·2·5·6단 = 3.800`, `3·4·7·8단 = 2.714`, 수동의 `1·2단 = 4.154`, `3·4·5·6단 = 3.176`을 직접 명시한다. `finalDriveRatios`는 각각 `[3.8,3.8,2.714,2.714,3.8,3.8,2.714,2.714]`, `[4.154,4.154,3.176,3.176,3.176,3.176]`이며 단일 `finalDriveRatio`는 `null`이다. 따라서 DCT 6→7단에서 원 기어비가 커져도 바퀴까지의 총감속비와 회전수는 감소한다. 배정 자체는 호주 공식값이므로 `finalDriveGearAssignment` 추정 태그를 넣지 않지만, 국내 동일성은 `domesticRatioMatch`로 미확인을 유지한다.
+
+최고출력 범위 5500–6000 rpm 중 상단 6000을 `ratedPowerRPM`으로 기록한다. 추정 WOT 변속 기준 6500과 표시 상한 7000은 공식 레드라인으로 주장하지 않는다. FWD HUD는 앞 타이어 명목 반경 0.32705 m에 추정 계수 0.985를 적용한다. 두 변속기의 전체 순차 업시프트와 RPM 하락은 합성 속도 입력으로 검사하며, 최고단 검사가 실차 또는 모형의 도달 가능한 최고속도를 의미하지 않는다.
 
 ## GR 수프라 ZF 8단 재점검
 
