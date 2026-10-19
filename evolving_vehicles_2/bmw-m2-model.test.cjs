@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const { gunzipSync } = require('node:zlib');
 const { createHash } = require('node:crypto');
 const { test } = require('node:test');
-const folder = path.join(__dirname, 'assets/models');
+const folder = process.env.M2_MODEL_DIR || path.join(__dirname, 'assets/models');
 const runtime = fs.readFileSync(path.join(folder, 'bmw_m2-runtime.js'), 'utf8');
 const source = JSON.parse(fs.readFileSync(path.join(folder, 'bmw_m2-source.json')));
 const summary = JSON.parse(fs.readFileSync(path.join(folder, 'bmw_m2-runtime-summary.json')));
@@ -26,28 +26,28 @@ test('BMW M2 records the creator, CC BY terms, pinned public download and previo
   assert.equal(model.source.url, source.sourceUrl);
   assert.match(source.sourceUrl, /394feedd0a0742c595917c7b0f6edcad$/);
   assert.equal(source.manufacturerOfficial, false);
-  assert.equal(source.download.commit, '0a56de377f02f2574d781f6920fed08d6423ec2f');
-  assert(source.download.url.includes(source.download.commit));
-  assert.equal(source.download.files[0].sha256, 'f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400');
+  assert.match(source.download.method, /Normal signed-in Sketchfab/);
+  assert.match(source.download.url, /394feedd0a0742c595917c7b0f6edcad#download$/);
+  assert.equal(source.download.files[0].sha256, 'e4d9445c333acfe70ed8aaaa800b1c79a60d1702cdc2db0bdffc5124450aff0e');
   assert.equal(source.download.files[0].sha256, model.source.sha256);
-  assert(source.download.existingMirrorChanges.some(c => /simplification/.test(c)));
+  assert(source.previousMirrorDownload.existingMirrorChanges.some(c => /simplification/.test(c)));
   assert.match(model.source.configuration, /F87.*N55.*2016.*2017.*Not M2 Competition/);
   assert(source.visualReferences.some(r => new URL(r.url).hostname === 'www.press.bmwgroup.com'));
   const license = fs.readFileSync(path.join(folder, 'bmw_m2-LICENSE.txt'), 'utf8');
   assert.match(license, /Manuel Contento[\s\S]*CC-BY-4\.0/);
-  assert(license.includes(source.download.commit));
+  assert(license.includes(source.download.files[0].sha256));
 });
 
-test('BMW M2 retains every downloaded vehicle triangle while removing only the studio ground', () => {
-  assert.equal(source.sourceGeometry.downloadedTriangles, 228678);
-  assert.equal(model.triangles, 228676);
-  assert.equal(model.primitives.flatMap(p => p.sourceParts).length, 77);
+test('BMW M2 uses the full original source and preserves its painted shell while simplifying detail', () => {
+  assert.equal(source.sourceGeometry.downloadedTriangles, 677668);
+  assert(model.triangles>200000&&model.triangles<=350000);
+  assert.equal(source.conversion.sourceParts,77);
   assert(model.primitives.every(p => p.materialName !== 'Piano'));
   assert.equal(source.conversion.geometryAdded, false);
   assert.equal(source.conversion.fullBodySimplifiedByWebSim, false);
-  assert(model.fallbackTriangles > 3000 && model.fallbackTriangles <= 7000);
-  assert.equal(model.primitives.length, 13);
-  assert(Buffer.byteLength(runtime) < 14 * 1024 * 1024);
+  assert(model.fallbackTriangles > 10000 && model.fallbackTriangles <= 65000);
+  assert.equal(model.primitives.length, 21);
+  assert(Buffer.byteLength(runtime) < 19 * 1024 * 1024);
   for (const key of ['triangles', 'fallbackTriangles']) {
     assert.equal(model[key], source.conversion[key]);
     assert.equal(model[key], summary[key]);
@@ -67,17 +67,16 @@ test('BMW M2 removes only body stripes and retains the original badge and detail
     assert.equal(info.width, 1024); assert.equal(info.height, 1024);
   }
   const body = model.primitives.find(p => p.role === 'factory-paint');
-  assert.equal(body.triangles, 59912);
+  assert.equal(body.triangles, 199724);
   assert.deepEqual(body.sourceParts.map(p => p.name), ['Livery', 'Livery']);
-  assert.equal(body.paint, false);
+  assert.equal(body.paint, true);
   assert.equal(body.material, 0);
   assert.equal(body.textureIndex, undefined, 'The stripe atlas must not be sampled by the painted body');
   assert.deepEqual(body.color, [22 / 255, 127 / 255, 167 / 255]);
-  const badges = model.primitives.find(p => p.materialName === 'MAT_LIVERY');
-  assert.equal(badges.triangles, 2511);
-  assert.deepEqual(badges.sourceParts.map(p => p.name), ['BMW_LOGO', 'BMW_LOGO5', 'BMW_LOGO6', 'BMW_LOGO1', 'BMW_LOGO2']);
-  assert.deepEqual(badges.color, [1, 1, 1]);
-  assert.equal(summary.textures[badges.textureIndex].materialName, 'MAT_LIVERY');
+  const badges = model.primitives.filter(p => p.materialName === 'MAT_LIVERY');
+  assert.equal(badges.reduce((s,p)=>s+p.triangles,0),5520);
+  assert.deepEqual([...new Set(badges.flatMap(p=>p.sourceParts.map(p => p.name)))].sort(), ['BMW_LOGO', 'BMW_LOGO1', 'BMW_LOGO2', 'BMW_LOGO5', 'BMW_LOGO6']);
+  for(const badge of badges){assert.deepEqual(badge.color,[1,1,1]);assert.equal(summary.textures[badge.textureIndex].materialName,'MAT_LIVERY');}
   assert(model.primitives.filter(p => p !== body).every(p => Number.isInteger(p.textureIndex) && p.textureIndex >= 0 && p.textureIndex < 6));
   assert(model.fallbackPrimitives.every(p => p.textureIndex === undefined));
   const fallbackBody = model.fallbackPrimitives.find(p => p.role === 'factory-paint');
@@ -91,7 +90,7 @@ test('BMW M2 documents its actual factory color and distinguishes it from an off
   assert.equal(model.source.stockPaint.renderApproximation, true);
   assert.equal(model.source.stockPaint.displayHex, '#167fa7');
   assert.equal(new URL(model.source.stockPaint.sourceUrl).hostname, 'www.press.bmwgroup.com');
-  assert.equal(new URL(model.source.stockPaint.codeSourceUrl).hostname, 'www.press.bmwgroup.com');
+  assert.equal(new URL(model.source.stockPaint.codeSourceUrl).hostname, 'www.bmw.ie');
   assert.deepEqual(source.configuration.stockPaint, model.source.stockPaint);
   assert(source.conversion.changes.some(c => /stripes.*material/i.test(c)));
 });
@@ -164,5 +163,34 @@ test('BMW M2 dimensions preserve F87 coupe proportions and source geometry rathe
   assert(max[2] - min[2] > 1.40 && max[2] - min[2] < 1.46);
   assert.equal(min[2], 0);
   assert(Math.abs(min[0] + max[0]) < .00001);
-  assert(Math.abs(min[1] + max[1]) < .00001);
+  assert(Math.abs(min[1] + max[1]) < .01,'source body asymmetry is preserved rather than stretched');
+});
+
+test('BMW M2 neutralizes parked front steering and rotates only original wheels, excluding calipers',()=>{
+ assert.equal(model.wheelAnimation,'separate-source-wheel-primitives');
+ assert(Math.abs(model.sourceSteeringRadians-18.5*Math.PI/180)<1e-10);
+ for(const primitives of [model.primitives,model.fallbackPrimitives]){
+  const wheels=primitives.filter(p=>p.wheel),calipers=primitives.filter(p=>p.role==='stationary-brake-caliper');
+  assert.equal(new Set(wheels.map(p=>p.wheel.axle+':'+p.wheel.side)).size,4);
+  assert(calipers.length>=1&&calipers.every(p=>!p.wheel));
+  assert(wheels.every(p=>/^Rim|^BMW_LOGO/.test(p.name)&&!p.paint));
+  for(const p of wheels){const w=p.wheel;assert(w.radius>.33&&w.radius<.35);assert(w.center.every(Number.isFinite));}
+  const front=wheels.filter(p=>p.wheel.axle==='front'&&p.materialName==='MAT_RIM1');
+  assert.equal(front.length,2);
+  for(const p of front){
+   assert(p.bounds.max[1]-p.bounds.min[1]<.28,'front wheel width is aligned with the axle, not diagonally steered');
+   const v=decode(p.vertices,Float32Array);let parallel=0;
+   for(let i=0;i<v.length;i+=8)if(Math.abs(v[i+4])>.999)parallel++;
+   assert(parallel>50,'original planar rim/disc normals face along the lateral axle');
+  }
+ }
+});
+
+test('BMW M2 keeps the original front and rear M2 badges on the correct renderer screen side',()=>{
+ assert.deepEqual(model.coordinateTransform.worldToRuntime,['+Z','-X','+Y']);
+ assert.equal(model.coordinateTransform.handednessCorrectedForRenderer,true);
+ const parts=model.primitives.flatMap(p=>p.sourceParts),front=parts.find(p=>p.name==='m5'),rear=parts.find(p=>p.name==='m6');
+ assert(front.bounds.min[0]>2&&front.bounds.max[1]<-.1,'front badge appears screen-right when viewed from the front');
+ assert(rear.bounds.max[0]<-2&&rear.bounds.min[1]>.3,'rear badge appears screen-right when viewed from behind');
+ assert.equal(front.triangles,728);assert.equal(rear.triangles,728);
 });

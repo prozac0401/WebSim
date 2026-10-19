@@ -1,0 +1,817 @@
+{
+  "sourceGroup": "VARIANTGROUPACCS_wheels.002",
+  "sourceFile": "SantaFe-2.glb",
+  "source": "https://www.hyundai.com/kr/ko/e/vehicles/santafe/price",
+  "wheels": [
+    {
+      "center": [
+        -1.3182655572891235,
+        -0.8153498768806458,
+        0.37044061184860766
+      ],
+      "radius": 0.3706503410357982,
+      "axle": "rear",
+      "side": -1
+    },
+    {
+      "center": [
+        -1.3182655572891235,
+        0.8153498768806458,
+        0.37044061184860766
+      ],
+      "radius": 0.3706503410357982,
+      "axle": "rear",
+      "side": 1
+    },
+    {
+      "center": [
+        1.4939289093017578,
+        -0.8153504729270935,
+        0.37044061184860766
+      ],
+      "radius": 0.3706503410357982,
+      "axle": "front",
+      "side": -1
+    },
+    {
+      "center": [
+        1.4939289093017578,
+        0.8153504729270935,
+        0.37044061184860766
+      ],
+      "radius": 0.3706503410357982,
+      "axle": "front",
+      "side": 1
+    }
+  ],
+  "primitives": [
+    {
+      "name": "Central_cap_006",
+      "materialName": "E_EMBLEM_Chrome",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 240,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "Central_cap_007",
+      "materialName": "E_AHV_COMMON_BLACK_HIGH_GLOSSY",
+      "color": [
+        0.12328467269164879,
+        0.12328467269164879,
+        0.12328467269164879
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 472,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "Central_cap_010",
+      "materialName": "E_EMBLEM_Chrome",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 240,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "Central_cap_011",
+      "materialName": "E_AHV_COMMON_BLACK_HIGH_GLOSSY",
+      "color": [
+        0.12328467269164879,
+        0.12328467269164879,
+        0.12328467269164879
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 468,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "Central_cap_013",
+      "materialName": "E_EMBLEM_Chrome",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 240,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "Central_cap_014",
+      "materialName": "E_AHV_COMMON_BLACK_HIGH_GLOSSY",
+      "color": [
+        0.12328467269164879,
+        0.12328467269164879,
+        0.12328467269164879
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 472,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "Central_cap_015",
+      "materialName": "E_EMBLEM_Chrome",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 240,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "Central_cap_016",
+      "materialName": "E_AHV_COMMON_BLACK_HIGH_GLOSSY",
+      "color": [
+        0.12328467269164879,
+        0.12328467269164879,
+        0.12328467269164879
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 468,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_006",
+      "materialName": "E_Cladding_Black_C_1.001",
+      "color": [
+        0.16894327262389908,
+        0.16894327262389908,
+        0.16894327262389908
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 526,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_007",
+      "materialName": "EXT_KS_Tire_SIDE",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1896,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_007",
+      "materialName": "EXT_KS_Tire_MARK2",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1248,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_013",
+      "materialName": "E_Cladding_Black_C_1.001",
+      "color": [
+        0.16894327262389908,
+        0.16894327262389908,
+        0.16894327262389908
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 526,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_014",
+      "materialName": "EXT_KS_Tire_SIDE",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1904,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_014",
+      "materialName": "EXT_KS_Tire_MARK2",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1248,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "GEO_016",
+      "materialName": "E_Cladding_Black_C_1.001",
+      "color": [
+        0.16894327262389908,
+        0.16894327262389908,
+        0.16894327262389908
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 526,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_017",
+      "materialName": "EXT_KS_Tire_SIDE",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1896,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_017",
+      "materialName": "EXT_KS_Tire_MARK2",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1248,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_018",
+      "materialName": "E_Cladding_Black_C_1.001",
+      "color": [
+        0.16894327262389908,
+        0.16894327262389908,
+        0.16894327262389908
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 526,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_019",
+      "materialName": "EXT_KS_Tire_SIDE",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1904,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "GEO_019",
+      "materialName": "EXT_KS_Tire_MARK2",
+      "color": [
+        0.2562257259014882,
+        0.2562257259014882,
+        0.2562257259014882
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1248,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "Rim_004",
+      "materialName": "E_WHEEL_GLOSSY_BLACK_WBH01",
+      "color": [
+        0.08894211872733035,
+        0.08894211872733035,
+        0.08894211872733035
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 5611,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "Rim_005",
+      "materialName": "E_WHEEL_GLOSSY_BLACK_WBH01",
+      "color": [
+        0.08894211872733035,
+        0.08894211872733035,
+        0.08894211872733035
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 5625,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "Rim_006",
+      "materialName": "E_WHEEL_GLOSSY_BLACK_WBH01",
+      "color": [
+        0.08894211872733035,
+        0.08894211872733035,
+        0.08894211872733035
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 5611,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "Rim_007",
+      "materialName": "E_WHEEL_GLOSSY_BLACK_WBH01",
+      "color": [
+        0.08894211872733035,
+        0.08894211872733035,
+        0.08894211872733035
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 5625,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "Screws_007",
+      "materialName": "E_DARK_SUS_DSF",
+      "color": [
+        0.48964335057078534,
+        0.48964335057078534,
+        0.48964335057078534
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 654,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "Screws_008",
+      "materialName": "E_DARK_SUS_DSF",
+      "color": [
+        0.48964335057078534,
+        0.48964335057078534,
+        0.48964335057078534
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 654,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "Screws_009",
+      "materialName": "E_DARK_SUS_DSF",
+      "color": [
+        0.48964335057078534,
+        0.48964335057078534,
+        0.48964335057078534
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 654,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    },
+    {
+      "name": "Screws_010",
+      "materialName": "E_DARK_SUS_DSF",
+      "color": [
+        0.48964335057078534,
+        0.48964335057078534,
+        0.48964335057078534
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 654,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "wheel_outer027",
+      "materialName": "E_mask_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2860,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": 1
+      }
+    },
+    {
+      "name": "wheel_outer027",
+      "materialName": "E_mask_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2830,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": 1
+      }
+    },
+    {
+      "name": "wheel_outer089",
+      "materialName": "E_mask_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2860,
+      "wheel": {
+        "center": [
+          -1.3182655572891235,
+          -0.8153498768806458,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "rear",
+        "side": -1
+      }
+    },
+    {
+      "name": "wheel_outer089",
+      "materialName": "E_mask_black",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2830,
+      "wheel": {
+        "center": [
+          1.4939289093017578,
+          -0.8153504729270935,
+          0.37044061184860766
+        ],
+        "radius": 0.3706503410357982,
+        "axle": "front",
+        "side": -1
+      }
+    }
+  ]
+}

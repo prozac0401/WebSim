@@ -8,7 +8,7 @@
     "url": "https://sketchfab.com/3d-models/toyota-gr86-zn8-4919d14eba9640599e838230e8e5ed74",
     "license": "CC BY 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-    "configuration": "2023 Toyota GR86 ZN8 coupe exterior. Original red body, GR badges, cabin and ADVAN Racing RS wheel artwork retained. The community wheels are not an exact factory RZ wheel match.",
+    "configuration": "2023 Toyota GR86 ZN8 coupe exterior. Remappable factory-paint material, original GR badges, cabin and ADVAN Racing RS wheel artwork. The community wheels are not an exact factory RZ wheel match.",
     "attribution": "Toyota GR86 (ZN8) by Mona x Supercars (Car2022), CC BY 4.0. Original wheel texture also credits Kazutoshi Mods. Mesh simplified and adapted for WebSim; see gr86-source.json and gr86-LICENSE.txt.",
     "sha256": "276db7d1eb78ee603fbceb3684f33d7069fd5044d7376170b8a14554749bc07a"
   },
@@ -24,7 +24,7 @@
       1.3003886938095093
     ]
   },
-  "triangles": 166674,
+  "triangles": 166669,
   "primitives": [
     {
       "materialName": "Body0031Mtl",
@@ -1020,7 +1020,7 @@
     },
     {
       "materialName": "Paint1Mtl",
-      "role": "original-red-paint",
+      "role": "factory-paint",
       "color": [
         0.9999999999999999,
         0.010396181359999977,
@@ -1028,7 +1028,7 @@
       ],
       "alpha": 1,
       "material": 0,
-      "paint": false,
+      "paint": true,
       "textureOpaque": true,
       "name": "Object_26 | Object_27 | Object_28",
       "sourceParts": [
@@ -1275,7 +1275,7 @@
       "material": 2,
       "paint": false,
       "textureOpaque": true,
-      "name": "Object_38 | Object_39 | Object_40 | Object_41 | Object_42 | Object_43",
+      "name": "Object_38 | Object_39",
       "sourceParts": [
         {
           "name": "Object_38",
@@ -1308,240 +1308,23 @@
               0.485724791117499
             ]
           }
-        },
-        {
-          "name": "Object_40",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              1.0328215227074202,
-              -0.8903900536635091,
-              0.0694404724633625
-            ],
-            "max": [
-              1.5237309762248787,
-              -0.7944271008822165,
-              0.560349658888957
-            ]
-          }
-        },
-        {
-          "name": "Object_41",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              -1.5408965778548154,
-              -0.8903900536635091,
-              0.06944030781136358
-            ],
-            "max": [
-              -1.0499870974666021,
-              -0.7944271008822165,
-              0.5603500231401823
-            ]
-          }
-        },
-        {
-          "name": "Object_42",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              -1.5559660426779136,
-              0.7956472941560577,
-              0.06944040329493746
-            ],
-            "max": [
-              -1.0650566966434727,
-              0.8916077785760413,
-              0.5603488992079892
-            ]
-          }
-        },
-        {
-          "name": "Object_43",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              1.0199706370576804,
-              0.7956472941560577,
-              0.06944035396093957
-            ],
-            "max": [
-              1.5108801006261712,
-              0.8916077785760413,
-              0.5603490935675288
-            ]
-          }
         }
       ],
       "bounds": {
         "min": [
           -1.986507534980774,
-          -0.8903900384902954,
-          0.06944040209054947
+          -0.7664344310760498,
+          0.1416083425283432
         ],
         "max": [
           1.9524848461151123,
-          0.8916077613830566,
+          0.7719437479972839,
           0.860083818435669
         ]
       },
-      "triangles": 25316,
-      "sourceTriangles": 52743,
-      "simplificationError": 0.0003859454009216279,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel0031Mtl",
-      "role": "tires",
-      "color": [
-        0.9999999999999999,
-        0.9999999999999999,
-        0.9999999999999999
-      ],
-      "alpha": 1,
-      "material": 2,
-      "paint": false,
-      "textureOpaque": false,
-      "textureIndex": 11,
-      "textureRepeat": true,
-      "name": "Object_44",
-      "sourceParts": [
-        {
-          "name": "Object_44",
-          "sourceTriangles": 1280,
-          "bounds": {
-            "min": [
-              -1.6170480992773066,
-              -0.8727553752245942,
-              0.0008970594164067802
-            ],
-            "max": [
-              1.586880660867242,
-              0.8739755684984356,
-              0.628889021658701
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.6170481443405151,
-          -0.8727553486824036,
-          0.0008970593917183578
-        ],
-        "max": [
-          1.5868806838989258,
-          0.8739755749702454,
-          0.6288890242576599
-        ]
-      },
-      "triangles": 1280,
-      "sourceTriangles": 1280,
-      "simplificationError": 0,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel0081Mtl",
-      "role": "Wheel0081Mtl",
-      "color": [
-        0.9999999999999999,
-        0.9999999999999999,
-        0.9999999999999999
-      ],
-      "alpha": 1,
-      "material": 3,
-      "paint": false,
-      "textureOpaque": true,
-      "textureIndex": 12,
-      "textureRepeat": true,
-      "name": "Object_45",
-      "sourceParts": [
-        {
-          "name": "Object_45",
-          "sourceTriangles": 13608,
-          "bounds": {
-            "min": [
-              -1.5486786076417274,
-              -0.8897146629929099,
-              0.06947632367322545
-            ],
-            "max": [
-              1.5184092770501376,
-              0.8909348562667512,
-              0.560632040045005
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.5486786365509033,
-          -0.8897146582603455,
-          0.06947632133960724
-        ],
-        "max": [
-          1.518409252166748,
-          0.8909348845481873,
-          0.560632050037384
-        ]
-      },
-      "triangles": 9524,
-      "sourceTriangles": 13608,
-      "simplificationError": 0.0002729241969063878,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel1Mtl",
-      "role": "tires",
-      "color": [
-        0.9999999999999999,
-        0.9999999999999999,
-        0.9999999999999999
-      ],
-      "alpha": 1,
-      "material": 2,
-      "paint": false,
-      "textureOpaque": true,
-      "textureIndex": 13,
-      "textureRepeat": true,
-      "name": "Object_46",
-      "sourceParts": [
-        {
-          "name": "Object_46",
-          "sourceTriangles": 1280,
-          "bounds": {
-            "min": [
-              -1.6179440210821696,
-              -0.8740864684458266,
-              0
-            ],
-            "max": [
-              1.587782090441347,
-              0.875306661719668,
-              0.6297916254922095
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.6179440021514893,
-          -0.8740864396095276,
-          0
-        ],
-        "max": [
-          1.5877821445465088,
-          0.8753066658973694,
-          0.6297916173934937
-        ]
-      },
-      "triangles": 1280,
-      "sourceTriangles": 1280,
-      "simplificationError": 0,
+      "triangles": 6907,
+      "sourceTriangles": 14391,
+      "simplificationError": 0.00035559904063120484,
       "indexType": 2,
       "groundShiftM": 0
     },
@@ -1639,6 +1422,1262 @@
       },
       "triangles": 3834,
       "sourceTriangles": 3834,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "name": "Object_41",
+      "sourceParts": [
+        {
+          "name": "Object_41",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              -1.5408965778548154,
+              -0.8903900536635091,
+              0.06944030781136358
+            ],
+            "max": [
+              -1.0499870974666021,
+              -0.7944271008822165,
+              0.5603500231401823
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5408965349197388,
+          -0.8903900384902954,
+          0.06976770609617233
+        ],
+        "max": [
+          -1.0499870777130127,
+          -0.7944270968437195,
+          0.5600214004516602
+        ]
+      },
+      "triangles": 4602,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.00048039655666798353,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "name": "Object_42",
+      "sourceParts": [
+        {
+          "name": "Object_42",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              -1.5559660426779136,
+              0.7956472941560577,
+              0.06944040329493746
+            ],
+            "max": [
+              -1.0650566966434727,
+              0.8916077785760413,
+              0.5603488992079892
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5559660196304321,
+          0.7956473231315613,
+          0.06944040209054947
+        ],
+        "max": [
+          -1.0650566816329956,
+          0.8916077613830566,
+          0.5603489279747009
+        ]
+      },
+      "triangles": 4601,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.0004802547045983374,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "name": "Object_40",
+      "sourceParts": [
+        {
+          "name": "Object_40",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              1.0328215227074202,
+              -0.8903900536635091,
+              0.0694404724633625
+            ],
+            "max": [
+              1.5237309762248787,
+              -0.7944271008822165,
+              0.560349658888957
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.032821536064148,
+          -0.8903900384902954,
+          0.06976787000894547
+        ],
+        "max": [
+          1.523730993270874,
+          -0.7944270968437195,
+          0.5600234866142273
+        ]
+      },
+      "triangles": 4601,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.0004882562789134681,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "name": "Object_43",
+      "sourceParts": [
+        {
+          "name": "Object_43",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              1.0199706370576804,
+              0.7956472941560577,
+              0.06944035396093957
+            ],
+            "max": [
+              1.5108801006261712,
+              0.8916077785760413,
+              0.5603490935675288
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.0199706554412842,
+          0.7956473231315613,
+          0.06944035738706589
+        ],
+        "max": [
+          1.5102611780166626,
+          0.8916077613830566,
+          0.5603491067886353
+        ]
+      },
+      "triangles": 4602,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.0004966649576090276,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "textureIndex": 11,
+      "textureRepeat": true,
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.616897773227576,
+              -0.8727553752245942,
+              0.000897131967508202
+            ],
+            "max": [
+              -0.9889050304962873,
+              -0.6243436070036055,
+              0.628889021658701
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6168978214263916,
+          -0.8727553486824036,
+          0.0008971319766715169
+        ],
+        "max": [
+          -0.9889050126075745,
+          -0.6243436336517334,
+          0.6288890242576599
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "textureIndex": 11,
+      "textureRepeat": true,
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.6170480992773066,
+              0.6255662686387561,
+              0.0008971111437839996
+            ],
+            "max": [
+              -0.989055383416772,
+              0.8739755684984356,
+              0.628888190000557
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6170481443405151,
+          0.6255662441253662,
+          0.0008971111383289099
+        ],
+        "max": [
+          -0.9890553951263428,
+          0.8739755749702454,
+          0.6288881897926331
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "textureIndex": 11,
+      "textureRepeat": true,
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9568202685676342,
+              -0.8727553752245942,
+              0.0008971157603814681
+            ],
+            "max": [
+              1.5848130431951934,
+              -0.6243436070036055,
+              0.6288887161745006
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9568202495574951,
+          -0.8727553486824036,
+          0.000897115736734122
+        ],
+        "max": [
+          1.5848129987716675,
+          -0.6243436336517334,
+          0.628888726234436
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "textureIndex": 11,
+      "textureRepeat": true,
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9588885216912627,
+              0.6255662686387561,
+              0.0008970594164067802
+            ],
+            "max": [
+              1.586880660867242,
+              0.8739755684984356,
+              0.6288883574893421
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9588885307312012,
+          0.6255662441253662,
+          0.0008970593917183578
+        ],
+        "max": [
+          1.5868806838989258,
+          0.8739755749702454,
+          0.6288883686065674
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "textureIndex": 12,
+      "textureRepeat": true,
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              -1.5484295422210712,
+              -0.8897146629929099,
+              0.06947638793803389
+            ],
+            "max": [
+              -1.0572760450437302,
+              -0.6093488997553727,
+              0.5606315876785152
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5484294891357422,
+          -0.8897146582603455,
+          0.06947638839483261
+        ],
+        "max": [
+          -1.0572760105133057,
+          -0.6093488931655884,
+          0.5606315732002258
+        ]
+      },
+      "triangles": 2381,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.00026577641256153584,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "textureIndex": 12,
+      "textureRepeat": true,
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              -1.5486786076417274,
+              0.6105690930292141,
+              0.06947632367322545
+            ],
+            "max": [
+              -1.05752505200446,
+              0.8909348562667512,
+              0.5606318725562198
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5486786365509033,
+          0.6105691194534302,
+          0.06947632133960724
+        ],
+        "max": [
+          -1.0575250387191772,
+          0.8909348845481873,
+          0.5606318712234497
+        ]
+      },
+      "triangles": 2380,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.0002774257445707917,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "textureIndex": 12,
+      "textureRepeat": true,
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              1.0252885314704094,
+              -0.8897146629929099,
+              0.06947655386959253
+            ],
+            "max": [
+              1.5164420286477507,
+              -0.6093488997553727,
+              0.5606312234272899
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.0252885818481445,
+          -0.8897146582603455,
+          0.06947655230760574
+        ],
+        "max": [
+          1.516442060470581,
+          -0.6093488931655884,
+          0.5606312155723572
+        ]
+      },
+      "triangles": 2381,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.0002659467572811991,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "textureIndex": 12,
+      "textureRepeat": true,
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              1.0272556307495746,
+              0.6105690930292141,
+              0.06947651803276506
+            ],
+            "max": [
+              1.5184092770501376,
+              0.8909348562667512,
+              0.560632040045005
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.027258038520813,
+          0.6105691194534302,
+          0.06947651505470276
+        ],
+        "max": [
+          1.518409252166748,
+          0.8909348845481873,
+          0.560632050037384
+        ]
+      },
+      "triangles": 2380,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.0002796097251120955,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "textureIndex": 13,
+      "textureRepeat": true,
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.617798631462532,
+              -0.8740864684458266,
+              2.299536868507562e-8
+            ],
+            "max": [
+              -0.9880070076386109,
+              -0.622329659257339,
+              0.6297898739084711
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6177986860275269,
+          -0.8740864396095276,
+          2.2995369164391377e-8
+        ],
+        "max": [
+          -0.9880070090293884,
+          -0.6223296523094177,
+          0.6297898888587952
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "textureIndex": 13,
+      "textureRepeat": true,
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.6179440210821696,
+              0.6235499113016877,
+              2.50985690507479e-8
+            ],
+            "max": [
+              -0.988154589294247,
+              0.875306661719668,
+              0.6297914580034243
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6179440021514893,
+          0.6235499382019043,
+          2.5098568556813916e-8
+        ],
+        "max": [
+          -0.9881545901298523,
+          0.8753066658973694,
+          0.6297914385795593
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "textureIndex": 13,
+      "textureRepeat": true,
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9559194422289489,
+              -0.8740864684458266,
+              1.1143388216554151e-7
+            ],
+            "max": [
+              1.585708900887626,
+              -0.622329659257339,
+              0.6297895697038305
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9559194445610046,
+          -0.8740864396095276,
+          1.1143388434220469e-7
+        ],
+        "max": [
+          1.5857088565826416,
+          -0.6223296523094177,
+          0.6297895908355713
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
+      "simplificationError": 0,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.9999999999999999,
+        0.9999999999999999,
+        0.9999999999999999
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "textureIndex": 13,
+      "textureRepeat": true,
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9579902223346485,
+              0.6235499113016877,
+              0
+            ],
+            "max": [
+              1.587782090441347,
+              0.875306661719668,
+              0.6297916254922095
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9579902291297913,
+          0.6235499382019043,
+          0
+        ],
+        "max": [
+          1.5877821445465088,
+          0.8753066658973694,
+          0.6297916173934937
+        ]
+      },
+      "triangles": 320,
+      "sourceTriangles": 320,
       "simplificationError": 0,
       "indexType": 2,
       "groundShiftM": 0
@@ -1787,7 +2826,7 @@
       "sha256": "8984d5bb00a5a1986cc4bf166268642df0ff8c2082712d5a156ec24a0b251033"
     }
   ],
-  "fallbackTriangles": 35434,
+  "fallbackTriangles": 35730,
   "fallbackPrimitives": [
     {
       "materialName": "Body0031Mtl",
@@ -2753,7 +3792,7 @@
     },
     {
       "materialName": "Paint1Mtl",
-      "role": "original-red-paint",
+      "role": "factory-paint",
       "color": [
         0.9999999999999999,
         0.010396181359999977,
@@ -2761,7 +3800,7 @@
       ],
       "alpha": 1,
       "material": 0,
-      "paint": false,
+      "paint": true,
       "textureOpaque": true,
       "name": "Object_26 | Object_27 | Object_28",
       "sourceParts": [
@@ -3006,7 +4045,7 @@
       "material": 2,
       "paint": false,
       "textureOpaque": true,
-      "name": "Object_38 | Object_39 | Object_40 | Object_41 | Object_42 | Object_43",
+      "name": "Object_38 | Object_39",
       "sourceParts": [
         {
           "name": "Object_38",
@@ -3039,234 +4078,23 @@
               0.485724791117499
             ]
           }
-        },
-        {
-          "name": "Object_40",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              1.0328215227074202,
-              -0.8903900536635091,
-              0.0694404724633625
-            ],
-            "max": [
-              1.5237309762248787,
-              -0.7944271008822165,
-              0.560349658888957
-            ]
-          }
-        },
-        {
-          "name": "Object_41",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              -1.5408965778548154,
-              -0.8903900536635091,
-              0.06944030781136358
-            ],
-            "max": [
-              -1.0499870974666021,
-              -0.7944271008822165,
-              0.5603500231401823
-            ]
-          }
-        },
-        {
-          "name": "Object_42",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              -1.5559660426779136,
-              0.7956472941560577,
-              0.06944040329493746
-            ],
-            "max": [
-              -1.0650566966434727,
-              0.8916077785760413,
-              0.5603488992079892
-            ]
-          }
-        },
-        {
-          "name": "Object_43",
-          "sourceTriangles": 9588,
-          "bounds": {
-            "min": [
-              1.0199706370576804,
-              0.7956472941560577,
-              0.06944035396093957
-            ],
-            "max": [
-              1.5108801006261712,
-              0.8916077785760413,
-              0.5603490935675288
-            ]
-          }
         }
       ],
       "bounds": {
         "min": [
           -1.9849056005477905,
-          -0.8898552060127258,
-          0.07283942401409149
+          -0.7664319276809692,
+          0.1435765027999878
         ],
         "max": [
           1.9524848461151123,
-          0.88882976770401,
-          0.8591450452804565
+          0.767652153968811,
+          0.8593952059745789
         ]
       },
-      "triangles": 1852,
-      "sourceTriangles": 52743,
-      "simplificationError": 0.01173952966928482,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel0031Mtl",
-      "role": "tires",
-      "color": [
-        0.14431372549019686,
-        0.14137254901960797,
-        0.14431372549019686
-      ],
-      "alpha": 1,
-      "material": 2,
-      "paint": false,
-      "textureOpaque": false,
-      "name": "Object_44",
-      "sourceParts": [
-        {
-          "name": "Object_44",
-          "sourceTriangles": 1280,
-          "bounds": {
-            "min": [
-              -1.6170480992773066,
-              -0.8727553752245942,
-              0.0008970594164067802
-            ],
-            "max": [
-              1.586880660867242,
-              0.8739755684984356,
-              0.628889021658701
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.6170481443405151,
-          -0.8727553486824036,
-          0.0008970593917183578
-        ],
-        "max": [
-          1.5868806838989258,
-          0.8739755749702454,
-          0.6288890242576599
-        ]
-      },
-      "triangles": 640,
-      "sourceTriangles": 1280,
-      "simplificationError": 0.0023878030478954315,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel0081Mtl",
-      "role": "Wheel0081Mtl",
-      "color": [
-        0.15365125474057895,
-        0.15313886871621155,
-        0.15312676510933573
-      ],
-      "alpha": 1,
-      "material": 3,
-      "paint": false,
-      "textureOpaque": true,
-      "name": "Object_45",
-      "sourceParts": [
-        {
-          "name": "Object_45",
-          "sourceTriangles": 13608,
-          "bounds": {
-            "min": [
-              -1.5486786076417274,
-              -0.8897146629929099,
-              0.06947632367322545
-            ],
-            "max": [
-              1.5184092770501376,
-              0.8909348562667512,
-              0.560632040045005
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.5465291738510132,
-          -0.8705713748931885,
-          0.06947655230760574
-        ],
-        "max": [
-          1.5156097412109375,
-          0.8717915415763855,
-          0.5606287717819214
-        ]
-      },
-      "triangles": 1400,
-      "sourceTriangles": 13608,
-      "simplificationError": 0.005988661199808121,
-      "indexType": 2,
-      "groundShiftM": 0
-    },
-    {
-      "materialName": "Wheel1Mtl",
-      "role": "tires",
-      "color": [
-        0.1454901960784323,
-        0.14215686274509814,
-        0.1454901960784323
-      ],
-      "alpha": 1,
-      "material": 2,
-      "paint": false,
-      "textureOpaque": true,
-      "name": "Object_46",
-      "sourceParts": [
-        {
-          "name": "Object_46",
-          "sourceTriangles": 1280,
-          "bounds": {
-            "min": [
-              -1.6179440210821696,
-              -0.8740864684458266,
-              0
-            ],
-            "max": [
-              1.587782090441347,
-              0.875306661719668,
-              0.6297916254922095
-            ]
-          }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -1.6179440021514893,
-          -0.8740864396095276,
-          0
-        ],
-        "max": [
-          1.5877821445465088,
-          0.8753066658973694,
-          0.6297916173934937
-        ]
-      },
-      "triangles": 639,
-      "sourceTriangles": 1280,
-      "simplificationError": 0.0024153576232492924,
+      "triangles": 614,
+      "sourceTriangles": 14391,
+      "simplificationError": 0.011961153708398342,
       "indexType": 2,
       "groundShiftM": 0
     },
@@ -3367,6 +4195,1238 @@
       "simplificationError": 0.002500124741345644,
       "indexType": 2,
       "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "name": "Object_41",
+      "sourceParts": [
+        {
+          "name": "Object_41",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              -1.5408965778548154,
+              -0.8903900536635091,
+              0.06944030781136358
+            ],
+            "max": [
+              -1.0499870974666021,
+              -0.7944271008822165,
+              0.5603500231401823
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5372111797332764,
+          -0.8876095414161682,
+          0.0764477476477623
+        ],
+        "max": [
+          -1.0521819591522217,
+          -0.7944270968437195,
+          0.5572735071182251
+        ]
+      },
+      "triangles": 389,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.01161930337548256,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "name": "Object_42",
+      "sourceParts": [
+        {
+          "name": "Object_42",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              -1.5559660426779136,
+              0.7956472941560577,
+              0.06944040329493746
+            ],
+            "max": [
+              -1.0650566966434727,
+              0.8916077785760413,
+              0.5603488992079892
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5553470849990845,
+          0.7956473231315613,
+          0.07251743227243423
+        ],
+        "max": [
+          -1.068742036819458,
+          0.88882976770401,
+          0.5595466494560242
+        ]
+      },
+      "triangles": 397,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.011591500602662563,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "name": "Object_40",
+      "sourceParts": [
+        {
+          "name": "Object_40",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              1.0328215227074202,
+              -0.8903900536635091,
+              0.0694404724633625
+            ],
+            "max": [
+              1.5237309762248787,
+              -0.7944271008822165,
+              0.560349658888957
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.035895586013794,
+          -0.8872841596603394,
+          0.07398835569620132
+        ],
+        "max": [
+          1.5216281414031982,
+          -0.7944270968437195,
+          0.5563722848892212
+        ]
+      },
+      "triangles": 382,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.011991831474006176,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0051Mtl",
+      "role": "Wheel0051Mtl",
+      "color": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "name": "Object_43",
+      "sourceParts": [
+        {
+          "name": "Object_43",
+          "sourceTriangles": 9588,
+          "bounds": {
+            "min": [
+              1.0199706370576804,
+              0.7956472941560577,
+              0.06944035396093957
+            ],
+            "max": [
+              1.5108801006261712,
+              0.8916077785760413,
+              0.5603490935675288
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.0230399370193481,
+          0.7956473231315613,
+          0.07093439996242523
+        ],
+        "max": [
+          1.5071922540664673,
+          0.88882976770401,
+          0.5558944940567017
+        ]
+      },
+      "triangles": 371,
+      "sourceTriangles": 9588,
+      "simplificationError": 0.011899621225893497,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.15107843137254912,
+        0.14784313725490197,
+        0.15107843137254912
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.616897773227576,
+              -0.8727553752245942,
+              0.000897131967508202
+            ],
+            "max": [
+              -0.9889050304962873,
+              -0.6243436070036055,
+              0.628889021658701
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6168978214263916,
+          -0.8727553486824036,
+          0.0008971319766715169
+        ],
+        "max": [
+          -0.9889050126075745,
+          -0.6243436336517334,
+          0.6288890242576599
+        ]
+      },
+      "triangles": 160,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0023878030478954315,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.15107843137254912,
+        0.14784313725490197,
+        0.15107843137254912
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.6170480992773066,
+              0.6255662686387561,
+              0.0008971111437839996
+            ],
+            "max": [
+              -0.989055383416772,
+              0.8739755684984356,
+              0.628888190000557
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6170481443405151,
+          0.6255662441253662,
+          0.0008971111383289099
+        ],
+        "max": [
+          -0.9890553951263428,
+          0.8739755749702454,
+          0.6288881897926331
+        ]
+      },
+      "triangles": 159,
+      "sourceTriangles": 320,
+      "simplificationError": 0.002386000705882907,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.15107843137254912,
+        0.14784313725490197,
+        0.15107843137254912
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9568202685676342,
+              -0.8727553752245942,
+              0.0008971157603814681
+            ],
+            "max": [
+              1.5848130431951934,
+              -0.6243436070036055,
+              0.6288887161745006
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9568202495574951,
+          -0.8727553486824036,
+          0.000897115736734122
+        ],
+        "max": [
+          1.5848129987716675,
+          -0.6243436336517334,
+          0.628888726234436
+        ]
+      },
+      "triangles": 159,
+      "sourceTriangles": 320,
+      "simplificationError": 0.002383434446528554,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0031Mtl",
+      "role": "tires",
+      "color": [
+        0.15107843137254912,
+        0.14784313725490197,
+        0.15107843137254912
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": false,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "name": "Object_44",
+      "sourceParts": [
+        {
+          "name": "Object_44",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9588885216912627,
+              0.6255662686387561,
+              0.0008970594164067802
+            ],
+            "max": [
+              1.586880660867242,
+              0.8739755684984356,
+              0.6288883574893421
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9588885307312012,
+          0.6255662441253662,
+          0.0008970593917183578
+        ],
+        "max": [
+          1.5868806838989258,
+          0.8739755749702454,
+          0.6288883686065674
+        ]
+      },
+      "triangles": 160,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0023728027008473873,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.15385359784336755,
+        0.1539411534296439,
+        0.15377065044584215
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              -1.5484295422210712,
+              -0.8897146629929099,
+              0.06947638793803389
+            ],
+            "max": [
+              -1.0572760450437302,
+              -0.6093488997553727,
+              0.5606315876785152
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5456281900405884,
+          -0.8705713748931885,
+          0.07013631612062454
+        ],
+        "max": [
+          -1.0600775480270386,
+          -0.6097458004951477,
+          0.5599681735038757
+        ]
+      },
+      "triangles": 363,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.005950337275862694,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.15385359784336755,
+        0.1539411534296439,
+        0.15377065044584215
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              -1.5486786076417274,
+              0.6105690930292141,
+              0.06947632367322545
+            ],
+            "max": [
+              -1.05752505200446,
+              0.8909348562667512,
+              0.5606318725562198
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.5454601049423218,
+          0.6107564568519592,
+          0.07033140957355499
+        ],
+        "max": [
+          -1.0624744892120361,
+          0.8717915415763855,
+          0.5578250288963318
+        ]
+      },
+      "triangles": 343,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.005988661199808121,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.15385359784336755,
+        0.1539411534296439,
+        0.15377065044584215
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              1.0252885314704094,
+              -0.8897146629929099,
+              0.06947655386959253
+            ],
+            "max": [
+              1.5164420286477507,
+              -0.6093488997553727,
+              0.5606312234272899
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.0282952785491943,
+          -0.8705713748931885,
+          0.06947655230760574
+        ],
+        "max": [
+          1.51181960105896,
+          -0.6095905303955078,
+          0.5606287717819214
+        ]
+      },
+      "triangles": 347,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.0059589515440166,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel0081Mtl",
+      "role": "Wheel0081Mtl",
+      "color": [
+        0.15385359784336755,
+        0.1539411534296439,
+        0.15377065044584215
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "name": "Object_45",
+      "sourceParts": [
+        {
+          "name": "Object_45",
+          "sourceTriangles": 3402,
+          "bounds": {
+            "min": [
+              1.0272556307495746,
+              0.6105690930292141,
+              0.06947651803276506
+            ],
+            "max": [
+              1.5184092770501376,
+              0.8909348562667512,
+              0.560632040045005
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          1.0294049978256226,
+          0.6105888485908508,
+          0.07163932919502258
+        ],
+        "max": [
+          1.5156097412109375,
+          0.8717915415763855,
+          0.5551732778549194
+        ]
+      },
+      "triangles": 346,
+      "sourceTriangles": 3402,
+      "simplificationError": 0.005893145687878132,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.15235294117647072,
+        0.14892156862745096,
+        0.15235294117647072
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-0",
+        "center": [
+          -1.3029028195505714,
+          -0.7482080638515828,
+          0.3148949484519199
+        ],
+        "radius": 0.3148949254565512,
+        "axle": "rear",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.617798631462532,
+            -0.8740864684458266,
+            2.299536868507562e-8
+          ],
+          "max": [
+            -0.9880070076386109,
+            -0.622329659257339,
+            0.6297898739084711
+          ]
+        }
+      },
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.617798631462532,
+              -0.8740864684458266,
+              2.299536868507562e-8
+            ],
+            "max": [
+              -0.9880070076386109,
+              -0.622329659257339,
+              0.6297898739084711
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6177986860275269,
+          -0.8740864396095276,
+          2.2995369164391377e-8
+        ],
+        "max": [
+          -0.9880070090293884,
+          -0.6223296523094177,
+          0.6297898888587952
+        ]
+      },
+      "triangles": 160,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0024082916788756847,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.15235294117647072,
+        0.14892156862745096,
+        0.15235294117647072
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-1",
+        "center": [
+          -1.3030493051882084,
+          0.7494282865106778,
+          0.31489574155099664
+        ],
+        "radius": 0.31489571645242764,
+        "axle": "rear",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            -1.6179440210821696,
+            0.6235499113016877,
+            2.50985690507479e-8
+          ],
+          "max": [
+            -0.988154589294247,
+            0.875306661719668,
+            0.6297914580034243
+          ]
+        }
+      },
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              -1.6179440210821696,
+              0.6235499113016877,
+              2.50985690507479e-8
+            ],
+            "max": [
+              -0.988154589294247,
+              0.875306661719668,
+              0.6297914580034243
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          -1.6179440021514893,
+          0.6235499382019043,
+          2.5098568556813916e-8
+        ],
+        "max": [
+          -0.9881545901298523,
+          0.8753066658973694,
+          0.6297914385795593
+        ]
+      },
+      "triangles": 159,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0024082502350211143,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.15235294117647072,
+        0.14892156862745096,
+        0.15235294117647072
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-2",
+        "center": [
+          1.2708141715582875,
+          -0.7482080638515828,
+          0.3148948405688563
+        ],
+        "radius": 0.3148947291349742,
+        "axle": "front",
+        "side": -1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9559194422289489,
+            -0.8740864684458266,
+            1.1143388216554151e-7
+          ],
+          "max": [
+            1.585708900887626,
+            -0.622329659257339,
+            0.6297895697038305
+          ]
+        }
+      },
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9559194422289489,
+              -0.8740864684458266,
+              1.1143388216554151e-7
+            ],
+            "max": [
+              1.585708900887626,
+              -0.622329659257339,
+              0.6297895697038305
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9559194445610046,
+          -0.8740864396095276,
+          1.1143388434220469e-7
+        ],
+        "max": [
+          1.5857088565826416,
+          -0.6223296523094177,
+          0.6297895908355713
+        ]
+      },
+      "triangles": 159,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0024153576232492924,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "materialName": "Wheel1Mtl",
+      "role": "tires",
+      "color": [
+        0.15235294117647072,
+        0.14892156862745096,
+        0.15235294117647072
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "textureOpaque": true,
+      "wheel": {
+        "name": "source-tire-3",
+        "center": [
+          1.2728861563879978,
+          0.7494282865106778,
+          0.31489581274610473
+        ],
+        "radius": 0.31489581274610473,
+        "axle": "front",
+        "side": 1,
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "bounds": {
+          "min": [
+            0.9579902223346485,
+            0.6235499113016877,
+            0
+          ],
+          "max": [
+            1.587782090441347,
+            0.875306661719668,
+            0.6297916254922095
+          ]
+        }
+      },
+      "name": "Object_46",
+      "sourceParts": [
+        {
+          "name": "Object_46",
+          "sourceTriangles": 320,
+          "bounds": {
+            "min": [
+              0.9579902223346485,
+              0.6235499113016877,
+              0
+            ],
+            "max": [
+              1.587782090441347,
+              0.875306661719668,
+              0.6297916254922095
+            ]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [
+          0.9579902291297913,
+          0.6235499382019043,
+          0
+        ],
+        "max": [
+          1.5877821445465088,
+          0.8753066658973694,
+          0.6297916173934937
+        ]
+      },
+      "triangles": 159,
+      "sourceTriangles": 320,
+      "simplificationError": 0.0020200384315103292,
+      "indexType": 2,
+      "groundShiftM": 0
     }
   ],
   "wheelCenters": [
@@ -3378,6 +5438,8 @@
         0.3148949484519199
       ],
       "radius": 0.3148949254565512,
+      "axle": "rear",
+      "side": -1,
       "axis": [
         0,
         1,
@@ -3404,6 +5466,8 @@
         0.31489574155099664
       ],
       "radius": 0.31489571645242764,
+      "axle": "rear",
+      "side": 1,
       "axis": [
         0,
         1,
@@ -3430,6 +5494,8 @@
         0.3148948405688563
       ],
       "radius": 0.3148947291349742,
+      "axle": "front",
+      "side": -1,
       "axis": [
         0,
         1,
@@ -3456,6 +5522,8 @@
         0.31489581274610473
       ],
       "radius": 0.31489581274610473,
+      "axle": "front",
+      "side": 1,
       "axis": [
         0,
         1,
@@ -3475,7 +5543,7 @@
       }
     }
   ],
-  "wheelAnimation": "static-source-mesh",
+  "wheelAnimation": "separate-source-wheel-primitives",
   "coordinateTransform": {
     "worldToRuntime": [
       "-X",
@@ -3511,7 +5579,7 @@
     ]
   },
   "scale": 0.24650137410869322,
-  "runtimeBytes": 9035121,
+  "runtimeBytes": 9054089,
   "validation": {
     "finiteVertices": true,
     "validIndices": true,

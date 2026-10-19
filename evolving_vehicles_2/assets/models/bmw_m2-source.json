@@ -20,7 +20,7 @@
       "Compared with BMW's official 2016 M2 photograph; matching body and front fascia.",
       "Model published 2018-02-12, before BMW's 2018-04 M2 Competition announcement; Competition has enlarged black kidney grilles and revised front apron."
     ],
-    "visualCaveat": "Decorative stripes removed from the two body parts with a separate 3D paint material. Original BMW roundels and all non-body textures remain unchanged. The factory paint name/code is official; rendered RGB is a digital approximation, not a measured manufacturer color value.",
+    "visualCaveat": "Community F87 exterior; source shape and smooth normals retained. Body stripes detached as a 3D material edit. Paint RGB and shader properties are display approximations. Front wheels rigidly aligned from their original parked steering pose.",
     "stockPaint": {
       "name": "Long Beach Blue Metallic",
       "code": "C16",
@@ -32,28 +32,20 @@
       ],
       "renderApproximation": true,
       "sourceUrl": "https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2",
-      "codeSourceUrl": "https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959"
+      "codeSourceUrl": "https://www.bmw.ie/content/dam/bmw/marketIE/bmw_ie/pdf/BMWM2Coup%C3%A9_F87_201707.pdf.asset.1550226992546.pdf"
     }
   },
   "creationEvidence": "Creator describes it as a high-poly model made in free time to practice modeling, modeled in Autodesk Maya and textured in Substance Painter.",
   "usage": "Ordinary deterministic mesh conversion and game rendering.",
   "download": {
-    "url": "https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb",
-    "repository": "https://github.com/pedrosoandre/carros",
-    "commit": "0a56de377f02f2574d781f6920fed08d6423ec2f",
-    "method": "Public GitHub mirror documents acquisition using the normal Sketchfab Data API download endpoint. The file is a processed derivative, not byte-identical to the creator's upload.",
+    "url": "https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad#download",
+    "method": "Normal signed-in Sketchfab Download 3D Model → GLB 1k. Geometry matches the separately downloaded 4k GLB; the original download, not the previously simplified mirror, is used.",
     "files": [
       {
-        "path": "assets/bmw-m2.glb",
-        "bytes": 14728804,
-        "sha256": "f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400"
+        "path": "bmw-m2-original-1k.glb",
+        "bytes": 40911164,
+        "sha256": "e4d9445c333acfe70ed8aaaa800b1c79a60d1702cdc2db0bdffc5124450aff0e"
       }
-    ],
-    "existingMirrorChanges": [
-      "weld/deduplicate",
-      "geometry simplification",
-      "prune unused resources",
-      "Meshopt compression"
     ],
     "embeddedAttribution": {
       "author": "Manuel Contento (https://sketchfab.com/manuelcontento)",
@@ -64,46 +56,42 @@
   },
   "sourceGeometry": {
     "originalCreatorTriangles": 678052,
-    "downloadedTriangles": 228678,
+    "downloadedTriangles": 677668,
     "downloadedMeshes": 78,
     "downloadedMaterials": 7,
     "downloadedImages": 21,
-    "requiredExtensions": [
-      "EXT_meshopt_compression",
-      "KHR_mesh_quantization"
-    ]
+    "requiredExtensions": []
   },
   "conversion": {
     "builder": "build-free-bmw-m2.mjs",
     "changes": [
-      "Decoded Meshopt compression and normalized quantized attributes using glTF-Transform and meshoptimizer.",
-      "Removed only the two-triangle Piano studio ground plane; retained all 228,676 vehicle triangles in the main model.",
-      "Rotated source forward +Z and up +Y to runtime forward +X, right +Y, up +Z with a proper rotation; corrected any mirrored node winding.",
-      "Scaled uniformly to 4.468 m length and placed the lowest tire geometry at ground zero. Source width and height proportions are preserved.",
-      "Kept all six original 1024x1024 base-color images byte-for-byte for badges and details. Removed body stripes by assigning a separate Long Beach Blue Metallic (C16) material only to the two Livery body parts; no raster pixels were modified.",
-      "Adapted reflective paint, opaque cabin glazing, transparent lamp covers, metal, and light-guide materials to the existing exterior renderer. Metallic/roughness and normal-map textures are not consumed by this renderer.",
-      "Created a separate approximately 6,000-triangle fallback using deterministic Meshopt simplification, the same factory body paint, and source-texture sampled detail colors.",
-      "Combined matching draw groups, compacted unused vertices, retained source smooth normals/UVs, and embedded data in a local gzip-compressed runtime."
+      "Replaced the previously simplified public mirror with the creator’s normally downloaded Sketchfab GLB, preserving embedded CC BY attribution.",
+      "Applied original node transforms and reflected [world +Z, -X, +Y] into runtime forward/up/screen-right coordinates, with matching normal/winding correction. Uniformly scaled to 4.468m length and tire ground zero. Front and rear M2 badge positions follow the original model and BMW reference.",
+      "Preserved all 199,724 original painted-body triangles and source normals in the main model. Other components use Meshopt topology-, normal- and UV-aware simplification; fallback uses the same method and protected body borders. No sloppy spatial clustering.",
+      "Removed body stripes with a remappable paint-only material while retaining BMW roundels, lamps, glass, grille and all original detail texture bytes.",
+      "Rigidly neutralized the source 18.5 degree front-wheel steering, including hub badges and brake assemblies. Split four rolling wheel groups and kept brake calipers stationary, using their distinct source UV islands.",
+      "Embedded only the six unedited 1k base-color images from the normal download; omitted unused normal/roughness maps under the renderer contract.",
+      "Paint names/codes are in vehicle-paints.js; rendered RGB, roughness and clearcoat are explicitly approximate."
     ],
     "geometryAdded": false,
     "fullBodySimplifiedByWebSim": false,
-    "triangles": 228676,
-    "fallbackTriangles": 6658,
-    "drawGroups": 13,
-    "fallbackDrawGroups": 71,
-    "runtimeBytes": 12950141,
+    "triangles": 346765,
+    "fallbackTriangles": 60162,
+    "drawGroups": 21,
+    "fallbackDrawGroups": 78,
+    "runtimeBytes": 17983569,
     "sourceParts": 77,
-    "scale": 4.5016860038935205,
+    "scale": 4.501196328274605,
     "bounds": {
       "min": [
         -2.2339999675750732,
-        -1.0047483444213867,
+        -1.0039918422698975,
         0
       ],
       "max": [
         2.2339999675750732,
-        1.0047483444213867,
-        1.4285314083099365
+        0.9955610632896423,
+        1.428364634513855
       ]
     },
     "textures": [
@@ -168,5 +156,30 @@
       "role": "Official Competition distinction"
     }
   ],
-  "attribution": "BMW M2 by Manuel Contento, https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad, CC BY 4.0. Public processed mirror: pedrosoandre/carros at 0a56de377f02f2574d781f6920fed08d6423ec2f. Coordinates, render materials and fallback adapted for WebSim; body stripes removed with a separate factory-color paint material; original badge and detail textures retained."
+  "attribution": "BMW M2 by Manuel Contento, CC BY 4.0. Normal original Sketchfab download, adapted for WebSim; see bmw_m2-source.json and bmw_m2-LICENSE.txt.",
+  "previousMirrorDownload": {
+    "url": "https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb",
+    "repository": "https://github.com/pedrosoandre/carros",
+    "commit": "0a56de377f02f2574d781f6920fed08d6423ec2f",
+    "method": "Public GitHub mirror documents acquisition using the normal Sketchfab Data API download endpoint. The file is a processed derivative, not byte-identical to the creator's upload.",
+    "files": [
+      {
+        "path": "assets/bmw-m2.glb",
+        "bytes": 14728804,
+        "sha256": "f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400"
+      }
+    ],
+    "existingMirrorChanges": [
+      "weld/deduplicate",
+      "geometry simplification",
+      "prune unused resources",
+      "Meshopt compression"
+    ],
+    "embeddedAttribution": {
+      "author": "Manuel Contento (https://sketchfab.com/manuelcontento)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad",
+      "title": "BMW M2"
+    }
+  }
 }

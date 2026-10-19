@@ -1,880 +1,6989 @@
 {
   "id": "k5",
+  "source": {
+    "kind": "community-mesh",
+    "label": "Kia K5 DL3 부분변경 · zapkolenko07 커뮤니티 외관",
+    "author": "zapkolenko07",
+    "authorUrl": "https://sketchfab.com/zapkolenko07",
+    "url": "https://sketchfab.com/3d-models/kia-k5-2025-0ed1b1fb1a074a42849076b96a15ce9f",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "sha256": "07891ce115dab0194027de0eee2b8ab525232963c5009d564cd8bd1e98aea07f",
+    "configuration": "2025 Kia K5 DL3 facelift community mesh with original star-map lamps, body, badges and wheels. Snow White Pearl SWP digital paint approximation. Source wheel and equipment styling is shared across simulation powertrains, not a per-trim CAD match.",
+    "attribution": "Kia K5 2025 by zapkolenko07, CC BY 4.0. Original geometry adapted and simplified for WebSim; material colors assigned from part semantics. See k5-source.json and k5-LICENSE.txt."
+  },
+  "paintReference": {
+    "name": "스노우 화이트 펄",
+    "code": "SWP",
+    "hex": "#e7e9e5",
+    "finish": "pearl",
+    "roughness": 0.22,
+    "clearcoat": 0.92,
+    "rgbStatus": "estimated-display-color",
+    "sourceUrl": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_k5.pdf"
+  },
   "bounds": {
     "min": [
-      -2.553835597229004,
-      -1.0921104652404787,
-      0.00142475700378418
+      -2.452500104904175,
+      -1.069622278213501,
+      0
     ],
     "max": [
-      2.3689248779296874,
-      1.0495538452148436,
-      1.4391762072925385
+      2.452500104904175,
+      1.069622278213501,
+      1.498680830001831
     ]
   },
-  "triangles": 119724,
+  "triangles": 238177,
   "primitives": [
     {
-      "name": "photo-volume",
-      "indexType": 4,
-      "triangles": 85158,
+      "name": "Object_11_black_0 | Object_12_black_0",
+      "materialName": "black",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object_11_black_0",
+          "materialName": "black",
+          "sourceTriangles": 596,
+          "bounds": {
+            "min": [
+              -2.4525,
+              -0.22459658402450125,
+              0.4918886766835404
+            ],
+            "max": [
+              -2.4098902341951147,
+              0.22830635234581143,
+              0.6002125701922949
+            ]
+          }
+        },
+        {
+          "name": "Object_12_black_0",
+          "materialName": "black",
+          "sourceTriangles": 596,
+          "bounds": {
+            "min": [
+              2.4297330691412378,
+              -0.232719330477234,
+              0.4451900221288049
+            ],
+            "max": [
+              2.4525,
+              0.2368561572367513,
+              0.5593890059953824
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1192,
+      "triangles": 1072,
+      "simplificationError": 0.00003876330447383225,
       "bounds": {
         "min": [
-          -2.553835597229004,
-          -1.0921104652404787,
-          0.00142475700378418
+          -2.452500104904175,
+          -0.2327193319797516,
+          0.4451900124549866
         ],
         "max": [
-          2.3689248779296874,
-          1.0495538452148436,
-          1.394
+          2.452500104904175,
+          0.23685616254806519,
+          0.600212574005127
         ]
       },
-      "color": [
-        1,
-        1,
-        1
-      ],
-      "paint": false,
-      "material": 4,
-      "alpha": 1,
-      "photoProjected": true
+      "indexType": 2,
+      "groundShiftM": 0
     },
     {
-      "name": "front-upper-photo",
-      "indexType": 4,
-      "triangles": 15444,
+      "name": "Object_11_04 - Default_0 | Object_12_04 - Default_0",
+      "materialName": "04_-_Default",
+      "role": "plate",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.82,
+        0.83,
+        0.81
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object_11_04 - Default_0",
+          "materialName": "04_-_Default",
+          "sourceTriangles": 64,
+          "bounds": {
+            "min": [
+              -2.450426966507263,
+              -0.21746390317837652,
+              0.49893005121546774
+            ],
+            "max": [
+              -2.417577337857964,
+              0.22117367005610636,
+              0.5943866232207726
+            ]
+          }
+        },
+        {
+          "name": "Object_12_04 - Default_0",
+          "materialName": "04_-_Default",
+          "sourceTriangles": 64,
+          "bounds": {
+            "min": [
+              2.437442903797312,
+              -0.22532397866723142,
+              0.4519173053381381
+            ],
+            "max": [
+              2.4512465770836696,
+              0.2294608054267487,
+              0.5525012327793137
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 128,
+      "triangles": 114,
+      "simplificationError": 0.000015761115719215013,
       "bounds": {
         "min": [
-          0.27405000000000035,
-          -0.7902000000000002,
-          0.6499999999999999
+          -2.4504270553588867,
+          -0.22532397508621216,
+          0.45191729068756104
         ],
         "max": [
-          2.29325654296875,
-          0.7937999999999998,
-          1.374246562274575
+          2.451246500015259,
+          0.22946080565452576,
+          0.594386637210846
         ]
       },
-      "color": [
-        1,
-        1,
-        1
-      ],
-      "paint": false,
-      "material": 4,
-      "alpha": 1,
-      "photoProjected": true,
-      "photoCameraIndex": 18
+      "indexType": 2,
+      "groundShiftM": 0
     },
     {
-      "name": "rear-upper-photo",
-      "indexType": 4,
-      "triangles": 11024,
+      "name": "lights rear_Material #21257318803434_0 | body_Material #21257318803434_0 | radiator grill_Material #21257318803434_0 | lights front_Material #21257318803434_0 | wings_Material #21257318803434_0 | bottom_Material #21257318803434_0 | car wipers_Material #21257318803434_0 | front bumper details_Material #21257318803434_0 | mirrors_Material #21257318803434_0 | radiator_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 2074,
+          "bounds": {
+            "min": [
+              -2.3756187532351367,
+              -0.831092318815458,
+              0.6571560656630415
+            ],
+            "max": [
+              -2.046714229326234,
+              0.8310914618162993,
+              1.015513079652823
+            ]
+          }
+        },
+        {
+          "name": "body_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 240,
+          "bounds": {
+            "min": [
+              0.3350126253287005,
+              -0.7628798992925874,
+              1.0105086330666415
+            ],
+            "max": [
+              1.1037996667854066,
+              0.7628800217210383,
+              1.3679280899770017
+            ]
+          }
+        },
+        {
+          "name": "radiator grill_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 138,
+          "bounds": {
+            "min": [
+              2.0825067850878614,
+              -0.724191345637655,
+              0.567401074649761
+            ],
+            "max": [
+              2.336608504730644,
+              0.7241918353514598,
+              0.7112750115955894
+            ]
+          }
+        },
+        {
+          "name": "lights front_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 7548,
+          "bounds": {
+            "min": [
+              1.6125901504945586,
+              -0.8737785286879867,
+              0.5591269314169209
+            ],
+            "max": [
+              2.345354793285603,
+              0.8737788959733401,
+              0.8471571865313103
+            ]
+          }
+        },
+        {
+          "name": "wings_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1158,
+          "bounds": {
+            "min": [
+              -1.7515520884288622,
+              -0.9358806666390563,
+              0.20215995475870388
+            ],
+            "max": [
+              1.908678462625389,
+              0.935879932068349,
+              0.755168549639797
+            ]
+          }
+        },
+        {
+          "name": "bottom_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 356,
+          "bounds": {
+            "min": [
+              -2.327486987066691,
+              -0.89895134861389,
+              0.2344728478702655
+            ],
+            "max": [
+              2.3484238297007165,
+              0.8989511649712132,
+              1.3667923212350592
+            ]
+          }
+        },
+        {
+          "name": "car wipers_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 2660,
+          "bounds": {
+            "min": [
+              1.03295399491953,
+              -0.6288948756369287,
+              0.9467909904875351
+            ],
+            "max": [
+              1.2353227155013122,
+              0.6898699984803179,
+              1.0555161475884747
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1080,
+          "bounds": {
+            "min": [
+              2.027096157780746,
+              -0.8431640089623796,
+              0.2539880960298566
+            ],
+            "max": [
+              2.3963455086468732,
+              0.8431644986761844,
+              0.5071391893560506
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1488,
+          "bounds": {
+            "min": [
+              0.5281020957002621,
+              -1.0645932478288191,
+              0.9805079695954377
+            ],
+            "max": [
+              0.6333848708241013,
+              1.064593247828819,
+              1.1284077213026427
+            ]
+          }
+        },
+        {
+          "name": "radiator_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 3168,
+          "bounds": {
+            "min": [
+              2.215022361257785,
+              -0.46249336909642225,
+              0.24250285346782194
+            ],
+            "max": [
+              2.2845627009767835,
+              0.4624939200244527,
+              0.7160552304733663
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 19910,
+      "triangles": 17878,
+      "simplificationError": 0.000049375688831787556,
       "bounds": {
         "min": [
-          -2.4763229095458983,
-          -0.8142000000000003,
-          0.7175463256835937
+          -2.3756186962127686,
+          -1.0645931959152222,
+          0.20215995609760284
         ],
         "max": [
-          -1.2139499999999999,
-          0.8121911132812498,
-          1.394
+          2.396345615386963,
+          1.0645931959152222,
+          1.367928147315979
         ]
       },
-      "color": [
-        1,
-        1,
-        1
-      ],
-      "paint": false,
-      "material": 4,
-      "alpha": 1,
-      "photoProjected": true,
-      "photoCameraIndex": 6
+      "indexType": 2,
+      "groundShiftM": 0
     },
     {
-      "name": "inferred-painted-roof",
-      "indexType": 4,
-      "triangles": 8098,
+      "name": "lights rear_Red_Light_0",
+      "materialName": "Red_Light",
+      "role": "rear-lamp",
+      "paint": false,
+      "material": 4,
+      "color": [
+        0.65,
+        0.018,
+        0.027
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_Red_Light_0",
+          "materialName": "Red_Light",
+          "sourceTriangles": 1314,
+          "bounds": {
+            "min": [
+              -2.3710387048751,
+              -0.7946786694268186,
+              0.7321131909919207
+            ],
+            "max": [
+              -2.158226837404488,
+              0.7946778124276601,
+              0.9855403298684967
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1314,
+      "triangles": 1314,
+      "simplificationError": 0,
       "bounds": {
         "min": [
-          -1.231665637207031,
-          -0.6702000000000001,
-          1.316536496419907
+          -2.3710386753082275,
+          -0.7946786880493164,
+          0.7321131825447083
         ],
         "max": [
-          0.29176069335937527,
-          0.6846845214843749,
-          1.4391762072925385
+          -2.158226728439331,
+          0.7946777939796448,
+          0.9855403304100037
         ]
       },
-      "color": [
-        0.76,
-        0.77,
-        0.77
-      ],
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights rear_red_0 | rear bumper details_red_0",
+      "materialName": "material",
+      "role": "rear-lamp",
       "paint": false,
+      "material": 4,
+      "color": [
+        0.65,
+        0.018,
+        0.027
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_red_0",
+          "materialName": "material",
+          "sourceTriangles": 1392,
+          "bounds": {
+            "min": [
+              -2.3407391323402496,
+              -0.7480475087849426,
+              0.8516726538833297
+            ],
+            "max": [
+              -2.2155327795648967,
+              0.7480466517857839,
+              0.9628243428873953
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_red_0",
+          "materialName": "material",
+          "sourceTriangles": 202,
+          "bounds": {
+            "min": [
+              -2.413466284644432,
+              -0.7385452857579428,
+              0.5765061397810123
+            ],
+            "max": [
+              -2.2830133830206165,
+              0.738544306330333,
+              0.6264156282753579
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1594,
+      "triangles": 1594,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.413466215133667,
+          -0.7480475306510925,
+          0.5765061378479004
+        ],
+        "max": [
+          -2.2155327796936035,
+          0.7480466365814209,
+          0.9628243446350098
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "glass main_Material #2125682976_0",
+      "materialName": "Material_2125682976",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "glass main_Material #2125682976_0",
+          "materialName": "Material_2125682976",
+          "sourceTriangles": 5532,
+          "bounds": {
+            "min": [
+              -1.9391020692753105,
+              -0.8231492833289351,
+              0.9495676677611418
+            ],
+            "max": [
+              1.1912001138248773,
+              0.8231492833289349,
+              1.416703156442368
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5532,
+      "triangles": 5532,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.939102053642273,
+          -0.8231492638587952,
+          0.9495676755905151
+        ],
+        "max": [
+          1.1912001371383667,
+          0.8231492638587952,
+          1.4167031049728394
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "glass main_glass222_0",
+      "materialName": "glass222",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "glass main_glass222_0",
+          "materialName": "glass222",
+          "sourceTriangles": 1008,
+          "bounds": {
+            "min": [
+              -0.4092339697597519,
+              -0.6078620350031622,
+              1.391900131653366
+            ],
+            "max": [
+              0.24766485313036593,
+              0.60786191257471,
+              1.4928228011297804
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1008,
+      "triangles": 1008,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -0.409233957529068,
+          -0.6078620553016663,
+          1.3919001817703247
+        ],
+        "max": [
+          0.24766485393047333,
+          0.6078619360923767,
+          1.4928227663040161
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "frame _Material #13422_0 | body_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "window-trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "frame _Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1824,
+          "bounds": {
+            "min": [
+              -1.4238445474875105,
+              -0.8303239578556186,
+              0.9539772957170839
+            ],
+            "max": [
+              0.9762644800109999,
+              0.8303239578556184,
+              1.3815389506126263
+            ]
+          }
+        },
+        {
+          "name": "body_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 736,
+          "bounds": {
+            "min": [
+              -2.1220504543543077,
+              -0.6218312437154992,
+              1.1104998668861952
+            ],
+            "max": [
+              -1.916843230131054,
+              0.6218303867163405,
+              1.1951171479441447
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 2560,
+      "triangles": 2560,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.1220505237579346,
+          -0.8303239345550537,
+          0.9539772868156433
+        ],
+        "max": [
+          0.976264476776123,
+          0.8303239345550537,
+          1.381538987159729
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_Material #2125747591_0 | rear bumper details_Material #2125747591_0 | mirrors_Material #2125747591_0",
+      "materialName": "Material_2125747591",
+      "role": "factory-paint",
+      "paint": true,
       "material": 0,
+      "color": [
+        0.9058823529411765,
+        0.9137254901960784,
+        0.8980392156862745
+      ],
       "alpha": 1,
-      "photoProjected": false
+      "sourceParts": [
+        {
+          "name": "body_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 20134,
+          "bounds": {
+            "min": [
+              -2.445008016245333,
+              -0.9390739679321555,
+              0.20200358301938662
+            ],
+            "max": [
+              2.4366007179778073,
+              0.9390732945756736,
+              1.446247406647434
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 1358,
+          "bounds": {
+            "min": [
+              -2.4494435990329335,
+              -0.7779547593478677,
+              0.3299960553626462
+            ],
+            "max": [
+              -2.2257090324300735,
+              0.7779537799202579,
+              0.5881391075729971
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 620,
+          "bounds": {
+            "min": [
+              0.535332536386475,
+              -1.06932657660978,
+              1.0075316628468431
+            ],
+            "max": [
+              0.7520471168107646,
+              1.0693265766097797,
+              1.128406741875033
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 22112,
+      "triangles": 22112,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.4494435787200928,
+          -1.0693265199661255,
+          0.2020035833120346
+        ],
+        "max": [
+          2.436600685119629,
+          1.0693265199661255,
+          1.4462474584579468
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_Ma123_0",
+      "materialName": "Ma123",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "body_Ma123_0",
+          "materialName": "Ma123",
+          "sourceTriangles": 1772,
+          "bounds": {
+            "min": [
+              -1.2300106815254355,
+              -0.6222759650645463,
+              1.3459552436947881
+            ],
+            "max": [
+              0.4145814773793689,
+              0.6222758426360941,
+              1.491322134388985
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1772,
+      "triangles": 1772,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.2300106287002563,
+          -0.6222759485244751,
+          1.3459552526474
+        ],
+        "max": [
+          0.4145814776420593,
+          0.6222758293151855,
+          1.4913221597671509
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_steel2_0 | rear bumper details_steel2_0 | lights front_steel2_0 | front bumper details_steel2_0 | mirrors_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "body_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 1312,
+          "bounds": {
+            "min": [
+              -2.149260912208045,
+              -0.8124644014631767,
+              0.9794948741616151
+            ],
+            "max": [
+              0.9467058444629158,
+              0.8124645238916276,
+              1.4099785901165847
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 912,
+          "bounds": {
+            "min": [
+              -2.424513248654666,
+              -0.7588152134979496,
+              0.34727006708002894
+            ],
+            "max": [
+              -2.0976874374189807,
+              0.758814356498791,
+              0.6286967151784374
+            ]
+          }
+        },
+        {
+          "name": "lights front_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 600,
+          "bounds": {
+            "min": [
+              1.9362491049826076,
+              -0.7749200028990949,
+              0.656940958874253
+            ],
+            "max": [
+              2.1547354087386874,
+              0.7749204926128999,
+              0.717071141761567
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 108,
+          "bounds": {
+            "min": [
+              2.0620986968406556,
+              -0.8553397632928359,
+              0.27266832093792054
+            ],
+            "max": [
+              2.141383361848936,
+              0.8553402530066406,
+              0.47680833635191394
+            ]
+          }
+        },
+        {
+          "name": "mirrors_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 184,
+          "bounds": {
+            "min": [
+              0.5367831911049481,
+              -1.0696222413194696,
+              1.00847778991785
+            ],
+            "max": [
+              0.688678089246499,
+              1.0696222413194694,
+              1.0246883575008474
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3116,
+      "triangles": 2804,
+      "simplificationError": 0.000030192739359335974,
+      "bounds": {
+        "min": [
+          -2.424513339996338,
+          -1.069622278213501,
+          0.27266833186149597
+        ],
+        "max": [
+          2.1547353267669678,
+          1.069622278213501,
+          1.4099786281585693
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "rear bumper details_Material #13422_0 | radiator grill_Material #13422_0 | lights front_Material #13422_0 | front bumper details_Material #13422_0 | mirrors_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "rear bumper details_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1988,
+          "bounds": {
+            "min": [
+              -2.4446801528529734,
+              -0.9010307958578148,
+              0.2771217476722857
+            ],
+            "max": [
+              -1.7496359607388614,
+              0.9010300612871074,
+              0.6351210257276104
+            ]
+          }
+        },
+        {
+          "name": "radiator grill_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 3344,
+          "bounds": {
+            "min": [
+              2.0770266427544755,
+              -0.7284034352875584,
+              0.5592260372481814
+            ],
+            "max": [
+              2.3993969153650117,
+              0.7284039250013632,
+              0.7161388491055477
+            ]
+          }
+        },
+        {
+          "name": "lights front_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1920,
+          "bounds": {
+            "min": [
+              2.0451355003538008,
+              -0.7749201253275462,
+              0.6569410200884785
+            ],
+            "max": [
+              2.174210102473813,
+              0.774920615041351,
+              0.717071141761567
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 7568,
+          "bounds": {
+            "min": [
+              1.9730993342282876,
+              -0.8745143236798022,
+              0.2225079306363618
+            ],
+            "max": [
+              2.434308122800313,
+              0.8745148133936069,
+              0.5078564670446196
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 728,
+          "bounds": {
+            "min": [
+              0.5361354221695577,
+              -1.0683248670219205,
+              0.9014933817505425
+            ],
+            "max": [
+              0.7899944886220278,
+              1.0683248670219203,
+              1.0170848773237757
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 15548,
+      "triangles": 13992,
+      "simplificationError": 0.000012622264875972178,
+      "bounds": {
+        "min": [
+          -2.4446802139282227,
+          -1.0683249235153198,
+          0.22250792384147644
+        ],
+        "max": [
+          2.4343080520629883,
+          1.0683249235153198,
+          1.0170848369598389
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights front_mirror_0 | mirrors_mirror_0",
+      "materialName": "mirror",
+      "role": "mirror",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.64,
+        0.7,
+        0.74
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights front_mirror_0",
+          "materialName": "mirror",
+          "sourceTriangles": 1072,
+          "bounds": {
+            "min": [
+              2.0465042504384092,
+              -0.7704944592444944,
+              0.6613666249573047
+            ],
+            "max": [
+              2.183072453200526,
+              0.7704949489582993,
+              0.7126455368927408
+            ]
+          }
+        },
+        {
+          "name": "mirrors_mirror_0",
+          "materialName": "mirror",
+          "sourceTriangles": 542,
+          "bounds": {
+            "min": [
+              0.5327711495443337,
+              -1.056629154648687,
+              0.9889980154019992
+            ],
+            "max": [
+              0.6246422551226787,
+              1.0566291546486868,
+              1.1199170633538251
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1614,
+      "triangles": 1452,
+      "simplificationError": 0.000013584960470325314,
+      "bounds": {
+        "min": [
+          0.5327711701393127,
+          -1.0566291809082031,
+          0.6613666415214539
+        ],
+        "max": [
+          2.183072566986084,
+          1.0566291809082031,
+          1.1199170351028442
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights front_white_Light223_0",
+      "materialName": "white_Light223",
+      "role": "front-lamp",
+      "paint": false,
+      "material": 4,
+      "color": [
+        0.88,
+        0.94,
+        1
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights front_white_Light223_0",
+          "materialName": "white_Light223",
+          "sourceTriangles": 1244,
+          "bounds": {
+            "min": [
+              1.7542765970882628,
+              -0.8469544550262907,
+              0.5918266525236598
+            ],
+            "max": [
+              2.325155567976174,
+              0.8469549447400956,
+              0.8272732756979915
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1244,
+      "triangles": 1244,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          1.7542766332626343,
+          -0.8469544649124146,
+          0.5918266773223877
+        ],
+        "max": [
+          2.32515549659729,
+          0.8469549417495728,
+          0.8272732496261597
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights glass_glasss2222_0",
+      "materialName": "glasss2222",
+      "role": "lamp-cover",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.8,
+        0.84,
+        0.86
+      ],
+      "alpha": 0.13,
+      "sourceParts": [
+        {
+          "name": "lights glass_glasss2222_0",
+          "materialName": "glasss2222",
+          "sourceTriangles": 1560,
+          "bounds": {
+            "min": [
+              -2.3647730615987044,
+              -0.8754349856329559,
+              0.5610783797150981
+            ],
+            "max": [
+              2.350245565054829,
+              0.8754353529183093,
+              0.9656592348895557
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1560,
+      "triangles": 1560,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.3647730350494385,
+          -0.8754349946975708,
+          0.5610783696174622
+        ],
+        "max": [
+          2.350245475769043,
+          0.8754353523254395,
+          0.9656592607498169
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights glass_Material #2125716590_0",
+      "materialName": "Material_2125716590",
+      "role": "lamp-cover",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.36,
+        0.045,
+        0.045
+      ],
+      "alpha": 0.2,
+      "sourceParts": [
+        {
+          "name": "lights glass_Material #2125716590_0",
+          "materialName": "Material_2125716590",
+          "sourceTriangles": 3796,
+          "bounds": {
+            "min": [
+              -2.381321225635933,
+              -0.8367714685962974,
+              0.6559233335877351
+            ],
+            "max": [
+              -2.0462003971164755,
+              0.8367706115971387,
+              1.0196387348161668
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3796,
+      "triangles": 3796,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.3813211917877197,
+          -0.8367714881896973,
+          0.6559233069419861
+        ],
+        "max": [
+          -2.0462005138397217,
+          0.8367705941200256,
+          1.0196387767791748
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "frames main_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "window-trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "frames main_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1362,
+          "bounds": {
+            "min": [
+              -1.9341864445304873,
+              -0.772721249129459,
+              0.9482621519715868
+            ],
+            "max": [
+              1.1866452857257914,
+              0.7727206369872027,
+              1.4852789436084513
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1362,
+      "triangles": 1362,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.9341864585876465,
+          -0.7727212309837341,
+          0.9482621550559998
+        ],
+        "max": [
+          1.186645269393921,
+          0.7727206349372864,
+          1.4852789640426636
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "interior_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "interior",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "interior_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 9173,
+          "bounds": {
+            "min": [
+              -2.099141275277185,
+              -0.8875001258577373,
+              0.27360480676839416
+            ],
+            "max": [
+              1.252960370325923,
+              0.8875001870719628,
+              1.4919935320154605
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 9173,
+      "triangles": 9173,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.0991413593292236,
+          -0.8875001072883606,
+          0.2736048102378845
+        ],
+        "max": [
+          1.2529603242874146,
+          0.8875001668930054,
+          1.4919935464859009
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "kia logos_steel2_0",
+      "materialName": "steel2",
+      "role": "badge",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "kia logos_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 2049,
+          "bounds": {
+            "min": [
+              -2.3625722877596234,
+              -0.5287633388122802,
+              0.7251724772355136
+            ],
+            "max": [
+              2.3659465242096345,
+              0.08767616356338999,
+              1.0721343406997996
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 2049,
+      "triangles": 2049,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.362572193145752,
+          -0.5287633538246155,
+          0.7251724600791931
+        ],
+        "max": [
+          2.3659465312957764,
+          0.08767616003751755,
+          1.0721343755722046
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "wheels_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "wheels_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              -1.687729748637095,
+              -0.9188724164821535,
+              0
+            ],
+            "max": [
+              -0.994256713301672,
+              -0.6744904140099581,
+              0.6934732627892664
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 17298,
+      "simplificationError": 0.0014909368474036455,
+      "bounds": {
+        "min": [
+          -1.6877297163009644,
+          -0.9188724160194397,
+          0
+        ],
+        "max": [
+          -0.9942567348480225,
+          -0.6744903922080994,
+          0.6934732794761658
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "wheels_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "wheels_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              -1.674837343682554,
+              -0.9315170105665461,
+              0.012738293139811844
+            ],
+            "max": [
+              -1.0071007704202535,
+              -0.9033607929271555,
+              0.6804757309325581
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 640,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.674837350845337,
+          -0.9315170049667358,
+          0.012738293036818504
+        ],
+        "max": [
+          -1.0071008205413818,
+          -0.9033607840538025,
+          0.6804757118225098
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object447_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object447_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              1.1627177629616579,
+              -0.9188721716252509,
+              0.000016786596864755945
+            ],
+            "max": [
+              1.8561574885789973,
+              -0.6744901691530557,
+              0.6934564761938466
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 17332,
+      "simplificationError": 0.001493053394369781,
+      "bounds": {
+        "min": [
+          1.1627178192138672,
+          -0.9188721776008606,
+          0.00001678659646131564
+        ],
+        "max": [
+          1.8561575412750244,
+          -0.6744901537895203,
+          0.6934564709663391
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object447_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object447_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              1.1756095437548733,
+              -0.9315167657096437,
+              0.012754463036382715
+            ],
+            "max": [
+              1.8433137898178824,
+              -0.9033606092844787,
+              0.6804595735879828
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 640,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          1.1756095886230469,
+          -0.9315167665481567,
+          0.012754462659358978
+        ],
+        "max": [
+          1.8433138132095337,
+          -0.9033606052398682,
+          0.6804595589637756
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object448_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object448_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              1.1627177629616574,
+              0.6744903527957326,
+              0.000016786596865110865
+            ],
+            "max": [
+              1.8561574885789973,
+              0.9188722940537022,
+              0.6934564761938471
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 17330,
+      "simplificationError": 0.0014672416727989912,
+      "bounds": {
+        "min": [
+          1.1627178192138672,
+          0.6744903326034546,
+          0.00001678659646131564
+        ],
+        "max": [
+          1.8561575412750244,
+          0.9188722968101501,
+          0.6934564709663391
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object448_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object448_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              1.1756095437548733,
+              0.903360854141381,
+              0.01275446303638312
+            ],
+            "max": [
+              1.8433137898178824,
+              0.9315168881380949,
+              0.6804595735879833
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 640,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          1.1756095886230469,
+          0.9033608436584473,
+          0.012754462659358978
+        ],
+        "max": [
+          1.8433138132095337,
+          0.9315168857574463,
+          0.6804595589637756
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object449_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object449_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              -1.6877299934939973,
+              0.6744899242961533,
+              3.618810729286739e-16
+            ],
+            "max": [
+              -0.9942569581585744,
+              0.9188718043398973,
+              0.6934732627892668
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 17328,
+      "simplificationError": 0.0014800879871472716,
+      "bounds": {
+        "min": [
+          -1.6877299547195435,
+          0.6744899153709412,
+          3.6188106242900694e-16
+        ],
+        "max": [
+          -0.9942569732666016,
+          0.9188718199729919,
+          0.6934732794761658
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object449_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object449_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              -1.6748375885394566,
+              0.9033603644275762,
+              0.012738293139812248
+            ],
+            "max": [
+              -1.007101015277156,
+              0.93151639842429,
+              0.6804757309325585
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 640,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.674837589263916,
+          0.9033603668212891,
+          0.012738293036818504
+        ],
+        "max": [
+          -1.007101058959961,
+          0.9315164089202881,
+          0.6804757118225098
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object450_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object450_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              1.21881184238972,
+              -0.9302676894360998,
+              0.05613200174182066
+            ],
+            "max": [
+              1.800115574862474,
+              -0.6734329382625692,
+              0.6370893171697699
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 4609,
+      "simplificationError": 0.0000023733152829663595,
+      "bounds": {
+        "min": [
+          1.2188118696212769,
+          -0.9302676916122437,
+          0.0561319999396801
+        ],
+        "max": [
+          1.8001155853271484,
+          -0.6734329462051392,
+          0.6370893120765686
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object450_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object450_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              1.2274249809839288,
+              -0.9292612663528685,
+              0.06451450712982586
+            ],
+            "max": [
+              1.7914617312054733,
+              -0.8552253539051734,
+              0.6285511338530009
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 3742,
+      "simplificationError": 0.0000041269499888585415,
+      "bounds": {
+        "min": [
+          1.2274249792099,
+          -0.9292612671852112,
+          0.06451451033353806
+        ],
+        "max": [
+          1.791461706161499,
+          -0.8552253246307373,
+          0.6285511255264282
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object451_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object451_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              1.21881184238972,
+              0.6734331219052461,
+              0.05613200174182097
+            ],
+            "max": [
+              1.800115574862474,
+              0.9302678730787766,
+              0.6370893171697701
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 4609,
+      "simplificationError": 0.00003813951843767427,
+      "bounds": {
+        "min": [
+          1.2188118696212769,
+          0.6734331250190735,
+          0.0561319999396801
+        ],
+        "max": [
+          1.8001155853271484,
+          0.930267870426178,
+          0.6370893120765686
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object451_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object451_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4157,
+          "bounds": {
+            "min": [
+              1.2274249809839288,
+              0.8552255375478501,
+              0.06451450712982626
+            ],
+            "max": [
+              1.7914617312054733,
+              0.9292614499955453,
+              0.6285511338530013
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4157,
+      "triangles": 3741,
+      "simplificationError": 0.000022840473320684396,
+      "bounds": {
+        "min": [
+          1.2274249792099,
+          0.8552255630493164,
+          0.06451451033353806
+        ],
+        "max": [
+          1.791461706161499,
+          0.9292614459991455,
+          0.6285511255264282
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object452_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object452_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              -1.631633198246026,
+              0.6734326321914412,
+              0.05611793198816034
+            ],
+            "max": [
+              -1.050301321693435,
+              0.9302673833649717,
+              0.6371033747240105
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 4609,
+      "simplificationError": 0.00003862055018544197,
+      "bounds": {
+        "min": [
+          -1.6316331624984741,
+          0.6734326481819153,
+          0.05611793324351311
+        ],
+        "max": [
+          -1.0503013134002686,
+          0.9302673935890198,
+          0.6371033787727356
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object452_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object452_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              -1.623019774380838,
+              0.8552251090482709,
+              0.06450084321890788
+            ],
+            "max": [
+              -1.058955716068114,
+              0.9292609602817404,
+              0.6285647780272828
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 3742,
+      "simplificationError": 0.00002448076702421531,
+      "bounds": {
+        "min": [
+          -1.623019814491272,
+          0.8552250862121582,
+          0.0645008459687233
+        ],
+        "max": [
+          -1.0589556694030762,
+          0.9292609691619873,
+          0.6285647749900818
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object453_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object453_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              -1.6316329533891236,
+              -0.9302678730787767,
+              0.056117931988160036
+            ],
+            "max": [
+              -1.0503010768365324,
+              -0.6734331219052461,
+              0.6371033747240102
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 4609,
+      "simplificationError": 0.0000023881918878032593,
+      "bounds": {
+        "min": [
+          -1.631632924079895,
+          -0.930267870426178,
+          0.05611793324351311
+        ],
+        "max": [
+          -1.0503010749816895,
+          -0.6734331250190735,
+          0.6371033787727356
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object453_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object453_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              -1.6230195295239358,
+              -0.9292614499955454,
+              0.06450084321890748
+            ],
+            "max": [
+              -1.0589554712112117,
+              -0.8552255987620758,
+              0.6285647780272824
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 3742,
+      "simplificationError": 0.000003992278379882919,
+      "bounds": {
+        "min": [
+          -1.6230195760726929,
+          -0.9292614459991455,
+          0.0645008459687233
+        ],
+        "max": [
+          -1.058955430984497,
+          -0.8552256226539612,
+          0.6285647749900818
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "antena_Ma123_0",
+      "materialName": "Ma123",
+      "role": "factory-paint",
+      "paint": true,
+      "material": 0,
+      "color": [
+        0.9058823529411765,
+        0.9137254901960784,
+        0.8980392156862745
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "antena_Ma123_0",
+          "materialName": "Ma123",
+          "sourceTriangles": 314,
+          "bounds": {
+            "min": [
+              -1.0933112998290409,
+              -0.04197138840476269,
+              1.4240372733953122
+            ],
+            "max": [
+              -0.9188488242676678,
+              0.04197111294074656,
+              1.4986807820476413
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 314,
+      "triangles": 314,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.0933113098144531,
+          -0.04197138920426369,
+          1.424037218093872
+        ],
+        "max": [
+          -0.9188488125801086,
+          0.0419711135327816,
+          1.498680830001831
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Line002_Material #111_0 | Line001_Material #111_0 | Line003_Material #111_0 | Line004_Material #111_0 | Line005_Material #111_0 | Line006_Material #111_0 | Line007_Material #111_0 | Line008_Material #111_0",
+      "materialName": "Material_111",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Line002_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              1.6106739156796628,
+              -0.8723391106057979,
+              0.21155662915719947
+            ],
+            "max": [
+              1.6960574305031118,
+              -0.762369648115025,
+              0.4814303916097365
+            ]
+          }
+        },
+        {
+          "name": "Line001_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              1.634093009256105,
+              -0.8566791399232797,
+              0.25470995713356903
+            ],
+            "max": [
+              1.7287389556812884,
+              -0.7780296207364854,
+              0.43827704883852786
+            ]
+          }
+        },
+        {
+          "name": "Line003_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              1.6106739018971983,
+              0.7611776183541391,
+              0.21155662915719853
+            ],
+            "max": [
+              1.696057440461018,
+              0.8711470808449061,
+              0.48143037767071817
+            ]
+          }
+        },
+        {
+          "name": "Line004_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              1.6340929939424826,
+              0.7768375910113109,
+              0.25470995713356837
+            ],
+            "max": [
+              1.7287389701290263,
+              0.8554871178989962,
+              0.43827704969434833
+            ]
+          }
+        },
+        {
+          "name": "Line005_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              -1.5275901515428887,
+              0.7611775062169162,
+              0.21155662915719986
+            ],
+            "max": [
+              -1.4422066129790627,
+              0.8711469687076807,
+              0.48143039160973683
+            ]
+          }
+        },
+        {
+          "name": "Line006_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              -1.560271681210892,
+              0.7768374615110495,
+              0.25470995713356936
+            ],
+            "max": [
+              -1.4656257050243489,
+              0.855487000337641,
+              0.4382770488385282
+            ]
+          }
+        },
+        {
+          "name": "Line007_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              -1.527590141584979,
+              -0.8723391106058019,
+              0.2115566291571982
+            ],
+            "max": [
+              -1.44220662676153,
+              -0.7623696481150267,
+              0.48143037767071784
+            ]
+          }
+        },
+        {
+          "name": "Line008_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              -1.5602716667631558,
+              -0.8566791343750415,
+              0.25470995713356803
+            ],
+            "max": [
+              -1.4656257203379723,
+              -0.778029624345787,
+              0.438277049694348
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 26096,
+      "triangles": 11742,
+      "simplificationError": 0.000084930237790104,
+      "bounds": {
+        "min": [
+          -1.5602717399597168,
+          -0.872339129447937,
+          0.21155662834644318
+        ],
+        "max": [
+          1.7287390232086182,
+          0.871147096157074,
+          0.48143038153648376
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder002_black_0 | Cylinder004_black_0 | Cylinder006_black_0 | Cylinder008_black_0",
+      "materialName": "black_0",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Cylinder002_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              1.6960990590459424,
+              -0.856625435128297,
+              0.28515008519303714
+            ],
+            "max": [
+              1.7216704993137033,
+              -0.7780833006371939,
+              0.4078369331125402
+            ]
+          }
+        },
+        {
+          "name": "Cylinder004_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              1.6960990437532308,
+              0.7768912822483838,
+              0.28515008518219465
+            ],
+            "max": [
+              1.7216705146064202,
+              0.8554334095284665,
+              0.40783692929750026
+            ]
+          }
+        },
+        {
+          "name": "Cylinder006_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              -1.5532032256882797,
+              0.7768911499799898,
+              0.2851500851930375
+            ],
+            "max": [
+              -1.5276317548350895,
+              0.8554332890794599,
+              0.40783693311254055
+            ]
+          }
+        },
+        {
+          "name": "Cylinder008_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              -1.5532032103955704,
+              -0.8566254303697373,
+              0.2851500851821943
+            ],
+            "max": [
+              -1.5276317701278097,
+              -0.7780833092216458,
+              0.40783692929749993
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 8000,
+      "triangles": 3600,
+      "simplificationError": 0.0000606237881584093,
+      "bounds": {
+        "min": [
+          -1.5532032251358032,
+          -0.8566254377365112,
+          0.28515008091926575
+        ],
+        "max": [
+          1.7216705083847046,
+          0.8554334044456482,
+          0.4078369438648224
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object430_black_0 | Object454_black_0 | Object455_black_0 | Object456_black_0",
+      "materialName": "black_1",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object430_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              1.620791972945731,
+              -0.8456157056872368,
+              0.2520062781018876
+            ],
+            "max": [
+              1.696815094277026,
+              -0.7890930488172058,
+              0.44098072470571725
+            ]
+          }
+        },
+        {
+          "name": "Object454_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              1.6207919619403703,
+              0.7879010201363605,
+              0.25200628547577797
+            ],
+            "max": [
+              1.6968151052823848,
+              0.8444236832898253,
+              0.4409807213521387
+            ]
+          }
+        },
+        {
+          "name": "Object455_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              -1.5283478163642523,
+              0.787900898451335,
+              0.2520062781018879
+            ],
+            "max": [
+              -1.4523246730222361,
+              0.8444235688071237,
+              0.4409807247057176
+            ]
+          }
+        },
+        {
+          "name": "Object456_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              -1.5283478053588933,
+              -0.845615697999286,
+              0.25200628547577764
+            ],
+            "max": [
+              -1.4523246840275983,
+              -0.7890930549827092,
+              0.4409807213521384
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5728,
+      "triangles": 2576,
+      "simplificationError": 0.00010527802078286186,
+      "bounds": {
+        "min": [
+          -1.5283478498458862,
+          -0.8456156849861145,
+          0.25200629234313965
+        ],
+        "max": [
+          1.6968151330947876,
+          0.8444237112998962,
+          0.4409807324409485
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              1.3204496355945663,
+              -0.8340134646183978,
+              0.15749305509465755
+            ],
+            "max": [
+              1.698450233367927,
+              -0.7994595607535339,
+              0.535493688685798
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 3546,
+      "simplificationError": 0.0014978559920564294,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          -0.8340134620666504,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          -0.7994595766067505,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              1.3204496355945663,
+              -0.835248104374615,
+              0.15749307328521106
+            ],
+            "max": [
+              1.698450233367927,
+              -0.834013349803189,
+              0.5354936562308708
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 204,
+      "simplificationError": 0.001449364353902638,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          -0.8352481126785278,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          -0.8340133428573608,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              1.3696475699304371,
+              -0.8550569930739675,
+              0.20669102477245138
+            ],
+            "max": [
+              1.6492523143356124,
+              -0.7994595802300917,
+              0.47565396682313127
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 1826,
+      "simplificationError": 0.0014778311597183347,
+      "bounds": {
+        "min": [
+          1.3696476221084595,
+          -0.8550570011138916,
+          0.20669102668762207
+        ],
+        "max": [
+          1.6492522954940796,
+          -0.7994595766067505,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              1.320449629104645,
+              0.7982674556581656,
+              0.15749305149171394
+            ],
+            "max": [
+              1.6984502403337198,
+              0.8328213979183349,
+              0.5354936951757439
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 3566,
+      "simplificationError": 0.001487224129959941,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          0.7982674837112427,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          0.8328213691711426,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              1.3204496286287755,
+              0.8328212389689694,
+              0.15749306679527034
+            ],
+            "max": [
+              1.698450226877977,
+              0.8340560277350632,
+              0.5354936492650747
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 200,
+      "simplificationError": 0.0014478607336059213,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          0.832821249961853,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          0.83405601978302,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              1.3696475768962544,
+              0.7982674733582054,
+              0.20669103173825404
+            ],
+            "max": [
+              1.649252321301409,
+              0.8538649135099055,
+              0.47565397378894303
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 1828,
+      "simplificationError": 0.0014755968004465103,
+      "bounds": {
+        "min": [
+          1.3696476221084595,
+          0.7982674837112427,
+          0.20669102668762207
+        ],
+        "max": [
+          1.6492522954940796,
+          0.8538649082183838,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              -1.5299829509397156,
+              0.7982674386993207,
+              0.1574930550946579
+            ],
+            "max": [
+              -1.1519823397106408,
+              0.8328214178126176,
+              0.5354936886857984
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 3544,
+      "simplificationError": 0.0014994194498285651,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          0.7982674241065979,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          0.8328214287757874,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              -1.5299829514155847,
+              0.8328212267264772,
+              0.15749307328521145
+            ],
+            "max": [
+              -1.1519823531663835,
+              0.8340560387817624,
+              0.5354936562308711
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 192,
+      "simplificationError": 0.001449360977858305,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          0.832821249961853,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          0.83405601978302,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              -1.4807850184516622,
+              0.798267462626136,
+              0.20669102477245171
+            ],
+            "max": [
+              -1.2011802740465078,
+              0.8538649157793181,
+              0.4756539668231315
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 1826,
+      "simplificationError": 0.0014812811277806759,
+      "bounds": {
+        "min": [
+          -1.4807850122451782,
+          0.7982674837112427,
+          0.20669102668762207
+        ],
+        "max": [
+          -1.2011802196502686,
+          0.8538649082183838,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              -1.529982944449794,
+              -0.8340134234026102,
+              0.1574930514917136
+            ],
+            "max": [
+              -1.1519823466764334,
+              -0.7994595980070235,
+              0.5354936951757435
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 3548,
+      "simplificationError": 0.0014982137363404036,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          -0.8340134024620056,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          -0.7994595766067505,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              -1.529982944449794,
+              -0.8352480837260231,
+              0.15749306679527
+            ],
+            "max": [
+              -1.1519823466764334,
+              -0.8340133851437191,
+              0.5354936492650744
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 200,
+      "simplificationError": 0.001447794958949089,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          -0.8352481126785278,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          -0.8340134024620056,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              -1.4807850254174797,
+              -0.8550569765258588,
+              0.2066910317382537
+            ],
+            "max": [
+              -1.2011802810123045,
+              -0.7994595999199682,
+              0.4756539737889427
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 1826,
+      "simplificationError": 0.001493767136707902,
+      "bounds": {
+        "min": [
+          -1.4807850122451782,
+          -0.8550570011138916,
+          0.20669102668762207
+        ],
+        "max": [
+          -1.201180338859558,
+          -0.7994595766067505,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
     }
   ],
-  "photoProjection": {
-    "cameras": [
-      {
-        "eye": [
-          0.04215469717975705,
-          -0.9905767412850416,
-          0.13031001930316388
+  "fallbackTriangles": 83402,
+  "fallbackPrimitives": [
+    {
+      "name": "Object_11_black_0 | Object_12_black_0",
+      "materialName": "black",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object_11_black_0",
+          "materialName": "black",
+          "sourceTriangles": 596,
+          "bounds": {
+            "min": [
+              -2.4525,
+              -0.22459658402450125,
+              0.4918886766835404
+            ],
+            "max": [
+              -2.4098902341951147,
+              0.22830635234581143,
+              0.6002125701922949
+            ]
+          }
+        },
+        {
+          "name": "Object_12_black_0",
+          "materialName": "black",
+          "sourceTriangles": 596,
+          "bounds": {
+            "min": [
+              2.4297330691412378,
+              -0.232719330477234,
+              0.4451900221288049
+            ],
+            "max": [
+              2.4525,
+              0.2368561572367513,
+              0.5593890059953824
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1192,
+      "triangles": 201,
+      "simplificationError": 0.0003737970837391913,
+      "bounds": {
+        "min": [
+          -2.452500104904175,
+          -0.23227372765541077,
+          0.44536682963371277
         ],
-        "right": [
-          -0.9990957337721154,
-          -0.04251722895907518,
-          0.0
-        ],
-        "up": [
-          -0.005540420926374125,
-          0.13019218435355304,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 0
+        "max": [
+          2.4517879486083984,
+          0.23641054332256317,
+          0.600212574005127
+        ]
       },
-      {
-        "eye": [
-          -0.21566181557483888,
-          -0.967734095799137,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object_11_04 - Default_0 | Object_12_04 - Default_0",
+      "materialName": "04_-_Default",
+      "role": "plate",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.82,
+        0.83,
+        0.81
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object_11_04 - Default_0",
+          "materialName": "04_-_Default",
+          "sourceTriangles": 64,
+          "bounds": {
+            "min": [
+              -2.450426966507263,
+              -0.21746390317837652,
+              0.49893005121546774
+            ],
+            "max": [
+              -2.417577337857964,
+              0.22117367005610636,
+              0.5943866232207726
+            ]
+          }
+        },
+        {
+          "name": "Object_12_04 - Default_0",
+          "materialName": "04_-_Default",
+          "sourceTriangles": 64,
+          "bounds": {
+            "min": [
+              2.437442903797312,
+              -0.22532397866723142,
+              0.4519173053381381
+            ],
+            "max": [
+              2.4512465770836696,
+              0.2294608054267487,
+              0.5525012327793137
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 128,
+      "triangles": 21,
+      "simplificationError": 0.00032623065635561943,
+      "bounds": {
+        "min": [
+          -2.4504270553588867,
+          -0.2251499742269516,
+          0.45191729068756104
         ],
-        "right": [
-          -0.9760566407853066,
-          0.21751651426708496,
-          0.0
-        ],
-        "up": [
-          0.028344581172900764,
-          0.1271899597017146,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 1
+        "max": [
+          2.451246500015259,
+          0.2292868047952652,
+          0.594386637210846
+        ]
       },
-      {
-        "eye": [
-          -0.4587813319960109,
-          -0.87894197094073,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights rear_Material #21257318803434_0 | body_Material #21257318803434_0 | radiator grill_Material #21257318803434_0 | lights front_Material #21257318803434_0 | wings_Material #21257318803434_0 | bottom_Material #21257318803434_0 | car wipers_Material #21257318803434_0 | front bumper details_Material #21257318803434_0 | mirrors_Material #21257318803434_0 | radiator_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 2074,
+          "bounds": {
+            "min": [
+              -2.3756187532351367,
+              -0.831092318815458,
+              0.6571560656630415
+            ],
+            "max": [
+              -2.046714229326234,
+              0.8310914618162993,
+              1.015513079652823
+            ]
+          }
+        },
+        {
+          "name": "body_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 240,
+          "bounds": {
+            "min": [
+              0.3350126253287005,
+              -0.7628798992925874,
+              1.0105086330666415
+            ],
+            "max": [
+              1.1037996667854066,
+              0.7628800217210383,
+              1.3679280899770017
+            ]
+          }
+        },
+        {
+          "name": "radiator grill_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 138,
+          "bounds": {
+            "min": [
+              2.0825067850878614,
+              -0.724191345637655,
+              0.567401074649761
+            ],
+            "max": [
+              2.336608504730644,
+              0.7241918353514598,
+              0.7112750115955894
+            ]
+          }
+        },
+        {
+          "name": "lights front_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 7548,
+          "bounds": {
+            "min": [
+              1.6125901504945586,
+              -0.8737785286879867,
+              0.5591269314169209
+            ],
+            "max": [
+              2.345354793285603,
+              0.8737788959733401,
+              0.8471571865313103
+            ]
+          }
+        },
+        {
+          "name": "wings_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1158,
+          "bounds": {
+            "min": [
+              -1.7515520884288622,
+              -0.9358806666390563,
+              0.20215995475870388
+            ],
+            "max": [
+              1.908678462625389,
+              0.935879932068349,
+              0.755168549639797
+            ]
+          }
+        },
+        {
+          "name": "bottom_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 356,
+          "bounds": {
+            "min": [
+              -2.327486987066691,
+              -0.89895134861389,
+              0.2344728478702655
+            ],
+            "max": [
+              2.3484238297007165,
+              0.8989511649712132,
+              1.3667923212350592
+            ]
+          }
+        },
+        {
+          "name": "car wipers_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 2660,
+          "bounds": {
+            "min": [
+              1.03295399491953,
+              -0.6288948756369287,
+              0.9467909904875351
+            ],
+            "max": [
+              1.2353227155013122,
+              0.6898699984803179,
+              1.0555161475884747
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1080,
+          "bounds": {
+            "min": [
+              2.027096157780746,
+              -0.8431640089623796,
+              0.2539880960298566
+            ],
+            "max": [
+              2.3963455086468732,
+              0.8431644986761844,
+              0.5071391893560506
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1488,
+          "bounds": {
+            "min": [
+              0.5281020957002621,
+              -1.0645932478288191,
+              0.9805079695954377
+            ],
+            "max": [
+              0.6333848708241013,
+              1.064593247828819,
+              1.1284077213026427
+            ]
+          }
+        },
+        {
+          "name": "radiator_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 3168,
+          "bounds": {
+            "min": [
+              2.215022361257785,
+              -0.46249336909642225,
+              0.24250285346782194
+            ],
+            "max": [
+              2.2845627009767835,
+              0.4624939200244527,
+              0.7160552304733663
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 19910,
+      "triangles": 3373,
+      "simplificationError": 0.00043092569103464484,
+      "bounds": {
+        "min": [
+          -2.375471830368042,
+          -1.0623611211776733,
+          0.20215995609760284
         ],
-        "right": [
-          -0.8865009007388438,
-          0.4627268665089791,
-          0.0
-        ],
-        "up": [
-          0.060297946906877606,
-          0.1155199494875509,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 2
+        "max": [
+          2.396345615386963,
+          1.06432044506073,
+          1.367928147315979
+        ]
       },
-      {
-        "eye": [
-          -0.6706356588136535,
-          -0.7302514032829968,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights rear_Red_Light_0",
+      "materialName": "Red_Light",
+      "role": "rear-lamp",
+      "paint": false,
+      "material": 4,
+      "color": [
+        0.65,
+        0.018,
+        0.027
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_Red_Light_0",
+          "materialName": "Red_Light",
+          "sourceTriangles": 1314,
+          "bounds": {
+            "min": [
+              -2.3710387048751,
+              -0.7946786694268186,
+              0.7321131909919207
+            ],
+            "max": [
+              -2.158226837404488,
+              0.7946778124276601,
+              0.9855403298684967
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1314,
+      "triangles": 1314,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.3710386753082275,
+          -0.7946786880493164,
+          0.7321131825447083
         ],
-        "right": [
-          -0.7365315893190354,
-          0.6764031474905892,
-          0.0
-        ],
-        "up": [
-          0.08814210720621948,
-          0.09597744562155347,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 3
+        "max": [
+          -2.158226728439331,
+          0.7946777939796448,
+          0.9855403304100037
+        ]
       },
-      {
-        "eye": [
-          -0.836787273760973,
-          -0.5317954092890308,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights rear_red_0 | rear bumper details_red_0",
+      "materialName": "material",
+      "role": "rear-lamp",
+      "paint": false,
+      "material": 4,
+      "color": [
+        0.65,
+        0.018,
+        0.027
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights rear_red_0",
+          "materialName": "material",
+          "sourceTriangles": 1392,
+          "bounds": {
+            "min": [
+              -2.3407391323402496,
+              -0.7480475087849426,
+              0.8516726538833297
+            ],
+            "max": [
+              -2.2155327795648967,
+              0.7480466517857839,
+              0.9628243428873953
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_red_0",
+          "materialName": "material",
+          "sourceTriangles": 202,
+          "bounds": {
+            "min": [
+              -2.413466284644432,
+              -0.7385452857579428,
+              0.5765061397810123
+            ],
+            "max": [
+              -2.2830133830206165,
+              0.738544306330333,
+              0.6264156282753579
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1594,
+      "triangles": 1594,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.413466215133667,
+          -0.7480475306510925,
+          0.5765061378479004
         ],
-        "right": [
-          -0.5363688672631364,
-          0.8439836717797685,
-          0.0
-        ],
-        "up": [
-          0.10997952856117676,
-          0.06989423744667544,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 4
+        "max": [
+          -2.2155327796936035,
+          0.7480466365814209,
+          0.9628243446350098
+        ]
       },
-      {
-        "eye": [
-          -0.9459132188578356,
-          -0.2970984369854835,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "glass main_Material #2125682976_0",
+      "materialName": "Material_2125682976",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "glass main_Material #2125682976_0",
+          "materialName": "Material_2125682976",
+          "sourceTriangles": 5532,
+          "bounds": {
+            "min": [
+              -1.9391020692753105,
+              -0.8231492833289351,
+              0.9495676677611418
+            ],
+            "max": [
+              1.1912001138248773,
+              0.8231492833289349,
+              1.416703156442368
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5532,
+      "triangles": 5532,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.939102053642273,
+          -0.8231492638587952,
+          0.9495676755905151
         ],
-        "right": [
-          -0.2996534932947174,
-          0.9540481035861204,
-          0.0
-        ],
-        "up": [
-          0.12432202679445424,
-          0.03904785249549511,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 5
+        "max": [
+          1.1912001371383667,
+          0.8231492638587952,
+          1.4167031049728394
+        ]
       },
-      {
-        "eye": [
-          -0.9905767412850416,
-          -0.04215469717975718,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "glass main_glass222_0",
+      "materialName": "glass222",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "glass main_glass222_0",
+          "materialName": "glass222",
+          "sourceTriangles": 1008,
+          "bounds": {
+            "min": [
+              -0.4092339697597519,
+              -0.6078620350031622,
+              1.391900131653366
+            ],
+            "max": [
+              0.24766485313036593,
+              0.60786191257471,
+              1.4928228011297804
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1008,
+      "triangles": 1008,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -0.409233957529068,
+          -0.6078620553016663,
+          1.3919001817703247
         ],
-        "right": [
-          -0.04251722895907531,
-          0.9990957337721154,
-          0.0
-        ],
-        "up": [
-          0.13019218435355304,
-          0.005540420926374142,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 6
+        "max": [
+          0.24766485393047333,
+          0.6078619360923767,
+          1.4928227663040161
+        ]
       },
-      {
-        "eye": [
-          -0.967734095799137,
-          0.21566181557483893,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "frame _Material #13422_0 | body_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "window-trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "frame _Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1824,
+          "bounds": {
+            "min": [
+              -1.4238445474875105,
+              -0.8303239578556186,
+              0.9539772957170839
+            ],
+            "max": [
+              0.9762644800109999,
+              0.8303239578556184,
+              1.3815389506126263
+            ]
+          }
+        },
+        {
+          "name": "body_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 736,
+          "bounds": {
+            "min": [
+              -2.1220504543543077,
+              -0.6218312437154992,
+              1.1104998668861952
+            ],
+            "max": [
+              -1.916843230131054,
+              0.6218303867163405,
+              1.1951171479441447
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 2560,
+      "triangles": 2560,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.1220505237579346,
+          -0.8303239345550537,
+          0.9539772868156433
         ],
-        "right": [
-          0.21751651426708501,
-          0.9760566407853066,
-          0.0
-        ],
-        "up": [
-          0.1271899597017146,
-          -0.02834458117290077,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 7
+        "max": [
+          0.976264476776123,
+          0.8303239345550537,
+          1.381538987159729
+        ]
       },
-      {
-        "eye": [
-          -0.8789419709407301,
-          0.4587813319960107,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_Material #2125747591_0 | rear bumper details_Material #2125747591_0 | mirrors_Material #2125747591_0",
+      "materialName": "Material_2125747591",
+      "role": "factory-paint",
+      "paint": true,
+      "material": 0,
+      "color": [
+        0.9058823529411765,
+        0.9137254901960784,
+        0.8980392156862745
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "body_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 20134,
+          "bounds": {
+            "min": [
+              -2.445008016245333,
+              -0.9390739679321555,
+              0.20200358301938662
+            ],
+            "max": [
+              2.4366007179778073,
+              0.9390732945756736,
+              1.446247406647434
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 1358,
+          "bounds": {
+            "min": [
+              -2.4494435990329335,
+              -0.7779547593478677,
+              0.3299960553626462
+            ],
+            "max": [
+              -2.2257090324300735,
+              0.7779537799202579,
+              0.5881391075729971
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #2125747591_0",
+          "materialName": "Material_2125747591",
+          "sourceTriangles": 620,
+          "bounds": {
+            "min": [
+              0.535332536386475,
+              -1.06932657660978,
+              1.0075316628468431
+            ],
+            "max": [
+              0.7520471168107646,
+              1.0693265766097797,
+              1.128406741875033
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 22112,
+      "triangles": 12160,
+      "simplificationError": 0.00014313694555312395,
+      "bounds": {
+        "min": [
+          -2.4494431018829346,
+          -1.0693265199661255,
+          0.2020035833120346
         ],
-        "right": [
-          0.4627268665089789,
-          0.8865009007388439,
-          0.0
-        ],
-        "up": [
-          0.11551994948755091,
-          -0.06029794690687757,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 8
+        "max": [
+          2.436600685119629,
+          1.0693265199661255,
+          1.4462474584579468
+        ]
       },
-      {
-        "eye": [
-          -0.7302514032829969,
-          0.6706356588136534,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_Ma123_0",
+      "materialName": "Ma123",
+      "role": "cabin-glass",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.075,
+        0.1,
+        0.115
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "body_Ma123_0",
+          "materialName": "Ma123",
+          "sourceTriangles": 1772,
+          "bounds": {
+            "min": [
+              -1.2300106815254355,
+              -0.6222759650645463,
+              1.3459552436947881
+            ],
+            "max": [
+              0.4145814773793689,
+              0.6222758426360941,
+              1.491322134388985
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1772,
+      "triangles": 1772,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.2300106287002563,
+          -0.6222759485244751,
+          1.3459552526474
         ],
-        "right": [
-          0.676403147490589,
-          0.7365315893190355,
-          0.0
-        ],
-        "up": [
-          0.09597744562155348,
-          -0.08814210720621947,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 9
+        "max": [
+          0.4145814776420593,
+          0.6222758293151855,
+          1.4913221597671509
+        ]
       },
-      {
-        "eye": [
-          -0.5317954092890306,
-          0.8367872737609731,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "body_steel2_0 | rear bumper details_steel2_0 | lights front_steel2_0 | front bumper details_steel2_0 | mirrors_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "body_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 1312,
+          "bounds": {
+            "min": [
+              -2.149260912208045,
+              -0.8124644014631767,
+              0.9794948741616151
+            ],
+            "max": [
+              0.9467058444629158,
+              0.8124645238916276,
+              1.4099785901165847
+            ]
+          }
+        },
+        {
+          "name": "rear bumper details_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 912,
+          "bounds": {
+            "min": [
+              -2.424513248654666,
+              -0.7588152134979496,
+              0.34727006708002894
+            ],
+            "max": [
+              -2.0976874374189807,
+              0.758814356498791,
+              0.6286967151784374
+            ]
+          }
+        },
+        {
+          "name": "lights front_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 600,
+          "bounds": {
+            "min": [
+              1.9362491049826076,
+              -0.7749200028990949,
+              0.656940958874253
+            ],
+            "max": [
+              2.1547354087386874,
+              0.7749204926128999,
+              0.717071141761567
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 108,
+          "bounds": {
+            "min": [
+              2.0620986968406556,
+              -0.8553397632928359,
+              0.27266832093792054
+            ],
+            "max": [
+              2.141383361848936,
+              0.8553402530066406,
+              0.47680833635191394
+            ]
+          }
+        },
+        {
+          "name": "mirrors_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 184,
+          "bounds": {
+            "min": [
+              0.5367831911049481,
+              -1.0696222413194696,
+              1.00847778991785
+            ],
+            "max": [
+              0.688678089246499,
+              1.0696222413194694,
+              1.0246883575008474
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3116,
+      "triangles": 529,
+      "simplificationError": 0.0008906039292924106,
+      "bounds": {
+        "min": [
+          -2.4227874279022217,
+          -1.0691548585891724,
+          0.27266833186149597
         ],
-        "right": [
-          0.8439836717797686,
-          0.5363688672631362,
-          0.0
-        ],
-        "up": [
-          0.06989423744667542,
-          -0.10997952856117678,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 10
+        "max": [
+          2.1547353267669678,
+          1.0686055421829224,
+          1.4096612930297852
+        ]
       },
-      {
-        "eye": [
-          -0.29709843698548377,
-          0.9459132188578356,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "rear bumper details_Material #13422_0 | radiator grill_Material #13422_0 | lights front_Material #13422_0 | front bumper details_Material #13422_0 | mirrors_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "rear bumper details_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1988,
+          "bounds": {
+            "min": [
+              -2.4446801528529734,
+              -0.9010307958578148,
+              0.2771217476722857
+            ],
+            "max": [
+              -1.7496359607388614,
+              0.9010300612871074,
+              0.6351210257276104
+            ]
+          }
+        },
+        {
+          "name": "radiator grill_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 3344,
+          "bounds": {
+            "min": [
+              2.0770266427544755,
+              -0.7284034352875584,
+              0.5592260372481814
+            ],
+            "max": [
+              2.3993969153650117,
+              0.7284039250013632,
+              0.7161388491055477
+            ]
+          }
+        },
+        {
+          "name": "lights front_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 1920,
+          "bounds": {
+            "min": [
+              2.0451355003538008,
+              -0.7749201253275462,
+              0.6569410200884785
+            ],
+            "max": [
+              2.174210102473813,
+              0.774920615041351,
+              0.717071141761567
+            ]
+          }
+        },
+        {
+          "name": "front bumper details_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 7568,
+          "bounds": {
+            "min": [
+              1.9730993342282876,
+              -0.8745143236798022,
+              0.2225079306363618
+            ],
+            "max": [
+              2.434308122800313,
+              0.8745148133936069,
+              0.5078564670446196
+            ]
+          }
+        },
+        {
+          "name": "mirrors_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 728,
+          "bounds": {
+            "min": [
+              0.5361354221695577,
+              -1.0683248670219205,
+              0.9014933817505425
+            ],
+            "max": [
+              0.7899944886220278,
+              1.0683248670219203,
+              1.0170848773237757
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 15548,
+      "triangles": 2642,
+      "simplificationError": 0.000598421785980463,
+      "bounds": {
+        "min": [
+          -2.4446802139282227,
+          -1.0683249235153198,
+          0.22250792384147644
         ],
-        "right": [
-          0.9540481035861204,
-          0.2996534932947177,
-          0.0
-        ],
-        "up": [
-          0.03904785249549515,
-          -0.12432202679445424,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 11
+        "max": [
+          2.432603597640991,
+          1.0683249235153198,
+          1.0170848369598389
+        ]
       },
-      {
-        "eye": [
-          -0.04215469717975724,
-          0.9905767412850416,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights front_mirror_0 | mirrors_mirror_0",
+      "materialName": "mirror",
+      "role": "mirror",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.64,
+        0.7,
+        0.74
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights front_mirror_0",
+          "materialName": "mirror",
+          "sourceTriangles": 1072,
+          "bounds": {
+            "min": [
+              2.0465042504384092,
+              -0.7704944592444944,
+              0.6613666249573047
+            ],
+            "max": [
+              2.183072453200526,
+              0.7704949489582993,
+              0.7126455368927408
+            ]
+          }
+        },
+        {
+          "name": "mirrors_mirror_0",
+          "materialName": "mirror",
+          "sourceTriangles": 542,
+          "bounds": {
+            "min": [
+              0.5327711495443337,
+              -1.056629154648687,
+              0.9889980154019992
+            ],
+            "max": [
+              0.6246422551226787,
+              1.0566291546486868,
+              1.1199170633538251
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1614,
+      "triangles": 273,
+      "simplificationError": 0.0005224011838436127,
+      "bounds": {
+        "min": [
+          0.5327711701393127,
+          -1.0566291809082031,
+          0.6613666415214539
         ],
-        "right": [
-          0.9990957337721154,
-          0.04251722895907537,
-          0.0
-        ],
-        "up": [
-          0.00554042092637415,
-          -0.13019218435355304,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 12
+        "max": [
+          2.183072566986084,
+          1.0566291809082031,
+          1.1199158430099487
+        ]
       },
-      {
-        "eye": [
-          0.21566181557483888,
-          0.967734095799137,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights front_white_Light223_0",
+      "materialName": "white_Light223",
+      "role": "front-lamp",
+      "paint": false,
+      "material": 4,
+      "color": [
+        0.88,
+        0.94,
+        1
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "lights front_white_Light223_0",
+          "materialName": "white_Light223",
+          "sourceTriangles": 1244,
+          "bounds": {
+            "min": [
+              1.7542765970882628,
+              -0.8469544550262907,
+              0.5918266525236598
+            ],
+            "max": [
+              2.325155567976174,
+              0.8469549447400956,
+              0.8272732756979915
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1244,
+      "triangles": 1244,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          1.7542766332626343,
+          -0.8469544649124146,
+          0.5918266773223877
         ],
-        "right": [
-          0.9760566407853066,
-          -0.21751651426708496,
-          0.0
-        ],
-        "up": [
-          -0.028344581172900764,
-          -0.1271899597017146,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 13
+        "max": [
+          2.32515549659729,
+          0.8469549417495728,
+          0.8272732496261597
+        ]
       },
-      {
-        "eye": [
-          0.458781331996011,
-          0.87894197094073,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights glass_glasss2222_0",
+      "materialName": "glasss2222",
+      "role": "lamp-cover",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.8,
+        0.84,
+        0.86
+      ],
+      "alpha": 0.13,
+      "sourceParts": [
+        {
+          "name": "lights glass_glasss2222_0",
+          "materialName": "glasss2222",
+          "sourceTriangles": 1560,
+          "bounds": {
+            "min": [
+              -2.3647730615987044,
+              -0.8754349856329559,
+              0.5610783797150981
+            ],
+            "max": [
+              2.350245565054829,
+              0.8754353529183093,
+              0.9656592348895557
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1560,
+      "triangles": 1560,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.3647730350494385,
+          -0.8754349946975708,
+          0.5610783696174622
         ],
-        "right": [
-          0.8865009007388438,
-          -0.4627268665089792,
-          0.0
-        ],
-        "up": [
-          -0.06029794690687762,
-          -0.1155199494875509,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 14
+        "max": [
+          2.350245475769043,
+          0.8754353523254395,
+          0.9656592607498169
+        ]
       },
-      {
-        "eye": [
-          0.6706356588136534,
-          0.730251403282997,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "lights glass_Material #2125716590_0",
+      "materialName": "Material_2125716590",
+      "role": "lamp-cover",
+      "paint": false,
+      "material": 1,
+      "color": [
+        0.36,
+        0.045,
+        0.045
+      ],
+      "alpha": 0.2,
+      "sourceParts": [
+        {
+          "name": "lights glass_Material #2125716590_0",
+          "materialName": "Material_2125716590",
+          "sourceTriangles": 3796,
+          "bounds": {
+            "min": [
+              -2.381321225635933,
+              -0.8367714685962974,
+              0.6559233335877351
+            ],
+            "max": [
+              -2.0462003971164755,
+              0.8367706115971387,
+              1.0196387348161668
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3796,
+      "triangles": 3796,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.3813211917877197,
+          -0.8367714881896973,
+          0.6559233069419861
         ],
-        "right": [
-          0.7365315893190356,
-          -0.676403147490589,
-          0.0
-        ],
-        "up": [
-          -0.08814210720621947,
-          -0.0959774456215535,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 15
+        "max": [
+          -2.0462005138397217,
+          0.8367705941200256,
+          1.0196387767791748
+        ]
       },
-      {
-        "eye": [
-          0.8367872737609727,
-          0.531795409289031,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "frames main_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "window-trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "frames main_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 1362,
+          "bounds": {
+            "min": [
+              -1.9341864445304873,
+              -0.772721249129459,
+              0.9482621519715868
+            ],
+            "max": [
+              1.1866452857257914,
+              0.7727206369872027,
+              1.4852789436084513
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 1362,
+      "triangles": 1362,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -1.9341864585876465,
+          -0.7727212309837341,
+          0.9482621550559998
         ],
-        "right": [
-          0.5363688672631366,
-          -0.8439836717797683,
-          0.0
-        ],
-        "up": [
-          -0.10997952856117674,
-          -0.06989423744667547,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 16
+        "max": [
+          1.186645269393921,
+          0.7727206349372864,
+          1.4852789640426636
+        ]
       },
-      {
-        "eye": [
-          0.9459132188578357,
-          0.29709843698548344,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "interior_Material #21257318803434_0",
+      "materialName": "Material_21257318803434",
+      "role": "interior",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "interior_Material #21257318803434_0",
+          "materialName": "Material_21257318803434",
+          "sourceTriangles": 9173,
+          "bounds": {
+            "min": [
+              -2.099141275277185,
+              -0.8875001258577373,
+              0.27360480676839416
+            ],
+            "max": [
+              1.252960370325923,
+              0.8875001870719628,
+              1.4919935320154605
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 9173,
+      "triangles": 6375,
+      "simplificationError": 0.011824787594377995,
+      "bounds": {
+        "min": [
+          -2.0991413593292236,
+          -0.8875001072883606,
+          0.2736048102378845
         ],
-        "right": [
-          0.29965349329471735,
-          -0.9540481035861205,
-          0.0
-        ],
-        "up": [
-          -0.12432202679445425,
-          -0.039047852495495104,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 17
+        "max": [
+          1.2515822649002075,
+          0.8875001668930054,
+          1.4919935464859009
+        ]
       },
-      {
-        "eye": [
-          0.9905767412850416,
-          0.0421546971797573,
-          0.13031001930316388
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "kia logos_steel2_0",
+      "materialName": "steel2",
+      "role": "badge",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "kia logos_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 2049,
+          "bounds": {
+            "min": [
+              -2.3625722877596234,
+              -0.5287633388122802,
+              0.7251724772355136
+            ],
+            "max": [
+              2.3659465242096345,
+              0.08767616356338999,
+              1.0721343406997996
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 2049,
+      "triangles": 2049,
+      "simplificationError": 0,
+      "bounds": {
+        "min": [
+          -2.362572193145752,
+          -0.5287633538246155,
+          0.7251724600791931
         ],
-        "right": [
-          0.04251722895907543,
-          -0.9990957337721154,
-          0.0
-        ],
-        "up": [
-          -0.13019218435355304,
-          -0.005540420926374157,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 18
+        "max": [
+          2.3659465312957764,
+          0.08767616003751755,
+          1.0721343755722046
+        ]
       },
-      {
-        "eye": [
-          0.9677340957991372,
-          -0.21566181557483838,
-          0.13031001930316388
-        ],
-        "right": [
-          -0.21751651426708446,
-          -0.9760566407853067,
-          0.0
-        ],
-        "up": [
-          -0.12718995970171462,
-          0.028344581172900698,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "wheels_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
         "center": [
-          769.1517386395535,
-          502.35426535510317
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
         ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 19
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
       },
-      {
-        "eye": [
-          0.87894197094073,
-          -0.458781331996011,
-          0.13031001930316388
-        ],
-        "right": [
-          -0.4627268665089792,
-          -0.8865009007388438,
-          0.0
-        ],
-        "up": [
-          -0.1155199494875509,
-          0.06029794690687762,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
+      "sourceParts": [
+        {
+          "name": "wheels_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              -1.687729748637095,
+              -0.9188724164821535,
+              0
+            ],
+            "max": [
+              -0.994256713301672,
+              -0.6744904140099581,
+              0.6934732627892664
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 4661,
+      "simplificationError": 0.005988605786114931,
+      "bounds": {
+        "min": [
+          -1.6877297163009644,
+          -0.9184362888336182,
           0
         ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 20
+        "max": [
+          -0.9942567348480225,
+          -0.6744903922080994,
+          0.6934732794761658
+        ]
       },
-      {
-        "eye": [
-          0.730251403282997,
-          -0.6706356588136533,
-          0.13031001930316388
-        ],
-        "right": [
-          -0.6764031474905889,
-          -0.7365315893190356,
-          0.0
-        ],
-        "up": [
-          -0.0959774456215535,
-          0.08814210720621946,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "wheels_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
         "center": [
-          769.1517386395535,
-          502.35426535510317
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
         ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 21
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
       },
-      {
-        "eye": [
-          0.5317954092890311,
-          -0.8367872737609727,
-          0.13031001930316388
+      "sourceParts": [
+        {
+          "name": "wheels_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              -1.674837343682554,
+              -0.9315170105665461,
+              0.012738293139811844
+            ],
+            "max": [
+              -1.0071007704202535,
+              -0.9033607929271555,
+              0.6804757309325581
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 240,
+      "simplificationError": 0.005869914311915636,
+      "bounds": {
+        "min": [
+          -1.674837350845337,
+          -0.9315164685249329,
+          0.012738293036818504
         ],
-        "right": [
-          -0.8439836717797683,
-          -0.5363688672631367,
-          0.0
-        ],
-        "up": [
-          -0.06989423744667549,
-          0.10997952856117674,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
-        "center": [
-          769.1517386395535,
-          502.35426535510317
-        ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
-        ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 22
+        "max": [
+          -1.0071008205413818,
+          -0.9033607840538025,
+          0.6804757118225098
+        ]
       },
-      {
-        "eye": [
-          0.2970984369854835,
-          -0.9459132188578357,
-          0.13031001930316388
-        ],
-        "right": [
-          -0.9540481035861205,
-          -0.2996534932947174,
-          0.0
-        ],
-        "up": [
-          -0.03904785249549511,
-          0.12432202679445425,
-          0.9914732971034617
-        ],
-        "focal": 2158.514157632864,
-        "distance": 9.149202114669267,
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object447_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
         "center": [
-          769.1517386395535,
-          502.35426535510317
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
         ],
-        "offset": [
-          0.09845062954362296,
-          -0.006516274975126174,
-          0
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object447_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              1.1627177629616579,
+              -0.9188721716252509,
+              0.000016786596864755945
+            ],
+            "max": [
+              1.8561574885789973,
+              -0.6744901691530557,
+              0.6934564761938466
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 4639,
+      "simplificationError": 0.0059897094033658504,
+      "bounds": {
+        "min": [
+          1.1627178192138672,
+          -0.9184359908103943,
+          0.00001678659646131564
         ],
-        "width": 1516,
-        "height": 670,
-        "textureIndex": 23
-      }
+        "max": [
+          1.8561575412750244,
+          -0.6744901537895203,
+          0.6934564709663391
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object447_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object447_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              1.1756095437548733,
+              -0.9315167657096437,
+              0.012754463036382715
+            ],
+            "max": [
+              1.8433137898178824,
+              -0.9033606092844787,
+              0.6804595735879828
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 241,
+      "simplificationError": 0.005871327593922615,
+      "bounds": {
+        "min": [
+          1.1756095886230469,
+          -0.9315162301063538,
+          0.012754462659358978
+        ],
+        "max": [
+          1.8433138132095337,
+          -0.9033606052398682,
+          0.6804595589637756
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object448_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object448_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              1.1627177629616574,
+              0.6744903527957326,
+              0.000016786596865110865
+            ],
+            "max": [
+              1.8561574885789973,
+              0.9188722940537022,
+              0.6934564761938471
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 4643,
+      "simplificationError": 0.005855560768395662,
+      "bounds": {
+        "min": [
+          1.1627178192138672,
+          0.6744903326034546,
+          0.00001678659646131564
+        ],
+        "max": [
+          1.8561575412750244,
+          0.9184362292289734,
+          0.6934564709663391
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object448_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object448_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              1.1756095437548733,
+              0.903360854141381,
+              0.01275446303638312
+            ],
+            "max": [
+              1.8433137898178824,
+              0.9315168881380949,
+              0.6804595735879833
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 238,
+      "simplificationError": 0.005881815683096647,
+      "bounds": {
+        "min": [
+          1.1756095886230469,
+          0.9033608436584473,
+          0.012754462659358978
+        ],
+        "max": [
+          1.8433138132095337,
+          0.9315164089202881,
+          0.6804595589637756
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object449_Rubber Rough_0",
+      "materialName": "Rubber_Rough",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.035,
+        0.039,
+        0.042
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object449_Rubber Rough_0",
+          "materialName": "Rubber_Rough",
+          "sourceTriangles": 30436,
+          "bounds": {
+            "min": [
+              -1.6877299934939973,
+              0.6744899242961533,
+              3.618810729286739e-16
+            ],
+            "max": [
+              -0.9942569581585744,
+              0.9188718043398973,
+              0.6934732627892668
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 30436,
+      "triangles": 4634,
+      "simplificationError": 0.005990404635667801,
+      "bounds": {
+        "min": [
+          -1.6877299547195435,
+          0.6744899153709412,
+          3.6188106242900694e-16
+        ],
+        "max": [
+          -0.9942569732666016,
+          0.9184356927871704,
+          0.6934732794761658
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object449_Rubber Rough222_0",
+      "materialName": "Rubber_Rough222",
+      "role": "tire",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.055,
+        0.059,
+        0.061
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object449_Rubber Rough222_0",
+          "materialName": "Rubber_Rough222",
+          "sourceTriangles": 640,
+          "bounds": {
+            "min": [
+              -1.6748375885394566,
+              0.9033603644275762,
+              0.012738293139812248
+            ],
+            "max": [
+              -1.007101015277156,
+              0.93151639842429,
+              0.6804757309325585
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 640,
+      "triangles": 238,
+      "simplificationError": 0.0058690328150987625,
+      "bounds": {
+        "min": [
+          -1.674837589263916,
+          0.9033603668212891,
+          0.012738293036818504
+        ],
+        "max": [
+          -1.007101058959961,
+          0.9315159916877747,
+          0.6804757118225098
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object450_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object450_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              1.21881184238972,
+              -0.9302676894360998,
+              0.05613200174182066
+            ],
+            "max": [
+              1.800115574862474,
+              -0.6734329382625692,
+              0.6370893171697699
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 1229,
+      "simplificationError": 0.0015383174177259207,
+      "bounds": {
+        "min": [
+          1.2188118696212769,
+          -0.9302676916122437,
+          0.0561319999396801
+        ],
+        "max": [
+          1.8001155853271484,
+          -0.6734329462051392,
+          0.6370893120765686
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object450_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object450_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              1.2274249809839288,
+              -0.9292612663528685,
+              0.06451450712982586
+            ],
+            "max": [
+              1.7914617312054733,
+              -0.8552253539051734,
+              0.6285511338530009
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 997,
+      "simplificationError": 0.0010282432194799185,
+      "bounds": {
+        "min": [
+          1.2274249792099,
+          -0.9292612671852112,
+          0.06451451033353806
+        ],
+        "max": [
+          1.791461706161499,
+          -0.8552253246307373,
+          0.6285511255264282
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object451_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object451_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              1.21881184238972,
+              0.6734331219052461,
+              0.05613200174182097
+            ],
+            "max": [
+              1.800115574862474,
+              0.9302678730787766,
+              0.6370893171697701
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 1229,
+      "simplificationError": 0.0015010250499472022,
+      "bounds": {
+        "min": [
+          1.2188118696212769,
+          0.6734331250190735,
+          0.0561319999396801
+        ],
+        "max": [
+          1.8001155853271484,
+          0.930267870426178,
+          0.6370893120765686
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object451_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object451_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4157,
+          "bounds": {
+            "min": [
+              1.2274249809839288,
+              0.8552255375478501,
+              0.06451450712982626
+            ],
+            "max": [
+              1.7914617312054733,
+              0.9292614499955453,
+              0.6285511338530013
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4157,
+      "triangles": 996,
+      "simplificationError": 0.001033104257658124,
+      "bounds": {
+        "min": [
+          1.2274249792099,
+          0.8552255630493164,
+          0.06451453268527985
+        ],
+        "max": [
+          1.791461706161499,
+          0.9292614459991455,
+          0.6285511255264282
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object452_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object452_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              -1.631633198246026,
+              0.6734326321914412,
+              0.05611793198816034
+            ],
+            "max": [
+              -1.050301321693435,
+              0.9302673833649717,
+              0.6371033747240105
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 1229,
+      "simplificationError": 0.0015414719237014651,
+      "bounds": {
+        "min": [
+          -1.6316331624984741,
+          0.6734326481819153,
+          0.05611793324351311
+        ],
+        "max": [
+          -1.0503013134002686,
+          0.9302673935890198,
+          0.6371033787727356
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object452_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object452_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              -1.623019774380838,
+              0.8552251090482709,
+              0.06450084321890788
+            ],
+            "max": [
+              -1.058955716068114,
+              0.9292609602817404,
+              0.6285647780272828
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 996,
+      "simplificationError": 0.0009954813867807388,
+      "bounds": {
+        "min": [
+          -1.623019814491272,
+          0.8552250862121582,
+          0.0645008459687233
+        ],
+        "max": [
+          -1.0589556694030762,
+          0.9292609691619873,
+          0.6285647749900818
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object453_steel2_0",
+      "materialName": "steel2",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object453_steel2_0",
+          "materialName": "steel2",
+          "sourceTriangles": 5123,
+          "bounds": {
+            "min": [
+              -1.6316329533891236,
+              -0.9302678730787767,
+              0.056117931988160036
+            ],
+            "max": [
+              -1.0503010768365324,
+              -0.6734331219052461,
+              0.6371033747240102
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5123,
+      "triangles": 1228,
+      "simplificationError": 0.0015440188581123948,
+      "bounds": {
+        "min": [
+          -1.631632924079895,
+          -0.930267870426178,
+          0.05611793324351311
+        ],
+        "max": [
+          -1.0503010749816895,
+          -0.6734331250190735,
+          0.6371033787727356
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object453_Material #13422_0",
+      "materialName": "Material_13422",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.07,
+        0.079,
+        0.086
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Object453_Material #13422_0",
+          "materialName": "Material_13422",
+          "sourceTriangles": 4158,
+          "bounds": {
+            "min": [
+              -1.6230195295239358,
+              -0.9292614499955454,
+              0.06450084321890748
+            ],
+            "max": [
+              -1.0589554712112117,
+              -0.8552255987620758,
+              0.6285647780272824
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 4158,
+      "triangles": 996,
+      "simplificationError": 0.0010499436175450683,
+      "bounds": {
+        "min": [
+          -1.6230195760726929,
+          -0.9292614459991455,
+          0.0645008459687233
+        ],
+        "max": [
+          -1.058955430984497,
+          -0.8552256226539612,
+          0.6285647749900818
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "antena_Ma123_0",
+      "materialName": "Ma123",
+      "role": "factory-paint",
+      "paint": true,
+      "material": 0,
+      "color": [
+        0.9058823529411765,
+        0.9137254901960784,
+        0.8980392156862745
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "antena_Ma123_0",
+          "materialName": "Ma123",
+          "sourceTriangles": 314,
+          "bounds": {
+            "min": [
+              -1.0933112998290409,
+              -0.04197138840476269,
+              1.4240372733953122
+            ],
+            "max": [
+              -0.9188488242676678,
+              0.04197111294074656,
+              1.4986807820476413
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 314,
+      "triangles": 182,
+      "simplificationError": 0.003773618722334504,
+      "bounds": {
+        "min": [
+          -1.0933113098144531,
+          -0.04197138920426369,
+          1.424037218093872
+        ],
+        "max": [
+          -0.9188488125801086,
+          0.0419711135327816,
+          1.498680830001831
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Line002_Material #111_0 | Line001_Material #111_0 | Line003_Material #111_0 | Line004_Material #111_0 | Line005_Material #111_0 | Line006_Material #111_0 | Line007_Material #111_0 | Line008_Material #111_0",
+      "materialName": "Material_111",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Line002_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              1.6106739156796628,
+              -0.8723391106057979,
+              0.21155662915719947
+            ],
+            "max": [
+              1.6960574305031118,
+              -0.762369648115025,
+              0.4814303916097365
+            ]
+          }
+        },
+        {
+          "name": "Line001_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              1.634093009256105,
+              -0.8566791399232797,
+              0.25470995713356903
+            ],
+            "max": [
+              1.7287389556812884,
+              -0.7780296207364854,
+              0.43827704883852786
+            ]
+          }
+        },
+        {
+          "name": "Line003_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              1.6106739018971983,
+              0.7611776183541391,
+              0.21155662915719853
+            ],
+            "max": [
+              1.696057440461018,
+              0.8711470808449061,
+              0.48143037767071817
+            ]
+          }
+        },
+        {
+          "name": "Line004_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              1.6340929939424826,
+              0.7768375910113109,
+              0.25470995713356837
+            ],
+            "max": [
+              1.7287389701290263,
+              0.8554871178989962,
+              0.43827704969434833
+            ]
+          }
+        },
+        {
+          "name": "Line005_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              -1.5275901515428887,
+              0.7611775062169162,
+              0.21155662915719986
+            ],
+            "max": [
+              -1.4422066129790627,
+              0.8711469687076807,
+              0.48143039160973683
+            ]
+          }
+        },
+        {
+          "name": "Line006_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              -1.560271681210892,
+              0.7768374615110495,
+              0.25470995713356936
+            ],
+            "max": [
+              -1.4656257050243489,
+              0.855487000337641,
+              0.4382770488385282
+            ]
+          }
+        },
+        {
+          "name": "Line007_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 2956,
+          "bounds": {
+            "min": [
+              -1.527590141584979,
+              -0.8723391106058019,
+              0.2115566291571982
+            ],
+            "max": [
+              -1.44220662676153,
+              -0.7623696481150267,
+              0.48143037767071784
+            ]
+          }
+        },
+        {
+          "name": "Line008_Material #111_0",
+          "materialName": "Material_111",
+          "sourceTriangles": 3568,
+          "bounds": {
+            "min": [
+              -1.5602716667631558,
+              -0.8566791343750415,
+              0.25470995713356803
+            ],
+            "max": [
+              -1.4656257203379723,
+              -0.778029624345787,
+              0.438277049694348
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 26096,
+      "triangles": 1304,
+      "simplificationError": 0.0012427313486114144,
+      "bounds": {
+        "min": [
+          -1.558908462524414,
+          -0.8723260164260864,
+          0.21155662834644318
+        ],
+        "max": [
+          1.728164792060852,
+          0.8711469769477844,
+          0.48143038153648376
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder002_black_0 | Cylinder004_black_0 | Cylinder006_black_0 | Cylinder008_black_0",
+      "materialName": "black_0",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Cylinder002_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              1.6960990590459424,
+              -0.856625435128297,
+              0.28515008519303714
+            ],
+            "max": [
+              1.7216704993137033,
+              -0.7780833006371939,
+              0.4078369331125402
+            ]
+          }
+        },
+        {
+          "name": "Cylinder004_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              1.6960990437532308,
+              0.7768912822483838,
+              0.28515008518219465
+            ],
+            "max": [
+              1.7216705146064202,
+              0.8554334095284665,
+              0.40783692929750026
+            ]
+          }
+        },
+        {
+          "name": "Cylinder006_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              -1.5532032256882797,
+              0.7768911499799898,
+              0.2851500851930375
+            ],
+            "max": [
+              -1.5276317548350895,
+              0.8554332890794599,
+              0.40783693311254055
+            ]
+          }
+        },
+        {
+          "name": "Cylinder008_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 2000,
+          "bounds": {
+            "min": [
+              -1.5532032103955704,
+              -0.8566254303697373,
+              0.2851500851821943
+            ],
+            "max": [
+              -1.5276317701278097,
+              -0.7780833092216458,
+              0.40783692929749993
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 8000,
+      "triangles": 400,
+      "simplificationError": 0.00033433607313781977,
+      "bounds": {
+        "min": [
+          -1.5532032251358032,
+          -0.8566254377365112,
+          0.28515008091926575
+        ],
+        "max": [
+          1.7216705083847046,
+          0.8554334044456482,
+          0.4078369438648224
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Object430_black_0 | Object454_black_0 | Object455_black_0 | Object456_black_0",
+      "materialName": "black_1",
+      "role": "stationary-brake-caliper",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "sourceParts": [
+        {
+          "name": "Object430_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              1.620791972945731,
+              -0.8456157056872368,
+              0.2520062781018876
+            ],
+            "max": [
+              1.696815094277026,
+              -0.7890930488172058,
+              0.44098072470571725
+            ]
+          }
+        },
+        {
+          "name": "Object454_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              1.6207919619403703,
+              0.7879010201363605,
+              0.25200628547577797
+            ],
+            "max": [
+              1.6968151052823848,
+              0.8444236832898253,
+              0.4409807213521387
+            ]
+          }
+        },
+        {
+          "name": "Object455_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              -1.5283478163642523,
+              0.787900898451335,
+              0.2520062781018879
+            ],
+            "max": [
+              -1.4523246730222361,
+              0.8444235688071237,
+              0.4409807247057176
+            ]
+          }
+        },
+        {
+          "name": "Object456_black_0",
+          "materialName": "black_1",
+          "sourceTriangles": 1432,
+          "bounds": {
+            "min": [
+              -1.5283478053588933,
+              -0.845615697999286,
+              0.25200628547577764
+            ],
+            "max": [
+              -1.4523246840275983,
+              -0.7890930549827092,
+              0.4409807213521384
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 5728,
+      "triangles": 286,
+      "simplificationError": 0.001555815921165049,
+      "bounds": {
+        "min": [
+          -1.5283478498458862,
+          -0.8456156849861145,
+          0.25200629234313965
+        ],
+        "max": [
+          1.6968151330947876,
+          0.8444236516952515,
+          0.4409807324409485
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              1.3204496355945663,
+              -0.8340134646183978,
+              0.15749305509465755
+            ],
+            "max": [
+              1.698450233367927,
+              -0.7994595607535339,
+              0.535493688685798
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 472,
+      "simplificationError": 0.011984496377408504,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          -0.8340134620666504,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          -0.7994595766067505,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              1.3204496355945663,
+              -0.835248104374615,
+              0.15749307328521106
+            ],
+            "max": [
+              1.698450233367927,
+              -0.834013349803189,
+              0.5354936562308708
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 86,
+      "simplificationError": 0.008491693995893002,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          -0.8352481126785278,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          -0.8340133428573608,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder001_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          -0.7966811703891533,
+          0.34673663139535565
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": -1,
+        "sourceName": "Object447_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder001_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              1.3696475699304371,
+              -0.8550569930739675,
+              0.20669102477245138
+            ],
+            "max": [
+              1.6492523143356124,
+              -0.7994595802300917,
+              0.47565396682313127
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 302,
+      "simplificationError": 0.011808613315224648,
+      "bounds": {
+        "min": [
+          1.370843529701233,
+          -0.8550570011138916,
+          0.20669102668762207
+        ],
+        "max": [
+          1.6480562686920166,
+          -0.7994595766067505,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              1.320449629104645,
+              0.7982674556581656,
+              0.15749305149171394
+            ],
+            "max": [
+              1.6984502403337198,
+              0.8328213979183349,
+              0.5354936951757439
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 473,
+      "simplificationError": 0.011829961091279984,
+      "bounds": {
+        "min": [
+          1.3204495906829834,
+          0.7982674837112427,
+          0.15749306976795197
+        ],
+        "max": [
+          1.6984502077102661,
+          0.8328213691711426,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              1.3204496286287755,
+              0.8328212389689694,
+              0.15749306679527034
+            ],
+            "max": [
+              1.698450226877977,
+              0.8340560277350632,
+              0.5354936492650747
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 70,
+      "simplificationError": 0.011456753127276897,
+      "bounds": {
+        "min": [
+          1.3220665454864502,
+          0.832821249961853,
+          0.15910999476909637
+        ],
+        "max": [
+          1.6968333721160889,
+          0.83405601978302,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder003_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          1.5094376257703277,
+          0.7966813234247173,
+          0.3467366313953561
+        ],
+        "radius": 0.34671984479849094,
+        "axle": "front",
+        "side": 1,
+        "sourceName": "Object448_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder003_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              1.3696475768962544,
+              0.7982674733582054,
+              0.20669103173825404
+            ],
+            "max": [
+              1.649252321301409,
+              0.8538649135099055,
+              0.47565397378894303
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 303,
+      "simplificationError": 0.011911132372915745,
+      "bounds": {
+        "min": [
+          1.3708436489105225,
+          0.7982674837112427,
+          0.21145467460155487
+        ],
+        "max": [
+          1.6480562686920166,
+          0.8538649082183838,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              -1.5299829509397156,
+              0.7982674386993207,
+              0.1574930550946579
+            ],
+            "max": [
+              -1.1519823397106408,
+              0.8328214178126176,
+              0.5354936886857984
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 473,
+      "simplificationError": 0.011331852525472641,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          0.7982674241065979,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          0.8328214287757874,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              -1.5299829514155847,
+              0.8328212267264772,
+              0.15749307328521145
+            ],
+            "max": [
+              -1.1519823531663835,
+              0.8340560387817624,
+              0.5354936562308711
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 86,
+      "simplificationError": 0.0077174087055027485,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          0.832821249961853,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          0.83405601978302,
+          0.5354936718940735
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder005_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409934758262858,
+          0.7966808643180253,
+          0.34673663139463357
+        ],
+        "radius": 0.34673663139463323,
+        "axle": "rear",
+        "side": 1,
+        "sourceName": "Object449_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder005_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              -1.4807850184516622,
+              0.798267462626136,
+              0.20669102477245171
+            ],
+            "max": [
+              -1.2011802740465078,
+              0.8538649157793181,
+              0.4756539668231315
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 310,
+      "simplificationError": 0.011842438951134682,
+      "bounds": {
+        "min": [
+          -1.4760215282440186,
+          0.7982674837112427,
+          0.20669102668762207
+        ],
+        "max": [
+          -1.2023762464523315,
+          0.8538649082183838,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_black222_0",
+      "materialName": "black222",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_black222_0",
+          "materialName": "black222",
+          "sourceTriangles": 7884,
+          "bounds": {
+            "min": [
+              -1.529982944449794,
+              -0.8340134234026102,
+              0.1574930514917136
+            ],
+            "max": [
+              -1.1519823466764334,
+              -0.7994595980070235,
+              0.5354936951757435
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 7884,
+      "triangles": 473,
+      "simplificationError": 0.011984382756054401,
+      "bounds": {
+        "min": [
+          -1.5299829244613647,
+          -0.8340134024620056,
+          0.15749306976795197
+        ],
+        "max": [
+          -1.151982307434082,
+          -0.7994595766067505,
+          0.5338767766952515
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_Iron Clean Distorted_0",
+      "materialName": "Iron_Clean_Distorted",
+      "role": "metal",
+      "paint": false,
+      "material": 3,
+      "color": [
+        0.48,
+        0.51,
+        0.54
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_Iron Clean Distorted_0",
+          "materialName": "Iron_Clean_Distorted",
+          "sourceTriangles": 576,
+          "bounds": {
+            "min": [
+              -1.529982944449794,
+              -0.8352480837260231,
+              0.15749306679527
+            ],
+            "max": [
+              -1.1519823466764334,
+              -0.8340133851437191,
+              0.5354936492650744
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 576,
+      "triangles": 78,
+      "simplificationError": 0.00852896086871624,
+      "bounds": {
+        "min": [
+          -1.5283660888671875,
+          -0.8352480530738831,
+          0.15910999476909637
+        ],
+        "max": [
+          -1.1535992622375488,
+          -0.8340134024620056,
+          0.5338767170906067
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    },
+    {
+      "name": "Cylinder007_black_0",
+      "materialName": "black_0",
+      "role": "trim",
+      "paint": false,
+      "material": 2,
+      "color": [
+        0.025,
+        0.032,
+        0.038
+      ],
+      "alpha": 1,
+      "wheel": {
+        "center": [
+          -1.3409932309693835,
+          -0.7966814152460557,
+          0.3467366313946331
+        ],
+        "radius": 0.3467366313946332,
+        "axle": "rear",
+        "side": -1,
+        "sourceName": "wheels_Rubber Rough_0"
+      },
+      "sourceParts": [
+        {
+          "name": "Cylinder007_black_0",
+          "materialName": "black_0",
+          "sourceTriangles": 3444,
+          "bounds": {
+            "min": [
+              -1.4807850254174797,
+              -0.8550569765258588,
+              0.2066910317382537
+            ],
+            "max": [
+              -1.2011802810123045,
+              -0.7994595999199682,
+              0.4756539737889427
+            ]
+          }
+        }
+      ],
+      "sourceTriangles": 3444,
+      "triangles": 305,
+      "simplificationError": 0.011851347051560879,
+      "bounds": {
+        "min": [
+          -1.4795889854431152,
+          -0.8550570011138916,
+          0.20788705348968506
+        ],
+        "max": [
+          -1.2023762464523315,
+          -0.7994595766067505,
+          0.4756539762020111
+        ]
+      },
+      "indexType": 2,
+      "groundShiftM": 0
+    }
+  ],
+  "textures": [],
+  "wheelCenters": [
+    {
+      "center": [
+        -1.3409932309693835,
+        -0.7966814152460557,
+        0.3467366313946331
+      ],
+      "radius": 0.3467366313946332,
+      "axle": "rear",
+      "side": -1,
+      "sourceName": "wheels_Rubber Rough_0"
+    },
+    {
+      "center": [
+        1.5094376257703277,
+        -0.7966811703891533,
+        0.34673663139535565
+      ],
+      "radius": 0.34671984479849094,
+      "axle": "front",
+      "side": -1,
+      "sourceName": "Object447_Rubber Rough_0"
+    },
+    {
+      "center": [
+        1.5094376257703277,
+        0.7966813234247173,
+        0.3467366313953561
+      ],
+      "radius": 0.34671984479849094,
+      "axle": "front",
+      "side": 1,
+      "sourceName": "Object448_Rubber Rough_0"
+    },
+    {
+      "center": [
+        -1.3409934758262858,
+        0.7966808643180253,
+        0.34673663139463357
+      ],
+      "radius": 0.34673663139463323,
+      "axle": "rear",
+      "side": 1,
+      "sourceName": "Object449_Rubber Rough_0"
+    }
+  ],
+  "wheelAnimation": "separate-source-wheel-primitives",
+  "coordinateTransform": {
+    "worldToRuntime": [
+      "-X",
+      "+Z",
+      "-Y"
     ],
-    "textureCount": 24
+    "handednessCorrectedForRenderer": true,
+    "windingCorrected": true
   },
-  "source": {
-    "kind": "photo-reconstruction",
-    "label": "\uae30\uc544 \uacf5\uc2dd 360\ub3c4 \uc774\ubbf8\uc9c0 \u00b7 \uc2e4\ub8e8\uc5e3 \uc7ac\uad6c\uc131",
-    "url": "https://www.kia.com/kr/vehicles/k5/features",
-    "configuration": "24 unmodified Kia K5 Noblesse turntable frames, calibrated hub projections, volumetric silhouette intersection, camera-projected photo textures. Top roof is inferred paint. Not manufacturer CAD.",
-    "hubRmsPixels": 1.4387786952106179
-  }
+  "sourceBounds": {
+    "min": [
+      -1.1223323034550363,
+      -2.8708689107730123,
+      0.04010035368245271
+    ],
+    "max": [
+      3.768319381661994,
+      -0.7378822371959617,
+      1.5343971308840438
+    ]
+  },
+  "scale": 1.002933824734776,
+  "runtimeBytes": 12277144,
+  "sourceTriangles": 345765,
+  "sourceParts": 88,
+  "smoothedNormalComponents": 175545
 }

@@ -94,7 +94,7 @@ function updateModelStatus(){
 // changes during loading must still repaint the newly created race.
 ManufacturerModels.subscribe(state=>{if(race&&state.id===$('vehicle-model').value){updateUI();draw();}});
 function selectCar(id){watch=id;inspectorKey='';updateElevation();updateUI();draw();}
-function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const source=renderer.getModelInfo(),key=source.kind+'|'+source.label;if($('exterior-source').dataset.source!==key){const node=$('exterior-source');node.dataset.source=key;node.replaceChildren(document.createTextNode(source.label));if(source.kind==='community-mesh'){const link=document.createElement('a');link.href='MODEL-SOURCES.md';link.target='_blank';link.rel='noopener';link.textContent=' · 제작자·CC BY 4.0·변경 내역 ↗';node.append(link);}}}}
+function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const source=renderer.getModelInfo(),note=watching().spec.visualVariantNote||'',key=source.kind+'|'+source.label+'|'+note;if($('exterior-source').dataset.source!==key){const node=$('exterior-source');node.dataset.source=key;node.replaceChildren(document.createTextNode(source.label+(note?' · '+note:'')));if(source.kind==='community-mesh'){const link=document.createElement('a');link.href='MODEL-SOURCES.md';link.target='_blank';link.rel='noopener';link.textContent=' · 제작자·CC BY 4.0·변경 내역 ↗';node.append(link);}}}}
 function setCamera(mode){renderer.setView(mode);camera=renderer.mode;['overview','follow','follow-classic','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));draw();}
 function updateElevation(){
  const t=race.track,car=watching(),points=car.pathPoints||t.racingLine?.points||t.points;$('elevation-plot').hidden=!t.hasElevation;
@@ -133,6 +133,8 @@ function updateTuning(car){
  });
  const factory=p.factorySpec||p.baseSpec||{},dist=spec.frontWeightFraction??.5;
  const traits=[['엔진 / 모터',spec.engine||p.engine||p.variantLabel],['배기량',spec.displacementCc?spec.displacementCc.toLocaleString('ko-KR')+' cc':'전기 모터'],['앞 : 뒤 무게배분',Math.round(dist*100)+' : '+Math.round((1-dist)*100)+' (모형)'],['무게중심 높이',((spec.cgHeightM??.55)*100).toFixed(0)+' cm (모형)'],['출고 → 현재 출력',Math.round(factory.powerPs||p.factoryPowerPs||spec.powerPs)+' → '+Math.round(car.powerPs)+' PS'],['최고속도 한계',(car.theoreticalTopSpeed*3.6).toFixed(0)+' km/h (모형)'],['튜닝 단계',E.CATEGORIES.map(c=>p.levels[c.id]).join(' / ')],['보존 / 변이',({initial:'초기 추첨',elite:'최고 세팅 보존',offspring:'교배 · 돌연변이',immigrant:'새 사양 유입'}[p.lineage?.kind] || '직접 튜닝')]];
+ const drivetrain=PowertrainProfiles.resolve(car);
+ traits.splice(2,0,['변속기',drivetrain.transmissionLabel+(drivetrain.powertrainType==='hybrid'?' · 하이브리드':'')]);
  $('vehicle-traits').replaceChildren();traits.forEach(([k,v])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=k;dd.textContent=v;$('vehicle-traits').append(dt,dd);});
 }
 function editTuning(carId,id,level){
@@ -176,10 +178,16 @@ function nextGeneration(auto=false){
  prepareRace(generation+'세대 · 우수 세팅 보존 + 교배·돌연변이로 새 튜닝을 만들었습니다.');
  if(auto){running=true;updateUI();}
 }
+function updatePaintUI(car){
+ const colors=window.VehiclePaints?.get(car.vehicleId)||[],field=$('paint-field'),select=$('paint-color');
+ field.hidden=!colors.length;if(!colors.length)return;
+ if(select.dataset.vehicle!==car.vehicleId){select.replaceChildren(...colors.map(p=>new Option(p.name+' · '+p.code,p.id)));select.dataset.vehicle=car.vehicleId;}
+ select.value=renderer.getPaintInfo(car)?.id||colors[0].id;
+}
 function updateUI(){
  if(!race)return;const order=race.standings(),car=watching(),leader=order[0],spec=car.spec,p=car.entrant,stock=stockMode(),ready=modelReady();
  updateModelStatus();
- updatePowertrainHUD(car);
+ updatePowertrainHUD(car);updatePaintUI(car);
  $('start').textContent=race.finished?(stock?'↺ 같은 구성 재주행':'↺ 같은 세대 재주행'):running?'Ⅱ 일시정지':race.time>0?'▶ 계속 달리기':'▶ 레이스 시작';
  $('reset').textContent=stock?'↻ 같은 구성 재주행':'↻ 같은 세대 재주행';
  $('start').setAttribute('aria-pressed',String(running));$('start').disabled=!ready;$('step').disabled=!ready||race.finished;$('evaluate').disabled=!ready||race.finished||fast;$('evaluate').textContent=fast?'평가 중…':stock?'출고 성능 빠른 평가':'이번 세대 빠른 평가';
@@ -198,8 +206,8 @@ function updateUI(){
  const cursor=car.finished?1000:(car.distance%car.trackLength)/car.trackLength*1000;$('elevation-cursor').setAttribute('x1',cursor);$('elevation-cursor').setAttribute('x2',cursor);
  $('vehicle-source').href=spec.sourceUrl||(window.CircuitVehicleSpecs||VehicleSpecs)[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
  if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId];
-  if(art){const [x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
-  else if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png'+(imageId==='bmw_m2'?'?v=20261019-stock-c16-1':'');image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
+  if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png'+(['bmw_m2','gr86','k5'].includes(imageId)?'?v=20261019-finish-1':'');image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
+  else if(art){const [x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
   else $('car-image').replaceChildren();
  }
  updateTuning(car);historyUI();
@@ -257,6 +265,7 @@ $('start').addEventListener('click',toggle);
 $('model-retry').addEventListener('click',()=>ManufacturerModels.load($('vehicle-model').value));
 $('step').addEventListener('click',()=>{running=false;fast=false;simulate(1);renderer.advanceCamera(0,{watch,snap:true});updateUI();draw();});
 $('reset').addEventListener('click',()=>prepareRace(stockMode()?'같은 출고 사양으로 다시 배치했습니다.':'같은 세대의 출고 사양과 튜닝으로 다시 배치했습니다.',true));
+$('paint-color').addEventListener('change',()=>{renderer.setPaint(watching(),$('paint-color').value);updatePaintUI(watching());draw();});
 $('evaluate').addEventListener('click',()=>{if(race.finished)return;running=false;fast=true;lastFrame=null;updateUI();});
 $('next-generation').addEventListener('click',()=>nextGeneration(false));$('auto-evolve').addEventListener('change',()=>{const enabled=$('auto-evolve').checked;if(stockMode())autoStockRepeat=enabled;else autoEvolution=enabled;});
 $('population-size').addEventListener('change',()=>{if(!stockMode()){paidPopulationSize=Number($('population-size').value);experiment();}});
@@ -292,6 +301,7 @@ window.advanceTime=milliseconds=>{
 };
 window.render_game_to_text=()=>JSON.stringify({
  modelLoad:ManufacturerModels.getLoadState($('vehicle-model').value),
+ watchPaint:renderer.getPaintInfo(watching()),
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  watchTelemetry:watching().telemetry,
  watchTransmission:watching().transmission||null,

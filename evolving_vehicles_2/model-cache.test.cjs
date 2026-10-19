@@ -17,10 +17,10 @@ function source(id, marker = 'ready') {
 function fixture(id) {
   const context = vm.createContext({ atob, Uint8Array, Uint16Array, Uint32Array, Float32Array,
     VehicleMeshes: { create: () => ({ faces: [], procedural: true }) } });
-  for (const file of ['manufacturer-models.js', 'circuit-renderer.js'])
+  for (const file of ['vehicle-paints.js', 'manufacturer-models.js', 'circuit-renderer.js'])
     vm.runInContext(fs.readFileSync(require.resolve('./' + file), 'utf8'), context);
   const renderer = Object.assign(Object.create(context.CircuitRenderer.prototype), {
-    meshCache: new Map(), _makeRoad() {}, _makeContextGround() {}
+    meshCache: new Map(), options:{}, _makeRoad() {}, _makeContextGround() {}
   });
   const race = () => ({ circuit: {}, track: { points: [] }, cars: [{ id: 0, index: 0, vehicleId: id, spec }] });
   renderer.setRace(race());
@@ -63,4 +63,27 @@ test('registering a new source for the same identity replaces the body without a
   assert.equal(replacement.manufacturer.marker, 'replacement');
   assert.equal(renderer._mesh(car), replacement);
   assert.equal(renderer.meshCache.size, 1);
+});
+
+test('factory paint choices stay per observed car and never change race or shared asset state', () => {
+  const {renderer,api}=fixture('gr86'),car=renderer.race.cars[0];api.register(source('gr86'));
+  const saved=JSON.stringify(car),asset=api.get('gr86'),original=renderer._mesh(car);
+  assert.equal(renderer.getPaintInfo(car).code,'DCK');assert.equal(original.paint,'#ce171f');
+  assert.equal(renderer.setPaint(car,'crystal-white-pearl'),true);
+  const pearl=renderer._mesh(car);assert.notEqual(pearl,original);assert.equal(pearl.paintFinish.finish,'pearl');
+  assert.equal(pearl.paintFinish.code,'K1X');assert.equal(pearl.manufacturer,asset);
+  assert.equal(renderer._mesh(car),pearl);assert.equal(JSON.stringify(car),saved);
+  assert.equal(renderer.setPaint(car,'not-a-factory-color'),false);assert.equal(renderer._mesh(car),pearl);
+  const other={...car,id:2,index:2};assert.equal(renderer.getPaintInfo(other).code,'D4S');
+  assert.equal(renderer.getPaintInfo(car).code,'K1X');
+});
+
+test('a sourced default paint retains its surface finish without inventing selectable colors', () => {
+  const {renderer,api}=fixture('k5'),car=renderer.race.cars[0],asset=source('k5');
+  asset.paintReference={name:'스노우 화이트 펄',code:'SWP',hex:'#e7e9e5',finish:'pearl',roughness:.22,clearcoat:.92};
+  api.register(asset);
+  const mesh=renderer._mesh(car);
+  assert.equal(mesh.paint,'#e7e9e5');assert.equal(mesh.paintFinish.finish,'pearl');
+  assert.equal(mesh.paintFinish.code,'SWP');assert.equal(renderer.getPaintInfo(car),null);
+  assert.equal(renderer.setPaint(car,'invented-color'),false);
 });

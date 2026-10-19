@@ -1,0 +1,30 @@
+Kia K5 2025 — zapkolenko07
+
+Original: https://sketchfab.com/3d-models/kia-k5-2025-0ed1b1fb1a074a42849076b96a15ce9f
+Author: https://sketchfab.com/zapkolenko07
+License: Creative Commons Attribution 4.0 International (CC-BY-4.0)
+https://creativecommons.org/licenses/by/4.0/
+https://creativecommons.org/licenses/by/4.0/legalcode.en
+
+Keep author/source/license attribution and modification notice with copies.
+No endorsement by Kia or the author is implied. This is not official Kia CAD.
+
+Normal signed-in Sketchfab download, verified 2026-10-19.
+Input source.glb: 17835388 bytes
+SHA-256: 07891ce115dab0194027de0eee2b8ab525232963c5009d564cd8bd1e98aea07f
+
+- The public upload and downloaded GLB attribute this exact model to zapkolenko07 under CC BY 4.0. No separate restrictive notice, explicit game-extraction declaration or conflicting source URL was found in the embedded metadata. This does not establish a complete creation history.
+- The front and rear geometry was compared with the official current K5 exterior; this is the DL3 facelift, unlike the other uploader model titled 2025 but showing the earlier rear lights.
+- Original geometry is a community approximation, not official Kia CAD. Manufacturer length is only a uniform scale reference; source proportions and equipment differences are preserved.
+
+WebSim changes:
+- Applied original node transforms and the reflected [-world X, +world Z, -world Y] convention, correcting normals and winding for forward +X, lateral +Y, up +Z. Uniformly scaled the source length to 4.905 m and aligned the tire floor to zero; no part-specific stretching, generated surfaces or substituted wheels.
+- Preserved all original painted-body and interior triangles in the main model and all original cabin-glass/window-frame/lamp triangles in both detail levels. Locked upper interior vertices above 0.8 m in the fallback so its roof/rear shelf cannot poke through adjacent glazing. Reduced tires, brakes and other repeated details with topology- and normal-aware Meshopt simplification; no sloppy spatial clustering.
+- Smoothed only coincident imported body/glazing normals within a 35-degree crease limit, without changing any vertex positions or closing original panel gaps.
+- The downloaded source contains 22 named materials with white default factors and no textures. Assigned paint, glass, lamps, black trim, rubber and metal display colors by original part/material semantics; these are WebSim appearance choices, not recovered original texture colors.
+- Applied the official Snow White Pearl name/code SWP to paintable source body and mirror caps using approximate display RGB #e7e9e5; clearcoat and roughness are renderer approximations.
+- Tagged only original tire/rim parts and complete brake discs Cylinder001/003/005/007 with four local wheel centers/radii. Offset brake calipers Line*, Cylinder002/004/006/008 and Object430/454/455/456 remain stationary.
+- Retained all 88 original source mesh parts, including Kia/K5 badges, factory-shaped wheels, star-map lamp geometry, cabin and grille. Preserved badge triangles in both detail levels. Merged compatible draw groups and packed gzip JavaScript.
+
+Official paint reference: https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_k5.pdf
+RGB and shader finish parameters are digital approximations, not measured OEM data.

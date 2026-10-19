@@ -11,7 +11,7 @@
   "configuration": {
     "generation": "ZN8",
     "modelYear": 2023,
-    "exterior": "2023 Toyota GR86 ZN8 coupe exterior. Original red body, GR badges, cabin and ADVAN Racing RS wheel artwork retained. The community wheels are not an exact factory RZ wheel match."
+    "exterior": "2023 Toyota GR86 ZN8 coupe exterior. Remappable factory-paint material, original GR badges, cabin and ADVAN Racing RS wheel artwork. The community wheels are not an exact factory RZ wheel match."
   },
   "provenanceNotes": [
     "The downloaded GLB and current public Sketchfab API identify Mona x Supercars (Car2022), this exact model ID and CC BY 4.0. No explicit game-extraction declaration or additional restrictive terms were found in those model metadata fields.",
@@ -92,19 +92,20 @@
       "Excluded only source materials with exactly zero BLEND opacity: Paint2Mtl duplicate body (35,108 triangles) and Cupper1Mtl (96 triangles). No opaque source vehicle parts were substituted or excluded.",
       "Dropped unused UVs from untextured geometry, welded equivalent position/normal/UV vertices, and joined draw fragments by material.",
       "Retained every original opaque painted-body triangle in the main model; other main parts use indexed topology-, normal- and texture-coordinate-aware Meshopt simplification. The separate fallback uses normal-aware simplification with extra painted-body, tire and glass budget, never spatial clustering. Locked the original hood and its closely spaced black inner-skin vertices, and preserved painted-panel borders, in the fallback to prevent those layers from intersecting or seams opening.",
-      "Converted linear glTF base factors to display-space colors and retained the original red paint, glass alpha, badging and lamp colors; no user tint or new livery was applied.",
+      "Converted linear glTF base factors to display-space colors. Marked only the original Paint1Mtl body as remappable factory paint; glass alpha, badging and lamp colors remain separate. Factory palette RGB/finish values are digital display approximations.",
       "Embedded visible base-color PNGs byte-for-byte, deduplicating identical engine texture bytes; retained source REPEAT UV sampling. Unused normal, metallic/roughness, emissive and invisible-material images are omitted under the existing renderer contract. No raster editing or generated images.",
-      "Approximated fallback textured colors by sampling each original material at its source UVs. Packed a local gzip JavaScript payload. Wheels remain static under the existing runtime contract."
+      "Approximated fallback textured colors by sampling each original material at its source UVs. Packed a local gzip JavaScript payload.",
+      "Separated only inspected original tire/rim objects Object_40 through Object_46 into four rolling-wheel primitives, retaining model-local centers and radii. Body, brake and engine objects remain stationary; no replacement geometry was generated."
     ],
     "geometryAdded": false,
     "mainPaintGeometryPreserved": true,
     "otherGeometrySimplified": true,
     "sourceParts": 43,
-    "triangles": 166674,
-    "fallbackTriangles": 35434,
-    "drawGroups": 27,
-    "fallbackDrawGroups": 27,
-    "runtimeBytes": 9035121,
+    "triangles": 166669,
+    "fallbackTriangles": 35730,
+    "drawGroups": 40,
+    "fallbackDrawGroups": 40,
+    "runtimeBytes": 9054089,
     "scale": 0.24650137410869322,
     "bounds": {
       "min": [

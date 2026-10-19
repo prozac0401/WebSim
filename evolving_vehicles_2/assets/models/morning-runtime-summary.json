@@ -4,7 +4,11 @@
     "kind": "dealer-mesh",
     "label": "Kia Picanto · 딜러 공개 3D 외관",
     "url": "https://kia-picanto-2024.meta-sense.fr/",
-    "configuration": "2024 Kia Picanto exterior from Edenauto launch campaign by Metasense. Exact sales trim is unconfirmed; source parts include both GT-Line and Baseline names. Default 00_OPEN time-zero closed doors; original European wheels and badges differ from Korean Morning. Explicitly named Int_ cabin meshes hidden by opaque glazing are omitted for race performance."
+    "configuration": "2024 Kia Picanto exterior from Edenauto launch campaign by Metasense. Exact sales trim is unconfirmed; source parts include both GT-Line and Baseline names. Default 00_OPEN time-zero closed doors; original European wheels and badges differ from Korean Morning. Explicitly named Int_ cabin meshes hidden by opaque glazing are omitted for race performance.",
+    "windowFrameFinish": {
+      "description": "Existing side-window frame and B-pillar surfaces use selected body paint; original geometry/glass/mirror/interior preserved.",
+      "triangles": 9416
+    }
   },
   "bounds": {
     "min": [
@@ -2118,6 +2122,7 @@
         ]
       },
       "triangles": 117,
+      "textureIndex": 0,
       "textureBytes": 14559
     },
     {
@@ -2174,6 +2179,7 @@
         ]
       },
       "triangles": 1726,
+      "textureIndex": 1,
       "textureBytes": 2802918
     },
     {
@@ -2370,6 +2376,7 @@
         ]
       },
       "triangles": 1726,
+      "textureIndex": 1,
       "textureBytes": 2802918
     },
     {
@@ -2566,6 +2573,7 @@
         ]
       },
       "triangles": 1726,
+      "textureIndex": 1,
       "textureBytes": 2802918
     },
     {
@@ -2594,6 +2602,7 @@
         ]
       },
       "triangles": 1726,
+      "textureIndex": 1,
       "textureBytes": 2802918
     },
     {
@@ -3199,9 +3208,37 @@
       "indexType": 2,
       "bounds": {
         "min": [
-          -0.3834632635116577,
+          -0.19913098216056824,
           -0.951168417930603,
           0.3373972773551941
+        ],
+        "max": [
+          0.7162575125694275,
+          -0.5684019327163696,
+          1.0721075534820557
+        ]
+      },
+      "triangles": 4441,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.3834632635116577,
+          -0.798116147518158,
+          0.8901822566986084
         ],
         "max": [
           0.7310951352119446,
@@ -3209,7 +3246,8 @@
           1.411399483680725
         ]
       },
-      "triangles": 8244,
+      "triangles": 3803,
+      "windowFrame": true,
       "textureBytes": 0
     },
     {
@@ -3406,6 +3444,7 @@
         ]
       },
       "triangles": 4,
+      "textureIndex": 2,
       "textureBytes": 976662
     },
     {
@@ -3479,17 +3518,46 @@
       "indexType": 2,
       "bounds": {
         "min": [
-          -0.38316208124160767,
-          0.5406876802444458,
+          -0.1987430304288864,
+          0.5672021508216858,
           0.3373083174228668
         ],
         "max": [
-          0.7311617732048035,
+          0.7153595685958862,
           0.9507008194923401,
+          1.0720781087875366
+        ]
+      },
+      "triangles": 7456,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.38316208124160767,
+          0.5406876802444458,
+          0.8906880021095276
+        ],
+        "max": [
+          0.7311617732048035,
+          0.7977627515792847,
           1.411041259765625
         ]
       },
-      "triangles": 10624,
+      "triangles": 3168,
+      "windowFrame": true,
       "textureBytes": 0
     },
     {
@@ -3686,6 +3754,7 @@
         ]
       },
       "triangles": 86,
+      "textureIndex": 2,
       "textureBytes": 976662
     },
     {
@@ -3759,9 +3828,37 @@
       "indexType": 2,
       "bounds": {
         "min": [
+          -1.0104732513427734,
+          -0.6712129712104797,
+          0.3639666736125946
+        ],
+        "max": [
+          -0.40852612257003784,
+          -0.5706602931022644,
+          0.7803006768226624
+        ]
+      },
+      "triangles": 2269,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
           -1.2626498937606812,
           -0.7151665687561035,
-          0.3639666736125946
+          0.9165955781936646
         ],
         "max": [
           -0.33132123947143555,
@@ -3769,7 +3866,8 @@
           1.4116066694259644
         ]
       },
-      "triangles": 3503,
+      "triangles": 1234,
+      "windowFrame": true,
       "textureBytes": 0
     },
     {
@@ -3882,6 +3980,7 @@
         ]
       },
       "triangles": 4,
+      "textureIndex": 2,
       "textureBytes": 976662
     },
     {
@@ -3955,9 +4054,37 @@
       "indexType": 2,
       "bounds": {
         "min": [
+          -1.0104732513427734,
+          0.5706602931022644,
+          0.3639666736125946
+        ],
+        "max": [
+          -0.40852612257003784,
+          0.6712129712104797,
+          0.7803006768226624
+        ]
+      },
+      "triangles": 2259,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
           -1.2626498937606812,
           0.5357245802879333,
-          0.3639666736125946
+          0.9165955781936646
         ],
         "max": [
           -0.33132123947143555,
@@ -3965,7 +4092,8 @@
           1.4116066694259644
         ]
       },
-      "triangles": 3470,
+      "triangles": 1211,
+      "windowFrame": true,
       "textureBytes": 0
     },
     {
@@ -4078,6 +4206,7 @@
         ]
       },
       "triangles": 113,
+      "textureIndex": 3,
       "textureBytes": 48242
     }
   ],

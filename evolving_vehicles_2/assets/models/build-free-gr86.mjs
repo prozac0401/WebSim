@@ -16,7 +16,8 @@ const { MeshoptSimplifier } = await import(pathToFileURL(require.resolve('meshop
 const { mat3, vec3 } = require('gl-matrix');
 const sharp = require('sharp');
 await MeshoptSimplifier.ready;
-const folder = path.dirname(fileURLToPath(import.meta.url));
+const folder = process.argv[3] ? path.resolve(process.argv[3]) : path.dirname(fileURLToPath(import.meta.url));
+fs.mkdirSync(folder,{recursive:true});
 const filename = path.resolve(process.argv[2] || 'output/gr86/source.glb');
 const expectedHash = '276db7d1eb78ee603fbceb3684f33d7069fd5044d7376170b8a14554749bc07a';
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -118,11 +119,12 @@ function appearance(group, fallback) {
   const metal = /^(Bumperf0051|Bumperr0041|Meshesgr86fbumper41|Wheel0021|Wheel0081|Wheelpart1)Mtl$/.test(name);
   const tire = /^(Wheel1|Wheel0031)Mtl$/.test(name);
   const visual = {
-    materialName: name, role: paint ? 'original-red-paint' : tire ? 'tires' : glass ? 'glass' : lamp ? 'lamp' : name,
+    materialName: name, role: paint ? 'factory-paint' : tire ? 'tires' : glass ? 'glass' : lamp ? 'lamp' : name,
     color: base.slice(0, 3).map(linearToSrgb), alpha: base[3],
     material: glass ? 1 : lamp ? 4 : metal ? 3 : paint ? 0 : 2,
-    paint: false, textureOpaque: material.getAlphaMode() === 'OPAQUE'
+    paint, textureOpaque: material.getAlphaMode() === 'OPAQUE'
   };
+  if (group.wheel) visual.wheel = group.wheel;
   const texture = material.getBaseColorTexture();
   if (texture && !fallback) {
     visual.textureIndex = textureIds.get(texture);
@@ -134,9 +136,12 @@ function appearance(group, fallback) {
   return visual;
 }
 const groups = new Map();
+// These inspected source objects contain only tires/rims. Other materials named
+// Wheel contain body, engine, or brake parts and deliberately stay stationary.
+const rollingObjects = new Set(['Object_40','Object_41','Object_42','Object_43','Object_44','Object_45','Object_46']);
 for (const { node, primitive, name } of parts) {
-  const material = primitive.getMaterial(), key = material.getName();
-  if (!groups.has(key)) groups.set(key, { material, vertices: [], indices: [], remap: new Map(), sourceParts: [] });
+  const material = primitive.getMaterial(), rolling = rollingObjects.has(name), key = material.getName()+(rolling?'|rolling':'');
+  if (!groups.has(key)) groups.set(key, { material, rolling, vertices: [], indices: [], remap: new Map(), sourceParts: [] });
   const group = groups.get(key), positions = primitive.getAttribute('POSITION'), normals = primitive.getAttribute('NORMAL');
   assert(normals, 'Source normals required');
   const matrix = node.getWorldMatrix(), normalMatrix = mat3.normalFromMat4(mat3.create(), matrix);
@@ -155,14 +160,30 @@ for (const { node, primitive, name } of parts) {
     remapped[i] = index;
   }
   const indices = primitive.getIndices().getArray(), reverse = mat3.determinant(mat3.fromMat4(mat3.create(), matrix)) > 0;
+  const indexStart=group.indices.length;
   for (let i = 0; i < indices.length; i += 3) group.indices.push(remapped[indices[i]], remapped[indices[i + (reverse ? 2 : 1)]], remapped[indices[i + (reverse ? 1 : 2)]]);
-  group.sourceParts.push({ name, sourceTriangles: indices.length / 3, bounds });
+  group.sourceParts.push({ name, sourceTriangles: indices.length / 3, bounds, indexStart });
 }
 // The source tire primitive contains all four wheels. Partition its vertices
-// by axle/side to record source centers; the existing renderer uses static wheels.
-const wheelBounds = Array.from({ length: 4 }, emptyBounds), tireVertices = groups.get('Wheel1Mtl').vertices;
+// by axle/side; only whitelisted source objects receive rolling metadata.
+const wheelBounds = Array.from({ length: 4 }, emptyBounds), tireVertices = groups.get('Wheel1Mtl|rolling').vertices;
 for (let i = 0; i < tireVertices.length; i += 8) include(wheelBounds[(tireVertices[i] > 0 ? 2 : 0) + (tireVertices[i + 1] > 0 ? 1 : 0)], tireVertices.slice(i, i + 3));
-const wheelCenters = wheelBounds.map((bounds, i) => ({ name: `source-tire-${i}`, center: bounds.min.map((value, axis) => (value + bounds.max[axis]) / 2), radius: (bounds.max[2] - bounds.min[2]) / 2, axis: [0, 1, 0], bounds }));
+const wheelCenters = wheelBounds.map((bounds, i) => ({ name: `source-tire-${i}`, center: bounds.min.map((value, axis) => (value + bounds.max[axis]) / 2), radius: (bounds.max[2] - bounds.min[2]) / 2, axle:i<2?'rear':'front',side:i%2?1:-1,axis: [0, 1, 0], bounds }));
+for(const [key,group] of [...groups]) {
+  if(!group.rolling){group.sourceParts=group.sourceParts.map(({indexStart,...p})=>p);continue;}
+  groups.delete(key);
+  const sections=wheelCenters.map(wheel=>({...group,wheel,indices:[],sourceParts:[]}));
+  for(const part of group.sourceParts){
+    const partSections=wheelCenters.map(()=>({name:part.name,sourceTriangles:0,bounds:emptyBounds()}));
+    for(let i=part.indexStart;i<part.indexStart+part.sourceTriangles*3;i+=3){
+      const vertex=group.indices[i]*8,wi=(group.vertices[vertex]>0?2:0)+(group.vertices[vertex+1]>0?1:0);
+      const section=sections[wi],p=partSections[wi];p.sourceTriangles++;
+      for(let j=0;j<3;j++){const index=group.indices[i+j];section.indices.push(index);include(p.bounds,group.vertices.slice(index*8,index*8+3));}
+    }
+    partSections.forEach((p,i)=>{if(p.sourceTriangles)sections[i].sourceParts.push(p);});
+  }
+  sections.forEach((s,i)=>{if(s.indices.length)groups.set(key+'|'+i,s);});
+}
 function compact(vertices, indices) {
   const remap = new Map(), result = [], packed = new Uint32Array(indices.length), bounds = emptyBounds();
   indices.forEach((index, i) => {
@@ -226,6 +247,7 @@ function convert(fallback) {
     const bytes = Buffer.from(p.vertices, 'base64'), vertices = new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
     for (let i = 2; i < vertices.length; i += 8) vertices[i] -= floor;
     p.vertices = b64(vertices); p.bounds.min[2] -= floor; p.bounds.max[2] -= floor;
+    if(p.wheel)p.wheel={...p.wheel,center:p.wheel.center.map((v,i)=>i===2?v-floor:v)};
     p.groundShiftM = floor;
   }
   return output;
@@ -241,11 +263,11 @@ const source = {
   author: 'Mona x Supercars', authorUrl: 'https://sketchfab.com/Car2022',
   url: 'https://sketchfab.com/3d-models/toyota-gr86-zn8-4919d14eba9640599e838230e8e5ed74',
   license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-  configuration: '2023 Toyota GR86 ZN8 coupe exterior. Original red body, GR badges, cabin and ADVAN Racing RS wheel artwork retained. The community wheels are not an exact factory RZ wheel match.',
+  configuration: '2023 Toyota GR86 ZN8 coupe exterior. Remappable factory-paint material, original GR badges, cabin and ADVAN Racing RS wheel artwork. The community wheels are not an exact factory RZ wheel match.',
   attribution: 'Toyota GR86 (ZN8) by Mona x Supercars (Car2022), CC BY 4.0. Original wheel texture also credits Kazutoshi Mods. Mesh simplified and adapted for WebSim; see gr86-source.json and gr86-LICENSE.txt.',
   sha256: expectedHash
 };
-const payload = { id: 'gr86', source, bounds, triangles, primitives, textures, fallbackTriangles, fallbackPrimitives, wheelCenters, wheelAnimation: 'static-source-mesh', coordinateTransform: { worldToRuntime: ['-X', '-Z', '+Y'], handednessCorrectedForRenderer: true, windingCorrected: true, rigidPitchCorrectionRadians: -sourcePitch } };
+const payload = { id: 'gr86', source, bounds, triangles, primitives, textures, fallbackTriangles, fallbackPrimitives, wheelCenters, wheelAnimation: 'separate-source-wheel-primitives', coordinateTransform: { worldToRuntime: ['-X', '-Z', '+Y'], handednessCorrectedForRenderer: true, windingCorrected: true, rigidPitchCorrectionRadians: -sourcePitch } };
 const runtime = '/* Toyota GR86 (ZN8) by Mona x Supercars (Car2022), CC BY 4.0.\n * Wheel texture also credits Kazutoshi Mods. Simplified for WebSim. See gr86-source.json and gr86-LICENSE.txt. */\n' +
   `ManufacturerModels.registerCompressed(${JSON.stringify(gzipSync(JSON.stringify(payload), { level: 9 }).toString('base64'))});\n`;
 fs.writeFileSync(path.join(folder, 'gr86-runtime.js'), runtime);
@@ -260,9 +282,10 @@ const changes = [
   'Excluded only source materials with exactly zero BLEND opacity: Paint2Mtl duplicate body (35,108 triangles) and Cupper1Mtl (96 triangles). No opaque source vehicle parts were substituted or excluded.',
   'Dropped unused UVs from untextured geometry, welded equivalent position/normal/UV vertices, and joined draw fragments by material.',
   'Retained every original opaque painted-body triangle in the main model; other main parts use indexed topology-, normal- and texture-coordinate-aware Meshopt simplification. The separate fallback uses normal-aware simplification with extra painted-body, tire and glass budget, never spatial clustering. Locked the original hood and its closely spaced black inner-skin vertices, and preserved painted-panel borders, in the fallback to prevent those layers from intersecting or seams opening.',
-  'Converted linear glTF base factors to display-space colors and retained the original red paint, glass alpha, badging and lamp colors; no user tint or new livery was applied.',
+  'Converted linear glTF base factors to display-space colors. Marked only the original Paint1Mtl body as remappable factory paint; glass alpha, badging and lamp colors remain separate. Factory palette RGB/finish values are digital display approximations.',
   'Embedded visible base-color PNGs byte-for-byte, deduplicating identical engine texture bytes; retained source REPEAT UV sampling. Unused normal, metallic/roughness, emissive and invisible-material images are omitted under the existing renderer contract. No raster editing or generated images.',
-  'Approximated fallback textured colors by sampling each original material at its source UVs. Packed a local gzip JavaScript payload. Wheels remain static under the existing runtime contract.'
+  'Approximated fallback textured colors by sampling each original material at its source UVs. Packed a local gzip JavaScript payload.',
+  'Separated only inspected original tire/rim objects Object_40 through Object_46 into four rolling-wheel primitives, retaining model-local centers and radii. Body, brake and engine objects remain stationary; no replacement geometry was generated.'
 ];
 const provenanceNotes = [
   'The downloaded GLB and current public Sketchfab API identify Mona x Supercars (Car2022), this exact model ID and CC BY 4.0. No explicit game-extraction declaration or additional restrictive terms were found in those model metadata fields.',

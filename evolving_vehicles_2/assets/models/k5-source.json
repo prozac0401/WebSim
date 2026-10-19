@@ -1,0 +1,92 @@
+{
+  "id": "k5",
+  "title": "Kia K5 2025",
+  "author": "zapkolenko07",
+  "authorUrl": "https://sketchfab.com/zapkolenko07",
+  "sourceUrl": "https://sketchfab.com/3d-models/kia-k5-2025-0ed1b1fb1a074a42849076b96a15ce9f",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "manufacturerOfficial": false,
+  "verifiedDate": "2026-10-19",
+  "configuration": {
+    "generation": "DL3 facelift",
+    "modelYear": 2025,
+    "paintReference": {
+      "name": "스노우 화이트 펄",
+      "code": "SWP",
+      "hex": "#e7e9e5",
+      "finish": "pearl",
+      "roughness": 0.22,
+      "clearcoat": 0.92,
+      "rgbStatus": "estimated-display-color",
+      "sourceUrl": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_k5.pdf"
+    },
+    "limitations": "2025 Kia K5 DL3 facelift community mesh with original star-map lamps, body, badges and wheels. Snow White Pearl SWP digital paint approximation. Source wheel and equipment styling is shared across simulation powertrains, not a per-trim CAD match."
+  },
+  "download": {
+    "method": "Normal signed-in Sketchfab Download 3D Model GLB, without viewer extraction or authentication bypass.",
+    "files": [
+      {
+        "name": "source.glb",
+        "bytes": 17835388,
+        "sha256": "07891ce115dab0194027de0eee2b8ab525232963c5009d564cd8bd1e98aea07f"
+      }
+    ],
+    "embeddedAttribution": {
+      "author": "zapkolenko07 (https://sketchfab.com/zapkolenko07)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/kia-k5-2025-0ed1b1fb1a074a42849076b96a15ce9f",
+      "title": "Kia K5 2025"
+    }
+  },
+  "sourceGeometry": {
+    "downloadedTriangles": 345765,
+    "downloadedMeshes": 88,
+    "downloadedMaterials": 22,
+    "downloadedImages": 0
+  },
+  "provenanceNotes": [
+    "The public upload and downloaded GLB attribute this exact model to zapkolenko07 under CC BY 4.0. No separate restrictive notice, explicit game-extraction declaration or conflicting source URL was found in the embedded metadata. This does not establish a complete creation history.",
+    "The front and rear geometry was compared with the official current K5 exterior; this is the DL3 facelift, unlike the other uploader model titled 2025 but showing the earlier rear lights.",
+    "Original geometry is a community approximation, not official Kia CAD. Manufacturer length is only a uniform scale reference; source proportions and equipment differences are preserved."
+  ],
+  "visualReferences": [
+    {
+      "url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_k5.pdf",
+      "role": "Official facelift exterior, SWP name/code and dimensions"
+    }
+  ],
+  "conversion": {
+    "builder": "build-free-k5.mjs",
+    "changes": [
+      "Applied original node transforms and the reflected [-world X, +world Z, -world Y] convention, correcting normals and winding for forward +X, lateral +Y, up +Z. Uniformly scaled the source length to 4.905 m and aligned the tire floor to zero; no part-specific stretching, generated surfaces or substituted wheels.",
+      "Preserved all original painted-body and interior triangles in the main model and all original cabin-glass/window-frame/lamp triangles in both detail levels. Locked upper interior vertices above 0.8 m in the fallback so its roof/rear shelf cannot poke through adjacent glazing. Reduced tires, brakes and other repeated details with topology- and normal-aware Meshopt simplification; no sloppy spatial clustering.",
+      "Smoothed only coincident imported body/glazing normals within a 35-degree crease limit, without changing any vertex positions or closing original panel gaps.",
+      "The downloaded source contains 22 named materials with white default factors and no textures. Assigned paint, glass, lamps, black trim, rubber and metal display colors by original part/material semantics; these are WebSim appearance choices, not recovered original texture colors.",
+      "Applied the official Snow White Pearl name/code SWP to paintable source body and mirror caps using approximate display RGB #e7e9e5; clearcoat and roughness are renderer approximations.",
+      "Tagged only original tire/rim parts and complete brake discs Cylinder001/003/005/007 with four local wheel centers/radii. Offset brake calipers Line*, Cylinder002/004/006/008 and Object430/454/455/456 remain stationary.",
+      "Retained all 88 original source mesh parts, including Kia/K5 badges, factory-shaped wheels, star-map lamp geometry, cabin and grille. Preserved badge triangles in both detail levels. Merged compatible draw groups and packed gzip JavaScript."
+    ],
+    "geometryAdded": false,
+    "sourceParts": 88,
+    "mainPaintGeometryPreserved": true,
+    "triangles": 238177,
+    "fallbackTriangles": 83402,
+    "runtimeBytes": 12277144,
+    "scale": 1.002933824734776,
+    "bounds": {
+      "min": [
+        -2.452500104904175,
+        -1.069622278213501,
+        0
+      ],
+      "max": [
+        2.452500104904175,
+        1.069622278213501,
+        1.498680830001831
+      ]
+    },
+    "smoothedNormalComponents": 175545
+  },
+  "attribution": "Kia K5 2025 by zapkolenko07, CC BY 4.0. Original geometry adapted and simplified for WebSim; material colors assigned from part semantics. See k5-source.json and k5-LICENSE.txt."
+}

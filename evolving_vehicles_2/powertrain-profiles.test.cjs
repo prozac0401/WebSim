@@ -2,9 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const Profiles=require('./powertrain-profiles.js'),Evolution=require('./tuning-evolution.js');
 
-test('all 42 actual variants have a gearbox and explicit physical shift policy without omitted or phantom variants',()=>{
+test('all 53 actual variants have a gearbox and explicit physical shift policy without omitted or phantom variants',()=>{
   const actual=Object.entries(Evolution.VARIANTS).flatMap(([vehicleId,variants])=>variants.map(v=>({vehicleId,variantId:v.id})));
-  assert.equal(actual.length,42);assert.deepEqual(Object.keys(Profiles.PROFILES).sort(),actual.map(v=>v.variantId).sort());
+  assert.equal(actual.length,53);assert.deepEqual(Object.keys(Profiles.PROFILES).sort(),actual.map(v=>v.variantId).sort());
   const counts={};
   for(const identity of actual){
     const p=Profiles.resolve(identity);assert.equal(p.vehicleId,identity.vehicleId);assert.equal(p.variantId,identity.variantId);
@@ -14,7 +14,7 @@ test('all 42 actual variants have a gearbox and explicit physical shift policy w
     assert.ok(p.shiftModel.torqueRetention>=0&&p.shiftModel.torqueRetention<=1);
     for(const id of p.sourceIds)assert.ok(Profiles.SOURCES[id],id+' is a real specification source');
   }
-  assert.deepEqual(counts,{AT:26,EV:6,IVT:2,DCT:4,MT:4});
+  assert.deepEqual(counts,{AT:35,EV:6,IVT:2,DCT:5,MT:5});
 });
 
 test('manual and DCT timing and torque values stay inside the requested assumption ranges and cannot be mistaken for ratio verification',()=>{

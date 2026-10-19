@@ -1,53 +1,28 @@
 BMW M2 — Manuel Contento
 
+Creator: https://sketchfab.com/manuelcontento
 Original model: https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad
-Creator: Manuel Contento — https://sketchfab.com/manuelcontento
-Creator portfolio: https://www.artstation.com/artwork/Glq1a
-
-Licensed under Creative Commons Attribution 4.0 International (CC-BY-4.0).
-License: https://creativecommons.org/licenses/by/4.0/
+Licensed CC-BY-4.0: https://creativecommons.org/licenses/by/4.0/
 Legal code: https://creativecommons.org/licenses/by/4.0/legalcode.en
 
-The creator's public model page and the downloaded GLB both identify the author,
-source model and CC-BY-4.0 license. Verified on 2026-10-19. This license permits
-sharing and adaptation, including commercial use, with appropriate attribution,
-a license link, and indication of changes. Keep this attribution with copies.
-No endorsement by the creator or BMW is implied. The license does not grant
-trademark rights. The model is an independent artist work, not manufacturer CAD.
+Acquired through the normal Sketchfab Download 3D Model UI after sign-in.
+Original GLB 1k: 40911164 bytes
+SHA-256: e4d9445c333acfe70ed8aaaa800b1c79a60d1702cdc2db0bdffc5124450aff0e
+The separately preserved original GLB 4k has SHA-256 01b676e42e1f6385c8541ae4f8a63f5f1db7d64327f1a4fd3d2e2d3a19c8b524.
 
-Public download mirror: pedrosoandre/carros
-https://github.com/pedrosoandre/carros
-Pinned revision: 0a56de377f02f2574d781f6920fed08d6423ec2f
-File: https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb
-SHA-256: f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400
-
-The mirror documents normal Sketchfab Download API acquisition and previous
-vertex welding, geometry simplification, pruning and Meshopt compression.
-This is that processed derivative, not the creator's original upload bytes.
+The creator describes personal high-poly modeling practice in Autodesk Maya
+and Substance Painter. This is a community model, not official BMW CAD.
+No creator or manufacturer endorsement is implied. Retain attribution,
+license link and this change notice with redistributed copies.
 
 WebSim modifications:
-- Decoded compressed and quantized data; removed the studio ground plane only.
-- Preserved all 228,676 vehicle triangles in the main runtime model.
-- Rotated and uniformly scaled the vehicle to 4.468 m length, with tire ground
-  at zero. Original body, lamp and wheel geometry retained.
-- Removed decorative body stripes by detaching the shared livery atlas from
-  only the two painted body parts. Applied a separate Long Beach Blue Metallic
-  (C16) material, an official F87 factory color represented by an approximate
-  display RGB value. The five separate BMW roundels retain their original atlas;
-  lamp, glass, grille, wheel, tire and other detail textures are unchanged.
-  No raster image pixels were modified.
-- Preserved six original base-color textures; adapted glazing, lamp-cover,
-  paint-reflection, light-guide and metal materials to the exterior renderer.
-  Normal and metallic/roughness maps are not used by this renderer.
-- Produced a separate simplified fallback with the same factory body paint and
-  source-texture sampled detail colors.
-- Compacted and grouped indexed geometry and embedded the data in a local,
-  gzip-compressed JavaScript runtime. No newly generated body geometry added.
+- Replaced the previously simplified public mirror with the creator’s normally downloaded Sketchfab GLB, preserving embedded CC BY attribution.
+- Applied original node transforms and reflected [world +Z, -X, +Y] into runtime forward/up/screen-right coordinates, with matching normal/winding correction. Uniformly scaled to 4.468m length and tire ground zero. Front and rear M2 badge positions follow the original model and BMW reference.
+- Preserved all 199,724 original painted-body triangles and source normals in the main model. Other components use Meshopt topology-, normal- and UV-aware simplification; fallback uses the same method and protected body borders. No sloppy spatial clustering.
+- Removed body stripes with a remappable paint-only material while retaining BMW roundels, lamps, glass, grille and all original detail texture bytes.
+- Rigidly neutralized the source 18.5 degree front-wheel steering, including hub badges and brake assemblies. Split four rolling wheel groups and kept brake calipers stationary, using their distinct source UV islands.
+- Embedded only the six unedited 1k base-color images from the normal download; omitted unused normal/roughness maps under the renderer contract.
+- Paint names/codes are in vehicle-paints.js; rendered RGB, roughness and clearcoat are explicitly approximate.
 
-See bmw_m2-source.json, bmw_m2-runtime-summary.json and build-free-bmw-m2.mjs
-for detailed provenance, exact conversion results and reproducible processing.
-Official factory color evidence:
-https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2
-https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959
-Official BMW reference photographs are not included in this runtime asset and
-are not covered by the creator's Creative Commons license.
+Previous releases used the processed pedrosoandre/carros mirror; its fixed
+commit and hash remain in bmw_m2-source.json as historical provenance only.

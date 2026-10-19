@@ -101,13 +101,38 @@
       preset('avante', 'avante-2.0-18', '2.0 가솔린 FWD · 18인치', 1999, '직렬 4기통 가솔린', 'fwd', 149, nm(18.3), 1400, tireSpec(215, 45, 18))
     ],
     k5: [
-      preset('k5', 'k5-2.0', '2.0 가솔린 FWD · 16인치', 1999, '직렬 4기통 가솔린', 'fwd', 160, nm(20), 1425),
-      preset('k5', 'k5-1.6t', '1.6 터보 FWD · 17인치', 1598, '직렬 4기통 가솔린 터보', 'fwd', 180, nm(27), 1450, { ...tireSpec(215, 55, 17), topSpeedMps: 220 / 3.6 }),
-      preset('k5', 'k5-2.0lpg', '2.0 LPG FWD · 16인치', 1999, '직렬 4기통 LPG', 'fwd', 146, nm(19.5), 1445)
+      preset('k5', 'k5-2.0', '2.0 가솔린 FWD · 6AT · 16인치', 1999, '직렬 4기통 가솔린', 'fwd', 160, nm(20), 1425, { ...tireSpec(205, 65, 16), transmissionType: 'AT', gearCount: 6 }),
+      preset('k5', 'k5-1.6t', '1.6 터보 FWD · 8AT · 17인치', 1598, '직렬 4기통 가솔린 터보', 'fwd', 180, nm(27), 1450, { ...tireSpec(215, 55, 17), transmissionType: 'AT', gearCount: 8, topSpeedMps: 220 / 3.6 }),
+      preset('k5', 'k5-2.0lpg', '2.0 LPG FWD · 6AT · 16인치', 1999, '직렬 4기통 LPG', 'fwd', 146, nm(19.5), 1445, { ...tireSpec(205, 65, 16), transmissionType: 'AT', gearCount: 6 }),
+      preset('k5', 'k5-2.5t-gt', '2026 미국 GT 2.5 터보 FWD · 8DCT · 19인치', 2497, '직렬 4기통 가솔린 터보', 'fwd', 294.022, 421.659, 1631.118, {
+        ...tireSpec(245, 40, 19), transmissionType: 'DCT', gearCount: 8, modelYear: 2026, specificationMarket: 'US',
+        sourceUrl: 'https://www.kiamedia.com/us/es/models/k5/2026/specifications',
+        sourceNote: '미국 MY2026 GT: 290 SAE hp·311 lb-ft·3596 lb를 PS·Nm·kg로 환산 · 동역학 계수·속도상한은 모형 추정값',
+        visualVariantNote: '미국형 GT의 성능을 적용하며 외형은 공용 K5 페이스리프트 모델입니다.',
+        // The same US GT specification gives 61/39 front/rear distribution.
+        frontWeightFraction: .61, topSpeedMps: 250 / 3.6,
+        verifiedFields: ['powerPs', 'torqueNm', 'massKg', 'curbMassKg', 'frontWeightFraction', 'weightFront', 'frontTire', 'rearTire', 'transmissionType', 'gearCount'],
+        modeledFields: ['cgHeightM', 'trackWidthM', 'gripG', 'brakeG', 'dragArea', 'downforceArea', 'topSpeedMps', 'reduction']
+      }),
+      preset('k5', 'k5-2.0hev', '2.0 HEV FWD · 6AT · 16인치', 1999, '직렬 4기통 가솔린 하이브리드', 'fwd', 195, 367, 1515, {
+        ...tireSpec(205, 65, 16), transmissionType: 'AT', gearCount: 6, specificationMarket: 'KR',
+        enginePowerPs: 152, engineTorqueNm: nm(19.2), motorPowerKw: 38.6, motorTorqueNm: 205,
+        referenceFields: ['powerPs', 'torqueNm'], referenceMarket: 'AZ',
+        referenceSourceUrl: 'https://www.kia.com/az/showroom/k5-pe/specification.html',
+        sourceNote: '국내 2.0 HEV 6AT·16인치·1515 kg. 시스템 195 PS·367 Nm는 기아 아제르바이잔 참고값으로 국내 일치 미확인 · 엔진·모터 최고값을 단순 합산하지 않음 · 동역학 계수는 추정'
+      })
     ],
     carnival: [
       preset('carnival', 'carnival-3.5', '3.5 가솔린 FWD · 9인승 18인치', 3470, 'V6 가솔린', 'fwd', 294, nm(36.2), 2080, { heightMm: 1775 }),
-      preset('carnival', 'carnival-1.6heV', '1.6 터보 HEV FWD · 9인승 18인치', 1598, '직렬 4기통 터보 하이브리드', 'fwd', 245, nm(37.4), 2155, { heightMm: 1785, frontWeightFraction: .59, cgHeightM: .69, sourceNote: '출력·토크는 공식 시스템 합산값 · 동역학 계수는 모형 추정값' })
+      preset('carnival', 'carnival-1.6heV', '1.6 터보 HEV FWD · 9인승 18인치', 1598, '직렬 4기통 터보 하이브리드', 'fwd', 245, nm(37.4), 2155, { heightMm: 1785, frontWeightFraction: .59, cgHeightM: .69, sourceNote: '출력·토크는 공식 시스템 합산값 · 동역학 계수는 모형 추정값' }),
+      preset('carnival', 'carnival-2.2d', '2024 국내 2.2 디젤 FWD · 8AT · 9인승 18인치', 2151, '직렬 4기통 스마트스트림 디젤 터보', 'fwd', 194, nm(45), 2115, {
+        ...tireSpec(235, 60, 18), modelYear: 2024, market: 'KR', specificationMarket: 'KR', powertrainType: 'diesel',
+        transmissionType: 'AT', gearCount: 8, engineFamily: 'Smartstream D2.2', heightMm: 1775,
+        lengthMm: 5155, wheelbaseMm: 3090, frontTrackMm: 1746, rearTrackMm: 1746,
+        sourceUrl: 'https://rental.kia.com/rentfile/carseries/carseries_1713417958657.pdf',
+        engineFamilySourceUrl: 'https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_4thcarnival.pdf',
+        sourceNote: '2024.04 국내 페이스리프트 9인승 18인치 디젤 194 PS·45 kgf·m·2115 kg. 2151 cc 스마트스트림 D2.2이며 이전 2199 cc R2.2와 구분 · 동역학 계수·기어비·변속 회전수는 모형 추정값'
+      })
     ],
     g80: [
       preset('g80', 'g80-2.5t-rwd', '2.5T RWD · 20인치', 2497, '직렬 4기통 가솔린 터보', 'rwd', 304, nm(43), 1850),
@@ -126,10 +151,32 @@
       preset('grandeur', 'grandeur-3.5-awd', '3.5 가솔린 AWD · 20인치', 3470, 'V6 가솔린', 'awd', 300, nm(36.6), 1795, { frontWeightFraction: .60, topSpeedMps: 240 / 3.6 })
     ],
     santafe: [
-      preset('santafe', 'santafe-2.5t-fwd', '2.5 터보 FWD · 5인승 21인치', 2497, '직렬 4기통 가솔린 터보', 'fwd', 281, nm(43), 1865),
-      preset('santafe', 'santafe-2.5t-awd', '2.5 터보 AWD · 5인승 21인치', 2497, '직렬 4기통 가솔린 터보', 'awd', 281, nm(43), 1930)
+      preset('santafe', 'santafe-2.5t-fwd', '2.5 터보 FWD · 8DCT · 5인승 21인치', 2497, '직렬 4기통 가솔린 터보', 'fwd', 281, nm(43), 1865, { ...tireSpec(245, 45, 21), transmissionType: 'DCT', gearCount: 8, wheelInches: 21 }),
+      preset('santafe', 'santafe-2.5t-awd', '2.5 터보 AWD · 8DCT · 5인승 21인치', 2497, '직렬 4기통 가솔린 터보', 'awd', 281, nm(43), 1930, { ...tireSpec(245, 45, 21), transmissionType: 'DCT', gearCount: 8, wheelInches: 21 }),
+      ...['fwd', 'awd'].map(drive => preset('santafe', 'santafe-1.6hev-' + drive, '1.6 터보 HEV ' + drive.toUpperCase() + ' · 6AT · 5인승 18인치', 1598, '직렬 4기통 터보 하이브리드', drive, 235, 367, drive === 'awd' ? 1930 : 1865, {
+        ...tireSpec(235, 60, 18), transmissionType: 'AT', gearCount: 6, wheelInches: 18, specificationMarket: 'KR',
+        enginePowerPs: 180, engineTorqueNm: nm(27), motorPowerKw: 47.7, motorTorqueNm: 264,
+        sourceUrl: 'https://www.hyundai.com/kr/ko/e/vehicles/santafe-hybrid/intro',
+        referenceFields: ['torqueNm'], referenceMarket: 'AU',
+        referenceSourceUrl: 'https://www.hyundai.com/au/en/cars/suvs/santa-fe-hybrid/specifications',
+        visualVariantNote: '18인치 타이어 제원을 적용하며 휠 외형은 공용 하이브리드 모델입니다.',
+        sourceNote: '국내 시스템 235 PS·6AT·5인승 18인치. 시스템 367 Nm는 호주 참고값으로 국내 일치 미확인 · 엔진·모터 최고값을 단순 합산하지 않음 · 동역학 계수는 추정'
+      }))
     ],
-    staria: [preset('staria', 'staria-lpg', '라운지 3.5 LPG FWD · 7인승', 3470, 'V6 LPG', 'fwd', 240, nm(32), 2295)],
+    staria: [
+      preset('staria', 'staria-lpg', '라운지 3.5 LPG FWD · 7인승', 3470, 'V6 LPG', 'fwd', 240, nm(32), 2295),
+      ...['fwd', 'awd'].map(drive => preset('staria', 'staria-2.2d-' + drive, '2021 국내 2.2 디젤 ' + drive.toUpperCase() + ' · 8AT · 라운지 7인승', 2199, '직렬 4기통 디젤 VGT', drive, 177, nm(44), drive === 'awd' ? 2390 : 2320, {
+        ...tireSpec(235, 55, 18), modelYear: 2021, market: 'KR', specificationMarket: 'KR', powertrainType: 'diesel',
+        transmissionType: 'AT', gearCount: 8, engineFamily: 'R series 2.2 VGT',
+        referenceFields: ['engineFamily'], referenceMarket: 'AU',
+        referenceSourceUrl: 'https://www.hyundai.com/content/dam/hyundai/au/en/models/staria/2021/docs/STARIA_Spec-Table_Feb_2023_v1.pdf',
+        lengthMm: 5255, heightMm: 1990, wheelbaseMm: 3275, frontTrackMm: 1721, rearTrackMm: 1732,
+        sourceUrl: 'https://www.hyundai.com/kr/ko/brand/brandstory/model/staria-history/2021-staria-lounge',
+        specificationSourceUrl: 'https://autocatalogarchive.com/wp-content/uploads/2021/05/Hyundai-Staria-Lounge-2021-KR.pdf',
+        visualVariantNote: '2021년 라운지 7인승 디젤 성능을 적용하며 외형은 현재 공용 스타리아 모델입니다.',
+        sourceNote: '2021 국내 라운지 7인승 18인치 디젤 177 PS·44 kgf·m. FWD 2320 kg/AWD 2390 kg · R 계열 명칭은 현대 호주 동일 2199 cc 엔진 자료 참고 · 동역학 계수·기어비·변속 회전수는 모형 추정값'
+      }))
+    ],
     musso_ev: [
       preset('musso_ev', 'musso-ev-fwd', 'EV FWD · 80.6 kWh · 17인치', null, '전륜 단일 전기모터', 'fwd', 207, nm(34.7), 2155, { batteryKwh: 80.6 }),
       preset('musso_ev', 'musso-ev-awd', 'EV AWD · 80.6 kWh · 17인치', null, '전후륜 듀얼 전기모터', 'awd', 414, nm(69.2), 2275, { batteryKwh: 80.6, frontWeightFraction: .51 })
@@ -140,13 +187,32 @@
     ],
     porter2: [
       preset('porter2', 'porter-lpg-mt', '2.5 LPG 터보 RWD · 슈퍼캡 6MT', 2469, '직렬 4기통 LPG 터보', 'rwd', 138, nm(26), 1675),
-      preset('porter2', 'porter-lpg-at', '2.5 LPG 터보 RWD · 슈퍼캡 5AT', 2469, '직렬 4기통 LPG 터보', 'rwd', 159, nm(30), 1705)
+      preset('porter2', 'porter-lpg-at', '2.5 LPG 터보 RWD · 슈퍼캡 5AT', 2469, '직렬 4기통 LPG 터보', 'rwd', 159, nm(30), 1705),
+      ...['mt', 'at'].map(type => preset('porter2', 'porter-diesel-' + type, '2020 국내 A-2 2.5 디젤 RWD · 초장축 슈퍼캡 ' + (type === 'mt' ? '6MT' : '5AT'), 2497, '직렬 4기통 A-2 2.5 CRDi 디젤 터보', 'rwd', 133, nm(26.5), type === 'mt' ? 1820 : 1845, {
+        modelYear: 2020, market: 'KR', specificationMarket: 'KR', powertrainType: 'diesel',
+        transmissionType: type.toUpperCase(), gearCount: type === 'mt' ? 6 : 5, engineFamily: 'A-2', engineCode: 'D4CB',
+        lengthMm: 5100, heightMm: 1970, wheelbaseMm: 2640, frontTrackMm: 1485, rearTrackMm: 1320,
+        frontTire: '195/70R15', rearTire: '145R13', frontTireRadiusMm: 327, rearTireRadiusMm: 281.1,
+        tireFitment: { front: { size: '195/70R15', tiresPerAxle: 2 }, rear: { size: '145R13', tiresPerAxle: 4, mounting: 'dual' } },
+        tireSourceUrl: 'https://www.hyundai.com/content/dam/hyundai/kr/ko/data/vehicles/price/porter2-price.pdf',
+        sourceUrl: 'https://www.hyundai.com/content/dam/hyundai/kr/ko/data/vehicles/catalog/porter2-catalog.pdf',
+        visualVariantNote: '2020년 A-2 디젤 성능을 적용하며 외형은 LPG 기준 공용 포터 II 모델입니다.',
+        sourceNote: '2020.03 국내 초장축 슈퍼캡 D4CB: MT/AT 공통 133 PS·26.5 kgf·m, 6MT 1820 kg/5AT 1845 kg. 뒤 145R13의 미표기 단면비는 80%로 가정(281.1 mm) · 동역학 계수·기어비·변속 회전수는 모형 추정값',
+        modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'trackWidthM', 'gripG', 'brakeG', 'dragArea', 'downforceArea', 'topSpeedMps', 'reduction', 'rearTireRadiusMm']
+      }))
     ],
     g70: [
       preset('g70', 'g70-2.0t-rwd', '2019 국내 2.0T RWD · 8AT · 18인치', 1998, '직렬 4기통 가솔린 터보', 'rwd', 252, nm(36), 1595, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .52 }),
       preset('g70', 'g70-2.0t-awd', '2019 국내 2.0T AWD · 8AT · 18인치', 1998, '직렬 4기통 가솔린 터보', 'awd', 252, nm(36), 1665, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .53 }),
       preset('g70', 'g70-3.3t-rwd', '2019 국내 3.3T Sport RWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'rwd', 370, nm(52), 1705, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .53, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 }),
-      preset('g70', 'g70-3.3t-awd', '2019 국내 3.3T Sport AWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'awd', 370, nm(52), 1775, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .54, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 })
+      preset('g70', 'g70-3.3t-awd', '2019 국내 3.3T Sport AWD · 8AT · 19인치', 3342, 'V6 가솔린 트윈터보', 'awd', 370, nm(52), 1775, { sourceNote: SHARED.g70.sourceNote, frontWeightFraction: .54, cgHeightM: .50, brakeG: 1.10, topSpeedMps: 270 / 3.6, frontTire: '225/40R19', rearTire: '255/35R19', frontTireRadiusMm: 331.3, rearTireRadiusMm: 330.55 }),
+      ...['rwd', 'awd'].map(drive => preset('g70', 'g70-2.2d-' + drive, '2019 국내 R2.2 디젤 ' + drive.toUpperCase() + ' · 8AT · 17인치', 2199, '직렬 4기통 R2.2 VGT 디젤 터보', drive, 202, nm(45), drive === 'awd' ? 1765 : 1690, {
+        ...tireSpec(225, 50, 17), modelYear: 2019, market: 'KR', specificationMarket: 'KR', powertrainType: 'diesel',
+        transmissionType: 'AT', gearCount: 8, engineFamily: 'R-FR 2.2 VGT', frontTrackMm: 1592, rearTrackMm: 1628,
+        sourceUrl: 'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',
+        engineFamilySourceUrl: 'https://newsroom.genesis.com/genesis-g70-resets-expectations-of-customer-focused-performance-and-luxury/',
+        sourceNote: '2019 국내 전기형 R2.2 디젤 202 PS·45 kgf·m·8AT·17인치. RWD 1690 kg/AWD 1765 kg · 가솔린 기어비를 전용하지 않으며 동역학 계수·기어비·변속 회전수는 모형 추정값'
+      }))
     ],
     supra: [
       preset('supra', 'supra-3.0t-rz', 'GR Supra 3.0T 8AT · 19인치', 2997, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 340, 500, 1520, { sourceNote: SHARED.supra.sourceNote })

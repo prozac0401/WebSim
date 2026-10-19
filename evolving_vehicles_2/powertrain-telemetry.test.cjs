@@ -150,7 +150,9 @@ test('exact-market Supra ratios, tuning ratio changes and unsourced fallback rem
   assert.ok(Telemetry.gearSpeedAtRPM(tuned, 3, 6500) < Telemetry.gearSpeedAtRPM(base, 3, 6500), 'shorter modeled final drive raises RPM at the same speed');
   assert.equal(Telemetry.describeGearing(carFor()).ratioStatus, 'estimated');
   assert.equal(Profiles.resolve(carFor()).gearRatios, null, 'unverified ratios must not be fabricated as official tables');
-  for (const v of Evolution.VARIANTS.g70) {
+  const gasoline = Evolution.VARIANTS.g70.filter(v => v.spec.powertrainType === 'gasoline');
+  assert.equal(gasoline.length, 4, 'all four original gasoline combinations keep their reference ratios');
+  for (const v of gasoline) {
     const p = Profiles.resolve(carFor('g70', v.id));
     assert.equal(p.ratioMarket, 'US'); assert.equal(p.ratioStatus, 'reference-market');
     assert.equal(p.finalDriveRatio, v.id.includes('2.0') ? 3.727 : 3.538);
@@ -158,6 +160,18 @@ test('exact-market Supra ratios, tuning ratio changes and unsourced fallback rem
     assert.equal(p.gearRatios[5], v.id.includes('2.0') ? .832 : .826);
     assert.ok(p.sourceIds.includes('genesis-g70-us-2019-ratios'));
     assert.ok(p.estimatedFields.includes('domesticRatioMatch'));
+  }
+  const diesel = Evolution.VARIANTS.g70.filter(v => v.spec.powertrainType === 'diesel');
+  assert.equal(diesel.length, 2);
+  for (const v of diesel) {
+    const car = carFor('g70', v.id), p = Profiles.resolve(car), gearing = Telemetry.describeGearing(car);
+    assert.equal(p.powertrainType, 'diesel'); assert.equal(p.gearCount, 8);
+    assert.equal(p.gearRatios, null); assert.equal(p.finalDriveRatio, null); assert.equal(p.finalDriveRatios, null);
+    assert.equal(p.ratioStatus, 'estimated'); assert.equal(gearing.sourceId, null);
+    assert.ok(!p.sourceIds.includes('genesis-g70-us-2019-ratios'), 'gasoline tables must not label the diesel reduction as sourced');
+    assert.ok(p.sourceIds.includes('genesis-g70-diesel-2019'));
+    assert.equal(gearing.shiftRPM, 4200); assert.equal(p.maxRPM, 4800);
+    assert.deepEqual(gearing.totalRatios, Array.from({ length: 8 }, (_, i) => 13.5 * Math.pow(.78, i)));
   }
 });
 
@@ -353,8 +367,11 @@ test('Kia reference-market ratios preserve the exact engine and gearbox combinat
 });
 
 test('Santa Fe DCT final-drive groups produce real RPM drops at 2–3 and 6–7 shifts', () => {
-  for (const variant of Evolution.VARIANTS.santafe) {
+  const variants = Evolution.VARIANTS.santafe.filter(v => v.id.startsWith('santafe-2.5t-'));
+  assert.equal(variants.length, 2, 'both original ICE drive layouts keep the eight-speed DCT');
+  for (const variant of variants) {
     const car = carFor('santafe', variant.id), profile = Profiles.resolve(car);
+    assert.equal(profile.transmissionType, 'DCT'); assert.equal(profile.powertrainType, 'gasoline');
     assert.deepEqual(profile.gearRatios, [3.429, 2.217, 2.217, 1.621, .860, .673, .791, .653]);
     assert.deepEqual(profile.finalDriveRatios, [4.846, 4.846, 3.316, 3.316, 4.846, 4.846, 3.316, 3.316]);
     assert.equal(profile.finalDriveRatio, null);
@@ -382,6 +399,38 @@ test('Santa Fe DCT final-drive groups produce real RPM drops at 2–3 and 6–7 
       }
     }
     assert.deepEqual([...checked], [2, 6], variant.id + ': acceleration traverses both final-drive groups');
+  }
+});
+
+test('Santa Fe HEV uses six hybrid automatic gears and one final drive without inheriting DCT shaft groups', () => {
+  const variants = Evolution.VARIANTS.santafe.filter(v => v.id.startsWith('santafe-1.6hev-'));
+  assert.equal(variants.length, 2);
+  for (const variant of variants) {
+    const car = carFor('santafe', variant.id), profile = Profiles.resolve(car);
+    assert.equal(profile.transmissionType, 'AT'); assert.equal(profile.powertrainType, 'hybrid'); assert.equal(profile.gearCount, 6);
+    assert.equal(profile.shiftModel.family, 'hybrid-step');
+    assert.deepEqual(profile.gearRatios, [4.639, 2.826, 1.841, 1.386, 1, .772]);
+    assert.equal(profile.finalDriveRatio, 3.51); assert.equal(profile.finalDriveRatios, null);
+    assert.equal(profile.ratioStatus, 'reference-market'); assert.equal(profile.ratioMarket, 'AU');
+    assert.ok(profile.sourceIds.includes('hyundai-santafe-hev-au-ratios'));
+    assert.ok(!profile.sourceIds.includes('hyundai-santafe-au-my21-final-drives'));
+    car.spec = { ...car.spec, rearTireRadiusMm: car.spec.frontTireRadiusMm + 70 };
+    const gearing = Telemetry.describeGearing(car), state = Telemetry.create(car), shifts = new Set();
+    assert.equal(gearing.nominalRadiusM, car.spec.frontTireRadiusMm / 1000);
+    assert.equal(state.kind, 'hybrid'); assert.ok(state.battery);
+    // Synthetic speed sweep verifies the display's six-gear limit; it is not
+    // a claim that the actual HEV can reach the supplied terminal speed.
+    for (let i = 0; i < 80 / dt; i++) {
+      const previous = { ...state };
+      car.speed = i * dt * 5 / 3.6; car.acceleration = 5 / 3.6;
+      Telemetry.update(car, state, dt, { drivePowerW: 180000 });
+      assert.ok(state.gear >= 1 && state.gear <= 6, variant.id);
+      if (previous.gear !== state.gear) {
+        assert.equal(state.gear, previous.gear + 1); shifts.add(state.gear);
+        assert.ok(state.rpmNormalized < previous.rpmNormalized - .15, variant.id + ': HEV RPM drops on each upshift');
+      }
+    }
+    assert.deepEqual([...shifts], [2, 3, 4, 5, 6]); assert.equal(state.gear, 6);
   }
 });
 

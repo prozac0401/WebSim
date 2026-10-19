@@ -3,7 +3,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),zlib=require('node:zlib');
 const registrySource=fs.readFileSync(path.join(__dirname,'manufacturer-models.js'),'utf8');
-const kinds={carnival:'manufacturer-mesh',morning:'dealer-mesh',ray:'photo-reconstruction',k5:'photo-reconstruction',avante:'photo-reconstruction',grandeur:'photo-reconstruction',torres:'photo-reconstruction',musso_ev:'photo-reconstruction',porter2:'photo-reference'};
+const kinds={carnival:'manufacturer-mesh',morning:'dealer-mesh',ray:'photo-reconstruction',k5:'community-mesh',avante:'photo-reconstruction',grandeur:'photo-reconstruction',torres:'photo-reconstruction',musso_ev:'photo-reconstruction',porter2:'photo-reference'};
 
 function registry(t){
  const scripts=[],waiting=new Map(),timers=new Set();

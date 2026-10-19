@@ -50,17 +50,28 @@ test('Supra is exclusively the 2019 Japanese RZ 3.0T with its official factory c
   assert.ok(new Set(population.map(entry => JSON.stringify(entry.levels))).size > 1, 'single factory trim still evolves varied tuning');
 });
 
-test('G70 and Supra variants get the correct eight-speed combustion HUD profile', () => {
+test('G70 gasoline and diesel and Supra retain distinct eight-speed combustion HUD profiles', () => {
+  let gasoline = 0, diesel = 0;
   for (const vehicleId of ['g70', 'supra']) {
     for (const variant of Evolution.VARIANTS[vehicleId]) {
       const entrant = Evolution.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
       const profile = Profiles.resolve({ vehicleId, entrant });
       assert.equal(profile.gearCount, 8); assert.equal(profile.transmissionType, 'AT');
-      assert.equal(profile.powertrainType, 'gasoline'); assert.equal(profile.visible, true);
+      const isDiesel = vehicleId === 'g70' && variant.id.startsWith('g70-2.2d-');
+      assert.equal(profile.powertrainType, isDiesel ? 'diesel' : 'gasoline'); assert.equal(profile.visible, true);
+      assert.equal(entrant.factorySpec.powertrainType, profile.powertrainType);
+      if (isDiesel) {
+        diesel++; assert.equal(profile.shiftRPM, 4200); assert.equal(profile.maxRPM, 4800);
+        assert.ok(profile.sourceIds.includes('genesis-g70-diesel-2019'));
+      } else {
+        gasoline++; assert.equal(profile.shiftRPM, 6500); assert.equal(profile.maxRPM, 7000);
+      }
       assert.ok(profile.sourceIds.length); assert.equal(profile.variantId, variant.id);
     }
     assert.equal(Profiles.resolve(vehicleId).gearCount, 8);
+    assert.equal(Profiles.resolve(vehicleId).powertrainType, 'gasoline', 'the original baseline remains gasoline');
   }
+  assert.equal(gasoline, 5); assert.equal(diesel, 2);
 });
 
 test('2016 F87 M2 retains German DIN masses and both factory transmissions without mixing Competition or overboost', () => {

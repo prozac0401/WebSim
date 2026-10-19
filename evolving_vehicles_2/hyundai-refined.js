@@ -41,13 +41,22 @@
   ];
   const frontX=z=>interp(section,z,1),rearX=z=>interp(section,z,2),halfW=z=>interp(section,z,3);
   const corner=z=>.135+.065*Math.exp(-Math.pow((z-1.10)/.46,2));
+  // The rear photograph shows a rounded C-pillar/shoulder, not a square box.
+  // Share one quarter-circle between the bulkhead and door loft so the old
+  // 35 mm unmatched rear/side edge cannot leave a crack or a hard flat shoulder.
+  const rearCorner=z=>.10+.025*Math.exp(-Math.pow((z-1.62)/.35,2));
+  const rearPoint=(u,z,off=0)=>{
+   const r=rearCorner(z),y=u*halfW(z),d=Math.max(0,Math.abs(y)-(halfW(z)-r));
+   return[rearX(z)+r-Math.sqrt(Math.max(0,r*r-d*d))-off,y,z];
+  };
   const frontPoint=(u,z,off=0)=>[frontX(z)-corner(z)*Math.pow(Math.abs(u),3.5)+off,u*halfW(z),z];
   const sidePoint=(x,z,side,off=0)=>{
-   const lo=rearX(z),hi=frontX(z)-corner(z),t=Math.max(0,Math.min(1,(x-lo)/(hi-lo)));
+   const lo=rearX(z)+rearCorner(z),hi=frontX(z)-corner(z),t=Math.max(0,Math.min(1,(x-lo)/(hi-lo)));
+   const r=rearCorner(z),d=Math.max(0,lo-x),roundedInset=r-Math.sqrt(Math.max(0,r*r-d*d));
    const doorSwell=.034*Math.sin(Math.PI*t)*Math.exp(-Math.pow((z-.94)/.34,2));
    const pressed=.012*Math.sin(Math.PI*t)*Math.exp(-Math.pow((z-1.17)/.045,2));
-   const fender=.040*Math.exp(-Math.pow((Math.hypot(x-axleF,z-rF)-.405)/.08,2));
-   return[x,side*(halfW(z)+doorSwell-pressed+fender+off),z];
+   const fender=.040*Math.sin(Math.PI*t)*Math.exp(-Math.pow((Math.hypot(x-axleF,z-rF)-.405)/.08,2));
+   return[x,side*(halfW(z)-roundedInset+doorSwell-pressed+fender+off),z];
   };
   function closePath(poly,steps=5){
    const out=[];
@@ -70,20 +79,21 @@
     quad(frontPoint(u,z),frontPoint(v,z),frontPoint(v,Z),frontPoint(u,Z),paint,'paint','porter-front-cab');
    }
    for(const side of[-1,1])for(let j=0;j<84;j++){
-    const t=j/84,T=(j+1)/84,xa=rearX(z)+(frontX(z)-corner(z)-rearX(z))*t,xb=rearX(z)+(frontX(z)-corner(z)-rearX(z))*T;
-    const Xa=rearX(Z)+(frontX(Z)-corner(Z)-rearX(Z))*t,Xb=rearX(Z)+(frontX(Z)-corner(Z)-rearX(Z))*T;
+    const t=j/84,T=(j+1)/84,lo=rearX(z)+rearCorner(z),Lo=rearX(Z)+rearCorner(Z);
+    const xa=lo+(frontX(z)-corner(z)-lo)*t,xb=lo+(frontX(z)-corner(z)-lo)*T;
+    const Xa=Lo+(frontX(Z)-corner(Z)-Lo)*t,Xb=Lo+(frontX(Z)-corner(Z)-Lo)*T;
     const midX=(xa+xb+Xa+Xb)/4,midZ=(z+Z)/2;
     if(Math.hypot(midX-axleF,midZ-rF)<rF+.044)continue;
     const points=[sidePoint(xa,z,side),sidePoint(xb,z,side),sidePoint(Xb,Z,side),sidePoint(Xa,Z,side)];
     if(side>0)points.reverse();emit(points,paint,'paint','porter-cab-side');
    }
    for(let j=0;j<40;j++){
-    const u=-1+j/20,v=u+.05,back=(a,b)=>[rearX(b)+.035*Math.pow(Math.abs(a),4),a*halfW(b),b];
-    quad(back(v,z),back(u,z),back(u,Z),back(v,Z),paint,'paint','porter-rear-bulkhead');
+    const u=-1+j/20,v=u+.05;
+    quad(rearPoint(v,z),rearPoint(u,z),rearPoint(u,Z),rearPoint(v,Z),paint,'paint','porter-rear-bulkhead');
    }
   }
   // A gently domed roof closes the loft; the roof edge is rounded in plan.
-  const roof=(t,u)=>[.535+(1.380-.535)*t-.135*t*Math.pow(Math.abs(u),3.5)+.035*(1-t)*Math.pow(Math.abs(u),4),u*.740,1.935+.035*Math.sin(Math.PI*t)*(1-Math.pow(u,4))];
+  const roof=(t,u)=>{const a=rearPoint(u,1.935),b=frontPoint(u,1.935);return[a[0]+(b[0]-a[0])*t,u*.740,1.935+.035*Math.sin(Math.PI*t)*(1-Math.pow(u,4))];};
   for(let i=0;i<32;i++)for(let j=0;j<40;j++)quad(roof(i/32,-1+j/20),roof((i+1)/32,-1+j/20),roof((i+1)/32,-1+(j+1)/20),roof(i/32,-1+(j+1)/20),paint,'paint','porter-roof');
   // The windscreen is curved both horizontally and vertically and has the
   // rounded trapezoid outline seen in the front drawing, not a flat quad.
@@ -96,8 +106,12 @@
   for(const side of[-1,1])ribbon(Array.from({length:40},(_,i)=>{const z=windLower+(windUpper-windLower)*i/39;return frontPoint(side*windU(z),z,.012);}),.016,'#1b2326','rubber','porter-windscreen-seal');
   for(const z of[windLower,windUpper])ribbon(Array.from({length:41},(_,j)=>frontPoint((-1+j/20)*windU(z),z,.012)),.018,'#1b2326','rubber','porter-windscreen-seal');
   // Main door panes and curved super-cab quarter panes, traced from the side.
-  const mainGlass=[[.875,1.285],[.865,1.83],[.940,1.880],[1.30,1.878],[1.44,1.82],[1.64,1.665],[1.88,1.445],[2.055,1.275],[1.82,1.255]];
-  const quarterGlass=[[.505,1.370],[.510,1.810],[.560,1.860],[.725,1.860],[.765,1.79],[.765,1.400],[.660,1.330]];
+  // Pixel landmarks from the official orthographic side image, transformed
+  // using the published 2,640 mm wheelbase. The former panes extended onto
+  // white door/roof pixels, making a painted border appear inside the glass.
+  const sideLandmarks=points=>points.map(([x,y])=>[(378.1667-x)/(328/2.64),(350-y)/(328/2.64)]);
+  const mainGlass=sideLandmarks([[261,122],[236,121],[211,125],[191,132],[169,150],[145,175],[137,187],[154,182],[188,179],[224,174],[260,170]]);
+  const quarterGlass=sideLandmarks([[273,123],[289,123],[295,130],[297,149],[292,162],[281,169],[273,170]]);
   for(const side of[-1,1]){
    mappedPanel(mainGlass,(x,z)=>sidePoint(x,z,side,.010),glass,'glass','porter-side-glass',.015);
    mappedPanel(quarterGlass,(x,z)=>sidePoint(x,z,side,.010),glass,'glass','porter-quarter-glass',.015);
@@ -124,7 +138,11 @@
    emit(Array.from({length:32},(_,j)=>[mx-.073,my+Math.cos(j/16*Math.PI)*.052,mz+Math.sin(j/16*Math.PI)*.125]),'#789098','glass','porter-mirror-glass');
    ribbon([[mx+.053,my-side*.025,mz-.08],[mx+.063,my+side*.027,mz-.075]],.015,'#d8e5e2','light','porter-mirror-indicator');
   }
-  mappedPanel([[-.67,1.40],[.67,1.40],[.67,1.78],[-.67,1.78]],(u,z)=>[rearX(z)-.009,u*halfW(z),z],glass,'glass','porter-rear-glass',.014);
+  mappedPanel([[-.67,1.40],[.67,1.40],[.67,1.78],[-.67,1.78]],(u,z)=>rearPoint(u,z,.009),glass,'glass','porter-rear-glass',.014);
+  for(const u of[-.68,-.45,-.22,.22,.45,.68]){
+   // Shallow stamped reinforcement channels, visible below the rear window.
+   mappedPanel([[u-.025,1.13],[u+.025,1.13],[u+.022,1.34],[u,1.37],[u-.022,1.34]],(a,z)=>rearPoint(a,z,.012),tint(paint,-.025),'paint','porter-rear-press');
+  }
   for(const side of[-1,1]){
    const a=frontPoint(side*.12,1.30,.025),b=frontPoint(side*.72,1.325,.025);
    tube(a,b,.009,'#1c2225','rubber','porter-wipers');tube(frontPoint(side*.09,1.267,.018),frontPoint(side*.32,1.32,.025),.012,'#242b2f','rubber','porter-wipers');

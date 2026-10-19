@@ -6,7 +6,7 @@ const vm=require('node:vm');
 const {gunzipSync}=require('node:zlib');
 const {createHash}=require('node:crypto');
 const {test}=require('node:test');
-const folder=path.join(__dirname,'assets/models');
+const folder=process.env.GR86_MODEL_DIR||path.join(__dirname,'assets/models');
 const runtime=fs.readFileSync(path.join(folder,'gr86-runtime.js'),'utf8');
 const source=JSON.parse(fs.readFileSync(path.join(folder,'gr86-source.json')));
 const summary=JSON.parse(fs.readFileSync(path.join(folder,'gr86-runtime-summary.json')));
@@ -40,8 +40,8 @@ test('GR86 accounts for all original parts and excludes only two completely tran
  const excluded=source.sourceGeometry.excluded;
  assert.deepEqual([...new Set(excluded.map(p=>p.materialName))].sort(),['Cupper1Mtl','Paint2Mtl']);
  assert.equal(excluded.reduce((s,p)=>s+p.sourceTriangles,0),35204);
- assert.equal(model.primitives.length,27);assert.equal(model.fallbackPrimitives.length,27);
- assert.equal(model.primitives.flatMap(p=>p.sourceParts).length+excluded.length,47);
+ assert.equal(model.primitives.length,40);assert.equal(model.fallbackPrimitives.length,40);
+ assert.equal(new Set(model.primitives.flatMap(p=>p.sourceParts.map(p=>p.name))).size+excluded.length,47);
  assert.equal(model.primitives.reduce((s,p)=>s+p.sourceTriangles,0),248857);
  for(const p of model.primitives)assert.equal(p.sourceParts.reduce((s,q)=>s+q.sourceTriangles,0),p.sourceTriangles);
  assert.equal(source.conversion.geometryAdded,false);assert.equal(source.conversion.mainPaintGeometryPreserved,true);assert.equal(source.conversion.otherGeometrySimplified,true);
@@ -53,8 +53,9 @@ test('GR86 accounts for all original parts and excludes only two completely tran
  assert(Buffer.byteLength(runtime)<10*1024*1024);
 });
 
-test('GR86 preserves the original red paint, alpha, original PNG bytes and repeat UV sampling',()=>{
- const paint=part(model.primitives,'Paint1Mtl');assert.equal(paint.paint,false);assert.equal(paint.material,0);
+test('GR86 isolates remappable body paint while preserving alpha, original PNG bytes and repeat UV sampling',()=>{
+ const paint=part(model.primitives,'Paint1Mtl');assert.equal(paint.paint,true);assert.equal(paint.material,0);
+ assert(model.primitives.filter(p=>p!==paint).every(p=>!p.paint));
  assert(Math.abs(paint.color[0]-1)<1e-12);assert(paint.color[1]<.02&&paint.color[2]<.02);assert.equal(paint.textureIndex,undefined);
  assert.equal(model.textures.length,14);assert.equal(summary.textures.length,14);
  for(let i=0;i<model.textures.length;i++){
@@ -101,7 +102,7 @@ for(const [name,primitives,count]of [['main',model.primitives,model.triangles],[
   assert(part(primitives,'Fari0051Mtl').bounds.max[0]<-1.7);
   assert(part(primitives,'Bumprearok0011Mtl').bounds.max[0]<-2);
   assert.equal(part(primitives,'Ln4Mtl').material,4);
-  const tires=part(primitives,'Wheel1Mtl'),v=decode(tires.vertices,Float32Array);
+  const tires=primitives.filter(p=>p.materialName==='Wheel1Mtl'),v=tires.flatMap(p=>Array.from(decode(p.vertices,Float32Array)));
   for(const w of model.wheelCenters){
    assert.deepEqual(w.axis,[0,1,0]);let count=0,min=Infinity,max=-Infinity;
    for(let i=0;i<v.length;i+=8)if(Math.abs(v[i]-w.center[0])<.4&&Math.abs(v[i+1]-w.center[1])<.2){count++;min=Math.min(min,v[i+2]);max=Math.max(max,v[i+2]);}
@@ -110,10 +111,10 @@ for(const [name,primitives,count]of [['main',model.primitives,model.triangles],[
  });
 }
 
-test('GR86 retains source coupe proportions and static axle placement without axis stretching',()=>{
+test('GR86 retains source coupe proportions and original axle placement without axis stretching',()=>{
  const {min,max}=model.bounds;assert(Math.abs(max[0]-min[0]-4.265)<.001);
  assert(max[1]-min[1]>2.02&&max[1]-min[1]<2.05);assert(max[2]>1.29&&max[2]<1.32);assert.equal(min[2],0);
- assert.equal(model.wheelAnimation,'static-source-mesh');assert.equal(model.wheelCenters.length,4);
+ assert.equal(model.wheelAnimation,'separate-source-wheel-primitives');assert.equal(model.wheelCenters.length,4);
  assert(Math.max(...model.wheelCenters.map(w=>w.center[2]))-Math.min(...model.wheelCenters.map(w=>w.center[2]))<.001);
  assert(model.coordinateTransform.rigidPitchCorrectionRadians<-.01&&model.coordinateTransform.rigidPitchCorrectionRadians>-.012);
  const axle=model.wheelCenters.filter(w=>w.center[1]>0).map(w=>w.center[0]).sort((a,b)=>a-b);
@@ -121,6 +122,17 @@ test('GR86 retains source coupe proportions and static axle placement without ax
  const paint=part(model.primitives,'Paint1Mtl');assert(paint.bounds.max[1]-paint.bounds.min[1]>1.78&&paint.bounds.max[1]-paint.bounds.min[1]<1.81);
  assert.deepEqual(model.coordinateTransform.worldToRuntime,['-X','-Z','+Y']);
  assert.equal(model.coordinateTransform.handednessCorrectedForRenderer,true);assert.equal(model.coordinateTransform.windingCorrected,true);
+});
+
+test('GR86 rolling metadata includes only inspected tire and rim objects, never similarly named body or brake objects',()=>{
+ const allowed=new Set(['Object_40','Object_41','Object_42','Object_43','Object_44','Object_45','Object_46']);
+ for(const primitives of [model.primitives,model.fallbackPrimitives]){
+  const rolling=primitives.filter(p=>p.wheel);assert.equal(new Set(rolling.map(p=>p.wheel.axle+':'+p.wheel.side)).size,4);
+  for(const p of rolling){assert(p.sourceParts.every(p=>allowed.has(p.name)));assert(!p.paint);assert(p.wheel.radius>.31&&p.wheel.radius<.32);}
+  for(const p of primitives.filter(p=>!p.wheel))assert(p.sourceParts.every(p=>!allowed.has(p.name)));
+  assert(primitives.some(p=>!p.wheel&&p.sourceParts.some(p=>p.name==='Object_38')),'mixed body/black trim remains stationary');
+  assert(primitives.some(p=>!p.wheel&&p.materialName==='Wheel0021Mtl'),'unclassified brake group remains stationary');
+ }
 });
 
 test('GR86 rear plate texture reads left-to-right in the renderer rear-screen convention',()=>{

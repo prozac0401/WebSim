@@ -7,7 +7,7 @@ const Renderer = require('./circuit-renderer.js');
 
 function fixture() {
   const events = new Map(), images = [], buffers = new Map(), bindings = new Map();
-  const calls = { created: 0, deleted: [], textureDeleted: [], textureParameters: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
+  const calls = { created: 0, deleted: [], textureDeleted: [], textureParameters: [], uniforms: [], ranges: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
   let error = 0, failure = null, textureBinding = null;
   const gl = new Proxy({
     ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, TEXTURE_2D: 3553,
@@ -15,6 +15,7 @@ function fixture() {
     getShaderParameter: () => true, getProgramParameter: () => true,
     createShader: () => ({}), createProgram: () => ({}), getExtension: () => ({}),
     getAttribLocation: (_p, name) => name, getUniformLocation: (_p, name) => name,
+    uniform4f(name,...values) { calls.uniforms.push({name,values}); },
     isContextLost: () => false,
     createBuffer() { calls.created++; return failure === 'buffer-null' ? null : { id: calls.created }; },
     bindBuffer(target, buffer) { bindings.set(target, buffer); },
@@ -35,7 +36,8 @@ function fixture() {
       // Like a failed WebGL buffer allocation, zero/unallocated storage produces
       // no geometry, without throwing a JavaScript exception.
       if (buffers.get(bindings.get(this.ARRAY_BUFFER)) && buffers.get(bindings.get(this.ELEMENT_ARRAY_BUFFER))) calls.draws++;
-    }
+    },
+    drawArrays(_mode,first,count) { calls.ranges.push({first,count}); }
   }, { get: (target, name) => name in target ? target[name] : () => {} });
   const canvas = { width: 300, height: 150, getContext: () => gl, addEventListener: (name, fn) => events.set(name, fn) };
   const context = { document: { createElement: () => canvas }, Image: class { constructor() { this.width=1024;this.height=512;images.push(this); } } };
@@ -46,9 +48,47 @@ function fixture() {
   const mesh = { manufacturer: { primitives: [primitive] }, length: 4.5, width: 1.8, height: 1.4, modelScale: [1,1,1], modelOffset: [0,0,0] };
   const camera = { target: { x:0,y:0,z:0 }, yaw:0,pitch:.2,distance:12,f:400,cx:195,cy:200,sinYaw:0,cosYaw:1,sinPitch:Math.sin(.2),cosPitch:Math.cos(.2) };
   const entries = [{ car: { id:0 }, mesh, position: { x:0,y:0 }, selected:true }];
-  return { gl, surface, canvas, primitive, mesh, camera, entries, events, images, calls,
+  return { gl, surface, canvas, primitive, mesh, camera, entries, events, images, calls, context,
     fail(value) { failure = value; }, render() { return surface.render(entries, camera, 390, 400); } };
 }
+
+test('factory paint allocates one filtered flake texture and releases it with its geometry', () => {
+  const f=fixture();f.primitive.paint=true;f.mesh.paint='#e8e9e5';
+  f.mesh.paintFinish={finish:'pearl',roughness:.22,clearcoat:.92};
+  assert.equal(f.render(),f.canvas);const texture=f.surface.paintTexture,checks=f.calls.checks;
+  assert.ok(texture);assert.deepEqual(f.calls.uniforms.find(c=>c.name==='uPaint').values,[.22,.75,1,.92]);
+  assert.equal(f.render(),f.canvas);assert.equal(f.surface.paintTexture,texture);assert.equal(f.calls.checks,checks);
+  f.surface.clearGeometry();assert.equal(f.surface.paintTexture,null);assert(f.calls.textureDeleted.includes(texture));
+});
+
+test('wheel and paint uniforms reset for static trim in the same draw pass', () => {
+  const f=fixture();f.context.VehicleWheels={angle:(_mesh,wheel,car)=>car.distance/wheel.radius};
+  f.entries[0].car.distance=1.2;f.primitive.wheel={center:[1,.8,.3],radius:.3};
+  f.primitive.paint=true;f.mesh.paint='#e8e9e5';f.mesh.paintFinish={finish:'metallic',roughness:.28,clearcoat:.92};
+  f.mesh.manufacturer.primitives.push({...f.primitive,wheel:undefined,paint:false});
+  assert.equal(f.render(),f.canvas);
+  assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uWheel').map(c=>c.values),[[1,.8,.3,4],[0,0,0,0]]);
+  assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uPaint').map(c=>c.values),[[.28,.75,0,.92],[0,0,0,0]]);
+});
+
+test('failed procedural paint upload falls back and releases the failed texture', () => {
+  const f=fixture();f.primitive.paint=true;f.mesh.paintFinish={finish:'pearl'};f.fail('texture-data');
+  assert.equal(f.render(),null);assert.equal(f.surface.available,false);assert.equal(f.calls.textureDeleted.length,1);
+});
+
+test('procedural GPU fallback rotates wheel ranges without rotating the body or rebuilding buffers', () => {
+  const f=fixture(),Wheels=require('./vehicle-wheels.js');f.context.VehicleWheels=Wheels;
+  const face={fill:'#aaa',material:'rubber',vertices:[{x:1.3,y:.8,z:.3},{x:1,y:.8,z:.6},{x:.7,y:.8,z:.3}]};
+  const wheel={center:[1,.8,.3],radius:.3,axle:'front',side:1,space:'mesh'};
+  f.entries[0].mesh={faces:[{...face,wheel},{...face,material:'paint'}]};
+  f.entries[0].car.distance=.15;
+  assert.equal(f.render(),f.canvas);const uploads=f.calls.uploads;
+  assert.deepEqual(f.calls.ranges,[{first:0,count:3},{first:3,count:3}]);
+  assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uWheel').slice(-2).map(c=>c.values),[[1,.8,.3,.5],[0,0,0,0]]);
+  f.calls.uniforms.length=0;assert.equal(f.render(),f.canvas);
+  assert.equal(f.calls.uploads,uploads);
+  assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uWheel').slice(-2).map(c=>c.values),[[1,.8,.3,.5],[0,0,0,0]]);
+});
 
 test('bufferData OUT_OF_MEMORY returns null instead of caching a permanently empty model', () => {
   const f = fixture(); f.fail('buffer-data');

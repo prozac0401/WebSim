@@ -3,8 +3,8 @@
  */
 (function(root){
  'use strict';
- const models=new Map(),pending=new Set(),failures=[];
- const assetOnly=new Set(['g70','supra','bmw_m2','avante_n','gr86']);
+ const models=new Map(),pending=new Set(),failures=[],wheelSelections=new WeakMap();
+ const assetOnly=new Set(['g70','supra','bmw_m2','avante_n','gr86','k5']);
  const files=new Set(['g80','ioniq5','santafe','staria','carnival','morning','ray','k5','avante','grandeur','torres','musso_ev','porter2',...assetOnly]),loading=new Map(),states=new Map(),listeners=new Set(),scripts=new WeakMap();
  const LOAD_POLICY=Object.freeze({maxAttempts:2,timeoutMs:45000,retryDelayMs:500});
  let attemptSerial=0;
@@ -26,6 +26,8 @@
   const unpack=p=>({...p,texture:p.texture??data.textures?.[p.textureIndex],vertices:decode(p.vertices,Float32Array),indices:decode(p.indices,p.indexType===2?Uint16Array:Uint32Array)});
   data.primitives=data.primitives.map(unpack);
   if(data.fallbackPrimitives)data.fallbackPrimitives=data.fallbackPrimitives.map(unpack);
+  if(data.wheelVariants)data.wheelVariants=Object.fromEntries(Object.entries(data.wheelVariants).map(([key,value])=>[key,{...value,primitives:value.primitives.map(unpack)}]));
+  data=root.VehicleWheels?.prepare(data)||data;
   // A managed script commits only after its own load + decoding complete.
   // An expired script retains its invalid token in the WeakMap, so even a late
   // execution after element removal cannot become an untracked registration.
@@ -52,12 +54,22 @@
   task.then(()=>pending.delete(task));return task;
  }
  function create(id,spec,color){
-  const data=models.get(id);if(!data)return null;
+  const sourceAsset=models.get(id);if(!sourceAsset)return null;
+  let data=sourceAsset;
+  const wheelVariant=id==='santafe'&&sourceAsset.wheelVariants?.['santafe-21']&&(spec.wheelInches===21||/R21\b/i.test(spec.frontTire||'')||/21인치/.test(spec.variant||''))?'santafe-21':null;
+  if(wheelVariant&&sourceAsset.wheelVariants?.[wheelVariant]){
+   let selections=wheelSelections.get(sourceAsset);if(!selections){selections=new Map();wheelSelections.set(sourceAsset,selections);}
+   if(!selections.has(wheelVariant)){
+    const primitives=sourceAsset.primitives.filter(p=>p.name!=='WHEELS_Base2').concat(sourceAsset.wheelVariants[wheelVariant].primitives);
+    selections.set(wheelVariant,{...sourceAsset,primitives,triangles:primitives.reduce((sum,p)=>sum+p.indices.length/3,0)});
+   }
+   data=selections.get(wheelVariant);
+  }
   let fallback;
   const length=(spec.lengthMm||5000)/1000,height=(spec.heightMm||1500)/1000,sourceLength=data.bounds.max[0]-data.bounds.min[0],sourceHeight=data.bounds.max[2]-data.bounds.min[2];
-  const mesh={length,width:(spec.widthMm||1900)/1000,height,manufacturer:data,paint:color,
+  const mesh={length,width:(spec.widthMm||1900)/1000,height,manufacturer:data,sourceAsset,paint:color,
    modelScale:[length/sourceLength,length/sourceLength,height/sourceHeight],modelOffset:[-(data.bounds.max[0]+data.bounds.min[0])/2,-(data.bounds.max[1]+data.bounds.min[1])/2,-data.bounds.min[2]],
-   metadata:{id,...data.source,triangles:data.triangles},get faces(){
+   metadata:{id,...data.source,triangles:data.triangles,...(wheelVariant?{wheelVariant}:{})},get faces(){
     if(!fallback){
      if(data.fallbackPrimitives){
       const faces=[];
@@ -65,7 +77,7 @@
        const fill=p.paint?color:'#'+p.color.map(c=>Math.round(Math.max(0,Math.min(1,c))*255).toString(16).padStart(2,'0')).join('');
        for(let i=0;i<p.indices.length;i+=3){const vertices=[];
         for(let j=0;j<3;j++){const k=p.indices[i+j]*8;vertices.push({x:(p.vertices[k]+mesh.modelOffset[0])*mesh.modelScale[0],y:(p.vertices[k+1]+mesh.modelOffset[1])*mesh.modelScale[1],z:(p.vertices[k+2]+mesh.modelOffset[2])*mesh.modelScale[2]});}
-        faces.push({vertices,fill,material:p.paint?'paint':'trim'});
+        faces.push({vertices,fill,material:p.paint?'paint':'trim',...(p.wheel?{wheel:p.wheel}:{})});
        }
       }
       fallback={faces};

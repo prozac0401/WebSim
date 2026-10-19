@@ -5,6 +5,7 @@
   'use strict';
   const TAU = Math.PI * 2;
   const ELEVATION_EXAGGERATION = 1.75;
+  const PAINTS = root.VehiclePaints || (typeof require === 'function' ? require('./vehicle-paints.js') : null);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const MODELS = {
     ray: { width: 1.595, type: 'box', roof: [-.43, .24], cabin: [-.47, .36], lamps: 'vertical', grille: 'small' },
@@ -662,14 +663,29 @@
       for(const v of vertices){const p=this._project(v,camera);if(!p){drawing=false;continue;}if(!drawing){ctx.moveTo(p.x,p.y);drawing=true;}else ctx.lineTo(p.x,p.y);}
       ctx.strokeStyle=color;ctx.lineWidth=width;if(dashed)ctx.setLineDash(dashed);ctx.stroke();ctx.setLineDash([]);
     }
+    getPaintInfo(car){
+      if(!car)return null;
+      const id=car.vehicleId||car.spec?.id,index=car.index??car.id??0;
+      const selected=this.paintChoices?.get(id+'|'+index);
+      return PAINTS?.get(id).find(p=>p.id===selected)||PAINTS?.choose(id,index)||null;
+    }
+    setPaint(car,paintId){
+      if(!car||!PAINTS?.get(car.vehicleId).some(p=>p.id===paintId))return false;
+      if(!this.paintChoices)this.paintChoices=new Map();
+      this.paintChoices.set(car.vehicleId+'|'+(car.index??car.id??0),paintId);this._changed();return true;
+    }
     _mesh(car){
       const finishes=['#d9dcdb','#526573','#8c979e','#303a46','#776a63','#8a3f43','#6b7770','#b3b0a7'];
-      const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.CircuitVehicleSpecs?.[id]||root.VehicleSpecs?.[id]||{},paint=finishes[(car.index??car.id??0)%finishes.length],key=[id,paint,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm].join('|');
+      const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.CircuitVehicleSpecs?.[id]||root.VehicleSpecs?.[id]||{},asset=root.ManufacturerModels?.get(id)||null,finish=this.getPaintInfo(car)||asset?.paintReference||null,paint=finish?.hex||finishes[(car.index??car.id??0)%finishes.length],key=[id,finish?.id,paint,spec.variantId,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm,spec.frontTireRadiusMm,spec.rearTireRadiusMm,spec.wheelInches].join('|');
       // An empty/procedural mesh may have been drawn while its asset loaded.
       // Refresh by source identity even if the race changed before completion.
-      const cached=this.meshCache.get(key),asset=root.ManufacturerModels?.get(id)||null;
-      if(cached&&(cached.manufacturer||null)!==asset)this.meshCache.delete(key);
-      if(!this.meshCache.has(key))this.meshCache.set(key,root.ManufacturerModels?.create(id,spec,paint)||(root.ManufacturerModels?.requiresAsset(id)?{length:spec.lengthMm/1000,width:spec.widthMm/1000,height:spec.heightMm/1000,faces:[],metadata:{id}}:root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint)));return this.meshCache.get(key);
+      const cached=this.meshCache.get(key);
+      if(cached&&(cached.sourceAsset||cached.manufacturer||null)!==asset)this.meshCache.delete(key);
+      if(!this.meshCache.has(key)){
+        const mesh=root.ManufacturerModels?.create(id,spec,paint)||(root.ManufacturerModels?.requiresAsset(id)?{length:spec.lengthMm/1000,width:spec.widthMm/1000,height:spec.heightMm/1000,faces:[],metadata:{id}}:root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint));
+        mesh.paintFinish=finish;this.meshCache.set(key,mesh);
+      }
+      return this.meshCache.get(key);
     }
     getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=root.G70PatrolLights?.sample(this.race,car,mesh);return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}
     _drawVehicles(entries,camera){
@@ -732,9 +748,11 @@
         this._queue({vertices:[point(-mesh.length*.5,-mesh.width*.40,.5),point(mesh.length*.45,-mesh.width*.42,.5),point(mesh.length*.5,0,.5),point(mesh.length*.45,mesh.width*.42,.5),point(-mesh.length*.5,mesh.width*.40,.5)].map(transform),fill:car.color||'#aacbb9'},camera,queue);
         return mesh;
       }
+      root.VehicleWheels?.prepareFaces(mesh);
       const effect=root.G70PatrolLights?.create(this.race,car,mesh);
       for(const face of effect?[...mesh.faces,...effect.faces]:mesh.faces){
-        const vertices=face.vertices.map(transform);let fill=face.fill;
+        const wheel=face.wheel&&root.VehicleWheels?.localWheel(mesh,face.wheel),spin=wheel?root.VehicleWheels.angle(mesh,face.wheel,car):0;
+        const vertices=face.vertices.map(v=>transform(spin?root.VehicleWheels.rotate(v,wheel,spin,face.wheel.space==='mesh'?undefined:mesh.modelScale):v));let fill=face.fill;
         // Reference meshes include physical trim ribbons. Skip their duplicate
         // stroke-only representation, and seal antialiased polygon seams below.
         if(root.VehicleMeshes&&!fill)continue;

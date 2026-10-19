@@ -46,6 +46,8 @@ function fixture() {
     pixelStorei() {}, texParameteri() {},
     uniform1i(name, value) { uniforms.set(name, value); },
     uniform1f(name, value) { uniforms.set(name, value); },
+    uniform3fv(name, value) { uniforms.set(name, Array.from(value)); },
+    uniform4f(name, ...values) { uniforms.set(name, values); },
     uniformMatrix4fv(name, transpose, value) { assert.equal(transpose, false); uniforms.set(name, Array.from(value)); },
     deleteTexture(texture) { deletedTextures.push(texture); },
     deleteBuffer(buffer) { deletedBuffers.push(buffer); }

@@ -85,7 +85,7 @@ test('strict manual edits reject overspend, invalid stage and unknown genes with
   assert.equal(JSON.stringify(entrant), before);
 });
 
-test('zero budget preserves all 42 factory specifications exactly and disables compensation and tuning', () => {
+test('zero budget preserves all 53 factory specifications exactly and disables compensation and tuning', () => {
   let checked = 0;
   for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) for (const variant of variants) {
     const factoryBefore = JSON.stringify(variant.spec), entry = T.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
@@ -104,7 +104,7 @@ test('zero budget preserves all 42 factory specifications exactly and disables c
     assert.equal(JSON.stringify(variant.spec), factoryBefore);
     checked++;
   }
-  assert.equal(checked, 42);
+  assert.equal(checked, 53);
 });
 
 test('stock grids contain exactly one of each factory trim, regardless of the tuning population size', () => {
@@ -118,9 +118,9 @@ test('stock grids contain exactly one of each factory trim, regardless of the tu
     }
   }
   assert.equal(T.createPopulation({ vehicleId: 'g80', budget: 0 }).length, 4);
-  assert.equal(T.createPopulation({ vehicleId: 'g70', budget: 0 }).length, 4);
+  assert.equal(T.createPopulation({ vehicleId: 'g70', budget: 0 }).length, 6);
   assert.equal(T.createPopulation({ vehicleId: 'supra', budget: 0 }).length, 1);
-  assert.equal(T.createPopulation({ vehicleId: 'staria', budget: 0 }).length, 1);
+  assert.equal(T.createPopulation({ vehicleId: 'staria', budget: 0 }).length, 3);
 });
 
 test('stock regeneration and direct generation APIs keep every factory trim exactly once at zero stages', () => {
