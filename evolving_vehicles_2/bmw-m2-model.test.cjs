@@ -46,7 +46,7 @@ test('BMW M2 retains every downloaded vehicle triangle while removing only the s
   assert.equal(source.conversion.geometryAdded, false);
   assert.equal(source.conversion.fullBodySimplifiedByWebSim, false);
   assert(model.fallbackTriangles > 3000 && model.fallbackTriangles <= 7000);
-  assert.equal(model.primitives.length, 12);
+  assert.equal(model.primitives.length, 13);
   assert(Buffer.byteLength(runtime) < 14 * 1024 * 1024);
   for (const key of ['triangles', 'fallbackTriangles']) {
     assert.equal(model[key], source.conversion[key]);
@@ -56,7 +56,7 @@ test('BMW M2 retains every downloaded vehicle triangle while removing only the s
   assert.equal(Buffer.byteLength(runtime), summary.runtimeBytes);
 });
 
-test('BMW M2 embeds six original base-color maps and does not multiply its livery by vehicle paint', () => {
+test('BMW M2 removes only body stripes and retains the original badge and detail textures', () => {
   assert.equal(model.textures.length, 6);
   for (let i = 0; i < model.textures.length; i++) {
     const [prefix, encoded] = model.textures[i].split(',');
@@ -66,14 +66,34 @@ test('BMW M2 embeds six original base-color maps and does not multiply its liver
     assert.equal(createHash('sha256').update(bytes).digest('hex'), info.sha256);
     assert.equal(info.width, 1024); assert.equal(info.height, 1024);
   }
-  const body = model.primitives.find(p => p.materialName === 'MAT_LIVERY');
-  assert.equal(body.triangles, 62423);
+  const body = model.primitives.find(p => p.role === 'factory-paint');
+  assert.equal(body.triangles, 59912);
+  assert.deepEqual(body.sourceParts.map(p => p.name), ['Livery', 'Livery']);
   assert.equal(body.paint, false);
   assert.equal(body.material, 0);
-  assert.deepEqual(body.color, [1, 1, 1]);
-  assert.equal(summary.textures[body.textureIndex].materialName, 'MAT_LIVERY');
-  assert(model.primitives.every(p => Number.isInteger(p.textureIndex) && p.textureIndex >= 0 && p.textureIndex < 6));
+  assert.equal(body.textureIndex, undefined, 'The stripe atlas must not be sampled by the painted body');
+  assert.deepEqual(body.color, [22 / 255, 127 / 255, 167 / 255]);
+  const badges = model.primitives.find(p => p.materialName === 'MAT_LIVERY');
+  assert.equal(badges.triangles, 2511);
+  assert.deepEqual(badges.sourceParts.map(p => p.name), ['BMW_LOGO', 'BMW_LOGO5', 'BMW_LOGO6', 'BMW_LOGO1', 'BMW_LOGO2']);
+  assert.deepEqual(badges.color, [1, 1, 1]);
+  assert.equal(summary.textures[badges.textureIndex].materialName, 'MAT_LIVERY');
+  assert(model.primitives.filter(p => p !== body).every(p => Number.isInteger(p.textureIndex) && p.textureIndex >= 0 && p.textureIndex < 6));
   assert(model.fallbackPrimitives.every(p => p.textureIndex === undefined));
+  const fallbackBody = model.fallbackPrimitives.find(p => p.role === 'factory-paint');
+  assert.deepEqual(fallbackBody.color, body.color);
+  assert.deepEqual(fallbackBody.sourceParts.map(p => p.name), ['Livery', 'Livery']);
+});
+
+test('BMW M2 documents its actual factory color and distinguishes it from an official RGB specification', () => {
+  assert.equal(model.source.stockPaint.name, 'Long Beach Blue Metallic');
+  assert.equal(model.source.stockPaint.code, 'C16');
+  assert.equal(model.source.stockPaint.renderApproximation, true);
+  assert.equal(model.source.stockPaint.displayHex, '#167fa7');
+  assert.equal(new URL(model.source.stockPaint.sourceUrl).hostname, 'www.press.bmwgroup.com');
+  assert.equal(new URL(model.source.stockPaint.codeSourceUrl).hostname, 'www.press.bmwgroup.com');
+  assert.deepEqual(source.configuration.stockPaint, model.source.stockPaint);
+  assert(source.conversion.changes.some(c => /stripes.*material/i.test(c)));
 });
 
 for (const [name, primitives, count] of [['main', model.primitives, model.triangles], ['fallback', model.fallbackPrimitives, model.fallbackTriangles]]) {

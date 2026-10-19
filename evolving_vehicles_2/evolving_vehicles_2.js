@@ -184,7 +184,7 @@ function updateUI(){
  $('vehicle-source').href=spec.sourceUrl||(window.CircuitVehicleSpecs||VehicleSpecs)[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
  if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId];
   if(art){const [x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
-  else if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png';image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
+  else if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png'+(imageId==='bmw_m2'?'?v=20261019-stock-c16-1':'');image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
   else $('car-image').replaceChildren();
  }
  updateTuning(car);historyUI();

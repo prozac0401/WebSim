@@ -20,6 +20,14 @@ await Promise.all([MeshoptDecoder.ready, MeshoptSimplifier.ready]);
 const folder = path.dirname(fileURLToPath(import.meta.url));
 const filename = path.resolve(process.argv[2] || 'output/new-car-candidates/bmw-m2/bmw-m2-source.glb');
 const expectedHash = 'f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400';
+// BMW documents the factory paint name/code, not an exact display RGB value.
+// This fixed RGB is a visual approximation under the existing metallic shader.
+const stockPaint = {
+  name: 'Long Beach Blue Metallic', code: 'C16', displayHex: '#167fa7',
+  color: [22 / 255, 127 / 255, 167 / 255], renderApproximation: true,
+  sourceUrl: 'https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2',
+  codeSourceUrl: 'https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959'
+};
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(sha256(fs.readFileSync(filename)), expectedHash, 'Unexpected BMW M2 source');
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
@@ -82,6 +90,14 @@ function textureMean(primitive) {
 }
 function appearance(primitive, name, fallback) {
   const m = primitive.getMaterial(), materialName = m.getName();
+  // The source atlas is shared by two painted body primitives and five separate
+  // BMW roundels. Detach it only from the body; badges keep their original UVs
+  // and texture. This is a 3D material edit, not a raster texture modification.
+  if (materialName === 'MAT_LIVERY' && name === 'Livery') {
+    return { materialName: 'WebSim_Long_Beach_Blue_C16', sourceMaterialName: materialName,
+      role: 'factory-paint', color: [...stockPaint.color], alpha: 1,
+      material: 0, paint: false, textureOpaque: true };
+  }
   const window = materialName === 'MAT_GLASS' && /Window/i.test(name);
   const cover = materialName === 'MAT_GLASS' && !window;
   const light = materialName === 'MAT_FRONTLIGHT' && /^lights_/.test(name) || materialName === 'MAT_BACKLIGHT' && /^(red_|orange_)/.test(name);
@@ -93,7 +109,6 @@ function appearance(primitive, name, fallback) {
     if (window) visual.color = [.045, .06, .07];
     if (cover) visual.alpha = .12;
   } else visual.textureIndex = textureIds.get(m.getBaseColorTexture());
-  // Keep the artist's red/blue decorative livery, with no extra body-color tint.
   // Window tint is opaque because the source has no finished cabin; lamp covers
   // remain transparent so the modeled reflectors and light guides stay visible.
   return visual;
@@ -190,13 +205,14 @@ const source = {
   author: 'Manuel Contento', authorUrl: 'https://sketchfab.com/manuelcontento',
   url: 'https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad',
   license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-  configuration: 'Original F87 M2 / N55, 2016–2017 pre-LCI exterior. Not M2 Competition. Creator red/blue decorative livery retained.',
+  configuration: 'Original F87 M2 / N55, 2016–2017 pre-LCI exterior. Not M2 Competition. Body stripes removed with a separate Long Beach Blue Metallic (C16) material; digital paint approximation.',
+  stockPaint,
   attribution: 'BMW M2 by Manuel Contento, CC BY 4.0. Public processed mirror by pedrosoandre/carros. Adapted for WebSim; see bmw_m2-source.json and bmw_m2-LICENSE.txt.',
   downloadUrl: 'https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb',
   sha256: expectedHash
 };
 const payload = { id: 'bmw_m2', source, bounds, triangles, primitives, textures, fallbackTriangles, fallbackPrimitives };
-const runtime = '/* BMW M2 by Manuel Contento, CC BY 4.0. See bmw_m2-source.json and bmw_m2-LICENSE.txt.\n * Artist livery retained; coordinates, materials and fallback adapted for WebSim. */\n' +
+const runtime = '/* BMW M2 by Manuel Contento, CC BY 4.0. See bmw_m2-source.json and bmw_m2-LICENSE.txt.\n * Body stripes replaced with Long Beach Blue (C16) material; badges and detail textures retained. */\n' +
   `ManufacturerModels.registerCompressed(${JSON.stringify(gzipSync(JSON.stringify(payload), { level: 9 }).toString('base64'))});\n`;
 fs.writeFileSync(path.join(folder, 'bmw_m2-runtime.js'), runtime);
 const summarize = ({ vertices, indices, ...p }) => p;

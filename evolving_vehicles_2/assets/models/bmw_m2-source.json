@@ -20,7 +20,20 @@
       "Compared with BMW's official 2016 M2 photograph; matching body and front fascia.",
       "Model published 2018-02-12, before BMW's 2018-04 M2 Competition announcement; Competition has enlarged black kidney grilles and revised front apron."
     ],
-    "visualCaveat": "Creator uses a decorative red/blue livery. If stock appearance is desired, replace/remove the livery material while preserving the intended body form and documenting edits."
+    "visualCaveat": "Decorative stripes removed from the two body parts with a separate 3D paint material. Original BMW roundels and all non-body textures remain unchanged. The factory paint name/code is official; rendered RGB is a digital approximation, not a measured manufacturer color value.",
+    "stockPaint": {
+      "name": "Long Beach Blue Metallic",
+      "code": "C16",
+      "displayHex": "#167fa7",
+      "color": [
+        0.08627450980392157,
+        0.4980392156862745,
+        0.6549019607843137
+      ],
+      "renderApproximation": true,
+      "sourceUrl": "https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2",
+      "codeSourceUrl": "https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959"
+    }
   },
   "creationEvidence": "Creator describes it as a high-poly model made in free time to practice modeling, modeled in Autodesk Maya and textured in Substance Painter.",
   "usage": "Ordinary deterministic mesh conversion and game rendering.",
@@ -67,18 +80,18 @@
       "Removed only the two-triangle Piano studio ground plane; retained all 228,676 vehicle triangles in the main model.",
       "Rotated source forward +Z and up +Y to runtime forward +X, right +Y, up +Z with a proper rotation; corrected any mirrored node winding.",
       "Scaled uniformly to 4.468 m length and placed the lowest tire geometry at ground zero. Source width and height proportions are preserved.",
-      "Kept the six original 1024x1024 base-color images byte-for-byte, including the artist red/blue decorative livery. No additional vehicle paint tint.",
+      "Kept all six original 1024x1024 base-color images byte-for-byte for badges and details. Removed body stripes by assigning a separate Long Beach Blue Metallic (C16) material only to the two Livery body parts; no raster pixels were modified.",
       "Adapted reflective paint, opaque cabin glazing, transparent lamp covers, metal, and light-guide materials to the existing exterior renderer. Metallic/roughness and normal-map textures are not consumed by this renderer.",
-      "Created a separate approximately 6,000-triangle fallback using deterministic Meshopt simplification and source-texture sampled colors.",
+      "Created a separate approximately 6,000-triangle fallback using deterministic Meshopt simplification, the same factory body paint, and source-texture sampled detail colors.",
       "Combined matching draw groups, compacted unused vertices, retained source smooth normals/UVs, and embedded data in a local gzip-compressed runtime."
     ],
     "geometryAdded": false,
     "fullBodySimplifiedByWebSim": false,
     "triangles": 228676,
     "fallbackTriangles": 6658,
-    "drawGroups": 12,
-    "fallbackDrawGroups": 72,
-    "runtimeBytes": 12949033,
+    "drawGroups": 13,
+    "fallbackDrawGroups": 71,
+    "runtimeBytes": 12950141,
     "sourceParts": 77,
     "scale": 4.5016860038935205,
     "bounds": {
@@ -155,5 +168,5 @@
       "role": "Official Competition distinction"
     }
   ],
-  "attribution": "BMW M2 by Manuel Contento, https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad, CC BY 4.0. Public processed mirror: pedrosoandre/carros at 0a56de377f02f2574d781f6920fed08d6423ec2f. Coordinates, render materials and fallback adapted for WebSim; creator livery retained."
+  "attribution": "BMW M2 by Manuel Contento, https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad, CC BY 4.0. Public processed mirror: pedrosoandre/carros at 0a56de377f02f2574d781f6920fed08d6423ec2f. Coordinates, render materials and fallback adapted for WebSim; body stripes removed with a separate factory-color paint material; original badge and detail textures retained."
 }

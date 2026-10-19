@@ -8,7 +8,20 @@
     "url": "https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad",
     "license": "CC BY 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-    "configuration": "Original F87 M2 / N55, 2016–2017 pre-LCI exterior. Not M2 Competition. Creator red/blue decorative livery retained.",
+    "configuration": "Original F87 M2 / N55, 2016–2017 pre-LCI exterior. Not M2 Competition. Body stripes removed with a separate Long Beach Blue Metallic (C16) material; digital paint approximation.",
+    "stockPaint": {
+      "name": "Long Beach Blue Metallic",
+      "code": "C16",
+      "displayHex": "#167fa7",
+      "color": [
+        0.08627450980392157,
+        0.4980392156862745,
+        0.6549019607843137
+      ],
+      "renderApproximation": true,
+      "sourceUrl": "https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2",
+      "codeSourceUrl": "https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959"
+    },
     "attribution": "BMW M2 by Manuel Contento, CC BY 4.0. Public processed mirror by pedrosoandre/carros. Adapted for WebSim; see bmw_m2-source.json and bmw_m2-LICENSE.txt.",
     "downloadUrl": "https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb",
     "sha256": "f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400"
@@ -1384,18 +1397,19 @@
       "indexType": 2
     },
     {
-      "materialName": "MAT_LIVERY",
+      "materialName": "WebSim_Long_Beach_Blue_C16",
+      "sourceMaterialName": "MAT_LIVERY",
+      "role": "factory-paint",
       "color": [
-        1,
-        1,
-        1
+        0.08627450980392157,
+        0.4980392156862745,
+        0.6549019607843137
       ],
       "alpha": 1,
       "material": 0,
       "paint": false,
       "textureOpaque": true,
-      "textureIndex": 4,
-      "name": "Livery | Livery | BMW_LOGO | BMW_LOGO5 | BMW_LOGO6 | BMW_LOGO1 | BMW_LOGO2",
+      "name": "Livery | Livery",
       "sourceParts": [
         {
           "name": "Livery",
@@ -1428,7 +1442,37 @@
               1.4285314083099365
             ]
           }
-        },
+        }
+      ],
+      "bounds": {
+        "min": [
+          -2.2339999675750732,
+          -0.9947137832641602,
+          0.13367097079753876
+        ],
+        "max": [
+          2.2339999675750732,
+          1.0033209323883057,
+          1.4285314083099365
+        ]
+      },
+      "triangles": 59912,
+      "indexType": 2
+    },
+    {
+      "materialName": "MAT_LIVERY",
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "alpha": 1,
+      "material": 0,
+      "paint": false,
+      "textureOpaque": true,
+      "textureIndex": 4,
+      "name": "BMW_LOGO | BMW_LOGO5 | BMW_LOGO6 | BMW_LOGO1 | BMW_LOGO2",
+      "sourceParts": [
         {
           "name": "BMW_LOGO",
           "triangles": 482,
@@ -1512,17 +1556,17 @@
       ],
       "bounds": {
         "min": [
-          -2.2339999675750732,
-          -0.9947137832641602,
-          0.13367097079753876
+          -2.1500890254974365,
+          -0.8710009455680847,
+          0.304890900850296
         ],
         "max": [
-          2.2339999675750732,
-          1.0033209323883057,
-          1.4285314083099365
+          2.162552833557129,
+          0.8705267310142517,
+          0.965597927570343
         ]
       },
-      "triangles": 62423,
+      "triangles": 2511,
       "indexType": 2
     },
     {
@@ -4270,17 +4314,19 @@
       "indexType": 2
     },
     {
-      "materialName": "MAT_LIVERY",
+      "materialName": "WebSim_Long_Beach_Blue_C16",
+      "sourceMaterialName": "MAT_LIVERY",
+      "role": "factory-paint",
       "color": [
-        0.24194622145940767,
-        0.15526603214230117,
-        0.17300150829562744
+        0.08627450980392157,
+        0.4980392156862745,
+        0.6549019607843137
       ],
       "alpha": 1,
       "material": 0,
       "paint": false,
       "textureOpaque": true,
-      "name": "Livery",
+      "name": "Livery | Livery",
       "sourceParts": [
         {
           "name": "Livery",
@@ -4297,36 +4343,7 @@
               1.4086570358340396
             ]
           }
-        }
-      ],
-      "bounds": {
-        "min": [
-          -2.0627360343933105,
-          -0.9671697020530701,
-          0.13603987456008326
-        ],
-        "max": [
-          2.2203643321990967,
-          0.9632321000099182,
-          1.4086570358340396
-        ]
-      },
-      "triangles": 647,
-      "indexType": 2
-    },
-    {
-      "materialName": "MAT_LIVERY",
-      "color": [
-        0.352210036556997,
-        0.18423703249226794,
-        0.21953115013932664
-      ],
-      "alpha": 1,
-      "material": 0,
-      "paint": false,
-      "textureOpaque": true,
-      "name": "Livery",
-      "sourceParts": [
+        },
         {
           "name": "Livery",
           "triangles": 415,
@@ -4347,16 +4364,16 @@
       "bounds": {
         "min": [
           -2.2318193912506104,
-          -0.9303876757621765,
-          0.21258265436335932
+          -0.9671697020530701,
+          0.13603987456008326
         ],
         "max": [
-          2.183641195297241,
-          0.9298654794692993,
+          2.2203643321990967,
+          0.9632321000099182,
           1.4270829773013247
         ]
       },
-      "triangles": 415,
+      "triangles": 1062,
       "indexType": 2
     },
     {
@@ -4958,7 +4975,7 @@
     ]
   },
   "scale": 4.5016860038935205,
-  "runtimeBytes": 12949033,
+  "runtimeBytes": 12950141,
   "validation": {
     "finiteVertices": true,
     "validIndices": true,

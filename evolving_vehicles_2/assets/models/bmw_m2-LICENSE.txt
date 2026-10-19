@@ -29,15 +29,25 @@ WebSim modifications:
 - Decoded compressed and quantized data; removed the studio ground plane only.
 - Preserved all 228,676 vehicle triangles in the main runtime model.
 - Rotated and uniformly scaled the vehicle to 4.468 m length, with tire ground
-  at zero. Original body, lamps, wheels and decorative red/blue livery retained.
+  at zero. Original body, lamp and wheel geometry retained.
+- Removed decorative body stripes by detaching the shared livery atlas from
+  only the two painted body parts. Applied a separate Long Beach Blue Metallic
+  (C16) material, an official F87 factory color represented by an approximate
+  display RGB value. The five separate BMW roundels retain their original atlas;
+  lamp, glass, grille, wheel, tire and other detail textures are unchanged.
+  No raster image pixels were modified.
 - Preserved six original base-color textures; adapted glazing, lamp-cover,
   paint-reflection, light-guide and metal materials to the exterior renderer.
   Normal and metallic/roughness maps are not used by this renderer.
-- Produced a separate simplified fallback with source-texture sampled colors.
+- Produced a separate simplified fallback with the same factory body paint and
+  source-texture sampled detail colors.
 - Compacted and grouped indexed geometry and embedded the data in a local,
   gzip-compressed JavaScript runtime. No newly generated body geometry added.
 
 See bmw_m2-source.json, bmw_m2-runtime-summary.json and build-free-bmw-m2.mjs
 for detailed provenance, exact conversion results and reproducible processing.
+Official factory color evidence:
+https://www.press.bmwgroup.com/usa/article/detail/T0238507EN_US/the-all-new-2016-bmw-m2
+https://www.press.bmwgroup.com/usa/article/attachment/T0238507EN_US/391959
 Official BMW reference photographs are not included in this runtime asset and
 are not covered by the creator's Creative Commons license.
