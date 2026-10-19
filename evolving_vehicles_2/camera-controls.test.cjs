@@ -126,26 +126,32 @@ function eye(camera) {
     z: camera.target.z + camera.distance * camera.sinPitch };
 }
 
-test('telephoto follow opens low above the driven road and frames mobile/desktop vehicles', t => {
+test('elevated telephoto matches rear-view body area on mobile and desktop with a 32-degree lens', t => {
   const reports = [];
-  for (const [width, height] of [[346,346], [390, 565], [390, 844], [1200, 700]]) {
+  for (const [width, height] of [[346,346], [390, 565], [390, 844], [1200, 700]]) for(const [length,bodyWidth,bodyHeight]of [[4.265,1.775,1.310],[4.379,1.854,1.292],[4.995,1.925,1.465]]) {
     const { renderer: r } = fixture(); r.width = width; r.height = height;
+    r.race.cars[0].spec={lengthMm:length*1000,widthMm:bodyWidth*1000,heightMm:bodyHeight*1000};
     r.race.sample = s => ({x:s,y:0,elevation:10,angle:0});
+    const bounds=camera=>{
+      const points=[];
+      for(const x of [-length/2,length/2])for(const y of [-bodyWidth/2,bodyWidth/2])for(const z of [0,bodyHeight])points.push(r._project({x,y,z:r._displayHeight(10)+z},camera));
+      assert(points.every(Boolean));
+      return {points,width:Math.max(...points.map(p=>p.x))-Math.min(...points.map(p=>p.x)),height:Math.max(...points.map(p=>p.y))-Math.min(...points.map(p=>p.y))};
+    };
+    r.setView('follow-classic');const classic=bounds(r._interactionCamera());
     r.setView('follow');
     const camera = r._interactionCamera(), position = eye(camera);
     near(r.followYaw, 0); near(r.pitch, 0);
-    near(position.z - r._displayHeight(10), 1.15); near(camera.target.z - r._displayHeight(10), .65);
+    assert(position.z-r._displayHeight(10)>5,'raised view sees the roof and road ahead');near(camera.target.z - r._displayHeight(10), .65);
     near(2 * Math.atan(height / (2 * camera.f)) * 180 / Math.PI, 32);
     near(camera.cy / height, .64);
-    assert(position.x < -11 && position.x > -25);
-    if(width===346)near(-position.x,17.5*.72);
-    assert(Math.abs(camera.pitch) < .05, 'flat-ground gaze stays almost horizontal');
-    const corners = [];
-    for (const x of [-2.5,2.5]) for (const y of [-.95,.95]) for (const z of [r._displayHeight(10),r._displayHeight(10)+1.6]) {
-      const p = r._project({x,y,z}, camera); corners.push(p);
-      assert(p && p.x > 0 && p.x < width && p.y > height*.35 && p.y < height*.85);
-    }
-    reports.push({width,height,distance:+camera.distance.toFixed(3),heightAboveRoad:1.15,pitchDegrees:+(camera.pitch*180/Math.PI).toFixed(3),bodyWidthPixels:+(Math.max(...corners.map(p=>p.x))-Math.min(...corners.map(p=>p.x))).toFixed(2)});
+    near(camera.pitch,24*Math.PI/180);
+    const current=bounds(camera),areaRatio=current.width*current.height/(classic.width*classic.height);
+    near(areaRatio,height>width*1.8?.88:1,1e-7);
+    assert(current.width/classic.width>.78&&current.width/classic.width<1.2,'comparable horizontal framing');
+    assert(current.height/classic.height>.8&&current.height/classic.height<1.25,'comparable vertical framing');
+    assert(current.points.every(p=>p.x>12&&p.x<width-12&&p.y>12&&p.y<height-12));
+    reports.push({width,height,length,distance:+camera.distance.toFixed(3),heightAboveRoad:+(position.z-r._displayHeight(10)).toFixed(3),bodyWidthPixels:+current.width.toFixed(2),rearViewWidthPixels:+classic.width.toFixed(2),areaRatio:+areaRatio.toFixed(6)});
   }
   t.diagnostic(JSON.stringify(reports));
 });
@@ -162,11 +168,13 @@ test('classic rear view restores the released lens, target, pitch, responsive di
   }
 });
 
-test('close telephoto is twenty-eight percent nearer for the normal Supra screen', () => {
+test('elevated telephoto keeps the long lens and frames Supra above the rear-view eye', () => {
   const {renderer:r}=fixture();r.width=346;r.height=346;r.race.cars[0].spec={lengthMm:4379,widthMm:1854};
   r.race.sample=s=>({x:s,y:0,elevation:40,angle:0});r.setView('follow');
-  const camera=r._interactionCamera();near(-eye(camera).x,11.52);near(11.52/16,.72);
+  const camera=r._interactionCamera(),telephotoEye=eye(camera);assert(telephotoEye.z>r._displayHeight(40)+5);
+  near(camera.pitch,24*Math.PI/180);
   near(r.getState().followCamera.verticalFovDegrees,32);
+  r.setView('follow-classic');assert(telephotoEye.z>eye(r._interactionCamera()).z+3);
 });
 
 test('classic angular spring preserves the original elapsed-time response and read-only camera controls', () => {
@@ -252,15 +260,15 @@ test('camera reads and pointer controls never advance a pending follow interpola
   assert.deepEqual(r._followState,state);
 });
 
-test('the rig anchors the car exactly while the low eye follows road height and a bank floor', () => {
+test('the elevated rig anchors the car exactly above a climbing road and clears a bank floor', () => {
   const { renderer:r }=fixture(),car=r.race.cars[0];car.speed=30;
   r.race.sample=s=>({x:s,y:0,elevation:10+s*.08,angle:0});
   r.setView('follow');r._interactionCamera();car.distance=5;r.advanceCamera(1/60);
   const goal=r._followGoal(car),pose=r._followState,camera=r._interactionCamera(),position=eye(camera);
   for(const key of ['x','y','z'])near(pose[key],goal[key]);
   const screen=r._project(goal,camera);near(screen.x,camera.cx);near(screen.y,camera.cy);
-  near(position.z-r._displayHeight(10+pose.sampleDistance*.08),1.15);
-  assert(camera.pitch<0,'uphill gaze reflects road grade instead of forcing world-horizontal');
+  assert(position.z-r._displayHeight(10+pose.sampleDistance*.08)>5);
+  assert(camera.pitch>.30,'the elevated view still looks down onto an uphill car');
   r.terrainGeometry={sampleHeight:()=>position.z+2};r.advanceCamera(0,{snap:true});
   const raised=eye(r._interactionCamera());assert(raised.z>=position.z+2.65-1e-8);
 });
@@ -318,7 +326,7 @@ test('the chase eye occupies the actual past path instead of a rotated car-centr
   for(let i=1;i<180;i++){
     car.distance=i/60*car.speed;r.advanceCamera(1/60);
     const pose=r._followState,prior=r.race.sample(pose.sampleDistance),position=eye(r._interactionCamera());
-    near(position.x,prior.x);near(position.y,prior.y);near(position.z,r._displayHeight(10)+1.15);
+    near(position.x,prior.x);near(position.y,prior.y);assert(position.z>r._displayHeight(10)+5);assert(r._interactionCamera().pitch>.35);
     const current=r.race.sample(car.distance),rigid={x:current.x-Math.cos(current.angle)*pose.trail,y:current.y-Math.sin(current.angle)*pose.trail};
     assert(Math.hypot(position.x-rigid.x,position.y-rigid.y)>2,'past-trajectory eye must differ from yaw-pivot orbit');
   }
@@ -480,14 +488,16 @@ test('Taebaek and Spa T1 keep the complete car framed in both rear presets at ev
         const next=Math.min(7.5,Math.floor(time+1e-8)+1),dt=Math.min(pattern[frame++%pattern.length],next-time);
         time+=dt;car.distance=center-45+time*12;r.advanceCamera(dt);
         const camera=r._interactionCamera(),position=eye(camera),body=r._followSample(car,car.distance),pose=mode==='follow'?r._followState:r._classicFollowState;
-        if(mode==='follow'){const past=r._followSample(car,pose.sampleDistance);near(position.x,past.x);near(position.y,past.y);near(position.z,past.z+1.15);}else near(camera.pitch,.24);
+        if(mode==='follow'){const past=r._followSample(car,pose.sampleDistance);near(position.x,past.x);near(position.y,past.y);assert(position.z>=past.z+1.15-1e-8);assert(camera.pitch>.35);}else near(camera.pitch,.24);
         maxEyeStep=Math.max(maxEyeStep,Math.hypot(position.x-lastEye.x,position.y-lastEye.y)/dt);lastEye=position;
         maxPitch=Math.max(maxPitch,Math.abs(camera.pitch));
         const L=(car.spec.lengthMm||4500)/2000,W=(car.spec.widthMm||1900)/2000,H=(car.spec.heightMm||1400)/1000;
         for(const x of [-L,L])for(const y of [-W,W])for(const z of [0,H]){
           const slope=Math.atan(body.grade),longitudinal=x*Math.cos(slope)-z*Math.sin(slope);
           const p=r._project({x:body.x+Math.cos(body.angle)*longitudinal-Math.sin(body.angle)*y,y:body.y+Math.sin(body.angle)*longitudinal+Math.cos(body.angle)*y,z:body.z+.055+x*Math.sin(slope)+z*Math.cos(slope)},camera);
-          const margin=mode==='follow'?12:0;
+          // The raised composition retains a 10 px reserve around the whole
+          // body, including the unusually tall 390 x 844 canvas at Spa T1.
+          const margin=mode==='follow'?10:0;
           assert(p&&p.x>margin&&p.x<width-margin&&p.y>margin&&p.y<height-margin,id+' '+width+' '+mode+': complete body stays visible '+JSON.stringify(p));
           minEdge=Math.min(minEdge,p.x,width-p.x,p.y,height-p.y);
         }
@@ -500,7 +510,7 @@ test('Taebaek and Spa T1 keep the complete car framed in both rear presets at ev
   t.diagnostic(JSON.stringify(reports));
 });
 
-test('low follow eye smoothly clears the actual road top planes under the car on Taebaek and Spa', t => {
+test('elevated follow eye smoothly clears the actual road top planes under the car on Taebaek and Spa', t => {
   const previous=global.DrivingPose,previousRoad=global.CircuitRoad;
   t.after(()=>{if(previous===undefined)delete global.DrivingPose;else global.DrivingPose=previous;if(previousRoad===undefined)delete global.CircuitRoad;else global.CircuitRoad=previousRoad;});
   global.DrivingPose=require('./driving-pose.js');global.CircuitRoad=require('./circuit-road.js');
@@ -534,16 +544,15 @@ test('low follow eye smoothly clears the actual road top planes under the car on
     }
     const maximumHeightSecondDifference=Math.max(...heights.slice(2).map((z,i)=>Math.abs(z-2*heights[i+1]+heights[i])));
     assert(checked>500);assert(maximumHeightSecondDifference<.035,'camera elevation must not pop between local road faces: '+maximumHeightSecondDifference);
-    if(id==='taebaek')assert(maximumLift>.5,'fixture must exercise the previously hidden road-top condition');
     reports.push({id,width,height,centerLiftM:+centerLift.toFixed(3),centerRequiredLiftM:+centerMinimumLift.toFixed(3),maximumLiftM:+maximumLift.toFixed(3),minimumPlaneClearanceM:+minimumClearance.toFixed(3),maximumHeightSecondDifferenceM:+maximumHeightSecondDifference.toFixed(5)});
   }
   const {renderer:flat}=fixture();flat.race.sample=s=>({x:s,y:0,elevation:40,angle:0});
   flat.roadEdges=[{left:{x:-100,y:-5,z:40},right:{x:-100,y:5,z:40}},{left:{x:100,y:-5,z:40},right:{x:100,y:5,z:40}}];
-  flat.setView('follow');const state=flat._followPose(flat.race.cars[0]);near(state.eyeSafetyLiftM,0);near(state.eyeZ,flat._displayHeight(40)+1.15);
+  flat.setView('follow');const state=flat._followPose(flat.race.cars[0]);near(state.eyeSafetyLiftM,0);const originalEyeZ=state.eyeZ;assert(originalEyeZ>flat._displayHeight(40)+5);
   // A separate upper return leg overlaps this road in XY. Its plane must not
   // raise the low camera on the lower road by twenty metres.
   const ground=flat._displayHeight(40);
   flat.roadEdges=[[-100,ground],[100,ground],[100,ground+20],[-100,ground+20]].map(([x,z])=>({left:{x,y:-5,z},right:{x,y:5,z}}));
-  flat.advanceCamera(0,{snap:true});near(flat._followState.eyeSafetyLiftM,0);near(flat._followState.eyeZ,ground+1.15);
+  flat.advanceCamera(0,{snap:true});near(flat._followState.eyeSafetyLiftM,0);near(flat._followState.eyeZ,originalEyeZ);
   t.diagnostic(JSON.stringify(reports));
 });

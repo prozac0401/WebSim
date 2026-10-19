@@ -7,11 +7,11 @@ const Renderer = require('./circuit-renderer.js');
 
 function fixture() {
   const events = new Map(), images = [], buffers = new Map(), bindings = new Map();
-  const calls = { created: 0, deleted: [], textureDeleted: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
+  const calls = { created: 0, deleted: [], textureDeleted: [], textureParameters: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
   let error = 0, failure = null, textureBinding = null;
   const gl = new Proxy({
     ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, TEXTURE_2D: 3553,
-    TEXTURE_BINDING_2D: 32873, NO_ERROR: 0, OUT_OF_MEMORY: 1285,
+    TEXTURE_BINDING_2D: 32873, TEXTURE_WRAP_S: 10242, TEXTURE_WRAP_T: 10243, CLAMP_TO_EDGE: 33071, REPEAT: 10497, NO_ERROR: 0, OUT_OF_MEMORY: 1285,
     getShaderParameter: () => true, getProgramParameter: () => true,
     createShader: () => ({}), createProgram: () => ({}), getExtension: () => ({}),
     getAttribLocation: (_p, name) => name, getUniformLocation: (_p, name) => name,
@@ -28,6 +28,7 @@ function fixture() {
     bindTexture(_target, texture) { textureBinding = texture; },
     getParameter: () => textureBinding,
     texImage2D() { if (failure === 'texture-data') error = this.OUT_OF_MEMORY; },
+    texParameteri(_target, name, value) { calls.textureParameters.push({ texture:textureBinding, name, value }); },
     deleteTexture(texture) { calls.textureDeleted.push(texture); },
     getError() { calls.checks++; const value = error; error = 0; return value; },
     drawElements() {
@@ -37,7 +38,7 @@ function fixture() {
     }
   }, { get: (target, name) => name in target ? target[name] : () => {} });
   const canvas = { width: 300, height: 150, getContext: () => gl, addEventListener: (name, fn) => events.set(name, fn) };
-  const context = { document: { createElement: () => canvas }, Image: class { constructor() { images.push(this); } } };
+  const context = { document: { createElement: () => canvas }, Image: class { constructor() { this.width=1024;this.height=512;images.push(this); } } };
   vm.runInNewContext(fs.readFileSync(require.resolve('./vehicle-surfaces.js'), 'utf8'), context);
   const surface = new context.VehicleSurfaces(() => { calls.updates++; });
   const primitive = { vertices: new Float32Array([0,0,0, 0,0,1, 0,0, 1,0,0, 0,0,1, 1,0, 0,1,0, 0,0,1, 0,1]),
@@ -128,4 +129,28 @@ test('the production scene takes its same-model Canvas fallback after a GPU reso
   renderer._drawVehicleBatch(f.entries, f.camera);
   assert.equal(fallback, 1);
   assert.equal(composites, 0, 'a transparent failed GPU canvas is not treated as a rendered body');
+});
+
+test('tiled model textures use REPEAT while the same image remains separately clamped for photos/default assets', () => {
+  const f=fixture();f.primitive.texture='shared-image';f.primitive.textureRepeat=true;
+  assert.equal(f.render(),f.canvas);
+  const repeated=f.surface._texture('shared-image',true),clamped=f.surface._texture('shared-image');
+  assert.notEqual(repeated.texture,clamped.texture);
+  assert.equal(f.surface.textures.size,2);
+  for(const image of f.images)image.onload();
+  for(const [record,wrap]of [[repeated,f.gl.REPEAT],[clamped,f.gl.CLAMP_TO_EDGE]]){
+    assert.equal(record.ready,true);
+    for(const name of [f.gl.TEXTURE_WRAP_S,f.gl.TEXTURE_WRAP_T])assert(f.calls.textureParameters.some(p=>p.texture===record.texture&&p.name===name&&p.value===wrap));
+  }
+  assert.equal(f.surface._texture('shared-image',true),repeated);
+  assert.equal(f.surface._texture('shared-image'),clamped);
+  const checks=f.calls.checks;f.render();assert.equal(f.calls.checks,checks,'cached tiled draws add no synchronous GL error checks');
+});
+
+test('WebGL1 rejects a non-power-of-two repeating image explicitly instead of caching an invisible incomplete texture', () => {
+  const f=fixture();f.primitive.texture='non-pot';f.primitive.textureRepeat=true;f.render();
+  const record=f.surface._texture('non-pot',true);f.images[0].width=600;f.images[0].onload();
+  assert.equal(record.ready,false);assert.equal(f.surface.available,false);
+  assert.match(f.surface.failure,/power-of-two/);assert.equal(f.surface.textures.size,0);
+  assert.equal(f.calls.updates,1);assert.equal(f.render(),null);
 });

@@ -11,7 +11,7 @@ const rgb=hex=>{
 const materials={paint:0,glass:1,rubber:2,chrome:3,light:4,interior:2,plastic:2};
 class VehicleSurfaces {
  constructor(onUpdate) {
-  this.canvas=document.createElement('canvas');this.cache=new Map();this.assetCache=new Map();this.lodCache=new WeakMap();this.textures=new Map();this.textureGeneration=0;this.available=false;this.onUpdate=onUpdate;
+  this.canvas=document.createElement('canvas');this.cache=new Map();this.assetCache=new Map();this.lodCache=new WeakMap();this.textures=new Map();this.repeatTextureKeys=new Map();this.textureGeneration=0;this.available=false;this.onUpdate=onUpdate;
   try {
    this.gl=this.canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
    const gl=this.gl;if(!gl)return;
@@ -129,20 +129,30 @@ class VehicleSurfaces {
   this.assetCache.set(model,result);return result;
   }catch(error){for(const buffer of allocated)gl.deleteBuffer(buffer);throw error;}
  }
- _texture(source){
-  if(this.textures.has(source))return this.textures.get(source);
+ _texture(source,repeat=false){
+  // Imported meshes may use tiled UVs. Keep photos/default assets clamped and
+  // cache each sampler separately even when they share the same image bytes.
+  // Stable object keys avoid concatenating and hashing a multi-megabyte data
+  // URL again on every tiled-material draw.
+  let key=source;
+  if(repeat){if(!this.repeatTextureKeys.has(source))this.repeatTextureKeys.set(source,{source,repeat:true});key=this.repeatTextureKeys.get(source);}
+  if(this.textures.has(key))return this.textures.get(key);
   const gl=this.gl,texture=gl.createTexture();if(!texture)throw new Error('Vehicle WebGL texture allocation failed');
   const record={texture,ready:false};
   const previous=gl.getParameter(gl.TEXTURE_BINDING_2D);
   try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));this._checkResource('placeholder texture upload');}
   catch(error){gl.deleteTexture(texture);throw error;}
   finally{gl.bindTexture(gl.TEXTURE_2D,previous);}
-  this.textures.set(source,record);
-  const generation=this.textureGeneration,image=new Image(),current=()=>this.available&&generation===this.textureGeneration&&this.textures.get(source)===record;
+  this.textures.set(key,record);
+  const generation=this.textureGeneration,image=new Image(),current=()=>this.available&&generation===this.textureGeneration&&this.textures.get(key)===record;
   image.onload=()=>{
    if(!current())return;
    const bound=gl.getParameter(gl.TEXTURE_BINDING_2D);let failure;
-   try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);this._checkResource('image texture upload');}
+   try{
+    const powerOfTwo=n=>Number.isInteger(n)&&n>0&&(n&(n-1))===0;
+    if(repeat&&(!powerOfTwo(image.naturalWidth||image.width)||!powerOfTwo(image.naturalHeight||image.height)))throw new Error('Vehicle repeating texture requires power-of-two dimensions');
+    gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,repeat?gl.REPEAT:gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,repeat?gl.REPEAT:gl.CLAMP_TO_EDGE);this._checkResource('image texture upload');
+   }
    catch(error){failure=error;}
    finally{gl.bindTexture(gl.TEXTURE_2D,bound);}
    if(failure){this._fail(failure);return;}
@@ -185,7 +195,7 @@ class VehicleSurfaces {
    const photoMode=!!(p.photoProjected&&mesh.manufacturer.photoProjection);
    if(photoMode&&boundPhotoCamera!==(p.photoCameraIndex??-1)){this._bindPhoto(mesh,position,camera,p.photoCameraIndex);boundPhotoCamera=p.photoCameraIndex??-1;}
    gl.uniform1i(U.uPhotoMode,photoMode);
-   if(p.texture){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this._texture(p.texture).texture);gl.uniform1i(U.uTexture,0);}
+   if(p.texture){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this._texture(p.texture,!!p.textureRepeat).texture);gl.uniform1i(U.uTexture,0);}
    if((p.alpha??1)<.99){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);}else{gl.disable(gl.BLEND);gl.depthMask(true);}
    if(b.indexBuffer){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,b.indexBuffer);gl.drawElements(gl.TRIANGLES,b.count,b.type,0);}else gl.drawArrays(gl.TRIANGLES,0,b.count);
   }
@@ -225,7 +235,7 @@ class VehicleSurfaces {
   return this.canvas;
   }catch(error){this._fail(error,false);return null;}
  }
- clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();}
+ clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();this.repeatTextureKeys.clear();}
  dispose(){if(!this.gl)return;this.clearGeometry();this.available=false;this.gl.deleteProgram(this.program);}
 }
 root.VehicleSurfaces=VehicleSurfaces;

@@ -9,6 +9,7 @@
   const g70Source = 'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf';
   const supraSource = 'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf';
   const avanteNSource = 'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf';
+  const gr86Source = 'https://toyota.jp/pages/contents/carlineup/archive/gr86/2022-05/pdf/gr86_main_s_202205.pdf';
   // Nominal unloaded radii calculated from tyre markings, not rolling radii.
   const g70 = {
     variant: '2019 국내 2.0T RWD · 8AT · 18인치', modelYear: 2019, market: 'KR',
@@ -61,6 +62,18 @@
     sourceNote: '2021 국내 CN7 아반떼 N 출시 사양 · 기본 280 PS, NGS 일시 출력 증대는 적용하지 않습니다. eLSD 제어·변속 지연은 별도로 모사하지 않습니다.',
     driveVariants: { fwd: {} }, driveVerificationDate: '2026-10-19'
   };
-  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra, bmw_m2, avante_n });
+  const gr86 = {
+    variant: '2022 일본 RZ 2.4 RWD · 6MT · 18인치', modelYear: 2022, market: 'JP',
+    lengthMm: 4265, widthMm: 1775, heightMm: 1310, roofHeightMm: 1280, wheelbaseMm: 2575,
+    curbMassKg: 1270, powerPs: 235, torqueNm: 250, displacementCc: 2387,
+    engine: '수평대향 4기통 가솔린 자연흡기', engineFamily: 'FA24',
+    factoryDrive: 'rwd', powertrainType: 'gasoline', electric: false, differential: 'Torsen LSD',
+    frontTire: '215/40R18', rearTire: '215/40R18', frontTireRadiusMm: 314.6, rearTireRadiusMm: 314.6,
+    frontTrackMm: 1520, rearTrackMm: 1550, transmissionType: 'MT', gearCount: 6,
+    sourceUrl: gr86Source, sourcePage: 'https://toyota.jp/carlineup/archive/gr86/',
+    sourceNote: '2022년 5월 일본 RZ 제원 · 235 PS·250 Nm, 6MT 1270 kg/6AT 1290 kg. 국내 231 PS·MT 전용 사양과 혼합하지 않습니다. Torsen 차동제어·클러치 조작·변속 지연은 별도로 모사하지 않습니다.',
+    driveVariants: { rwd: {} }, driveVerificationDate: '2026-10-19'
+  };
+  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra, bmw_m2, avante_n, gr86 });
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CircuitVehicleSpecs;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -10,9 +10,9 @@ const Profiles = require('./powertrain-profiles.js');
 
 test('circuit additions preserve all original presets and work in a script-tag browser', () => {
   const originalIds = Object.keys(shared);
-  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined); assert.equal(shared.bmw_m2, undefined); assert.equal(shared.avante_n, undefined);
+  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined); assert.equal(shared.bmw_m2, undefined); assert.equal(shared.avante_n, undefined); assert.equal(shared.gr86, undefined);
   for (const id of Object.keys(shared)) assert.equal(specs[id], shared[id]);
-  assert.equal(Object.keys(specs).length, originalIds.length + 4);
+  assert.equal(Object.keys(specs).length, originalIds.length + 5);
   const sandbox = { window: { VehicleSpecs: shared } };
   vm.runInNewContext(fs.readFileSync(require.resolve('./circuit-vehicle-specs.js'), 'utf8'), sandbox);
   for (const id of Object.keys(shared)) assert.equal(sandbox.window.CircuitVehicleSpecs[id], shared[id]);
@@ -110,4 +110,26 @@ test('CN7 Avante N keeps Korean DCT/manual masses and base power separate from o
   const stock = Evolution.createPopulation({ vehicleId: 'avante_n', budget: 0, seed: 17 });
   assert.deepEqual(stock.map(e => e.variantId).sort(), ['avante-n-2.0t-dct', 'avante-n-2.0t-mt']);
   assert.equal(Profiles.resolve('avante').transmissionType, 'IVT', 'ordinary Avante remains unchanged');
+});
+
+test('GR86 RZ uses one Japanese 2022 source for both transmissions and keeps Korean/GT86 specifications out', () => {
+  assert.deepEqual(Evolution.VARIANTS.gr86.map(v => v.id), ['gr86-2.4-rz-mt', 'gr86-2.4-rz-at']);
+  assert.equal(Profiles.resolve('gr86').variantId, 'gr86-2.4-rz-mt');
+  for (const [id, transmission, mass] of [['gr86-2.4-rz-mt', 'MT', 1270], ['gr86-2.4-rz-at', 'AT', 1290]]) {
+    const entry = Evolution.createEntrant({ vehicleId: 'gr86', variantId: id, budget: 0 }), s = entry.spec;
+    assert.equal(s, entry.factorySpec);
+    assert.deepEqual([s.modelYear, s.market, s.engineFamily, s.displacementCc, s.powerPs, s.torqueNm, s.massKg], [2022, 'JP', 'FA24', 2387, 235, 250, mass]);
+    assert.deepEqual([s.lengthMm, s.widthMm, s.heightMm, s.roofHeightMm, s.wheelbaseMm], [4265, 1775, 1310, 1280, 2575]);
+    assert.deepEqual([s.factoryDrive, s.differential, s.transmissionType, s.gearCount], ['rwd', 'Torsen LSD', transmission, 6]);
+    assert.deepEqual([s.frontTire, s.rearTire, s.frontTireRadiusMm, s.rearTireRadiusMm], ['215/40R18', '215/40R18', 314.6, 314.6]);
+    assert.equal(s.trackWidthM, (1520 + 1550) / 2000);
+    assert.ok(!s.modeledFields.includes('trackWidthM'));
+    for (const field of ['dragArea', 'gripG', 'brakeG', 'cgHeightM', 'topSpeedMps']) assert.ok(s.modeledFields.includes(field));
+    assert.deepEqual(Evolution.getRules('gr86', id).credits, { acceleration: 0, topSpeed: 0, brakes: 0, grip: 0 });
+    assert.match(s.sourceUrl, /toyota\.jp\/.*\/gr86\/2022-05\/pdf\/gr86_main_s_202205\.pdf$/);
+  }
+  const stock = Evolution.createPopulation({ vehicleId: 'gr86', budget: 0, count: 12 });
+  assert.equal(stock.length, 2);
+  assert.deepEqual(stock.map(e => e.variantId).sort(), ['gr86-2.4-rz-at', 'gr86-2.4-rz-mt']);
+  assert.ok(Object.isFrozen(specs.gr86.driveVariants.rwd));
 });

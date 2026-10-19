@@ -4,7 +4,7 @@
 (function(root){
  'use strict';
  const models=new Map(),pending=new Set(),failures=[];
- const assetOnly=new Set(['g70','supra','bmw_m2','avante_n']);
+ const assetOnly=new Set(['g70','supra','bmw_m2','avante_n','gr86']);
  const files=new Set(['g80','ioniq5','santafe','staria','carnival','morning','ray','k5','avante','grandeur','torres','musso_ev','porter2',...assetOnly]),loading=new Map(),states=new Map(),listeners=new Set(),scripts=new WeakMap();
  const LOAD_POLICY=Object.freeze({maxAttempts:2,timeoutMs:45000,retryDelayMs:500});
  let attemptSerial=0;

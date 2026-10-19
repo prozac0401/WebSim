@@ -75,7 +75,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
-  assert.equal(context.TrackRace.VEHICLES.length,17);
+  assert.equal(context.TrackRace.VEHICLES.length,18);
   assert.equal(race.track.elevationProfile.id,Profile.metadata.id);
   close(race.track.points[0].z,418,'browser start elevation');
   const point=context.DrivingPose.sample(race,1050);assert.ok(point.grade>.09,'browser and Node both apply the real climb');
@@ -123,7 +123,7 @@ test('switching from Spa scenic view to another circuit falls back to that race 
   assert.equal(r.mode,'follow');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
   assert.deepEqual(r.panOffset,{x:0,y:0,z:0});
   const car=r.race.cars[0],pose=Pose.sampleCar(r.race,car,car.distance),target=r._interactionCamera().target;
-  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,displayHeight(r.race.track,pose.z)+.65,'new circuit height');
+  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,r._displayPose(pose,car).z+.65,'new circuit height');
   r.setRace(races.get('spa'));r.setView('eau-rouge');assert.ok(r.landmark);assert.equal(r.getState().mode,'eau-rouge');
 });
 
@@ -135,19 +135,19 @@ test('all real circuits share watched-car, camera and arrow coordinates with phy
     r._drawVehicles=entries=>{vehicles=entries;};
     for(const fraction of [0,.137,.503,.923]) {
       const car=race.cars[0],length=car.trackLength||race.track.length;car.distance=length*fraction;arrows=[];r.advanceCamera(0,{snap:true});r.render({showLine:true});
-      const expected=Pose.sampleCar(race,car,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
-      assert.deepEqual(entry.position,{...expected,z:displayHeight(race.track,expected.z),elevation:displayHeight(race.track,expected.elevation),grade:expected.grade*1.75},id+' displayed render pose');
+      const expected=Pose.sampleCar(race,car,car.distance),displayed=r._displayPose(expected,car),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
+      assert.deepEqual(entry.position,displayed,id+' displayed render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
-      close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.65,id+' camera height');
+      close(r._lastCamera.target.z,displayed.z+.65,id+' camera height');
       const step=length/Math.ceil(length/7.5),firstIndex=Math.ceil((car.distance+5)/step);
       assert.equal(arrows.length,15,id+' fifteen arrows ahead of the watched car');
       assert.ok(arrows.every(face=>face.vertices.length===3&&face.fill.endsWith(',0.52)')),id+' translucent world triangles');
       for(const index of [0,5,10,arrows.length-1]) {
         const s=(firstIndex+index)*step,tip=Pose.sampleCar(race,car,s+2.6),rear=Pose.sampleCar(race,car,s-2),vertices=arrows[index].vertices;
         close(vertices[0].x,tip.x,id+' arrow tip x');close(vertices[0].y,tip.y,id+' arrow tip y');
-        close(vertices[0].z,displayHeight(race.track,tip.z)+.11,id+' arrow tip surface clearance');
+        close(vertices[0].z,r._displayPose(tip).z+.11,id+' arrow tip surface clearance');
         close((vertices[1].x+vertices[2].x)/2,rear.x,id+' arrow base x');close((vertices[1].y+vertices[2].y)/2,rear.y,id+' arrow base y');
-        close(vertices[1].z,displayHeight(race.track,rear.z)+.11,id+' arrow base surface clearance');
+        for(const vertex of vertices.slice(1))close(vertex.z,r._displayPose({...rear,x:vertex.x,y:vertex.y}).z+.11,id+' arrow base surface clearance');
       }
     }
     // The vehicle render floor has a 55 mm clearance. Verify the display-only
@@ -188,7 +188,7 @@ test('terrain gain changes displayed relief while preserving source elevations, 
 });
 
 test('vehicle bodies retain their dimensions on the amplified slope and in the isolated preview',()=>{
-  const race=races.get('spa'),r=renderer(race),p=r._displayPose(Pose.sampleCar(race,race.cars[0],1050)),faces=[];
+  const race=races.get('spa'),r=renderer(race),p=r._displayPose(Pose.sampleCar(race,race.cars[0],1050),race.cars[0]),faces=[];
   const vertices=[{x:0,y:0,z:0},{x:4,y:0,z:0},{x:0,y:0,z:1.5}];
   const mesh={length:4,width:2,height:1.5,manufacturer:{},faces:[{vertices,fill:'#fff'}]};
   r._mesh=()=>mesh;r._queue=face=>faces.push(face);
@@ -197,7 +197,7 @@ test('vehicle bodies retain their dimensions on the amplified slope and in the i
   const [a,b,c]=faces.at(-1).vertices;
   const distance=(u,v)=>Math.hypot(v.x-u.x,v.y-u.y,v.z-u.z);
   close(distance(a,b),4,'body length');close(distance(a,c),1.5,'body height');
-  close((b.z-a.z)/Math.hypot(b.x-a.x,b.y-a.y),Pose.sampleCar(race,race.cars[0],1050).grade*1.75,'body follows amplified grade');
+  close((b.z-a.z)/Math.hypot(b.x-a.x,b.y-a.y),p.grade,'body follows the displayed wheelbase support grade');
   const surface=surfaceFixture();surface.renderer.render([{mesh,position:p,selected:true}],camera,980,615);
   close(surface.uniforms.get('uCar')[2],p.z+.055,'WebGL anchor matches displayed road');
   close(surface.uniforms.get('uPose')[1],Math.atan(p.grade),'WebGL pitch matches Canvas body');

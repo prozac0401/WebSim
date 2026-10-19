@@ -237,9 +237,26 @@
     }
     clearVehicleModels(){this.meshCache.clear();this.surfaceRenderer?.clearGeometry();}
     _displayHeight(z){const datum=this.race?.track.elevationMin||0;return datum+(z-datum)*ELEVATION_EXAGGERATION;}
-    _displayPose(p){
-      const z=this._displayHeight(p.elevation??p.z??0);
-      return {...p,z,elevation:p.elevation==null?null:z,grade:(p.grade||0)*ELEVATION_EXAGGERATION};
+    _displayPose(p,car){
+      let z=this._displayHeight(p.elevation??p.z??0),grade=(p.grade||0)*ELEVATION_EXAGGERATION;
+      const surface=(q,seed)=>root.DrivingPose?.surfaceAt?.(this.roadGeometry,q,seed),center=surface({...p,z,elevation:z});
+      if(center){
+        z=center.z;grade=center.grade;
+        const half=(car?.wheelbaseM||car?.spec?.wheelbaseMm/1000||0)/2;
+        if(half>0){
+          // A rigid body rests on a finite wheelbase, not one tangent point.
+          // Use the current support heights, without temporal pitch/height lag.
+          let front,rear;
+          for(let i=0;i<3;i++){
+            const run=half/Math.hypot(1,grade),dx=run*Math.cos(p.angle),dy=run*Math.sin(p.angle);
+            front=surface({...p,x:p.x+dx,y:p.y+dy,z,elevation:z},center.s);rear=surface({...p,x:p.x-dx,y:p.y-dy,z,elevation:z},center.s);
+            if(!front||!rear)break;
+            grade=(front.z-rear.z)/(2*run);
+          }
+          if(front&&rear)z=(front.z+rear.z)/2;
+        }
+      }
+      return {...p,z,elevation:p.elevation==null?null:z,grade};
     }
     setRace(race,{preserveCamera=false}={}){
       if(preserveCamera&&this.race?.circuit===race.circuit){
@@ -314,12 +331,30 @@
     }
     recenter(){this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._changed();}
     resetPan(){this.recenter();}
-    _followSample(car,distance){return this._displayPose(root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance));}
+    _followSample(car,distance){return this._displayPose(root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance),car);}
     _followDistance(car){
-      const f=this.height/(2*Math.tan(16*Math.PI/180));
-      // Close the normal rear gap by 28%; tall portrait canvases still need
-      // enough room for the full car when the past path sees its side.
-      return Math.max(.72*Math.max(16,((car.spec?.lengthMm||4800)/1000)*3.5),((car.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(220,this.width*.30)));
+      const length=(car.spec?.lengthMm||4800)/1000,width=(car.spec?.widthMm||1850)/1000,height=(car.spec?.heightMm||1600)/1000;
+      const key=[this.width,this.height,length,width,height].join(':');
+      if(this._followFraming?.key===key)return this._followFraming.trail;
+      const f=this.height/(2*Math.tan(16*Math.PI/180)),classicF=this.height/(2*Math.tan(29*Math.PI/180)),pitch=24*Math.PI/180;
+      const classicDistance=Math.max(6.6,length*1.72,width*classicF/Math.max(105,Math.min(190,this.width*.36)));
+      // Match the rear view's projected body area, including perspective at
+      // the nearest bumper. A focal-length ratio alone overfills the frame.
+      const area=(distance,angle,focal,targetHeight)=>{
+        let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+        for(const x of [-length/2,length/2])for(const y of [-width/2,width/2])for(const z of [0,height]){
+          const dz=z-targetHeight,depth=distance+x*Math.cos(angle)-dz*Math.sin(angle);
+          if(depth<=.1)return Infinity;
+          const sx=y*focal/depth,sy=(-x*Math.sin(angle)-dz*Math.cos(angle))*focal/depth;
+          minX=Math.min(minX,sx);maxX=Math.max(maxX,sx);minY=Math.min(minY,sy);maxY=Math.max(maxY,sy);
+        }
+        return (maxX-minX)*(maxY-minY);
+      };
+      // An unusually tall canvas needs a small reserve when a hairpin shows
+      // the car broadside. Ordinary mobile squares and desktop match exactly.
+      const target=area(classicDistance,.24,classicF,.8)*(this.height>this.width*1.8?.88:1);let low=length/2+.5,high=classicDistance*f/classicF*2;
+      for(let i=0;i<28;i++){const mid=(low+high)/2;if(area(mid,pitch,f,.65)>target)low=mid;else high=mid;}
+      const trail=(low+high)/2*Math.cos(pitch);this._followFraming={key,trail};return trail;
     }
     _followGoal(car){
       const p=this._followSample(car,car.distance),trail=this._followDistance(car),eyeDistance=car.distance-trail;
@@ -328,7 +363,7 @@
     // The original 58-degree rear view retains its own angular spring state.
     _classicFollowGoal(car){
       const sample=distance=>root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance);
-      const p=this._displayPose(sample(car.distance)),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
+      const p=this._displayPose(sample(car.distance),car),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
       const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
       // Estimate bend size from chords, not the instantaneous spline curvature.
       // The neighbouring chords also see a tight bend before a wide filter
@@ -438,12 +473,17 @@
     }
     _followEye(car,pose){
       // Filter a distance along the driven path, never free XY coordinates.
-      // This keeps the low eye on the road through hairpins instead of cutting
+      // This keeps the eye over the road through hairpins instead of cutting
       // across the inside bank. A smooth bound prevents runaway playback lag.
       const limit=pose.trail*.35;
       pose.sampleDistance=pose.goalEyeDistance+limit*Math.tanh((pose.eyeDistance-pose.goalEyeDistance)/limit);
       const rear=this._followSample(car,pose.sampleDistance);
-      pose.eyeX=rear.x;pose.eyeY=rear.y;pose.eyeZ=(rear.elevation??rear.z??0)+1.15;
+      pose.eyeX=rear.x;pose.eyeY=rear.y;
+      // Keep the raised eye at a steady height relative to the watched car;
+      // its shorter chord through a bend naturally looks down more steeply.
+      // No bend-dependent height branch introduces a pitch-rate kink.
+      const rise=pose.trail*Math.tan(24*Math.PI/180);
+      pose.eyeZ=Math.max((rear.elevation??rear.z??0)+1.15,pose.z+rise);
       const floor=this.terrainGeometry?.sampleHeight?.(pose.eyeX,pose.eyeY);
       if(Number.isFinite(floor))pose.eyeZ=Math.max(pose.eyeZ,floor+.65);
       pose.eyeSafetyLiftM=this._followRoadLift(car,pose);pose.eyeZ+=pose.eyeSafetyLiftM;
@@ -662,7 +702,13 @@
       const layer=this.surfaceRenderer?.render(entries,camera,this.width,this.height,this.dpr);
       if(layer){
         const shadows=[];
-        for(const {mesh,position:p}of entries){const ca=Math.cos(p.angle||0),sa=Math.sin(p.angle||0),v=(x,y)=>point(p.x+x*ca-y*sa,p.y+x*sa+y*ca,(p.elevation||0)+.025);
+        for(const {mesh,position:p}of entries){
+          const ca=Math.cos(p.angle||0),sa=Math.sin(p.angle||0),surface=(q,seed)=>root.DrivingPose?.surfaceAt?.(this.roadGeometry,q,seed);
+          // The isolated inset has no world z. A real road shadow follows the
+          // same ribbon as the tyres, rather than floating on a level ellipse.
+          const center=Number.isFinite(p.z)?surface(p):null;
+          const v=(x,y)=>{const q=point(p.x+x*ca-y*sa,p.y+x*sa+y*ca,(p.elevation??p.z??0)+x*(p.grade||0));
+            const support=center&&surface({...q,angle:p.angle},center.s);q.z=(support?.z??q.z)+.025;return q;};
           for(const [scale,alpha]of [[1.08,.07],[.94,.12]]){
             const vertices=Array.from({length:24},(_,i)=>{const a=i/24*TAU;return v(Math.cos(a)*mesh.length*.51*scale,Math.sin(a)*mesh.width*.62*scale);});
             this._queue({vertices,fill:'rgba(18,29,34,'+alpha+')'},camera,shadows);
@@ -728,10 +774,10 @@
       const pose=s=>root.DrivingPose?.sampleCar?.(this.race,car,s)||root.DrivingPose?.sample(this.race,s)||this.race.sampleForCar?.(car,s)||this.race.sample(s);
       // Both the tip and base follow the same curve as the watched car. The
       // world-space width fits inside the path's existing road-edge allowance.
-      const rear=pose(distance-2),tip=pose(distance+2.6),halfWidth=Math.min(.72,this.race.track.width*.08);
+      const rear=pose(distance-2),tip=this._displayPose(pose(distance+2.6)),halfWidth=Math.min(.72,this.race.track.width*.08);
       const nx=-Math.sin(rear.angle)*halfWidth,ny=Math.cos(rear.angle)*halfWidth;
-      const z=this._displayHeight(rear.elevation??rear.z??0)+.11;
-      return [point(tip.x,tip.y,this._displayHeight(tip.elevation??tip.z??0)+.11),point(rear.x+nx,rear.y+ny,z),point(rear.x-nx,rear.y-ny,z)];
+      const left=this._displayPose({...rear,x:rear.x+nx,y:rear.y+ny}),right=this._displayPose({...rear,x:rear.x-nx,y:rear.y-ny});
+      return [point(tip.x,tip.y,tip.z+.11),point(left.x,left.y,left.z+.11),point(right.x,right.y,right.z+.11)];
     }
     _queueRacingGuidance(car,camera,queue){
       if(!root.RacingGuidance)return;
@@ -747,6 +793,11 @@
         const distance=distances[index],guidance=preview[index];if(!guidance)continue;
         this._queue({vertices:this._racingGuidanceTriangle(car,distance),fill:guidance.fill,stroke:guidance.fill,width:.45,priority:2,topSurface:true},camera,queue);
       }
+    }
+    _isAheadCar(candidate,selected){
+      const progress=car=>car.distance/(car.trackLength||this.race.track.length);
+      return progress(candidate)>progress(selected)+1e-9||
+        candidate.finished&&(!selected.finished||candidate.finishTime<selected.finishTime);
     }
     render({watch=this.watch,mode=this.mode,showLine=false}={}){
       this.guidanceArrows=[];
@@ -765,8 +816,12 @@
       for(const group of facilities)for(const face of group.faces)this._queue({...face,stroke:face.fill,width:.55},camera,queue);
       this._startLine(camera,queue);
       this.markerPositions=[];
-      for(const c of this.race.cars){
-        const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance)),projected=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);
+      // Rear-follow views show only the watched run and competitors ahead in
+      // total lap progress. Share this list with bodies/shadows and hit labels,
+      // including equal start positions and cars with different path lengths.
+      const displayedCars=this._isFollowView()?this.race.cars.filter(c=>c.id===car.id||this._isAheadCar(c,car)):this.race.cars;
+      for(const c of displayedCars){
+        const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance),c),projected=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);
         if(!projected)continue;
         const mesh=this._mesh(c);
         if(projected.x>-60&&projected.x<this.width+60&&projected.y>-60&&projected.y<this.height+60)this.markerPositions.push({id:c.id,x:projected.x,y:projected.y,anchorX:projected.x,anchorY:projected.y,color:c.color,length:mesh.length*projected.scale,radius:Math.max(12,mesh.width*projected.scale*.6)});
@@ -775,7 +830,7 @@
       this._paintWorld(queue);
       // Cars are redrawn after the trajectory so the line never cuts across a roof.
       const visibleCars=[];
-      for(const c of this.race.cars){const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance)),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
+      for(const c of displayedCars){const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance),c),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
       this._drawVehicles(visibleCars,camera);this._labels(car);
       if(!this._isFollowView()&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
       this._compass(camera);this._caption();
@@ -783,13 +838,11 @@
     _labels(selected){
       const ctx=this.ctx,placed=[];ctx.font='600 10px system-ui,sans-serif';
       const standings=this.race.standings(),rank=standings.findIndex(c=>c.id===selected.id);
-      const progress=car=>car.distance/(car.trackLength||this.race.track.length);
       // Use race progress, including completed laps and individual path lengths.
       // Equal launch positions are not an ahead car; an offscreen predecessor
       // must not be replaced by a different, merely visible competitor.
       const preceding=standings[rank-1];
-      const ahead=preceding&&(progress(preceding)>progress(selected)+1e-9||
-        preceding.finished&&(!selected.finished||preceding.finishTime<selected.finishTime))?preceding:null;
+      const ahead=preceding&&this._isAheadCar(preceding,selected)?preceding:null;
       for(const p of this.markerPositions)p.labelVisible=p.id===selected.id||p.id===ahead?.id;
       const ordered=this.markerPositions.filter(p=>p.labelVisible).sort((a,b)=>(b.id===selected.id)-(a.id===selected.id));
       for(const p of ordered){

@@ -20,7 +20,7 @@ function finish(race) {
 }
 
 test('all circuit presets use the original or circuit-only factory mass, power and torque', () => {
-  assert.equal(TrackRace.VEHICLES.length, 17);
+  assert.equal(TrackRace.VEHICLES.length, 18);
   for (const vehicle of TrackRace.VEHICLES) {
     assert.equal(vehicle.massKg, specifications[vehicle.id].curbMassKg);
     assert.equal(vehicle.powerPs, specifications[vehicle.id].powerPs);
@@ -267,7 +267,7 @@ test('a downhill approach plans and starts braking earlier than the same flat co
   assert.ok(brakingStarts[2] > brakingStarts[1] + 10, 'uphill gravity allows a later braking point');
 });
 
-test('all 17 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
+test('all 18 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
   assert.equal(circuits.length, 11);
   const retirements = [];
   for (const circuit of circuits) {
@@ -561,7 +561,7 @@ test('one-make variant and tuning entrants complete every elevated layout in dry
   t.diagnostic(runs + ' one-make entrant runs completed on actual elevated racing lines.');
 });
 
-test('generated factory variants run for all 17 models and tuning generations preserve the measured elite', t => {
+test('generated factory variants run for all 18 models and tuning generations preserve the measured elite', t => {
   const tuning = require('./tuning-evolution.js');
   const circuit = circuits.find(c => c.id === 'inje');
   let runs = 0;
@@ -614,4 +614,24 @@ test('both stock CN7 Avante N transmissions finish dry/wet racing-line laps with
     assert.ok(race.cars.every(car => car.finished && !car.dnf && car.finishTime > 0));
     assert.equal(JSON.stringify(population), before, 'race and eLSD metadata must not mutate or boost stock inputs');
   }
+});
+
+test('GR86 Japanese MT and AT complete dry/wet laps with distinct sourced launch reductions and unchanged stock inputs', () => {
+  const tuning = require('./tuning-evolution.js'), times = {};
+  for (const surface of ['dry', 'wet']) {
+    const population = tuning.createPopulation({ vehicleId: 'gr86', budget: 0 }), before = JSON.stringify(population);
+    const race = new TrackRace({ circuit: circuits.find(c => c.id === 'inje'), entrants: population, surface, laps: 1 });
+    assert.equal(race.cars.length, 2);
+    for (const car of race.cars) {
+      const manual = car.entrant.variantId === 'gr86-2.4-rz-mt';
+      assert.equal(car.driveReduction, manual ? 3.626 * 4.1 : 3.538 * 3.909);
+      assert.equal(car.driveReductionSource, 'verified-exact-market');
+      assert.deepEqual([car.massKg, car.powerPs, car.torqueNm, car.spec.factoryDrive], [manual ? 1270 : 1290, 235, 250, 'rwd']);
+    }
+    finish(race);
+    assert.ok(race.cars.every(car => car.finished && !car.dnf && Number.isFinite(car.finishTime)));
+    assert.equal(JSON.stringify(population), before);
+    times[surface] = Object.fromEntries(race.cars.map(car => [car.entrant.variantId, car.finishTime]));
+  }
+  for (const id of Object.keys(times.dry)) assert.ok(times.wet[id] > times.dry[id], 'wet grip must affect both transmissions');
 });

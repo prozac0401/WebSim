@@ -8,6 +8,7 @@
 (function (root) {
   'use strict';
   const cache = new WeakMap();
+  const surfaceCache = new WeakMap();
   // The old 24 cm control cap left usable room inside the 40 cm curve bound.
   // In the actual wide-apex Taebaek line, that cap retained 12–15 m steering
   // pulses even though the spline was C2. Use at most 35 cm for the existing
@@ -282,7 +283,63 @@
     }
     return start.drawnPath;
   }
-  const api = { sample, sampleCar, startBlend, path, pathCar, info: (race, car) => create(race, car)?.info || null };
+  // The displayed road is a normal-offset ribbon of its own C2 centreline.
+  // A separately resampled car z(s) is not that surface: inside a steep corner
+  // its old polygon chainage can retain short pitch pulses after XY is smooth.
+  // Project XY onto the exact road curve, then differentiate this same ribbon.
+  // This is display-only and never writes to the race or its physical samples.
+  function surfaceAt(road, position, seedDistance) {
+    if (road?.stats?.method !== 'adaptive-c2-centreline' || !road.edges?.length || typeof road.sample !== 'function' ||
+      !Number.isFinite(position?.x) || !Number.isFinite(position?.y)) return null;
+    let cached = surfaceCache.get(road);
+    if (!cached || cached.edges !== road.edges) {
+      const cells = new Map(), cell = 32, edges = road.edges;
+      for (let i = 0; i < edges.length; i++) {
+        const a = edges[i], b = edges[(i + 1) % edges.length], vertices = [a.outerLeft, a.outerRight, b.outerLeft, b.outerRight];
+        const xs = vertices.map(p => p.x), ys = vertices.map(p => p.y);
+        for (let x = Math.floor(Math.min(...xs) / cell); x <= Math.floor(Math.max(...xs) / cell); x++)
+          for (let y = Math.floor(Math.min(...ys) / cell); y <= Math.floor(Math.max(...ys) / cell); y++) {
+            const key = x + ',' + y; if (!cells.has(key)) cells.set(key, []); cells.get(key).push(i);
+          }
+      }
+      cached = { cells, cell, edges }; surfaceCache.set(road, cached);
+    }
+    const { cells, cell, edges } = cached, candidates = new Set(), gx = Math.floor(position.x / cell), gy = Math.floor(position.y / cell);
+    let best = Infinity, seed = Number.isFinite(seedDistance) ? seedDistance : null;
+    if(seed === null) for (let x = gx - 1; x <= gx + 1; x++) for (let y = gy - 1; y <= gy + 1; y++) for (const i of cells.get(x + ',' + y) || []) candidates.add(i);
+    const referenceZ = position.elevation ?? position.z;
+    for (const i of candidates) {
+      const a = edges[i], b = edges[(i + 1) % edges.length], dx = b.p.x - a.p.x, dy = b.p.y - a.p.y;
+      if (Number.isFinite(position.angle) && dx * Math.cos(position.angle) + dy * Math.sin(position.angle) <= 0) continue;
+      const t = Math.max(0, Math.min(1, ((position.x - a.p.x) * dx + (position.y - a.p.y) * dy) / (dx * dx + dy * dy || 1)));
+      if (Number.isFinite(referenceZ) && Math.abs(lerp(a.p.z, b.p.z, t) - referenceZ) > 4) continue;
+      const squared = (position.x - a.p.x - t * dx) ** 2 + (position.y - a.p.y - t * dy) ** 2;
+      if (squared < best) {
+        best = squared;
+        // The final edge wraps to s=0. Its short forward span is recovered from
+        // the last samples, rather than interpolating backwards across the lap.
+        const span = i + 1 < edges.length ? b.s - a.s : Math.hypot(dx, dy);
+        seed = a.s + t * span;
+      }
+    }
+    if (seed === null) return null;
+    let s = seed, p, lateral, along;
+    for (let iteration = 0; iteration < 8; iteration++) {
+      p = road.sample(s);
+      const tx = Math.cos(p.angle), ty = Math.sin(p.angle), dx = position.x - p.x, dy = position.y - p.y;
+      lateral = -dx * ty + dy * tx; along = dx * tx + dy * ty;
+      if (Math.abs(along) < 1e-8) break;
+      const a = road.sample(s - .01), b = road.sample(s + .01), speed = Math.hypot(b.x - a.x, b.y - a.y) / .02;
+      const derivative = speed * (1 - p.curvature * lateral);
+      if (!(derivative > .1)) return null;
+      s += Math.max(-4, Math.min(4, along / derivative));
+    }
+    const halfWidth = Math.hypot(edges[0].right.x - edges[0].left.x, edges[0].right.y - edges[0].left.y) / 2;
+    if (Math.abs(along) > 1e-6 || Math.abs(lateral) > halfWidth + 3 || !(1 - p.curvature * lateral > .1)) return null;
+    const grade = p.grade * Math.cos((position.angle ?? p.angle) - p.angle) / (1 - p.curvature * lateral);
+    return { z: p.z, grade, s: p.s, lateral };
+  }
+  const api = { sample, sampleCar, startBlend, path, pathCar, surfaceAt, info: (race, car) => create(race, car)?.info || null };
   root.DrivingPose = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

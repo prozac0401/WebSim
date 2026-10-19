@@ -43,7 +43,8 @@
     g70: ['제네시스 G70 (전기형)', .66, 1.00, 1.05, .52, .49, 1850, 1.61, 240],
     supra: ['토요타 GR 수프라 A90', .62, 1.04, 1.12, .50, .45, 1865, 1.60, 250],
     bmw_m2: ['BMW M2 F87', .7735, 1.04, 1.12, .52, .49, 1854, 1.590, 250],
-    avante_n: ['현대 아반떼 N (CN7)', .68, 1.04, 1.10, .61, .49, 1825, 1.58, 250]
+    avante_n: ['현대 아반떼 N (CN7)', .68, 1.04, 1.10, .61, .49, 1825, 1.58, 250],
+    gr86: ['토요타 GR86 ZN8', .56, 1.00, 1.08, .53, .46, 1775, 1.535, 230]
   };
   const SOURCE = {
     ray: 'https://www.kia.com/kr/vehicles/ray/specification',
@@ -62,7 +63,8 @@
     g70: SHARED.g70.sourceUrl,
     supra: SHARED.supra.sourceUrl,
     bmw_m2: SHARED.bmw_m2.sourceUrl,
-    avante_n: SHARED.avante_n.sourceUrl
+    avante_n: SHARED.avante_n.sourceUrl,
+    gr86: SHARED.gr86.sourceUrl
   };
   function preset(vehicleId, id, label, cc, engine, drive, powerPs, torqueNm, massKg, overrides = {}) {
     const [name, dragArea, gripG, brakeG, front, cg, widthMm, trackWidthM, capKph] = MODEL_ROWS[vehicleId];
@@ -166,6 +168,17 @@
       }),
       preset('avante_n', 'avante-n-2.0t-mt', '2021 국내 2.0T FWD · 6MT · 19인치', 1998, '직렬 4기통 가솔린 터보', 'fwd', 280, nm(40), 1450, {
         transmissionType: 'MT', gearCount: 6, sourceNote: SHARED.avante_n.sourceNote
+      })
+    ],
+    gr86: [
+      preset('gr86', 'gr86-2.4-rz-mt', '2022 일본 RZ 2.4 RWD · 6MT · 18인치', 2387, '수평대향 4기통 가솔린 자연흡기', 'rwd', 235, 250, 1270, {
+        sourceNote: SHARED.gr86.sourceNote,
+        // Mean track is derived from the Japanese factory front/rear values.
+        modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'gripG', 'brakeG', 'dragArea', 'downforceArea', 'topSpeedMps', 'reduction']
+      }),
+      preset('gr86', 'gr86-2.4-rz-at', '2022 일본 RZ 2.4 RWD · 6AT · 18인치', 2387, '수평대향 4기통 가솔린 자연흡기', 'rwd', 235, 250, 1290, {
+        transmissionType: 'AT', gearCount: 6, sourceNote: SHARED.gr86.sourceNote,
+        modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'gripG', 'brakeG', 'dragArea', 'downforceArea', 'topSpeedMps', 'reduction']
       })
     ]
   });

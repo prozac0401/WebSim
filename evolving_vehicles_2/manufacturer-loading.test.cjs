@@ -148,16 +148,16 @@ test('a script that registers no model or the wrong identity cannot report succe
   assert.equal(h.api.getLoadState('carnival').status, 'error'); assert.equal(h.timers.size, 0);
 });
 
-test('all seventeen known identities support direct managed registration without changing asset format', async () => {
+test('all eighteen known identities support direct managed registration without changing asset format', async () => {
   const h = harness();
-  const ids = ['g80', 'ioniq5', 'santafe', 'staria', 'carnival', 'morning', 'ray', 'k5', 'avante', 'grandeur', 'torres', 'musso_ev', 'porter2', 'g70', 'supra', 'bmw_m2', 'avante_n'];
+  const ids = ['g80', 'ioniq5', 'santafe', 'staria', 'carnival', 'morning', 'ray', 'k5', 'avante', 'grandeur', 'torres', 'musso_ev', 'porter2', 'g70', 'supra', 'bmw_m2', 'avante_n', 'gr86'];
   for (const id of ids) {
     assert.equal(h.api.canLoad(id), true);
     const task = h.api.load(id); h.execute(h.scripts.at(-1), model(id), { compressed: false }); assert.equal(await task, true);
   }
   assert.deepEqual(Array.from(h.api.ids()).sort(), ids.sort());
   assert.equal(await h.api.load('unknown'), false); assert.equal(h.api.getLoadState('unknown').retryable, false);
-  assert.equal(h.scripts.length, 17); assert.equal(h.api.failures.length, 0); assert.equal(h.timers.size, 0);
+  assert.equal(h.scripts.length, 18); assert.equal(h.api.failures.length, 0); assert.equal(h.timers.size, 0);
 });
 
 test('standalone Node/VM registrations retain ready and report decoder failures without unhandled rejections', async () => {

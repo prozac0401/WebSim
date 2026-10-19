@@ -8,6 +8,8 @@
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
   const reviewedAt='2026-10-15';
   const SOURCES=freeze({
+    'toyota-gr86-jp-2022':{title:'Toyota Japan GR86 May 2022 RZ specifications',url:'https://toyota.jp/pages/contents/carlineup/archive/gr86/2022-05/pdf/gr86_main_s_202205.pdf',observation:'PDF 5쪽 RZ 215/40R18·Torsen LSD, 10쪽 FA24 235 PS/7000 rpm·250 Nm/3700 rpm·6MT 1270 kg/6AT 1290 kg, 11쪽 각 변속기의 기어비와 종감속비. 일본 RZ 조합으로 통일하며 국내 231 PS 모델과 구분한다.'},
+    'toyota-gr86-eu-2022-engine':{title:'Toyota Europe: All-New Toyota GR86, June 2022',url:'https://newsroom.toyota.eu/all-new-toyota-gr86/',observation:'같은 2.4L FA24 세대 엔진의 최대 회전수 7500 rpm을 명시한다. 일본 사양의 변속 맵이나 7000 rpm WOT 변속 시점을 검증한 자료는 아니다.'},
     'hyundai-avante-n-2021':{title:'현대 2021 아반떼 N 국내 가격·제원',url:'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf',observation:'2021년 7월 14일 출시 CN7 N. 2.0 터보 280 PS, FWD eLSD, 6MT 1450 kg 또는 습식 8DCT 1485 kg. NGS 일시 출력 증대는 모형에 적용하지 않는다.'},
     'hyundai-avante-n-au-2021-ratios':{title:'Hyundai Australia i30 Sedan N November 2021 specifications',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/i30-sedan-n/spec-sheet/i30-Sedan-N_Spec-Table_Nov_2021.pdf',observation:'PDF 1쪽: 6MT 및 8DCT의 단별 기어비와 종감속 배정, 최고출력 5500–6000 rpm. ratedPowerRPM은 이 범위 상단 6000을 사용한다. 국내 동일성은 미확인인 해외 참고값이며, 6500 rpm 변속 및 7000 rpm 표시 상한은 추정이다.'},
     'bmw-m2-2016-de':{title:'BMW M2 10/2015 ACEA technical specifications',url:'https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713',observation:'2016 전기형 F87 일반 M2. 1쪽 DIN 질량 MT 1495/DCT 1520 kg, 370 PS·465 Nm·최고출력 6500rpm. 2쪽 6MT/7DCT 단별 기어비와 공통 종감속 3.462. 독일·ACEA 기준을 그대로 수록하며 Competition 및 미국 bhp 사양을 혼합하지 않는다.'},
@@ -74,6 +76,8 @@
   add('supra',['supra-3.0t-rz'],'gasoline','AT',8,'toyota-supra-2019');
   add('bmw_m2',['bmw-m2-3.0t-dct'],'gasoline','DCT',7,'bmw-m2-2016-de',{reviewedAt:'2026-10-19'});
   add('bmw_m2',['bmw-m2-3.0t-mt'],'gasoline','MT',6,'bmw-m2-2016-de',{reviewedAt:'2026-10-19'});
+  add('gr86',['gr86-2.4-rz-mt'],'gasoline','MT',6,'toyota-gr86-jp-2022',{reviewedAt:'2026-10-19'});
+  add('gr86',['gr86-2.4-rz-at'],'gasoline','AT',6,'toyota-gr86-jp-2022',{reviewedAt:'2026-10-19'});
   function applyRatios(ids, ratios, finalDrive, sourceId, status, ratedPowerRPM, shiftRPM, market, drivenAxle = 'rear') {
     const finalDriveRatios = Array.isArray(finalDrive) ? finalDrive : null;
     const finalDriveRatio = finalDriveRatios ? null : finalDrive;
@@ -97,6 +101,15 @@
   applyRatios(['supra-3.0t-rz'], [5.250,3.360,2.172,1.720,1.316,1,.822,.640], 3.154, 'toyota-supra-2019', 'verified-exact-market', 5000, 6500, 'JP');
   applyRatios(['bmw-m2-3.0t-dct'], [4.806,2.593,1.701,1.277,1,.844,.671], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');
   applyRatios(['bmw-m2-3.0t-mt'], [4.110,2.315,1.542,1.179,1,.846], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');
+  applyRatios(['gr86-2.4-rz-mt'], [3.626,2.188,1.541,1.213,1,.767], 4.1, 'toyota-gr86-jp-2022', 'verified-exact-market', 7000, 7000, 'JP');
+  applyRatios(['gr86-2.4-rz-at'], [3.538,2.060,1.404,1,.713,.582], 3.909, 'toyota-gr86-jp-2022', 'verified-exact-market', 7000, 7000, 'JP');
+  for (const id of ['gr86-2.4-rz-mt','gr86-2.4-rz-at']) {
+    profiles[id].maxRPM = 7500;
+    profiles[id].maxRPMSourceId = 'toyota-gr86-eu-2022-engine';
+    profiles[id].sourceIds.push('toyota-gr86-eu-2022-engine');
+    profiles[id].referenceFields.push('maxRPM');
+    profiles[id].estimatedFields = profiles[id].estimatedFields.filter(field => field !== 'maxRPM');
+  }
   for (const id of ['bmw-m2-3.0t-dct','bmw-m2-3.0t-mt']) {
     // Same N55 engine's rev limit is published; the 6500 RPM shift schedule is not.
     profiles[id].sourceIds.push('bmw-m2-2016-uk-engine');
@@ -135,7 +148,7 @@
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.
   const FALLBACKS=freeze({ray:'ray-1.0-15',morning:'morning-1.0-16',avante:'avante-2.0-18',k5:'k5-2.0',carnival:'carnival-1.6heV',
-    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz',bmw_m2:'bmw-m2-3.0t-dct',avante_n:'avante-n-2.0t-dct'});
+    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz',bmw_m2:'bmw-m2-3.0t-dct',avante_n:'avante-n-2.0t-dct',gr86:'gr86-2.4-rz-mt'});
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',

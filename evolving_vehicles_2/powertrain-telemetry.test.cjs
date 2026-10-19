@@ -604,3 +604,38 @@ test('Avante N DCT/manual references retain grouped final drives and shift seque
     assert.deepEqual(shifts, Array.from({ length: ratios.length - 1 }, (_, i) => i + 2));
   }
 });
+
+test('GR86 MT/AT use exact Japanese ratios, rear tyre radius and sequential shifts with an explicitly referenced rev limit', () => {
+  for (const [id, transmission, ratios, finalDrive] of [
+    ['gr86-2.4-rz-mt', 'MT', [3.626, 2.188, 1.541, 1.213, 1, .767], 4.1],
+    ['gr86-2.4-rz-at', 'AT', [3.538, 2.060, 1.404, 1, .713, .582], 3.909]
+  ]) {
+    const car = carFor('gr86', id), profile = Profiles.resolve(car);
+    assert.deepEqual([profile.transmissionType, profile.gearCount, profile.ratioMarket, profile.drivenAxle], [transmission, 6, 'JP', 'rear']);
+    assert.deepEqual(profile.gearRatios, ratios); assert.equal(profile.finalDriveRatio, finalDrive);
+    assert.equal(profile.finalDriveRatios, null); assert.equal(profile.ratioStatus, 'verified-exact-market');
+    assert.ok(profile.verifiedFields.includes('gearRatios') && profile.verifiedFields.includes('finalDriveRatio'));
+    assert.equal(profile.ratioSourceId, 'toyota-gr86-jp-2022');
+    assert.deepEqual([profile.ratedPowerRPM, profile.shiftRPM, profile.maxRPM], [7000, 7000, 7500]);
+    assert.ok(profile.referenceFields.includes('maxRPM') && !profile.estimatedFields.includes('maxRPM'));
+    assert.equal(profile.maxRPMSourceId, 'toyota-gr86-eu-2022-engine');
+    assert.ok(profile.estimatedFields.includes('shiftRPM'));
+    car.spec = { ...car.spec, frontTireRadiusMm: 400 };
+    const gearing = Telemetry.describeGearing(car), state = Telemetry.create(car), shifts = [];
+    assert.ok(Math.abs(gearing.nominalRadiusM - .3146) < 1e-12);
+    assert.ok(Math.abs(gearing.effectiveRadiusM - .3146 * .985) < 1e-12);
+    assert.deepEqual(gearing.totalRatios, ratios.map(ratio => ratio * finalDrive));
+    for (let i = 0; i < 72 / dt; i++) {
+      const previous = { ...state }; car.speed = i * dt * 5 / 3.6; car.acceleration = 5 / 3.6;
+      Telemetry.update(car, state, dt, { drivePowerW: 180000 });
+      if (state.gear !== previous.gear) {
+        assert.equal(state.gear, previous.gear + 1);
+        assert.ok(state.rpmNormalized < previous.rpmNormalized - .08);
+        shifts.push(state.gear);
+      }
+    }
+    assert.deepEqual(shifts, [2, 3, 4, 5, 6]);
+    tick(car, state, 5, { speed: 0, acceleration: -5 }, { brakePowerW: 0 });
+    assert.equal(state.gear, 1, 'both gearboxes return sequentially to first at rest');
+  }
+});

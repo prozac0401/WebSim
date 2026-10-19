@@ -5,8 +5,8 @@ const T = require('./tuning-evolution.js');
 const keys = T.CATEGORIES.map(category => category.id);
 const levels = (acceleration = 0, topSpeed = 0, brakes = 0, grip = 0) => ({ acceleration, topSpeed, brakes, grip });
 
-test('catalogue keeps real, immutable factory combinations for all seventeen bodies', () => {
-  assert.equal(Object.keys(T.VARIANTS).length, 17);
+test('catalogue keeps real, immutable factory combinations for all eighteen bodies', () => {
+  assert.equal(Object.keys(T.VARIANTS).length, 18);
   for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) {
     assert.ok(variants.length >= 1);
     assert.equal(new Set(variants.map(variant => variant.id)).size, variants.length);
@@ -85,7 +85,7 @@ test('strict manual edits reject overspend, invalid stage and unknown genes with
   assert.equal(JSON.stringify(entrant), before);
 });
 
-test('zero budget preserves all 40 factory specifications exactly and disables compensation and tuning', () => {
+test('zero budget preserves all 42 factory specifications exactly and disables compensation and tuning', () => {
   let checked = 0;
   for (const [vehicleId, variants] of Object.entries(T.VARIANTS)) for (const variant of variants) {
     const factoryBefore = JSON.stringify(variant.spec), entry = T.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
@@ -104,7 +104,7 @@ test('zero budget preserves all 40 factory specifications exactly and disables c
     assert.equal(JSON.stringify(variant.spec), factoryBefore);
     checked++;
   }
-  assert.equal(checked, 40);
+  assert.equal(checked, 42);
 });
 
 test('stock grids contain exactly one of each factory trim, regardless of the tuning population size', () => {

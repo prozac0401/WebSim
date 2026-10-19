@@ -51,7 +51,7 @@ function fixture() {
     deleteBuffer(buffer) { deletedBuffers.push(buffer); }
   };
   const renderer = Object.assign(Object.create(context.VehicleSurfaces.prototype), {
-    gl, available: true, textures: new Map(), cache: new Map(), assetCache: new Map(), textureGeneration: 0,
+    gl, available: true, textures: new Map(), repeatTextureKeys: new Map(), cache: new Map(), assetCache: new Map(), textureGeneration: 0,
     uniforms: Object.fromEntries(['uPhotoTextureA', 'uPhotoTextureB', 'uPhotoMatrixA', 'uPhotoMatrixB', 'uPhotoBlend'].map(key => [key, key])),
     onUpdate() { updates++; }
   });

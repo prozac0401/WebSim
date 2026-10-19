@@ -37,7 +37,8 @@
     ['g70', '제네시스 G70 (전기형)', '#f43f5e', .66, 1.00, 1.05],
     ['supra', '토요타 GR 수프라 A90', '#e2e8f0', .62, 1.04, 1.12],
     ['bmw_m2', 'BMW M2 F87', '#38bdf8', .7735, 1.04, 1.12],
-    ['avante_n', '현대 아반떼 N (CN7)', '#a9d6e8', .68, 1.04, 1.10]
+    ['avante_n', '현대 아반떼 N (CN7)', '#a9d6e8', .68, 1.04, 1.10],
+    ['gr86', '토요타 GR86 ZN8', '#ef4444', .56, 1.00, 1.08]
   ];
   const VEHICLES = Object.freeze(CATALOG.map(([id, name, color, dragArea, gripG, brakeG]) => {
     const spec = SPECS[id];
