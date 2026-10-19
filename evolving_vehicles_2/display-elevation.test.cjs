@@ -74,7 +74,13 @@ test('all courses keep wheelbase supports on the displayed road and retain the o
       const raw = Pose.sampleCar(race, car, s), p = r._displayPose(raw, car), q = Pose.surfaceAt(r.roadGeometry, p);
       assert.deepEqual([p.x, p.y, p.angle, p.curvature], [raw.x, raw.y, raw.angle, raw.curvature]);
       if (circuit.id === 'pocheon') {
-        assert.equal(q, null); assert.equal(p.z, r._displayHeight(raw.z)); assert.equal(p.grade, raw.grade * 1.75); continue;
+        // This folded-source ribbon intentionally has no continuous surface.
+        // Its fallback is the bounded 3D trajectory chord, not exact mesh contact.
+        const support = Pose.curveBodySupport(race, car, raw, 1.75);
+        assert.equal(q, null); assert.ok(support);
+        assert.equal(p.z, r._displayHeight(support.z)); assert.equal(p.grade, support.grade);
+        assert.ok(Math.abs(p.z - r._displayHeight(raw.z)) <= .15);
+        continue;
       }
       assert.ok(q, circuit.id + ' missing road support at ' + s); checked++;
       const run = car.wheelbaseM / (2 * Math.hypot(1, p.grade));

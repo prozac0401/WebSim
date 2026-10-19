@@ -40,11 +40,12 @@ function deployedCurvature(race) {
   };
 }
 
-test('all 11 course curves remain continuously bounded within 40 cm of the original scoring path', () => {
+test('all 11 course curves remain continuously bounded within 70 cm of the original scoring path', () => {
   assert.equal(races.length, 11);
   for (const race of races) {
     const info = DrivingPose.info(race);
-    assert.ok(info.deviationBoundM <= .4, race.circuit.id + ': continuous Bezier bound');
+    assert.equal(info.maximumDeviationM, .7);
+    assert.ok(info.deviationBoundM <= .7, race.circuit.id + ': continuous Bezier bound');
     assert.equal(info.maximumElevationDeviationM, .025);
     assert.ok(info.elevationDeviationBoundM <= .025, race.circuit.id + ': continuous vertical Bezier bound');
     for (let i = 0; i < race.pathPoints.length * 8; i++) {
@@ -213,8 +214,11 @@ test('the actual Taebaek wide-apex car reduces repeated steering pulses without 
   assert.ok(Math.max(...change.map(Math.abs)) < baseline.curvatureChangePeak * .6, 'also reduce the worst steering pulse');
   assert.ok(rms(second) < baseline.headingSecondRMS * .55, 'the body heading itself benefits, not just metadata');
   assert.ok(Math.min(...poses.map(p => p.curvature)) > .005, 'do not alternate into an apparent straight within the bend');
-  assert.ok(Math.abs(turn(poses.at(-1).angle - poses[0].angle) - baseline.turn) < Math.PI / 180,
-    'retain the measured entry-to-exit turn within one degree');
+  // Compare the complete bend, rather than truncating its exit at 580 m.
+  // 181.7009986 degrees was recorded from released 6cc17ff at 430--650 m.
+  const entry = DrivingPose.sampleCar(race, car, 430), exit = DrivingPose.sampleCar(race, car, 650);
+  assert.ok(Math.abs(turn(exit.angle - entry.angle - 181.70099856572216 * Math.PI / 180)) < Math.PI / 180,
+    'retain the complete entry-to-exit turn within one degree');
   t.diagnostic(JSON.stringify({ id: 'taebaek', curvatureChangeRMS: rms(change), baseline: baseline.curvatureChangeRMS,
     headingSecondRMS: rms(second), deviationBoundM: DrivingPose.info(race, car).deviationBoundM }));
 });
@@ -227,7 +231,7 @@ test('Taebaek regrading preserves the established racing-line XY fit without ref
   assert.equal(car.racingLine.id, oldCar.racingLine.id);
   assert.equal(info.minimumDisplaySubdivisions, 6);
   assert.equal(info.subdivisions, DrivingPose.info(before, oldCar).subdivisions);
-  assert.ok(info.deviationBoundM <= .4 && info.elevationDeviationBoundM <= .025);
+  assert.ok(info.deviationBoundM <= .7 && info.elevationDeviationBoundM <= .025);
   let heightChange = 0;
   for (let s = 0; s < car.trackLength; s += 2) {
     const now = DrivingPose.sampleCar(race, car, s), old = DrivingPose.sampleCar(before, oldCar, s);
@@ -274,7 +278,7 @@ test('actual hairpin car and guide remain within the scoring bound and the share
     };
     let clearance = Infinity, maximumDeviation = 0;
     const info = DrivingPose.info(race, car);
-    assert.ok(info.deviationBoundM <= .4); assert.ok(info.elevationDeviationBoundM <= .025);
+    assert.ok(info.deviationBoundM <= .7); assert.ok(info.elevationDeviationBoundM <= .025);
     for (let s = from; s <= to; s += .5) {
       const p = DrivingPose.sampleCar(race, car, s), raw = race.sampleForCar(car, s);
       maximumDeviation = Math.max(maximumDeviation, Math.hypot(p.x - raw.x, p.y - raw.y));
@@ -284,7 +288,10 @@ test('actual hairpin car and guide remain within the scoring bound and the share
       const a = DrivingPose.sampleCar(race, car, s - .001), b = DrivingPose.sampleCar(race, car, s + .001);
       assert.ok(Math.abs(turn(p.angle - Math.atan2(b.y - a.y, b.x - a.x))) < .00003, id + ': analytic body/guide tangent');
     }
-    assert.ok(clearance > .1, id + ': actual body width remains inside the displayed asphalt');
+    // The wider, explicitly bounded fit measures about 7.5 cm of asphalt
+    // margin at Taebaek's tightest cross-section (previous fit: 14 cm). Keep
+    // a positive 5 cm regression guard; do not mislabel curb overlap as road.
+    assert.ok(clearance > .05, id + ': actual body width remains inside the displayed asphalt');
     const guide = DrivingPose.pathCar(race, car);
     for (const p of guide.filter(p => p.s >= from && p.s <= to)) assert.deepEqual(p, DrivingPose.sampleCar(race, car, p.s));
     reports.push({ id, maximumDeviationM: maximumDeviation, minimumBodyClearanceM: clearance });

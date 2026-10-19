@@ -255,6 +255,9 @@
           }
           if(front&&rear)z=(front.z+rear.z)/2;
         }
+      }else if(this.roadGeometry?.stats?.method==='legacy-offset-fallback'){
+        const support=root.DrivingPose?.curveBodySupport?.(this.race,car,p,ELEVATION_EXAGGERATION);
+        if(support){z=this._displayHeight(support.z);grade=support.grade;}
       }
       return {...p,z,elevation:p.elevation==null?null:z,grade};
     }

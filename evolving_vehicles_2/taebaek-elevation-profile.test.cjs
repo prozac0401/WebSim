@@ -20,6 +20,21 @@ function motion(f, from, to) {
     pitchRateRMS: rms(rates), pitchSecondRMS: rms(derivative(rates)) };
 }
 
+// Recorded from released 6cc17ff with the same entrants, renderer and 25 cm
+// samples: [DEM peak rate, DEM second RMS, regraded peak rate, regraded second
+// RMS]. Freeze the original reported problem instead of changing its denominator
+// whenever XY fairing also improves the unadjusted DEM comparison path.
+const releasedHill = {
+  supra: {
+    corner: [2.448622113575111, .007009826986425559, .4832214175160786, .0014243209799495202],
+    whole: [2.448622113575111, .00314505784830192, .4832214175160786, .001009494115050416]
+  },
+  staria: {
+    corner: [2.3358161696544024, .006314568690459958, .44776102005863794, .0012023085828021247],
+    whole: [2.3358161696544024, .002776998336771465, .44776102005863794, .0006448789376681924]
+  }
+};
+
 test('Taebaek regrading preserves source data, XY, line lengths, extrema and the untouched tail exactly', () => {
   const saved = JSON.stringify(circuit), old = Race.buildTrack(reference), now = Race.buildTrack(circuit);
   assert.equal(JSON.stringify(circuit), saved);
@@ -60,9 +75,13 @@ test('the first hill loses pitch pulses without moving them to its approach or t
     for (const [from, to] of [[0, 480], [480, 610], [0, 680], [-20, 20]]) {
       const before = motion(old, from, to), after = motion(now, from, to);
       if (from === 480 || to === 680) {
-        assert.ok(after.maximumPitchRateDegPerM < before.maximumPitchRateDegPerM * .3, 'at least 70% less maximum pitch rate');
-        assert.ok(after.pitchSecondRMS < before.pitchSecondRMS * .35, 'at least 65% less rapid pitch variation');
+        const recorded = releasedHill[vehicleId][from === 480 ? 'corner' : 'whole'];
+        assert.ok(after.maximumPitchRateDegPerM < recorded[0] * .3, 'at least 70% less maximum pitch rate than the reported DEM hill');
+        assert.ok(after.pitchSecondRMS < recorded[1] * .35, 'at least 65% less rapid pitch variation than the reported DEM hill');
+        assert.ok(after.maximumPitchRateDegPerM <= recorded[2], 'do not regress the already released regraded pitch-rate peak');
+        assert.ok(after.pitchSecondRMS <= recorded[3], 'do not regress the already released regraded pitch variation');
       }
+      if (from === 480) assert.ok(after.maximumPitchDeg < before.maximumPitchDeg * .3, 'the hill adjustment still lowers the corner slope with the current XY curve');
       if (from === 0 && to === 480) {
         assert.ok(after.maximumPitchRateDegPerM < .4, 'broad approach transition, not a relocated sharp pitch pulse');
         assert.ok(after.maximumPitchDeg < 20, 'the approach has no new steep pitch peak');

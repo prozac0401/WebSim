@@ -3,19 +3,18 @@
  * tangent for the car, follow camera and drawn racing line. It is C2 at every
  * knot, including the timing line; no frame-history or heading lag is involved.
  * A fresh standing start uses a separate C2 50 m centerline-to-racing-line
- * trajectory. Its one-time correction is excluded from the ordinary .4 m bound.
+ * trajectory. Its one-time correction is excluded from the ordinary .7 m bound.
  */
 (function (root) {
   'use strict';
   const cache = new WeakMap();
+  const geometryCache = new WeakMap();
   const surfaceCache = new WeakMap();
-  // The old 24 cm control cap left usable room inside the 40 cm curve bound.
-  // In the actual wide-apex Taebaek line, that cap retained 12–15 m steering
-  // pulses even though the spline was C2. Use at most 35 cm for the existing
-  // cubic fit; roundingBound below still subtracts the spline's own deviation.
-  // Fit scales are unchanged, so this does not widen the filter or round off
-  // every hairpin. Tighter source corners can still impose a smaller budget.
-  const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .35, SIGMA_M = 6;
+  // C2 continuity alone does not remove repeated steering pulses. Keep the
+  // source-path displacement bounded while minimizing third differences of
+  // the XY controls, a discrete curvature-change energy. Height is unchanged.
+  const MAX_DEVIATION_M = .7, MAX_CONTROL_SHIFT_M = .65, SIGMA_M = 6;
+  const FAIRING_ITERATIONS = 600, FAIRING_CURVATURE_WEIGHT = .1;
   const MAX_ELEVATION_DEVIATION_M = .025, MAX_ELEVATION_CONTROL_SHIFT_M = .012;
   const START_TRANSITION_M = 50;
   const TIMING_LINE_CONTROL_SHIFT_M = .24;
@@ -90,7 +89,7 @@
       const target = planarFit(original, spacing, sigma);
       // Largest blend along each current->target segment that stays in the
       // original point's displacement disk. The disk is convex, so any smaller
-      // blend remains within the same proved 40 cm whole-curve bound.
+      // blend remains within the same proved whole-curve bound.
       const limits = controls.map((p, i) => {
         const dx = target[i].x - p.x, dy = target[i].y - p.y;
         const x = p.x - original[i].x, y = p.y - original[i].y;
@@ -111,9 +110,44 @@
       controls = controls.map((p, i) => ({ x: p.x + (target[i].x - p.x) * gains[i],
         y: p.y + (target[i].y - p.y) * gains[i], z: p.z }));
     }
-    // Larger scales build on the already smoothed smaller-scale fit. A tight
-    // hairpin therefore retains a smooth fallback, rather than the raw polygon.
-    return controls;
+    return fairPlanar(controls, original, shiftLimits);
+  }
+
+  function fairPlanar(initial, original, limits) {
+    const count = original.length;
+    let x = Float64Array.from(initial, p => p.x), y = Float64Array.from(initial, p => p.y);
+    let nextX = new Float64Array(count), nextY = new Float64Array(count);
+    const trialX = x.slice(), trialY = y.slice();
+    const sourceX = Float64Array.from(original, p => p.x), sourceY = Float64Array.from(original, p => p.y);
+    let momentum = 1;
+    // Projected accelerated gradient on squared third differences, with a
+    // small second-difference term to suppress counter-steering at turn exits.
+    // The two stencils have spectral maxima 64 and 16. A fixed, bounded solve
+    // approximates fairing; it does not claim a fully converged optimal path.
+    // Projection into each source-centred disk retains the continuous Bezier
+    // bound. Reused numeric buffers keep the one-time solve out of rendering.
+    for (let iteration = 0; iteration < FAIRING_ITERATIONS; iteration++) {
+      for (let i = 0; i < count; i++) {
+        const a = i < 3 ? i + count - 3 : i - 3, b = i < 2 ? i + count - 2 : i - 2;
+        const c = i === 0 ? count - 1 : i - 1, d = i + 1 === count ? 0 : i + 1;
+        const e = i + 2 >= count ? i + 2 - count : i + 2, f = i + 3 >= count ? i + 3 - count : i + 3;
+        const gx = 20 * trialX[i] - 15 * (trialX[c] + trialX[d]) + 6 * (trialX[b] + trialX[e]) - trialX[a] - trialX[f];
+        const gy = 20 * trialY[i] - 15 * (trialY[c] + trialY[d]) + 6 * (trialY[b] + trialY[e]) - trialY[a] - trialY[f];
+        const bendX = 6 * trialX[i] - 4 * (trialX[c] + trialX[d]) + trialX[b] + trialX[e];
+        const bendY = 6 * trialY[i] - 4 * (trialY[c] + trialY[d]) + trialY[b] + trialY[e];
+        const denominator = 64 + 16 * FAIRING_CURVATURE_WEIGHT;
+        const dx = trialX[i] - (gx + FAIRING_CURVATURE_WEIGHT * bendX) / denominator - sourceX[i];
+        const dy = trialY[i] - (gy + FAIRING_CURVATURE_WEIGHT * bendY) / denominator - sourceY[i];
+        const magnitude = Math.sqrt(dx * dx + dy * dy), gain = magnitude > limits[i] ? limits[i] / magnitude : 1;
+        nextX[i] = sourceX[i] + dx * gain; nextY[i] = sourceY[i] + dy * gain;
+      }
+      const nextMomentum = (1 + Math.sqrt(1 + 4 * momentum * momentum)) / 2, gain = (momentum - 1) / nextMomentum;
+      for (let i = 0; i < count; i++) {
+        trialX[i] = nextX[i] + gain * (nextX[i] - x[i]); trialY[i] = nextY[i] + gain * (nextY[i] - y[i]);
+      }
+      [x, nextX] = [nextX, x]; [y, nextY] = [nextY, y]; momentum = nextMomentum;
+    }
+    return initial.map((p, i) => ({ x: x[i], y: y[i], z: p.z }));
   }
 
   function create(race, car) {
@@ -130,8 +164,13 @@
       refinement?.kind === 'simulation-adjustment' && refinement.method === 'c2-grade-redistribution' &&
       refinement.minimumDisplaySubdivisions === 6 ? 6 : 2;
     const previous = cache.get(owner);
-    if (previous?.source === points && previous.length === length && previous.hasElevation === !!race.track.hasElevation &&
+    if (previous?.source === points && previous.timingSource === race.track.points && previous.length === length && previous.hasElevation === !!race.track.hasElevation &&
         previous.minimumDisplaySubdivisions === minimumDisplaySubdivisions) return previous;
+    const shared = geometryCache.get(points);
+    if (shared?.length === length && shared.hasElevation === !!race.track.hasElevation &&
+        shared.minimumDisplaySubdivisions === minimumDisplaySubdivisions && shared.timingSource === race.track.points) {
+      cache.set(owner, shared); return shared;
+    }
     const source = points.map(p => ({ x: p.x, y: p.y, z: Number.isFinite(p.z) ? p.z : 0 }));
     if (source.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return null;
     const baseBound = deviationBound(source, source);
@@ -164,13 +203,14 @@
       p.z = original[i].z + Math.max(-elevationShiftLimit, Math.min(elevationShiftLimit, z));
     });
     const bound = deviationBound(controls, original);
-    const result = { source: points, length, spacing, controls, hasElevation: !!race.track.hasElevation, minimumDisplaySubdivisions,
-      info: Object.freeze({ method: 'periodic-c2-b-spline', planarMethod: 'progressive-local-cubic-fit',
+    const result = { source: points, timingSource: race.track.points, length, spacing, controls, hasElevation: !!race.track.hasElevation, minimumDisplaySubdivisions,
+      info: Object.freeze({ method: 'periodic-c2-b-spline', planarMethod: 'bounded-third-difference-fairing', fairingIterations: FAIRING_ITERATIONS,
+        fairingCurvatureWeight: FAIRING_CURVATURE_WEIGHT,
         planarScalesM: Object.freeze(PLANAR_SCALES_M.slice()), constraintTransitionM: LIMIT_TRANSITION_M,
         smoothingSigmaM: SIGMA_M, subdivisions, minimumDisplaySubdivisions,
         maximumDeviationM: MAX_DEVIATION_M, deviationBoundM: bound.planar,
         maximumElevationDeviationM: MAX_ELEVATION_DEVIATION_M, elevationDeviationBoundM: bound.vertical }), drawnPath: null };
-    cache.set(owner, result); return result;
+    cache.set(owner, result); geometryCache.set(points, result); return result;
   }
 
   function evaluate(curve, distance, withDerivatives = false) {
@@ -293,6 +333,41 @@
     }
     return start.drawnPath;
   }
+  // The coarse legacy road has no continuous support surface. Approximate a
+  // rigid body's pitch with two heights on its same displayed 3D trajectory,
+  // rather than the point tangent's potentially sharp grade. This is a spatial
+  // wheelbase chord, not a time filter or exact contact with the polygon mesh.
+  function curveBodySupport(race, car, position, elevationScale = 1) {
+    const wheelbase = car?.wheelbaseM || car?.spec?.wheelbaseMm / 1000;
+    if (!(wheelbase > 0 && wheelbase < 8) || !Number.isFinite(position?.s) ||
+        !Number.isFinite(position.angle) || !Number.isFinite(position.z) || !(elevationScale > 0 && elevationScale <= 3)) return null;
+    const curve = create(race, car);
+    if (!curve) return null;
+    let distance = position.s;
+    if (Number.isFinite(car?.distance)) {
+      const nearest = distance + Math.round((car.distance - distance) / curve.length) * curve.length;
+      const p = sampleCar(race, car, nearest);
+      // Recover an unwrapped camera/launch sample only if it is this same pose.
+      // Offline probes may inspect a distant first-lap point without moving car.
+      if (Math.hypot(p.x - position.x, p.y - position.y, p.z - position.z) < 1e-6) distance = nearest;
+    }
+    const tx = Math.cos(position.angle), ty = Math.sin(position.angle);
+    let span = wheelbase / 2, front, rear, along = 0, rise = 0, error = Infinity;
+    for (let iteration = 0; iteration < 8; iteration++) {
+      front = sampleCar(race, car, distance + span); rear = sampleCar(race, car, distance - span);
+      along = (front.x - rear.x) * tx + (front.y - rear.y) * ty;
+      rise = (front.z - rear.z) * elevationScale;
+      const chord = Math.hypot(along, rise);
+      if (!(along > wheelbase * .5) || !(chord > 0)) return null;
+      error = Math.abs(chord - wheelbase);
+      if (error < 1e-7) break;
+      span *= wheelbase / chord;
+      if (!(span > 0 && span < wheelbase * 2)) return null;
+    }
+    const lateral = Math.abs((front.x - rear.x) * ty - (front.y - rear.y) * tx), z = (front.z + rear.z) / 2;
+    if (error > .001 || lateral > wheelbase * .05 || Math.abs(z - position.z) * elevationScale > .15) return null;
+    return { z, grade: rise / along, front, rear, along, lateral, wheelbaseErrorM: error };
+  }
   // The displayed road is a normal-offset ribbon of its own C2 centreline.
   // A separately resampled car z(s) is not that surface: inside a steep corner
   // its old polygon chainage can retain short pitch pulses after XY is smooth.
@@ -349,7 +424,7 @@
     const grade = p.grade * Math.cos((position.angle ?? p.angle) - p.angle) / (1 - p.curvature * lateral);
     return { z: p.z, grade, s: p.s, lateral };
   }
-  const api = { sample, sampleCar, startBlend, path, pathCar, surfaceAt, info: (race, car) => create(race, car)?.info || null };
+  const api = { sample, sampleCar, startBlend, path, pathCar, surfaceAt, curveBodySupport, info: (race, car) => create(race, car)?.info || null };
   root.DrivingPose = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
