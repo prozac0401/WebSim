@@ -1,19 +1,22 @@
 # 실차 외형 참조와 3D 모델 출처
 
-확인일: 2026-10-15.
+확인일: 기존 모델 2026-10-15, BMW M2 2026-10-19.
 
 ## 무료 커뮤니티 메시 추가
 
-G70와 GR 수프라 A90는 제조사 공식 모델이 아닌 **CC BY 4.0 커뮤니티 모델**이다. 공개 배포본의 원작자·원 게시물·라이선스가 내부 메타데이터와 일치하는지 확인했다. 실행용 파일과 아래 출처 표시는 로그인 없이 사용할 수 있다. 이전에 보류한 Genesis Canada의 MY26 공식 G70 파일은 사용하지 않았다.
+G70·GR 수프라 A90·BMW M2 F87은 제조사 공식 모델이 아닌 **CC BY 4.0 커뮤니티 모델**이다. 공개 배포본의 원작자·원 게시물·라이선스가 내부 메타데이터와 일치하는지 확인했다. 실행용 파일과 아래 출처 표시는 로그인 없이 사용할 수 있다. 이전에 보류한 Genesis Canada의 MY26 공식 G70 파일은 사용하지 않았다.
 
 | 차량 | 원작자·원 게시물 | 실제 취득 경로 | 라이선스·변경 기록 |
 | --- | --- | --- | --- |
 | G70 전기형 | [Genesis G70 — Lucas.Karlsmoen](https://sketchfab.com/3d-models/genesis-g70-ded2c8428fb9499ebd2bfc69c5592b02) | [AllenAI Objaverse의 개별 GLB](https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-067/ded2c8428fb9499ebd2bfc69c5592b02.glb) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [출처·원본 해시·변경 내역](assets/models/g70-model-source.json) |
 | GR 수프라 A90 3.0T | [Toyota Supra 3D Model (Free) — Mpgs Studios](https://sketchfab.com/3d-models/toyota-supra-3d-model-free-41b83cfb912b4eab9af19a802bcf5ffc) | [원작자·라이선스를 보존한 공개 배포본](https://github.com/ReloadDesigner/Car-Viewer-Test/tree/3c61e52a5243d730705ecffebebf91c5f9d012fa/public/models/toyota/Supra/gr_supra) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [원본 크레딧](assets/models/supra-LICENSE.txt), [출처·해시·변경 내역](assets/models/supra-source.json) |
+| BMW M2 F87 전기형 | [BMW M2 — Manuel Contento](https://sketchfab.com/3d-models/394feedd0a0742c595917c7b0f6edcad) | [원작자·라이선스를 보존한 공개 GLB](https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [크레딧](assets/models/bmw_m2-LICENSE.txt), [출처·해시·변경 내역](assets/models/bmw_m2-source.json) |
 
-두 모델의 저작자는 위 제작자이며 WebSim은 기하 단순화, 좌표 변환, 크기 조정, 표시 재질 보정과 소프트웨어 렌더러용 경량 메시를 적용했다. 사이드바의 `g70-model-preview.png`와 `supra-model-preview.png`도 이 모델을 렌더링한 파생 이미지다. 모델과 파생 메시·이미지에는 동일한 저작자 표시와 CC BY 4.0 링크가 적용된다. 제조사나 제작자의 후원·승인을 뜻하지 않는다.
+세 모델의 저작자는 위 제작자이며 WebSim은 기하 단순화, 좌표 변환, 크기 조정, 표시 재질 보정과 소프트웨어 렌더러용 경량 메시를 적용했다. 사이드바의 `g70-model-preview.png`, `supra-model-preview.png`, `bmw_m2-model-preview.png`도 해당 모델을 렌더링한 파생 이미지다. 모델과 파생 메시·이미지에는 동일한 저작자 표시와 CC BY 4.0 링크가 적용된다. 제조사나 제작자의 후원·승인을 뜻하지 않는다.
 
-모델 원본은 제작자가 정밀 측량·정확한 연식·모든 트림을 보증한 자료가 아니다. [추가 차량 제원 문서](ADDITIONAL-VEHICLES.md)에 외형과 주행 사양의 적용 범위, 제조사 제원과 모형 성능을 구분했다. G70의 네 가지 출고 사양은 같은 전기형 외관을 사용한다. 수프라는 3.0T 단일 트림이다. WebGL이 없으면 동일 원본에서 만든 경량 메시를 사용하며, 파일 자체를 읽지 못한 경우 다른 차종의 외관을 대신 표시하지 않는다.
+BMW M2는 제작자가 Maya로 모델링하고 Substance Painter로 텍스처를 제작했다고 밝힌 원본이다. 공개 GLB의 원작 URL·저자·라이선스가 원 게시물과 일치하며 별도 요청·로그인 없이 파일을 취득했다. 전기형 F87의 차체·범퍼·램프를 사용하고, 원작자의 M 컬러 장식은 순정 도장 사양과 구별한다. 주행은 2016 유럽 사양의 일반 M2 370 PS, 6MT·7DCT를 적용하며 M2 Competition의 엔진이나 외형으로 표시하지 않는다.
+
+모델 원본은 제작자가 정밀 측량·정확한 연식·모든 트림을 보증한 자료가 아니다. [추가 차량 제원 문서](ADDITIONAL-VEHICLES.md)에 외형과 주행 사양의 적용 범위, 제조사 제원과 모형 성능을 구분했다. G70의 네 가지 출고 사양은 같은 전기형 외관을 사용한다. 수프라는 3.0T 단일 트림이고, M2는 같은 외형으로 6MT·7DCT를 비교한다. WebGL이 없으면 동일 원본에서 만든 경량 메시를 사용하며, 파일 자체를 읽지 못한 경우 다른 차종의 외관을 대신 표시하지 않는다.
 
 M340i는 계정 없이 취득할 수 있고 원본 크레딧까지 확인되는 배포본을 확보하지 못해 포함하지 않았다. IONIQ 5 N·EV6 GT 후보는 현재 공개 저장소에 실행용 모델을 배포하는 조건을 충족하는지 확인되지 않았거나 정확한 고성능 트림과 달라 포함하지 않았다. 이 판단은 해당 차종의 모든 무료 모델을 사용할 수 없다는 의미가 아니다.
 
@@ -21,7 +24,7 @@ M340i는 계정 없이 취득할 수 있고 원본 크레딧까지 확인되는 
 
 2026-10-15 공개 배포 구성: 실행용 `*-runtime.js`, 생성 도구, 출처·보정 기록과 검사용 구조 정보는 저장소에 포함한다. 아래 표의 원본 GLB·ZIP·회전 사진·카탈로그와 대형 구성기 캐시는 제작용 로컬 자료로 보존하며 공개 배포 파일에는 포함하지 않는다. 원본 재생성에는 출처 기록에 따른 해당 자료의 별도 취득이 필요하다.
 
-기존 13종의 외형은 다음처럼 구분한다. **제조사 공개 구성기의 실제 3D 메시 5종**, **기아 딜러 캠페인의 실제 3D 메시 1종**, **공식 회전 사진에서 재구성한 3D 메시 6종**, **공식 도면·사진을 기준으로 곡면을 제작한 포터 II 1종**이다. 새로 추가한 커뮤니티 메시 2종과 함께 총 15종이며 출처를 화면과 데이터에서 구별한다.
+기존 13종의 외형은 다음처럼 구분한다. **제조사 공개 구성기의 실제 3D 메시 5종**, **기아 딜러 캠페인의 실제 3D 메시 1종**, **공식 회전 사진에서 재구성한 3D 메시 6종**, **공식 도면·사진을 기준으로 곡면을 제작한 포터 II 1종**이다. 새로 추가한 커뮤니티 메시 3종과 함께 총 16종이며 출처를 화면과 데이터에서 구별한다.
 
 - 제조사 메시: G80, 아이오닉 5, 싼타페, 스타리아, 카니발.
 - 딜러 공개 메시: 모닝에 사용하는 유럽형 2024 Picanto 캠페인 기본 구성.

@@ -41,7 +41,8 @@
     torres: ['KGM 토레스', .97, .83, .89, .60, .69, 1890, 1.61, 190],
     porter2: ['현대 포터 II', 1.14, .68, .76, .65, .79, 1740, 1.40, 150],
     g70: ['제네시스 G70 (전기형)', .66, 1.00, 1.05, .52, .49, 1850, 1.61, 240],
-    supra: ['토요타 GR 수프라 A90', .62, 1.04, 1.12, .50, .45, 1865, 1.60, 250]
+    supra: ['토요타 GR 수프라 A90', .62, 1.04, 1.12, .50, .45, 1865, 1.60, 250],
+    bmw_m2: ['BMW M2 F87', .7735, 1.04, 1.12, .52, .49, 1854, 1.590, 250]
   };
   const SOURCE = {
     ray: 'https://www.kia.com/kr/vehicles/ray/specification',
@@ -58,7 +59,8 @@
     torres: 'https://www.kg-mobility.com/pr/model/show-room/200000100010001',
     porter2: 'https://www.hyundai.com/contents/repn-car/catalog/porter2-catalog.pdf',
     g70: SHARED.g70.sourceUrl,
-    supra: SHARED.supra.sourceUrl
+    supra: SHARED.supra.sourceUrl,
+    bmw_m2: SHARED.bmw_m2.sourceUrl
   };
   function preset(vehicleId, id, label, cc, engine, drive, powerPs, torqueNm, massKg, overrides = {}) {
     const [name, dragArea, gripG, brakeG, front, cg, widthMm, trackWidthM, capKph] = MODEL_ROWS[vehicleId];
@@ -144,6 +146,17 @@
     ],
     supra: [
       preset('supra', 'supra-3.0t-rz', 'GR Supra 3.0T 8AT · 19인치', 2997, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 340, 500, 1520, { sourceNote: SHARED.supra.sourceNote })
+    ],
+    bmw_m2: [
+      preset('bmw_m2', 'bmw-m2-3.0t-dct', '2016 독일 3.0T RWD · 7DCT · 19인치', 2979, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 370, 465, 1520, {
+        sourceNote: SHARED.bmw_m2.sourceNote,
+        // Cd*A and mean front/rear track derive from the same factory sheet.
+        modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'gripG', 'brakeG', 'downforceArea', 'reduction']
+      }),
+      preset('bmw_m2', 'bmw-m2-3.0t-mt', '2016 독일 3.0T RWD · 6MT · 19인치', 2979, '직렬 6기통 가솔린 트윈스크롤 터보', 'rwd', 370, 465, 1495, {
+        sourceNote: SHARED.bmw_m2.sourceNote, transmissionType: 'MT', gearCount: 6, factoryZeroTo100S: 4.5,
+        modeledFields: ['frontWeightFraction', 'weightFront', 'cgHeightM', 'gripG', 'brakeG', 'downforceArea', 'reduction']
+      })
     ]
   });
   const PALETTE = freeze(['#e65454', '#38bdf8', '#fbbf24', '#a78bfa', '#4ade80', '#fb923c', '#f472b6', '#f1f5f9', '#22d3ee', '#a3e635', '#c084fc', '#fda4af']);

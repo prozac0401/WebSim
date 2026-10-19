@@ -208,6 +208,47 @@ test('Supra rear-tyre gearing gives the expected eight-speed WOT display and cor
   t.diagnostic('Supra synthetic HUD: ' + JSON.stringify({ shiftKph: shiftKph.map(kph => Number(kph.toFixed(8))), gearAtKph: at, cornerExit100KphGear, thresholdChanges }));
 });
 
+test('M2 7DCT and 6MT use distinct exact-market ratios with rear tyres and sequential WOT shifts', () => {
+  for (const [id, ratios, expectedSpeeds, expectedAt] of [
+    ['bmw-m2-3.0t-dct', [4.806, 2.593, 1.701, 1.277, 1, .844, .671],
+      [48.45977038, 89.81783897, 136.91808139, 182.37874428, 232.89765645, 275.94509058, 347.09039709], { 100: 3, 150: 4, 200: 5, 240: 6, 280: 7 }],
+    ['bmw-m2-3.0t-mt', [4.110, 2.315, 1.542, 1.179, 1, .846],
+      [56.66609646, 100.60373929, 151.03609368, 197.53830063, 232.89765645, 275.29273812], { 100: 2, 150: 3, 200: 5, 240: 6, 280: 6 }]
+  ]) {
+    const car = carFor('bmw_m2', id), profile = Profiles.resolve(car), gearing = Telemetry.describeGearing(car), state = Telemetry.create(car);
+    assert.deepEqual(profile.gearRatios, ratios); assert.equal(profile.finalDriveRatio, 3.462);
+    assert.equal(profile.ratioStatus, 'verified-exact-market'); assert.equal(profile.ratioMarket, 'DE');
+    assert.equal(profile.drivenAxle, 'rear'); assert.equal(gearing.effectiveRadiusM, .33405 * .985);
+    assert.equal(profile.ratedPowerRPM, 6500); assert.equal(profile.maxRPM, 7000);
+    assert.ok(profile.verifiedFields.includes('gearRatios'));
+    assert.ok(profile.referenceFields.includes('maxRPM'), '7000 RPM is from the UK release for the same N55 engine');
+    assert.ok(profile.estimatedFields.includes('shiftRPM')); assert.ok(!profile.estimatedFields.includes('maxRPM'));
+    assert.ok(profile.sourceIds.includes('bmw-m2-2016-de')); assert.ok(profile.sourceIds.includes(profile.maxRPMSourceId));
+    expectedSpeeds.forEach((kph, i) => assert.ok(Math.abs(Telemetry.gearSpeedAtRPM(car, i + 1, 6500) * 3.6 - kph) < 1e-7));
+    // Synthetic input above the factory 250 km/h cap checks the top gear only;
+    // these mathematical shift speeds are not achievable race-speed claims.
+    const at = {}; let shifts = 0, lastShiftTime = -Infinity;
+    for (let i = 0; i <= 280 / dt; i++) {
+      const kph = i * dt, previousGear = state.gear, previousRpm = state.rpmNormalized;
+      car.speed = kph / 3.6; car.acceleration = 1 / 3.6;
+      Telemetry.update(car, state, dt, { drivePowerW: 200000 });
+      if (state.gear !== previousGear) {
+        assert.equal(state.gear, previousGear + 1); assert.ok(state.rpmNormalized < previousRpm);
+        assert.ok(i * dt - lastShiftTime >= Telemetry.MODEL.minimumShiftIntervalSeconds - dt);
+        shifts++; lastShiftTime = i * dt;
+      }
+      const checkpoint = Math.round(kph);
+      if (Object.hasOwn(expectedAt, checkpoint) && Math.abs(kph - checkpoint) < dt / 2) at[checkpoint] = state.gear;
+    }
+    assert.equal(shifts, ratios.length - 1); assert.deepEqual(at, expectedAt);
+    tick(car, state, 4, { speed: 100 / 3.6, acceleration: -4 }, { brakePowerW: 90000 });
+    tick(car, state, 2, { speed: 100 / 3.6, acceleration: 2 }, { drivePowerW: 200000 });
+    assert.equal(state.gear, 3, 'MT second would exceed the 90% downshift threshold at 100 km/h; hysteresis holds third');
+    tick(car, state, 2, { speed: 80 / 3.6, acceleration: 2 }, { drivePowerW: 200000 });
+    assert.equal(state.gear, 2, 'both transmissions can return to second once safely below its shift threshold');
+  }
+});
+
 test('rolling telemetry starts in the speed-appropriate gear without replaying launch or battery work', () => {
   const stationary = carFor('supra', 'supra-3.0t-rz'), stoppedState = Telemetry.create(stationary);
   assert.equal(stoppedState.gear, 1); assert.equal(stoppedState.rpmNormalized, 0);

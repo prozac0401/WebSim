@@ -1,0 +1,2 @@
+# Generated payload sizes and provenance use canonical LF bytes on every host.
+*-runtime.js text eol=lf

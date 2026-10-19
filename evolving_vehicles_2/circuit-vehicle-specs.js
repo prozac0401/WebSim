@@ -33,6 +33,21 @@
     sourceNote: '2019 일본 RZ 순정 주행 제원 · 비공식 A90 외형으로 모델 연식·휠 세부는 다를 수 있습니다.',
     driveVariants: { rwd: {} }, driveVerificationDate: '2026-10-15'
   };
-  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra });
+  const bmw_m2 = {
+    variant: '2016 독일 F87 3.0T RWD · 7DCT · 19인치', modelYear: 2016, market: 'DE',
+    lengthMm: 4468, widthMm: 1854, heightMm: 1410, wheelbaseMm: 2693,
+    curbMassKg: 1520, massStandard: 'DIN', powerPs: 370, torqueNm: 465, displacementCc: 2979,
+    engine: '직렬 6기통 가솔린 트윈스크롤 터보', engineFamily: 'N55',
+    factoryDrive: 'rwd', powertrainType: 'gasoline', electric: false,
+    frontTire: '245/35ZR19', rearTire: '265/35ZR19', frontTireRadiusMm: 327.05, rearTireRadiusMm: 334.05,
+    frontTrackMm: 1579, rearTrackMm: 1601, dragCoefficient: .35, frontalAreaM2: 2.21,
+    transmissionType: 'DCT', gearCount: 7, differential: 'Active M Differential',
+    sourceUrl: 'https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713',
+    sourcePage: 'https://www.press.bmwgroup.com/united-kingdom/article/detail/T0238509EN_GB/the-new-bmw-m2',
+    factoryZeroTo100S: 4.3, factoryTopSpeedKph: 250,
+    sourceNote: '2016 전기형 F87 · BMW 10/2015 ACEA·독일 제원 · DIN 질량(운전자 제외), 일반 토크 465 Nm. EU 질량·일시 오버부스트·Competition 사양을 혼합하지 않습니다.',
+    driveVariants: { rwd: {} }, driveVerificationDate: '2026-10-19'
+  };
+  root.CircuitVehicleSpecs = freeze({ ...shared, g70, supra, bmw_m2 });
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CircuitVehicleSpecs;
 })(typeof window !== 'undefined' ? window : globalThis);

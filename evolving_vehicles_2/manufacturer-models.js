@@ -4,7 +4,7 @@
 (function(root){
  'use strict';
  const models=new Map(),pending=[],failures=[];
- const assetOnly=new Set(['g70','supra']);
+ const assetOnly=new Set(['g70','supra','bmw_m2']);
  const files=new Set(['g80','ioniq5','santafe','staria','carnival','morning','ray','k5','avante','grandeur','torres','musso_ev','porter2',...assetOnly]),loading=new Map(),active=new Set();
  const scriptUrl=root.document?.currentScript?.src||'';
  const base=scriptUrl.replace(/[?#].*$/,'').replace(/[^/]*$/,'');

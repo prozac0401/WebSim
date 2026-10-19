@@ -22,6 +22,13 @@ assets/**
 !assets/reference/turntable/ray/
 !assets/reference/turntable/torres/
 !assets/models/README.md
+!assets/models/.gitattributes
+!assets/models/bmw_m2-runtime.js
+!assets/models/bmw_m2-runtime-summary.json
+!assets/models/bmw_m2-source.json
+!assets/models/bmw_m2-LICENSE.txt
+!assets/models/build-free-bmw-m2.mjs
+!assets/reference/bmw_m2-model-preview.png
 !assets/models/SOURCES.json
 !assets/models/acquire-models.cjs
 !assets/models/avante-runtime-summary.json

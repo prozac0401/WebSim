@@ -20,7 +20,7 @@ function finish(race) {
 }
 
 test('all circuit presets use the original or circuit-only factory mass, power and torque', () => {
-  assert.equal(TrackRace.VEHICLES.length, 15);
+  assert.equal(TrackRace.VEHICLES.length, 16);
   for (const vehicle of TrackRace.VEHICLES) {
     assert.equal(vehicle.massKg, specifications[vehicle.id].curbMassKg);
     assert.equal(vehicle.powerPs, specifications[vehicle.id].powerPs);
@@ -267,7 +267,7 @@ test('a downhill approach plans and starts braking earlier than the same flat co
   assert.ok(brakingStarts[2] > brakingStarts[1] + 10, 'uphill gravity allows a later braking point');
 });
 
-test('all 15 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
+test('all 16 vehicles reach a terminal result on all 11 circuits in dry/wet and factory/160% conditions', t => {
   assert.equal(circuits.length, 11);
   const retirements = [];
   for (const circuit of circuits) {
@@ -561,7 +561,7 @@ test('one-make variant and tuning entrants complete every elevated layout in dry
   t.diagnostic(runs + ' one-make entrant runs completed on actual elevated racing lines.');
 });
 
-test('generated factory variants run for all 15 models and tuning generations preserve the measured elite', t => {
+test('generated factory variants run for all 16 models and tuning generations preserve the measured elite', t => {
   const tuning = require('./tuning-evolution.js');
   const circuit = circuits.find(c => c.id === 'inje');
   let runs = 0;

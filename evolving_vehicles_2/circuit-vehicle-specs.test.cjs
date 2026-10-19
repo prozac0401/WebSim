@@ -10,9 +10,9 @@ const Profiles = require('./powertrain-profiles.js');
 
 test('circuit additions preserve all original presets and work in a script-tag browser', () => {
   const originalIds = Object.keys(shared);
-  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined);
+  assert.equal(shared.g70, undefined); assert.equal(shared.supra, undefined); assert.equal(shared.bmw_m2, undefined);
   for (const id of Object.keys(shared)) assert.equal(specs[id], shared[id]);
-  assert.equal(Object.keys(specs).length, originalIds.length + 2);
+  assert.equal(Object.keys(specs).length, originalIds.length + 3);
   const sandbox = { window: { VehicleSpecs: shared } };
   vm.runInNewContext(fs.readFileSync(require.resolve('./circuit-vehicle-specs.js'), 'utf8'), sandbox);
   for (const id of Object.keys(shared)) assert.equal(sandbox.window.CircuitVehicleSpecs[id], shared[id]);
@@ -50,7 +50,7 @@ test('Supra is exclusively the 2019 Japanese RZ 3.0T with its official factory c
   assert.ok(new Set(population.map(entry => JSON.stringify(entry.levels))).size > 1, 'single factory trim still evolves varied tuning');
 });
 
-test('every new variant gets the correct eight-speed combustion HUD profile', () => {
+test('G70 and Supra variants get the correct eight-speed combustion HUD profile', () => {
   for (const vehicleId of ['g70', 'supra']) {
     for (const variant of Evolution.VARIANTS[vehicleId]) {
       const entrant = Evolution.createEntrant({ vehicleId, variantId: variant.id, budget: 0 });
@@ -61,4 +61,30 @@ test('every new variant gets the correct eight-speed combustion HUD profile', ()
     }
     assert.equal(Profiles.resolve(vehicleId).gearCount, 8);
   }
+});
+
+test('2016 F87 M2 retains German DIN masses and both factory transmissions without mixing Competition or overboost', () => {
+  assert.deepEqual(Evolution.VARIANTS.bmw_m2.map(v => v.id), ['bmw-m2-3.0t-dct', 'bmw-m2-3.0t-mt']);
+  const population = Evolution.createPopulation({ vehicleId: 'bmw_m2', budget: 0, count: 12 });
+  assert.equal(population.length, 2, 'stock mode includes exactly one of each real transmission');
+  for (const [id, type, gears, mass, factoryTime] of [
+    ['bmw-m2-3.0t-dct', 'DCT', 7, 1520, 4.3], ['bmw-m2-3.0t-mt', 'MT', 6, 1495, 4.5]
+  ]) {
+    const variant = Evolution.getVariant('bmw_m2', id), s = variant.spec;
+    const entry = population.find(e => e.variantId === id), profile = Profiles.resolve({ entrant: entry });
+    assert.equal(entry.spec, s, 'stock mode preserves the exact factory object');
+    assert.deepEqual([s.modelYear, s.market, s.massStandard, s.engineFamily], [2016, 'DE', 'DIN', 'N55']);
+    assert.deepEqual([s.displacementCc, s.powerPs, s.torqueNm, s.massKg, s.curbMassKg], [2979, 370, 465, mass, mass]);
+    assert.deepEqual([s.lengthMm, s.widthMm, s.heightMm, s.wheelbaseMm], [4468, 1854, 1410, 2693]);
+    assert.deepEqual([s.frontTire, s.rearTire, s.frontTireRadiusMm, s.rearTireRadiusMm], ['245/35ZR19', '265/35ZR19', 327.05, 334.05]);
+    assert.deepEqual([s.factoryDrive, s.transmissionType, s.gearCount, s.factoryZeroTo100S], ['rwd', type, gears, factoryTime]);
+    assert.equal(s.topSpeedMps, 250 / 3.6, 'optional 270 km/h package is not the baseline');
+    assert.equal(s.dragArea, .7735); assert.equal(s.trackWidthM, (1579 + 1601) / 2000);
+    assert.ok(!s.modeledFields.includes('dragArea')); assert.ok(s.modeledFields.includes('cgHeightM'));
+    assert.deepEqual([profile.gearCount, profile.transmissionType, profile.ratioMarket], [gears, type, s.market]);
+    assert.deepEqual(Evolution.getRules('bmw_m2', id).credits, { acceleration: 0, topSpeed: 0, brakes: 0, grip: 0 });
+  }
+  assert.equal(Profiles.resolve('bmw_m2').variantId, 'bmw-m2-3.0t-dct');
+  assert.equal(specs.bmw_m2.curbMassKg, 1520);
+  assert.ok(Object.isFrozen(specs.bmw_m2.driveVariants.rwd));
 });

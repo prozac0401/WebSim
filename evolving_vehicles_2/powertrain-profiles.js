@@ -8,6 +8,8 @@
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
   const reviewedAt='2026-10-15';
   const SOURCES=freeze({
+    'bmw-m2-2016-de':{title:'BMW M2 10/2015 ACEA technical specifications',url:'https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713',observation:'2016 전기형 F87 일반 M2. 1쪽 DIN 질량 MT 1495/DCT 1520 kg, 370 PS·465 Nm·최고출력 6500rpm. 2쪽 6MT/7DCT 단별 기어비와 공통 종감속 3.462. 독일·ACEA 기준을 그대로 수록하며 Competition 및 미국 bhp 사양을 혼합하지 않는다.'},
+    'bmw-m2-2016-uk-engine':{title:'BMW UK: The new BMW M2, April 2016',url:'https://www.press.bmwgroup.com/united-kingdom/article/detail/T0238509EN_GB/the-new-bmw-m2',observation:'같은 전기형 370 hp 엔진의 최대 7000rpm을 명시. 일반 465 Nm와 일시 오버부스트 500 Nm를 구분하며 고정 토크에는 일반값만 적용. 이 본문은 WOT 변속 시점을 제공하지 않는다.'},
     'kia-ray':{title:'기아 레이 정부 신고 연비·변속기',url:'https://www.kia.com/kr/vehicles/ray/specification',observation:'1.0 가솔린 14/15인치: 자동 4단.'},
     'kia-ray-ev':{title:'기아 레이 EV 제원',url:'https://www.kia.com/kr/vehicles/ray-ev/specification',observation:'전기 구동 모델. 내연기관 회전계와 변속 단수 HUD를 표시하지 않는다.'},
     'kia-morning':{title:'기아 모닝 가격·기본 품목',url:'https://www.kia.com/kr/vehicles/morning/price',observation:'스마트스트림 G1.0, 4단 자동변속기.'},
@@ -66,6 +68,8 @@
   add('porter2',['porter-lpg-at'],'lpg','AT',5,'hyundai-porter',{shiftRPM:4000,maxRPM:5000});
   add('g70',['g70-2.0t-rwd','g70-2.0t-awd','g70-3.3t-rwd','g70-3.3t-awd'],'gasoline','AT',8,'genesis-g70-2019');
   add('supra',['supra-3.0t-rz'],'gasoline','AT',8,'toyota-supra-2019');
+  add('bmw_m2',['bmw-m2-3.0t-dct'],'gasoline','DCT',7,'bmw-m2-2016-de',{reviewedAt:'2026-10-19'});
+  add('bmw_m2',['bmw-m2-3.0t-mt'],'gasoline','MT',6,'bmw-m2-2016-de',{reviewedAt:'2026-10-19'});
   function applyRatios(ids, ratios, finalDrive, sourceId, status, ratedPowerRPM, shiftRPM, market, drivenAxle = 'rear') {
     const finalDriveRatios = Array.isArray(finalDrive) ? finalDrive : null;
     const finalDriveRatio = finalDriveRatios ? null : finalDrive;
@@ -87,6 +91,15 @@
   applyRatios(['g70-2.0t-rwd','g70-2.0t-awd'], [3.964,2.468,1.610,1.176,1,.832,.652,.565], 3.727, 'genesis-g70-us-2019-ratios', 'reference-market', 6200, 6500, 'US');
   applyRatios(['g70-3.3t-rwd','g70-3.3t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.538, 'genesis-g70-us-2019-ratios', 'reference-market', 6000, 6500, 'US');
   applyRatios(['supra-3.0t-rz'], [5.250,3.360,2.172,1.720,1.316,1,.822,.640], 3.154, 'toyota-supra-2019', 'verified-exact-market', 5000, 6500, 'JP');
+  applyRatios(['bmw-m2-3.0t-dct'], [4.806,2.593,1.701,1.277,1,.844,.671], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');
+  applyRatios(['bmw-m2-3.0t-mt'], [4.110,2.315,1.542,1.179,1,.846], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');
+  for (const id of ['bmw-m2-3.0t-dct','bmw-m2-3.0t-mt']) {
+    // Same N55 engine's rev limit is published; the 6500 RPM shift schedule is not.
+    profiles[id].sourceIds.push('bmw-m2-2016-uk-engine');
+    profiles[id].maxRPMSourceId = 'bmw-m2-2016-uk-engine';
+    profiles[id].referenceFields.push('maxRPM');
+    profiles[id].estimatedFields = profiles[id].estimatedFields.filter(field => field !== 'maxRPM');
+  }
   Object.assign(profiles['supra-3.0t-rz'], {
     transmissionFamily: 'ZF 8HP51', transmissionFamilySourceId: 'toyota-supra-eu-2019-transmission',
     referenceFields: ['transmissionFamily'],
@@ -116,7 +129,7 @@
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.
   const FALLBACKS=freeze({ray:'ray-1.0-15',morning:'morning-1.0-16',avante:'avante-2.0-18',k5:'k5-2.0',carnival:'carnival-1.6heV',
-    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz'});
+    g80:'g80-2.5t-rwd',ioniq5:'ioniq5-long-rwd',grandeur:'grandeur-2.5',santafe:'santafe-2.5t-fwd',staria:'staria-lpg',musso_ev:'musso-ev-fwd',torres:'torres-1.5t-fwd',porter2:'porter-lpg-at',g70:'g70-2.0t-rwd',supra:'supra-3.0t-rz',bmw_m2:'bmw-m2-3.0t-dct'});
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',

@@ -81,7 +81,7 @@ function prepareRace(note,keepWatch=false,continuation=false){
  }
 }
 function selectCar(id){watch=id;inspectorKey='';updateElevation();updateUI();draw();}
-function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const source=renderer.getModelInfo(),key=source.kind+'|'+source.label;if($('exterior-source').dataset.source!==key){const node=$('exterior-source');node.dataset.source=key;node.replaceChildren(document.createTextNode(source.label));if(source.kind==='community-mesh'){const link=document.createElement('a');link.href='ADDITIONAL-VEHICLES.md';link.target='_blank';link.rel='noopener';link.textContent=' · 제작자·CC BY 4.0·변경 내역 ↗';node.append(link);}}}}
+function draw(){if(race){renderer.render({watch,mode:camera,showLine:$('show-line').checked});const source=renderer.getModelInfo(),key=source.kind+'|'+source.label;if($('exterior-source').dataset.source!==key){const node=$('exterior-source');node.dataset.source=key;node.replaceChildren(document.createTextNode(source.label));if(source.kind==='community-mesh'){const link=document.createElement('a');link.href='MODEL-SOURCES.md';link.target='_blank';link.rel='noopener';link.textContent=' · 제작자·CC BY 4.0·변경 내역 ↗';node.append(link);}}}}
 function setCamera(mode){renderer.setView(mode);camera=renderer.mode;['overview','follow','top','eau-rouge','pits'].forEach(id=>$(id).setAttribute('aria-pressed',String(id===camera)));draw();}
 function updateElevation(){
  const t=race.track,car=watching(),points=car.pathPoints||t.racingLine?.points||t.points;$('elevation-plot').hidden=!t.hasElevation;

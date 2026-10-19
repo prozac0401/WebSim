@@ -1,0 +1,43 @@
+BMW M2 — Manuel Contento
+
+Original model: https://sketchfab.com/3d-models/bmw-m2-394feedd0a0742c595917c7b0f6edcad
+Creator: Manuel Contento — https://sketchfab.com/manuelcontento
+Creator portfolio: https://www.artstation.com/artwork/Glq1a
+
+Licensed under Creative Commons Attribution 4.0 International (CC-BY-4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+Legal code: https://creativecommons.org/licenses/by/4.0/legalcode.en
+
+The creator's public model page and the downloaded GLB both identify the author,
+source model and CC-BY-4.0 license. Verified on 2026-10-19. This license permits
+sharing and adaptation, including commercial use, with appropriate attribution,
+a license link, and indication of changes. Keep this attribution with copies.
+No endorsement by the creator or BMW is implied. The license does not grant
+trademark rights. The model is an independent artist work, not manufacturer CAD.
+
+Public download mirror: pedrosoandre/carros
+https://github.com/pedrosoandre/carros
+Pinned revision: 0a56de377f02f2574d781f6920fed08d6423ec2f
+File: https://raw.githubusercontent.com/pedrosoandre/carros/0a56de377f02f2574d781f6920fed08d6423ec2f/assets/bmw-m2.glb
+SHA-256: f67b1bd2fdbf083c6eb3578c7fb23992bfba1293cca5b479055e30d3fee1f400
+
+The mirror documents normal Sketchfab Download API acquisition and previous
+vertex welding, geometry simplification, pruning and Meshopt compression.
+This is that processed derivative, not the creator's original upload bytes.
+
+WebSim modifications:
+- Decoded compressed and quantized data; removed the studio ground plane only.
+- Preserved all 228,676 vehicle triangles in the main runtime model.
+- Rotated and uniformly scaled the vehicle to 4.468 m length, with tire ground
+  at zero. Original body, lamps, wheels and decorative red/blue livery retained.
+- Preserved six original base-color textures; adapted glazing, lamp-cover,
+  paint-reflection, light-guide and metal materials to the exterior renderer.
+  Normal and metallic/roughness maps are not used by this renderer.
+- Produced a separate simplified fallback with source-texture sampled colors.
+- Compacted and grouped indexed geometry and embedded the data in a local,
+  gzip-compressed JavaScript runtime. No newly generated body geometry added.
+
+See bmw_m2-source.json, bmw_m2-runtime-summary.json and build-free-bmw-m2.mjs
+for detailed provenance, exact conversion results and reproducible processing.
+Official BMW reference photographs are not included in this runtime asset and
+are not covered by the creator's Creative Commons license.

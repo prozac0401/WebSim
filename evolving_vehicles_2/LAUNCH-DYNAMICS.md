@@ -23,7 +23,7 @@
 
 ## 출발 토크에 사용하는 기어비
 
-기존에는 모든 내연 원메이크 차량의 저속 토크 계산에 기본 감속비 13.5를 사용했습니다. 현재는 자료가 있는 G70·G80·수프라·K5 1.6T·카니발·싼타페의 14개 출고 조합에 `1단 기어비 × 1단의 종감속비`를 별도 `driveReduction`으로 계산합니다. 기존 `reduction`은 유지하며 튜닝에 의한 비율 `유효 reduction / 출고 reduction`은 정확히 한 번만 적용합니다. HUD의 단별 계산도 출고 기어비와 같은 튜닝 배율을 사용하지만, HUD가 선택한 현재 단수를 물리 엔진에 다시 입력하지는 않습니다.
+기존에는 모든 내연 원메이크 차량의 저속 토크 계산에 기본 감속비 13.5를 사용했습니다. 현재는 자료가 있는 G70·G80·수프라·M2·K5 1.6T·카니발·싼타페의 16개 출고 조합에 `1단 기어비 × 1단의 종감속비`를 별도 `driveReduction`으로 계산합니다. 기존 `reduction`은 유지하며 튜닝에 의한 비율 `유효 reduction / 출고 reduction`은 정확히 한 번만 적용합니다. HUD의 단별 계산도 출고 기어비와 같은 튜닝 배율을 사용하지만, HUD가 선택한 현재 단수를 물리 엔진에 다시 입력하지는 않습니다.
 
 | 모델·엔진 | 1단 | 종감속 | 기본 저속 유효 감속비 | 자료 범위 |
 | --- | ---: | ---: | ---: | --- |
@@ -32,12 +32,14 @@
 | G80 2.5T | 3.665 | 3.909 | 14.326485 | 2026 호주 참고 |
 | G80 3.5T | 3.665 | 3.727 | 13.659455 | 2026 호주 참고 |
 | 수프라 3.0T | 5.250 | 3.154 | 16.558500 | 수록 사양과 같은 2019 일본 RZ |
+| BMW M2 7DCT | 4.806 | 3.462 | 16.638372 | 수록 사양과 같은 2016 독일 F87 |
+| BMW M2 6MT | 4.110 | 3.462 | 14.228820 | 수록 사양과 같은 2016 독일 F87 |
 | K5 1.6T FWD | 4.717 | 3.367 | 15.882139 | 2024 미국 8AT 참고 |
 | 카니발 3.5 FWD | 4.808 | 3.510 | 16.876080 | 2025 미국 8AT 참고 |
 | 카니발 1.6T HEV FWD | 4.639 | 3.648 | 16.923072 | 2025 미국 6AT 참고 |
 | 싼타페 2.5T FWD/AWD | 3.429 | 4.846 | 16.616934 | 호주 MX5 기어비 참고, 1단 종감속 배정은 구형 디젤 자료에 따른 추정 |
 
-자료: [Genesis Motor America의 2019 G70 기술 발표](https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html), [Genesis Australia 2026 G80 제원표 1–2쪽](https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf), [토요타 2019 일본 수프라 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf), Kia America의 [2024 K5](https://www.kiamedia.com/us/en/models/k5/2024/specifications)·[2025 카니발 3.5](https://www.kiamedia.com/us/en/models/carnival/2025/specifications)·[2025 카니발 HEV](https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications) 제원표, [현대 호주 싼타페 MX5 제원표 1–2쪽](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf). 수프라 외에는 국내 동일성을 확인하지 못했으므로 해외 참고값으로 표시합니다. 국내 출력·토크·중량은 해외 값으로 바꾸지 않습니다.
+자료: [Genesis Motor America의 2019 G70 기술 발표](https://www.prnewswire.com/news-releases/2019-genesis-g70-equipped-to-compete-300679294.html), [Genesis Australia 2026 G80 제원표 1–2쪽](https://www.genesis.com/content/dam/genesis/au/en/bto-assets/admin/donwloader-center-management/g80/model-thumbnail/desktop/2026_Genesis_G80_Specification_Sheet.pdf), [토요타 2019 일본 수프라 제원표](https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf), Kia America의 [2024 K5](https://www.kiamedia.com/us/en/models/k5/2024/specifications)·[2025 카니발 3.5](https://www.kiamedia.com/us/en/models/carnival/2025/specifications)·[2025 카니발 HEV](https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications) 제원표, [현대 호주 싼타페 MX5 제원표 1–2쪽](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf). M2는 [BMW 10/2015 공식 제원표](https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713)의 2016 독일 사양을 사용합니다. 수프라·M2 외에는 국내 동일성을 확인하지 못했으므로 해외 참고값으로 표시합니다. 국내 출력·토크·중량은 해외 값으로 바꾸지 않습니다.
 
 싼타페 MX5 자료는 두 종감속비를 공개하지만 단별 배정은 생략합니다. 모형의 1·2·5·6단 4.846, 3·4·7·8단 3.316 배정은 [현대 호주 MY2021 공식 표](https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf) 1쪽의 동일 단비를 가진 **2.2 디젤 8DCT**를 참고한 추정입니다. 현행 국내 2.5T의 배정 확인값은 아니며, 출발 토크에도 이 1단 배정 추정을 사용합니다. 상세 표와 미확인 차종별 이유는 [파워트레인 자료](POWERTRAIN-SOURCES.md)에 기록합니다.
 
