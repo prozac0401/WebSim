@@ -240,7 +240,7 @@
     setRace(race,{preserveCamera=false}={}){
       if(preserveCamera&&this.race?.circuit===race.circuit){
         const oldCar=this.race.cars.find(c=>c.id===this.watch)||this.race.cars[0];
-        if(this._followState&&oldCar)this._followState.distance-=oldCar.totalDistance??this.race.totalDistance;
+        if(this._followState&&oldCar){const lap=oldCar.totalDistance??this.race.totalDistance;for(const key of ['distance','eyeDistance','goalEyeDistance','sampleDistance'])this._followState[key]-=lap;}
         this.race=race;return;
       }
       if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();
@@ -269,12 +269,12 @@
         const low=this._displayPose(nearest(xy(5.970788,50.442385))),high=this._displayPose(nearest(xy(5.972132,50.440815)));
         this.landmark={target:point((low.x+high.x)/2,(low.y+high.y)/2,(low.z+high.z)/2),distance:Math.max(230,Math.hypot(high.x-low.x,high.y-low.y)*1.28),low,high};
         this.pitch=.25;this.yaw=Math.atan2(high.y-low.y,high.x-low.x)+Math.PI/2-.42;
-      }else {this.pitch=.24;this.followYaw=0;}
+      }else {this.pitch=0;this.followYaw=0;}
     }
     orbit(dx,dy){
       const delta=dx*.007;
       if(this.mode==='follow')this.followYaw+=delta;else this.yaw+=delta;
-      this.pitch=clamp(this.pitch+dy*.005,.18,Math.PI/2-.008);this._changed();
+      this.pitch=clamp(this.pitch+dy*.005,this.mode==='follow'?-.12:.18,Math.PI/2-.008);this._changed();
     }
     setInteractionMode(mode){
       if(!['orbit','pan'].includes(mode))return;
@@ -288,7 +288,7 @@
     // This makes a grabbed road point follow the pointer even after orbiting.
     _groundPoint(x,y,camera){
       const u=(x-camera.cx)/camera.f,v=(y-camera.cy)/camera.f,den=camera.sinPitch+v*camera.cosPitch;
-      if(den<.10)return null; // The sky / near-horizon rays have no useful map intersection.
+      if(Math.abs(den)<.005||den*camera.sinPitch<=0)return null; // Sky rays parallel to, or pointing away from, the target plane.
       const right=camera.distance*camera.sinPitch*u/den,forward=camera.distance*v/den;
       return {x:camera.target.x+right*camera.cosYaw-forward*camera.sinYaw,
         y:camera.target.y+right*camera.sinYaw+forward*camera.cosYaw,z:camera.target.z};
@@ -300,7 +300,7 @@
       if(a&&b){this.panOffset.x+=a.x-b.x;this.panOffset.y+=a.y-b.y;}
       else{
         // Above the horizon, use the finite tangent at the target instead.
-        const right=-dx*camera.distance/camera.f,forward=-dy*camera.distance/(camera.f*camera.sinPitch);
+        const right=-dx*camera.distance/camera.f,forward=-dy*camera.distance/(camera.f*Math.max(.12,Math.abs(camera.sinPitch)));
         this.panOffset.x+=right*camera.cosYaw-forward*camera.sinYaw;
         this.panOffset.y+=right*camera.sinYaw+forward*camera.cosYaw;
       }
@@ -308,72 +308,101 @@
     }
     recenter(){this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._changed();}
     resetPan(){this.recenter();}
+    _followSample(car,distance){return this._displayPose(root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance));}
+    _followDistance(car){
+      const f=this.height/(2*Math.tan(16*Math.PI/180));
+      return Math.max(16,((car.spec?.lengthMm||4800)/1000)*3.5,((car.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(180,this.width*.30)));
+    }
     _followGoal(car){
-      const sample=distance=>root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance);
-      const p=this._displayPose(sample(car.distance)),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
-      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
-      // Estimate bend size from chords, not the instantaneous spline curvature.
-      // The neighbouring chords also see a tight bend before a wide filter
-      // could accidentally average across its return leg.
-      const probes=[sample(car.distance-2*desired),sample(car.distance-desired),p,sample(car.distance+desired),sample(car.distance+2*desired)];
-      const directions=probes.slice(1).map((q,i)=>Math.atan2(q.y-probes[i].y,q.x-probes[i].x));
-      // A smooth norm avoids a kink when a different chord becomes dominant.
-      const curvature=Math.pow(directions.slice(1).reduce((sum,angle,i)=>sum+Math.pow(wrap(angle-directions[i]),4),0),.25)/desired;
-      const sigma=desired/Math.sqrt(1+(desired*curvature/.55)**2),anticipation=Math.min(4,speed*.1)/Math.sqrt(1+(18*curvature)**2);
-      // A Gaussian derivative of positions averages the whole local road
-      // direction. Retaining any raw tangent here reintroduces the short
-      // straight/turn pulses even when the position curve itself is C2.
-      // The window is centred near the car, with at most four metres of lead;
-      // it smooths gentle bends without looking far around a hairpin.
-      let dx=0,dy=0;
-      // Fixed quadrature keeps the direction continuous as the window narrows.
-      const samples=24;
-      for(let i=1;i<=samples;i++){
-        const u=3*i/samples,weight=u*Math.exp(-.5*u*u),offset=u*sigma;
-        const a=sample(car.distance+anticipation-offset),b=sample(car.distance+anticipation+offset);
-        dx+=(b.x-a.x)*weight;dy+=(b.y-a.y)*weight;
+      const p=this._followSample(car,car.distance),trail=this._followDistance(car),eyeDistance=car.distance-trail;
+      return this._followEye(car,{id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.65,distance:car.distance,trail,eyeDistance,goalEyeDistance:eyeDistance,eyeVelocity:0});
+    }
+    _followRoadLift(car,pose){
+      const edges=this.roadEdges;if(!edges?.length)return 0;
+      let cache=this._followRoadPlanes;
+      if(cache?.source!==edges){
+        const cells=new Map(),cell=32;
+        for(let i=0;i<edges.length;i++){
+          const a=edges[i],b=edges[(i+1)%edges.length],vertices=[a.left,b.left,b.right,a.right],p=vertices[0],q=vertices[1],r=vertices[2];
+          const ux=q.x-p.x,uy=q.y-p.y,uz=q.z-p.z,vx=r.x-p.x,vy=r.y-p.y,vz=r.z-p.z,nz=ux*vy-uy*vx;
+          if(Math.abs(nz)<1e-9)continue;
+          const plane={vertices,p,gx:-(uy*vz-uz*vy)/nz,gy:-(uz*vx-ux*vz)/nz};
+          const xs=vertices.map(v=>v.x),ys=vertices.map(v=>v.y);
+          for(let x=Math.floor(Math.min(...xs)/cell);x<=Math.floor(Math.max(...xs)/cell);x++)for(let y=Math.floor(Math.min(...ys)/cell);y<=Math.floor(Math.max(...ys)/cell);y++){
+            const key=x+','+y;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(plane);
+          }
+        }
+        cache=this._followRoadPlanes={source:edges,cells,cell};
       }
-      const tangent=Number.isFinite(p.angle)?p.angle:directions[1];
-      // Degenerate loops must never put the chase camera in front of the car.
-      const filteredHeading=Math.hypot(dx,dy)>.001&&dx*Math.cos(tangent)+dy*Math.sin(tangent)>0?Math.atan2(dy,dx):tangent;
-      const heading=tangent+wrap(filteredHeading-tangent)*(root.DrivingPose?.startBlend?.(car)??1);
-      return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading,distance:car.distance};
+      const core=Math.hypot((car.spec?.lengthMm||4800)/2000,(car.spec?.widthMm||1850)/2000)+.1,radius=core+4,candidates=new Set();
+      for(let x=Math.floor((pose.x-radius)/cache.cell);x<=Math.floor((pose.x+radius)/cache.cell);x++)for(let y=Math.floor((pose.y-radius)/cache.cell);y<=Math.floor((pose.y+radius)/cache.cell);y++)for(const p of cache.cells.get(x+','+y)||[])candidates.add(p);
+      let power=0;
+      for(const plane of candidates){
+        let inside=false,squared=Infinity;
+        for(let i=0,j=3;i<4;j=i++){
+          const a=plane.vertices[j],b=plane.vertices[i],dx=b.x-a.x,dy=b.y-a.y;
+          if((a.y>pose.y)!==(b.y>pose.y)&&pose.x<(b.x-a.x)*(pose.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+          const t=clamp(((pose.x-a.x)*dx+(pose.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);
+          squared=Math.min(squared,(pose.x-a.x-t*dx)**2+(pose.y-a.y-t*dy)**2);
+        }
+        const distance=inside?0:Math.sqrt(squared);if(distance>=radius)continue;
+        const t=clamp((distance-core)/4,0,1);
+        // A bridge/return leg can share XY bounds without supporting this car.
+        // Reject its different height with the same C2 fade, not a face switch.
+        const separation=Math.abs(plane.p.z+plane.gx*(pose.x-plane.p.x)+plane.gy*(pose.y-plane.p.y)-(pose.z-.65));
+        const h=clamp((separation-.75)/2,0,1),weight=(1-t*t*t*(10+t*(-15+6*t)))*(1-h*h*h*(10+h*(-15+6*h)));
+        const wanted=plane.p.z+plane.gx*(pose.eyeX-plane.p.x)+plane.gy*(pose.eyeY-plane.p.y)+.25-pose.eyeZ;
+        // C2 upper approximation to max(0,wanted), exactly zero below -20 cm.
+        // The high-order norm stays above every footprint plane but joins
+        // neighbouring planes smoothly instead of switching a nearest face.
+        const u=clamp((wanted+.2)/.4,0,1),lift=wanted>=.2?wanted:.4*(u*u*u-.5*u*u*u*u);
+        power+=(weight*lift)**16;
+      }
+      return power**(1/16);
+    }
+    _followEye(car,pose){
+      // Filter a distance along the driven path, never free XY coordinates.
+      // This keeps the low eye on the road through hairpins instead of cutting
+      // across the inside bank. A smooth bound prevents runaway playback lag.
+      const limit=pose.trail*.35;
+      pose.sampleDistance=pose.goalEyeDistance+limit*Math.tanh((pose.eyeDistance-pose.goalEyeDistance)/limit);
+      const rear=this._followSample(car,pose.sampleDistance);
+      pose.eyeX=rear.x;pose.eyeY=rear.y;pose.eyeZ=(rear.elevation??rear.z??0)+1.15;
+      const floor=this.terrainGeometry?.sampleHeight?.(pose.eyeX,pose.eyeY);
+      if(Number.isFinite(floor))pose.eyeZ=Math.max(pose.eyeZ,floor+.65);
+      pose.eyeSafetyLiftM=this._followRoadLift(car,pose);pose.eyeZ+=pose.eyeSafetyLiftM;
+      const heading=Math.atan2(pose.y-pose.eyeY,pose.x-pose.eyeX);
+      pose.heading=Number.isFinite(pose.heading)?pose.heading+Math.atan2(Math.sin(heading-pose.heading),Math.cos(heading-pose.heading)):heading;
+      return pose;
     }
     _followPose(car){
-      if(!this._followState||this._followState.id!==car.id){const goal=this._followGoal(car);this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};}
+      if(!this._followState||this._followState.id!==car.id)this._followState=this._followGoal(car);
       return this._followState;
     }
     advanceCamera(seconds,{watch=this.watch,snap=false}={}){
       if(this.mode!=='follow'||!this.race)return false;
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return false;
       const goal=this._followGoal(car);
-      if(!this._followState||this._followState.id!==car.id){this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};return true;}
-      const previous=this._followState;
+      if(!this._followState||this._followState.id!==car.id){this._followState=goal;return true;}
+      const pose=this._followState;
       if(snap){
-        const angle=Math.atan2(Math.sin(goal.heading-previous.heading),Math.cos(goal.heading-previous.heading));
-        const changed=['x','y','z'].some(key=>Math.abs(goal[key]-previous[key])>1e-10)||Math.abs(angle)>1e-10||Math.abs(previous.headingVelocity)>1e-10;
-        if(changed)this._followState={...goal,goalHeading:goal.heading,headingVelocity:0};return changed;
+        const changed=['x','y','z','eyeX','eyeY','eyeZ','eyeVelocity'].some(key=>Math.abs(goal[key]-pose[key])>1e-10);
+        if(changed)this._followState=goal;return changed;
       }
       const dt=Number.isFinite(seconds)?clamp(seconds,0,.25):0;if(!dt)return false;
-      const pose=this._followState,before={...pose};
-      // Follow the shared car anchor exactly: independent XY/height filters
-      // make the car slide across the frame and can cut across hairpins.
-      pose.x=goal.x;pose.y=goal.y;pose.z=goal.z;
-      const travel=Math.abs(goal.distance-pose.distance)/dt,physicalSpeed=Math.max(0,Number(car.speed)||0);
-      const playback=physicalSpeed>.5?travel/physicalSpeed:1,omega=9.5*Math.sqrt(clamp(playback,1,16));
-      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
-      const moving=physicalSpeed>.5&&travel>1e-8;
-      const targetStep=moving?wrap(goal.heading-(pose.goalHeading??pose.heading)):0,targetRate=targetStep/dt;
-      const error=wrap(pose.heading-(goal.heading-targetStep))+2*targetRate/omega;
-      const velocity=(pose.headingVelocity||0)-targetRate,j=velocity+omega*error,decay=Math.exp(-omega*dt);
-      // Exact critically damped spring with a linearly moving angular target.
-      // Treating each new target as an instantaneous step creates a visible
-      // velocity pulse when frame durations vary, even on a perfect circle.
-      pose.heading=pose.heading-error+targetStep+(error+j*dt)*decay;
-      pose.headingVelocity=targetRate+(velocity-omega*j*dt)*decay;pose.distance=goal.distance;pose.goalHeading=goal.heading;
-      const remaining=Math.atan2(Math.sin(goal.heading-pose.heading),Math.cos(goal.heading-pose.heading));
-      if(Math.abs(remaining)<1e-6&&Math.abs(pose.headingVelocity)<1e-5){pose.heading+=remaining;pose.headingVelocity=0;}
-      return ['x','y','z','heading','headingVelocity'].some(key=>Math.abs(pose[key]-before[key])>1e-10);
+      const before={...pose},travel=Math.abs(goal.distance-pose.distance)/dt,physicalSpeed=Math.max(0,Number(car.speed)||0);
+      const playback=physicalSpeed>.5?travel/physicalSpeed:1,omega=10*Math.sqrt(clamp(playback,1,16));
+      const moving=physicalSpeed>.5&&travel>1e-8,targetStep=moving?goal.goalEyeDistance-pose.goalEyeDistance:0,targetRate=targetStep/dt;
+      const error=pose.eyeDistance-(goal.goalEyeDistance-targetStep)+2*targetRate/omega;
+      const velocity=pose.eyeVelocity-targetRate,j=velocity+omega*error,decay=Math.exp(-omega*dt);
+      // Exact critically damped spring for a linearly moving distance target;
+      // elapsed time, not frame count, determines the trailing motion.
+      pose.eyeDistance=pose.eyeDistance-error+targetStep+(error+j*dt)*decay;
+      pose.eyeVelocity=targetRate+(velocity-omega*j*dt)*decay;
+      for(const key of ['x','y','z','distance','trail','goalEyeDistance'])pose[key]=goal[key];
+      if(Math.abs(pose.eyeDistance-goal.goalEyeDistance)<1e-6&&Math.abs(pose.eyeVelocity)<1e-5){pose.eyeDistance=goal.goalEyeDistance;pose.eyeVelocity=0;}
+      this._followEye(car,pose);
+      return ['x','y','z','eyeX','eyeY','eyeZ','eyeVelocity'].some(key=>Math.abs(pose[key]-before[key])>1e-10);
     }
     zoom(factor,anchor){
       if(!Number.isFinite(factor)||factor<=0)return;
@@ -385,6 +414,12 @@
       }
       this._changed();
     }
+    _followCameraInfo(){
+      if(this.mode!=='follow'||!this.race)return null;
+      const camera=this._interactionCamera(),pose=this._followState;if(!camera||!pose)return null;
+      return {positionMode:'past-driven-path',verticalFovDegrees:32,distanceM:camera.distance,trailDistanceM:pose.distance-pose.sampleDistance,eyeSafetyLiftM:pose.eyeSafetyLiftM,
+        pitchDegrees:camera.pitch*180/Math.PI,eye:{x:camera.target.x-camera.sinYaw*camera.distance*camera.cosPitch,y:camera.target.y+camera.cosYaw*camera.distance*camera.cosPitch,z:camera.target.z+camera.distance*camera.sinPitch},target:{...camera.target}};
+    }
     getModelInfo(){
       const car=this.race?.cars.find(c=>c.id===this.watch)||this.race?.cars[0],asset=car&&root.ManufacturerModels?.get(car.vehicleId);
       if(car&&root.ManufacturerModels?.isLoading(car.vehicleId))return {kind:'loading',label:'정밀 3D 외형 불러오는 중…'};
@@ -392,20 +427,24 @@
       if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 화면의 다시 불러오기를 눌러 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();this.terrainRenderer?.dispose();}
     _makeRoad(){
       this.roadFaces=[];this.supports=[];if(!this.race)return;
-      const track=this.displayTrack,pts=track.points,n=pts.length,step=n>1300?2:1,edges=[];
+      const track=this.displayTrack,pts=track.points,n=pts.length,step=n>1300?2:1;
+      const builder=root.CircuitRoad||(typeof require==='function'?require('./circuit-road.js'):null);
+      this.roadSourceTrack=track;this.roadGeometry=builder?.build(track)||null;
+      const edges=this.roadGeometry?.edges||[];
       const half=track.width/2,curb=Math.min(1.1,track.width*.065),datum=(track.elevationMin||0)-4;
-      for(let i=0;i<n;i+=step){
+      if(this.roadGeometry)this.displayTrack={...track,points:this.roadGeometry.points};
+      else for(let i=0;i<n;i+=step){
         const a=pts[(i-1+n)%n],b=pts[(i+1)%n],p=pts[i],l=Math.hypot(b.x-a.x,b.y-a.y)||1,nx=-(b.y-a.y)/l,ny=(b.x-a.x)/l;
         const at=(d,z=0)=>point(p.x+nx*d,p.y+ny*d,(p.z||0)+z);
-        edges.push({left:at(-half),right:at(half),outerLeft:at(-half-curb),outerRight:at(half+curb),p,index:i});
-        if(i%Math.max(step,Math.round(120/(track.centerlineSpacing||track.spacing)/step)*step)===0)this.supports.push([point(p.x,p.y,datum),point(p.x,p.y,p.z||0)]);
+        edges.push({left:at(-half),right:at(half),outerLeft:at(-half-curb),outerRight:at(half+curb),p,index:i,s:i*(track.centerlineSpacing||track.spacing)});
       }
       for(let i=0;i<edges.length;i++){
-        const a=edges[i],b=edges[(i+1)%edges.length],stripe=Math.floor(i*step*(track.centerlineSpacing||track.spacing)/8)%2;
+        const a=edges[i],b=edges[(i+1)%edges.length],stripe=Math.floor(a.s/8)%2;
+        if(i===0||Math.floor(a.s/120)>Math.floor(edges[i-1].s/120))this.supports.push([point(a.p.x,a.p.y,datum),point(a.p.x,a.p.y,a.p.z||0)]);
         this.roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:'#465250',stroke:'#465250',width:.55,road:true});
         const curbFill=stripe?(track.id==='spa'?'#dec847':'#f0ecdf'):'#ba6759';
         this.roadFaces.push({vertices:[a.outerLeft,b.outerLeft,b.left,a.left],fill:curbFill,road:true});
@@ -431,18 +470,19 @@
       }
     }
     _camera(watch){
-      const track=this.displayTrack||this.race.track,b=track.bounds,f=this.mode==='follow'?this.height/(2*Math.tan(29*Math.PI/180)):this.height*1.15;
+      const track=this.displayTrack||this.race.track,b=track.bounds,f=this.mode==='follow'?this.height/(2*Math.tan(16*Math.PI/180)):this.height*1.15;
       let target={x:(b.minX+b.maxX)/2,y:(b.minY+b.maxY)/2,z:((track.elevationMin||0)+(track.elevationMax||0))/2};
       let distance=Math.max(b.width*f/(this.width*.67),b.height*f/(this.height*.63),Math.hypot(b.width,b.height)*.70)+(track.elevationMax-track.elevationMin||0)*.7;
-      let yaw=this.yaw;
+      let yaw=this.yaw,pitch=this.pitch;
       if(this.mode==='follow'){
         const p=this._followPose(watch);target={x:p.x,y:p.y,z:p.z};
-        distance=Math.max(6.6,((watch.spec?.lengthMm||4800)/1000)*1.72,((watch.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(190,this.width*.36)));yaw=p.heading+Math.PI/2+this.followYaw;
+        const horizontal=Math.max(.5,Math.hypot(p.x-p.eyeX,p.y-p.eyeY)),vertical=p.eyeZ-p.z;
+        distance=Math.hypot(horizontal,vertical);yaw=p.heading+Math.PI/2+this.followYaw;pitch=clamp(Math.atan2(vertical,horizontal)+this.pitch,-.65,Math.PI/2-.008);
       }
       if(this.mode==='eau-rouge'&&this.landmark){target={...this.landmark.target};distance=this.landmark.distance;}
       if(this.mode==='pits'&&this.pits?.focus){target={...this.pits.focus.target};distance=this.pits.focus.distance*Math.max(1,this.height/this.width*1.25);}
       target.x+=this.panOffset.x;target.y+=this.panOffset.y;target.z+=this.panOffset.z;
-      return this._createCamera(target,distance/this.zoomLevel,yaw,this.pitch,f,this.width/2,this.height*(this.mode==='follow'?.64:.49));
+      return this._createCamera(target,distance/this.zoomLevel,yaw,pitch,f,this.width/2,this.height*(this.mode==='follow'?.64:.49));
     }
     _createCamera(target,distance,yaw,pitch,f,cx,cy){return {target,distance,yaw,pitch,f,cx,cy,cosYaw:Math.cos(yaw),sinYaw:Math.sin(yaw),cosPitch:Math.cos(pitch),sinPitch:Math.sin(pitch)};}
     _project(p,camera){
@@ -450,6 +490,15 @@
       const horizontal=-dx*camera.sinYaw+dy*camera.cosYaw,depth=camera.distance-horizontal*camera.cosPitch-dz*camera.sinPitch;
       if(depth<Math.max(.3,camera.distance*.018))return null;
       return {x:camera.cx+(dx*camera.cosYaw+dy*camera.sinYaw)*camera.f/depth,y:camera.cy+(horizontal*camera.sinPitch-dz*camera.cosPitch)*camera.f/depth,depth,scale:camera.f/depth};
+    }
+    _queueWorldFaces(faces,camera,queue){
+      if(!faces?.length)return;
+      const builder=root.WorldFaceBatches||(typeof require==='function'?require('./world-face-batches.js'):null);
+      if(!builder){for(const face of faces)this._queue(face,camera,queue);return;}
+      this._worldFaceBatches??=new WeakMap();
+      let batches=this._worldFaceBatches.get(faces);
+      if(!batches||batches.stats.faces!==faces.length){batches=builder.build(faces);this._worldFaceBatches.set(faces,batches);}
+      for(const face of batches.query(camera,this.width,this.height))this._queue(face,camera,queue);
     }
     _queue(face,camera,queue){
       // Asphalt/curbs are top surfaces, not a two-sided ribbon. Their underside
@@ -586,7 +635,7 @@
       if(this.mode!=='follow')for(const support of this.supports)this._line(support,camera,'rgba(100,123,90,.15)',.75);
     }
     _startLine(camera,queue){
-      const line=this.displayTrack.points[0],next=this.displayTrack.points[1];
+      const source=this.roadSourceTrack||this.displayTrack,line=source.points[0],next=source.points[1];
       const angle=Math.atan2(next.y-line.y,next.x-line.x),dx=Math.cos(angle),dy=Math.sin(angle),width=this.race.track.width;
       for(let j=0;j<2;j++)for(let i=0;i<8;i++){
         const a=-width/2+i*width/8,b=a+width/8,x=j*.65;
@@ -627,10 +676,10 @@
       this._background(camera);const queue=[];
       // The complete ground and road share one depth buffer, including distant
       // return legs. Drawing background grass first exposed roads behind hills.
-      for(const face of this.contextGround||[])this._queue(face,camera,queue);
+      this._queueWorldFaces(this.contextGround,camera,queue);
       const scenery=this.environment?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
       for(const group of scenery)for(const face of group.faces){if(this.mode!=='follow'&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
-      for(const face of this.roadFaces)this._queue(face,camera,queue);
+      this._queueWorldFaces(this.roadFaces,camera,queue);
       const facilities=this.pits?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Infinity)||[];
       for(const group of facilities)for(const face of group.faces)this._queue({...face,stroke:face.fill,width:.55},camera,queue);
       this._startLine(camera,queue);

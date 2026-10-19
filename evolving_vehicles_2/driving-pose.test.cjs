@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const DrivingPose = require('./driving-pose.js');
 const TrackRace = require('./race-engine.js');
+const Evolution = require('./tuning-evolution.js');
 const circuits = require('./circuits.js');
 const races = circuits.map(circuit => new TrackRace({ circuit, vehicleIds: ['g80'], racingLine: true, laps: 1 }));
 const turn = angle => Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -185,6 +186,84 @@ test('tight-turn car poses keep the same forward tangent at 1x, 2x and 3x playba
       }
     }
   }
+});
+
+// These are the actual selected per-car paths used by the default experiment,
+// not race.pathPoints. The wide-apex candidate exposes ripple that the older
+// shared-line tests missed. Baseline observations are from release d42360e.
+const actualCorners = [
+  { id: 'taebaek', from: 480, to: 580, baseline: { curvatureChangeRMS: .006561157266694763,
+    curvatureChangePeak: .021573288173363743, headingSecondRMS: .006252073980055596, turn: 2.574143871921378 } },
+  { id: 'spa', from: 180, to: 300, baseline: { curvatureChangeRMS: .004344294479978085,
+    curvatureChangePeak: .0148099547737717, headingSecondRMS: .004071264754978155, turn: 2.457237845503372 } }
+].map(corner => {
+  const race = new TrackRace({ circuit: circuits.find(c => c.id === corner.id), laps: 1,
+    entrants: Evolution.createPopulation({ vehicleId: 'supra', count: 8, seed: 31415, budget: 30 }).slice(0, 1) });
+  return { ...corner, race, car: race.cars[0] };
+});
+
+test('the actual Taebaek wide-apex car reduces repeated steering pulses without straightening the hairpin', t => {
+  const { race, car, from, to, baseline } = actualCorners[0];
+  assert.equal(car.racingLine.id, 'scale-1.5-apex-0');
+  const poses = Array.from({ length: to - from + 1 }, (_, i) => DrivingPose.sampleCar(race, car, from + i));
+  const change = poses.slice(1).map((p, i) => p.curvature - poses[i].curvature);
+  const heading = poses.slice(1).map((p, i) => turn(p.angle - poses[i].angle));
+  const second = heading.slice(1).map((value, i) => value - heading[i]);
+  assert.ok(rms(change) < baseline.curvatureChangeRMS * .55, 'reduce metre-scale turn-rate pulses by at least 45%');
+  assert.ok(Math.max(...change.map(Math.abs)) < baseline.curvatureChangePeak * .6, 'also reduce the worst steering pulse');
+  assert.ok(rms(second) < baseline.headingSecondRMS * .55, 'the body heading itself benefits, not just metadata');
+  assert.ok(Math.min(...poses.map(p => p.curvature)) > .005, 'do not alternate into an apparent straight within the bend');
+  assert.ok(Math.abs(turn(poses.at(-1).angle - poses[0].angle) - baseline.turn) < Math.PI / 180,
+    'retain the measured entry-to-exit turn within one degree');
+  t.diagnostic(JSON.stringify({ id: 'taebaek', curvatureChangeRMS: rms(change), baseline: baseline.curvatureChangeRMS,
+    headingSecondRMS: rms(second), deviationBoundM: DrivingPose.info(race, car).deviationBoundM }));
+});
+
+test('Spa first hairpin retains its tight arc instead of being widened by a stronger smoothing filter', () => {
+  const { race, car, from, to, baseline } = actualCorners[1];
+  const poses = Array.from({ length: to - from + 1 }, (_, i) => DrivingPose.sampleCar(race, car, from + i));
+  const change = poses.slice(1).map((p, i) => p.curvature - poses[i].curvature);
+  assert.ok(rms(change) <= baseline.curvatureChangeRMS * 1.01, 'no added short-scale curvature variation');
+  const peak = Math.max(...poses.map(p => p.curvature));
+  assert.ok(peak > .11 && peak < .14, 'preserve the existing hairpin radius');
+  assert.ok(Math.abs(turn(poses.at(-1).angle - poses[0].angle) - baseline.turn) < Math.PI / 180);
+});
+
+test('actual hairpin car and guide remain within the scoring bound and the shared C2 asphalt ribbon', t => {
+  const reports = [];
+  for (const { id, race, car, from, to } of actualCorners) {
+    // CircuitRoad uses this same display-only centerline contract. Dense one
+    // metre chords approximate its C2 ribbon, including the road's own rounding.
+    const road = { pathPoints: race.track.points, track: { ...race.track, length: race.track.centerlineLength } };
+    const center = Array.from({ length: Math.ceil(race.track.centerlineLength) }, (_, i) =>
+      DrivingPose.sample(road, i * race.track.centerlineLength / Math.ceil(race.track.centerlineLength)));
+    const nearest = p => {
+      let distance = Infinity;
+      for (let i = 0; i < center.length; i++) {
+        const a = center[i], b = center[(i + 1) % center.length], dx = b.x - a.x, dy = b.y - a.y;
+        const u = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)));
+        distance = Math.min(distance, Math.hypot(p.x - a.x - u * dx, p.y - a.y - u * dy));
+      }
+      return distance;
+    };
+    let clearance = Infinity, maximumDeviation = 0;
+    const info = DrivingPose.info(race, car);
+    assert.ok(info.deviationBoundM <= .4); assert.ok(info.elevationDeviationBoundM <= .025);
+    for (let s = from; s <= to; s += .5) {
+      const p = DrivingPose.sampleCar(race, car, s), raw = race.sampleForCar(car, s);
+      maximumDeviation = Math.max(maximumDeviation, Math.hypot(p.x - raw.x, p.y - raw.y));
+      assert.ok(maximumDeviation <= info.deviationBoundM + 1e-8, id + ': source-path bound');
+      assert.ok(Math.abs(p.z - raw.elevation) <= info.elevationDeviationBoundM + 1e-8, id + ': road contact');
+      clearance = Math.min(clearance, race.track.width / 2 - nearest(p) - car.spec.widthMm / 2000);
+      const a = DrivingPose.sampleCar(race, car, s - .001), b = DrivingPose.sampleCar(race, car, s + .001);
+      assert.ok(Math.abs(turn(p.angle - Math.atan2(b.y - a.y, b.x - a.x))) < .00003, id + ': analytic body/guide tangent');
+    }
+    assert.ok(clearance > .1, id + ': actual body width remains inside the displayed asphalt');
+    const guide = DrivingPose.pathCar(race, car);
+    for (const p of guide.filter(p => p.s >= from && p.s <= to)) assert.deepEqual(p, DrivingPose.sampleCar(race, car, p.s));
+    reports.push({ id, maximumDeviationM: maximumDeviation, minimumBodyClearanceM: clearance });
+  }
+  t.diagnostic(JSON.stringify(reports));
 });
 
 test('the line drawing and every car use identical, deterministic, stateless samples', () => {

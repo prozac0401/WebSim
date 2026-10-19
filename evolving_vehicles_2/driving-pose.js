@@ -8,9 +8,16 @@
 (function (root) {
   'use strict';
   const cache = new WeakMap();
-  const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .24, SIGMA_M = 6;
+  // The old 24 cm control cap left usable room inside the 40 cm curve bound.
+  // In the actual wide-apex Taebaek line, that cap retained 12–15 m steering
+  // pulses even though the spline was C2. Use at most 35 cm for the existing
+  // cubic fit; roundingBound below still subtracts the spline's own deviation.
+  // Fit scales are unchanged, so this does not widen the filter or round off
+  // every hairpin. Tighter source corners can still impose a smaller budget.
+  const MAX_DEVIATION_M = .4, MAX_CONTROL_SHIFT_M = .35, SIGMA_M = 6;
   const MAX_ELEVATION_DEVIATION_M = .025, MAX_ELEVATION_CONTROL_SHIFT_M = .012;
   const START_TRANSITION_M = 50;
+  const TIMING_LINE_CONTROL_SHIFT_M = .24;
   // Start below the source path's ~4 m point spacing. A 10 m first fit is
   // frequently constrained in a hairpin, leaving the polygon's straight/turn
   // pulses untouched. Short fits remove that ripple before longer fits taper
@@ -68,6 +75,15 @@
     const count = original.length, radius = Math.min(Math.ceil(LIMIT_TRANSITION_M / spacing), Math.floor((count - 1) / 2));
     const weights = Array.from({ length: radius * 2 + 1 }, (_, j) => Math.exp(-.5 * ((j - radius) / Math.max(radius / 2, 1)) ** 2));
     const total = weights.reduce((a, b) => a + b, 0);
+    // Vehicle-specific paths share their first/last 50 m anchors. Keep the
+    // established fit budget there to avoid amplifying their resampling
+    // differences at the flying-start pose; use the wider budget by 100 m.
+    const shiftLimits = original.map((_p, i) => {
+      const distance = Math.min(i, count - i) * spacing;
+      const t = Math.max(0, Math.min(1, (distance - START_TRANSITION_M) / START_TRANSITION_M));
+      return Math.min(shiftLimit, TIMING_LINE_CONTROL_SHIFT_M +
+        (MAX_CONTROL_SHIFT_M - TIMING_LINE_CONTROL_SHIFT_M) * t * t * t * (10 + t * (-15 + 6 * t)));
+    });
     let controls = original.map(p => ({ ...p }));
     for (const sigma of PLANAR_SCALES_M) {
       const target = planarFit(original, spacing, sigma);
@@ -77,7 +93,7 @@
       const limits = controls.map((p, i) => {
         const dx = target[i].x - p.x, dy = target[i].y - p.y;
         const x = p.x - original[i].x, y = p.y - original[i].y;
-        const a = dx * dx + dy * dy, b = 2 * (x * dx + y * dy), c = x * x + y * y - shiftLimit * shiftLimit;
+        const a = dx * dx + dy * dy, b = 2 * (x * dx + y * dy), c = x * x + y * y - shiftLimits[i] * shiftLimits[i];
         return a < 1e-20 ? 1 : Math.max(0, Math.min(1, (-b + Math.sqrt(Math.max(0, b * b - 4 * a * c))) / (2 * a)));
       });
       const lower = limits.map((value, i) => {

@@ -123,7 +123,7 @@ test('switching from Spa scenic view to another circuit falls back to that race 
   assert.equal(r.mode,'follow');assert.equal(r.landmark,null);assert.equal(r.zoomLevel,1);
   assert.deepEqual(r.panOffset,{x:0,y:0,z:0});
   const car=r.race.cars[0],pose=Pose.sampleCar(r.race,car,car.distance),target=r._interactionCamera().target;
-  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,displayHeight(r.race.track,pose.z)+.8,'new circuit height');
+  close(target.x,pose.x,'new circuit x');close(target.y,pose.y,'new circuit y');close(target.z,displayHeight(r.race.track,pose.z)+.65,'new circuit height');
   r.setRace(races.get('spa'));r.setView('eau-rouge');assert.ok(r.landmark);assert.equal(r.getState().mode,'eau-rouge');
 });
 
@@ -138,7 +138,7 @@ test('all real circuits share watched-car, camera and arrow coordinates with phy
       const expected=Pose.sampleCar(race,car,car.distance),entry=vehicles.find(e=>e.car===car);assert.ok(entry,id+' watched car visible');
       assert.deepEqual(entry.position,{...expected,z:displayHeight(race.track,expected.z),elevation:displayHeight(race.track,expected.elevation),grade:expected.grade*1.75},id+' displayed render pose');
       for(const key of ['x','y'])close(r._lastCamera.target[key],expected[key],id+' camera '+key);
-      close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.8,id+' camera height');
+      close(r._lastCamera.target.z,displayHeight(race.track,expected.z)+.65,id+' camera height');
       const step=length/Math.ceil(length/7.5),firstIndex=Math.ceil((car.distance+5)/step);
       assert.equal(arrows.length,15,id+' fifteen arrows ahead of the watched car');
       assert.ok(arrows.every(face=>face.vertices.length===3&&face.fill.endsWith(',0.52)')),id+' translucent world triangles');
@@ -171,14 +171,18 @@ test('terrain gain changes displayed relief while preserving source elevations, 
   const race=races.get('spa'),source=JSON.stringify(race.track),before=race.sample(1050),r=renderer(race);
   assert.equal(Renderer.ELEVATION_EXAGGERATION,1.75);
   assert.equal(r.race,race);assert.notEqual(r.displayTrack,race.track);
-  const heights=r.displayTrack.points.map(p=>p.z),original=race.track.points.map(p=>p.z);
+  const heights=r.roadSourceTrack.points.map(p=>p.z),original=race.track.points.map(p=>p.z);
   close(Math.max(...heights)-Math.min(...heights),(Math.max(...original)-Math.min(...original))*1.75,'displayed relief');
+  const firstRoad=r.displayTrack.points.map(p=>({...p}));
   for(const edge of r.roadEdges) {
-    close(edge.left.z,displayHeight(race.track,race.track.points[edge.index].z),'road surface height');
+    const u=edge.s/race.track.centerlineSpacing,i=Math.floor(u)%original.length,t=u-Math.floor(u);
+    const raw=displayHeight(race.track,original[i]+(original[(i+1)%original.length]-original[i])*t);
+    assert.ok(Math.abs(edge.left.z-raw)<=.025+1e-8,'continuous road stays within its 25 mm displayed height bound');
+    close(edge.left.z,r.roadGeometry.sample(edge.s).z,'road follows the continuous display curve');
     close(Math.hypot(edge.right.x-edge.left.x,edge.right.y-edge.left.y),race.track.width,'road width');
   }
   r.setRace(race);
-  close(r.displayTrack.points[0].z,displayHeight(race.track,race.track.points[0].z),'rebuild does not compound gain');
+  assert.deepEqual(r.displayTrack.points,firstRoad,'rebuild does not compound gain or curve smoothing');
   assert.equal(JSON.stringify(race.track),source,'source geometry and physics metadata remain unchanged');
   assert.deepEqual(race.sample(1050),before,'physical height and grade remain unchanged');
 });
