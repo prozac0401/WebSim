@@ -1,5 +1,11 @@
 Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 구조를 참고하여 추가 부탁드리며 내용은 아래 대화를 참고해 주세요.
 
+## 2026-10-19 시즌2 · 활동 선택 패널 안쪽 여백
+- User screenshot showed the category selector and headings flush against the expanded preferences panel. Reproduced 1px inset for selectors/headings versus 11px for cards; the previous viewport-overflow checks missed this internal-spacing defect.
+- Added one content wrapper with 14px horizontal padding around category picker, groups and note; removed the grid's old horizontal padding and matched mobile summary padding. Runtime changes are limited to markup/CSS; refreshed the two changed asset URLs.
+- Extended the mobile choice regression with minimum 12px panel-inset checks for all/creative/outings filters. All four widths 320/360/390/430 passed with 15px measured minimum, no browser errors, and existing choice/keyboard/viewport checks intact. Root inspected 320/390px all-category and 430px outings screenshots. Evidence: output/playwright/preference-inset/.
+- Ran original develop-web-game client; inspected the illustration and planning-state JSON in output/playwright/panel-inset-client/. Publication remains authorized; deployed-byte verification uses output/check-panel-inset-deployment.py and public regression evidence goes to output/playwright/preference-inset-public/.
+
 ## 2026-10-19 시즌2 · 자녀교육 시간과 가족관계 효과 상한
 - User requests freely configured child-education time with maximum family-relationship benefit at one hour. Existing publication authorization persists. Optional clarification offered existing educational activities versus a new activity; absent an answer, announced and applied the existing preschool picture-book/play and school homework/reading activities, respecting their existing ages3–6/7–12.
 - Each activity's future completion grants its original family benefit ×min(learning minutes,60)/60. 30minutes is half,60/120 the same maximum. Time itself is not capped at60: positive integer minutes1–1440 are valid settings, with actual placement still requiring the existing240-minute slot including preparation/care/other obligations. Other effects are not multiplied by study duration.
