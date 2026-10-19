@@ -2,7 +2,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const E = require('./engine.js');
-const levels = require('./levels.js');
+// Keep every legacy assertion on its original stable identity after insertion.
+const levels = require('./levels.js').filter(level => typeof level.id === 'number').sort((a, b) => a.id - b.id);
 const solutions = require('./solutions.cjs');
 // Hand-counted stored nodes, including containers, both branches and function
 // definitions. Deliberately independent of engine counting and level metadata.
@@ -302,7 +303,7 @@ test('invalid hazard coordinates, periods, phase lists and duplicate cells fail 
   assert.equal(E.validMap(timedMap([hazard(1, [0, 1])])), true, 'always-active cells are valid, though unsafe to enter');
   assert.equal(E.validMap(timedMap([hazard(1)], { rows: ['.*.H'] })), true);
 });
-test('levels expose exactly 12 core levels and 3 post-core challenges', () => {
+test('the original catalog preserves exactly 12 core levels and 3 post-core challenges', () => {
   assert.deepEqual(levels.map(l => l.id), Array.from({ length: 15 }, (_, i) => i + 1));
   assert.deepEqual(levels.map(l => l.chapter), [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5]);
   assert.ok(levels.some(l => l.id >= 10 && l.maps.length > 1));

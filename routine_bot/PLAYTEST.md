@@ -1,5 +1,7 @@
 # 루틴봇 렌더링 플레이 평가
 
+현재 확장의 독립 정답 미열람 평가는 [COOP_BLIND_PLAYTEST.md](COOP_BLIND_PLAYTEST.md), 자동 UI 재생·수정 후 재검증은 [COOP_VERIFICATION.md](COOP_VERIFICATION.md)에 기록했다. 아래는 기존 게임 릴리스 평가를 보존한 것이다.
+
 ## 범위와 방법
 
 2026-10-18, 구현 담당과 별도의 검토 에이전트가 `.agents/skills/game-playtest/SKILL.md`를 직접 읽고 절차를 실행했다. 현재 세션의 자동 등록 목록에 새 스킬이 추가되었다고 주장하지 않는다. Chromium 145.0.7632.6의 실제 DOM 버튼을 마우스 클릭·키보드·터치로 조작했다. 지도는 캡처, 접근성 트리와 읽기 전용 `render_game_to_text()`로 관찰했다. `solutions.cjs`, `LEVELS.md`, 기준 해답 시험은 읽지 않았으며 프로그램·성공 상태·진행 상황 주입 없이 새 저장에서 시작했다.

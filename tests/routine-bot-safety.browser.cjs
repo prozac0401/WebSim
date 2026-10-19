@@ -93,10 +93,12 @@ async function pendingFirstArrival(page) {
     await page.goto(base + 'routine_bot/routine_bot.html'); await page.waitForFunction(() => window.render_game_to_text);
     await keyboardReplay(page);
     if (keyboardOnly) { report.classification = 'Focused keyboard regression on a fresh save, no progress fixture; actual Tab/Enter inputs.'; assert.deepEqual(report.errors, []); report.status = 'PASS'; return; }
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('routine-safety-access')) return;
       const fixture = { version: 1, currentLevel: 12, completed: {}, programs: {}, settings: { speed: 0.5, muted: true } };
       for (let level = 1; level <= 11; level++) fixture.completed[level] = true;
       localStorage.setItem('routinebot-save-v1', JSON.stringify(fixture)); localStorage.removeItem('routinebot-save-v1-backup');
+      sessionStorage.setItem('routine-safety-access','1');
     });
     await page.reload(); await page.waitForFunction(() => window.render_game_to_text);
     assert.equal((await read(page)).level, 12); assert.equal((await read(page)).stored, 0);
@@ -127,7 +129,12 @@ async function pendingFirstArrival(page) {
     pass('only both maps produce completion; same UI-entered waiting program is retained and counts sum to 76');
 
     // Remove only the earned completion and reload so it cannot hide a false win.
-    await page.evaluate(() => { const data = JSON.parse(localStorage.getItem('routinebot-save-v1')); delete data.completed[12]; localStorage.setItem('routinebot-save-v1', JSON.stringify(data)); });
+    await page.evaluate(() => sessionStorage.setItem('routine-safety-remove-completed','1'));
+    await page.addInitScript(() => {
+      if(!sessionStorage.getItem('routine-safety-remove-completed'))return;
+      const data=JSON.parse(localStorage.getItem('routinebot-save-v1'));delete data.completed[12];
+      localStorage.setItem('routinebot-save-v1',JSON.stringify(data));sessionStorage.removeItem('routine-safety-remove-completed');
+    });
     await page.reload(); await page.waitForFunction(() => window.render_game_to_text);
     await pendingFirstArrival(page); await click(page, '#reset'); await page.waitForTimeout(1300);
     state = await read(page); assert.equal(state.mapIndex, 0); assert.equal(state.verifiedMaps, 0); assert.equal(state.executed, 0);

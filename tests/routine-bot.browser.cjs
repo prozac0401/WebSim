@@ -11,7 +11,8 @@ const phase = process.argv[2] || 'final';
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8123/WebSim/').replace(/\/?$/, '/');
 const output = path.resolve(process.env.WEBSIM_EVIDENCE || `output/playwright/routine-bot/${phase}`);
 fs.mkdirSync(output,{recursive:true});
-const blockCaps = [3,5,6,2,6,7,4,5,6,11,9,7,9,10,11];
+const catalog = require('../routine_bot/levels.js');
+const blockCaps = Object.fromEntries(catalog.map(level => [level.id, level.maxCommands]));
 const report = {phase,base,started:new Date().toISOString(),checks:[],errors:[],progression:[],blockCaps,classification:'solution-informed rendered UI replay; independent blind review is separate',android:'NOT RUN'};
 const record = name => { report.checks.push({name,status:'PASS'}); console.log('PASS',name); fs.writeFileSync(path.join(output,'browser-report.json'),JSON.stringify(report,null,2)); };
 const read = page => page.evaluate(()=>JSON.parse(window.render_game_to_text()));
@@ -48,7 +49,7 @@ async function build(page,program,touch=false){
   for(const root of ['main','F1','F2']) if(program[root]?.length){await press(page,`[data-scope="${root}"]`,touch);await addList(page,program[root],touch);}
   await press(page,'[data-scope="main"]',touch);
 }
-async function finish(page,touch=false){await press(page,'#run',touch);await page.waitForFunction(()=>{const s=JSON.parse(window.render_game_to_text());return s.status==='failure'||(s.status==='success'&&document.querySelector('#success-panel').hidden===false);},{},{timeout:90000});const state=await read(page);assert.equal(state.status,'success');assert.ok(state.stored<=blockCaps[state.level-1]);assert.match(await page.locator('#command-count').innerText(),new RegExp('\\/\\s*'+blockCaps[state.level-1]+'개'));}
+async function finish(page,touch=false){await press(page,'#run',touch);await page.waitForFunction(()=>{const s=JSON.parse(window.render_game_to_text());return s.status==='failure'||(s.status==='success'&&document.querySelector('#success-panel').hidden===false);},{},{timeout:90000});const state=await read(page);assert.equal(state.status,'success');assert.ok(state.stored<=blockCaps[state.level]);assert.match(await page.locator('#command-count').innerText(),new RegExp('\\/\\s*'+blockCaps[state.level]+'개'));}
 const move=type=>({type});
 const early=[
   {main:['forward','forward','forward'].map(move),F1:[],F2:[]},
@@ -83,14 +84,14 @@ const early=[
     if(phase==='final'){
       const solutions=require('../routine_bot/solutions.cjs');
       const all=Array.isArray(solutions)?solutions:solutions.solutions||solutions;
-      for(let id=4;id<=15;id++){
+      for(const {id} of catalog.slice(3)){
         await page.locator('#level-select').selectOption(String(id));
         const entry=Array.isArray(all)?all.find(v=>v.id===id)||all[id-1]:all[id];const program=entry.program||entry;
         await build(page,program);await finish(page);s=await read(page);assert(s.completed.includes(id));assert.equal(s.verifiedMaps,s.maps);
         report.progression.push({level:id,stored:s.stored,executed:s.executed,maps:s.maps});record(`level ${id} solved via block editing and actual timed playback (${s.maps} maps)`);
-        if([4,7,10,12,15].includes(id))await image(page,`desktop-level-${id}-success`);
+        if([4,7,10,12,15,'box-intro','box-detour','coop-gate','coop-finale'].includes(id))await image(page,`desktop-level-${id}-success`);
       }
-      assert.equal((await read(page)).completed.length,15);assert.match(await page.locator('#success-title').innerText(),/모든 길/);record('12-level completion unlocks bonus 13–15; final clear screen reached through all levels');
+      assert.equal((await read(page)).completed.length,catalog.length);assert.match(await page.locator('#success-title').innerText(),/모든 길/);record('ordered progression preserves original 1–15 and solves all inserted stages; final clear screen reached through all '+catalog.length+' levels');
     }
     await desktop.tracing.stop({path:path.join(output,'desktop-trace.zip')});await desktop.close();
     for(const width of [320,390]){
@@ -100,11 +101,13 @@ const early=[
       await press(mobile,'#next-level',true);await build(mobile,early[2],true);await finish(mobile,true);
       if(phase==='final'){
         const solutions=require('../routine_bot/solutions.cjs'),all=Array.isArray(solutions)?solutions:solutions.solutions||solutions;
-        await press(mobile,'#next-level',true);const entry=Array.isArray(all)?all.find(v=>v.id===4)||all[3]:all[4];await build(mobile,entry.program||entry,true);await finish(mobile,true);
+        for(const {id} of catalog.slice(3,catalog.findIndex(level=>level.id===4)+1)){
+          await press(mobile,'#next-level',true);const entry=Array.isArray(all)?all.find(v=>v.id===id):all[id];await build(mobile,entry.program||entry,true);await finish(mobile,true);
+        }
         // Late-level access fixture is disclosed: this session tests touch editing, not progression.
         const data=await mobile.evaluate(()=>JSON.parse(localStorage.getItem('routinebot-save-v1')));
-        for(let id=1;id<12;id++)data.completed[id]=true;data.currentLevel=12;
-        await mobile.evaluate(data=>localStorage.setItem('routinebot-save-v1',JSON.stringify(data)),data);await mobile.reload();await mobile.waitForFunction(()=>window.render_game_to_text);
+        for(let id=1;id<12;id++)data.completed[id]=true;data.currentLevel=12;data.unlocked=[...new Set((data.unlocked||[]).concat(12))];
+        await mobile.addInitScript(data=>{if(sessionStorage.getItem('routine-late-access'))return;localStorage.setItem('routinebot-save-v1',JSON.stringify(data));sessionStorage.setItem('routine-late-access','1');},data);await mobile.reload();await mobile.waitForFunction(()=>window.render_game_to_text);
         const late=Array.isArray(all)?all.find(v=>v.id===12)||all[11]:all[12];await build(mobile,late.program||late,true);await finish(mobile,true);await image(mobile,`mobile-${width}-nested-functions`);
         record(`${width}px touch repeat/condition/function editing and multi-map run (late access fixture disclosed)`);
       }

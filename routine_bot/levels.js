@@ -11,7 +11,7 @@
   const signs = wall.concat('mark');
   const oneFunction = signs.concat('call', 'F1');
   const all = oneFunction.concat('F2');
-  return [
+  const legacy = [
     { id: 1, title: '집 앞 세 걸음', chapter: 1, brief: '노란 화살표가 보는 쪽으로, 집까지 세 칸!',
       hints: ['로봇 코의 화살표는 오른쪽을 보고 있어요.', '앞으로 블록 하나는 한 칸만 움직여요.', '집까지의 바닥 칸을 손가락으로 짚어 보세요.'],
       unlocks: ['forward'], maxCommands: 3, maxSteps: 20,
@@ -87,4 +87,52 @@
           hazards: [{ x: 9, y: 1, period: 6, activePhases: [1, 2] }, { x: 8, y: 1, period: 6, activePhases: [4, 5] }] }
       ] }
   ];
+  // Stable identifiers are storage keys. Display order is deliberately separate
+  // from the original numeric 1..15 identifiers.
+  const coopTools = all.concat('box', 'home');
+  const robot = (id, x, y, dir, hx, hy) => ({ id, x, y, dir, home: { x: hx, y: hy } });
+  const sharedMap = (rows, robots, boxes = [], targets = [], hazards) => ({
+    rows, robots, boxes, targets, start: { x: robots[0].x, y: robots[0].y, dir: robots[0].dir }, ...(hazards ? { hazards } : {})
+  });
+  const additions = [
+    { id: 'box-intro', title: '상자 한 칸 배송', chapter: 1, tutorial: 'box', brief: '앞으로 한 번: 상자 하나를 목적지 테두리 안으로 밀고 A의 집에 도착해요.',
+      hints: ['상자를 밀어도 새 블록은 필요 없어요. 앞으로를 사용해요.', '상자 바로 뒤 칸이 비어 있으면 상자와 로봇이 함께 한 칸 움직여요.', '상자 목적지와 A의 집은 서로 다른 칸이에요. 둘 다 채워야 끝나요.'],
+      unlocks: basic, maxCommands: 1, maxSteps: 20, requiredFeatures: ['push'],
+      maps: [sharedMap(['######', '#.H..#', '######'], [robot('A', 1, 1, 1, 2, 1)], [{ x: 2, y: 1 }], [{ x: 3, y: 1 }])] },
+    { id: 'box-detour', title: '이어진 상자는 옆에서', chapter: 1, tutorial: 'box-chain', brief: '앞에 상자가 두 개 이어져 있어요. 위쪽 길로 돌아가 오른쪽 상자를 아래로 분리해 보세요.',
+      hints: ['미는 방향으로 이어진 두 상자는 함께 밀리지 않아요.', '위쪽 길에서 오른쪽 상자의 위에 서면 아래로 하나만 밀 수 있어요.', '오른쪽 상자를 아래 목적지에 놓고, 출발 쪽으로 돌아와 남은 상자를 오른쪽 목적지로 밀어요.'],
+      unlocks: basic, maxCommands: 17, maxSteps: 80, requiredFeatures: ['push'],
+      maps: [sharedMap(['#####', '#...#', '#.H.#', '###.#', '#####'], [robot('A', 1, 2, 1, 2, 2)], [{ x: 2, y: 2 }, { x: 3, y: 2 }], [{ x: 3, y: 2 }, { x: 3, y: 3 }])] },
+    { id: 'wait-beat', title: '한 박자 출발 연습', chapter: 2, tutorial: 'wait', brief: '이번 연습 도구는 앞으로·기다리기뿐이에요. 2블록 안에서 위험한 첫 박자를 피하세요.',
+      hints: ['집은 홀수 박자에 켜져요.', '기다리기도 논리 시간을 한 박자 진행해요.', '출발 칸에서 한 번 기다린 뒤 앞으로 가면 짝수 박자에 도착해요.'],
+      unlocks: ['forward', 'wait'], maxCommands: 2, maxSteps: 10, requiredFeatures: ['wait'],
+      maps: [{ rows: ['####', '#.H#', '####'], start: { x: 1, y: 1, dir: 1 }, hazards: [{ x: 2, y: 1, period: 2, activePhases: [1] }] }] },
+    { id: 'condition-fork', title: '서로 다른 첫 모퉁이', chapter: 3, tutorial: 'condition', brief: '같은 3블록으로 두 지도를 해결해요. 한 지도는 앞이 벽이고, 다른 지도는 집으로 열려 있어요.',
+      hints: ['실행 전에 지도 1과 지도 2를 바꿔 보세요.', '두 지도는 같은 방향으로 출발하지만 열려 있는 방향이 달라요.', '앞이 막혔을 때만 오른쪽으로 돌고, 공통으로 앞으로 가 보세요.'],
+      unlocks: signs, maxCommands: 3, maxSteps: 20, requiredFeatures: ['if'],
+      maps: [{ rows: ['####', '#.H#', '####'], start: { x: 1, y: 1, dir: 0 } }, { rows: ['###', '#H#', '#.#', '###'], start: { x: 1, y: 2, dir: 0 } }] },
+    { id: 'function-reuse', title: '7블록 두 번 배달', chapter: 4, tutorial: 'function', brief: '이번 연습 도구는 이동·회전·F1이에요. 최소 8행동의 길을 함수 재사용으로 7블록 안에 담아요.',
+      hints: ['이번 연습에는 반복·조건·기다리기 도구가 없어요. 함수로 묶는 데 집중해요.', '앞으로, 오른쪽, 앞으로, 왼쪽 묶음이 두 곳에서 다시 나와요.', 'F1을 부르고 가운데 한 칸을 건넌 뒤 F1을 다시 불러 보세요.'],
+      unlocks: basic.concat('call', 'F1'), maxCommands: 7, maxSteps: 50, requiredFeatures: ['call'],
+      maps: [{ rows: ['######', '#..###', '##...#', '####H#', '######'], start: { x: 1, y: 1, dir: 1 } }] },
+    { id: 'coop-intro', title: '두 로봇 같은 약속', chapter: 4, tutorial: 'cooperation', brief: 'A○와 B◇가 같은 프로그램을 실행해요. 각자 같은 문자와 모양의 집으로 보내세요.',
+      hints: ['두 로봇의 시작 방향은 서로 반대예요.', '앞으로는 각 로봇이 보는 방향으로 움직여요.', '앞으로 두 번이면 두 로봇이 동시에 자기 집에 도착해요.'],
+      unlocks: coopTools, maxCommands: 2, maxSteps: 40,
+      maps: [sharedMap(['#####', '#..H#', '#####', '#H..#', '#####'], [robot('A', 1, 1, 1, 3, 1), robot('B', 3, 3, 3, 1, 3)])] },
+    { id: 'coop-gate', title: '친구가 열어 주는 길', chapter: 4, tutorial: 'clear-path', brief: 'B가 위에서 상자를 내려 길을 열고 집으로 돌아와요. A는 기다린 뒤 통과해요. 조건은 각자의 앞을 봐요.',
+      hints: ['A는 상자 위쪽에 갈 수 없어요. 위에서 출발한 B가 아래로 밀어야 해요.', '처음 앞에 상자가 있는 로봇만 밀고, 두 번 돌아 자기 집으로 돌아와요.', '나머지 로봇은 네 턴 기다리고 네 칸 전진해요. 그 턴에 비워질 칸도 아직 막혀 있어요.'],
+      unlocks: coopTools, maxCommands: 13, maxSteps: 100, requiredFeatures: ['push', 'cooperation'],
+      maps: [sharedMap(['#######', '###H###', '#....H#', '###.###', '#######'], [robot('A', 1, 2, 1, 5, 2), robot('B', 3, 1, 2, 3, 1)], [{ x: 3, y: 2 }], [{ x: 3, y: 3 }])] },
+    { id: 'coop-delivery', title: '배송한 뒤 각자의 집', chapter: 4, tutorial: 'all-goals', brief: '두 상자를 목적지에 두고 돌아와요. 상자만 놓아도, 로봇만 귀가해도 아직 끝나지 않아요.',
+      hints: ['처음에는 두 로봇 모두 앞에 상자가 있어요.', '상자를 한 번 민 뒤 오른쪽으로 두 번 돌면 뒤를 봐요.', '앞으로 한 번 돌아오면 각자의 출발 칸이 자기 집이에요. 목적지 상자는 다시 밀 수 있어요.'],
+      unlocks: coopTools, maxCommands: 4, maxSteps: 60, requiredFeatures: ['push'],
+      maps: [sharedMap(['#######', '#H....#', '#######', '#....H#', '#######'], [robot('A', 1, 1, 1, 1, 1), robot('B', 5, 3, 3, 5, 3)], [{ x: 2, y: 1 }, { x: 4, y: 3 }], [{ x: 3, y: 1 }, { x: 3, y: 3 }])] },
+    { id: 'coop-finale', title: '응용 · 함께 여는 안전 배송', chapter: 5, tutorial: 'coop-timing', brief: '조건으로 길을 열 역할을 고르고, 쉬고 걷는 F1으로 위험 박자를 건너요. 모두 귀가해야 배송 완료예요.',
+      hints: ['B는 상자를 내린 뒤 자기 집으로 돌아와요. A는 같은 조건에서 다른 가지로 가요.', 'F1에 기다리기·앞으로를 담아 다섯 번 불러 보세요. 한 번의 막힌 이동도 한 턴을 써요.', 'A가 B의 자리를 향하는 4턴에는 아직 막혀요. 다음에 다시 전진하고 위험칸은 8·9턴에 머물면 안전해요.'],
+      unlocks: coopTools, maxCommands: 9, maxSteps: 160, requiredFeatures: ['push', 'cooperation'],
+      maps: [sharedMap(['#######', '###H###', '#....H#', '###.###', '#######'], [robot('A', 1, 2, 1, 5, 2), robot('B', 3, 1, 2, 3, 1)], [{ x: 3, y: 2 }], [{ x: 3, y: 3 }], [{ x: 4, y: 2, period: 4, activePhases: [2, 3] }])] }
+  ];
+  const order = [1, 2, 3, 'box-intro', 'box-detour', 4, 5, 'wait-beat', 6, 7, 8, 9, 'condition-fork', 10, 11, 'function-reuse', 12, 'coop-intro', 'coop-gate', 'coop-delivery', 13, 14, 15, 'coop-finale'];
+  const catalog = new Map(legacy.concat(additions).map(level => [level.id, level]));
+  return order.map((id, index) => ({ ...catalog.get(id), version: 1, rulesVersion: typeof id === 'number' || ['wait-beat', 'condition-fork', 'function-reuse'].includes(id) ? 'solo-1' : 'simultaneous-1', displayOrder: index + 1, prerequisites: index ? [order[index - 1]] : [], isNew: typeof id === 'string' }));
 });
