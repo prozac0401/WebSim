@@ -376,12 +376,15 @@
       const directions=probes.slice(1).map((q,i)=>Math.atan2(q.y-probes[i].y,q.x-probes[i].x));
       // A smooth norm avoids a kink when a different chord becomes dominant.
       const curvature=Math.pow(directions.slice(1).reduce((sum,angle,i)=>sum+Math.pow(wrap(angle-directions[i]),4),0),.25)/desired;
-      const sigma=desired/Math.sqrt(1+(desired*curvature/.55)**2),anticipation=Math.min(4,speed*.1)/Math.sqrt(1+(18*curvature)**2);
+      const sigma=desired/Math.sqrt(1+(desired*curvature/.85)**2),anticipation=Math.min(8,speed*.2)/Math.sqrt(1+(8*curvature)**2);
       // A Gaussian derivative of positions averages the whole local road
       // direction. Retaining any raw tangent here reintroduces the short
       // straight/turn pulses even when the position curve itself is C2.
-      // The window is centred near the car, with at most four metres of lead;
-      // it smooths gentle bends without looking far around a hairpin.
+      // Keep enough spatial averaging through tight bends instead of collapsing
+      // the window exactly where heading changes fastest. About .2 seconds of
+      // lead also offsets the existing angular spring's lag; widening alone
+      // makes the camera catch up later. Both remain bend-limited, with at most
+      // eight metres of lead. The car position and its tangent are unchanged.
       let dx=0,dy=0;
       // Fixed quadrature keeps the direction continuous as the window narrows.
       const samples=24;
