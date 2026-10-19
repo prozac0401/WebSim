@@ -70,7 +70,7 @@ const early=[
     await addList(page,[move('forward'),move('forward'),move('forward')]);await press(page,'#run');await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).status==='failure');
     let s=await read(page);assert.equal(s.event.reason,'collision');assert.equal(s.stored,3);assert.equal(await page.locator('.block.crashed').count(),1);await image(page,'desktop-collision');
     await press(page,'#delete');assert.equal((await read(page)).stored,2);await press(page,'#undo');assert.equal((await read(page)).stored,3);
-    await press(page,'#program > .tree-node:first-child > .block .block-main');await press(page,'#move-down');await press(page,'#undo');
+    await press(page,'#program > .tree-node:first-child > .swipe-shell > .block .block-main');await press(page,'#move-down');await press(page,'#undo');
     await build(page,early[1]);record('collision locates the wall and failing block; program retained, delete/reorder/undo respond');
     await page.locator('#speed').selectOption('0.5');await press(page,'#run');await press(page,'#pause');const paused=await read(page);await wait(page,1250);assert.equal((await read(page)).executed,paused.executed);assert.deepEqual((await read(page)).robot,paused.robot);
     await press(page,'#step');assert.equal((await read(page)).executed,paused.executed+1);
@@ -97,7 +97,7 @@ const early=[
     for(const width of [320,390]){
       const context=await browser.newContext({viewport:{width,height:width===320?740:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,reducedMotion:'reduce'});const mobile=await context.newPage();observe(mobile);await ready(mobile);
       await mobile.locator('#speed').selectOption('4');await build(mobile,early[0],true);await finish(mobile,true);await image(mobile,`mobile-${width}-success`);
-      await press(mobile,'#next-level',true);await build(mobile,early[1],true);await press(mobile,'#program > .tree-node:last-child > .block .block-main',true);await press(mobile,'#move-up',true);await press(mobile,'#undo',true);await press(mobile,'#delete',true);await press(mobile,'#undo',true);await finish(mobile,true);
+      await press(mobile,'#next-level',true);await build(mobile,early[1],true);await press(mobile,'#program > .tree-node:last-child > .swipe-shell > .block .block-main',true);await press(mobile,'#move-up',true);await press(mobile,'#undo',true);await press(mobile,'#delete',true);await press(mobile,'#undo',true);await finish(mobile,true);
       await press(mobile,'#next-level',true);await build(mobile,early[2],true);await finish(mobile,true);
       if(phase==='final'){
         const solutions=require('../routine_bot/solutions.cjs'),all=Array.isArray(solutions)?solutions:solutions.solutions||solutions;
@@ -112,8 +112,10 @@ const early=[
         record(`${width}px touch repeat/condition/function editing and multi-map run (late access fixture disclosed)`);
       }
       assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal((await read(mobile)).reducedMotion,true);
-      const board=await mobile.locator('#canvas').boundingBox(),run=await mobile.locator('#run').boundingBox();assert(board.y>=0&&board.y+board.height<(width===320?740:844));assert(run.y>=0&&run.y+run.height<(width===320?740:844));
-      record(`${width}px mobile touch solve, reorder, delete, undo; sticky board/run visible, no horizontal overflow, reduced motion`);await context.close();
+      await mobile.locator('#canvas').scrollIntoViewIfNeeded();const board=await mobile.locator('#canvas').boundingBox();assert(board.y>=0&&board.y+board.height<(width===320?740:844));
+      await mobile.locator('#run').scrollIntoViewIfNeeded();const run=await mobile.locator('#run').boundingBox();assert(run.y>=0&&run.y+run.height<(width===320?740:844));
+      assert.equal(await mobile.locator('.stage').evaluate(e=>getComputedStyle(e).position),'relative','The mobile map must scroll away so drag targets stay uncovered');
+      record(`${width}px mobile touch solve, reorder, delete, undo; board/run reachable by scrolling, no horizontal overflow, reduced motion`);await context.close();
     }
     for(const scenario of ['corrupt','unavailable','write-failure','recovered','repaired']){
       const context=await browser.newContext({viewport:{width:390,height:844}});

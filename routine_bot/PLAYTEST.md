@@ -1,5 +1,7 @@
 # 루틴봇 렌더링 플레이 평가
 
+좌우 밀기 삭제·반복문 끌기 이동의 후속 독립 평가는 [GESTURE_PLAYTEST.md](GESTURE_PLAYTEST.md)에 기록했다.
+
 현재 확장의 독립 정답 미열람 평가는 [COOP_BLIND_PLAYTEST.md](COOP_BLIND_PLAYTEST.md), 자동 UI 재생·수정 후 재검증은 [COOP_VERIFICATION.md](COOP_VERIFICATION.md)에 기록했다. 아래는 기존 게임 릴리스 평가를 보존한 것이다.
 
 ## 범위와 방법

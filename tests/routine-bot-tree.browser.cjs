@@ -139,7 +139,7 @@ async function treeScene(page, label, touch) {
       stage: bounds(document.querySelector('.stage')), viewport: innerHeight };
   }, state.currentId);
   assert.ok(visible.card.top >= 0 && visible.card.bottom <= visible.viewport + 1, 'The executing leaf must be inside the viewport');
-  if (touch) assert.ok(visible.card.top >= visible.stage.bottom - 1, 'The active leaf must be below the sticky map and controls');
+  if (touch) assert.ok(visible.card.top >= visible.stage.bottom - 1, 'The scrolling map must not cover the active leaf');
   else {
     assert.ok(visible.card.top >= visible.program.top - 1, 'The active leaf must not be clipped above the program scroller');
     assert.ok(visible.card.bottom <= visible.program.bottom + 1, 'The active leaf must not be clipped below the program scroller');

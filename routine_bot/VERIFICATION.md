@@ -1,5 +1,7 @@
 # 루틴봇 검증 기록
 
+좌우 밀기 삭제·트리 끌기 이동의 후속 검증은 [GESTURE_VERIFICATION.md](GESTURE_VERIFICATION.md)에 기록했다.
+
 현재 협동·상자·활성 시간 확장의 결과는 [COOP_VERIFICATION.md](COOP_VERIFICATION.md)에 있다. 아래는 기존 15레벨 릴리스의 역사 기록이며 현재 전체 레벨 수/검사 수를 뜻하지 않는다.
 
 2026-10-18, Windows / Node v24.13.1에서 수행했습니다. 로컬 HTTP 서버는 실제 Pages 형태의 `/WebSim/` 접두 경로를 사용합니다. 검증 스킬은 `.agents/skills/game-verification/SKILL.md`를 직접 읽고 초기 3레벨 단계와 전체 구현 단계에 적용했습니다. 새로 만든 스킬의 기존 세션 내 자동 등록은 확인하지 않았습니다. 자동 등록·전역 설치를 했다고 보고하지 않습니다.
