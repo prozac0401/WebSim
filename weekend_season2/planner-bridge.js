@@ -64,6 +64,7 @@
     return rows;
   }
   function estimatedRows(state,date,existing,budgetState){
+    const preferences=D.preferenceActivityIds(state.config);
     const rows=[],hasCare=existing.some(row=>row.key==='baseline-care'||row.slot==='morning'&&(row.key==='care'||D.ACTIVITY_MAP[row.key]?.careOverlap));
     const care=E.careMinutes(state,date,'morning');
     const scheduled=state.plan.filter(plan=>plan.date===date&&!existing.some(row=>row.slot===plan.slot&&D.ACTIVITY_MAP[row.key]));
@@ -96,14 +97,14 @@
       for(const char of `${state.config.seed}|${state.config.personaName}|${date}|${id}`)hash=Math.imul(hash^char.charCodeAt(0),16777619);
       return (hash>>>0)%17;
     };
-    const used=new Set([...existing,...rows].map(row=>row.key));
+    const used=new Set([...existing,...rows].map(row=>D.canonicalActivityId(row.key)));
     let budget=budgetState.remaining;
     for(const slot of Object.keys(SLOT_START)){
       if(occupied.has(slot)||existing.some(row=>row.slot===slot&&row.key.startsWith('reserved-')))continue;
       const reserved=[...existing,...rows].filter(row=>row.slot===slot).reduce((sum,row)=>sum+row.minutes,0);
-      const candidates=[...new Set([...themes[slot],...state.config.preferences,...(roleGoal?[roleGoal]:[]),'read','rest','walk','family_time',...(state.household.cleanliness<38?['cleaning']:[])])];
+      const candidates=[...new Set([...themes[slot],...preferences,...(roleGoal?[roleGoal]:[]),'read','rest','walk','family_time',...(state.household.cleanliness<38?['cleaning']:[])])];
       const eligible=candidates.filter(id=>{
-        const a=D.ACTIVITY_MAP[id];if(!a||a.manualOnly||used.has(id)||D.activityReason(state.config,id))return false;
+        const a=D.ACTIVITY_MAP[id];if(!a||a.manualOnly||a.legacyOnly||a.requiresPreference&&!preferences.includes(id)||used.has(id)||D.activityReason(state.config,id))return false;
         if(a.cadence&&(budgetState.cadenceUsed.has(a.cadence.group)||!E.activityCadence(state,id,date).allowed))return false;
         if(id==='care'&&slot==='morning'&&care)return false;
         // Shared care and necessary recovery can repeat; optional activities
@@ -114,7 +115,7 @@
         return a.minutes+a.prep+E.travelMinutes(state,a)+reserved-overlap<=240&&D.activityPrice(state.config,id).amount<=Math.max(0,budget);
       });
       const score=id=>{
-        let points=variation(id)+(themes[slot].includes(id)?24:0)+(state.config.preferences.includes(id)?32:0);
+        let points=variation(id)+(themes[slot].includes(id)?24:0)+(preferences.includes(id)?32:0);
         if(id===roleGoal&&saturday&&slot==='afternoon')points+=85;
         if(id==='cleaning'&&state.household.cleanliness<38)points+=!saturday&&slot==='morning'?80:30;
         if(id==='rest'&&((tired&&saturday&&slot==='morning')||(!saturday&&slot==='evening')))points+=100;
@@ -179,8 +180,8 @@
       const completed=observed||sameYear&&state.log.some(log=>log.date===date&&log.type==='daily');
       return {day,date,rows,completed};
     });
-    const events=[],budgetState={remaining:Math.max(0,Math.min(state.finance.cash,F.available(state.finance,state.config))-promised),used:new Set(prepared.flatMap(item=>item.rows.map(row=>row.key)))};
-    for(const plan of state.plan)if(targetDates.includes(plan.date))budgetState.used.add(plan.activityId);
+    const events=[],budgetState={remaining:Math.max(0,Math.min(state.finance.cash,F.available(state.finance,state.config))-promised),used:new Set(prepared.flatMap(item=>item.rows.map(row=>D.canonicalActivityId(row.key))))};
+    for(const plan of state.plan)if(targetDates.includes(plan.date))budgetState.used.add(D.canonicalActivityId(plan.activityId));
     budgetState.cadenceUsed=new Set([...budgetState.used].map(id=>D.ACTIVITY_MAP[id]?.cadence?.group).filter(Boolean));
     for(const item of prepared){
       const {day,date,completed}=item;let rows=item.rows;

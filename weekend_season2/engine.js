@@ -79,6 +79,12 @@
     return Array.from({length:s.config.children},()=>({age:{toddler:1,preschool:4,school:9,teen:16,adult:24}[s.config.childAge]||0,gender:'unspecified',militaryStatus:'none'}));
   }
   function activityCost(s,id) {return typeof D.activityPrice==='function'?D.activityPrice(s.config,id).amount:D.ACTIVITY_MAP[id].cost;}
+  function automaticActivityReason(s,id) {
+    const activity=D.ACTIVITY_MAP[id];
+    if(activity.manualOnly)return activity.name+'는 직접 계획하거나 반복 예약으로 고르는 활동이에요.';
+    if(activity.requiresPreference&&!D.preferenceActivityIds(s.config).includes(D.canonicalActivityId(id)))return activity.name+'는 좋아하는 활동으로 고른 경우에만 자동 계획에 넣어요.';
+    return '';
+  }
   function cadenceCheck(s,id,date,ignorePlanId) {
     const cadence=D.ACTIVITY_MAP[id]?.cadence;
     if(!cadence)return {allowed:true,nextDate:null,label:''};
@@ -208,7 +214,7 @@
     if(s.flags.autoPreparedWeek===s.weekStart)return {ok:true,added:[],issues:[],notes:[],alreadyPrepared:true,reason:''};
     const issues=s.plan.map(p=>({...p,...planCheck(s,p,p.id)})).filter(p=>!p.ok);
     if(issues.length)return {ok:false,added:[],issues,reason:'이번 주에 잡아 둔 일 중 지금은 하기 어려운 일이 있어요. 시간과 비용을 다시 살펴봐 주세요.'};
-    const draft=clone(s),added=[],notes=[],eligiblePreferences=s.config.preferences.filter(id=>!D.activityReason(s.config,id)&&!D.ACTIVITY_MAP[id].manualOnly);
+    const draft=clone(s),added=[],notes=[],eligiblePreferences=D.preferenceActivityIds(s.config).filter(id=>!D.activityReason(s.config,id)&&!automaticActivityReason(s,id));
     const offset=eligiblePreferences.length?((s.weekNumber-1)*2)%eligiblePreferences.length:0;
     const preferences=[...eligiblePreferences.slice(offset),...eligiblePreferences.slice(0,offset)];
     const preferred=preferences[0]||'read',second=preferences[1]||'walk';
@@ -224,9 +230,9 @@
     if(direction==='balanced'&&s.stats.fatigue>=65)desired=['rest',parentTask||preferred,'walk'];
     if(s.household.cleanliness<38&&!['home'].includes(direction))desired[2]=D.ACTIVITY_MAP.cleaning?'cleaning':'chores';
     if(s.healthEpisode&&s.healthEpisode.subject==='self')desired=['rest','read',s.household.cleanliness<38?'chores':'garden'];
-    const occupiedActivities=new Set(draft.plan.map(p=>p.activityId)),needed=Math.max(0,3-draft.plan.length);
+    const occupiedActivities=new Set(draft.plan.map(p=>D.canonicalActivityId(p.activityId))),needed=Math.max(0,3-draft.plan.length);
     for(let index=0;index<needed;index++){
-      const first=desired[index],pool=[first,...preferences,'read','walk','rest'].filter((id,i,list)=>list.indexOf(id)===i&&!occupiedActivities.has(id));
+      const first=desired[index],pool=[first,...preferences,'read','walk','rest'].filter((id,i,list)=>list.indexOf(id)===i&&!occupiedActivities.has(D.canonicalActivityId(id))&&!automaticActivityReason(draft,id));
       let selected=null;
       for(const activityId of pool){
         const days=currentWeek(draft),candidates=days.flatMap(day=>day.slots.filter(slot=>slot.available).map(slot=>({date:day.date,slot:slot.id,off:day.isOff})));
@@ -245,7 +251,7 @@
         if(selected){if(activityId!==first)notes.push(D.ACTIVITY_MAP[first].name+' 대신 시간과 예산에 맞는 '+D.ACTIVITY_MAP[activityId].name+'을 준비했습니다.');break;}
       }
       if(!selected){notes.push('이번 주는 더 담기보다 여유를 남기는 편이 좋겠어요.');break;}
-      occupiedActivities.add(selected.activityId);added.push(selected);
+      occupiedActivities.add(D.canonicalActivityId(selected.activityId));added.push(selected);
     }
     s.plan=draft.plan;s.sequence=draft.sequence;s.flags.autoPreparedWeek=s.weekStart;s.flags.autoDirection=direction;
     return {ok:true,added,issues:[],notes,alreadyPrepared:false,reason:''};
@@ -392,7 +398,8 @@
     const a=D.ACTIVITY_MAP[p.activityId];
     const unavailable=D.activityReason(s.config,a.id);if(unavailable)return specialEvent(s,p,unavailable+'이어서 이 활동을 다시 조정해야 합니다.',a.parenting?'care':'role');
     const permitted=availability(s,a.id,p.date,p.slot,p.id,false);if(!permitted.allowed)return specialEvent(s,p,permitted.reason,permitted.cause);
-    if(p.automatic&&!p.ruleId&&a.manualOnly)return specialEvent(s,p,a.name+'는 직접 계획하거나 반복 예약으로 고르는 활동이에요.','manual');
+    const autoReason=p.automatic&&!p.ruleId&&automaticActivityReason(s,a.id);
+    if(autoReason)return specialEvent(s,p,autoReason,'manual');
     if(p.automatic&&!p.ruleId&&!cadenceCheck(s,a.id,p.date,p.id).allowed)return specialEvent(s,p,a.name+'은 '+a.cadence.label+' 자동으로 챙겨요. 이미 마친 일과 잡아 둔 약속 사이에 간격을 두어요.','cadence');
     const blocked=s.dayState.blocks[p.slot]||0;
     const time=activityTime(s,a.id,p.date,p.slot)+blocked+(a.location!=='home'?s.dayState.extraTravel:0);
@@ -403,7 +410,7 @@
     const values=activityEffects(s,a);
     const tired=s.stats.fatigue>=70;
     if(tired){if(values.preparation)values.preparation=Math.ceil(values.preparation*.55);if(values.research)values.research=Math.ceil(values.research*.55);if(values.work)values.work=Math.ceil(values.work*.55);if(values.mood>0)values.mood=Math.ceil(values.mood*.5);}
-    if(s.config.preferences.includes(a.id)){values.mood=(values.mood||0)+1.5;values.happiness=(values.happiness||0)+1;}
+    if(D.preferenceActivityIds(s.config).includes(D.canonicalActivityId(a.id))){values.mood=(values.mood||0)+1.5;values.happiness=(values.happiness||0)+1;}
     if(F.available(s.finance,s.config)<50000&&cost>0)values.mood=(values.mood||0)-2;
     if((a.id==='study'&&['06','11'].includes(s.date.slice(5,7)))||(a.id==='research'&&['09','11'].includes(s.date.slice(5,7)))){values.mood=(values.mood||0)+2;values.fatigue=(values.fatigue||0)+2;}
     if(['chores','cleaning'].includes(a.id)){
@@ -617,7 +624,7 @@
   }
   function automaticPlans(s) {
     const notes=[];
-    const checkPlan=p=>{const result=planCheck(s,p,p.id);if(result.ok&&p.automatic&&!p.ruleId){if(D.ACTIVITY_MAP[p.activityId].manualOnly)return {ok:false,cause:'manual',reason:'직접 고르는 활동이에요.'};if(!cadenceCheck(s,p.activityId,p.date,p.id).allowed)return {ok:false,cause:'cadence',reason:'자동 활동 간격을 기다려요.'};}return result;};
+    const checkPlan=p=>{const result=planCheck(s,p,p.id);if(result.ok&&p.automatic&&!p.ruleId){const reason=automaticActivityReason(s,p.activityId);if(reason)return {ok:false,cause:'manual',reason};if(!cadenceCheck(s,p.activityId,p.date,p.id).allowed)return {ok:false,cause:'cadence',reason:'자동 활동 간격을 기다려요.'};}return result;};
     for(const p of [...s.plan]){
       if(p.payment==='card'){
         p.payment='cash';notes.push(automaticNote(s,D.ACTIVITY_MAP[p.activityId].name+'은 카드 청구를 늘리지 않고 가진 돈 안에서 챙깁니다.',{activityId:p.activityId,planId:p.id,payment:'cash'}));

@@ -170,8 +170,8 @@
         <div id="wrs-badges" class="badges"></div>
         <div class="copy"><p id="wrs-d1">일정을 배치하면 결과 해석이 나옵니다.</p><p id="wrs-d2"></p><p id="wrs-d3"></p></div>
       </div></section><section class="card" id="wrs-ins"></section><section class="card"><div class="body"><div class="ana"><h2>③ 다른 안과 비교하세요</h2><button id="wrs-refresh" class="btn" type="button">추천안 갱신</button></div><p class="hint">미리보기는 점선만 보여 줍니다. 적용은 시간표를 바꿉니다.</p><div id="wrs-sugs" class="sugs"></div></div></section><details class="model-details"><summary>이 지수는 어떻게 계산하나요?</summary><p>수면·혼자 있는 시간을 기회로, 이동·약속 전환·밀린 일·밤 스크린을 비용으로 둔 설계자의 휴리스틱입니다. 계수와 가중치는 연구에서 추정한 값이 아닙니다.</p><p id="wrs-assumptions"></p><p>일정의 길이와 이동 분은 별도로 입력합니다. 이동 시간을 늘려도 시간표의 블록이 자동으로 늘어나지는 않습니다.</p></details></aside></div></div>
-<script src="../weekend_season2/activities.js?v=20261017-local-life1"></script>
-<script src="../weekend_season2/planner-bridge.js?v=20261017-parenting1"></script>
+<script src="../weekend_season2/activities.js?v=20261019-activity-menu1"></script>
+<script src="../weekend_season2/planner-bridge.js?v=20261019-activity-menu1"></script>
 <script>
 (() => {
   const SLOT_MIN = 30;
@@ -203,9 +203,10 @@
   };
 
   const BASIC_TEMPLATES = new Set(Object.keys(TEMPLATES));
-  const SEASON_ACTIVITIES = window.S2Activities.ACTIVITIES;
+  const SEASON_ACTIVITIES = window.S2Activities.ACTIVITIES.filter(activity=>!activity.legacyOnly);
   document.querySelector('[data-palette-group="season2"] span').textContent=String(SEASON_ACTIVITIES.length);
-  SEASON_ACTIVITIES.forEach(activity => {
+  // Preserve legacy templates for saved plans; only the new palette is consolidated.
+  window.S2Activities.ACTIVITIES.forEach(activity => {
     const baseType = S2PlannerBridge.activityType(activity.id), base = TEMPLATES[baseType];
     const travel = activity.location === 'home' ? 0 : activity.location === 'local' ? 30 : 60;
     const dur = Math.ceil((activity.minutes + activity.prep + travel) / SLOT_MIN);
@@ -213,7 +214,7 @@
       ...base, label:activity.name, dur, travel, strain:activity.mode==='together'?3:1,
       meta:`${dur * SLOT_MIN}분 · 이동 ${travel}분 포함${activity.parenting?' · '+activity.parenting.label:''}${activity.cadence?' · 기본 주기 '+activity.cadence.label:''}${activity.manualOnly?' · 직접 고르는 일정':''}`, activityId:activity.id,
       parentingLabel:activity.parenting?.label||'',cadenceLabel:activity.cadence?.label||'',
-      manualOnly:!!activity.manualOnly,
+      manualOnly:!!activity.manualOnly, legacyOnly:!!activity.legacyOnly,
       activityMinutes:activity.minutes, preparationMinutes:activity.prep, baseType
     };
   });
@@ -375,7 +376,7 @@
     el.palette.innerHTML = "";
     document.querySelectorAll('[data-palette-group]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.paletteGroup===st.paletteGroup)));
     const query=st.activitySearch.trim().toLocaleLowerCase('ko').replace(/\s/g,'');
-    const entries=Object.entries(TEMPLATES).filter(([key,t])=>(st.paletteGroup==='season2'?!BASIC_TEMPLATES.has(key):BASIC_TEMPLATES.has(key))&&(!query||(t.label+' '+t.meta).toLocaleLowerCase('ko').replace(/\s/g,'').includes(query)));
+    const entries=Object.entries(TEMPLATES).filter(([key,t])=>!t.legacyOnly&&(st.paletteGroup==='season2'?!BASIC_TEMPLATES.has(key):BASIC_TEMPLATES.has(key))&&(!query||(t.label+' '+t.meta).toLocaleLowerCase('ko').replace(/\s/g,'').includes(query)));
     document.getElementById('wrs-catalog-count').textContent=`${st.paletteGroup==='season2'?'시즌2':'기본'} 활동 ${entries.length}개`;
     document.getElementById('wrs-catalog-note').textContent=st.paletteGroup==='season2'?'활동·준비·기본 이동을 포함해 30분 단위로 올림합니다. 가까운 외출은 왕복 30분, 수업·근무 장소는 60분으로 시작합니다. 자녀 연령과 미용 기본 주기는 참고 정보이며 여기서는 원하는 때 자유롭게 추가할 수 있어요.':'활동을 고르고 시간 칸을 눌러 배치하세요. 시즌2 활동도 같은 시간표에 함께 담을 수 있어요.';
     entries.forEach(([key,template]) => {

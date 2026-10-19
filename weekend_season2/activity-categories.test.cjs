@@ -31,7 +31,7 @@ test('navigation categories preserve age, role, cadence and manual-only restrict
   assert.deepEqual(available.map(activity=>activity.id),['baby_feed','baby_change','baby_sleep']);
   assert.ok(available.every(activity=>activity.categoryId==='parenting'&&activity.careOverlap));
   assert.ok(D.activityReason(config,'research'));assert.equal(D.activityReason({...config,role:'graduate'},'research'),'');
-  assert.deepEqual(A.ACTIVITIES.filter(activity=>activity.manualOnly&&!activity.procedure).map(activity=>activity.id),A.ACTIVITY_CATEGORIES.find(category=>category.id==='outings').activityIds);
+  assert.deepEqual(A.ACTIVITIES.filter(activity=>activity.requiresPreference).map(activity=>activity.id),A.ACTIVITY_CATEGORIES.find(category=>category.id==='outings').activityIds);
   assert.ok(A.ACTIVITIES.filter(activity=>activity.procedure).every(activity=>activity.manualOnly&&activity.categoryId==='personal'));
   assert.ok(A.ACTIVITIES.filter(activity=>activity.cadence).every(activity=>activity.categoryId==='personal'));
   assert.equal(A.activityCategory('rest').groupId,'want');

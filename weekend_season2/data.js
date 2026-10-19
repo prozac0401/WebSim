@@ -41,6 +41,8 @@
     { id: 'caregiver', name: '돌봄 중심 · 함께 짓는 주말', description: '가구에서 받는 외부 생활비와 돌봄 분담을 설정합니다. 분담은 성별과 무관합니다.', config: { ...base, age: 38, role: 'caregiver', maritalStatus:'married', children: 1, childAge: 'preschool', careShare: 60, housing: 'apartment', region: 'town', transport: 'car', salary: 0, externalAllowance: 2200000, fixedCosts: 1400000, personalBudget: 420000, startCash: 1800000, preferences: ['garden', 'draw'] } }
   ];
   const { ACTIVITIES, ACTIVITY_MAP } = Activities;
+  function canonicalActivityId(id){return ACTIVITY_MAP[id]?.canonicalId||id;}
+  function preferenceActivityIds(config){return [...new Set((config?.preferences||[]).map(canonicalActivityId))];}
   function formatMoney(won){
     if(!Number.isSafeInteger(won))throw new TypeError('금액은 원화 정수여야 합니다.');
     const rounded=Math.round(Math.abs(won)/1000)/10;
@@ -172,7 +174,7 @@
     // Income, an actual-sized home and essential living costs are generated
     // together. Source distributions and gameplay support remain distinguishable.
     assignLifeEconomy(config);
-    const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'].filter(id=>!ACTIVITY_MAP[id].manualOnly);
+    const interests=['walk','run','photo','cook','pottery','draw','music','read','garden','study','culture','cinema'].filter(id=>!ACTIVITY_MAP[id].manualOnly&&!ACTIVITY_MAP[id].requiresPreference&&!ACTIVITY_MAP[id].legacyOnly);
     config.preferences=[pick(interests)];config.preferences.push(pick(interests.filter(id=>id!==config.preferences[0])));
     assignPersonaName(config);
     const name=config.personaName;
@@ -185,7 +187,7 @@
     return {presetId:preset.id,config,name,intro};
   }
   const SIDE_JOBS={delivery:{reward:18000,payDelayDays:1},parttime:{reward:32000,payDelayDays:1},sideproject:{milestones:[{sessions:2,reward:40000},{sessions:4,reward:80000}],deadlineDays:56,payDelayDays:1},note:'부업의 보수·소요시간·기회는 게임용 가정이며 실제 임금이나 수입을 보장하지 않습니다.'};
-  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS:Activities.ACTIVITY_GROUPS, ACTIVITY_CATEGORIES:Activities.ACTIVITY_CATEGORIES, ROLES, ROLE_MODEL,roleAvailableForNewLife,sampleRole, MARITAL_STATUSES,MARITAL_MODEL,divorcedShare,sampleMaritalStatus, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,residenceLabel,sampleSubregion,SUBREGIONS:Subregions,assignRegionalIncome,assignLifeEconomy,
+  return { VERSION: 6, PRESETS, ACTIVITIES, ACTIVITY_MAP, canonicalActivityId,preferenceActivityIds, ACTIVITY_GROUPS:Activities.ACTIVITY_GROUPS, ACTIVITY_CATEGORIES:Activities.ACTIVITY_CATEGORIES, ROLES, ROLE_MODEL,roleAvailableForNewLife,sampleRole, MARITAL_STATUSES,MARITAL_MODEL,divorcedShare,sampleMaritalStatus, HOUSING_TENURES, HOUSING_MODEL, FAMILY_MODEL, DEFAULT_CONFIG: base,generateLife,formatMoney,activityPrice,activityReason,getChildren,childStage,APPEARANCE_OPTIONS,GENDER_HAIR_STYLES,HOME_OPTIONS,DEMOGRAPHICS:Demographics,INCOME:Income,PRICES:Prices,LIFECYCLE:Lifecycle,HOUSING:Housing,SIDE_JOBS,randomStream,weightedPick,sampleProvince,provinceLabel,residenceLabel,sampleSubregion,SUBREGIONS:Subregions,assignRegionalIncome,assignLifeEconomy,
     NAME_COHORTS:Names,assignPersonaName,AGE_HEALTH:AgeHealth,ageHealthProfile:AgeHealth.profile,
     DISCLAIMER: '가상 생활 시뮬레이션입니다. 사건 확률·감정·성과 변화는 게임용 가정이며 현실의 삶이나 능력을 예측하지 않습니다. 성별은 능력·급여·돌봄 의무에 영향을 주지 않습니다.' };
 });

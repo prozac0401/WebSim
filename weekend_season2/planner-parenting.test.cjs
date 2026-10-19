@@ -56,15 +56,26 @@ test('the standalone planner maps all parenting tasks to family activity without
   assert.equal(sandbox.S2PlannerBridge.activityType('read'),'solo_cafe');
 });
 
-test('the unobserved day across New Year excludes unavailable parenting, recent grooming and manual-only experiences',()=>{
-  const manual=['motorbike_tour','domestic_trip','golf_round','circuit_drive'];
-  const state=completedYear(2033,{children:0,childProfiles:[],careShare:0,startCash:20000000,personalBudget:5000000,preferences:['baby_feed','haircut','haircut_men','haircut_women',...manual]},[{activityId:'haircut_men',anchor:'2033-12-31',kind:'weeks',interval:3,slot:'morning',payment:'cash'}]);
+test('the unobserved day across New Year excludes unavailable parenting, recent grooming and unselected expensive hobbies',()=>{
+  const expensive=['motorbike_tour','domestic_trip','golf_round','circuit_drive'];
+  const state=completedYear(2033,{children:0,childProfiles:[],careShare:0,startCash:20000000,personalBudget:5000000,preferences:['baby_feed','haircut','haircut_men','haircut_women']},[{activityId:'haircut_men',anchor:'2033-12-31',kind:'weeks',interval:3,slot:'morning',payment:'cash'}]);
   assert.ok(state.log.some(log=>log.type==='activity'&&log.activityId==='haircut_men'&&log.date==='2033-12-31'));
   const before=JSON.stringify(state),draft=B.createDraft(state,{today:'2033-12-31'}),estimated=draft.planner.events.filter(event=>event.day==='sun');
   assert.ok(estimated.length);assert.ok(estimated.every(event=>event.sourceKind==='estimated'));
-  const excluded=['baby_feed','haircut','haircut_men','haircut_women',...manual].map(id=>D.ACTIVITY_MAP[id].name);
-  assert.ok(estimated.every(event=>!excluded.includes(event.sourceLabel)),'estimates must not add an unavailable task, repeat a fresh haircut or buy an explicit experience');
+  const excluded=['baby_feed','haircut','haircut_men','haircut_women',...expensive,...D.ACTIVITIES.filter(activity=>activity.manualOnly).map(activity=>activity.id)].map(id=>D.ACTIVITY_MAP[id].name);
+  assert.ok(estimated.every(event=>!excluded.includes(event.sourceLabel)),'estimates must not add an unavailable task, repeat a fresh haircut, buy an unselected hobby or choose a manual-only procedure');
+  assert.ok(draft.planner.events.some(event=>event.sourceKind==='actual'&&event.sourceLabel===D.ACTIVITY_MAP.haircut_men.name),'the actual legacy haircut keeps its original title');
   assert.equal(JSON.stringify(state),before,'estimating must not draw incident RNG or charge any fee');
+});
+
+test('a new estimate uses one canonical haircut without rewriting saved legacy preferences',()=>{
+  const preferences=['haircut_men','haircut_women'];
+  const state=completedYear(2033,{children:0,childProfiles:[],careShare:0,startCash:20000000,personalBudget:5000000,preferences},[],{automatic:false});
+  const before=JSON.stringify(state),draft=B.createDraft(state,{today:'2033-12-31'}),estimated=draft.planner.events.filter(event=>event.sourceKind==='estimated');
+  assert.equal(estimated.filter(event=>event.sourceLabel===D.ACTIVITY_MAP.haircut.name).length,1);
+  assert.ok(estimated.every(event=>!preferences.some(id=>event.sourceLabel===D.ACTIVITY_MAP[id].name)),'legacy activity titles belong to existing records, not newly suggested choices');
+  assert.deepEqual(state.config.preferences,preferences);assert.equal(JSON.stringify(state),before);
+  assert.ok(B.validateDraft(draft).ok);
 });
 
 test('explicit completed experiences keep their own names and travel categories without simulating additional costs',()=>{

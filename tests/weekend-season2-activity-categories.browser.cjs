@@ -24,7 +24,7 @@ async function fixture(page,ages=[1,5,10]){
  },ages);assert.equal(saved.ok,true,saved.reason);await page.reload();await page.locator('#resume-game').click();
 }
 async function ids(page,selector,attribute){return (await page.locator(selector).evaluateAll((els,attr)=>els.map(el=>el.getAttribute(attr)),attribute)).sort();}
-async function allCatalog(page){return page.evaluate(()=>({activities:S2Data.ACTIVITIES.map(({id,categoryId,groupId,parenting,manualOnly})=>({id,categoryId,groupId,parenting,manualOnly})),categories:S2Data.ACTIVITY_CATEGORIES,groups:S2Data.ACTIVITY_GROUPS}));}
+async function allCatalog(page){return page.evaluate(()=>({activities:S2Data.ACTIVITIES.filter(a=>!a.legacyOnly).map(({id,categoryId,groupId,parenting,manualOnly})=>({id,categoryId,groupId,parenting,manualOnly})),categories:S2Data.ACTIVITY_CATEGORIES,groups:S2Data.ACTIVITY_GROUPS}));}
 async function shot(page,name,target){await (target?page.locator(target):page).screenshot({path:path.join(output,name+'.png'),...(target?{}:{fullPage:true})});}
 
 (async()=>{

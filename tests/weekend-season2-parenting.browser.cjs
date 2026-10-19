@@ -123,12 +123,12 @@ async function quickAdd(page,id) {
     pass('family automation preserves manual plans, rotates one eligible parenting task per week, and adds none for childless or teenage-only households');
 
     await loadLife(desktop,[]);
-    const grooming=[['haircut','weeks',3,'3주에 한 번'],['haircut_men','weeks',3,'3주에 한 번'],['haircut_women','weeks',3,'3주에 한 번'],['perm','months',2,'2개월에 한 번'],['dye','months',3,'3개월에 한 번']];
+    const grooming=[['haircut','weeks',3,'3주에 한 번'],['perm','months',2,'2개월에 한 번'],['dye','months',3,'3개월에 한 번']];
     for(const [id,,,label] of grooming){await reveal(desktop,desktop.locator('#quick-activity'));await desktop.locator('#quick-activity').selectOption(id);assert.ok((await desktop.locator(`[data-cadence="${id}"]`).allTextContents()).some(text=>text.includes(label)));await reveal(desktop,desktop.locator(`[data-activity="${id}"]`));assert.ok((await desktop.locator(`[data-activity="${id}"]`).innerText()).includes(label),id+' visible cadence');}
     await click(desktop,'.tab[data-tab="routines"]');
     for(const [id,kind,interval] of grooming){await desktop.locator('#rule-form [name="activityId"]').selectOption(id);assert.equal(await desktop.locator('#rule-form [name="kind"]').inputValue(),kind);assert.equal(await desktop.locator('#rule-form [name="interval"]').inputValue(),String(interval));}
     await click(desktop,'.tab[data-tab="planner"]');
-    const firstCut=await quickAdd(desktop,'haircut'),secondCut=await quickAdd(desktop,'haircut_men');
+    const firstCut=await quickAdd(desktop,'haircut'),secondCut=await quickAdd(desktop,'haircut');
     assert.notEqual(firstCut.id,secondCut.id);assert.ok(!firstCut.automatic&&!secondCut.automatic);
     assert.equal(await desktop.evaluate(()=>S2Engine.activityCadence(S2Storage.load().state,'haircut_women').allowed),false,'the three cut IDs share one automatic cadence while manual additions remain available');
     const cadence=await desktop.evaluate(()=>{
@@ -161,7 +161,7 @@ async function quickAdd(page,id) {
     pass('390px mobile adds an infant task by keyboard, retains button focus and saved family plans, and has no horizontal overflow');
 
     await desktop.goto(base+planner);await desktop.locator('[data-palette-group="season2"]').click();
-    const catalogCount=await desktop.evaluate(()=>S2Activities.ACTIVITIES.length);
+    const catalogCount=await desktop.evaluate(()=>S2Activities.ACTIVITIES.filter(a=>!a.legacyOnly).length);
     assert.equal(await desktop.locator('#wrs-palette .chip').count(),catalogCount);
     for(const id of ids){
       await desktop.locator('#wrs-clear').click();await desktop.locator(`.chip[data-template="s2_${id}"]`).click();await desktop.locator('.slots[data-day="sat"] .slot').nth(2).click();

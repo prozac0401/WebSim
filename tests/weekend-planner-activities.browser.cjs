@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {createRequire} = require('node:module');
-const activities = require('../weekend_season2/data.js').ACTIVITIES;
+const activities = require('../weekend_season2/data.js').ACTIVITIES.filter(activity=>!activity.legacyOnly);
 let playwright;
 try { playwright = require('playwright'); }
 catch { playwright = createRequire(path.join(process.env.USERPROFILE || process.env.HOME, '.codex/skills/develop-web-game/package.json'))('playwright'); }
@@ -118,14 +118,14 @@ async function add(page,type,day='sat',start=2) {
     assert.equal(imported.season2Draft.source.completed,true);
     assert.equal(await group(page,'season2').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#wrs-palette .chip').count(),activities.length);
-    const freeStart=Array.from({length:30},(_,start)=>start).find(start=>!imported.events.some(event=>event.day==='sun'&&start<event.start_slot+event.duration_slots&&event.start_slot<start+3));
+    const freeStart=Array.from({length:30},(_,start)=>start).find(start=>!imported.events.some(event=>event.day==='sun'&&start<event.start_slot+event.duration_slots&&event.start_slot<start+4));
     assert.notEqual(freeStart,undefined,'the imported draft leaves room for a manual activity');
-    await chip(page,'s2_haircut_men').click();
+    await chip(page,'s2_haircut').click();
     await slot(page,'sun',freeStart).click();
     const withNew=(await state(page)).events;
     for(const original of imported.events)assert.deepEqual(withNew.find(event=>event.id===original.id),original,'adding to an imported draft preserves the imported labels and source metadata');
     const newEvent=withNew.find(event=>!imported.events.some(original=>original.id===event.id));
-    assert.ok(newEvent);assert.equal(newEvent.label,'남성 커트');assert.equal(newEvent.activity_id,'haircut_men');
+    assert.ok(newEvent);assert.equal(newEvent.label,'커트');assert.equal(newEvent.activity_id,'haircut');
     assert.equal(newEvent.sourceKind,undefined);assert.equal(newEvent.sourceDate,undefined);
     assert.equal((await state(page)).events.length,imported.events.length+1);
     // The source page saves on transfer; compare its state before and after editing,

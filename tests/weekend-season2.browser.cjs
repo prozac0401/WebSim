@@ -285,10 +285,11 @@ async function expandedLife(browser) {
   assert.deepEqual(await page.locator('.compact-status [data-stat] > span').allTextContents(),['건강','행복','지식','기분','대인관계','가족관계']);
   assert.ok(await page.locator('.cash-and-home').innerText().then(text=>text.includes('180.1만원')));
   assert.equal((await textState(page)).finance.cash,1801000);
-  const genderPrice=await page.evaluate(()=>({men:S2Data.activityPrice(S2Storage.load().state.config,'haircut_men'),women:S2Data.activityPrice(S2Storage.load().state.config,'haircut_women')}));
+  const genderPrice=await page.evaluate(()=>({men:S2Data.activityPrice(S2Storage.load().state.config,'haircut_men'),women:S2Data.activityPrice(S2Storage.load().state.config,'haircut_women'),canonical:S2Data.activityPrice(S2Storage.load().state.config,'haircut')}));
   assert.equal(genderPrice.men.amount,11286);assert.equal(genderPrice.women.amount,19614);
-  await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption('haircut_men');await click(page,'#quick-add');
-  const manual=(await textState(page)).plan.find(p=>p.activityId==='haircut_men'&&!p.automatic);assert.ok(manual);
+  assert.equal(genderPrice.canonical.amount,setup.gender==='man'?genderPrice.men.amount:genderPrice.women.amount);
+  await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption('haircut');await click(page,'#quick-add');
+  const manual=(await textState(page)).plan.find(p=>p.activityId==='haircut'&&!p.automatic);assert.ok(manual);
   const desired=['study','music','culture','pottery'];
   for(const id of (await textState(page)).preferences)if(!desired.includes(id))await click(page,`[data-auto-preference="${id}"]`);
   for(const id of desired)if(!(await textState(page)).preferences.includes(id))await click(page,`[data-auto-preference="${id}"]`);
@@ -317,7 +318,7 @@ async function expandedLife(browser) {
   }
   const saved=await page.evaluate(()=>S2Storage.load());assert.ok(saved.ok,saved.reason);
   assert.ok(saved.state.log.some(l=>l.type==='activity'&&l.activityId==='culture'&&l.date==='2026-01-02'&&l.slot==='evening'));
-  assert.ok(saved.state.finance.ledger.some(t=>t.type==='purchase'&&t.label==='남성 커트'&&t.amount===11286));
+  assert.ok(saved.state.finance.ledger.some(t=>t.type==='purchase'&&t.label==='커트'&&t.amount===genderPrice.canonical.amount));
   assert.ok(saved.state.log.some(l=>l.type==='daily'&&Object.keys(l.stats).includes('health')));
   record('자동 선호 다중 선택·키보드·저장 재개·수동 약속 보존, 평일 저녁 강좌 예약·확정·실행');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

@@ -70,11 +70,12 @@
   freshLife();
   try { const saved = S2Storage.load(); if (saved.ok && saved.state) saveAvailable = true; } catch (_) { /* An unavailable browser store does not prevent play. */ }
   function activity(id) { return activities.find(a => a.id === id); }
+  function preferenceIds(c=state?.config||config) { return S2Data.preferenceActivityIds(c); }
   function roleReason(id,c=state?.config||config) { return S2Data.activityReason(c,id); }
   function price(id) { return S2Data.activityPrice ? S2Data.activityPrice(state?.config||config,id) : {amount:activity(id)?.cost||0,basis:'게임 설정',label:'게임용 비용',note:''}; }
   function autoReason(id,c=state?.config||config) { return activity(id)?.manualOnly?'직접 추가하는 활동이에요. 자동 계획에서는 고르지 않아요.':roleReason(id,c); }
-  function activityMeta(a) { return [a?.parenting?`${a.parenting.minAge}~${a.parenting.maxAge}세 자녀`:null,a?.cadence?.label,a?.manualOnly?'직접 추가':null,a?.procedure?.minIntervalDays?'최소 '+a.procedure.minIntervalDays+'일 간격':null,a?.procedure?.oncePerLife?'한 삶에 한 번':null,a?.procedure?'회복 '+a.procedure.recoveryDays+'일':null].filter(Boolean).join(' · '); }
-  function visibleActivities(c=state?.config||config) {return activities.filter(a=>!a.parenting||!roleReason(a.id,c));}
+  function activityMeta(a) { return [a?.parenting?`${a.parenting.minAge}~${a.parenting.maxAge}세 자녀`:null,a?.cadence?.label,a?.requiresPreference?'선택하면 자동 계획에 포함':a?.manualOnly?'직접 추가':null,a?.procedure?.minIntervalDays?'최소 '+a.procedure.minIntervalDays+'일 간격':null,a?.procedure?.oncePerLife?'한 삶에 한 번':null,a?.procedure?'회복 '+a.procedure.recoveryDays+'일':null].filter(Boolean).join(' · '); }
+  function visibleActivities(c=state?.config||config) {return activities.filter(a=>!a.legacyOnly&&(!a.parenting||!roleReason(a.id,c)));}
   function categoryLabel(category,c=state?.config||config) {return category.id==='parenting'&&!visibleActivities(c).some(a=>a.parenting)?'가족·지인 돌봄':category.label;}
   function categoryMatches(category,value) {return value==='all'||category.id===value||category.groupId===value;}
   function categorySelectHTML(id,value,c=state?.config||config) {
@@ -95,21 +96,22 @@
     $$('[data-activity-group]',container).forEach(section=>{section.hidden=!$$('[data-activity-category]',section).some(category=>!category.hidden);});
   }
   function setupPreferencesHTML() {
-    return groupedActivitiesHTML(a=>`<label class="preference"><input type="checkbox" name="preferences" value="${escape(a.id)}"${(config.preferences||[]).includes(a.id)?' checked':''}${autoReason(a.id,config)&&!(config.preferences||[]).includes(a.id)?' disabled':''}>${icon(a.id)} ${escape(a.name)}${activityMeta(a)?` <small>${escape(activityMeta(a))}</small>`:''}</label>`,config,config.preferences||[],setupCategory,'preferences');
+    const preferences=preferenceIds(config);
+    return groupedActivitiesHTML(a=>`<label class="preference"><input type="checkbox" name="preferences" value="${escape(a.id)}"${preferences.includes(a.id)?' checked':''}${autoReason(a.id,config)&&!preferences.includes(a.id)?' disabled':''}><span class="preference-copy"><span class="preference-name">${icon(a.id)} ${escape(a.name)}</span><small data-setup-price="${escape(a.id)}">${price(a.id).amount?money(price(a.id).amount):'무료'}</small>${activityMeta(a)?`<small>${escape(activityMeta(a))}</small>`:''}</span></label>`,config,preferences,setupCategory,'preferences');
   }
   function activityOptionsHTML(chosen=selected,recurring=false) {
     const available=visibleActivities().filter(a=>!recurring||!a.parenting);
-    return S2Data.ACTIVITY_CATEGORIES.map(category=>{const items=available.filter(a=>a.categoryId===category.id),group=S2Data.ACTIVITY_GROUPS.find(item=>item.id===category.groupId);return items.length?`<optgroup label="${group.label} · ${escape(categoryLabel(category))}">${items.map(a=>`<option value="${a.id}"${a.id===chosen?' selected':''}${roleReason(a.id)?' disabled':''}>${icon(a.id)} ${escape(a.name)}${activityMeta(a)?' · '+escape(activityMeta(a)):''} · ${roleReason(a.id)?escape(roleReason(a.id)):money(price(a.id).amount)}</option>`).join('')}</optgroup>`:'';}).join('');
+    return S2Data.ACTIVITY_CATEGORIES.map(category=>{const items=available.filter(a=>a.categoryId===category.id),group=S2Data.ACTIVITY_GROUPS.find(item=>item.id===category.groupId);return items.length?`<optgroup label="${group.label} · ${escape(categoryLabel(category))}">${items.map(a=>`<option value="${a.id}"${a.id===chosen?' selected':''}${roleReason(a.id)?' disabled':''}>${icon(a.id)} ${escape(a.name)}${a.parenting?' · '+escape(a.parenting.label):''} · ${roleReason(a.id)?escape(roleReason(a.id)):money(price(a.id).amount)}</option>`).join('')}</optgroup>`:'';}).join('');
   }
   function cadenceHTML(id) {
     const a=activity(id);if(!a?.cadence)return '';
     const status=state?S2Engine.activityCadence(state,id):null;
-    return `<p class="activity-cadence" data-cadence="${escape(id)}"><strong>미용실 주기 · ${escape(a.cadence.label)}</strong>${status&&!status.allowed&&status.nextDate?`<br>다음 자동 추천은 ${dateText(status.nextDate,true)}부터예요.`:'<br>자동 생활은 이 간격보다 자주 추천하지 않아요.'}<span>커트 종류는 같은 주기를 공유해요. 직접 정한 일정은 따로 조정할 수 있어요.</span></p>`;
+    return `<p class="activity-cadence" data-cadence="${escape(id)}"><strong>미용실 주기 · ${escape(a.cadence.label)}</strong>${status&&!status.allowed&&status.nextDate?`<br>다음 자동 추천은 ${dateText(status.nextDate,true)}부터예요.`:'<br>자동 생활은 이 간격보다 자주 추천하지 않아요.'}<span>커트는 설정한 성별과 지역에 따라 비용이 달라져요. 직접 정한 일정은 따로 조정할 수 있어요.</span></p>`;
   }
   function specialOutingHTML(id) {
-    const a=activity(id);if(!a?.manualOnly||a.procedure)return '';
+    const a=activity(id);if(!a?.requiresPreference)return '';
     const r=a.risk;
-    return `<p class="activity-cadence" data-manual-only="${escape(id)}"><strong>이번 주에 직접 추가하는 특별 일정</strong><br>활동 ${a.minutes}분 + 준비 ${a.prep}분 + 왕복 이동시간이 필요해요. 자동 생활은 임의로 넣지 않아요.</p>${r?`<div class="activity-risk" data-activity-risk="${escape(id)}"><strong>사고가 나면 수리비·병원비가 추가돼요</strong><p>1회 사고 확률 ${Math.round(r.chance*100)}% · 수리비 ${money(r.repairMin)}~${money(r.repairMax)} · 병원비 ${money(r.medicalMin)}~${money(r.medicalMax)}</p><p>활동비와 별도로 현금에서 내며, 부족한 금액은 미납으로 남아 다음 수입에서 갚아요. 몸 상태와 피로에도 영향이 있어요.</p><small>비용·시간·사고 확률은 게임용 가정입니다.</small></div>`:''}`;
+    return `<p class="activity-cadence" data-special-outing="${escape(id)}"><strong>누구나 선택할 수 있는 여행·취미</strong><br>활동 ${a.minutes}분 + 준비 ${a.prep}분 + 왕복 이동시간이 필요해요. 하고 싶은 일로 고르면 시간과 예산이 되는 때 자동으로 계획해요. 직접 추가하거나 반복 예약할 수도 있어요.</p>${r?`<div class="activity-risk" data-activity-risk="${escape(id)}"><strong>사고가 나면 수리비·병원비가 추가돼요</strong><p>1회 사고 확률 ${Math.round(r.chance*100)}% · 수리비 ${money(r.repairMin)}~${money(r.repairMax)} · 병원비 ${money(r.medicalMin)}~${money(r.medicalMax)}</p><p>활동비와 별도로 현금에서 내며, 부족한 금액은 미납으로 남아 다음 수입에서 갚아요. 몸 상태와 피로에도 영향이 있어요.</p><small>비용·시간·사고 확률은 게임용 가정입니다.</small></div>`:''}`;
   }
   function procedureHTML(id) {
     const a=activity(id),p=a?.procedure;if(!p)return '';
@@ -131,7 +133,7 @@
   }
   function syncSetupActivityChoices() {
     const eligible=visibleActivities(config).map(a=>a.id);
-    config.preferences=(config.preferences||[]).filter(id=>eligible.includes(id));
+    config.preferences=preferenceIds(config).filter(id=>eligible.includes(id));
     const picker=$('#setup-category');
     if(picker){
       const holder=document.createElement('div');holder.innerHTML=categorySelectHTML('setup-category',picker.value,config);
@@ -146,8 +148,9 @@
       applyCategoryFilter(container,setupCategory);
     }
     $$('#setup-form [name="preferences"]').forEach(field=>{const reason=autoReason(field.value,config);field.disabled=!!reason&&!field.checked;field.parentElement.title=reason||activity(field.value).description;});
+    $$('[data-setup-price]').forEach(field=>{const amount=price(field.dataset.setupPrice).amount;field.textContent=amount?money(amount):'무료';});
   }
-  function priceDetails(id) { const quote=price(id),basisLabel={'regional-survey':'지역 조사값','local-example':'한 매장의 요금 사례','game-estimate':'게임에서 정한 비용','game-assumption':'게임에서 정한 비용','official-price':'공식 안내 가격'}[quote.basis]||'게임에서 정한 비용';return cadenceHTML(id)+specialOutingHTML(id)+procedureHTML(id)+`<details class="price-details"><summary>이 활동의 비용은 어떻게 정했나요?</summary><p>${escape(quote.label||'활동 비용')} · ${money(quote.amount)}<br>${escape(quote.note||'게임 속 생활비이며 실제 예약 가격과 다를 수 있어요.')}</p><p class="small-note">${basisLabel}${quote.observedAt?' · '+escape(quote.observedAt)+' 기준':''}</p><a href="weekend_season2_doc.html#activity-prices">가격 자료와 가정 보기 ↗</a></details>`; }
+  function priceDetails(id) { const quote=price(id),basisLabel={'regional-survey':'지역 조사값','regional-game-estimate':'지역 물가를 반영한 게임 추정','local-example':'한 매장의 요금 사례','game-estimate':'게임에서 정한 비용','game-assumption':'게임에서 정한 비용','official-price':'공식 안내 가격'}[quote.basis]||'게임에서 정한 비용';return cadenceHTML(id)+specialOutingHTML(id)+procedureHTML(id)+`<details class="price-details"><summary>이 활동의 비용은 어떻게 정했나요?</summary><p>${escape(quote.label||'활동 비용')} · ${money(quote.amount)}<br>${escape(quote.note||'게임 속 생활비이며 실제 예약 가격과 다를 수 있어요.')}</p><p class="small-note">${basisLabel}${quote.observedAt?' · '+escape(quote.observedAt)+' 기준':''}</p><a href="weekend_season2_doc.html#activity-prices">가격 자료와 가정 보기 ↗</a></details>`; }
   function childProfilesHTML() { const children=S2Data.getChildren(config);return `<details id="child-profiles" class="settings-details"${openPanels.has('child-profiles')?' open':''}><summary>자녀를 한 명씩 살펴보기 · ${children.length}명</summary><p class="small-note">나이와 성별, 군 복무 여부를 직접 바꿀 수 있어요. 군 복무는 게임에서 18~35세 남성 자녀에게 선택할 수 있어요. 성별만으로 정하지 않으며 직접 바꿀 수 있어요.</p><div id="child-profile-fields">${children.length?children.map((child,i)=>`<fieldset class="child-profile" data-child-index="${i}"><legend>자녀 ${i+1}</legend><div class="form-grid"><label class="field">나이<input type="number" name="child-age-${i}" value="${child.age}" min="0" max="49" required></label><label class="field">성별<select name="child-gender-${i}">${[['woman','여성'],['man','남성']].map(([value,label])=>`<option value="${value}"${setupGender(child.gender)===value?' selected':''}>${label}</option>`).join('')}</select></label><label class="field">현재 생활<select name="child-military-${i}"${child.age<18||child.age>35||child.gender!=='man'?' disabled':''}><option value="none"${child.militaryStatus!=='serving'?' selected':''}>집에서 생활</option><option value="serving"${child.militaryStatus==='serving'?' selected':''}>군 복무 중</option></select></label></div></fieldset>`).join(''):'<p class="small-note">위에서 자녀 수를 고르면 개별 설정이 나타나요.</p>'}</div></details>`; }
   function icon(id) { return icons[id] || activity(id)?.icon || '✦'; }
   function dateText(date, includeYear = false) { if (!date) return ''; const [y, m, d] = date.split('-').map(Number); return `${includeYear ? y + '년 ' : ''}${m}월 ${d}일`; }
@@ -334,9 +337,9 @@
     return `<div class="life-directions" aria-label="자동으로 보낼 생활 방향">${directions.map(([id,emoji,label])=>`<button data-direction="${id}" aria-pressed="${direction===id}"><span aria-hidden="true">${emoji}</span>${label}</button>`).join('')}</div>`;
   }
   function autoPreferencesHTML() {
-    const preferences=(state.config.preferences||[]).filter(id=>visibleActivities().some(a=>a.id===id));
+    const preferences=preferenceIds(state.config).filter(id=>visibleActivities().some(a=>a.id===id));
     const cards=groupedActivitiesHTML(a=>{const reason=autoReason(a.id),chosen=preferences.includes(a.id);return `<button type="button" data-auto-preference="${a.id}" aria-pressed="${chosen}"${reason?` class="role-unavailable" title="${escape(reason)}${chosen?' · 눌러서 해제':''}"${!chosen?' disabled':''}`:''}><span aria-hidden="true">${icon(a.id)}</span><strong>${escape(a.name)}</strong><small>${reason?escape(reason)+(chosen?' · 선택 해제':''):price(a.id).amount?money(price(a.id).amount):'무료'}</small>${activityMeta(a)?`<small class="activity-meta">${escape(activityMeta(a))}</small>`:''}</button>`;},state.config,preferences,autoCategory,'auto-preference-grid');
-    return `<details id="auto-preferences" class="auto-preferences"${openPanels.has('auto-preferences')?' open':''}><summary><strong>하고 싶은 일 · 해야 하는 일</strong><span>${preferences.length}개 선택 · 여러 개 골라도 좋아요</span></summary>${categorySelectHTML('auto-category',autoCategory)}<div id="auto-activity-groups">${cards}</div><p class="small-note">여행·체험과 시술은 아래 ‘이번 주 조금 더 챙기기’에서 직접 추가해요.</p></details><p class="preference-preview">${preferences.length?preferences.slice(0,4).map(id=>`${icon(id)} ${escape(activity(id)?.name||id)}${autoReason(id)?' (지금은 쉬어 두기)':''}`).join(' · ')+(preferences.length>4?` 외 ${preferences.length-4}개`:''):'아직 고른 일이 없어요. 우선 휴식과 기본 생활을 이어가요.'}</p><p class="small-note auto-preference-note">선택한 활동과 생활에 필요한 일을 함께 챙겨요. 언제든 멈추고 바꿀 수 있어요.</p>`;
+    return `<details id="auto-preferences" class="auto-preferences"${openPanels.has('auto-preferences')?' open':''}><summary><strong>하고 싶은 일 · 해야 하는 일</strong><span>${preferences.length}개 선택 · 여러 개 골라도 좋아요</span></summary>${categorySelectHTML('auto-category',autoCategory)}<div id="auto-activity-groups">${cards}</div><p class="small-note">여행·고가 취미도 누구나 고를 수 있어요. 고른 활동은 시간과 예산에 맞춰 계획해요. 시술은 아래에서 직접 추가하거나 반복 예약해요.</p></details><p class="preference-preview">${preferences.length?preferences.slice(0,4).map(id=>`${icon(id)} ${escape(activity(id)?.name||id)}${autoReason(id)?' (지금은 쉬어 두기)':''}`).join(' · ')+(preferences.length>4?` 외 ${preferences.length-4}개`:''):'아직 고른 일이 없어요. 우선 휴식과 기본 생활을 이어가요.'}</p><p class="small-note auto-preference-note">선택한 활동과 생활에 필요한 일을 함께 챙겨요. 언제든 멈추고 바꿀 수 있어요.</p>`;
   }
   function quickPlanHTML() {
     return `<details id="quick-plan-tools" class="quick-tools"${openPanels.has('quick-plan-tools')?' open':''}><summary>이번 주 조금 더 챙기기 <span>${activities.some(a=>a.parenting&&!roleReason(a.id))?'육아 · 활동 · 생활 방향':'활동 한 번 · 생활 방향'}</span></summary><div>${parentingTasksHTML()}<div class="quick-activity-row"><label class="field">이번 주에 한 번 추가할 일<select id="quick-activity">${activityOptionsHTML()}</select></label><button id="quick-add" class="secondary"${roleReason(selected)?' disabled':''}>빈 시간에 담기 ＋</button></div><p class="small-note">${roleReason(selected)?escape(roleReason(selected))+' 다른 일을 골라 보세요. ':''}${escape(activity(selected)?.description)} ${activity(selected)?.minutes||60}분 · ${money(price(selected).amount)}${['cinema','culture','friends','family_time'].includes(selected)?' · 생활비에 여유가 있다면 즐거움에 조금 써도 좋아요.':''}</p>${priceDetails(selected)}<p class="small-note">고른 일과 함께, 어떤 생활을 더 챙길까요?</p>${directionsHTML()}<p class="direction-note">${escape(directions.find(d=>d[0]===direction)?.[3]||'')}</p><button id="replan-auto" class="ghost">이번 주 자동 계획 다시 짜기 ↻</button><p class="small-note">직접 넣은 활동과 확정한 약속은 그대로 두어요.</p></div></details>`;
@@ -571,7 +574,7 @@
     click('#open-weekend-draft',openWeekendDraft);
     $('#important-decisions')?.addEventListener('change',event=>{state.flags.autoDecisions=event.target.checked?'important':'auto';if(autoPlaying&&autoWaiting&&!event.target.checked)autoWaiting=false;save();render();scheduleAutomatic();});
     click('[data-direction]',(_,el)=>{const next=el.dataset.direction,result=S2Engine.replaceAutoWeek(state,{direction:next});if(result.ok){direction=next;state.flags.autoDirection=direction;autoNote='';}handleResult(result);});
-    click('[data-auto-preference]',(_,el)=>{const id=el.dataset.autoPreference,previous=state.config.preferences||[],preferences=previous.includes(id)?previous.filter(item=>item!==id):[...previous,id];const result=S2Engine.replaceAutoWeek(state,{preferences,direction});if(result.ok)autoNote='';handleResult(result,result.ok?'선택한 일을 바꿨어요. 이번 주 자동 계획에도 반영했어요.':undefined);});
+    click('[data-auto-preference]',(_,el)=>{const id=el.dataset.autoPreference,previous=preferenceIds(state.config),preferences=previous.includes(id)?previous.filter(item=>item!==id):[...previous,id];const result=S2Engine.replaceAutoWeek(state,{preferences,direction});if(result.ok)autoNote='';handleResult(result,result.ok?'선택한 일을 바꿨어요. 이번 주 자동 계획에도 반영했어요.':undefined);});
     $('#quick-activity')?.addEventListener('change',event=>{stopAutomatic();selected=event.target.value;sceneActivity=selected;render();});
     const addQuickActivity=id=>{
       selected=id;

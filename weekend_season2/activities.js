@@ -17,7 +17,7 @@
     ['music','악기 연습','🎵',5000,90,10,'home','alone','반복 연습을 쌓으면 작은 연주에 참여할 수 있습니다.',{fatigue:3,mood:7},'연주 녹음 기록',3],
     ['read','독서','📚',0,90,5,'home','alone','무료로 빌린 책과 함께 읽기 노트를 남깁니다.',{fatigue:-3,mood:6},'독서 노트',2],
     ['friends','친구와 만나기','☕',28000,110,10,'local','together','오래 미뤘던 이야기를 나눕니다.',{fatigue:4,mood:9,relationship:7},null,0],
-    ['haircut','기본 커트','✂️',25000,60,10,'local','together','익숙한 미용실에서 머리를 다듬고 돌아옵니다.',{fatigue:0,mood:5},null,0],
+    ['haircut','커트','✂️',25000,60,10,'local','together','익숙한 미용실에서 머리를 다듬고 돌아옵니다.',{fatigue:0,mood:5},null,0],
     ['haircut_men','남성 커트','✂️',20000,40,10,'local','together','짧게 다듬을까, 조금 더 길러 볼까. 거울 앞에서 새 모습을 골라 봅니다.',{fatigue:0,mood:6,happiness:3},null,0],
     ['haircut_women','여성 커트','💇',25000,50,10,'local','together','머리를 가볍게 정리하고 산뜻한 기분으로 집에 돌아옵니다.',{fatigue:0,mood:6,happiness:3},null,0],
     ['perm','펌','〰️',70000,140,10,'local','together','평소 눈여겨본 머리에 도전해 봅니다. 오늘은 미용실에서 조금 오래 쉬어 가요.',{fatigue:4,mood:10,happiness:5},'새로운 머리의 사진',1],
@@ -80,12 +80,15 @@
   function categoriesForGroup(id){return ACTIVITY_CATEGORIES.filter(category=>category.groupId===id);}
   const parentingGroups={baby:{minAge:0,maxAge:2,group:'baby',label:'0~2세 자녀'},preschool:{minAge:3,maxAge:6,group:'preschool',label:'3~6세 자녀'},school:{minAge:7,maxAge:12,group:'school',label:'7~12세 자녀'}};
   const cadences={haircut:{unit:'weeks',interval:3,group:'haircut',label:'3주에 한 번'},perm:{unit:'months',interval:2,group:'perm',label:'2개월에 한 번'},dye:{unit:'months',interval:3,group:'dye',label:'3개월에 한 번'}};
-  const manualActivities={motorbike_tour:{minAge:18,risk:{chance:.06,repairMin:40000,repairMax:320000,medicalMin:20000,medicalMax:200000}},domestic_trip:{},golf_round:{},circuit_drive:{minAge:18,risk:{chance:.04,repairMin:300000,repairMax:1800000,medicalMin:50000,medicalMax:400000}}};
+  const preferenceActivities={motorbike_tour:{minAge:18,risk:{chance:.06,repairMin:40000,repairMax:320000,medicalMin:20000,medicalMax:200000}},domestic_trip:{},golf_round:{},circuit_drive:{minAge:18,risk:{chance:.04,repairMin:300000,repairMax:1800000,medicalMin:50000,medicalMax:400000}}};
+  // Published plans, logs and preferences retain these IDs and their old timing
+  // and effects. New menus and automatic choices use the canonical activity.
+  const legacyAliases={haircut_men:'haircut',haircut_women:'haircut'};
   const procedures={mole_removal:{recoveryDays:7},laser_hair_removal:{recoveryDays:2,minIntervalDays:28},ultherapy:{recoveryDays:1},botox:{recoveryDays:1},fraxel:{recoveryDays:7},eyelid_surgery:{recoveryDays:7,oncePerLife:true}};
   const outdoors=new Set(['walk','run','photo','garden','volunteer','motorbike_tour','domestic_trip','golf_round','circuit_drive','delivery']);
   const ACTIVITIES = rows.map(([id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every]) => {
     const parenting=parentingGroups[id.split('_')[0]],cadence=cadences[id.startsWith('haircut')?'haircut':id];
-    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting||procedures[id]?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(manualActivities[id]?{manualOnly:true,...manualActivities[id]}:{}),...(procedures[id]?{manualOnly:true,procedure:{...procedures[id]}}:{}),categoryId:activityCategory(id)?.id,outdoor:outdoors.has(id)};
+    return {id,name,icon,cost,minutes,prep,location,mode,description,effects,artifact,every,skillGain:parenting||procedures[id]?0:id==='pt'?10:6,roles:id==='overtime'?['worker']:id==='research'?['graduate']:id==='jobstudy'?['seeker']:null,...(parenting?{parenting:{...parenting},careOverlap:true}:{}),...(cadence?{cadence:{...cadence}}:{}),...(preferenceActivities[id]?{requiresPreference:true,...preferenceActivities[id]}:{}),...(legacyAliases[id]?{legacyOnly:true,canonicalId:legacyAliases[id]}:{}),...(procedures[id]?{manualOnly:true,procedure:{...procedures[id]}}:{}),categoryId:activityCategory(id)?.id,outdoor:outdoors.has(id)};
   });
   const ACTIVITY_MAP = Object.assign(Object.create(null),Object.fromEntries(ACTIVITIES.map(a => [a.id,a])));
   return { ACTIVITIES, ACTIVITY_MAP, ACTIVITY_GROUPS, ACTIVITY_CATEGORIES, activityCategory, categoriesForGroup };

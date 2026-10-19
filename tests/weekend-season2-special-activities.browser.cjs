@@ -33,18 +33,18 @@ async function load(page,poor=false){
     const page=await makePage(browser);await load(page);
     const catalog=await page.evaluate(ids=>ids.map(id=>S2Data.ACTIVITY_MAP[id]),ids);
     for(const activity of catalog) {
-      assert.ok(activity);assert.equal(activity.manualOnly,true);assert.ok(activity.cost>0);
-      assert.equal(await page.locator(`[data-auto-preference="${activity.id}"]`).isDisabled(),true);
+      assert.ok(activity);assert.equal(activity.requiresPreference,true);assert.ok(activity.cost>0);
+      assert.equal(await page.locator(`[data-auto-preference="${activity.id}"]`).isDisabled(),false);
       assert.equal(await page.locator(`[data-activity="${activity.id}"]`).isDisabled(),false);
       assert.equal(await page.locator(`#quick-activity option[value="${activity.id}"]`).evaluate(option=>option.disabled),false);
       await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption(activity.id);
-      assert.ok((await page.locator(`[data-manual-only="${activity.id}"]`).allTextContents()).some(text=>/직접/.test(text)));
-      await reveal(page,page.locator(`[data-activity="${activity.id}"]`));const card=await page.locator(`[data-activity="${activity.id}"]`).innerText();assert.ok(card.includes(activity.name));assert.ok(card.includes(String(activity.minutes)+'분'));assert.match(card,/직접/);
+      assert.ok((await page.locator(`[data-special-outing="${activity.id}"]`).allTextContents()).some(text=>/자동.*계획/.test(text)));
+      await reveal(page,page.locator(`[data-activity="${activity.id}"]`));const card=await page.locator(`[data-activity="${activity.id}"]`).innerText();assert.ok(card.includes(activity.name));assert.ok(card.includes(String(activity.minutes)+'분'));assert.match(card,/선택.*자동/);
       const price=await page.evaluate(id=>S2Data.formatMoney(S2Data.activityPrice(S2Storage.load().state.config,id).amount),activity.id);assert.ok(card.includes(price));
       if(activity.risk){const text=(await page.locator(`[data-activity-risk="${activity.id}"]`).allTextContents()).join('\n');assert.ok(text.includes(String(activity.risk.chance*100)+'%'));assert.match(text,/수리/);assert.match(text,/병원|치료/);assert.match(text,/가정|게임/);}
     }
     await shot(page,'special-activity-details-desktop');
-    pass('all four expensive activities expose their price, duration and explicit-manual status; bike/circuit risk details identify game assumptions and separate repair and medical costs');
+    pass('all four expensive activities expose their price, duration and explicit-preference automatic status; bike/circuit risk details identify game assumptions and separate repair and medical costs');
 
     for(const id of ids){
       const before=(await state(page)).plan;await page.locator('#quick-activity').selectOption(id);await click(page,'#quick-add');
@@ -52,15 +52,15 @@ async function load(page,poor=false){
       await click(page,`.slot[data-date="${added[0].date}"][data-slot="${added[0].slot}"]`);
     }
     const neverAuto=await page.evaluate(ids=>{
-      const config={...S2Storage.load().state.config,preferences:ids};const s=S2Engine.create(config,'worker');
+      const config={...S2Storage.load().state.config,preferences:[]};const s=S2Engine.create(config,'worker');
       for(let i=0;i<5;i++){const result=S2Engine.advanceAutomatic(s,{maxDays:7,decisions:'auto'});if(result.ok===false)throw Error(result.reason);}
       return {plan:s.plan.filter(item=>ids.includes(item.activityId)),logs:s.log.filter(item=>item.type==='activity'&&ids.includes(item.activityId))};
     },ids);
-    assert.deepEqual(neverAuto,{plan:[],logs:[]},'even retained preferences must never silently schedule costly one-off activities');
+    assert.deepEqual(neverAuto,{plan:[],logs:[]},'unselected costly activities must never appear in automatic fallback');
     await load(page,true);
     const poor=await stored(page);
     for(const id of ids){await reveal(page,page.locator('#quick-activity'));await page.locator('#quick-activity').selectOption(id);await click(page,'#quick-add');assert.equal((await state(page)).plan.length,0);assert.deepEqual((await stored(page)).finance,poor.finance);assert.match(await page.locator('#notice').innerText(),/돈|예산|현금|잔액|부족/);}
-    pass('all four activities can be added manually, never appear through automatic preferences, and are rejected without spending money when the budget cannot afford them');
+    pass('all four activities can be added manually, remain absent from automatic fallback when unselected, and are rejected without spending money when the budget cannot afford them');
 
     // Search a bounded deterministic seed sequence using real engine execution;
     // do not inject incident logs or charge money directly from the test.

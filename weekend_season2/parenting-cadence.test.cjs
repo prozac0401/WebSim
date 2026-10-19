@@ -122,7 +122,8 @@ test('manual grooming and recurring choices remain explicit exceptions while aut
   assert.equal(manual.log.filter(log=>log.type==='activity'&&['haircut','haircut_women'].includes(log.activityId)).length,2);
   assert.ok(manual.log.filter(log=>log.type==='activity'&&log.ruleId===rule.id).length>=3);
   const auto=game([],{preferences:['haircut_men'],startCash:5000000,personalBudget:2000000});E.prepareAutoWeek(auto);
-  assert.ok(auto.plan.some(plan=>plan.activityId==='haircut_men'&&plan.automatic));
+  assert.ok(auto.plan.some(plan=>plan.activityId==='haircut'&&plan.automatic));
+  assert.deepEqual(auto.config.preferences,['haircut_men'],'legacy preferences are interpreted without rewriting the save');
   assert.ok(E.addPlan(auto,{activityId:'haircut_women',date:'2026-01-04',slot:'evening'}).ok);
   automatic(auto,()=>auto.date>='2026-01-05');
   const grooming=auto.log.filter(log=>log.type==='activity'&&D.ACTIVITY_MAP[log.activityId].cadence?.group==='haircut');

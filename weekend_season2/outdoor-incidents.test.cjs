@@ -10,17 +10,17 @@ function manualUntil(state,until){for(let i=0;i<100&&!until();i++){const result=
 
 test('four costly outings are explicit half-day choices with bounded durations and adult driving eligibility',()=>{
   assert.deepEqual(ids.map(id=>D.ACTIVITY_MAP[id].cost),[180000,150000,250000,450000]);
-  for(const id of ids){const a=D.ACTIVITY_MAP[id],state=game();assert.equal(a.manualOnly,true);assert.equal(a.location,'local');assert.equal(a.artifact,null);assert.ok(E.activityTime(state,id,state.date,'afternoon')<=240);assert.equal(D.activityReason(state.config,id),'');assert.ok(E.addPlan(state,{date:state.date,slot:'afternoon',activityId:id}).ok);}
+  for(const id of ids){const a=D.ACTIVITY_MAP[id],state=game();assert.equal(a.requiresPreference,true);assert.equal(a.manualOnly,undefined);assert.equal(a.location,'local');assert.equal(a.artifact,null);assert.ok(E.activityTime(state,id,state.date,'afternoon')<=240);assert.equal(D.activityReason(state.config,id),'');assert.ok(E.addPlan(state,{date:state.date,slot:'afternoon',activityId:id}).ok);}
   for(const id of ['motorbike_tour','circuit_drive'])assert.ok(D.activityReason({...D.DEFAULT_CONFIG,age:17},id));
   const longTravel=game({region:'rural',transport:'walk'}),before=JSON.stringify(longTravel);
   assert.equal(E.addPlan(longTravel,{date:longTravel.date,slot:'afternoon',activityId:'domestic_trip'}).ok,false);assert.equal(JSON.stringify(longTravel),before);
 });
 
-test('generation, all automatic directions and new auto preferences never introduce manual-only outings',()=>{
-  assert.ok(D.DEFAULT_CONFIG.preferences.every(id=>!D.ACTIVITY_MAP[id].manualOnly));
-  for(let seed=0;seed<100;seed++)assert.ok(D.generateLife(seed).config.preferences.every(id=>!D.ACTIVITY_MAP[id].manualOnly));
-  for(const direction of E.AUTO_DIRECTIONS){const state=game({preferences:ids});const rng=clone(state.rng);assert.ok(E.prepareAutoWeek(state,{direction}).ok);assert.ok(state.plan.every(item=>!D.ACTIVITY_MAP[item.activityId].manualOnly));assert.deepEqual(state.rng,rng);}
-  const state=game(),before=JSON.stringify(state);assert.equal(E.replaceAutoWeek(state,{preferences:['motorbike_tour']}).ok,false);assert.equal(JSON.stringify(state),before);
+test('generation and unselected automatic directions never introduce costly outings, but explicit preferences and rules can',()=>{
+  assert.ok(D.DEFAULT_CONFIG.preferences.every(id=>!D.ACTIVITY_MAP[id].manualOnly&&!D.ACTIVITY_MAP[id].requiresPreference));
+  for(let seed=0;seed<100;seed++)assert.ok(D.generateLife(seed).config.preferences.every(id=>!D.ACTIVITY_MAP[id].manualOnly&&!D.ACTIVITY_MAP[id].requiresPreference));
+  for(const direction of E.AUTO_DIRECTIONS){const state=game();const rng=clone(state.rng);assert.ok(E.prepareAutoWeek(state,{direction}).ok);assert.ok(state.plan.every(item=>!D.ACTIVITY_MAP[item.activityId].manualOnly&&!D.ACTIVITY_MAP[item.activityId].requiresPreference));assert.deepEqual(state.rng,rng);}
+  const state=game(),rng=clone(state.rng);assert.ok(E.replaceAutoWeek(state,{preferences:['motorbike_tour']}).ok);assert.ok(state.plan.some(item=>item.activityId==='motorbike_tour'&&item.automatic));assert.deepEqual(state.rng,rng);
   const recurring=game();assert.ok(E.addRule(recurring,{activityId:'domestic_trip',anchor:recurring.date,slot:'afternoon'}).ok);assert.ok(E.confirmReservations(recurring).ok);assert.ok(recurring.plan.some(item=>item.activityId==='domestic_trip'&&item.ruleId));
 });
 

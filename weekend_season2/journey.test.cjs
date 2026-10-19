@@ -5,7 +5,7 @@ const D = require('./data.js');
 const C = require('./calendar.js');
 const F = require('./finance.js');
 
-function activeYear(config, eventTrace) {
+function activeYear(config, eventTrace, activityCatalog = D.ACTIVITIES) {
   const state = E.create(config);
   const plannedWeeks = new Set();
   let turns = 0, attempts = 0;
@@ -23,7 +23,7 @@ function activeYear(config, eventTrace) {
     }
     if (!plannedWeeks.has(state.weekStart)) {
       plannedWeeks.add(state.weekStart);
-      const activities = D.ACTIVITIES.filter(a => !a.roles || a.roles.includes(state.config.role));
+      const activities = activityCatalog.filter(a => !a.roles || a.roles.includes(state.config.role));
       for (const day of E.currentWeek(state).filter(day => day.isOff)) {
         for (let slot = 0; slot < 3; slot++) {
           const activity = activities[attempts++ % activities.length];
@@ -82,9 +82,12 @@ test('active choices across four presets and three seeds complete all 365 days w
   }
 });
 
-test('gender alone never changes an actively played year, finances or outcomes', () => {
+test('gender alone never changes an actively played year outside the explicit gender-priced haircut choice', () => {
   const config={...D.PRESETS[0].config, seed:7654};
-  const a=activeYear({...config,gender:'woman'}), b=activeYear({...config,gender:'man'});
+  const activities=D.ACTIVITIES.filter(activity=>activity.cadence?.group!=='haircut');
+  const a=activeYear({...config,gender:'woman'},null,activities), b=activeYear({...config,gender:'man'},null,activities);
+  assert.ok(a.log.some(log=>log.type==='activity'&&log.cost>0),'the comparison includes actual paid activities');
+  assert.ok(a.log.every(log=>log.type!=='activity'||D.ACTIVITY_MAP[log.activityId].cadence?.group!=='haircut'));
   assert.deepEqual(a.log,b.log);
   assert.deepEqual(a.finance,b.finance);
   assert.deepEqual(a.stats,b.stats);

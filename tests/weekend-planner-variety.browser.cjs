@@ -139,12 +139,12 @@ async function checkAverage(page,name){
 
     await fixture(page,{preset:'worker'});
     const editable=(await transfer(page)).after;
-    const free=Array.from({length:30},(_,start)=>start).find(start=>!editable.events.some(event=>event.day==='sat'&&start<event.start_slot+event.duration_slots&&event.start_slot<start+3));
+    const free=Array.from({length:30},(_,start)=>start).find(start=>!editable.events.some(event=>event.day==='sat'&&start<event.start_slot+event.duration_slots&&event.start_slot<start+4));
     assert.notEqual(free,undefined,'the completed-year draft retains space for a manual activity');
-    await page.locator('#wrs-palette .chip[data-template="s2_haircut_men"]').click();
+    await page.locator('#wrs-palette .chip[data-template="s2_haircut"]').click();
     await page.locator('.slots[data-day="sat"] .slot').nth(free).click();
     let added=(await state(page)).events.find(event=>!editable.events.some(original=>original.id===event.id));
-    assert.ok(added);assert.equal(added.label,'남성 커트');assert.equal(added.sourceKind,undefined);
+    assert.ok(added);assert.equal(added.label,'커트');assert.equal(added.sourceKind,undefined);
     await page.locator('#ins-dur').focus();await page.keyboard.press('Home');await page.keyboard.press('ArrowRight');
     added=(await state(page)).events.find(event=>event.id===added.id);
     assert.equal(added.duration_slots,2);
