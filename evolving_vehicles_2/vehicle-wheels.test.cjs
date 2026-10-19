@@ -60,7 +60,7 @@ test('Santa Fe 21-inch specification selects the separate original ICE wheels wi
 });
 test('Morning side-window frames use body paint without recoloring glass, mirrors or low door interiors',()=>{
  const data=dataFor('morning'),frames=data.primitives.filter(p=>p.windowFrame);
- assert.equal(frames.length,4);assert.equal(frames.reduce((n,p)=>n+p.indices.length/3,0),9416);assert.equal(data.primitives.reduce((n,p)=>n+p.indices.length/3,0),262394);
+ assert.equal(frames.length,4);assert.equal(frames.reduce((n,p)=>n+p.indices.length/3,0),2674);assert.equal(data.primitives.reduce((n,p)=>n+p.indices.length/3,0),262394);
  for(const p of frames){assert.equal(p.paint,true);assert.equal(p.material,0);assert.equal(p.textureIndex,undefined);for(const i of p.indices){const k=i*8;assert.ok(p.vertices[k+2]>.89);assert.ok(Math.abs(p.vertices[k+1])>.5&&Math.abs(p.vertices[k+1])<.8);}}
  assert.ok(data.primitives.filter(p=>/Glass|Mirror/i.test(p.materialName||'')).every(p=>!p.paint));
  for(const name of ['Mesh221_2','Mesh222_2','Mesh223_2','Mesh224_2'])assert.equal(data.primitives.find(p=>p.name===name).paint,false);

@@ -28,6 +28,7 @@
   if(data.fallbackPrimitives)data.fallbackPrimitives=data.fallbackPrimitives.map(unpack);
   if(data.wheelVariants)data.wheelVariants=Object.fromEntries(Object.entries(data.wheelVariants).map(([key,value])=>[key,{...value,primitives:value.primitives.map(unpack)}]));
   data=root.VehicleWheels?.prepare(data)||data;
+  data=root.VehicleDRL?.prepare(data)||data;
   // A managed script commits only after its own load + decoding complete.
   // An expired script retains its invalid token in the WeakMap, so even a late
   // execution after element removal cannot become an untracked registration.
@@ -74,10 +75,11 @@
      if(data.fallbackPrimitives){
       const faces=[];
       for(const p of data.fallbackPrimitives){
-       const fill=p.paint?color:'#'+p.color.map(c=>Math.round(Math.max(0,Math.min(1,c))*255).toString(16).padStart(2,'0')).join('');
+       const channels=p.color.map(c=>Math.round(Math.max(0,Math.min(1,c))*255));
+       const fill=p.paint?color:p.drlCover?'rgba('+channels.join(',')+','+p.alpha+')':'#'+channels.map(c=>c.toString(16).padStart(2,'0')).join('');
        for(let i=0;i<p.indices.length;i+=3){const vertices=[];
         for(let j=0;j<3;j++){const k=p.indices[i+j]*8;vertices.push({x:(p.vertices[k]+mesh.modelOffset[0])*mesh.modelScale[0],y:(p.vertices[k+1]+mesh.modelOffset[1])*mesh.modelScale[1],z:(p.vertices[k+2]+mesh.modelOffset[2])*mesh.modelScale[2]});}
-        faces.push({vertices,fill,material:p.paint?'paint':'trim',...(p.wheel?{wheel:p.wheel}:{})});
+        faces.push({vertices,fill,material:p.drl?'light':p.paint?'paint':'trim',...(p.drl?{drl:true}:{}),...(p.wheel?{wheel:p.wheel}:{})});
        }
       }
       fallback={faces};

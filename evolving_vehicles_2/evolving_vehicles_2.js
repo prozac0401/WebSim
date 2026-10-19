@@ -1,7 +1,10 @@
 (async () => {
 'use strict';
 const DEFAULT_VEHICLE='supra',DEFAULT_CIRCUIT='inje';
-const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES,circuits=[...RaceCircuits].sort((a,b)=>Number(b.id===DEFAULT_CIRCUIT)-Number(a.id===DEFAULT_CIRCUIT)),canvas=$('canvas');
+// Temporarily hide inaccurate exteriors from the picker. Keep the original
+// model registrations and powertrain presets so an acquired mesh can restore them.
+const HIDDEN_VEHICLES=new Set(['grandeur','avante','ray','musso_ev','porter2']);
+const $=id=>document.getElementById(id),E=window.TuningEvolution,vehicles=TrackRace.VEHICLES.filter(v=>!HIDDEN_VEHICLES.has(v.id)),circuits=[...RaceCircuits].sort((a,b)=>Number(b.id===DEFAULT_CIRCUIT)-Number(a.id===DEFAULT_CIRCUIT)),canvas=$('canvas');
 let population=[],race,session,generation=1,history=[],watch=0,camera='follow-classic',running=false,manual=false,fast=false,recorded=false,lastFrame=null,lastUI=-1,imageId='',inspectorKey='';
 let paidPopulationSize=Number($('population-size').value),autoEvolution=true,autoStockRepeat=true,stockRun=1;
 const palette=['#2e8eaa','#df8245','#8a70b5','#c94e63','#5d9d55','#d2ad38','#576eb7','#b57045','#48a89b','#b76192','#748b48','#697c8e'];
@@ -13,6 +16,16 @@ const modelReady=()=>!ManufacturerModels.canLoad($('vehicle-model').value)||Manu
 const tell=text=>{$('message').textContent=text;};
 const fTime=value=>{if(!Number.isFinite(value)||value<=0)return '—';const ms=Math.round(value*1000);return String(Math.floor(ms/60000)).padStart(2,'0')+':'+String(Math.floor(ms/1000)%60).padStart(2,'0')+'.'+String(ms%1000).padStart(3,'0');};
 const seedValue=()=>{const v=Math.round(Number($('seed').value));return Number.isFinite(v)?Math.max(1,Math.min(2147483646,v)):31415;};
+function standingsLabel(car){
+ const spec=car.entrant.factorySpec||car.spec,engine=spec.engine||'',electric=spec.electric||spec.powertrainType==='electric';
+ const name=car.entrant.name,drive={fwd:'전륜',rwd:'후륜',awd:'사륜'}[spec.factoryDrive]||spec.factoryDrive;
+ const power=electric?'전기모터 '+(Math.round((spec.motorPowerKw||spec.powerPs*.73549875)*10)/10)+' kW':
+  (spec.displacementCc/1000).toFixed(1)+'L '+(spec.powertrainType==='hybrid'?'하이브리드':spec.powertrainType==='diesel'?'디젤':spec.powertrainType==='lpg'?'LPG':'가솔린')+(/터보/.test(engine)?' 터보':'');
+ const gearbox=PowertrainProfiles.resolve(car).transmissionLabel;
+ const wheel=spec.wheelInches||Number((spec.frontTire||'').match(/R(\d+)/i)?.[1])||Number((spec.variant||'').match(/(\d+)인치/)?.[1]);
+ const details=[power,electric&&spec.batteryKwh?'배터리 '+spec.batteryKwh+' kWh':null,drive,!electric?gearbox:null,wheel?wheel+'인치':null].filter(Boolean).join(' · ');
+ return {name,details,text:name+' · '+details};
+}
 $('vehicle-source').before(document.querySelector('.slope-readout'));
 for(const [label,list] of [
  ['국내 · 자동차 경주장',circuits.filter(c=>c.countryCode==='KR'&&c.category!=='드라이빙 체험'&&c.category!=='운영 확인 필요')],
@@ -68,9 +81,11 @@ function prepareRace(note,keepWatch=false,continuation=false){
   const row=document.createElement('tr');row.dataset.car=car.id;
   const td=document.createElement('td'),button=document.createElement('button');button.type='button';button.dataset.watch=car.id;
   button.innerHTML='<span class="rank"></span><span class="car-dot"></span><span class="driver-name"></span><span class="car-race-number"></span>';
-  button.querySelector('.car-dot').style.background=car.color;button.querySelector('.driver-name').textContent=car.entrant.variantLabel;
+  const label=standingsLabel(car),model=document.createElement('span'),details=document.createElement('small');
+  model.textContent=label.name;details.textContent=label.details;
+  button.querySelector('.car-dot').style.background=car.color;button.querySelector('.driver-name').replaceChildren(model,details);
   button.querySelector('.car-race-number').textContent='#'+String(car.index+1).padStart(2,'0');
-  button.setAttribute('aria-label',String(car.index+1)+'번 '+car.entrant.variantLabel+' 관찰');
+  button.setAttribute('aria-label',String(car.index+1)+'번 '+label.text+' 관찰');
   button.addEventListener('click',()=>selectCar(car.id));td.append(button);row.append(td);
   for(let i=0;i<4;i++)row.append(document.createElement('td'));$('standings').append(row);
  }

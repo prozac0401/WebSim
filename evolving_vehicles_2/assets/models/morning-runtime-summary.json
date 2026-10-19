@@ -6,8 +6,15 @@
     "url": "https://kia-picanto-2024.meta-sense.fr/",
     "configuration": "2024 Kia Picanto exterior from Edenauto launch campaign by Metasense. Exact sales trim is unconfirmed; source parts include both GT-Line and Baseline names. Default 00_OPEN time-zero closed doors; original European wheels and badges differ from Korean Morning. Explicitly named Int_ cabin meshes hidden by opaque glazing are omitted for race performance.",
     "windowFrameFinish": {
-      "description": "Existing side-window frame and B-pillar surfaces use selected body paint; original geometry/glass/mirror/interior preserved.",
-      "triangles": 9416
+      "version": 2,
+      "description": "Connected door perimeter frames/B pillars use body paint; separate rear window dividers, mirror housings and delta plastics are black. Original vertex positions, normals, UVs, glass and interior are preserved.",
+      "triangles": 2674,
+      "parts": {
+        "doorFrame": 2674,
+        "rearDivider": 260,
+        "mirrorDelta": 8088,
+        "mirrorHousing": 1185
+      }
     }
   },
   "bounds": {
@@ -3153,7 +3160,7 @@
       "bounds": {
         "min": [
           -0.3694850206375122,
-          -0.9499320387840271,
+          -0.7975287437438965,
           0.26897871494293213
         ],
         "max": [
@@ -3162,7 +3169,38 @@
           1.4003286361694336
         ]
       },
-      "triangles": 5885,
+      "triangles": 5292,
+      "sourcePrimitive": "Mesh221",
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221__black_mirror_housing",
+      "materialName": "Car_paint",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5350047945976257,
+          -0.9499320387840271,
+          0.9636264443397522
+        ],
+        "max": [
+          0.6684832572937012,
+          -0.7450478672981262,
+          1.072107195854187
+        ]
+      },
+      "triangles": 593,
+      "sourcePrimitive": "Mesh221",
+      "finishPart": "mirrorHousing",
       "textureBytes": 0
     },
     {
@@ -3194,34 +3232,6 @@
       "textureBytes": 0
     },
     {
-      "name": "Mesh221_2",
-      "materialName": "Plastic_black",
-      "color": [
-        0.16742940933814224,
-        0.16742940933814224,
-        0.16742940933814224
-      ],
-      "material": 2,
-      "paint": false,
-      "alpha": 1,
-      "textureOpaque": true,
-      "indexType": 2,
-      "bounds": {
-        "min": [
-          -0.19913098216056824,
-          -0.951168417930603,
-          0.3373972773551941
-        ],
-        "max": [
-          0.7162575125694275,
-          -0.5684019327163696,
-          1.0721075534820557
-        ]
-      },
-      "triangles": 4441,
-      "textureBytes": 0
-    },
-    {
       "name": "Mesh221_2__body_color_window_frame",
       "materialName": "Plastic_black",
       "color": [
@@ -3237,17 +3247,78 @@
       "bounds": {
         "min": [
           -0.3834632635116577,
-          -0.798116147518158,
-          0.8901822566986084
+          -0.7216911315917969,
+          0.9434221982955933
         ],
         "max": [
-          0.7310951352119446,
+          0.633369505405426,
           -0.5398308038711548,
           1.411399483680725
         ]
       },
-      "triangles": 3803,
+      "triangles": 747,
+      "sourcePrimitive": "Mesh221_2",
+      "finishPart": "doorFrame",
       "windowFrame": true,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_2__black_mirror_delta",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5239266157150269,
+          -0.951168417930603,
+          0.860231876373291
+        ],
+        "max": [
+          0.7310951352119446,
+          -0.5977826118469238,
+          1.1678037643432617
+        ]
+      },
+      "triangles": 4390,
+      "sourcePrimitive": "Mesh221_2",
+      "finishPart": "mirrorDelta",
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh221_2",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -0.19913098216056824,
+          -0.6617687344551086,
+          0.3373972773551941
+        ],
+        "max": [
+          0.6516228914260864,
+          -0.5684019327163696,
+          0.9087910652160645
+        ]
+      },
+      "triangles": 3107,
+      "sourcePrimitive": "Mesh221_2",
       "textureBytes": 0
     },
     {
@@ -3468,11 +3539,42 @@
         ],
         "max": [
           0.7426161170005798,
-          0.949436366558075,
+          0.7955368161201477,
           1.4057577848434448
         ]
       },
-      "triangles": 6449,
+      "triangles": 5857,
+      "sourcePrimitive": "Mesh222",
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh222__black_mirror_housing",
+      "materialName": "Car_paint",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5345442295074463,
+          0.7447373270988464,
+          0.9636229276657104
+        ],
+        "max": [
+          0.668434202671051,
+          0.949436366558075,
+          1.0720775127410889
+        ]
+      },
+      "triangles": 592,
+      "sourcePrimitive": "Mesh222",
+      "finishPart": "mirrorHousing",
       "textureBytes": 0
     },
     {
@@ -3504,6 +3606,36 @@
       "textureBytes": 0
     },
     {
+      "name": "Mesh222_2__black_mirror_delta",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          0.5234776735305786,
+          0.6000563502311707,
+          0.8602467775344849
+        ],
+        "max": [
+          0.7311617732048035,
+          0.9507008194923401,
+          1.1677024364471436
+        ]
+      },
+      "triangles": 3698,
+      "sourcePrimitive": "Mesh222_2",
+      "finishPart": "mirrorDelta",
+      "textureBytes": 0
+    },
+    {
       "name": "Mesh222_2",
       "materialName": "Plastic_black",
       "color": [
@@ -3523,12 +3655,13 @@
           0.3373083174228668
         ],
         "max": [
-          0.7153595685958862,
-          0.9507008194923401,
-          1.0720781087875366
+          0.6520287394523621,
+          0.6605510115623474,
+          0.903455913066864
         ]
       },
-      "triangles": 7456,
+      "triangles": 6393,
+      "sourcePrimitive": "Mesh222_2",
       "textureBytes": 0
     },
     {
@@ -3548,15 +3681,17 @@
         "min": [
           -0.38316208124160767,
           0.5406876802444458,
-          0.8906880021095276
+          0.9869797229766846
         ],
         "max": [
-          0.7311617732048035,
-          0.7977627515792847,
+          0.6335378885269165,
+          0.7130433320999146,
           1.411041259765625
         ]
       },
-      "triangles": 3168,
+      "triangles": 533,
+      "sourcePrimitive": "Mesh222_2",
+      "finishPart": "doorFrame",
       "windowFrame": true,
       "textureBytes": 0
     },
@@ -3814,6 +3949,67 @@
       "textureBytes": 0
     },
     {
+      "name": "Mesh223_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2626498937606812,
+          -0.7151665687561035,
+          0.9803659915924072
+        ],
+        "max": [
+          -0.33132123947143555,
+          -0.5357245206832886,
+          1.4116066694259644
+        ]
+      },
+      "triangles": 698,
+      "sourcePrimitive": "Mesh223_2",
+      "finishPart": "doorFrame",
+      "windowFrame": true,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh223_2__black_rear_window_divider",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0177748203277588,
+          -0.6846752166748047,
+          1.0389223098754883
+        ],
+        "max": [
+          -0.9818235039710999,
+          -0.5568309426307678,
+          1.3489073514938354
+        ]
+      },
+      "triangles": 130,
+      "sourcePrimitive": "Mesh223_2",
+      "finishPart": "rearDivider",
+      "textureBytes": 0
+    },
+    {
       "name": "Mesh223_2",
       "materialName": "Plastic_black",
       "color": [
@@ -3835,39 +4031,11 @@
         "max": [
           -0.40852612257003784,
           -0.5706602931022644,
-          0.7803006768226624
+          0.9788212180137634
         ]
       },
-      "triangles": 2269,
-      "textureBytes": 0
-    },
-    {
-      "name": "Mesh223_2__body_color_window_frame",
-      "materialName": "Plastic_black",
-      "color": [
-        0.82,
-        0.83,
-        0.83
-      ],
-      "material": 0,
-      "paint": true,
-      "alpha": 1,
-      "textureOpaque": true,
-      "indexType": 2,
-      "bounds": {
-        "min": [
-          -1.2626498937606812,
-          -0.7151665687561035,
-          0.9165955781936646
-        ],
-        "max": [
-          -0.33132123947143555,
-          -0.5357245206832886,
-          1.4116066694259644
-        ]
-      },
-      "triangles": 1234,
-      "windowFrame": true,
+      "triangles": 2675,
+      "sourcePrimitive": "Mesh223_2",
       "textureBytes": 0
     },
     {
@@ -4040,6 +4208,67 @@
       "textureBytes": 0
     },
     {
+      "name": "Mesh224_2__body_color_window_frame",
+      "materialName": "Plastic_black",
+      "color": [
+        0.82,
+        0.83,
+        0.83
+      ],
+      "material": 0,
+      "paint": true,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.2626498937606812,
+          0.5357245802879333,
+          0.9803659915924072
+        ],
+        "max": [
+          -0.33132123947143555,
+          0.7151665091514587,
+          1.4116066694259644
+        ]
+      },
+      "triangles": 696,
+      "sourcePrimitive": "Mesh224_2",
+      "finishPart": "doorFrame",
+      "windowFrame": true,
+      "textureBytes": 0
+    },
+    {
+      "name": "Mesh224_2__black_rear_window_divider",
+      "materialName": "Plastic_black",
+      "color": [
+        0.16742940933814224,
+        0.16742940933814224,
+        0.16742940933814224
+      ],
+      "material": 2,
+      "paint": false,
+      "alpha": 1,
+      "textureOpaque": true,
+      "indexType": 2,
+      "bounds": {
+        "min": [
+          -1.0177748203277588,
+          0.5568309426307678,
+          1.0389223098754883
+        ],
+        "max": [
+          -0.9818235039710999,
+          0.6846752166748047,
+          1.3489073514938354
+        ]
+      },
+      "triangles": 130,
+      "sourcePrimitive": "Mesh224_2",
+      "finishPart": "rearDivider",
+      "textureBytes": 0
+    },
+    {
       "name": "Mesh224_2",
       "materialName": "Plastic_black",
       "color": [
@@ -4061,39 +4290,11 @@
         "max": [
           -0.40852612257003784,
           0.6712129712104797,
-          0.7803006768226624
+          0.9788212180137634
         ]
       },
-      "triangles": 2259,
-      "textureBytes": 0
-    },
-    {
-      "name": "Mesh224_2__body_color_window_frame",
-      "materialName": "Plastic_black",
-      "color": [
-        0.82,
-        0.83,
-        0.83
-      ],
-      "material": 0,
-      "paint": true,
-      "alpha": 1,
-      "textureOpaque": true,
-      "indexType": 2,
-      "bounds": {
-        "min": [
-          -1.2626498937606812,
-          0.5357245802879333,
-          0.9165955781936646
-        ],
-        "max": [
-          -0.33132123947143555,
-          0.7151665091514587,
-          1.4116066694259644
-        ]
-      },
-      "triangles": 1211,
-      "windowFrame": true,
+      "triangles": 2644,
+      "sourcePrimitive": "Mesh224_2",
       "textureBytes": 0
     },
     {
