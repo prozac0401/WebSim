@@ -18,6 +18,7 @@
   let saveProblem = initialSaveNotice;
   let hazardViewKey = '';
   let tracker = null, selectedRobot = 'A', totalTurns = 0, tutorialIndex = 0, tutorialRunner = null;
+  let blockGesture = null, dragFrame = 0, suppressBlockClick = false;
   const ctx = $('canvas').getContext('2d');
   function unlocked() { return levels.filter(l => S.isUnlocked(saved,l.id,levels)).map(l=>l.id); }
   function observedRobot() { return snapshot?.robots?.find(r=>r.id===selectedRobot)||snapshot; }
@@ -106,9 +107,137 @@
     });
     if(ok) tell(n.type === 'repeat' ? '반복을 펼쳤어요. 되풀이할 블록을 넣어 주세요.' : n.type === 'if' ? '예 가지에 코드를 넣어요. 아니요 가지의 추가 버튼으로 위치를 바꿀 수 있어요.' : labels[kind] + ' 블록을 넣었어요.');
   }
+  function deleteBlock(id) {
+    const where=locate(id),list=where&&listAt(where),index=list?.findIndex(n=>n.id===id);
+    if(!list||index<0)return false;
+    const node=list[index],name=labels[nodeKey(node)]+((node.body||node.then)?' 블록과 안쪽 명령':' 블록');
+    const wasOverLimit=E.validate(program,level).count>level.maxCommands;
+    if(!edit(()=>{list.splice(index,1);scope=clone(where);selected=null;}))return false;
+    const count=E.validate(program,level).count;
+    tell(name+'을 삭제했어요. 실행 취소로 되돌릴 수 있어요.'+(count>level.maxCommands?' '+budgetNotice(count):wasOverLimit?' 블록 제한 안에 들어왔어요. 실행해서 길을 확인해 보세요.':''));
+    return true;
+  }
+  function moveBlock(id,target) {
+    const where=locate(id),source=where&&listAt(where),destination=listAt(target.where);
+    const from=source?.findIndex(n=>n.id===id);
+    // Reject before removal: a container inserted in its own detached subtree
+    // would otherwise disappear from the reachable program before validation.
+    if(!source||from<0||!destination)return false;
+    if(target.where.trail.some(p=>p.id===id)){tell('블록을 자기 안쪽으로 옮길 수 없어요.');return false;}
+    let to=Math.max(0,Math.min(destination.length,target.index));
+    if(source===destination&&to>from)to--;
+    if(source===destination&&to===from)return false;
+    const node=source[from];
+    if(!edit(()=>{source.splice(from,1);destination.splice(to,0,node);scope=clone(target.where);selected=id;}))return false;
+    const count=E.validate(program,level).count;
+    tell(labels[nodeKey(node)]+' 블록을 '+scopeTitle()+'의 '+(to+1)+'번째로 옮겼어요. 실행 취소로 되돌릴 수 있어요.'+(count>level.maxCommands?' '+budgetNotice(count):''));
+    return true;
+  }
+  function dropTarget(element,where,index,label) {
+    const parent=where.trail.at(-1);
+    Object.assign(element.dataset,{dropRoot:where.root,dropParent:parent?.id||'',dropBranch:parent?.branch||'',dropIndex:String(index),dropScope:JSON.stringify(where),dropLabel:label});
+  }
+  function clearBlockGesture() {
+    const gesture=blockGesture;blockGesture=null;
+    cancelAnimationFrame(dragFrame);dragFrame=0;
+    document.body.classList.remove('block-dragging');
+    if(!gesture)return;
+    gesture.card.style.removeProperty('transform');gesture.card.classList.remove('drag-source');
+    gesture.shell.classList.remove('swiping','swipe-ready','swipe-left','swipe-right');
+    gesture.ghost?.remove();gesture.dropElement?.classList.remove('drop-ready','drop-invalid');
+    if($('program').hasPointerCapture(gesture.pointer))$('program').releasePointerCapture(gesture.pointer);
+  }
+  function updateDragTarget(gesture) {
+    gesture.dropElement?.classList.remove('drop-ready','drop-invalid');
+    const hit=document.elementFromPoint(gesture.x,gesture.y)?.closest('[data-drop-scope]');
+    gesture.target=null;gesture.dropElement=hit;
+    if(!hit){gesture.ghost.textContent=gesture.label+' · 놓을 위치로 이동';return;}
+    const where=JSON.parse(hit.dataset.dropScope),list=listAt(where);
+    if(!list)return;
+    let index=Number(hit.dataset.dropIndex),label=hit.dataset.dropLabel;
+    if(hit.dataset.dropAround){const rect=hit.getBoundingClientRect();if(gesture.y>rect.y+rect.height/2){index++;label='이 블록 뒤';}}
+    const invalid=where.trail.some(p=>p.id===gesture.id);
+    hit.classList.add(invalid?'drop-invalid':'drop-ready');
+    gesture.ghost.textContent=invalid?'자기 안쪽에는 놓을 수 없어요':label+'에 놓기';
+    gesture.target={where,index};
+  }
+  function dragScroll() {
+    const g=blockGesture;if(!g||g.mode!=='drag')return;
+    if(locked()||!g.card.isConnected){clearBlockGesture();return;}
+    const area=$('program'),rect=area.getBoundingClientRect();
+    let scrolled=false;
+    if(area.scrollHeight>area.clientHeight&&g.x>=rect.left&&g.x<=rect.right&&g.y>=rect.top-24&&g.y<=rect.bottom+24){
+      const dy=g.y<rect.top+32?-9:g.y>rect.bottom-32?9:0,before=area.scrollTop;
+      area.scrollTop+=dy;scrolled=area.scrollTop!==before;
+    }
+    if(!scrolled){const dy=g.y<65?-10:g.y>innerHeight-65?10:0;if(dy)(document.fullscreenElement||document.scrollingElement).scrollTop+=dy;}
+    updateDragTarget(g);dragFrame=requestAnimationFrame(dragScroll);
+  }
+  document.addEventListener('pointerdown',event=>{
+    if(blockGesture){clearBlockGesture();if(!event.isPrimary){suppressBlockClick=true;return;}}
+    suppressBlockClick=false;
+    if(!event.isPrimary||event.button!==0||locked())return;
+    const grip=event.target.closest('[data-drag]'),body=event.target.closest('.block-main');
+    const card=(grip||body)?.closest('#program .block');if(!card)return;
+    if(grip)stop(false);
+    const where=locate(card.dataset.block),node=where&&listAt(where)?.find(n=>n.id===card.dataset.block);if(!node)return;
+    const g=blockGesture={pointer:event.pointerId,id:node.id,card,shell:card.parentElement,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY,mode:grip?'drag':'pending',moved:false,threshold:Math.min(96,Math.max(64,card.offsetWidth*.28)),label:labels[nodeKey(node)]};
+    if(grip){
+      event.preventDefault();$('program').setPointerCapture(event.pointerId);card.classList.add('drag-source');document.body.classList.add('block-dragging');
+      g.ghost=document.createElement('div');g.ghost.className='drag-ghost';g.ghost.textContent=g.label+' · 놓을 위치로 이동';document.body.append(g.ghost);
+      g.ghost.style.left=Math.min(innerWidth-180,g.x+12)+'px';g.ghost.style.top=Math.max(8,g.y-48)+'px';dragFrame=requestAnimationFrame(dragScroll);
+    }
+  },true);
+  document.addEventListener('pointermove',event=>{
+    const g=blockGesture;if(!g||g.pointer!==event.pointerId)return;
+    if(locked()||!g.card.isConnected){clearBlockGesture();return;}
+    g.x=event.clientX;g.y=event.clientY;
+    const dx=g.x-g.startX,dy=g.y-g.startY;
+    if(g.mode==='pending'){
+      if(Math.abs(dy)>10&&Math.abs(dy)>=Math.abs(dx)){clearBlockGesture();return;}
+      if(Math.abs(dx)<12||Math.abs(dx)<Math.abs(dy)*1.6)return;
+      stop(false);g.mode='swipe';$('program').setPointerCapture(g.pointer);
+    }
+    if(g.mode==='swipe'){
+      event.preventDefault();g.moved=true;
+      const offset=Math.max(-g.threshold-26,Math.min(g.threshold+26,dx));
+      g.card.style.transform=`translateX(${offset}px)`;g.shell.classList.add('swiping');
+      g.shell.classList.toggle('swipe-left',dx<0);g.shell.classList.toggle('swipe-right',dx>=0);
+      const ready=Math.abs(dx)>=g.threshold&&Math.abs(dx)>Math.abs(dy)*1.6;
+      g.shell.classList.toggle('swipe-ready',ready);g.shell.querySelector('.swipe-label').textContent=ready?'놓으면 삭제':'더 밀기';
+    }else if(g.mode==='drag'){
+      event.preventDefault();g.moved ||= Math.hypot(dx,dy)>8;
+      g.ghost.style.left=Math.max(8,Math.min(innerWidth-180,g.x+12))+'px';g.ghost.style.top=Math.max(8,g.y-48)+'px';updateDragTarget(g);
+    }
+  },{passive:false});
+  document.addEventListener('pointerup',event=>{
+    const g=blockGesture;if(!g||g.pointer!==event.pointerId)return;
+    const dx=event.clientX-g.startX,dy=event.clientY-g.startY;
+    if(g.mode==='pending'){clearBlockGesture();return;}
+    event.preventDefault();suppressBlockClick=true;
+    if(g.mode==='drag'){g.x=event.clientX;g.y=event.clientY;updateDragTarget(g);}
+    const target=g.target;clearBlockGesture();
+    if(locked())return;
+    if(g.mode==='swipe'&&Math.abs(dx)>=g.threshold&&Math.abs(dx)>Math.abs(dy)*1.6)deleteBlock(g.id);
+    else if(g.mode==='drag'&&g.moved&&target)moveBlock(g.id,target);
+  },{passive:false});
+  document.addEventListener('pointercancel',event=>{if(blockGesture?.pointer===event.pointerId){suppressBlockClick=true;clearBlockGesture();}});
+  // Touch starts with implicit capture on the pressed button. Transferring it
+  // to the stable editor emits a bubbled loss from that button, not a cancel.
+  $('program').addEventListener('lostpointercapture',event=>{if(event.target===$('program')&&!$('program').hasPointerCapture(event.pointerId)&&blockGesture?.pointer===event.pointerId)clearBlockGesture();});
+  document.addEventListener('click',event=>{
+    if(!suppressBlockClick||!event.detail)return;
+    suppressBlockClick=false;
+    // Only a leftover click on the command tree can select a replacement
+    // block. Never consume an unrelated Run/Undo/control click.
+    if(event.target.closest('#program')){event.preventDefault();event.stopImmediatePropagation();}
+  },true);
+  window.addEventListener('blur',clearBlockGesture);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearBlockGesture();});
   function renderEditor() {
+    clearBlockGesture();
     const previousFocus=document.activeElement;
-    const focusField=['data-add','data-scope','data-node','data-enter','data-insert','data-repeat','data-function'].find(key=>previousFocus?.hasAttribute(key));
+    const focusField=['data-add','data-scope','data-node','data-drag','data-enter','data-insert','data-repeat','data-function'].find(key=>previousFocus?.hasAttribute(key));
     const focusValue=focusField?previousFocus.getAttribute(focusField):null;
     if(!listAt()) {scope={root:'main',trail:[]};selected=null;}
     revealScope();
@@ -120,7 +249,7 @@
     $('budget-rule').classList.toggle('over',checked.count>level.maxCommands);
     const paletteKeys=['forward','left','right','repeat','wait','blocked','mark','box','home','F1','F2'].filter(k=>level.unlocks.includes(k));
     $('palette').replaceChildren(...paletteKeys.map(kind=>{const b=document.createElement('button');b.dataset.add=kind;b.setAttribute('aria-label',labels[kind]+' 넣기');b.innerHTML=`<span class="symbol" aria-hidden="true">${symbols[kind]}</span><span>${labels[kind]}</span>`;b.onclick=()=>add(kind);return b;}));
-    $('scope-tabs').replaceChildren(...['main','F1','F2'].filter(root=>root==='main'||level.unlocks.includes(root)).map(root=>{const b=document.createElement('button');b.dataset.scope=root;b.textContent=root==='main'?'시작':root+' 보관함';b.setAttribute('aria-pressed',String(scope.root===root));b.onclick=()=>{scope={root,trail:[]};selected=null;renderEditor();};return b;}));
+    $('scope-tabs').replaceChildren(...['main','F1','F2'].filter(root=>root==='main'||level.unlocks.includes(root)).map(root=>{const b=document.createElement('button');b.dataset.scope=root;b.textContent=root==='main'?'시작':root+' 보관함';b.setAttribute('aria-pressed',String(scope.root===root));b.onclick=()=>{scope={root,trail:[]};selected=null;renderEditor();};dropTarget(b,{root,trail:[]},program[root].length,root==='main'?'시작 맨 뒤':root+' 맨 뒤');return b;}));
     $('scope-name').textContent=scopeTitle();$('scope-back').hidden=!scope.trail.length;
     $('program').replaceChildren();
     $('program').setAttribute('aria-label',(scope.root==='main'?'시작':scope.root)+' 명령 트리');
@@ -128,12 +257,16 @@
     if(!list.length&&!where.trail.length){const empty=document.createElement('div');empty.className='empty-program';empty.textContent=where.root==='main'?'↑ 위의 블록을 눌러 첫 발걸음을 넣어 주세요.':'자주 쓰는 움직임을 담아 주세요. 시작에서 '+where.root+'을 부르면 실행돼요.';container.append(empty);}
     list.forEach((n,index)=>{
       const treeNode=document.createElement('div');treeNode.className='tree-node';
+      const slot=document.createElement('div');slot.className='drag-slot';slot.dataset.dropBefore=n.id;slot.textContent='여기에 놓기';dropTarget(slot,where,index,'이 블록 앞');treeNode.append(slot);
       const key=nodeKey(n),card=document.createElement('div');card.className='block '+n.type;card.dataset.block=n.id;
+      const shell=document.createElement('div');shell.className='swipe-shell';const swipeLabel=document.createElement('span');swipeLabel.className='swipe-label';swipeLabel.setAttribute('aria-hidden','true');shell.append(swipeLabel,card);treeNode.append(shell);
+      dropTarget(card,where,index,'이 블록 앞');card.dataset.dropAround='true';
       const active=observedRobot();
       card.classList.toggle('selected',selected===n.id);card.classList.toggle('executing',active?.currentId===n.id&&snapshot?.status!=='failure');card.classList.toggle('crashed',active?.currentId===n.id&&(snapshot?.status==='failure'||active?.event?.cancelled));
       const b=document.createElement('button');b.className='block-main';b.dataset.node=n.id;b.setAttribute('aria-label',`${index+1}번 ${labels[key]} 선택`);b.setAttribute('aria-pressed',String(selected===n.id));
       b.innerHTML=`<span class="block-number">${String(index+1).padStart(2,'0')}</span><span class="symbol" aria-hidden="true">${symbols[key]}</span><span>${labels[key]}${n.type==='repeat'?' × '+n.count:''}</span>`;
-      b.onclick=()=>{scope=clone(where);selected=n.id;renderEditor();};card.append(b);treeNode.append(card);
+      b.setAttribute('aria-describedby','gesture-tip');b.onclick=()=>{scope=clone(where);selected=n.id;renderEditor();};
+      const grip=document.createElement('button');grip.className='drag-handle';grip.dataset.drag=n.id;grip.textContent='⠿';grip.title='끌어서 반복문이나 가지 안팎으로 옮기기';grip.setAttribute('aria-label',`${index+1}번 ${labels[key]} 끌어 이동`);grip.setAttribute('aria-describedby','gesture-tip');grip.onclick=event=>{if(!event.detail){scope=clone(where);selected=n.id;renderEditor();tell('블록을 선택했어요. 이동·삭제 버튼으로도 편집할 수 있어요.');}};card.append(grip,b);
       const children=document.createElement('div');children.className='tree-children';
       const enter=(branch,label)=>{
         const branchKey=n.id+':'+branch,expanded=!collapsedBranches.has(branchKey);
@@ -149,6 +282,7 @@
         const group=document.createElement('div');group.className='tree-branch';group.id='branch-'+branchKey;group.hidden=!expanded;group.setAttribute('role','group');group.setAttribute('aria-label',label+' 명령');
         group.classList.toggle('insertion-scope',sameScope(scope,childScope));
         const insertion=document.createElement('button');insertion.className='branch-insert';insertion.dataset.insert=branchKey;
+        dropTarget(insertion,childScope,n[branch].length,branchLabel+' 맨 뒤');
         insertion.textContent='＋ '+branchLabel+'에 추가'+(sameScope(scope,childScope)?' · 선택됨':'');insertion.setAttribute('aria-pressed',String(sameScope(scope,childScope)));
         insertion.onclick=()=>{scope=clone(childScope);selected=null;renderEditor();tell(scopeTitle()+' 맨 뒤에 넣어요. 위에서 블록을 골라 주세요.');};group.append(insertion);
         const branchList=document.createElement('div');branchList.className='tree-list';renderList(n[branch],childScope,branchList);group.append(branchList);
@@ -156,6 +290,7 @@
         children.append(group);
       };
       if(n.type==='repeat'){
+        dropTarget(card,{root:where.root,trail:where.trail.concat({id:n.id,branch:'body'})},n.body.length,'반복 안');delete card.dataset.dropAround;
         const countLabel=document.createElement('label');countLabel.className='repeat-count';countLabel.append('횟수 ');
         const count=document.createElement('select');count.dataset.repeat=n.id;count.setAttribute('aria-label',`${index+1}번 반복 횟수`);
         for(let v=2;v<=12;v++){const option=document.createElement('option');option.value=v;option.textContent=v+'회';count.append(option);}count.value=n.count;
@@ -170,6 +305,7 @@
     }
     renderList(program[scope.root],{root:scope.root,trail:[]},$('program'));
     const list=listAt();
+    dropTarget($('insert-end'),scope,list.length,scopeTitle()+' 맨 뒤');
     const i=list.findIndex(n=>n.id===selected);$('move-up').disabled=i<=0;$('move-down').disabled=i<0||i===list.length-1;$('delete').disabled=i<0;
     $('selected-name').textContent=i<0?'블록을 선택하면 옮길 수 있어요':`${i+1}번 ${labels[nodeKey(list[i])]} 다음에 넣어요`;
     $('insert-end').textContent=selected?'＋ 선택 해제 · 맨 뒤에 넣기':'＋ 이 범위 맨 뒤에 넣기';
@@ -203,7 +339,8 @@
       else if(rect.bottom>bounds.bottom-4)tree.scrollTop+=rect.bottom-bounds.bottom+4;
     }
     rect=card.getBoundingClientRect();
-    const top=matchMedia('(max-width:740px)').matches?document.querySelector('.stage').getBoundingClientRect().bottom+12:12;
+    const stage=document.querySelector('.stage');
+    const top=matchMedia('(max-width:740px)').matches&&getComputedStyle(stage).position==='sticky'?stage.getBoundingClientRect().bottom+12:12;
     const bottom=window.innerHeight-12;
     if(rect.top<top)window.scrollBy({top:rect.top-top,behavior:'instant'});
     else if(rect.bottom>bottom)window.scrollBy({top:rect.bottom-bottom,behavior:'instant'});
@@ -294,7 +431,7 @@
   $('insert-end').onclick=()=>{selected=null;renderEditor();tell('지금 범위의 맨 뒤에 넣어요. 위에서 블록을 골라 주세요.');};
   $('move-up').onclick=()=>edit(()=>{const list=listAt(),i=list.findIndex(n=>n.id===selected);if(i>0)[list[i-1],list[i]]=[list[i],list[i-1]];});
   $('move-down').onclick=()=>edit(()=>{const list=listAt(),i=list.findIndex(n=>n.id===selected);if(i>=0&&i<list.length-1)[list[i+1],list[i]]=[list[i],list[i+1]];});
-  $('delete').onclick=()=>{if(selected)edit(()=>{const list=listAt(),i=list.findIndex(n=>n.id===selected);if(i>=0)list.splice(i,1);selected=null;});};
+  $('delete').onclick=()=>{if(selected)deleteBlock(selected);};
   $('clear').onclick=()=>{if(edit(()=>{program=blank();scope={root:'main',trail:[]};selected=null;}))tell('코드를 비웠어요. 실행 취소로 되돌릴 수 있어요.');};
   $('undo').onclick=()=>{if(locked()||!history.length)return;const old=history.pop();stop(true);program=old.program;scope=old.scope;selected=old.selected;mapIndex=0;persist();renderEditor();renderMapDescription();draw();tell('방금 편집을 되돌렸어요.');};
   $('hint').onclick=()=>{tracker.hint();persist();const hints=level.hints;$('hint-text').textContent=hints[Math.min(hintIndex,hints.length-1)];hintIndex++;$('hint').textContent=hintIndex>=hints.length?'✦ 힌트 모두 봤어요':'✦ 한 번 더 보기';$('hint').disabled=hintIndex>=hints.length;};
