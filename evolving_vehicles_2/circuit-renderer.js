@@ -163,7 +163,7 @@
       if(!canvas||typeof canvas.getContext!=='function')throw new TypeError('CircuitRenderer requires a canvas.');
       this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:false});this.options=options;
       this.width=900;this.height=565;this.dpr=1;this.mode='overview';this.yaw=-.42;this.pitch=.90;this.zoomLevel=1;
-      this.followYaw=0;this.watch=0;this._followState=null;this.markerPositions=[];this.meshCache=new Map();this.pointers=new Map();this.listeners=[];
+      this.followYaw=0;this.watch=0;this._followState=null;this._classicFollowState=null;this.markerPositions=[];this.meshCache=new Map();this.pointers=new Map();this.listeners=[];
       this.panOffset={x:0,y:0,z:0};this.interactionMode='orbit';
       this.canvas.style.touchAction='none';this.canvas.style.cursor='grab';
       this._bind();this.resize();
@@ -228,7 +228,11 @@
     }
     _changed(){if(this.options.onChange)this.options.onChange(this.getState());}
     resize(){
-      const rect=this.canvas.getBoundingClientRect();this.width=Math.max(1,rect.width||900);this.height=Math.max(1,rect.height||565);
+      const rect=this.canvas.getBoundingClientRect(),width=Math.max(1,rect.width||900),height=Math.max(1,rect.height||565);
+      // Reframe the close lens immediately on an idle fullscreen/resize. Keep
+      // user orbit/pan/zoom and the classic view's angular inertia unchanged.
+      if(width!==this.width||height!==this.height)this._followState=null;
+      this.width=width;this.height=height;
       this.dpr=clamp(root.devicePixelRatio||1,1,2);this.canvas.width=Math.round(this.width*this.dpr);this.canvas.height=Math.round(this.height*this.dpr);
     }
     clearVehicleModels(){this.meshCache.clear();this.surfaceRenderer?.clearGeometry();}
@@ -241,6 +245,7 @@
       if(preserveCamera&&this.race?.circuit===race.circuit){
         const oldCar=this.race.cars.find(c=>c.id===this.watch)||this.race.cars[0];
         if(this._followState&&oldCar){const lap=oldCar.totalDistance??this.race.totalDistance;for(const key of ['distance','eyeDistance','goalEyeDistance','sampleDistance'])this._followState[key]-=lap;}
+        if(this._classicFollowState&&oldCar)this._classicFollowState.distance-=oldCar.totalDistance??this.race.totalDistance;
         this.race=race;return;
       }
       if(this.race?.cars[0]?.vehicleId!==race.cars[0]?.vehicleId)this.clearVehicleModels();
@@ -252,13 +257,14 @@
       this._makeRoad();
       this.pits=root.PitFacilities?.build(this.displayTrack,root.PitFacilityData?.[race.track.id])||null;
       this.environment=root.TrackEnvironment?.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;
-      this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this.landmark=null;
+      this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this._classicFollowState=null;this.landmark=null;
     }
+    _isFollowView(){return this.mode==='follow'||this.mode==='follow-classic';}
     setView(mode){
-      if(!['overview','follow','top','eau-rouge','pits'].includes(mode))return;
+      if(!['overview','follow','follow-classic','top','eau-rouge','pits'].includes(mode))return;
       if(mode==='eau-rouge'&&this.race?.track.id!=='spa')mode='follow';
       if(mode==='pits'&&!this.pits?.focus)mode='overview';
-      this.mode=mode;this.zoomLevel=1;this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._followState=null;
+      this.mode=mode;this.zoomLevel=1;this.panOffset={x:0,y:0,z:0};this._lastCamera=null;this._followState=null;this._classicFollowState=null;
       if(mode==='top'){this.pitch=Math.PI/2-.008;this.yaw=0;}
       else if(mode==='overview'){this.pitch=.90;this.yaw=-.42;}
       else if(mode==='pits'){this.pitch=.48;this.yaw=this.pits.focus.yaw;}
@@ -269,11 +275,11 @@
         const low=this._displayPose(nearest(xy(5.970788,50.442385))),high=this._displayPose(nearest(xy(5.972132,50.440815)));
         this.landmark={target:point((low.x+high.x)/2,(low.y+high.y)/2,(low.z+high.z)/2),distance:Math.max(230,Math.hypot(high.x-low.x,high.y-low.y)*1.28),low,high};
         this.pitch=.25;this.yaw=Math.atan2(high.y-low.y,high.x-low.x)+Math.PI/2-.42;
-      }else {this.pitch=0;this.followYaw=0;}
+      }else {this.pitch=mode==='follow-classic'?.24:0;this.followYaw=0;}
     }
     orbit(dx,dy){
       const delta=dx*.007;
-      if(this.mode==='follow')this.followYaw+=delta;else this.yaw+=delta;
+      if(this._isFollowView())this.followYaw+=delta;else this.yaw+=delta;
       this.pitch=clamp(this.pitch+dy*.005,this.mode==='follow'?-.12:.18,Math.PI/2-.008);this._changed();
     }
     setInteractionMode(mode){
@@ -311,11 +317,81 @@
     _followSample(car,distance){return this._displayPose(root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance));}
     _followDistance(car){
       const f=this.height/(2*Math.tan(16*Math.PI/180));
-      return Math.max(16,((car.spec?.lengthMm||4800)/1000)*3.5,((car.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(180,this.width*.30)));
+      // Close the normal rear gap by 28%; tall portrait canvases still need
+      // enough room for the full car when the past path sees its side.
+      return Math.max(.72*Math.max(16,((car.spec?.lengthMm||4800)/1000)*3.5),((car.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(220,this.width*.30)));
     }
     _followGoal(car){
       const p=this._followSample(car,car.distance),trail=this._followDistance(car),eyeDistance=car.distance-trail;
       return this._followEye(car,{id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.65,distance:car.distance,trail,eyeDistance,goalEyeDistance:eyeDistance,eyeVelocity:0});
+    }
+    // The original 58-degree rear view retains its own angular spring state.
+    _classicFollowGoal(car){
+      const sample=distance=>root.DrivingPose?.sampleCar?.(this.race,car,distance)||root.DrivingPose?.sample(this.race,distance)||this.race.sampleForCar?.(car,distance)||this.race.sample(distance);
+      const p=this._displayPose(sample(car.distance)),speed=Math.max(0,Number(car.speed)||0),desired=clamp(8+speed*.25,8,20);
+      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
+      // Estimate bend size from chords, not the instantaneous spline curvature.
+      // The neighbouring chords also see a tight bend before a wide filter
+      // could accidentally average across its return leg.
+      const probes=[sample(car.distance-2*desired),sample(car.distance-desired),p,sample(car.distance+desired),sample(car.distance+2*desired)];
+      const directions=probes.slice(1).map((q,i)=>Math.atan2(q.y-probes[i].y,q.x-probes[i].x));
+      // A smooth norm avoids a kink when a different chord becomes dominant.
+      const curvature=Math.pow(directions.slice(1).reduce((sum,angle,i)=>sum+Math.pow(wrap(angle-directions[i]),4),0),.25)/desired;
+      const sigma=desired/Math.sqrt(1+(desired*curvature/.55)**2),anticipation=Math.min(4,speed*.1)/Math.sqrt(1+(18*curvature)**2);
+      // A Gaussian derivative of positions averages the whole local road
+      // direction. Retaining any raw tangent here reintroduces the short
+      // straight/turn pulses even when the position curve itself is C2.
+      // The window is centred near the car, with at most four metres of lead;
+      // it smooths gentle bends without looking far around a hairpin.
+      let dx=0,dy=0;
+      // Fixed quadrature keeps the direction continuous as the window narrows.
+      const samples=24;
+      for(let i=1;i<=samples;i++){
+        const u=3*i/samples,weight=u*Math.exp(-.5*u*u),offset=u*sigma;
+        const a=sample(car.distance+anticipation-offset),b=sample(car.distance+anticipation+offset);
+        dx+=(b.x-a.x)*weight;dy+=(b.y-a.y)*weight;
+      }
+      const tangent=Number.isFinite(p.angle)?p.angle:directions[1];
+      // Degenerate loops must never put the chase camera in front of the car.
+      const filteredHeading=Math.hypot(dx,dy)>.001&&dx*Math.cos(tangent)+dy*Math.sin(tangent)>0?Math.atan2(dy,dx):tangent;
+      const heading=tangent+wrap(filteredHeading-tangent)*(root.DrivingPose?.startBlend?.(car)??1);
+      return {id:car.id,x:p.x,y:p.y,z:(p.elevation??p.z??0)+.8,heading,distance:car.distance};
+    }
+    _classicFollowPose(car){
+      if(!this._classicFollowState||this._classicFollowState.id!==car.id){const goal=this._classicFollowGoal(car);this._classicFollowState={...goal,goalHeading:goal.heading,headingVelocity:0};}
+      return this._classicFollowState;
+    }
+    _advanceClassicCamera(seconds,{watch=this.watch,snap=false}={}){
+      if(this.mode!=='follow-classic'||!this.race)return false;
+      const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return false;
+      const goal=this._classicFollowGoal(car);
+      if(!this._classicFollowState||this._classicFollowState.id!==car.id){this._classicFollowState={...goal,goalHeading:goal.heading,headingVelocity:0};return true;}
+      const previous=this._classicFollowState;
+      if(snap){
+        const angle=Math.atan2(Math.sin(goal.heading-previous.heading),Math.cos(goal.heading-previous.heading));
+        const changed=['x','y','z'].some(key=>Math.abs(goal[key]-previous[key])>1e-10)||Math.abs(angle)>1e-10||Math.abs(previous.headingVelocity)>1e-10;
+        if(changed)this._classicFollowState={...goal,goalHeading:goal.heading,headingVelocity:0};return changed;
+      }
+      const dt=Number.isFinite(seconds)?clamp(seconds,0,.25):0;if(!dt)return false;
+      const pose=this._classicFollowState,before={...pose};
+      // Follow the shared car anchor exactly: independent XY/height filters
+      // make the car slide across the frame and can cut across hairpins.
+      pose.x=goal.x;pose.y=goal.y;pose.z=goal.z;
+      const travel=Math.abs(goal.distance-pose.distance)/dt,physicalSpeed=Math.max(0,Number(car.speed)||0);
+      const playback=physicalSpeed>.5?travel/physicalSpeed:1,omega=9.5*Math.sqrt(clamp(playback,1,16));
+      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
+      const moving=physicalSpeed>.5&&travel>1e-8;
+      const targetStep=moving?wrap(goal.heading-(pose.goalHeading??pose.heading)):0,targetRate=targetStep/dt;
+      const error=wrap(pose.heading-(goal.heading-targetStep))+2*targetRate/omega;
+      const velocity=(pose.headingVelocity||0)-targetRate,j=velocity+omega*error,decay=Math.exp(-omega*dt);
+      // Exact critically damped spring with a linearly moving angular target.
+      // Treating each new target as an instantaneous step creates a visible
+      // velocity pulse when frame durations vary, even on a perfect circle.
+      pose.heading=pose.heading-error+targetStep+(error+j*dt)*decay;
+      pose.headingVelocity=targetRate+(velocity-omega*j*dt)*decay;pose.distance=goal.distance;pose.goalHeading=goal.heading;
+      const remaining=Math.atan2(Math.sin(goal.heading-pose.heading),Math.cos(goal.heading-pose.heading));
+      if(Math.abs(remaining)<1e-6&&Math.abs(pose.headingVelocity)<1e-5){pose.heading+=remaining;pose.headingVelocity=0;}
+      return ['x','y','z','heading','headingVelocity'].some(key=>Math.abs(pose[key]-before[key])>1e-10);
     }
     _followRoadLift(car,pose){
       const edges=this.roadEdges;if(!edges?.length)return 0;
@@ -380,6 +456,7 @@
       return this._followState;
     }
     advanceCamera(seconds,{watch=this.watch,snap=false}={}){
+      if(this.mode==='follow-classic')return this._advanceClassicCamera(seconds,{watch,snap});
       if(this.mode!=='follow'||!this.race)return false;
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return false;
       const goal=this._followGoal(car);
@@ -407,7 +484,7 @@
     zoom(factor,anchor){
       if(!Number.isFinite(factor)||factor<=0)return;
       const before=anchor&&this._interactionCamera(),fixed=before&&this._groundPoint(anchor.x,anchor.y,before);
-      this.zoomLevel=clamp(this.zoomLevel*factor,.20,this.mode==='follow'?6:120);
+      this.zoomLevel=clamp(this.zoomLevel*factor,.20,this._isFollowView()?6:120);
       if(fixed){
         const after=this._interactionCamera(),moved=this._groundPoint(anchor.x,anchor.y,after);
         if(moved){this.panOffset.x+=fixed.x-moved.x;this.panOffset.y+=fixed.y-moved.y;}
@@ -415,9 +492,9 @@
       this._changed();
     }
     _followCameraInfo(){
-      if(this.mode!=='follow'||!this.race)return null;
-      const camera=this._interactionCamera(),pose=this._followState;if(!camera||!pose)return null;
-      return {positionMode:'past-driven-path',verticalFovDegrees:32,distanceM:camera.distance,trailDistanceM:pose.distance-pose.sampleDistance,eyeSafetyLiftM:pose.eyeSafetyLiftM,
+      if(!this._isFollowView()||!this.race)return null;
+      const classic=this.mode==='follow-classic',camera=this._interactionCamera(),pose=classic?this._classicFollowState:this._followState;if(!camera||!pose)return null;
+      return {positionMode:classic?'heading-orbit':'past-driven-path',verticalFovDegrees:classic?58:32,distanceM:camera.distance,trailDistanceM:classic?camera.distance*camera.cosPitch:pose.distance-pose.sampleDistance,eyeSafetyLiftM:classic?0:pose.eyeSafetyLiftM,
         pitchDegrees:camera.pitch*180/Math.PI,eye:{x:camera.target.x-camera.sinYaw*camera.distance*camera.cosPitch,y:camera.target.y+camera.cosYaw*camera.distance*camera.cosPitch,z:camera.target.z+camera.distance*camera.sinPitch},target:{...camera.target}};
     }
     getModelInfo(){
@@ -427,7 +504,7 @@
       if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 화면의 다시 불러오기를 눌러 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this._isFollowView()?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();this.terrainRenderer?.dispose();}
     _makeRoad(){
       this.roadFaces=[];this.supports=[];if(!this.race)return;
@@ -470,7 +547,7 @@
       }
     }
     _camera(watch){
-      const track=this.displayTrack||this.race.track,b=track.bounds,f=this.mode==='follow'?this.height/(2*Math.tan(16*Math.PI/180)):this.height*1.15;
+      const track=this.displayTrack||this.race.track,b=track.bounds,classic=this.mode==='follow-classic',f=this._isFollowView()?this.height/(2*Math.tan((classic?29:16)*Math.PI/180)):this.height*1.15;
       let target={x:(b.minX+b.maxX)/2,y:(b.minY+b.maxY)/2,z:((track.elevationMin||0)+(track.elevationMax||0))/2};
       let distance=Math.max(b.width*f/(this.width*.67),b.height*f/(this.height*.63),Math.hypot(b.width,b.height)*.70)+(track.elevationMax-track.elevationMin||0)*.7;
       let yaw=this.yaw,pitch=this.pitch;
@@ -479,10 +556,14 @@
         const horizontal=Math.max(.5,Math.hypot(p.x-p.eyeX,p.y-p.eyeY)),vertical=p.eyeZ-p.z;
         distance=Math.hypot(horizontal,vertical);yaw=p.heading+Math.PI/2+this.followYaw;pitch=clamp(Math.atan2(vertical,horizontal)+this.pitch,-.65,Math.PI/2-.008);
       }
+      if(classic){
+        const p=this._classicFollowPose(watch);target={x:p.x,y:p.y,z:p.z};
+        distance=Math.max(6.6,((watch.spec?.lengthMm||4800)/1000)*1.72,((watch.spec?.widthMm||1850)/1000)*f/Math.max(105,Math.min(190,this.width*.36)));yaw=p.heading+Math.PI/2+this.followYaw;
+      }
       if(this.mode==='eau-rouge'&&this.landmark){target={...this.landmark.target};distance=this.landmark.distance;}
       if(this.mode==='pits'&&this.pits?.focus){target={...this.pits.focus.target};distance=this.pits.focus.distance*Math.max(1,this.height/this.width*1.25);}
       target.x+=this.panOffset.x;target.y+=this.panOffset.y;target.z+=this.panOffset.z;
-      return this._createCamera(target,distance/this.zoomLevel,yaw,pitch,f,this.width/2,this.height*(this.mode==='follow'?.64:.49));
+      return this._createCamera(target,distance/this.zoomLevel,yaw,pitch,f,this.width/2,this.height*(this._isFollowView()?.64:.49));
     }
     _createCamera(target,distance,yaw,pitch,f,cx,cy){return {target,distance,yaw,pitch,f,cx,cy,cosYaw:Math.cos(yaw),sinYaw:Math.sin(yaw),cosPitch:Math.cos(pitch),sinPitch:Math.sin(pitch)};}
     _project(p,camera){
@@ -626,13 +707,13 @@
       if(horizon>0){const sky=ctx.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5ea9e8');sky.addColorStop(.55,'#8ac6f0');sky.addColorStop(1,'#d9ecfa');ctx.fillStyle=sky;ctx.fillRect(0,0,w,horizon);}
       if(this.contextGround?.length)return;
       const b=this.race.track.bounds,span=Math.max(b.width,b.height)*1.1,center=camera.target;
-      const grid=this.mode==='follow'?10:Math.pow(10,Math.floor(Math.log10(Math.max(b.width,b.height)/7)));
-      const range=this.mode==='follow'?Math.min(span,camera.distance*2):span;
-      const gridZ=this.mode==='follow'?camera.target.z-this.panOffset.z-2.8:this.datum;
+      const grid=this._isFollowView()?10:Math.pow(10,Math.floor(Math.log10(Math.max(b.width,b.height)/7)));
+      const range=this._isFollowView()?Math.min(span,camera.distance*2):span;
+      const gridZ=this._isFollowView()?camera.target.z-this.panOffset.z-2.8:this.datum;
       const x0=Math.floor((center.x-range)/grid)*grid,x1=Math.ceil((center.x+range)/grid)*grid,y0=Math.floor((center.y-range)/grid)*grid,y1=Math.ceil((center.y+range)/grid)*grid;
       for(let x=x0;x<=x1;x+=grid)this._line([point(x,y0,gridZ),point(x,y1,gridZ)],camera,'rgba(103,130,94,.13)',.7);
       for(let y=y0;y<=y1;y+=grid)this._line([point(x0,y,gridZ),point(x1,y,gridZ)],camera,'rgba(103,130,94,.13)',.7);
-      if(this.mode!=='follow')for(const support of this.supports)this._line(support,camera,'rgba(100,123,90,.15)',.75);
+      if(!this._isFollowView())for(const support of this.supports)this._line(support,camera,'rgba(100,123,90,.15)',.75);
     }
     _startLine(camera,queue){
       const source=this.roadSourceTrack||this.displayTrack,line=source.points[0],next=source.points[1];
@@ -677,10 +758,10 @@
       // The complete ground and road share one depth buffer, including distant
       // return legs. Drawing background grass first exposed roads behind hills.
       this._queueWorldFaces(this.contextGround,camera,queue);
-      const scenery=this.environment?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
-      for(const group of scenery)for(const face of group.faces){if(this.mode!=='follow'&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
+      const scenery=this.environment?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
+      for(const group of scenery)for(const face of group.faces){if(!this._isFollowView()&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
       this._queueWorldFaces(this.roadFaces,camera,queue);
-      const facilities=this.pits?.query(camera.target.x,camera.target.y,this.mode==='follow'?Math.max(440,camera.distance*6):Infinity)||[];
+      const facilities=this.pits?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Infinity)||[];
       for(const group of facilities)for(const face of group.faces)this._queue({...face,stroke:face.fill,width:.55},camera,queue);
       this._startLine(camera,queue);
       this.markerPositions=[];
@@ -696,7 +777,7 @@
       const visibleCars=[];
       for(const c of this.race.cars){const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance)),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}
       this._drawVehicles(visibleCars,camera);this._labels(car);
-      if(this.mode!=='follow'&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
+      if(!this._isFollowView()&&this.mode!=='eau-rouge'&&this.mode!=='pits')this._inset(car);
       this._compass(camera);this._caption();
     }
     _labels(selected){
