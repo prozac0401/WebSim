@@ -79,11 +79,23 @@ test('factory paint choices stay per observed car and never change race or share
 });
 
 test('a sourced default paint retains its surface finish without inventing selectable colors', () => {
-  const {renderer,api}=fixture('k5'),car=renderer.race.cars[0],asset=source('k5');
+  const {renderer,api}=fixture('grandeur'),car=renderer.race.cars[0],asset=source('grandeur');
   asset.paintReference={name:'스노우 화이트 펄',code:'SWP',hex:'#e7e9e5',finish:'pearl',roughness:.22,clearcoat:.92};
   api.register(asset);
   const mesh=renderer._mesh(car);
   assert.equal(mesh.paint,'#e7e9e5');assert.equal(mesh.paintFinish.finish,'pearl');
   assert.equal(mesh.paintFinish.code,'SWP');assert.equal(renderer.getPaintInfo(car),null);
   assert.equal(renderer.setPaint(car,'invented-color'),false);
+});
+
+test('the renderer rejects a factory color unavailable on the watched K5 powertrain',()=>{
+ const {renderer}=fixture('k5'),car=renderer.race.cars[0];
+ car.entrant={variantId:'k5-2.0'};
+ assert.equal(renderer.setPaint(car,'moonscape-matte-grey'),false);
+ car.entrant={variantId:'k5-1.6t'};
+ assert.equal(renderer.setPaint(car,'moonscape-matte-grey'),true);
+ assert.equal(renderer.getPaintInfo(car).finish,'matte');
+ car.entrant={variantId:'k5-2.5t-gt'};
+ assert.notEqual(renderer.getPaintInfo(car).id,'moonscape-matte-grey');
+ assert.equal(renderer.setPaint(car,'steel-matte-grey'),true);
 });

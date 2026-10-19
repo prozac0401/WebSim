@@ -340,7 +340,7 @@
       const length=(car.spec?.lengthMm||4800)/1000,width=(car.spec?.widthMm||1850)/1000,height=(car.spec?.heightMm||1600)/1000;
       const key=[this.width,this.height,length,width,height].join(':');
       if(this._followFraming?.key===key)return this._followFraming.trail;
-      const f=this.height/(2*Math.tan(16*Math.PI/180)),classicF=this.height/(2*Math.tan(29*Math.PI/180)),pitch=24*Math.PI/180;
+      const f=this.height/(2*Math.tan(16*Math.PI/180)),classicF=this.height/(2*Math.tan(29*Math.PI/180)),pitch=12*Math.PI/180;
       const classicDistance=Math.max(6.6,length*1.72,width*classicF/Math.max(105,Math.min(190,this.width*.36)));
       // Match the rear view's projected body area, including perspective at
       // the nearest bumper. A focal-length ratio alone overfills the frame.
@@ -354,9 +354,10 @@
         }
         return (maxX-minX)*(maxY-minY);
       };
-      // An unusually tall canvas needs a small reserve when a hairpin shows
-      // the car broadside. Ordinary mobile squares and desktop match exactly.
-      const target=area(classicDistance,.24,classicF,.8)*(this.height>this.width*1.8?.88:1);let low=length/2+.5,high=classicDistance*f/classicF*2;
+      // The lower gaze shows more of a broadside car in a hairpin. Reserve
+      // extra width only on unusually tall canvases; ordinary mobile squares
+      // and desktop retain the same body area without bend-dependent zoom.
+      const target=area(classicDistance,.24,classicF,.8)*(this.height>this.width*1.8?.48:1);let low=length/2+.5,high=classicDistance*f/classicF*2;
       for(let i=0;i<28;i++){const mid=(low+high)/2;if(area(mid,pitch,f,.65)>target)low=mid;else high=mid;}
       const trail=(low+high)/2*Math.cos(pitch);this._followFraming={key,trail};return trail;
     }
@@ -486,10 +487,12 @@
       pose.sampleDistance=pose.goalEyeDistance+limit*Math.tanh((pose.eyeDistance-pose.goalEyeDistance)/limit);
       const rear=this._followSample(car,pose.sampleDistance);
       pose.eyeX=rear.x;pose.eyeY=rear.y;
-      // Keep the raised eye at a steady height relative to the watched car;
-      // its shorter chord through a bend naturally looks down more steeply.
+      // Keep the eye at a steady height relative to the watched car. The
+      // 12-degree downward gaze leaves the horizon visible through the long
+      // lens; the framing solve above uses the same angle to retain body size.
+      // A shorter chord through a bend naturally looks down more steeply.
       // No bend-dependent height branch introduces a pitch-rate kink.
-      const rise=pose.trail*Math.tan(24*Math.PI/180);
+      const rise=pose.trail*Math.tan(12*Math.PI/180);
       pose.eyeZ=Math.max((rear.elevation??rear.z??0)+1.15,pose.z+rise);
       const floor=this.terrainGeometry?.sampleHeight?.(pose.eyeX,pose.eyeY);
       if(Number.isFinite(floor))pose.eyeZ=Math.max(pose.eyeZ,floor+.65);
@@ -670,10 +673,11 @@
       if(!car)return null;
       const id=car.vehicleId||car.spec?.id,index=car.index??car.id??0;
       const selected=this.paintChoices?.get(id+'|'+index);
-      return PAINTS?.get(id).find(p=>p.id===selected)||PAINTS?.choose(id,index)||null;
+      const variant=car.entrant?.variantId||car.spec;
+      return PAINTS?.get(id,variant).find(p=>p.id===selected)||PAINTS?.choose(id,index,variant)||null;
     }
     setPaint(car,paintId){
-      if(!car||!PAINTS?.get(car.vehicleId).some(p=>p.id===paintId))return false;
+      if(!car||!PAINTS?.get(car.vehicleId,car.entrant?.variantId||car.spec).some(p=>p.id===paintId))return false;
       if(!this.paintChoices)this.paintChoices=new Map();
       this.paintChoices.set(car.vehicleId+'|'+(car.index??car.id??0),paintId);this._changed();return true;
     }

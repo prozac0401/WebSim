@@ -63,17 +63,29 @@ class VehicleSurfaces {
       float highlight=pow(max(0.0,dot(N,H)),95.0);
       float fill=max(0.0,dot(N,normalize(vec3(.2,.8,.5))));
       vec3 environment=mix(vec3(.055,.065,.065),vec3(.29,.34,.36),horizon)+vec3(.60)*broad+vec3(.20)*ceiling;
-      if(uPaint.w>0.0){
+      if(uPaint.x>0.0){
        // Body-local, mip-filtered flakes stay attached to the paint. The coat
        // and pearl tint respond to light/view direction, never a baked photo.
        vec3 local=vLocal;
        float grain=texture2D(uFlakes,local.xy*3.7+local.yz*5.1+local.zx*2.3).r-.5;
-       float sheen=pow(max(0.0,dot(N,H)),mix(150.0,28.0,clamp(uPaint.x,0.0,1.0)));
+       float rough=clamp(uPaint.x,0.0,1.0),coat=clamp(uPaint.w,0.0,1.0);
+       float sheen=pow(max(0.0,dot(N,H)),mix(190.0,24.0,rough));
        vec3 pearl=mix(vec3(.965,.99,1.035),vec3(1.035,1.01,.965),fres);
-       vec3 pigment=base*mix(vec3(1.0),pearl,uPaint.z);
-       c=pigment*(.48+.34*ndl+.22*fill+.09*sky)+environment*(.16+.54*fres)*uPaint.w;
-       c+=mix(vec3(.20),sqrt(max(base,vec3(0.0)))*.28,uPaint.y)*sheen;
-       c+=vec3(.11)*highlight*uPaint.w+vec3(grain*.12*uPaint.y*sheen);
+       vec3 pigment=base*mix(vec3(1.0),pearl,max(0.0,uPaint.z));
+       // A dielectric clearcoat reflects a crisp light strip and the sky/ground
+       // boundary independently of the pigment. The former broad lobe read as
+       // a diffuse matte finish, including on factory gloss solid colors.
+       float edge=smoothstep(-.05-rough*.08,.10+rough*.12,R.z);
+       vec3 coatEnvironment=mix(vec3(.025,.035,.05),vec3(.50,.59,.70),edge);
+       coatEnvironment+=vec3(1.35)*pow(max(0.0,dot(R,normalize(vec3(.2,-.65,.75)))),mix(110.0,12.0,rough));
+       coatEnvironment+=vec3(.62)*pow(max(0.0,dot(R,normalize(vec3(-.5,.4,.77)))),mix(65.0,8.0,rough));
+       // Negative pearl marks only inferred photo-fill panels. Their subtle
+       // extra reflection is neutral so it cannot tint the baked body photos.
+       if(uPaint.z<0.0)coatEnvironment=vec3(dot(coatEnvironment,vec3(.2126,.7152,.0722)));
+       c=pigment*(.48+.34*ndl+.22*fill+.09*sky)*(1.0-.14*coat*fres);
+       c+=coatEnvironment*(.12+.62*fres)*coat;
+       c+=vec3(.52)*pow(max(0.0,dot(N,H)),mix(260.0,35.0,rough))*coat;
+       c+=sqrt(max(base,vec3(0.0)))*(.16*uPaint.y)*sheen+vec3(grain*.10*uPaint.y*sheen);
       }else c=base*(.48+.34*ndl+.22*fill+.09*sky)+environment*(.18+.56*fres)+vec3(.22)*highlight;
      }
      return c;
@@ -196,16 +208,43 @@ class VehicleSurfaces {
   for(let j=0;j<2;j++){const axis=j?c.up:c.right,sign=j?-1:1,dimension=j?c.height:c.width;rows.push([...eye.map((e,i)=>(-c.center[j]*e+sign*c.focal*axis[i])/dimension),(c.center[j]*d+sign*c.focal*axis.reduce((s,x,i)=>s+x*offset[i],0))/dimension]);}
   const depth=[...eye.map(e=>-e),d];c.matrix=[0,1,2,3].flatMap(i=>[rows[0][i],rows[1][i],depth[i],i===3?1:0]);return c.matrix;
  }
- _bindPhoto(mesh,position,camera,fixedCamera){
-  const photo=mesh.manufacturer.photoProjection;if(!photo)return;
+ _photoTexture(source){
+  // At most twelve visible entrants can each need two source directions.
+  // Bound color/orbit history independently of ordinary UV material textures.
+  const recent=this.photoTextures||(this.photoTextures=new Map()),record=this._texture(source);
+  recent.delete(source);recent.set(source,record);
+  while(recent.size>24){
+   const [key,old]=recent.entries().next().value;recent.delete(key);
+   if(this.textures.get(key)===old){this.textures.delete(key);this.gl.deleteTexture(old.texture);}
+   // _texture's identity check rejects any late decode after this eviction.
+  }
+  return record;
+ }
+ _bindPhoto(mesh,position,camera,fixedCamera,car){
+  const source=mesh.manufacturer.photoProjection;if(!source)return;
+  const variant=source.paintVariants?.[mesh.paintFinish?.code];
+  // Each variant is the same calibrated turntable in another factory color.
+  // Switching source photographs retains all glazing, lamps and black trim.
+  const photo=variant?{...source,...variant}:source;
   const dx=camera.target.x-Math.sin(camera.yaw)*Math.cos(camera.pitch)*camera.distance-position.x,dy=camera.target.y+Math.cos(camera.yaw)*Math.cos(camera.pitch)*camera.distance-position.y,angle=position.angle||0;
   const localAngle=Math.atan2(-dx*Math.sin(angle)+dy*Math.cos(angle),dx*Math.cos(angle)+dy*Math.sin(angle));
   const fixed=Number.isInteger(fixedCamera)?photo.cameras[fixedCamera]:null;
   const nearest=fixed?[{c:fixed,delta:0},{c:fixed,delta:0}]:photo.cameras.map(c=>({c,delta:Math.atan2(Math.sin(Math.atan2(c.eye[1],c.eye[0])-localAngle),Math.cos(Math.atan2(c.eye[1],c.eye[0])-localAngle))})).sort((a,b)=>Math.abs(a.delta)-Math.abs(b.delta)).slice(0,2);
   const gl=this.gl,U=this.uniforms;
-  const textures=nearest.map(({c})=>this._texture(photo.textures[c.textureIndex]));
-  nearest.forEach(({c},i)=>{gl.activeTexture(gl.TEXTURE1+i);gl.bindTexture(gl.TEXTURE_2D,textures[i].texture);gl.uniform1i(i?U.uPhotoTextureB:U.uPhotoTextureA,i+1);gl.uniformMatrix4fv(i?U.uPhotoMatrixB:U.uPhotoMatrixA,false,this._photoCameraMatrix(c));});
-  gl.uniform1f(U.uPhotoBlend,Math.abs(nearest[0].delta)/(Math.abs(nearest[0].delta)+Math.abs(nearest[1].delta)||1));gl.activeTexture(gl.TEXTURE0);
+  const owner=car&&typeof car==='object'?car:mesh,states=this.photoStates||(this.photoStates=new WeakMap()),previous=states.get(owner);
+  const valid=pair=>pair&&pair.textures.every((record,i)=>record.ready&&this.textures.get(pair.sources[i])===record);
+  // The renderer creates a new mesh when paint changes. Remember the complete
+  // prior pair by car so a cold factory-color request cannot flash white. Touch
+  // its LRU entries before allocating new pictures; stale/deleted GPU records
+  // are never rebound. Async readiness requests the normal idle redraw.
+  if(valid(previous))previous.sources.forEach(source=>this._photoTexture(source));
+  const sources=nearest.map(({c})=>photo.textures[c.textureIndex]),textures=sources.map(source=>this._photoTexture(source));
+  let pair={nearest,sources,textures,paintCode:mesh.paintFinish?.code};
+  if(valid(pair))states.set(owner,pair);
+  else if(valid(previous))pair=previous;
+  pair.nearest.forEach(({c},i)=>{gl.activeTexture(gl.TEXTURE1+i);gl.bindTexture(gl.TEXTURE_2D,pair.textures[i].texture);gl.uniform1i(i?U.uPhotoTextureB:U.uPhotoTextureA,i+1);gl.uniformMatrix4fv(i?U.uPhotoMatrixB:U.uPhotoMatrixA,false,this._photoCameraMatrix(c));});
+  gl.uniform1f(U.uPhotoBlend,Math.abs(pair.nearest[0].delta)/(Math.abs(pair.nearest[0].delta)+Math.abs(pair.nearest[1].delta)||1));gl.activeTexture(gl.TEXTURE0);
+  return pair;
  }
  _bindPaint(finish){
   const gl=this.gl,U=this.uniforms;
@@ -223,13 +262,14 @@ class VehicleSurfaces {
    }catch(error){gl.deleteTexture(texture);throw error;}finally{gl.activeTexture(gl.TEXTURE0);}
   }
   gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,this.paintTexture);gl.uniform1i(U.uFlakes,3);gl.activeTexture(gl.TEXTURE0);
-  gl.uniform4f(U.uPaint,finish.roughness??.26,finish.finish==='solid'?0:.75,finish.finish==='pearl'?1:0,finish.clearcoat??.9);
+  const matte=finish.finish==='matte',roughness=Math.max(.04,Math.min(1,Number.isFinite(finish.roughness)?finish.roughness:.26));
+  gl.uniform4f(U.uPaint,matte?Math.max(.65,roughness):roughness,matte||finish.finish==='solid'?0:.75,finish.photoFill?-1:finish.finish==='pearl'?1:0,matte?0:Math.max(0,Math.min(1,finish.clearcoat??.9)));
  }
  _drawAsset(mesh,position,camera,useLowDetail=false,car){
   const gl=this.gl,A=this.attributes,U=this.uniforms;
   gl.uniform3fv(U.uModelScale,mesh.modelScale);gl.uniform3fv(U.uModelOffset,mesh.modelOffset);
   gl.disableVertexAttribArray(A.aColor);gl.disableVertexAttribArray(A.aMaterial);
-  let boundPhotoCamera=null;
+  let boundPhotoCamera=null,boundPhoto=null;
   // The watched vehicle keeps its full exterior. Ghost cars share a reduced
   // version of that same source, avoiding repeated high-detail geometry.
   let model=mesh.manufacturer;
@@ -238,12 +278,15 @@ class VehicleSurfaces {
    const p=b.p;gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
    const wheel=p.wheel,angle=wheel?(root.VehicleWheels?.angle?.(mesh,wheel,car)||0):0;
    gl.uniform4f(U.uWheel,wheel?.center?.[0]||0,wheel?.center?.[1]||0,wheel?.center?.[2]||0,angle);
-   this._bindPaint(p.paint?mesh.paintFinish:null);
+   // A photo-fill panel is estimated, not a factory matte finish. Keep its
+   // weak neutral reflection below the baked adjacent photograph highlights.
+   this._bindPaint(p.photoPaint?{finish:'solid',roughness:.4,clearcoat:.18,photoFill:true}:p.paint?mesh.paintFinish:null);
    for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aUV',2,24]]){gl.enableVertexAttribArray(A[name]);gl.vertexAttribPointer(A[name],size,gl.FLOAT,false,32,offset);}
-   gl.vertexAttrib3fv(A.aColor,p.paint?rgb(mesh.paint):p.color);gl.vertexAttrib1f(A.aMaterial,p.material);
+   const photoFill=p.photoPaintColors?.[boundPhoto?.paintCode||mesh.paintFinish?.code];
+   gl.vertexAttrib3fv(A.aColor,p.paint?rgb(photoFill||mesh.paint):p.color);gl.vertexAttrib1f(A.aMaterial,p.material);
    gl.uniform1f(U.uOpacity,p.alpha??1);gl.uniform1i(U.uHasTexture,!!p.texture);gl.uniform1i(U.uOpaqueTexture,!!p.textureOpaque);
    const photoMode=!!(p.photoProjected&&mesh.manufacturer.photoProjection);
-   if(photoMode&&boundPhotoCamera!==(p.photoCameraIndex??-1)){this._bindPhoto(mesh,position,camera,p.photoCameraIndex);boundPhotoCamera=p.photoCameraIndex??-1;}
+   if(photoMode&&boundPhotoCamera!==(p.photoCameraIndex??-1)){boundPhoto=this._bindPhoto(mesh,position,camera,p.photoCameraIndex,car);boundPhotoCamera=p.photoCameraIndex??-1;}
    gl.uniform1i(U.uPhotoMode,photoMode);
    if(p.texture){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this._texture(p.texture,!!p.textureRepeat).texture);gl.uniform1i(U.uTexture,0);}
    if((p.alpha??1)<.99){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);}else{gl.disable(gl.BLEND);gl.depthMask(true);}
@@ -275,7 +318,7 @@ class VehicleSurfaces {
    gl.uniform3f(U.uCar,p.x,p.y,(p.elevation||0)+.055);gl.uniform2f(U.uPose,p.angle||0,Math.atan(p.grade||0));
    if(mesh.manufacturer)this._drawAsset(mesh,p,camera,entry.selected===false,entry.car);
    for(const geometry of [mesh.manufacturer?null:mesh,entry.effect].filter(Boolean)){
-    gl.uniform1i(U.uPhotoMode,0);gl.uniform4f(U.uWheel,0,0,0,0);this._bindPaint(null);
+    gl.uniform1i(U.uPhotoMode,0);gl.uniform4f(U.uWheel,0,0,0,0);this._bindPaint(geometry.paintFinish||null);
     gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
     const b=this._buffer(geometry);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
     for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=this.attributes[name];gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}
@@ -289,7 +332,7 @@ class VehicleSurfaces {
   return this.canvas;
   }catch(error){this._fail(error,false);return null;}
  }
- clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);if(this.paintTexture)this.gl.deleteTexture(this.paintTexture);this.paintTexture=null;this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();this.repeatTextureKeys.clear();}
+ clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);if(this.paintTexture)this.gl.deleteTexture(this.paintTexture);this.paintTexture=null;this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();this.repeatTextureKeys.clear();this.photoTextures?.clear();this.photoStates=new WeakMap();}
  dispose(){if(!this.gl)return;this.clearGeometry();this.available=false;this.gl.deleteProgram(this.program);}
 }
 root.VehicleSurfaces=VehicleSurfaces;

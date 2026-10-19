@@ -194,9 +194,11 @@ function nextGeneration(auto=false){
  if(auto){running=true;updateUI();}
 }
 function updatePaintUI(car){
- const colors=window.VehiclePaints?.get(car.vehicleId)||[],field=$('paint-field'),select=$('paint-color');
+ const variantId=car.entrant?.variantId||car.spec?.variantId;
+ const colors=window.VehiclePaints?.get(car.vehicleId,variantId||car.spec)||[],field=$('paint-field'),select=$('paint-color');
  field.hidden=!colors.length;if(!colors.length)return;
- if(select.dataset.vehicle!==car.vehicleId){select.replaceChildren(...colors.map(p=>new Option(p.name+' · '+p.code,p.id)));select.dataset.vehicle=car.vehicleId;}
+ const key=car.vehicleId+'|'+(variantId||'');
+ if(select.dataset.vehicle!==key){select.replaceChildren(...colors.map(p=>new Option(p.name+(p.code?' · '+p.code:'')+(p.finish==='matte'&&!p.name.includes('무광')?' · 무광':''),p.id)));select.dataset.vehicle=key;}
  select.value=renderer.getPaintInfo(car)?.id||colors[0].id;
 }
 function updateUI(){

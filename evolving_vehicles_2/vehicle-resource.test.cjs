@@ -7,7 +7,7 @@ const Renderer = require('./circuit-renderer.js');
 
 function fixture() {
   const events = new Map(), images = [], buffers = new Map(), bindings = new Map();
-  const calls = { created: 0, deleted: [], textureDeleted: [], textureParameters: [], uniforms: [], ranges: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
+  const calls = { created: 0, deleted: [], textureDeleted: [], textureParameters: [], uniforms: [], colors: [], ranges: [], uploads: 0, checks: 0, draws: 0, updates: 0 };
   let error = 0, failure = null, textureBinding = null;
   const gl = new Proxy({
     ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, TEXTURE_2D: 3553,
@@ -16,6 +16,7 @@ function fixture() {
     createShader: () => ({}), createProgram: () => ({}), getExtension: () => ({}),
     getAttribLocation: (_p, name) => name, getUniformLocation: (_p, name) => name,
     uniform4f(name,...values) { calls.uniforms.push({name,values}); },
+    vertexAttrib3fv(name,values) { if(name==='aColor')calls.colors.push(Array.from(values)); },
     isContextLost: () => false,
     createBuffer() { calls.created++; return failure === 'buffer-null' ? null : { id: calls.created }; },
     bindBuffer(target, buffer) { bindings.set(target, buffer); },
@@ -71,9 +72,43 @@ test('wheel and paint uniforms reset for static trim in the same draw pass', () 
   assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uPaint').map(c=>c.values),[[.28,.75,0,.92],[0,0,0,0]]);
 });
 
+test('explicit factory matte disables clearcoat and flakes without altering the following static material', () => {
+ const f=fixture();f.primitive.paint=true;f.mesh.paint='#747d7b';
+ // Even a caller accidentally retaining glossy defaults cannot add a shiny
+ // coat to a color explicitly classified as the factory matte option.
+ f.mesh.paintFinish={finish:'matte',roughness:.2,clearcoat:.92};
+ f.mesh.manufacturer.primitives.push({...f.primitive,paint:false,material:1});
+ assert.equal(f.render(),f.canvas);
+ assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uPaint').map(c=>c.values),[[.65,0,0,0],[0,0,0,0]]);
+ f.calls.uniforms.length=0;f.mesh.paintFinish={finish:'solid',roughness:.24,clearcoat:.92};
+ assert.equal(f.render(),f.canvas);assert.deepEqual(f.calls.uniforms.find(c=>c.name==='uPaint').values,[.24,0,0,.92]);
+});
+
+test('photo-matched inferred panels use a weak neutral coat and keep the ready photograph color during a cold switch',()=>{
+ const f=fixture();f.primitive.photoProjected=true;f.primitive.material=4;
+ const fill={...f.primitive,photoProjected:false,paint:true,photoPaint:true,material:0,photoPaintColors:{EBL:'#848283',GAO:'#575d58'}};
+ f.mesh.manufacturer.primitives.push(fill);
+ const camera=(eye,index)=>({eye,right:[1,0,0],up:[0,0,1],distance:10,center:[500,250],focal:1000,width:1000,height:500,textureIndex:index});
+ f.mesh.manufacturer.photoProjection={cameras:[camera([0,1,0],0),camera([1,0,0],1)],textures:['original-front','original-side'],paintVariants:{GAO:{textures:['green-front','green-side']}}};
+ f.mesh.paint='#b4b09f';f.mesh.paintFinish={code:'EBL',finish:'metallic',roughness:.18,clearcoat:1};
+ assert.equal(f.render(),f.canvas);f.images.forEach(image=>image.onload());f.render();
+ const originalColor=f.calls.colors.at(-1);assert.deepEqual(originalColor,[132/255,130/255,131/255]);
+ f.mesh.paint='#415b52';f.mesh.paintFinish={code:'GAO',finish:'metallic',roughness:.18,clearcoat:1};
+ f.render();assert.deepEqual(f.calls.colors.at(-1),originalColor,'fill and held original photos change together');
+ const fresh=f.images.slice(-2);fresh[0].onload();f.render();assert.deepEqual(f.calls.colors.at(-1),originalColor);
+ fresh[1].onload();f.render();assert.deepEqual(f.calls.colors.at(-1),[87/255,93/255,88/255]);
+ assert.deepEqual(f.calls.uniforms.filter(c=>c.name==='uPaint').at(-1).values,[.4,0,-1,.18]);
+ assert.equal(f.mesh.paintFinish.finish,'metallic','factory paint classification is never rewritten to matte');
+});
+
 test('failed procedural paint upload falls back and releases the failed texture', () => {
   const f=fixture();f.primitive.paint=true;f.mesh.paintFinish={finish:'pearl'};f.fail('texture-data');
   assert.equal(f.render(),null);assert.equal(f.surface.available,false);assert.equal(f.calls.textureDeleted.length,1);
+});
+
+test('procedural GPU fallback uses the selected factory finish for its paint faces', () => {
+ const f=fixture();f.entries[0].mesh={paintFinish:{finish:'matte',roughness:.8,clearcoat:0},faces:[{fill:'#778899',material:'paint',vertices:[{x:0,y:0,z:0},{x:1,y:0,z:0},{x:0,y:1,z:0}]}]};
+ assert.equal(f.render(),f.canvas);assert.deepEqual(f.calls.uniforms.find(c=>c.name==='uPaint').values,[.8,0,0,0]);
 });
 
 test('procedural GPU fallback rotates wheel ranges without rotating the body or rebuilding buffers', () => {

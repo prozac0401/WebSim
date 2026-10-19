@@ -82,6 +82,11 @@ assets/**
 !assets/models/torres-runtime.js
 !assets/models/torres/calibration.json
 !assets/models/torres/inspection.json
+!assets/models/torres-paints/
+!assets/models/torres-paints/*/
+!assets/models/torres-paints/*/*.jpg
+!assets/models/torres-paints/sources.json
+!assets/models/build-torres-paints.py
 !assets/reference/SOURCES.json
 !assets/reference/acquire-reference.cjs
 !assets/reference/acquire-turntable.cjs

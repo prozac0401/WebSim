@@ -104,6 +104,46 @@ test('cold photo binding keeps both neighbour textures and the caller texture in
   assert.deepEqual(f.uniforms.get('uPhotoMatrixB'), Array.from(f.renderer._photoCameraMatrix(cameras[1])));
 });
 
+test('factory photo colors replace both adjacent source images with unchanged projection and unknown codes use the original', () => {
+ const f=fixture(),cameras=[camera(0,0),camera(90,1)],source={cameras,textures:['original-front','original-side'],paintVariants:{WAA:{textures:['white-front','white-side']},BAU:{textures:['black-front','black-side']}}};
+ const mesh={manufacturer:{photoProjection:source},paintFinish:{code:'WAA'}},position={x:0,y:0,angle:0},view={target:{...position,z:.8},yaw:radians(30)-Math.PI/2,pitch:.2,distance:12};
+ for(const [code,front,side]of [['WAA','white-front','white-side'],['BAU','black-front','black-side'],['missing','original-front','original-side']]){
+  mesh.paintFinish.code=code;f.renderer._bindPhoto(mesh,position,view);
+  assert.equal(f.bindings.get(f.gl.TEXTURE1),f.renderer.textures.get(front).texture);
+  assert.equal(f.bindings.get(f.gl.TEXTURE2),f.renderer.textures.get(side).texture);
+  assert.deepEqual(f.uniforms.get('uPhotoMatrixA'),Array.from(f.renderer._photoCameraMatrix(cameras[0])));
+  assert.deepEqual(f.uniforms.get('uPhotoMatrixB'),Array.from(f.renderer._photoCameraMatrix(cameras[1])));
+  close(f.uniforms.get('uPhotoBlend'),1/3,'same angular blend for every color');
+ }
+ assert.deepEqual(source.textures,['original-front','original-side']);
+});
+
+test('color and orbit history holds at most twenty-four photo textures and rejects evicted image callbacks', () => {
+ const f=fixture(),ordinary=f.renderer._texture('unrelated-atlas'),first=f.renderer._photoTexture('photo-0'),firstImage=f.images.at(-1);
+ for(let i=1;i<24;i++)f.renderer._photoTexture('photo-'+i);
+ assert.equal(f.renderer._photoTexture('photo-1'),f.renderer.textures.get('photo-1'),'recently reused view stays resident');
+ f.renderer._photoTexture('photo-24');
+ assert.equal(f.renderer.photoTextures.size,24);assert.equal(f.renderer.textures.size,25);
+ assert.equal(f.renderer.textures.has('photo-0'),false);assert.ok(f.deletedTextures.includes(first.texture));
+ assert.equal(f.renderer.textures.get('unrelated-atlas'),ordinary);
+ const uploads=f.uploads.length;firstImage.onload();assert.equal(f.uploads.length,uploads);assert.equal(f.updates,0);
+ const fresh=f.renderer._photoTexture('photo-0');assert.notEqual(fresh,first);assert.equal(f.renderer.photoTextures.size,24);
+ firstImage.onload();assert.equal(fresh.ready,false);f.images.at(-1).onload();assert.equal(fresh.ready,true);
+ f.renderer.clearGeometry();assert.equal(f.renderer.photoTextures.size,0);assert.equal(f.renderer.textures.size,0);
+});
+
+test('a cold paint switch keeps the previous ready photo pair across mesh changes until both new views decode', () => {
+ const f=fixture(),car={},cameras=[camera(0,0),camera(90,1)],photo={cameras,textures:['original-front','original-side'],paintVariants:{WAA:{textures:['white-front','white-side']}}};
+ const oldMesh={manufacturer:{photoProjection:photo}},nextMesh={manufacturer:{photoProjection:photo},paintFinish:{code:'WAA'}},position={x:0,y:0,angle:0},view={target:{...position,z:.8},yaw:radians(30)-Math.PI/2,pitch:.2,distance:12};
+ const bind=mesh=>f.renderer._bindPhoto(mesh,position,view,undefined,car),bound=()=>[f.bindings.get(f.gl.TEXTURE1),f.bindings.get(f.gl.TEXTURE2)];
+ bind(oldMesh);f.images.forEach(image=>image.onload());bind(oldMesh);const ready=bound();
+ bind(nextMesh);assert.deepEqual(bound(),ready,'no white placeholders on the first selected-color frame');
+ const freshImages=f.images.slice(-2);freshImages[0].onload();bind(nextMesh);assert.deepEqual(bound(),ready,'one finished image cannot make a half-old/half-new body');
+ freshImages[1].onload();bind(nextMesh);assert.deepEqual(bound(),['white-front','white-side'].map(source=>f.renderer.textures.get(source).texture));
+ assert.equal(f.updates,4,'each decoded view requests a redraw');
+ const held=bound();f.renderer.clearGeometry();bind(oldMesh);assert.ok(bound().every(texture=>!held.includes(texture)),'disposed held textures are never rebound');
+});
+
 test('view selection is relative to car heading and crosses the 180 degree seam continuously', () => {
   for (const scenario of [
     { heading: 60, worldView: 85, first: 'front', second: 'right', blend: 25 / 90 },

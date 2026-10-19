@@ -29,6 +29,7 @@
   if(data.wheelVariants)data.wheelVariants=Object.fromEntries(Object.entries(data.wheelVariants).map(([key,value])=>[key,{...value,primitives:value.primitives.map(unpack)}]));
   data=root.VehicleWheels?.prepare(data)||data;
   data=root.VehicleDRL?.prepare(data)||data;
+  data=root.VehiclePaintMaterials?.prepare(data)||data;
   // A managed script commits only after its own load + decoding complete.
   // An expired script retains its invalid token in the WeakMap, so even a late
   // execution after element removal cannot become an untracked registration.
