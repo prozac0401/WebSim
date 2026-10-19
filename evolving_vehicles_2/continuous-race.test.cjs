@@ -106,7 +106,18 @@ test('stock repeats preserve entrant objects and UIDs and restart every entrant 
     assert.deepEqual(controller.race.cars.map(car => car.entrant.uid), entrants.map(entry => entry.uid));
     assert.equal(controller.generation, 1); assert.equal(controller.stockRun, run + 1);
     assert.equal(transition.completedStockRun, run); assert.equal(transition.watchedId, 2);
-    assert.ok(controller.race.cars.every(car => car.speed === 0 && car.distance === 0 && car.standingStartDistance === 0));
+    assert.equal(transition.initialSpeed, 0);
+    // Accumulated fractional playback plus the finish-tick remainder can
+    // consume one new tick before step returns. It must still be a launch
+    // from rest, with a fresh first gear rather than carried finish velocity.
+    assert.ok(controller.race.time <= DT + 1e-12);
+    for (const car of controller.race.cars) {
+      assert.equal(car.standingStartDistance, 0);
+      assert.ok(car.speed <= car.longitudinalGrip * DT + 1e-9);
+      assert.ok(car.distance <= car.speed * DT + 1e-9);
+      assert.equal(car.transmission.gear, 1); assert.equal(car.transmission.shiftCount, 0);
+      assert.equal(car.transmission.shifting, false);
+    }
   }
 });
 

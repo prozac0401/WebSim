@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { createRequire } = require('node:module');
 const Telemetry = require('./powertrain-telemetry.js');
+const Dynamics = require('./powertrain-dynamics.js');
 const Profiles = require('./powertrain-profiles.js');
 const Evolution = require('./tuning-evolution.js');
 const TrackRace = require('./race-engine.js');
@@ -47,7 +48,7 @@ test('actual entrant powertrains distinguish petrol/EV Ray and petrol/hybrid Car
     assert.equal(!!state.battery, kind === 'hybrid');
     assert.equal(JSON.stringify(car), before, 'creating telemetry must not alter effective specifications');
     tick(car, state, 3, { speed: 35, acceleration: 2 }, { drivePowerW: 80000, curvature: 0 });
-    if (kind === 'electric') assert.deepEqual(state, { kind, gear: null, gearLabel: '—', rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: null });
+    if (kind === 'electric') assert.deepEqual(state, { kind, gear: null, gearLabel: '—', gearSource: 'not-applicable', shifting: false, neutral: false, rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: null });
     if (label === 'IVT') {
       assert.equal(state.gear, null); assert.equal(state.gearLabel, 'IVT'); assert.ok(state.rpmNormalized > .2);
       tick(car, state, 1, { speed: 50, acceleration: 2 }, { drivePowerW: 200000, curvature: 0 });
@@ -299,12 +300,16 @@ test('estimated stepped gearing follows both shorter and taller tuning final dri
 });
 
 test('gear-specific final drives take priority over a shared final drive and retain tuning', () => {
-  const filename = require.resolve('./powertrain-telemetry.js'), module = { exports: {} };
+  const filename = require.resolve('./powertrain-telemetry.js');
   const profile = { ...Profiles.PROFILES['k5-2.0'], gearCount: 4,
     gearRatios: [4, 3, 2, 1], finalDriveRatios: [3, 3, 4, 4], finalDriveRatio: 99,
     ratioStatus: 'reference-market', ratioSourceId: 'test-gear-groups' };
-  vm.runInNewContext(fs.readFileSync(filename, 'utf8'), { module, PowertrainProfiles: { resolve: () => profile } }, { filename });
-  const groupedTelemetry = module.exports, base = carFor();
+  const sandbox = vm.createContext({ module: { exports: {} }, PowertrainProfiles: { resolve: () => profile } });
+  const dynamicsFile = require.resolve('./powertrain-dynamics.js');
+  vm.runInContext(fs.readFileSync(dynamicsFile, 'utf8'), sandbox, { filename: dynamicsFile });
+  sandbox.module = { exports: {} };
+  vm.runInContext(fs.readFileSync(filename, 'utf8'), sandbox, { filename });
+  const groupedTelemetry = sandbox.module.exports, base = carFor();
   assert.deepEqual(Array.from(groupedTelemetry.describeGearing(base).totalRatios), [12, 9, 8, 4]);
   delete profile.finalDriveRatio;
   assert.deepEqual(Array.from(groupedTelemetry.describeGearing(base).totalRatios), [12, 9, 8, 4], 'a scalar final drive is optional');
@@ -501,7 +506,7 @@ test('finished and retired cars clear active flow, RPM lamps and the selected ge
     assert.equal(state.battery.mode, 'charging');
     car[terminal] = true;
     Telemetry.update(car, state, 0);
-    assert.deepEqual(state, { kind: 'hybrid', gear: null, gearLabel: '—', rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: { flow: 0, mode: 'idle', cornerPhase: 'straight' } });
+    assert.deepEqual(state, { kind: 'hybrid', gear: null, gearLabel: '—', gearSource: 'display-estimate', shifting: false, neutral: false, rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: { flow: 0, mode: 'idle', cornerPhase: 'straight' } });
   }
 });
 
@@ -637,5 +642,115 @@ test('GR86 MT/AT use exact Japanese ratios, rear tyre radius and sequential shif
     assert.deepEqual(shifts, [2, 3, 4, 5, 6]);
     tick(car, state, 5, { speed: 0, acceleration: -5 }, { brakePowerW: 0 });
     assert.equal(state.gear, 1, 'both gearboxes return sequentially to first at rest');
+  }
+});
+
+test('physical gear and RPM snapshots override standalone scheduling without changing transmission state', () => {
+  const car = carFor('gr86', 'gr86-2.4-rz-mt'), profile = Profiles.resolve(car);
+  car.transmission = Dynamics.create(car);
+  car.speed = 90; // A display-only scheduler would immediately request an upshift.
+  Object.assign(car.transmission, { gear: 2, rpm: 4200 });
+  const before = JSON.stringify(car), state = Telemetry.create(car);
+  assert.equal(state.gearSource, 'physics'); assert.equal(state.gear, 2);
+  assert.equal(state.rpmNormalized, (4200 - profile.idleRPM) / (profile.shiftRPM - profile.idleRPM));
+  tick(car, state, 3, {}, { drivePowerW: 180000 });
+  assert.equal(state.gear, 2, 'the HUD must not run its own shift timer');
+  assert.equal(JSON.stringify(car), before, 'telemetry only reads the physical snapshot');
+  Object.assign(car.transmission, { shifting: true, neutral: true, torqueFactor: 0, remainingSeconds: .3 });
+  Telemetry.update(car, state, dt);
+  assert.equal(state.gear, 2); assert.equal(state.gearLabel, 'N');
+  assert.equal(state.shiftCue, false); assert.equal(state.shiftLights, 0);
+  const paused = JSON.stringify(state);
+  Telemetry.update(car, state, 0);
+  assert.equal(JSON.stringify(state), paused, 'pausing does not finish a physical shift');
+  Object.assign(car.transmission, { gear: 3, shifting: false, neutral: false, torqueFactor: 1, remainingSeconds: 0, rpm: 3200 });
+  Telemetry.update(car, state, dt);
+  assert.equal(state.gearLabel, '3'); assert.equal(state.neutral, false);
+  assert.equal(state.rpmNormalized, (3200 - profile.idleRPM) / (profile.shiftRPM - profile.idleRPM), 'RPM has no independent display lag');
+  for (const terminal of ['finished', 'dnf']) {
+    const ended = { ...car, [terminal]: true }, endedState = Telemetry.create(ended);
+    assert.equal(endedState.gearLabel, '—'); assert.equal(endedState.neutral, false);
+  }
+});
+
+function hudHarness(race) {
+  let writes = 0;
+  const tracked = object => new Proxy(object, { set(target, key, value) { writes++; target[key] = value; return true; } });
+  const node = () => tracked({ dataset: tracked({}), style: tracked({}), attributes: {},
+    setAttribute(key, value) { writes++; this.attributes[key] = String(value); },
+    classList: { toggle() { writes++; } } });
+  const nodes = new Map();
+  const get = id => { if (!nodes.has(id)) nodes.set(id, node()); return nodes.get(id); };
+  get('shift-lights').children = Array.from({ length: 8 }, node);
+  get('speed').value = '1';
+  let uiUpdates = 0;
+  const sandbox = vm.createContext({ $: get, vehicles: TrackRace.VEHICLES, race,
+    watching: () => race.cars[0], watch: 0, lastUI: race.time, lastFrame: 1000,
+    manual: false, fast: false, running: true, simulate: seconds => race.step(seconds),
+    renderer: { advanceCamera: () => false }, draw() {}, requestAnimationFrame() {} });
+  sandbox.updateUI = () => { uiUpdates++; sandbox.updatePowertrainHUD(race.cars[0]); };
+  const source = fs.readFileSync(require.resolve('./evolving_vehicles_2.js'), 'utf8');
+  const hud = source.slice(source.indexOf("let powertrainHUDKey='';"), source.indexOf('function simulate('));
+  const frame = source.slice(source.indexOf('function frame('), source.indexOf('async function fullscreen('));
+  const advance = source.slice(source.indexOf('window.advanceTime='), source.indexOf('window.render_game_to_text='));
+  sandbox.window = {};
+  vm.runInContext(hud + '\n' + frame + '\n' + advance, sandbox);
+  return { sandbox, nodes, get, writes: () => writes, uiUpdates: () => uiUpdates };
+}
+
+test('rendered MT neutral and DCT/AT gear numbers track physical shift boundaries before the slow UI refresh', () => {
+  for (const [id, variant, type] of [
+    ['gr86', 'gr86-2.4-rz-mt', 'MT'], ['avante_n', 'avante-n-2.0t-dct', 'DCT'], ['supra', 'supra-3.0t-rz', 'AT']
+  ]) {
+    const observations = [], ObservedRace = loadEngine({ create: Telemetry.create, stop: Telemetry.stop,
+      update(car, state, delta, input) { observations.push({ shifting: car.transmission.shifting, ...input }); return Telemetry.update(car, state, delta, input); }
+    });
+    const race = new ObservedRace({ circuit: circuits.find(c => c.id === 'everland'), laps: 2, entrants: [entrant(id, variant)] });
+    const car = race.cars[0], profile = Profiles.resolve(car);
+    race.sampleForCar = () => ({ x: 0, y: 0, elevation: 0, grade: 0, curvature: 0 });
+    race._target = () => 100;
+    car.speed = Dynamics.gearSpeedAtRPM(car, 1, profile.shiftRPM) * 1.001;
+    const hud = hudHarness(race), { sandbox } = hud;
+    sandbox.updatePowertrainHUD(car);
+    sandbox.frame(1000 + 1000 / 60);
+    assert.equal(hud.uiUpdates(), 0, 'the roster refresh has not run yet');
+    assert.equal(car.transmission.shifting, true, type);
+    assert.equal(hud.get('gear-value').textContent, type === 'MT' ? 'N' : '1', type);
+    assert.equal(car.telemetry.gear, car.transmission.gear);
+    assert.equal(hud.get('gear-value').title, type === 'MT' ? '수동 변속 중 · 동력 차단' : '변속 중');
+    let activeFrames = 1, completed = false;
+    for (let frame = 2; frame < 90; frame++) {
+      // Suppress the large UI refresh to prove the per-frame HUD path alone
+      // observes both start and completion, including the short DCT interval.
+      sandbox.lastUI = race.time + 1 / 60;
+      sandbox.frame(1000 + frame * 1000 / 60);
+      const physical = car.transmission, displayed = car.telemetry;
+      assert.equal(displayed.gear, physical.gear, type);
+      assert.equal(displayed.gearLabel, type === 'MT' && physical.neutral ? 'N' : String(physical.gear), type);
+      assert.equal(hud.get('gear-value').textContent, displayed.gearLabel, 'DOM equals the current physical snapshot');
+      if (physical.shifting) activeFrames++;
+      else {
+        assert.equal(physical.gear, 2); assert.equal(hud.get('gear-value').textContent, '2');
+        assert.equal(hud.get('gear-value').title, ''); completed = true; break;
+      }
+    }
+    assert.ok(activeFrames > 2 && completed, type + ': a real shift was observed through completion');
+    if (type === 'MT') {
+      const cuts = observations.filter(o => o.shifting);
+      assert.ok(cuts.length > 20);
+      assert.ok(cuts.every(o => o.drivePowerW < 1e-6), 'every displayed MT neutral tick has zero applied propulsion');
+    } else assert.ok(observations.filter(o => o.shifting).every(o => o.drivePowerW > 100), type + ' retains propulsion during its numeric shift');
+    const writes = hud.writes();
+    sandbox.running = false;
+    for (let frame = 0; frame < 5; frame++) sandbox.frame(sandbox.lastFrame + 16);
+    assert.equal(hud.writes(), writes, 'unchanged paused HUD makes no DOM writes');
+    // The deterministic test hook ends with exactly the same DOM snapshot.
+    sandbox.running = true;
+    sandbox.window.advanceTime(15);
+    assert.equal(hud.get('gear-value').textContent, car.telemetry.gearLabel);
+    car.finished = true; Telemetry.stop(car.telemetry);
+    sandbox.window.advanceTime(0);
+    assert.equal(hud.get('gear-value').textContent, '—');
+    assert.equal(hud.get('gear-value').attributes['aria-label'], '주행 종료');
   }
 });

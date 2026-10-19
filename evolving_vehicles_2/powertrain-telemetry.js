@@ -1,18 +1,21 @@
-/* Display-only drivetrain telemetry. Nothing returned here feeds vehicle
+/* Read-only drivetrain telemetry. Nothing returned here feeds vehicle
  * forces, speed limits, tuning scores or lap timing. Source-backed gearbox
  * types/counts and explicitly sourced ratios live in powertrain-profiles.js.
- * WOT shift scheduling, effective rolling radius and hybrid energy sharing
- * remain presentation estimates, not OBD data or manufacturer control maps.
+ * Racing gear/RPM/shift state comes from PowertrainDynamics. A standalone
+ * fixture without physical transmission state retains the estimated scheduler.
+ * Rolling radius and hybrid energy sharing remain estimates, not OBD data.
  * There is deliberately no battery state of charge or energy accounting. */
 (function (root) {
   'use strict';
   const PROFILES = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   if (!PROFILES) throw new Error('Load powertrain-profiles.js before powertrain-telemetry.js.');
+  const DYNAMICS = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
+  if (!DYNAMICS) throw new Error('Load powertrain-dynamics.js before powertrain-telemetry.js.');
   const internal = new WeakMap();
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
   const MODEL = Object.freeze({
-    purpose: 'display-only estimates; no feedback into race physics',
+    purpose: 'read-only physical gear/RPM/shift state; standalone estimates and hybrid flow have no feedback into race physics',
     rpmScale: 'idleRPM = 0, estimated shiftRPM = 1; numerical RPM is not displayed',
     minimumShiftIntervalSeconds: .65,
     shiftLampBlankSeconds: .12,
@@ -41,32 +44,32 @@
   });
 
   function describeGearing(car) {
-    const profile = PROFILES.resolve(car), spec = car.spec || car.entrant?.spec || {};
-    const gearCount = Number.isInteger(profile.gearCount) ? profile.gearCount : 0;
-    // Some dual-clutch gearboxes use different final drives for their gear
-    // groups. Preserve the per-gear pairing instead of flattening it to one
-    // scalar; conventional gearboxes retain their shared final drive.
-    const finalDrives = Array.isArray(profile.finalDriveRatios) && profile.finalDriveRatios.length === gearCount
-      ? profile.finalDriveRatios : Array(gearCount).fill(profile.finalDriveRatio);
-    const sourced = gearCount > 0 && Array.isArray(profile.gearRatios) && profile.gearRatios.length === gearCount
-      && profile.gearRatios.every(ratio => Number.isFinite(ratio) && ratio > 0)
-      && finalDrives.every(ratio => Number.isFinite(ratio) && ratio > 0);
-    const rear = profile.drivenAxle === 'rear' || spec.factoryDrive === 'rwd';
-    const nominalRadiusM = Math.max(.15, finite(rear ? spec.rearTireRadiusMm : spec.frontTireRadiusMm, 320) / 1000);
-    const rollingRadiusScale = clamp(finite(profile.rollingRadiusScale, 1), .9, 1.02);
-    const factoryReduction = car.entrant?.factorySpec?.reduction;
-    const tunedFinalDriveScale = factoryReduction > 0 && spec.reduction > 0 ? spec.reduction / factoryReduction : 1;
-    const totalRatios = Array.from({ length: gearCount }, (_, i) => sourced
-      ? profile.gearRatios[i] * finalDrives[i] * tunedFinalDriveScale
-      : Math.max(1, finite(profile.total1stReduction, 13.5)) * Math.pow(clamp(finite(profile.ratioStep, .75), .5, .92), i) * tunedFinalDriveScale);
-    return { totalRatios, nominalRadiusM, rollingRadiusScale, effectiveRadiusM: nominalRadiusM * rollingRadiusScale,
-      tunedFinalDriveScale, ratioStatus: profile.ratioStatus || 'estimated', sourceId: profile.ratioSourceId || null,
-      shiftRPM: finite(profile.shiftRPM, 6000), schedule: 'estimated-wide-open-throttle' };
+    return DYNAMICS.describeGearing(car);
   }
 
   function gearSpeedAtRPM(car, gear, rpm) {
-    const g = describeGearing(car), ratio = g.totalRatios[gear - 1];
-    return ratio && Number.isFinite(rpm) ? rpm / ratio * (2 * Math.PI * g.effectiveRadiusM) / 60 : null;
+    return DYNAMICS.gearSpeedAtRPM(car, gear, rpm);
+  }
+
+  function physicalTransmission(car, data) {
+    const state = car.transmission;
+    return data.gearCount && state && Number.isInteger(state.gear) && state.gear >= 1 &&
+      state.gear <= data.gearCount && Number.isFinite(state.rpm) ? state : null;
+  }
+
+  function readTransmission(state, data, transmission) {
+    // Never run another gear scheduler or RPM filter after the physical tick.
+    // The committed gear stays numeric during a shift; only an MT's actual
+    // zero-torque interval receives the temporary neutral label.
+    state.gearSource = 'physics'; state.gear = transmission.gear;
+    state.shifting = !!transmission.shifting;
+    state.neutral = state.shifting && data.profile.transmissionType === 'MT' &&
+      transmission.neutral === true && transmission.torqueFactor === 0;
+    state.gearLabel = state.neutral ? 'N' : String(state.gear);
+    data.rpm = clamp(transmission.rpm, data.idle, data.max);
+    state.rpmNormalized = clamp((data.rpm - data.idle) / (data.shift - data.idle), 0, 1);
+    state.shiftLights = state.neutral ? 0 : Math.min(8, Math.ceil(state.rpmNormalized * 8));
+    state.shiftCue = !state.shifting && state.gear < data.gearCount && state.rpmNormalized >= .94;
   }
 
   function create(car) {
@@ -78,6 +81,8 @@
     const gearCount = Number.isInteger(profile.gearCount) && profile.gearCount > 0 ? profile.gearCount : null;
     const state = { kind, gear: kind === 'electric' ? null : gearCount ? 1 : null,
       gearLabel: kind === 'electric' ? '—' : gearCount ? '1' : profile.transmissionType === 'IVT' ? 'IVT' : 'D',
+      gearSource: kind === 'electric' ? 'not-applicable' : gearCount ? 'display-estimate' : 'continuous-estimate',
+      shifting: false, neutral: false,
       rpmNormalized: 0, shiftLights: 0, shiftCue: false,
       battery: kind === 'hybrid' ? { flow: 0, mode: 'idle', cornerPhase: 'straight' } : null };
     const idle = Math.max(500, finite(profile.idleRPM, 900)), shift = Math.max(idle + 1000, finite(profile.shiftRPM, 6000));
@@ -103,13 +108,15 @@
       state.shiftLights = Math.min(8, Math.ceil(state.rpmNormalized * 8));
       state.shiftCue = !!gearCount && state.gear < gearCount && state.rpmNormalized >= .94;
     }
+    const transmission = physicalTransmission(car, data);
+    if (kind !== 'electric' && transmission) readTransmission(state, data, transmission);
     if (car.finished || car.dnf) stop(state);
     return state;
   }
 
   function stop(state) {
     state.gear = null; state.gearLabel = '—'; state.rpmNormalized = 0;
-    state.shiftLights = 0; state.shiftCue = false;
+    state.shiftLights = 0; state.shiftCue = false; state.shifting = false; state.neutral = false;
     if (state.battery) { state.battery.flow = 0; state.battery.mode = 'idle'; state.battery.cornerPhase = 'straight'; }
     const data = internal.get(state);
     if (data) { data.assistTime = 0; data.lampBlank = 0; }
@@ -190,6 +197,11 @@
     const data = internal.get(state);
     if (!data) throw new TypeError('Create telemetry with PowertrainTelemetry.create(car).');
     const speed = Math.max(0, finite(car.speed)), drivePower = Math.max(0, finite(input.drivePowerW)), brakePower = Math.max(0, finite(input.brakePowerW));
+    const transmission = physicalTransmission(car, data);
+    if (transmission) readTransmission(state, data, transmission);
+    else {
+    state.gearSource = data.gearCount ? 'display-estimate' : 'continuous-estimate';
+    state.shifting = false; state.neutral = false;
     const spec = car.spec || {}, radius = data.gearing.effectiveRadiusM;
     const wheelRPM = speed / (2 * Math.PI * radius) * 60;
     data.sinceShift += dt; data.lampBlank = Math.max(0, data.lampBlank - dt);
@@ -221,6 +233,7 @@
     state.rpmNormalized = clamp((data.rpm - data.idle) / (data.shift - data.idle), 0, 1);
     state.shiftLights = data.lampBlank > 0 ? 0 : Math.min(8, Math.ceil(state.rpmNormalized * 8));
     state.shiftCue = !!data.gearCount && state.gear < data.gearCount && data.lampBlank <= 0 && state.rpmNormalized >= .94;
+    }
     if (state.battery) {
       updateCorner(data, speed, dt, input.curvature, car.acceleration > .18 && drivePower > 100, brakePower > 100);
       updateBattery(car, state, data, dt, drivePower, brakePower);

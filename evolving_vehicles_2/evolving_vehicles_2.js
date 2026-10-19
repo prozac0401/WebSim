@@ -204,21 +204,29 @@ function updateUI(){
  }
  updateTuning(car);historyUI();
 }
+let powertrainHUDKey='';
 function updatePowertrainHUD(car){
- const t=car.telemetry,hud=$('powertrain-hud');hud.hidden=!t||t.kind==='electric';
- if(hud.hidden)return;
- $('powertrain-car').textContent='#'+String(car.index+1).padStart(2,'0')+' '+(vehicles.find(v=>v.id===car.vehicleId)?.name||car.name);
- hud.dataset.kind=t.kind;const stopped=car.finished||car.dnf,gear=stopped?'—':t.gearLabel;
- $('gear-value').textContent=gear;$('gear-value').dataset.wide=String(gear.length>1);
+ const t=car.telemetry,hud=$('powertrain-hud'),hidden=!t||t.kind==='electric';
+ if(hidden){if(powertrainHUDKey!=='hidden'){hud.hidden=true;powertrainHUDKey='hidden';}return;}
+ const stopped=car.finished||car.dnf,gear=stopped?'—':t.gearLabel;
+ const shifting=!stopped&&t.shifting,shiftDescription=shifting?(t.neutral?'수동 변속 중 · 동력 차단':'변속 중'):'';
  const lamps=stopped?0:t.shiftLights,cue=!stopped&&t.shiftCue,rpm=stopped?0:Math.round(t.rpmNormalized*100);
+ const flow=stopped?0:Math.max(-1,Math.min(1,t.battery?.flow||0)),mode=flow<0?'charging':flow>0?'using':'idle',label={charging:'충전 중',using:'사용 중',idle:'대기'}[mode];
+ const chargeWidth=(Math.max(0,-flow)*100).toFixed(1)+'%',useWidth=(Math.max(0,flow)*100).toFixed(1)+'%',flowValue=Math.round(flow*100);
+ const name='#'+String(car.index+1).padStart(2,'0')+' '+(vehicles.find(v=>v.id===car.vehicleId)?.name||car.name);
+ const key=JSON.stringify([name,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue]);
+ if(key===powertrainHUDKey)return;powertrainHUDKey=key;hud.hidden=false;
+ $('powertrain-car').textContent=name;hud.dataset.kind=t.kind;
+ $('gear-value').textContent=gear;$('gear-value').dataset.wide=String(gear.length>1);
+ hud.dataset.shifting=String(!!shifting);$('gear-value').title=shiftDescription;
+ $('gear-value').setAttribute('aria-label',stopped?'주행 종료':t.neutral?'변속 중 중립 · 동력 차단':(Number.isInteger(t.gear)?gear+'단':gear)+(shifting?' · 변속 중':''));
  [...$('shift-lights').children].forEach((lamp,i)=>lamp.classList.toggle('lit',i<lamps));
- $('shift-lights').setAttribute('aria-valuenow',rpm);$('shift-lights').setAttribute('aria-valuetext',stopped?'주행 종료':cue?'변속 시점':lamps+'개 신호등 점등');
+ $('shift-lights').setAttribute('aria-valuenow',rpm);$('shift-lights').setAttribute('aria-valuetext',stopped?'주행 종료':shiftDescription|| (cue?'변속 시점':lamps+'개 신호등 점등'));
  $('shift-cue').textContent=cue?'변속':t.gear===null?'회전 신호':'변속 신호';$('shift-cue').classList.toggle('shift-ready',cue);
  $('hybrid-flow').hidden=t.kind!=='hybrid';
- const flow=stopped?0:Math.max(-1,Math.min(1,t.battery?.flow||0)),mode=flow<0?'charging':flow>0?'using':'idle',label={charging:'충전 중',using:'사용 중',idle:'대기'}[mode];
  $('hybrid-flow').dataset.mode=mode;$('battery-mode').textContent=label;
- $('charge-fill').style.width=(Math.max(0,-flow)*100).toFixed(1)+'%';$('use-fill').style.width=(Math.max(0,flow)*100).toFixed(1)+'%';
- $('battery-flow').setAttribute('aria-valuenow',Math.round(flow*100));$('battery-flow').setAttribute('aria-valuetext',label);
+ $('charge-fill').style.width=chargeWidth;$('use-fill').style.width=useWidth;
+ $('battery-flow').setAttribute('aria-valuenow',flowValue);$('battery-flow').setAttribute('aria-valuetext',label);
 }
 function simulate(seconds){
  const transitions=session.step(seconds,{watchId:watch,auto:$('auto-evolve').checked&&(running||fast)});
@@ -236,6 +244,9 @@ function frame(timestamp){
  const delta=lastFrame===null?0:Math.min((timestamp-lastFrame)/1000,.1);lastFrame=timestamp;
  if(!manual){if(fast)simulate(12);else if(running)simulate(delta*Number($('speed').value));}
  if(Math.abs(lastUI-race.time)>.12||race.finished&&lastUI!==race.time){updateUI();lastUI=race.time;}
+ // Gear changes and an MT's neutral interval follow this render's physical
+ // snapshot, independently of the slower roster/statistics refresh.
+ updatePowertrainHUD(watching());
  const cameraMoved=renderer.advanceCamera(delta,{watch,snap:fast||manual});
  if(running||fast||before!==race.time||cameraMoved)draw();requestAnimationFrame(frame);
 }
@@ -283,6 +294,7 @@ window.render_game_to_text=()=>JSON.stringify({
  modelLoad:ManufacturerModels.getLoadState($('vehicle-model').value),
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  watchTelemetry:watching().telemetry,
+ watchTransmission:watching().transmission||null,
  patrolLights:renderer.getPatrolInfo?.()||[],
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. Performance-dependent per-car racing paths. Independent ghosts. Centre-aligned standing starts.',
  evaluation:{start:'standing',complete:session.evaluationRace.finished,automaticBlocked:session.automaticBlocked},

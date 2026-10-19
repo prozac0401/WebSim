@@ -4,6 +4,7 @@
 (function (root) {
   'use strict';
   const G = 9.81, PS_WATTS = 735.49875;
+  const DYNAMICS = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
   const cache = new WeakMap();
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const mod = (v, n) => ((v % n) + n) % n;
@@ -17,15 +18,19 @@
   }
   const fillFor = color => 'rgba(' + color.map(v => Math.round(v)).join(',') + ',0.52)';
 
-  // These are the same wheel-force limits and resistances used by _advance.
+  // Use the same gear/radius force envelope as the race at the forecast speed.
+  // Brief future shifts are not scheduled by this spatial advisory; sampling
+  // the line must never advance the watched car's transmission timer.
   // Using wheel force (not just negative acceleration) avoids calling uphill
   // full-throttle deceleration braking, or downhill coasting acceleration gas.
   function forces(race, car, speed, grade) {
     const normal = 1 / Math.hypot(1, grade), mass = car.massKg;
     const resistance = .5 * 1.225 * car.dragArea * speed * speed / mass + G * (car.rollingCoefficient * normal + grade * normal);
-    const radius = (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
-    const torque = car.torqueNm * car.driveReduction * car.efficiency / radius / mass;
-    const power = car.powerPs * PS_WATTS * car.efficiency / Math.max(4, speed) / mass;
+    const gearing = DYNAMICS?.preview(car, speed);
+    const radius = gearing?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
+    const retained = gearing?.torqueFactor ?? 1;
+    const torque = car.torqueNm * (gearing?.totalRatio ?? car.driveReduction) * car.efficiency * retained / radius / mass;
+    const power = car.powerPs * PS_WATTS * car.efficiency * retained / Math.max(4, speed) / mass;
     const drive = Math.max(0, Math.min(torque, power, race._tractionAcceleration(car, speed, grade, resistance)));
     return { resistance, drive, brake: race._brakingCapacity(car, speed, grade), acceleration: drive - resistance };
   }

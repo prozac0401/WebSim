@@ -1,8 +1,8 @@
 /* Deterministic circuit time trial. Vehicles are independent ghosts.
  * Factory mass, PS and Nm come from shared specs plus circuit-only additions.
  * Drag area, grip, brakes, fallback reduction and efficiency are estimates.
- * Source-backed first-gear/final-drive or fixed EV reductions bound wheel torque
- * where available; reference-market ratios are identified in LAUNCH-DYNAMICS.md.
+ * Stepped ratios and estimated shift interruptions bound wheel torque. Fixed EV
+ * reductions remain single speed; source status is recorded in the profiles.
  * Geographic elevations, when supplied, drive
  * road grade, gravity and normal load. No collisions, tyre wear or pits.
  * Entrants select a bounded vehicle-performance racing line. This is
@@ -18,6 +18,7 @@
   const TAEBAEK_PROFILE = root.TaebaekElevationProfile || (typeof require === 'function' ? require('./taebaek-elevation-profile.js') : null);
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
+  const TRANSMISSION = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
@@ -305,9 +306,9 @@
           topSpeedMps: entrant ? clamp(spec.topSpeedMps ?? 120, 10, 140) : 120,
           frontNormalLoad: frontWeightFraction * spec.massKg * G,
           rearNormalLoad: (1 - frontWeightFraction) * spec.massKg * G };
-        // Keep the HUD's tuning-relative reduction unchanged. A separate
-        // low-speed torque envelope can use a sourced first gear/final drive
-        // or fixed EV reduction without reading display-only gear changes.
+        // Preserve the tuning-relative scalar. The physical stepped gearbox
+        // resolves each gear independently; EV/continuous fallbacks use this
+        // sourced fixed/first reduction envelope.
         car.driveReduction = car.reduction;
         const transmission = entrant && POWERTRAIN?.resolve(car);
         const firstFinalDrive = transmission?.finalDriveRatios?.[0] ?? transmission?.finalDriveRatio;
@@ -322,6 +323,7 @@
           car.driveReduction = sourcedReduction * tuningScale;
           car.driveReductionSource = firstReduction ? transmission.ratioStatus : transmission.reductionStatus;
         }
+        if (TRANSMISSION) car.transmission = TRANSMISSION.create(car);
         const line = this.usesRacingLine && VEHICLE_LINE ? VEHICLE_LINE.build(this, car) : null;
         car.racingLine = line;
         car.pathPoints = line?.points || this.pathPoints;
@@ -359,7 +361,11 @@
       for (let i = 0; i < 40; i++) {
         const v = (low + high) / 2;
         const resistance = .5 * 1.225 * car.dragArea * v * v + constantResistance;
-        if (resistance * v < power) low = v; else high = v;
+        const predicted = TRANSMISSION?.preview(car, v);
+        const radius = predicted?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
+        const torqueForce = car.torqueNm * (predicted?.totalRatio ?? car.driveReduction) * car.efficiency / radius;
+        const force = Math.min(torqueForce, power / Math.max(4, v)) * (predicted?.torqueFactor ?? 1);
+        if (resistance < force) low = v; else high = v;
       }
       return Math.min((low + high) / 2, car.topSpeedMps);
     }
@@ -458,14 +464,23 @@
       const oldDistance = car.distance, oldSpeed = car.speed;
       const oldPosition = this.sampleForCar(car, oldDistance), grade = oldPosition.grade, normal = 1 / Math.hypot(1, grade), sine = grade * normal;
       const target = this._target(car, oldDistance + Math.max(.1, oldSpeed * dt));
-      const wheelRadius = (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
-      const torqueForce = car.torqueNm * car.driveReduction * car.efficiency / wheelRadius;
-      const powerForce = car.powerPs * PS_WATTS * car.efficiency / Math.max(4, oldSpeed);
       const drag = .5 * 1.225 * car.dragArea * oldSpeed * oldSpeed;
       const rolling = car.rollingCoefficient * car.massKg * G * normal;
       const gravity = car.massKg * G * sine;
       const resistance = drag + rolling + gravity;
-      const driveForce = Math.min(torqueForce, powerForce, this._tractionAcceleration(car, oldSpeed, grade, resistance / car.massKg) * car.massKg);
+      const requestedForce = car.massKg * (target - oldSpeed) / dt + resistance;
+      const transmission = TRANSMISSION && car.transmission ? TRANSMISSION.advance(car, car.transmission, dt, {
+        braking: requestedForce < -100,
+        accelerating: target > oldSpeed + .18 * dt && requestedForce * oldSpeed > car.powerPs * PS_WATTS * .35
+      }) : null;
+      const wheelRadius = transmission?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
+      const torqueForce = car.torqueNm * (transmission?.forceRatio ?? car.driveReduction) * car.efficiency / wheelRadius;
+      const powerForce = car.powerPs * PS_WATTS * car.efficiency * (transmission?.torqueFactor ?? 1) / Math.max(4, oldSpeed);
+      const tractionForce = this._tractionAcceleration(car, oldSpeed, grade, resistance / car.massKg) * car.massKg;
+      const driveForce = transmission?.phases ? transmission.phases.reduce((sum, part) => sum + part.fraction * Math.min(
+        car.torqueNm * part.forceRatio * car.efficiency / wheelRadius,
+        car.powerPs * PS_WATTS * car.efficiency * part.torqueFactor / Math.max(4, oldSpeed), tractionForce), 0)
+        : Math.min(torqueForce, powerForce, tractionForce);
       const availableAcceleration = (driveForce - resistance) / car.massKg;
       const minimumAcceleration = -this._brakingCapacity(car, oldSpeed, grade) - resistance / car.massKg;
       const acceleration = Math.max(minimumAcceleration, Math.min(availableAcceleration, (target - oldSpeed) / dt));
@@ -473,6 +488,7 @@
       const travel = (oldSpeed + car.speed) * .5 * dt;
       car.distance = Math.min(car.totalDistance, oldDistance + travel);
       car.acceleration = acceleration; car.targetSpeed = target; car.maxSpeed = Math.max(car.maxSpeed, car.speed);
+      if (TRANSMISSION && car.transmission) TRANSMISSION.updateRPM(car, car.transmission);
       const position = this.sampleForCar(car, car.distance);
       car.grade = position.grade; car.elevation = position.elevation; car.slopeAcceleration = -G * sine;
       if (car.advancedDynamics) {
@@ -485,7 +501,7 @@
       if (TELEMETRY) {
         // Observe applied wheel work, not acceleration alone: gravity/drag can
         // change speed without propulsion or regenerative braking. This is
-        // display-only and never changes forces, speed or the result above.
+        // energy display only; gear/RPM are read from the physical snapshot.
         const wheelForce = car.massKg * acceleration + resistance;
         const meanSpeed = (oldSpeed + car.speed) * .5;
         TELEMETRY.update(car, car.telemetry, dt, {

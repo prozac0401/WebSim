@@ -63,6 +63,8 @@ test('browser HTML order installs the official profile before TrackRace and shar
   const index=name=>scripts.indexOf(name);
   assert.ok(index('spa-elevation-profile.js')>=0&&index('spa-elevation-profile.js')<index('race-engine.js'));
   assert.ok(index('taebaek-elevation-profile.js')>=0&&index('taebaek-elevation-profile.js')<index('race-engine.js'));
+  assert.ok(index('powertrain-profiles.js')<index('powertrain-dynamics.js')&&index('powertrain-dynamics.js')<index('powertrain-telemetry.js'));
+  assert.ok(index('powertrain-telemetry.js')<index('race-engine.js'));
   assert.ok(index('../evolving_vehicles/vehicle-specs.js')<index('circuit-vehicle-specs.js')&&index('circuit-vehicle-specs.js')<index('race-engine.js'));
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
   assert.ok(index('vehicle-racing-line.js')>=0&&index('vehicle-racing-line.js')<index('race-engine.js'));
@@ -73,7 +75,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('terrain-surfaces.js')>=0&&index('terrain-surfaces.js')<index('circuit-renderer.js'));
   assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
-  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','taebaek-elevation-profile.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
+  const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','taebaek-elevation-profile.js','powertrain-profiles.js','powertrain-dynamics.js','powertrain-telemetry.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);
   for(const file of scripts)if(needed.has(file))vm.runInContext(fs.readFileSync(path.resolve(__dirname,file),'utf8'),context,{filename:file});
   const race=vm.runInContext("new TrackRace({circuit:RaceCircuits.find(c=>c.id==='spa'),vehicleIds:['g80'],racingLine:true})",context);
   assert.equal(context.TrackRace.VEHICLES.length,18);

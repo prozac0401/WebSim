@@ -1,8 +1,9 @@
-/* Manufacturer-checked transmission families and sourced ratios for the HUD.
+/* Manufacturer-checked transmission families and sourced ratios.
  * Sources distinguish exact-market specifications from reference-market ratios.
- * The race also uses sourced first-gear/final-drive or EV reductions for its low-speed
- * torque envelope. WOT shift scheduling and rolling-radius correction remain
- * display estimates and never feed the race's forces or lap-time solver. */
+ * Physical gear selection and the HUD share these profiles. Shift duration and
+ * retained drive torque are separate simulation assumptions, not specifications
+ * verified by the ratio sources. WOT scheduling and radius corrections are also
+ * estimates; the display reads the resulting physical transmission state. */
 (function(root){
   'use strict';
   const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
@@ -42,6 +43,22 @@
     'hyundai-santafe-au-my21-final-drives':{title:'Hyundai Australia MY21 Santa Fe 8DCT final-drive assignments',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf',observation:'2.2 디젤 8DCT 표: 동일 단별 비율에서 1/2/5/6단은 4.846, 3/4/7/8단은 3.316. MX5 2.5T의 배정에 참고 적용하며 동일 변속기 제어/국내 사양 검증을 뜻하지 않는다.'}
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
+  // User-supplied calibration ranges: MT .35–.55 s / zero drive torque;
+  // DCT .08–.15 s / .70–.95 retained torque. The selected values, including
+  // automatic-transmission values, are model assumptions, not measurements.
+  const shiftAssumption=(family,upshiftDurationS,torqueRetention,calibration)=>({
+    family,upshiftDurationS,torqueRetention,calibration,assumed:true,status:'estimated',reviewedAt:'2026-10-19'
+  });
+  const SHIFT_MODELS=freeze({
+    manual:shiftAssumption('manual',.45,0,'manual'),
+    dct:shiftAssumption('dual-clutch',.12,.85,'dual-clutch'),
+    automatic:shiftAssumption('torque-converter',.25,.65,'general-automatic'),
+    zf8hp51:shiftAssumption('torque-converter',.16,.80,'zf-8hp51'),
+    hybrid:shiftAssumption('hybrid-step',.25,.65,'hybrid-automatic'),
+    ivt:{family:'continuous',upshiftDurationS:0,torqueRetention:1,assumed:false,status:'not-applicable'},
+    electric:{family:'single-speed',upshiftDurationS:0,torqueRetention:1,assumed:false,status:'not-applicable'},
+    unknown:{family:'unknown',upshiftDurationS:0,torqueRetention:1,assumed:false,status:'unavailable'}
+  });
   const profiles={};
   function add(vehicleId,variantIds,powertrainType,transmissionType,gearCount,sourceId,overrides={}){
     const electric=powertrainType==='electric';
@@ -144,6 +161,13 @@
       referenceFields: ['singleSpeedReduction'], estimatedFields: ['domesticReductionMatch']
     });
   }
+  for(const p of Object.values(profiles)){
+    const key=p.transmissionType==='MT'?'manual':p.transmissionType==='DCT'?'dct':
+      p.transmissionType==='IVT'?'ivt':p.transmissionType==='EV'?'electric':
+      p.transmissionType==='AT'?(p.powertrainType==='hybrid'?'hybrid':p.transmissionFamily==='ZF 8HP51'?'zf8hp51':'automatic'):'unknown';
+    p.shiftModel=SHIFT_MODELS[key];
+    if(p.shiftModel.assumed)p.estimatedFields=[...p.estimatedFields,'shiftModel'];
+  }
   const PROFILES=freeze(profiles);
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.
@@ -153,6 +177,7 @@
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',
       idleRPM:electric?0:900,shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,ratioStep:null,
+      shiftModel:electric?SHIFT_MODELS.electric:SHIFT_MODELS.unknown,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[],reviewedAt:null,verifiedFields:[],match:'unknown'});
   }
   function resolve(car={}){
@@ -169,6 +194,6 @@
     }
     return PROFILES[FALLBACKS[vehicleId]]||unknown(vehicleId,null,spec);
   }
-  const api=freeze({resolve,PROFILES,FALLBACKS,SOURCES,reviewedAt});
+  const api=freeze({resolve,PROFILES,FALLBACKS,SOURCES,SHIFT_MODELS,reviewedAt});
   root.PowertrainProfiles=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
