@@ -5,9 +5,24 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),zlib
 const registrySource=fs.readFileSync(path.join(__dirname,'manufacturer-models.js'),'utf8');
 const kinds={carnival:'manufacturer-mesh',morning:'dealer-mesh',ray:'photo-reconstruction',k5:'photo-reconstruction',avante:'photo-reconstruction',grandeur:'photo-reconstruction',torres:'photo-reconstruction',musso_ev:'photo-reconstruction',porter2:'photo-reference'};
 
-function registry(document){
- const context=vm.createContext({document,atob,Uint8Array,Uint16Array,Uint32Array,Float32Array,Blob,Response,DecompressionStream});
- vm.runInContext(registrySource,context);return {context,api:context.ManufacturerModels};
+function registry(t){
+ const scripts=[],waiting=new Map(),timers=new Set();
+ const document={currentScript:{src:'file:///project/manufacturer-models.js?v=refined-2'},
+  createElement(tag){assert.equal(tag,'script');return {removed:false,remove(){this.removed=true;}};},
+  head:{append(script){const index=scripts.push(script)-1;waiting.get(index)?.(script);waiting.delete(index);}}};
+ const context=vm.createContext({document,atob,Uint8Array,Uint16Array,Uint32Array,Float32Array,Blob,Response,DecompressionStream,
+  setTimeout(fn,ms){const timer=setTimeout(()=>{timers.delete(timer);fn();},ms);timers.add(timer);return timer;},
+  clearTimeout(timer){timers.delete(timer);clearTimeout(timer);}});
+ t.after(()=>{for(const timer of timers)clearTimeout(timer);});
+ vm.runInContext(registrySource,context);document.currentScript=null;
+ const api=context.ManufacturerModels;
+ return {api,scripts,timers,
+  scriptAt(index){return scripts[index]?Promise.resolve(scripts[index]):new Promise(resolve=>waiting.set(index,resolve));},
+  execute(script,payload){
+   document.currentScript=script;let registration;
+   try{registration=api.registerCompressed(payload);}finally{document.currentScript=null;}
+   script.onload();return registration;
+  }};
 }
 
 for(const [id,kind]of Object.entries(kinds))test(`${id}: complete local geometry, source and photographic cameras`,()=>{
@@ -46,18 +61,32 @@ for(const [id,kind]of Object.entries(kinds))test(`${id}: complete local geometry
  }
 });
 
-test('model loading is on demand, deduplicated, awaits decompression and leaves unknown models alone',async()=>{
- const scripts=[];const {api}=registry({currentScript:{src:'file:///project/manufacturer-models.js?v=refined-2'},createElement:()=>({}),head:{append:s=>scripts.push(s)}});
+test('model loading is on demand, deduplicated, awaits decompression and leaves unknown models alone',async t=>{
+ const {api,scripts,timers,execute}=registry(t);
  assert.equal(scripts.length,0);assert.equal(api.canLoad('porter2'),true);assert.equal(await api.load('not-a-model'),false);assert.equal(scripts.length,0);
  const first=api.load('ray'),second=api.load('ray');assert.equal(first,second);assert.equal(scripts.length,1);assert.equal(api.isLoading('ray'),true);
  assert.equal(scripts[0].src,'file:///project/assets/models/ray-runtime.js?v=refined-2');
- api.registerCompressed(zlib.gzipSync(JSON.stringify({id:'ray',primitives:[]})).toString('base64'));
- scripts[0].onload();assert.equal(await first,true);assert.equal(api.isLoading('ray'),false);assert.equal(api.has('ray'),true);
+ const registration=execute(scripts[0],zlib.gzipSync(JSON.stringify({id:'ray',primitives:[]})).toString('base64'));
+ assert.equal(api.has('ray'),false);assert.equal(api.isLoading('ray'),true);assert.equal(api.getLoadState('ray').phase,'decoding');
+ assert.equal(await registration,true);assert.equal(await first,true);assert.equal(api.isLoading('ray'),false);assert.equal(api.has('ray'),true);
+ assert.equal(api.getLoadState('ray').status,'ready');assert.equal(scripts[0].removed,true);assert.equal(scripts[0].onload,null);assert.equal(timers.size,0);
  assert.equal(await api.load('ray'),true);assert.equal(scripts.length,1);
 });
 
-test('missing model file and decompression errors finish loading and preserve fallback',async()=>{
- const scripts=[];const {api}=registry({createElement:()=>({}),head:{append:s=>scripts.push(s)}});
- const missing=api.load('ray');scripts[0].onerror();assert.equal(await missing,false);assert.equal(api.isLoading('ray'),false);assert.equal(api.create('ray',{},'#fff'),null);
- const invalid=api.load('k5');api.registerCompressed(Buffer.from('not gzip').toString('base64'));scripts[1].onload();assert.equal(await invalid,false);assert.equal(api.isLoading('k5'),false);assert.equal(api.failures.length,2);
+test('missing model file and decompression errors finish bounded retries and preserve fallback',async t=>{
+ const {api,scripts,timers,scriptAt,execute}=registry(t);
+ const missing=api.load('ray');scripts[0].onerror();
+ const networkRetry=await scriptAt(1);assert.match(networkRetry.src,/v=refined-2&retry=/);networkRetry.onerror();
+ assert.equal(await missing,false);assert.equal(api.isLoading('ray'),false);assert.equal(api.create('ray',{},'#fff'),null);
+ assert.equal(api.getLoadState('ray').attempt,2);assert.equal(api.getLoadState('ray').errorCode,'network');assert.equal(api.getLoadState('ray').retryable,true);
+ assert.equal(scripts.length,2);assert.equal(timers.size,0,'network retries stop after two attempts');
+ const invalid=api.load('k5'),badGzip=Buffer.from('not gzip').toString('base64');
+ assert.equal(await execute(scripts[2],badGzip),false);
+ const decodeRetry=await scriptAt(3);assert.equal(await execute(decodeRetry,badGzip),false);
+ assert.equal(await invalid,false);assert.equal(api.isLoading('k5'),false);assert.equal(api.create('k5',{},'#fff'),null);
+ assert.equal(api.getLoadState('k5').attempt,2);assert.equal(api.getLoadState('k5').errorCode,'decode');assert.equal(api.failures.length,4);
+ assert.equal(scripts.length,4);assert.equal(timers.size,0,'decode retries stop after two attempts');assert.ok(scripts.every(script=>script.removed));
+ const manualRetry=api.load('ray');assert.notEqual(manualRetry,missing);assert.match(scripts[4].src,/retry=/);
+ execute(scripts[4],zlib.gzipSync(JSON.stringify({id:'ray',primitives:[]})).toString('base64'));
+ assert.equal(await manualRetry,true);assert.equal(api.has('ray'),true);assert.equal(api.getLoadState('ray').error,null);assert.equal(timers.size,0);
 });

@@ -389,7 +389,7 @@
       const car=this.race?.cars.find(c=>c.id===this.watch)||this.race?.cars[0],asset=car&&root.ManufacturerModels?.get(car.vehicleId);
       if(car&&root.ManufacturerModels?.isLoading(car.vehicleId))return {kind:'loading',label:'정밀 3D 외형 불러오는 중…'};
       if(asset&&(this.surfaceRenderer?.available||asset.fallbackPrimitives))return {kind:asset.source.kind,label:asset.source.label+(this.surfaceRenderer?.available?'':' · 저해상도 외형'),triangles:this.surfaceRenderer?.available?asset.triangles:asset.fallbackPrimitives.reduce((n,p)=>n+p.indices.length/3,0),url:asset.source.url,license:asset.source.license,licenseUrl:asset.source.licenseUrl};
-      if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
+      if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 화면의 다시 불러오기를 눌러 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
     getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this.mode==='follow'?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
@@ -492,6 +492,10 @@
     _mesh(car){
       const finishes=['#d9dcdb','#526573','#8c979e','#303a46','#776a63','#8a3f43','#6b7770','#b3b0a7'];
       const id=car.vehicleId||car.spec?.id||'g80',spec=car.spec||root.CircuitVehicleSpecs?.[id]||root.VehicleSpecs?.[id]||{},paint=finishes[(car.index??car.id??0)%finishes.length],key=[id,paint,spec.lengthMm,spec.heightMm,spec.widthMm,spec.wheelbaseMm].join('|');
+      // An empty/procedural mesh may have been drawn while its asset loaded.
+      // Refresh by source identity even if the race changed before completion.
+      const cached=this.meshCache.get(key),asset=root.ManufacturerModels?.get(id)||null;
+      if(cached&&(cached.manufacturer||null)!==asset)this.meshCache.delete(key);
       if(!this.meshCache.has(key))this.meshCache.set(key,root.ManufacturerModels?.create(id,spec,paint)||(root.ManufacturerModels?.requiresAsset(id)?{length:spec.lengthMm/1000,width:spec.widthMm/1000,height:spec.heightMm/1000,faces:[],metadata:{id}}:root.VehicleMeshes?root.VehicleMeshes.create(id,spec,paint):vehicleMesh(id,spec,paint)));return this.meshCache.get(key);
     }
     getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=root.G70PatrolLights?.sample(this.race,car,mesh);return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}

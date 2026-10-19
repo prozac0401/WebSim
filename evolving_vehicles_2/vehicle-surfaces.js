@@ -72,7 +72,20 @@ class VehicleSurfaces {
    this.uintIndices=gl.getExtension('OES_element_index_uint');
    this.available=true;
   } catch(error){this.failure=String(error);}
-  this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.available=false;});
+  this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this._fail(new Error('Vehicle WebGL context lost'));});
+ }
+ _checkResource(label){
+  // WebGL reports allocation failures through error flags rather than throwing.
+  // Check only at upload/allocation boundaries, never on every cached draw.
+  const error=this.gl.getError?.()??0;
+  if(error!==(this.gl.NO_ERROR??0))throw new Error('Vehicle WebGL '+label+' failed ('+error+')');
+ }
+ _fail(error,notify=true){
+  const changed=this.available||!this.failure;
+  this.failure=String(error);this.available=false;
+  // Partial uploads and delayed image callbacks must not survive a failed GPU.
+  try{this.clearGeometry();}catch(_error){}
+  if(changed&&notify)this.onUpdate?.();
  }
  _buffer(mesh) {
   if(this.cache.has(mesh))return this.cache.get(mesh);
@@ -95,26 +108,48 @@ class VehicleSurfaces {
    const color=rgb(face.fill),material=materials[face.material]??0;
    for(const p of verts){const normal=normals.get(key(p,face))||n,len=Math.hypot(...normal)||1;data.push(p.x,p.y,p.z,...normal.map(x=>x/len),...color,material);}
   }
-  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
-  const result={buffer,count:data.length/10};this.cache.set(mesh,result);return result;
+  const buffer=gl.createBuffer();if(!buffer)throw new Error('Vehicle WebGL vertex buffer allocation failed');
+  try{
+   gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);this._checkResource('vertex buffer upload');
+   const result={buffer,count:data.length/10};this.cache.set(mesh,result);return result;
+  }catch(error){gl.deleteBuffer(buffer);throw error;}
  }
  _assetBuffers(model){
   if(this.assetCache.has(model))return this.assetCache.get(model);
-  const gl=this.gl,result=model.primitives.map(p=>{
+  const gl=this.gl,allocated=[];
+  try{
+  const result=model.primitives.map(p=>{
    let vertices=p.vertices,indices=p.indices;
    if(p.indexType===4&&!this.uintIndices){vertices=new Float32Array(indices.length*8);for(let i=0;i<indices.length;i++)vertices.set(p.vertices.subarray(indices[i]*8,indices[i]*8+8),i*8);indices=null;}
-   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);
-   let indexBuffer;if(indices){indexBuffer=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);}
+   const buffer=gl.createBuffer();if(!buffer)throw new Error('Vehicle WebGL vertex buffer allocation failed');allocated.push(buffer);
+   gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);this._checkResource('vertex buffer upload');
+   let indexBuffer;if(indices){indexBuffer=gl.createBuffer();if(!indexBuffer)throw new Error('Vehicle WebGL index buffer allocation failed');allocated.push(indexBuffer);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);this._checkResource('index buffer upload');}
    return {p,buffer,indexBuffer,count:indices?indices.length:vertices.length/8,type:p.indexType===2?gl.UNSIGNED_SHORT:gl.UNSIGNED_INT};
   }).sort((a,b)=>(b.p.alpha??1)-(a.p.alpha??1));
   this.assetCache.set(model,result);return result;
+  }catch(error){for(const buffer of allocated)gl.deleteBuffer(buffer);throw error;}
  }
  _texture(source){
   if(this.textures.has(source))return this.textures.get(source);
-  const gl=this.gl,texture=gl.createTexture(),record={texture,ready:false};this.textures.set(source,record);
+  const gl=this.gl,texture=gl.createTexture();if(!texture)throw new Error('Vehicle WebGL texture allocation failed');
+  const record={texture,ready:false};
   const previous=gl.getParameter(gl.TEXTURE_BINDING_2D);
-  gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));gl.bindTexture(gl.TEXTURE_2D,previous);
-  const generation=this.textureGeneration,image=new Image();image.onload=()=>{if(!this.available||generation!==this.textureGeneration)return;const bound=gl.getParameter(gl.TEXTURE_BINDING_2D);gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.bindTexture(gl.TEXTURE_2D,bound);record.ready=true;this.onUpdate?.();};image.src=source;return record;
+  try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));this._checkResource('placeholder texture upload');}
+  catch(error){gl.deleteTexture(texture);throw error;}
+  finally{gl.bindTexture(gl.TEXTURE_2D,previous);}
+  this.textures.set(source,record);
+  const generation=this.textureGeneration,image=new Image(),current=()=>this.available&&generation===this.textureGeneration&&this.textures.get(source)===record;
+  image.onload=()=>{
+   if(!current())return;
+   const bound=gl.getParameter(gl.TEXTURE_BINDING_2D);let failure;
+   try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);this._checkResource('image texture upload');}
+   catch(error){failure=error;}
+   finally{gl.bindTexture(gl.TEXTURE_2D,bound);}
+   if(failure){this._fail(failure);return;}
+   record.ready=true;this.onUpdate?.();
+  };
+  image.onerror=()=>{if(current())this._fail(new Error('Vehicle texture image decode failed'));};
+  image.src=source;return record;
  }
  _photoCameraMatrix(c){
   if(c.matrix)return c.matrix;
@@ -158,6 +193,7 @@ class VehicleSurfaces {
  }
  render(entries,camera,width,height,dpr=1) {
   if(!this.available)return null;
+  try{
   const gl=this.gl,w=Math.round(width*dpr),h=Math.round(height*dpr);
   if(this.canvas.width!==w||this.canvas.height!==h){this.canvas.width=w;this.canvas.height=h;}
   gl.viewport(0,0,w,h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
@@ -187,6 +223,7 @@ class VehicleSurfaces {
    }
   }
   return this.canvas;
+  }catch(error){this._fail(error,false);return null;}
  }
  clearGeometry(){if(!this.gl)return;this.textureGeneration++;for(const b of this.cache.values())this.gl.deleteBuffer(b.buffer);for(const list of this.assetCache.values())for(const b of list){this.gl.deleteBuffer(b.buffer);if(b.indexBuffer)this.gl.deleteBuffer(b.indexBuffer);}for(const t of this.textures.values())this.gl.deleteTexture(t.texture);this.cache.clear();this.assetCache.clear();this.lodCache=new WeakMap();this.textures.clear();}
  dispose(){if(!this.gl)return;this.clearGeometry();this.available=false;this.gl.deleteProgram(this.program);}
