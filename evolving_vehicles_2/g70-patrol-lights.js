@@ -61,6 +61,22 @@
       return null;
     }
     const point=(x,y,lift)=>{const z=surface(x,y);return z===null?null:{x:(x+mesh.modelOffset[0])*mesh.modelScale[0],y:(y+mesh.modelOffset[1])*mesh.modelScale[1],z:(z+mesh.modelOffset[2])*mesh.modelScale[2]+lift};};
+    const backing=mesh.manufacturer.primitives.find(p=>p.exteriorRole==='grille-backing');
+    // The police-provided pre-facelift photograph also shows two compact,
+    // three-row LED banks behind the upper grille. Fit YZ to the actual backing
+    // and stay behind the diamond lattice so its depth occlusion remains real.
+    function grillePoint(y,z,lift){
+      if(!backing)return null;
+      const v=backing.vertices,idx=backing.indices;let front=-Infinity;
+      for(let i=0;i<idx.length;i+=3){
+        const a=idx[i]*8,b=idx[i+1]*8,c=idx[i+2]*8;
+        const den=(v[b+2]-v[c+2])*(v[a+1]-v[c+1])+(v[c+1]-v[b+1])*(v[a+2]-v[c+2]);if(Math.abs(den)<1e-12)continue;
+        const u=((v[b+2]-v[c+2])*(y-v[c+1])+(v[c+1]-v[b+1])*(z-v[c+2]))/den;
+        const w=((v[c+2]-v[a+2])*(y-v[c+1])+(v[a+1]-v[c+1])*(z-v[c+2]))/den;
+        if(u>=-.00001&&w>=-.00001&&u+w<=1.00001)front=Math.max(front,u*v[a]+w*v[b]+(1-u-w)*v[c]);
+      }
+      return Number.isFinite(front)?{x:(front+lift+mesh.modelOffset[0])*mesh.modelScale[0],y:(y+mesh.modelOffset[1])*mesh.modelScale[1],z:(z+mesh.modelOffset[2])*mesh.modelScale[2]}:null;
+    }
     const result={};
     for(const phase of ['red','blue','dark']){
       const faces=[];
@@ -70,6 +86,15 @@
         const color=side<0?'red':'blue',lit=color===phase;
         faces.push({vertices,fill:lit?(color==='red'?'#ff344e':'#258aff'):'#17242f',material:'light',flat:true,part:'patrol-'+window});
         if(lit){const core=[[x0+.023,y0+side*.014],[x1-.023,y0+side*.014],[x1-.023,y1-side*.014],[x0+.023,y1-side*.014]].map(([x,y])=>point(x,y,.009));if(core.every(Boolean))faces.push({vertices:core,fill:color==='red'?'#ffd6df':'#d3efff',material:'light',flat:true,part:'patrol-'+window});}
+      }
+      for(const side of [-1,1])for(let row=0;row<3;row++)for(let col=0;col<4;col++){
+        const edge=side*(.14+col*.035),y0=Math.min(edge,edge+side*.028),y1=Math.max(edge,edge+side*.028),z0=.575+row*.028,z1=z0+.016;
+        const vertices=[[y0,z0],[y1,z0],[y1,z1],[y0,z1]].map(([y,z])=>grillePoint(y,z,.010));if(vertices.some(v=>!v))continue;
+        // In the reference's two exposure phases, the grille and windshield
+        // show opposite colors. Keep that alternation within the same latch.
+        const color=side<0?'red':'blue',lit=phase!=='dark'&&color!==phase;
+        faces.push({vertices,fill:lit?(color==='red'?'#ff344e':'#258aff'):'#101820',material:'light',flat:true,part:'patrol-grille'});
+        if(lit){const core=[[y0+.004,z0+.004],[y1-.004,z0+.004],[y1-.004,z1-.004],[y0+.004,z1-.004]].map(([y,z])=>grillePoint(y,z,.012));if(core.every(Boolean))faces.push({vertices:core,fill:color==='red'?'#ffd6df':'#d3efff',material:'light',flat:true,part:'patrol-grille'});}
       }
       result[phase]={length:mesh.length,width:mesh.width,height:mesh.height,faces};
     }
