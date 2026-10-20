@@ -38,6 +38,7 @@ assets/**
 !assets/models/build-hyundai-additions.mjs
 !assets/models/build-kia-models.mjs
 !assets/models/build-models.mjs
+!assets/models/g70-exterior-parts.mjs
 !assets/models/carnival-runtime-summary.json
 !assets/models/carnival-runtime.js
 !assets/models/g80-runtime-summary.json

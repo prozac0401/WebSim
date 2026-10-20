@@ -9,24 +9,24 @@
     "license": "CC BY 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
     "configuration": "Independent pre-facelift G70 exterior, published in 2019. Exact original trim not specified; shared exterior for simulated 2018/19 variants.",
-    "changes": "Geometry simplified; coordinates normalized; opaque cabin glazing, dark rubber and metallic wheel/brake materials adapted for the exterior renderer. Original lamp and wheel UV textures retained.",
+    "changes": "Geometry simplified; coordinates normalized; opaque cabin glazing, dark rubber and metallic wheel/brake materials adapted for the exterior renderer. Original grille mesh preserved; exterior trim and rear-skirt detail use tight simplification. Grille supports, body-painted mirror caps, glossy black B-pillars and dark-chrome window frames separated from original geometry. Original lamp and wheel UV textures retained.",
     "redistribution": "AllenAI Objaverse, original attribution and CC BY 4.0 license retained in the downloaded GLB.",
     "downloadUrl": "https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-067/ded2c8428fb9499ebd2bfc69c5592b02.glb",
     "sha256": "8cc0bc72c525ebc70b31b421b3a34f4ff89dda8a48b82aedd07ca774db22fcac"
   },
   "bounds": {
     "min": [
-      -2.363369941711426,
+      -2.3652000427246094,
       -1.0535650253295898,
       0
     ],
     "max": [
       2.3651700019836426,
-      1.0522949695587158,
+      1.052299976348877,
       1.371120035648346
     ]
   },
-  "triangles": 243817,
+  "triangles": 303581,
   "textures": [
     {
       "bytes": 1270454
@@ -37,30 +37,60 @@
   ],
   "primitives": [
     {
-      "name": "Object_2",
+      "name": "Object_2__exhaust-interior",
       "materialName": "Material__275",
       "color": [
-        0.5556472484652543,
-        0.5556472484652543,
-        0.5556472484652543
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 634,
+      "triangles": 4070,
       "bounds": {
         "min": [
-          -2.2638099193573,
-          -0.7057250142097473,
-          0.2795700132846832
+          -2.2641000747680664,
+          -0.6808000206947327,
+          0.29168006777763367
         ],
         "max": [
-          -2.122770071029663,
-          0.7072649598121643,
-          0.37787002325057983
+          -2.1226999759674072,
+          0.682699978351593,
+          0.3659800589084625
         ]
-      }
+      },
+      "sourcePart": "Object_2",
+      "exteriorRole": "exhaust-interior"
+    },
+    {
+      "name": "Object_2__exhaust-tip",
+      "materialName": "Material__275",
+      "color": [
+        0.57,
+        0.6,
+        0.63
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 565,
+      "bounds": {
+        "min": [
+          -2.2379000186920166,
+          -0.7056999802589417,
+          0.2795800566673279
+        ],
+        "max": [
+          -2.1654000282287598,
+          0.7073000073432922,
+          0.3780800402164459
+        ]
+      },
+      "sourcePart": "Object_2",
+      "exteriorRole": "exhaust-tip"
     },
     {
       "name": "Object_3",
@@ -89,7 +119,7 @@
       }
     },
     {
-      "name": "Object_4",
+      "name": "Object_4__original",
       "materialName": "Material__277",
       "color": [
         0.40016987052846886,
@@ -100,19 +130,49 @@
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 416,
+      "triangles": 412,
+      "bounds": {
+        "min": [
+          -1.8251999616622925,
+          -0.9096999764442444,
+          0.1628800481557846
+        ],
+        "max": [
+          2.3268001079559326,
+          0.9118000268936157,
+          0.6912800669670105
+        ]
+      },
+      "sourcePart": "Object_4",
+      "exteriorRole": "original"
+    },
+    {
+      "name": "Object_4__rear-backing",
+      "materialName": "Material__277",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 4,
       "bounds": {
         "min": [
           -2.332200050354004,
-          -0.9096850156784058,
-          0.16284000873565674
+          -0.4643000066280365,
+          0.2690800428390503
         ],
         "max": [
-          2.3268299102783203,
-          0.9117949604988098,
-          0.6913100276142359
+          -2.218100070953369,
+          0.46619999408721924,
+          0.38178005814552307
         ]
-      }
+      },
+      "sourcePart": "Object_4",
+      "exteriorRole": "rear-backing"
     },
     {
       "name": "Object_5",
@@ -461,9 +521,9 @@
       "name": "Object_19",
       "materialName": "Material__297",
       "color": [
-        0.405478052455837,
-        0.405478052455837,
-        0.405478052455837
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
@@ -481,33 +541,92 @@
           0.42828497290611267,
           0.6796700274571776
         ]
-      }
+      },
+      "exteriorRole": "grille-backing"
     },
     {
-      "name": "Object_20",
+      "name": "Object_20__rear-mesh",
       "materialName": "Material__306",
       "color": [
-        0.533468387140128,
-        0.533468387140128,
-        0.533468387140128
+        0.055,
+        0.062,
+        0.069
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 8351,
+      "triangles": 19815,
       "bounds": {
         "min": [
-          -2.363369941711426,
-          -0.7537150382995605,
-          0.19474002718925476
+          -2.339200019836426,
+          -0.7537000179290771,
+          0.27458006143569946
         ],
         "max": [
-          -1.790719985961914,
-          0.7556049823760986,
-          0.45735003054142
+          -2.0952999591827393,
+          0.7555999755859375,
+          0.4573800563812256
         ]
-      }
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-mesh"
+    },
+    {
+      "name": "Object_20__rear-surround",
+      "materialName": "Material__306",
+      "color": [
+        0.27,
+        0.29,
+        0.31
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 898,
+      "bounds": {
+        "min": [
+          -2.3652000427246094,
+          -0.5267999768257141,
+          0.19708004593849182
+        ],
+        "max": [
+          -1.7908999919891357,
+          0.5286999940872192,
+          0.4093800485134125
+        ]
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-surround"
+    },
+    {
+      "name": "Object_20__rear-diffuser",
+      "materialName": "Material__306",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 1,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2510,
+      "bounds": {
+        "min": [
+          -2.35509991645813,
+          -0.5005000233650208,
+          0.19478005170822144
+        ],
+        "max": [
+          -1.7906999588012695,
+          0.5023999810218811,
+          0.3949800431728363
+        ]
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-diffuser"
     },
     {
       "name": "Object_21",
@@ -539,27 +658,28 @@
       "name": "Object_22",
       "materialName": "Material__308",
       "color": [
-        0.5733488040641322,
-        0.5733488040641322,
-        0.5733488040641322
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 117,
+      "triangles": 1073,
       "bounds": {
         "min": [
           -2.3371500968933105,
           -0.7530850172042847,
-          0.2864700257778168
+          0.2857300341129303
         ],
         "max": [
           -2.09621000289917,
           0.7549749612808228,
-          0.45705002546310425
+          0.45747002959251404
         ]
-      }
+      },
+      "exteriorRole": "rear-backing"
     },
     {
       "name": "Object_23",
@@ -781,11 +901,11 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 7930,
+      "triangles": 33915,
       "bounds": {
         "min": [
           2.1156400442123413,
-          -0.6349550485610962,
+          -0.6366250514984131,
           0.20280003547668457
         ],
         "max": [
@@ -822,7 +942,7 @@
       }
     },
     {
-      "name": "Object_33",
+      "name": "Object_33__original",
       "materialName": "chrome1",
       "color": [
         0.6291421161141724,
@@ -833,19 +953,77 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 2269,
+      "triangles": 11015,
       "bounds": {
         "min": [
-          2.0260599851608276,
-          -0.8269150257110596,
-          0.20214003324508667
+          2.0260000228881836,
+          -0.8270000219345093,
+          0.20208005607128143
         ],
         "max": [
-          2.3513901233673096,
-          0.8288649916648865,
-          0.734000027179718
+          2.3352999687194824,
+          0.8288999795913696,
+          0.7340800762176514
         ]
-      }
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "original"
+    },
+    {
+      "name": "Object_33__grille-frame",
+      "materialName": "chrome1",
+      "color": [
+        0.72,
+        0.73,
+        0.74
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2521,
+      "bounds": {
+        "min": [
+          2.246500015258789,
+          -0.4562000036239624,
+          0.3201800584793091
+        ],
+        "max": [
+          2.3515000343322754,
+          0.4580000042915344,
+          0.6885800361633301
+        ]
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "grille-frame"
+    },
+    {
+      "name": "Object_33__grille-support",
+      "materialName": "chrome1",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2683,
+      "bounds": {
+        "min": [
+          2.2392001152038574,
+          -0.4431999921798706,
+          0.32738006114959717
+        ],
+        "max": [
+          2.335599899291992,
+          0.4449999928474426,
+          0.6589800715446472
+        ]
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "grille-support"
     },
     {
       "name": "Object_34",
@@ -926,33 +1104,35 @@
       }
     },
     {
-      "name": "Object_37",
+      "name": "Object_37__b-pillar",
       "materialName": "Material__319",
       "color": [
-        0.4545469980902032,
-        0.4545469980902032,
-        0.4545469980902032
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 1,
       "paint": false,
       "indexType": 2,
-      "triangles": 6875,
+      "triangles": 1280,
       "bounds": {
         "min": [
-          -0.30017000436782837,
-          0.6115649938583374,
-          0.8893900215625763
+          -0.3001999855041504,
+          0.6115999817848206,
+          0.9447800517082214
         ],
         "max": [
-          0.8039900064468384,
-          1.0522749423980713,
-          1.2940600514411926
+          -0.125900000333786,
+          0.8065999746322632,
+          1.2940800189971924
         ]
-      }
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "b-pillar"
     },
     {
-      "name": "Object_38",
+      "name": "Object_37__mirror-cap",
       "materialName": "Material__319",
       "color": [
         0.4545469980902032,
@@ -960,33 +1140,203 @@
         0.4545469980902032
       ],
       "alpha": 1,
+      "material": 0,
+      "paint": true,
+      "indexType": 2,
+      "triangles": 3412,
+      "bounds": {
+        "min": [
+          0.5045999884605408,
+          0.8220000267028809,
+          0.9247800707817078
+        ],
+        "max": [
+          0.7290999889373779,
+          1.052299976348877,
+          1.0404800176620483
+        ]
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-cap"
+    },
+    {
+      "name": "Object_37__mirror-underside",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 7176,
+      "triangles": 1817,
       "bounds": {
         "min": [
-          -0.30017000436782837,
-          -1.050374984741211,
-          0.8893900215625763
+          0.5051000118255615,
+          0.8245999813079834,
+          0.8893800377845764
         ],
         "max": [
-          0.8039900064468384,
-          -0.6100650429725647,
-          1.2940200567245483
+          0.722000002861023,
+          1.0515999794006348,
+          0.9385800361633301
         ]
-      }
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-underside"
+    },
+    {
+      "name": "Object_37__mirror-mount",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 366,
+      "bounds": {
+        "min": [
+          0.5616000294685364,
+          0.7088000178337097,
+          0.9001800417900085
+        ],
+        "max": [
+          0.8040000200271606,
+          0.8021000027656555,
+          1.0704801082611084
+        ]
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-mount"
+    },
+    {
+      "name": "Object_38__b-pillar",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 1,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1228,
+      "bounds": {
+        "min": [
+          -0.3001999855041504,
+          -0.8051000237464905,
+          0.9447800517082214
+        ],
+        "max": [
+          -0.125900000333786,
+          -0.6100999712944031,
+          1.2939800024032593
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "b-pillar"
+    },
+    {
+      "name": "Object_38__mirror-cap",
+      "materialName": "Material__319",
+      "color": [
+        0.4545469980902032,
+        0.4545469980902032,
+        0.4545469980902032
+      ],
+      "alpha": 1,
+      "material": 0,
+      "paint": true,
+      "indexType": 2,
+      "triangles": 3685,
+      "bounds": {
+        "min": [
+          0.5048999786376953,
+          -1.0504000186920166,
+          0.9208800792694092
+        ],
+        "max": [
+          0.7290999889373779,
+          -0.8201000094413757,
+          1.0404800176620483
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "mirror-cap"
+    },
+    {
+      "name": "Object_38__mirror-underside",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1917,
+      "bounds": {
+        "min": [
+          0.5054000020027161,
+          -1.0499999523162842,
+          0.8893800377845764
+        ],
+        "max": [
+          0.722000002861023,
+          -0.822700023651123,
+          0.9451800584793091
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "mirror-underside"
+    },
+    {
+      "name": "Object_38__mirror-mount",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 346,
+      "bounds": {
+        "min": [
+          0.5616000294685364,
+          -0.8001999855041504,
+          0.9001800417900085
+        ],
+        "max": [
+          0.8040000200271606,
+          -0.7070000171661377,
+          1.0704801082611084
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "mirror-mount"
     },
     {
       "name": "Object_39",
       "materialName": "Material__3190",
       "color": [
-        0.4545469980902032,
-        0.4545469980902032,
-        0.4545469980902032
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 1,
       "paint": false,
       "indexType": 2,
       "triangles": 2207,
@@ -1001,7 +1351,8 @@
           0.8066349625587463,
           1.2939900159835815
         ]
-      }
+      },
+      "exteriorRole": "b-pillar"
     },
     {
       "name": "Object_40",
@@ -1372,7 +1723,35 @@
       }
     },
     {
-      "name": "Object_54",
+      "name": "Object_54__window-frame",
+      "materialName": "chrome3",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2024,
+      "bounds": {
+        "min": [
+          -0.303600013256073,
+          0.6001999974250793,
+          0.8823800683021545
+        ],
+        "max": [
+          0.8385999798774719,
+          0.8199999928474426,
+          1.3084800243377686
+        ]
+      },
+      "sourcePart": "Object_54",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_54__original",
       "materialName": "chrome3",
       "color": [
         0.6291421161141724,
@@ -1383,22 +1762,52 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 2885,
+      "triangles": 861,
       "bounds": {
         "min": [
-          -0.303629994392395,
-          0.600184977054596,
-          0.7721200287342072
+          -0.13779999315738678,
+          0.7860999703407288,
+          0.7720800638198853
         ],
         "max": [
-          0.838640034198761,
-          1.0509949922561646,
-          1.3084500432014465
+          0.760699987411499,
+          1.0509999990463257,
+          0.9330800771713257
         ]
-      }
+      },
+      "sourcePart": "Object_54",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_55",
+      "name": "Object_55__window-frame",
+      "materialName": "chrome3",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 1890,
+      "bounds": {
+        "min": [
+          -0.303600013256073,
+          -0.8184000253677368,
+          0.8823800683021545
+        ],
+        "max": [
+          0.8385999798774719,
+          -0.5985999703407288,
+          1.3084800243377686
+        ]
+      },
+      "sourcePart": "Object_55",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_55__original",
       "materialName": "chrome3",
       "color": [
         0.6291421161141724,
@@ -1409,22 +1818,52 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 2886,
+      "triangles": 996,
       "bounds": {
         "min": [
-          -0.303629994392395,
-          -1.0491050481796265,
-          0.7721200287342072
+          -0.13779999315738678,
+          -1.0491000413894653,
+          0.7720800638198853
         ],
         "max": [
-          0.838640034198761,
-          -0.598645031452179,
-          1.3084500432014465
+          0.760699987411499,
+          -0.7842000126838684,
+          0.9330800771713257
         ]
-      }
+      },
+      "sourcePart": "Object_55",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_56",
+      "name": "Object_56__window-frame",
+      "materialName": "chrome4",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2200,
+      "bounds": {
+        "min": [
+          -1.2695000171661377,
+          0.597100019454956,
+          0.9356800317764282
+        ],
+        "max": [
+          -0.22280000150203705,
+          0.8205000162124634,
+          1.3084800243377686
+        ]
+      },
+      "sourcePart": "Object_56",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_56__original",
       "materialName": "chrome4",
       "color": [
         0.6291421161141724,
@@ -1435,22 +1874,52 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 2511,
+      "triangles": 311,
       "bounds": {
         "min": [
-          -1.26951003074646,
-          0.5971149802207947,
-          0.8079700320959091
+          -1.1125999689102173,
+          0.8618999719619751,
+          0.8079800605773926
         ],
         "max": [
-          -0.22281000018119812,
-          0.8957249522209167,
-          1.3084700107574463
+          -0.796999990940094,
+          0.8956999778747559,
+          0.8535800576210022
         ]
-      }
+      },
+      "sourcePart": "Object_56",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_57",
+      "name": "Object_57__window-frame",
+      "materialName": "chrome4",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2298,
+      "bounds": {
+        "min": [
+          -1.2695000171661377,
+          -0.8188999891281128,
+          0.9356800317764282
+        ],
+        "max": [
+          -0.22280000150203705,
+          -0.5956000089645386,
+          1.3084800243377686
+        ]
+      },
+      "sourcePart": "Object_57",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_57__original",
       "materialName": "chrome4",
       "color": [
         0.6291421161141724,
@@ -1461,19 +1930,21 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 2603,
+      "triangles": 305,
       "bounds": {
         "min": [
-          -1.26951003074646,
-          -0.8938350081443787,
-          0.8079700320959091
+          -1.1125999689102173,
+          -0.8938000202178955,
+          0.8079800605773926
         ],
         "max": [
-          -0.22281000018119812,
-          -0.5955750346183777,
-          1.3084500432014465
+          -0.796999990940094,
+          -0.8600000143051147,
+          0.8535800576210022
         ]
-      }
+      },
+      "sourcePart": "Object_57",
+      "exteriorRole": "original"
     },
     {
       "name": "Object_58",
@@ -1531,30 +2002,60 @@
   "fallbackTriangles": 4689,
   "fallbackPrimitives": [
     {
-      "name": "Object_2",
+      "name": "Object_2__exhaust-interior",
       "materialName": "Material__275",
       "color": [
-        0.5556472484652543,
-        0.5556472484652543,
-        0.5556472484652543
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 54,
+      "triangles": 47,
       "bounds": {
         "min": [
-          -2.259819984436035,
-          -0.702305018901825,
-          0.2650900185108185
+          -2.2597999572753906,
+          -0.6796000003814697,
+          0.2650400400161743
         ],
         "max": [
-          -2.140739917755127,
-          0.6978649497032166,
-          0.36114999651908875
+          -2.140700101852417,
+          0.6978999972343445,
+          0.36114004254341125
         ]
-      }
+      },
+      "sourcePart": "Object_2",
+      "exteriorRole": "exhaust-interior"
+    },
+    {
+      "name": "Object_2__exhaust-tip",
+      "materialName": "Material__275",
+      "color": [
+        0.57,
+        0.6,
+        0.63
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 7,
+      "bounds": {
+        "min": [
+          -2.2370998859405518,
+          -0.7023000121116638,
+          0.2650400400161743
+        ],
+        "max": [
+          -2.1654000282287598,
+          0.6978999972343445,
+          0.36114004254341125
+        ]
+      },
+      "sourcePart": "Object_2",
+      "exteriorRole": "exhaust-tip"
     },
     {
       "name": "Object_3",
@@ -1872,9 +2373,9 @@
       "name": "Object_19",
       "materialName": "Material__297",
       "color": [
-        0.405478052455837,
-        0.405478052455837,
-        0.405478052455837
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
@@ -1892,41 +2393,100 @@
           0.42828497290611267,
           0.6511500101187266
         ]
-      }
+      },
+      "exteriorRole": "grille-backing"
     },
     {
-      "name": "Object_20",
+      "name": "Object_20__rear-diffuser",
       "materialName": "Material__306",
       "color": [
-        0.533468387140128,
-        0.533468387140128,
-        0.533468387140128
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 1,
       "paint": false,
       "indexType": 2,
-      "triangles": 309,
+      "triangles": 11,
       "bounds": {
         "min": [
-          -2.3334100246429443,
-          -0.5216950178146362,
-          0.19021999835968018
+          -2.3232998847961426,
+          -0.5005000233650208,
+          0.19144003093242645
         ],
         "max": [
-          -1.790719985961914,
-          0.5235849618911743,
-          0.37996000051498413
+          -1.7906999588012695,
+          0.5023999810218811,
+          0.3729400336742401
         ]
-      }
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-diffuser"
+    },
+    {
+      "name": "Object_20__rear-mesh",
+      "materialName": "Material__306",
+      "color": [
+        0.055,
+        0.062,
+        0.069
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 290,
+      "bounds": {
+        "min": [
+          -2.333400011062622,
+          -0.4480000138282776,
+          0.26044002175331116
+        ],
+        "max": [
+          -2.2369000911712646,
+          0.45100000500679016,
+          0.3745400309562683
+        ]
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-mesh"
+    },
+    {
+      "name": "Object_20__rear-surround",
+      "materialName": "Material__306",
+      "color": [
+        0.27,
+        0.29,
+        0.31
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 8,
+      "bounds": {
+        "min": [
+          -2.3294999599456787,
+          -0.5217000246047974,
+          0.1902400404214859
+        ],
+        "max": [
+          -1.7926000356674194,
+          0.5235999822616577,
+          0.3799400329589844
+        ]
+      },
+      "sourcePart": "Object_20",
+      "exteriorRole": "rear-surround"
     },
     {
       "name": "Object_22",
       "materialName": "Material__308",
       "color": [
-        0.5733488040641322,
-        0.5733488040641322,
-        0.5733488040641322
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
       "material": 2,
@@ -1944,7 +2504,8 @@
           0.7549749612808228,
           0.44071000814437866
         ]
-      }
+      },
+      "exteriorRole": "rear-backing"
     },
     {
       "name": "Object_23",
@@ -2207,7 +2768,35 @@
       }
     },
     {
-      "name": "Object_33",
+      "name": "Object_33__grille-frame",
+      "materialName": "chrome1",
+      "color": [
+        0.72,
+        0.73,
+        0.74
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 34,
+      "bounds": {
+        "min": [
+          2.2472000122070312,
+          -0.45399999618530273,
+          0.3063400387763977
+        ],
+        "max": [
+          2.3503000736236572,
+          0.45590001344680786,
+          0.6709400415420532
+        ]
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "grille-frame"
+    },
+    {
+      "name": "Object_33__original",
       "materialName": "chrome1",
       "color": [
         0.6291421161141724,
@@ -2218,19 +2807,49 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 194,
+      "triangles": 110,
       "bounds": {
         "min": [
-          2.026620030403137,
-          -0.8257750272750854,
-          0.18620002269744873
+          2.026599884033203,
+          -0.8258000016212463,
+          0.1862400323152542
         ],
         "max": [
-          2.350250005722046,
-          0.8288649916648865,
-          0.7124000117182732
+          2.3304998874664307,
+          0.8288999795913696,
+          0.712440013885498
         ]
-      }
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "original"
+    },
+    {
+      "name": "Object_33__grille-support",
+      "materialName": "chrome1",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 50,
+      "bounds": {
+        "min": [
+          2.2400999069213867,
+          -0.4431999921798706,
+          0.31174004077911377
+        ],
+        "max": [
+          2.333899974822998,
+          0.4449999928474426,
+          0.6412400603294373
+        ]
+      },
+      "sourcePart": "Object_33",
+      "exteriorRole": "grille-support"
     },
     {
       "name": "Object_34",
@@ -2311,33 +2930,35 @@
       }
     },
     {
-      "name": "Object_37",
+      "name": "Object_37__b-pillar",
       "materialName": "Material__319",
       "color": [
-        0.4545469980902032,
-        0.4545469980902032,
-        0.4545469980902032
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 1,
       "paint": false,
       "indexType": 2,
-      "triangles": 283,
+      "triangles": 272,
       "bounds": {
         "min": [
-          -0.29987001419067383,
-          0.6127550005912781,
-          0.8848600089550018
+          -0.29989999532699585,
+          0.6128000020980835,
+          0.9289400577545166
         ],
         "max": [
-          0.8039900064468384,
-          1.0502549409866333,
-          1.2765899896621704
+          -0.12729999423027039,
+          0.8059999942779541,
+          1.2765400409698486
         ]
-      }
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "b-pillar"
     },
     {
-      "name": "Object_38",
+      "name": "Object_37__mirror-cap",
       "materialName": "Material__319",
       "color": [
         0.4545469980902032,
@@ -2345,33 +2966,175 @@
         0.4545469980902032
       ],
       "alpha": 1,
+      "material": 0,
+      "paint": true,
+      "indexType": 2,
+      "triangles": 5,
+      "bounds": {
+        "min": [
+          0.5185999870300293,
+          0.8406999707221985,
+          0.8939400315284729
+        ],
+        "max": [
+          0.7164000272750854,
+          1.041700005531311,
+          1.0053399801254272
+        ]
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-cap"
+    },
+    {
+      "name": "Object_37__mirror-underside",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
       "material": 2,
       "paint": false,
       "indexType": 2,
-      "triangles": 310,
+      "triangles": 4,
       "bounds": {
         "min": [
-          -0.2998899817466736,
-          -1.0325850248336792,
-          0.8762500137090683
+          0.5149999856948853,
+          0.8428999781608582,
+          0.8939400315284729
         ],
         "max": [
-          0.6360799968242645,
-          -0.6111250519752502,
-          1.276639997959137
+          0.6355000138282776,
+          1.0503000020980835,
+          0.9467400312423706
         ]
-      }
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-underside"
+    },
+    {
+      "name": "Object_37__mirror-mount",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 2,
+      "bounds": {
+        "min": [
+          0.5623000264167786,
+          0.7096999883651733,
+          0.8848400115966797
+        ],
+        "max": [
+          0.8040000200271606,
+          0.8011000156402588,
+          1.0541400909423828
+        ]
+      },
+      "sourcePart": "Object_37",
+      "exteriorRole": "mirror-mount"
+    },
+    {
+      "name": "Object_38__b-pillar",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 1,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 300,
+      "bounds": {
+        "min": [
+          -0.29989999532699585,
+          -0.8043000102043152,
+          0.9292400479316711
+        ],
+        "max": [
+          -0.12600000202655792,
+          -0.6111000180244446,
+          1.2766400575637817
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "b-pillar"
+    },
+    {
+      "name": "Object_38__mirror-underside",
+      "materialName": "Material__319",
+      "color": [
+        0.018,
+        0.022,
+        0.027
+      ],
+      "alpha": 1,
+      "material": 2,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 8,
+      "bounds": {
+        "min": [
+          0.5228999853134155,
+          -1.0326000452041626,
+          0.8762400150299072
+        ],
+        "max": [
+          0.6360999941825867,
+          -0.8413000106811523,
+          1.0053399801254272
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "mirror-underside"
+    },
+    {
+      "name": "Object_38__mirror-cap",
+      "materialName": "Material__319",
+      "color": [
+        0.4545469980902032,
+        0.4545469980902032,
+        0.4545469980902032
+      ],
+      "alpha": 1,
+      "material": 0,
+      "paint": true,
+      "indexType": 2,
+      "triangles": 2,
+      "bounds": {
+        "min": [
+          0.5228999853134155,
+          -1.0326000452041626,
+          0.8802400231361389
+        ],
+        "max": [
+          0.6360999941825867,
+          -0.8413000106811523,
+          1.0053399801254272
+        ]
+      },
+      "sourcePart": "Object_38",
+      "exteriorRole": "mirror-cap"
     },
     {
       "name": "Object_39",
       "materialName": "Material__3190",
       "color": [
-        0.4545469980902032,
-        0.4545469980902032,
-        0.4545469980902032
+        0.018,
+        0.022,
+        0.027
       ],
       "alpha": 1,
-      "material": 2,
+      "material": 1,
       "paint": false,
       "indexType": 2,
       "triangles": 198,
@@ -2386,7 +3149,8 @@
           0.801984965801239,
           1.2769100069999695
         ]
-      }
+      },
+      "exteriorRole": "b-pillar"
     },
     {
       "name": "Object_40",
@@ -2727,7 +3491,35 @@
       }
     },
     {
-      "name": "Object_54",
+      "name": "Object_54__window-frame",
+      "materialName": "chrome3",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 18,
+      "bounds": {
+        "min": [
+          -0.30329999327659607,
+          0.6011000275611877,
+          0.8814400434494019
+        ],
+        "max": [
+          0.8266000151634216,
+          0.8003000020980835,
+          1.2914400100708008
+        ]
+      },
+      "sourcePart": "Object_54",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_54__original",
       "materialName": "chrome3",
       "color": [
         0.6291421161141724,
@@ -2738,22 +3530,24 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 34,
+      "triangles": 16,
       "bounds": {
         "min": [
-          -0.3032900094985962,
-          0.6011349558830261,
-          0.7563600093126297
+          -0.2248000055551529,
+          0.7802000045776367,
+          0.7563400268554688
         ],
         "max": [
-          0.8366900086402893,
-          0.9487249851226807,
-          1.291480004787445
+          0.8367000222206116,
+          0.9487000107765198,
+          0.9331400394439697
         ]
-      }
+      },
+      "sourcePart": "Object_54",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_55",
+      "name": "Object_55__original",
       "materialName": "chrome3",
       "color": [
         0.6291421161141724,
@@ -2764,22 +3558,80 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 31,
+      "triangles": 19,
       "bounds": {
         "min": [
-          -0.3021699786186218,
-          -1.0459450483322144,
-          0.760890007019043
+          -0.22349999845027924,
+          -1.0458999872207642,
+          0.7608400583267212
         ],
         "max": [
-          0.8374800086021423,
-          -0.5987950563430786,
-          1.2909600138664246
+          0.8374999761581421,
+          -0.7786999940872192,
+          0.932140052318573
         ]
-      }
+      },
+      "sourcePart": "Object_55",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_56",
+      "name": "Object_55__window-frame",
+      "materialName": "chrome3",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 12,
+      "bounds": {
+        "min": [
+          -0.30219998955726624,
+          -0.7983999848365784,
+          0.8816400170326233
+        ],
+        "max": [
+          0.82669997215271,
+          -0.598800003528595,
+          1.2909400463104248
+        ]
+      },
+      "sourcePart": "Object_55",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_56__window-frame",
+      "materialName": "chrome4",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 18,
+      "bounds": {
+        "min": [
+          -1.2685999870300293,
+          0.6003999710083008,
+          0.919640064239502
+        ],
+        "max": [
+          -0.22310000658035278,
+          0.8025000095367432,
+          1.2919400930404663
+        ]
+      },
+      "sourcePart": "Object_56",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_56__original",
       "materialName": "chrome4",
       "color": [
         0.6291421161141724,
@@ -2790,22 +3642,52 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 29,
+      "triangles": 11,
       "bounds": {
         "min": [
-          -1.268649935722351,
-          0.6003849506378174,
-          0.7952300161123276
+          -1.1125999689102173,
+          0.866599977016449,
+          0.795240044593811
         ],
         "max": [
-          -0.22307997941970825,
-          0.8901349902153015,
-          1.2919300198554993
+          -0.796999990940094,
+          0.8901000022888184,
+          0.8295400142669678
         ]
-      }
+      },
+      "sourcePart": "Object_56",
+      "exteriorRole": "original"
     },
     {
-      "name": "Object_57",
+      "name": "Object_57__window-frame",
+      "materialName": "chrome4",
+      "color": [
+        0.14,
+        0.16,
+        0.18
+      ],
+      "alpha": 1,
+      "material": 3,
+      "paint": false,
+      "indexType": 2,
+      "triangles": 20,
+      "bounds": {
+        "min": [
+          -1.2689000368118286,
+          -0.7961000204086304,
+          0.9538400173187256
+        ],
+        "max": [
+          -0.3021000027656555,
+          -0.5985999703407288,
+          1.2917400598526
+        ]
+      },
+      "sourcePart": "Object_57",
+      "exteriorRole": "window-frame"
+    },
+    {
+      "name": "Object_57__original",
       "materialName": "chrome4",
       "color": [
         0.6291421161141724,
@@ -2816,19 +3698,21 @@
       "material": 3,
       "paint": false,
       "indexType": 2,
-      "triangles": 28,
+      "triangles": 8,
       "bounds": {
         "min": [
-          -1.2689299583435059,
-          -0.8929550051689148,
-          0.7952300161123276
+          -1.1125999689102173,
+          -0.8930000066757202,
+          0.795240044593811
         ],
         "max": [
-          -0.302079975605011,
-          -0.5986050367355347,
-          1.2917799949645996
+          -0.796999990940094,
+          -0.8647000193595886,
+          0.8295400142669678
         ]
-      }
+      },
+      "sourcePart": "Object_57",
+      "exteriorRole": "original"
     },
     {
       "name": "Object_58",
@@ -2895,13 +3779,19 @@
       0.7043600082397461
     ]
   },
-  "runtimeBytes": 10197040,
+  "runtimeBytes": 11342340,
   "simplification": {
     "detailRatio": 0.035,
     "detailError": 0.0045,
     "externalPanelRatio": 0.25,
     "externalPanelError": 0.00012,
-    "paintTriangles": 85458
+    "grilleMeshPreserved": true,
+    "refinedRearMaterials": [
+      "Material__275",
+      "Material__306",
+      "Material__308"
+    ],
+    "paintTriangles": 92555
   },
   "validation": {
     "finiteVertices": true,

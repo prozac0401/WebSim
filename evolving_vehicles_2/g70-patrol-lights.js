@@ -3,34 +3,44 @@
  * in G70-PATROL-REFERENCES.md. No race or tuning data is changed here. */
 (function(root){
   'use strict';
-  const cache=new WeakMap();
+  const cache=new WeakMap(),sessions=new WeakMap();
   const hash=text=>{let h=2166136261;for(const c of String(text)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>16;h=Math.imul(h,0x7feb352d);h^=h>>>15;return h>>>0;};
   function achromatic(paint){
     let hex=String(paint||'').replace(/^#/,'');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
     if(!/^[a-f\d]{6}$/i.test(hex))return false;
     const n=parseInt(hex,16),c=[n>>>16,(n>>>8)&255,n&255],high=Math.max(...c),low=Math.min(...c);
     // White, silver, charcoal and black may have a small cool/warm paint cast.
-    return high-low<=22&&(high-low)/Math.max(high,1)<=.15&&!(c[1]>c[0]+5&&c[1]>c[2]+5);
+    return high-low<=22&&(high-low)/Math.max(high,40)<=.15&&!(c[1]>c[0]+5&&c[1]>c[2]+5);
   }
   function sample(race,car,mesh){
-    if(car?.vehicleId!=='g70'||!achromatic(mesh?.paint)||!mesh?.manufacturer?.primitives?.some(p=>p.paint)||car.finished||car.dnf||!(car.speed>=15))return null;
+    const variant=car?.entrant?.variantId;
+    if(car?.vehicleId!=='g70'||(variant!=='g70-3.3t-rwd'&&variant!=='g70-3.3t-awd')||!achromatic(mesh?.paint)||!mesh?.manufacturer?.primitives?.some(p=>p.paint)||car.finished||car.dnf)return null;
     const time=race?.time;if(!Number.isFinite(time)||time<0||typeof race.sample!=='function')return null;
-    // Stable per-entrant lottery: 38% of 18-second opportunities can produce a
-    // six-second burst. Replay, pausing and rendering frequency cannot reroll it.
-    const window=Math.floor(time/18),key=(car.uid||car.id)+'|'+window,draw=hash(key);
-    if(draw/4294967296>=.38)return null;
-    const start=1.5+(hash(key+'|start')/4294967296)*3,elapsed=time-window*18-start;
-    if(elapsed<0||elapsed>=6)return null;
-    // Inspect the path around the car, not just the current polygon segment.
-    // Switch off before turn-in, and never illuminate while braking for a bend.
-    if(car.phase==='braking')return null;
-    for(const offset of [-12,0,12,24]){
-      const p=root.DrivingPose?.sample(race,car.distance+offset)||race.sample(car.distance+offset);
-      if(!p||!Number.isFinite(p.curvature)||Math.abs(p.curvature)>.0018)return null;
+    let cars=sessions.get(race);if(!cars){cars=new WeakMap();sessions.set(race,cars);}
+    let state=cars.get(car);
+    const key=car.uid||car.id;
+    // A new race (or a rewind) gets a guaranteed first suitable straight,
+    // rather than a lottery that can hide the effect for several entire races.
+    // This visual latch is external to all race/entrant/mesh data.
+    if(!state||time<state.lastTime){state={lastTime:time,start:-Infinity,end:-Infinity,next:1.5+hash(key+'|start')/4294967296*3,count:0};cars.set(car,state);}
+    state.lastTime=time;
+    if(time>=state.end&&time>=state.next&&car.speed>=15&&car.phase!=='braking'){
+      const straight=[-12,0,12,24].every(offset=>{
+        const distance=car.distance+offset;
+        const p=root.DrivingPose?.sampleCar(race,car,distance)||race.sampleForCar?.(car,distance)||race.sample(distance);
+        return p&&Number.isFinite(p.curvature)&&Math.abs(p.curvature)<=.0018;
+      });
+      if(straight){
+        state.start=time;state.end=time+30;state.count++;
+        state.next=state.end+18+hash(key+'|cooldown|'+state.count)/4294967296*12;
+      }
     }
+    // Once started, the full30-second burst continues through corners and
+    // braking. Pausing freezes race.time; paint/trim/finish still govern display.
+    if(time>=state.end)return null;
     const phase=((time+hash(car.uid||car.id)/4294967296)*1.4)%1;
     const red=phase<.13||(phase>=.21&&phase<.34),blue=(phase>=.5&&phase<.63)||(phase>=.71&&phase<.84);
-    return {red,blue,window};
+    return {red,blue,window:state.count,startedAt:state.start,endsAt:state.end};
   }
   function meshes(mesh){
     if(cache.has(mesh))return cache.get(mesh);

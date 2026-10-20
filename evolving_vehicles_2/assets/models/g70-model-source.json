@@ -22,18 +22,32 @@
     "Simplified geometry with tight error limits for external painted panels, glazing and trim; heavier reduction only for small details, plus a separate Canvas fallback mesh.",
     "Converted source +Y forward / Z up to renderer +X forward / +Y right / +Z up; placed lowest tire point at zero.",
     "Preserved original lamp/wheel textures and UVs.",
-    "Recolored untextured white tire material as rubber, used dark opaque cabin glazing, omitted concealed beige interior and adapted metal/lamp materials to the renderer."
+    "Recolored untextured white tire material as rubber, used dark opaque cabin glazing, omitted concealed beige interior and adapted metal/lamp materials to the renderer.",
+    "Preserved the original front diamond grille lattice and refined source rear-skirt/exhaust detail. Separated grille supports and exhaust cavities from metallic rims, body-painted mirror caps from black undersides, glossy black B-pillars and dark-chrome window perimeter frames without moving vertices."
   ],
   "attribution": "Genesis G70 by Lucas.Karlsmoen (Sketchfab), licensed CC BY 4.0. Retrieved from AllenAI Objaverse; geometry and materials adapted for WebSim. No manufacturer endorsement implied.",
   "sourceLocalPath": "output/free-models/g70/g70-lucas-original.glb",
   "buildCommand": "node evolving_vehicles_2/assets/models/build-free-g70.mjs",
   "conversion": {
-    "mainTriangles": 243817,
-    "paintTriangles": 85458,
+    "mainTriangles": 303581,
+    "paintTriangles": 92555,
     "fallbackTriangles": 4689,
-    "runtimeBytes": 10197040,
-    "runtimeSha256": "a9f8d0f4b5008e227ea21cee964d776454443ca708cff19b078dc1cb72ccb99b",
-    "quality": "External painted panels, glazing and trim use ratio 0.25 / relative error 0.00012 to preserve smoothness and neighboring surface fit. Internal details use ratio 0.035 / error 0.0045.",
-    "validation": "Seven dedicated geometry/provenance tests passed. Front and rear browser renders inspected on 2026-10-15; smooth roof, hood and trunk verified. Actual race performance is measured separately by integration QA."
+    "runtimeBytes": 11342340,
+    "runtimeSha256": "abd9b30fc2170557bcf994a5dfae0d521e9b32922b023ca3d585f6d520ec8e50",
+    "quality": "Main mesh preserves the original 33,915-triangle grille lattice. Exterior chrome, mirror/pillar pieces and rear exhaust/diffuser use ratio 0.25 / relative error 0.00012. Original painted panels, lamp/wheel/glass buffers and textures are unchanged. Material groups are split without moving vertices. The 4,689-triangle Canvas fallback retains its original coarse geometry and has lower grille fidelity.",
+    "validation": "Dedicated geometry/material/provenance regressions and final production WebGL front, side, rear, red-body and fallback captures reviewed on 2026-10-20. No driving physics or vehicle specifications changed."
+  },
+  "visualReferences": {
+    "purpose": "Pre-facelift identity and selective finish/detail review; independent artist geometry retained, not manufacturer CAD.",
+    "url": "https://newsroom.genesis.com/genesis-g70-resets-expectations-of-customer-focused-performance-and-luxury/",
+    "publishedAt": "2017-09-15",
+    "galleryImages": [
+      2,
+      4,
+      10,
+      13,
+      14,
+      15
+    ]
   }
 }

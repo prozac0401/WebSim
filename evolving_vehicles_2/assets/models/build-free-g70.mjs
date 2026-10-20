@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { refineG70Exterior } from './g70-exterior-parts.mjs';
 const require = createRequire(path.resolve('output/model-tools/package.json'));
 const { NodeIO } = await import(pathToFileURL(require.resolve('@gltf-transform/core')));
 const { weld, simplify, simplifyPrimitive, compactPrimitive, normals } = await import(pathToFileURL(require.resolve('@gltf-transform/functions')));
@@ -28,7 +29,7 @@ const source = {
   author: 'Lucas.Karlsmoen', authorUrl: 'https://sketchfab.com/Lucas.Karlsmoen',
   license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
   configuration: 'Independent pre-facelift G70 exterior, published in 2019. Exact original trim not specified; shared exterior for simulated 2018/19 variants.',
-  changes: 'Geometry simplified; coordinates normalized; opaque cabin glazing, dark rubber and metallic wheel/brake materials adapted for the exterior renderer. Original lamp and wheel UV textures retained.',
+  changes: 'Geometry simplified; coordinates normalized; opaque cabin glazing, dark rubber and metallic wheel/brake materials adapted for the exterior renderer. Original grille mesh preserved; exterior trim and rear-skirt detail use tight simplification. Grille supports, body-painted mirror caps, glossy black B-pillars and dark-chrome window frames separated from original geometry. Original lamp and wheel UV textures retained.',
   redistribution: 'AllenAI Objaverse, original attribution and CC BY 4.0 license retained in the downloaded GLB.',
   downloadUrl: 'https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-067/ded2c8428fb9499ebd2bfc69c5592b02.glb',
   sha256: expectedHash
@@ -113,8 +114,10 @@ async function convert(ratio, error, fallback = false) {
     // Flat external panels need far tighter error limits than lamp internals.
     // A uniform 3.5% target creased the hood and let neighboring roof/trim
     // surfaces intersect. Preserve the source's panel shape and smooth normals.
-    const outerPanel = /^Paint|^window_glass|^chrome[234]$|^Material__(3190?|368)$/.test(name);
-    simplifyPrimitive(p, { simplifier: MeshoptSimplifier, ratio: outerPanel ? .25 : ratio, error: outerPanel ? .00012 : error });
+    const outerPanel = /^Paint|^window_glass|^chrome[1234]$|^Material__(275|306|308|3190?|368)$/.test(name);
+    // A sparse diagonal grille cannot be decimated like a hidden interior:
+    // the previous 3.5% path collapsed its narrow diamond ribs and joins.
+    if(name!=='chrome')simplifyPrimitive(p, { simplifier: MeshoptSimplifier, ratio: outerPanel ? .25 : ratio, error: outerPanel ? .00012 : error });
   }
   if (fallback) await doc.transform(normals());
   const primitives = [];
@@ -145,8 +148,8 @@ function placeOnGround(primitives) {
   }
   return primitives;
 }
-const primitives = placeOnGround(await convert(.035, .0045));
-const fallbackPrimitives = placeOnGround(await convert(.003, .055, true));
+const primitives = refineG70Exterior(placeOnGround(await convert(.035, .0045)));
+const fallbackPrimitives = refineG70Exterior(placeOnGround(await convert(.003, .055, true)));
 const triangles = primitives.reduce((n, p) => n + p.triangles, 0);
 const fallbackTriangles = fallbackPrimitives.reduce((n, p) => n + p.triangles, 0);
 console.log(JSON.stringify({ triangles, fallbackTriangles }));
@@ -166,8 +169,20 @@ const runtime = '/* Genesis G70 by Lucas.Karlsmoen, CC BY 4.0; see g70-model-sou
 fs.writeFileSync(path.join(folder, 'g70-runtime.js'), runtime);
 const summarize = ({ vertices, indices, ...p }) => p;
 const summary = { ...payload, sourceBounds, runtimeBytes: Buffer.byteLength(runtime), textures: textures.map(t => ({ bytes: t.length })),
-  simplification: { detailRatio: .035, detailError: .0045, externalPanelRatio: .25, externalPanelError: .00012, paintTriangles: primitives.filter(p => p.paint).reduce((n, p) => n + p.triangles, 0) },
+  simplification: { detailRatio: .035, detailError: .0045, externalPanelRatio: .25, externalPanelError: .00012, grilleMeshPreserved:true, refinedRearMaterials:['Material__275','Material__306','Material__308'], paintTriangles: primitives.filter(p => p.paint).reduce((n, p) => n + p.triangles, 0) },
   validation: { finiteVertices: true, validIndices: true, groundZero: true, headlampsPositiveX: true, taillampsNegativeX: true },
   primitives: primitives.map(summarize), fallbackPrimitives: fallbackPrimitives.map(summarize) };
 fs.writeFileSync(path.join(folder, 'g70-runtime-summary.json'), JSON.stringify(summary, null, 2) + '\n');
+const sourceMetadataPath = path.join(folder, 'g70-model-source.json');
+const sourceMetadata = JSON.parse(fs.readFileSync(sourceMetadataPath, 'utf8'));
+sourceMetadata.conversion = {
+  ...sourceMetadata.conversion,
+  mainTriangles: triangles,
+  paintTriangles: summary.simplification.paintTriangles,
+  fallbackTriangles,
+  runtimeBytes: summary.runtimeBytes,
+  runtimeSha256: createHash('sha256').update(runtime).digest('hex'),
+  quality: 'Main mesh preserves the original 33,915-triangle grille lattice. Exterior chrome, mirror/pillar pieces and rear exhaust/diffuser use ratio 0.25 / relative error 0.00012. Original painted panels, lamp/wheel/glass buffers and textures are unchanged. Material groups are split without moving vertices. The 4,689-triangle Canvas fallback retains its original coarse geometry and has lower grille fidelity.'
+};
+fs.writeFileSync(sourceMetadataPath, JSON.stringify(sourceMetadata, null, 2) + '\n');
 console.log(JSON.stringify({ id: 'g70', triangles, fallbackTriangles, runtimeBytes: summary.runtimeBytes, bounds }));
