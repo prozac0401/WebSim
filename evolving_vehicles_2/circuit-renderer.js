@@ -340,7 +340,7 @@
       const length=(car.spec?.lengthMm||4800)/1000,width=(car.spec?.widthMm||1850)/1000,height=(car.spec?.heightMm||1600)/1000;
       const key=[this.width,this.height,length,width,height].join(':');
       if(this._followFraming?.key===key)return this._followFraming.trail;
-      const f=this.height/(2*Math.tan(16*Math.PI/180)),classicF=this.height/(2*Math.tan(29*Math.PI/180)),pitch=5*Math.PI/180;
+      const f=this.height/(2*Math.tan(16*Math.PI/180)),classicF=this.height/(2*Math.tan(29*Math.PI/180)),pitch=6*Math.PI/180;
       const classicDistance=Math.max(6.6,length*1.72,width*classicF/Math.max(105,Math.min(190,this.width*.36)));
       // Match the rear view's projected body area, including perspective at
       // the nearest bumper. A focal-length ratio alone overfills the frame.
@@ -488,11 +488,11 @@
       const rear=this._followSample(car,pose.sampleDistance);
       pose.eyeX=rear.x;pose.eyeY=rear.y;
       // Keep the eye at a steady height relative to the watched car. The
-      // 5-degree downward gaze keeps a near-level chase view through the long
+      // 6-degree downward gaze keeps a near-level chase view through the long
       // lens; the framing solve above uses the same angle to retain body size.
       // A shorter chord through a bend naturally looks down more steeply.
       // No bend-dependent height branch introduces a pitch-rate kink.
-      const rise=pose.trail*Math.tan(5*Math.PI/180);
+      const rise=pose.trail*Math.tan(6*Math.PI/180);
       pose.eyeZ=Math.max((rear.elevation??rear.z??0)+1.15,pose.z+rise);
       const floor=this.terrainGeometry?.sampleHeight?.(pose.eyeX,pose.eyeY);
       if(Number.isFinite(floor))pose.eyeZ=Math.max(pose.eyeZ,floor+.65);
@@ -694,7 +694,7 @@
       }
       return this.meshCache.get(key);
     }
-    getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=root.G70PatrolLights?.sample(this.race,car,mesh);return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}
+    getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=car.id===this.watch?root.G70PatrolLights?.sample(this.race,car,mesh):null;return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}
     _drawVehicles(entries,camera){
       // Coincident ghost runs share one body outline. Keep the watched entrant
       // visible without drawing identical geometry eight times at the start.
@@ -723,7 +723,7 @@
         if(projected&&entry.mesh.length*projected.scale<9)this._carFaces(entry.car,p,camera,tiny,entry.selected);
         else detailed.push(entry);
       }
-      this._paint(tiny);entries=detailed.map(entry=>({...entry,effect:root.G70PatrolLights?.create(this.race,entry.car,entry.mesh)}));if(!entries.length)return;
+      this._paint(tiny);entries=detailed.map(entry=>({...entry,effect:entry.selected&&entry.car.id===this.watch?root.G70PatrolLights?.create(this.race,entry.car,entry.mesh):null}));if(!entries.length)return;
       if(!this.surfaceRenderer&&root.VehicleSurfaces)this.surfaceRenderer=new root.VehicleSurfaces(()=>this._changed());
       const layer=this.surfaceRenderer?.render(entries,camera,this.width,this.height,this.dpr);
       if(layer){
@@ -756,7 +756,7 @@
         return mesh;
       }
       root.VehicleWheels?.prepareFaces(mesh);
-      const effect=root.G70PatrolLights?.create(this.race,car,mesh);
+      const effect=selected&&car.id===this.watch?root.G70PatrolLights?.create(this.race,car,mesh):null;
       for(const face of effect?[...mesh.faces,...effect.faces]:mesh.faces){
         const wheel=face.wheel&&root.VehicleWheels?.localWheel(mesh,face.wheel),spin=wheel?root.VehicleWheels.angle(mesh,face.wheel,car):0;
         const vertices=face.vertices.map(v=>transform(spin?root.VehicleWheels.rotate(v,wheel,spin,face.wheel.space==='mesh'?undefined:mesh.modelScale):v));let fill=face.fill;

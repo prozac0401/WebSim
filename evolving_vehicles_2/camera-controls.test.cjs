@@ -145,7 +145,7 @@ test('lower telephoto reveals the horizon while preserving body area on mobile a
     assert(position.z-r._displayHeight(10)>=1.15&&position.z-r._displayHeight(10)<3.5,'low eye retains road clearance without the old roof-heavy height');near(camera.target.z - r._displayHeight(10), .65);
     near(2 * Math.atan(height / (2 * camera.f)) * 180 / Math.PI, 32);
     near(camera.cy / height, .64);
-    near(camera.pitch,5*Math.PI/180);
+    near(camera.pitch,6*Math.PI/180);
     const horizon=camera.cy-camera.f*Math.tan(camera.pitch);
     assert(horizon>height*.45&&horizon<height*.52,'flat sky and horizon occupy the upper half of the frame');
     const current=bounds(camera),areaRatio=current.width*current.height/(classic.width*classic.height);
@@ -177,7 +177,7 @@ test('lower telephoto keeps the long lens and frames Supra below the old elevate
   const {renderer:r}=fixture();r.width=346;r.height=346;r.race.cars[0].spec={lengthMm:4379,widthMm:1854};
   r.race.sample=s=>({x:s,y:0,elevation:40,angle:0});r.setView('follow');
   const camera=r._interactionCamera(),telephotoEye=eye(camera);assert(telephotoEye.z>=r._displayHeight(40)+1.15&&telephotoEye.z<r._displayHeight(40)+3.5);
-  near(camera.pitch,5*Math.PI/180);
+  near(camera.pitch,6*Math.PI/180);
   near(r.getState().followCamera.verticalFovDegrees,32);
   r.setView('follow-classic');near(r._interactionCamera().pitch,.24);
 });
