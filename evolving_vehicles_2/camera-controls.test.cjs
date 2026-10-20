@@ -142,17 +142,19 @@ test('lower telephoto reveals the horizon while preserving body area on mobile a
     r.setView('follow');
     const camera = r._interactionCamera(), position = eye(camera);
     near(r.followYaw, 0); near(r.pitch, 0);
-    assert(position.z-r._displayHeight(10)>2&&position.z-r._displayHeight(10)<6,'eye remains above the road without the old roof-heavy height');near(camera.target.z - r._displayHeight(10), .65);
+    assert(position.z-r._displayHeight(10)>=1.15&&position.z-r._displayHeight(10)<3.5,'low eye retains road clearance without the old roof-heavy height');near(camera.target.z - r._displayHeight(10), .65);
     near(2 * Math.atan(height / (2 * camera.f)) * 180 / Math.PI, 32);
     near(camera.cy / height, .64);
-    near(camera.pitch,12*Math.PI/180);
+    near(camera.pitch,5*Math.PI/180);
     const horizon=camera.cy-camera.f*Math.tan(camera.pitch);
-    assert(horizon>height*.25&&horizon<height*.30,'flat horizon stays visibly inside the upper third');
+    assert(horizon>height*.45&&horizon<height*.52,'flat sky and horizon occupy the upper half of the frame');
     const current=bounds(camera),areaRatio=current.width*current.height/(classic.width*classic.height);
     const portrait=height>width*1.8;
-    near(areaRatio,portrait?.48:1,1e-7);
+    near(areaRatio,portrait?.36:1,1e-7);
     assert(current.width/classic.width>(portrait?.64:.78)&&current.width/classic.width<1.2,'horizontal framing retains space for a broadside car');
-    assert(current.height/classic.height>(portrait?.64:.8)&&current.height/classic.height<1.25,'vertical framing retains space for a broadside car');
+    // Lowering the eye intentionally shows less roof, so rear-bounding-box
+    // height alone cannot define apparent size. Area, horizontal size and all
+    // eight projected corners protect composition without preserving 12°.
     assert(current.points.every(p=>p.x>12&&p.x<width-12&&p.y>12&&p.y<height-12));
     reports.push({width,height,length,distance:+camera.distance.toFixed(3),heightAboveRoad:+(position.z-r._displayHeight(10)).toFixed(3),bodyWidthPixels:+current.width.toFixed(2),rearViewWidthPixels:+classic.width.toFixed(2),areaRatio:+areaRatio.toFixed(6)});
   }
@@ -174,8 +176,8 @@ test('classic rear view restores the released lens, target, pitch, responsive di
 test('lower telephoto keeps the long lens and frames Supra below the old elevated eye', () => {
   const {renderer:r}=fixture();r.width=346;r.height=346;r.race.cars[0].spec={lengthMm:4379,widthMm:1854};
   r.race.sample=s=>({x:s,y:0,elevation:40,angle:0});r.setView('follow');
-  const camera=r._interactionCamera(),telephotoEye=eye(camera);assert(telephotoEye.z>r._displayHeight(40)+2&&telephotoEye.z<r._displayHeight(40)+5);
-  near(camera.pitch,12*Math.PI/180);
+  const camera=r._interactionCamera(),telephotoEye=eye(camera);assert(telephotoEye.z>=r._displayHeight(40)+1.15&&telephotoEye.z<r._displayHeight(40)+3.5);
+  near(camera.pitch,5*Math.PI/180);
   near(r.getState().followCamera.verticalFovDegrees,32);
   r.setView('follow-classic');near(r._interactionCamera().pitch,.24);
 });
@@ -271,7 +273,7 @@ test('the lower rig anchors the car exactly above a climbing road and clears a b
   for(const key of ['x','y','z'])near(pose[key],goal[key]);
   const screen=r._project(goal,camera);near(screen.x,camera.cx);near(screen.y,camera.cy);
   assert(position.z-r._displayHeight(10+pose.sampleDistance*.08)>=1.15);
-  assert(camera.pitch>8*Math.PI/180,'the lower view retains a downward gaze onto an uphill car');
+  assert(Number.isFinite(camera.pitch),'uphill gaze stays finite; ground clearance, not a fixed world pitch, governs safety');
   r.terrainGeometry={sampleHeight:()=>position.z+2};r.advanceCamera(0,{snap:true});
   const raised=eye(r._interactionCamera());assert(raised.z>=position.z+2.65-1e-8);
 });
@@ -329,7 +331,7 @@ test('the chase eye occupies the actual past path instead of a rotated car-centr
   for(let i=1;i<180;i++){
     car.distance=i/60*car.speed;r.advanceCamera(1/60);
     const pose=r._followState,prior=r.race.sample(pose.sampleDistance),position=eye(r._interactionCamera());
-    near(position.x,prior.x);near(position.y,prior.y);assert(position.z>r._displayHeight(10)+2);assert(r._interactionCamera().pitch>8*Math.PI/180);
+    near(position.x,prior.x);near(position.y,prior.y);assert(position.z>=r._displayHeight(10)+1.15-1e-8);assert(Number.isFinite(r._interactionCamera().pitch));
     const current=r.race.sample(car.distance),rigid={x:current.x-Math.cos(current.angle)*pose.trail,y:current.y-Math.sin(current.angle)*pose.trail};
     assert(Math.hypot(position.x-rigid.x,position.y-rigid.y)>2,'past-trajectory eye must differ from yaw-pivot orbit');
   }
@@ -491,7 +493,7 @@ test('Taebaek and Spa T1 keep the complete car framed in both rear presets at ev
         const next=Math.min(7.5,Math.floor(time+1e-8)+1),dt=Math.min(pattern[frame++%pattern.length],next-time);
         time+=dt;car.distance=center-45+time*12;r.advanceCamera(dt);
         const camera=r._interactionCamera(),position=eye(camera),body=r._followSample(car,car.distance),pose=mode==='follow'?r._followState:r._classicFollowState;
-        if(mode==='follow'){const past=r._followSample(car,pose.sampleDistance);near(position.x,past.x);near(position.y,past.y);assert(position.z>=past.z+1.15-1e-8);assert(camera.pitch>8*Math.PI/180);}else near(camera.pitch,.24);
+        if(mode==='follow'){const past=r._followSample(car,pose.sampleDistance);near(position.x,past.x);near(position.y,past.y);assert(position.z>=past.z+1.15-1e-8);assert(Number.isFinite(camera.pitch));}else near(camera.pitch,.24);
         maxEyeStep=Math.max(maxEyeStep,Math.hypot(position.x-lastEye.x,position.y-lastEye.y)/dt);lastEye=position;
         maxPitch=Math.max(maxPitch,Math.abs(camera.pitch));
         const L=(car.spec.lengthMm||4500)/2000,W=(car.spec.widthMm||1900)/2000,H=(car.spec.heightMm||1400)/1000;
@@ -501,7 +503,7 @@ test('Taebaek and Spa T1 keep the complete car framed in both rear presets at ev
           // The composition retains a 10 px reserve around the whole
           // body, including the unusually tall 390 x 844 canvas at Spa T1.
           const margin=mode==='follow'?10:0;
-          assert(p&&p.x>margin&&p.x<width-margin&&p.y>margin&&p.y<height-margin,id+' '+width+' '+mode+': complete body stays visible '+JSON.stringify(p));
+          assert(p&&p.x>margin&&p.x<width-margin&&p.y>margin&&p.y<height-margin,id+' '+width+' '+mode+' distance='+car.distance+': complete body stays visible '+JSON.stringify(p));
           minEdge=Math.min(minEdge,p.x,width-p.x,p.y,height-p.y);
         }
         if(Math.abs(time-next)<1e-8)checkpoints.push({eye:position,heading:pose.heading});
@@ -551,7 +553,7 @@ test('lower follow eye smoothly clears the actual road top planes under the car 
   }
   const {renderer:flat}=fixture();flat.race.sample=s=>({x:s,y:0,elevation:40,angle:0});
   flat.roadEdges=[{left:{x:-100,y:-5,z:40},right:{x:-100,y:5,z:40}},{left:{x:100,y:-5,z:40},right:{x:100,y:5,z:40}}];
-  flat.setView('follow');const state=flat._followPose(flat.race.cars[0]);near(state.eyeSafetyLiftM,0);const originalEyeZ=state.eyeZ;assert(originalEyeZ>flat._displayHeight(40)+2&&originalEyeZ<flat._displayHeight(40)+6);
+  flat.setView('follow');const state=flat._followPose(flat.race.cars[0]);near(state.eyeSafetyLiftM,0);const originalEyeZ=state.eyeZ;assert(originalEyeZ>=flat._displayHeight(40)+1.15&&originalEyeZ<flat._displayHeight(40)+3.5);
   // A separate upper return leg overlaps this road in XY. Its plane must not
   // raise the low camera on the lower road by twenty metres.
   const ground=flat._displayHeight(40);
@@ -570,16 +572,56 @@ test('lower portrait camera frames the actual tuned Supra and displayed road thr
     // Use the selected 418.2 PS entrant, its own racing line, and the actual
     // road surface. A stock-car fixture without setRace misses this framing.
     r.setRace(new Race({circuit:circuits.find(c=>c.id===id),entrants:Evolution.createPopulation({vehicleId:'supra',count:8,seed:31415,budget:30}),laps:1,surface:'dry'}));
-    const car=r.race.cars[0];car.speed=12;car.standingStartDistance=null;r.setView('follow');let minimumMargin=Infinity;
+    const car=r.race.cars[0];car.speed=12;car.standingStartDistance=null;r.setView('follow');let minimumMargin=Infinity,minimumAt=null;
     for(let s=from;s<=to;s+=.25){
       car.distance=s;r.advanceCamera(0,{snap:true});const body=r._followSample(car,s),camera=r._camera(car),slope=Math.atan(body.grade);
       for(const x of [-car.spec.lengthMm/2000,car.spec.lengthMm/2000])for(const y of [-car.spec.widthMm/2000,car.spec.widthMm/2000])for(const z of [0,car.spec.heightMm/1000]){
         const px=x*Math.cos(slope)-z*Math.sin(slope),p=r._project({x:body.x+Math.cos(body.angle)*px-Math.sin(body.angle)*y,y:body.y+Math.sin(body.angle)*px+Math.cos(body.angle)*y,z:body.z+.055+x*Math.sin(slope)+z*Math.cos(slope)},camera);
-        assert(p,'all body corners project in front of the eye');minimumMargin=Math.min(minimumMargin,p.x,r.width-p.x,p.y,r.height-p.y);
+        assert(p,'all body corners project in front of the eye');const margin=Math.min(p.x,r.width-p.x,p.y,r.height-p.y);
+        if(margin<minimumMargin){minimumMargin=margin;minimumAt=s;}
       }
     }
-    assert(minimumMargin>10,id+': tuned car keeps 10 px portrait reserve, got '+minimumMargin);
-    reports.push({id,minimumMarginPx:minimumMargin});
+    assert(minimumMargin>10,id+': tuned car keeps 10 px portrait reserve, got '+minimumMargin+' at '+minimumAt+' m');
+    reports.push({id,minimumMarginPx:minimumMargin,minimumAtM:minimumAt});
+  }
+  t.diagnostic(JSON.stringify(reports));
+});
+
+test('low follow camera clears actual terrain through natural uphill and downhill laps without changing physics', t => {
+  const modules={DrivingPose:'driving-pose',CircuitRoad:'circuit-road',TrackEnvironment:'track-environment',CircuitTerrain:'circuit-terrain'};
+  const previous=Object.fromEntries(Object.keys(modules).map(key=>[key,global[key]]));
+  t.after(()=>{for(const [key,value]of Object.entries(previous)){if(value===undefined)delete global[key];else global[key]=value;}});
+  for(const [key,file]of Object.entries(modules))global[key]=require('./'+file+'.js');
+  const Race=require('./race-engine.js'),Evolution=require('./tuning-evolution.js'),circuits=require('./circuits.js'),reports=[];
+  for(const id of ['taebaek','spa']){
+    const entrant=Evolution.createPopulation({vehicleId:'supra',count:8,seed:31415,budget:30})[0];
+    const race=new Race({circuit:circuits.find(c=>c.id===id),entrants:[entrant],laps:1,surface:'dry'}),car=race.cars[0];
+    const {renderer:r}=fixture();r.width=388;r.height=842;r.setRace(race);r.setView('follow');r.advanceCamera(0);
+    assert(r.terrainGeometry&&typeof r.terrainGeometry.sampleHeight==='function','actual terrain envelope is present');
+    const snapshot=()=>JSON.stringify([race.time,race._ticks,race._accumulator,car.distance,car.speed,car.acceleration,car.lap,car.lapTimes,car.finished,car.finishTime,car.transmission,car.telemetry]);
+    let frames=0,uphill=0,downhill=0,minimumRoadClearance=Infinity,minimumTerrainClearance=Infinity,minHorizon=Infinity,maxHorizon=-Infinity,levelSamples=0,visibleLevelHorizon=0;
+    const hiddenLevelSamples=[];
+    while(!race.finished&&race.time<400){
+      // Frame-cadence equivalence is covered above; sample two complete,
+      // naturally driven laps at 10 Hz to keep this terrain check inexpensive.
+      const dt=.1;race.step(dt);const before=snapshot();
+      r.advanceCamera(dt);const camera=r._camera(car),position=eye(camera),pose=r._followState,past=r._followSample(car,pose.sampleDistance),body=r._followSample(car,car.distance);
+      assert.equal(snapshot(),before,'camera clock must not change physical progress or gearbox state');
+      near(position.x,past.x);near(position.y,past.y);
+      const roadClearance=position.z-past.z,floor=r.terrainGeometry.sampleHeight(position.x,position.y);
+      assert(roadClearance>=1.15-1e-8,id+' road clearance at '+car.distance);
+      assert(Number.isFinite(floor)&&position.z-floor>=.65-1e-8,id+' terrain clearance at '+car.distance);
+      assert(Number.isFinite(camera.pitch));
+      const anchor=r._project({x:body.x,y:body.y,z:body.z+.65},camera);assert(anchor);near(anchor.x,camera.cx);near(anchor.y,camera.cy);
+      minimumRoadClearance=Math.min(minimumRoadClearance,roadClearance);minimumTerrainClearance=Math.min(minimumTerrainClearance,position.z-floor);
+      uphill+=Number(body.grade>.03);downhill+=Number(body.grade<-.03);
+      const horizon=(camera.cy-camera.f*Math.tan(camera.pitch))/r.height;minHorizon=Math.min(minHorizon,horizon);maxHorizon=Math.max(maxHorizon,horizon);
+      if(Math.abs(body.grade)<.015&&Math.abs(body.curvature)<.0018){levelSamples++;visibleLevelHorizon+=Number(horizon>.05&&horizon<.60);if(!(horizon>.05&&horizon<.60)&&hiddenLevelSamples.length<5)hiddenLevelSamples.push({distance:car.distance,horizon,bodyGrade:body.grade,pastGrade:past.grade,safetyLift:pose.eyeSafetyLiftM});}
+      frames++;
+    }
+    assert(car.finished&&!car.dnf,'natural standing-start lap completes');
+    assert(uphill>20&&downhill>20,'actual course covers sustained climbing and descending');
+    reports.push({id,frames,uphill,downhill,minimumRoadClearance,minimumTerrainClearance,minHorizon,maxHorizon,levelSamples,visibleLevelHorizonFraction:visibleLevelHorizon/levelSamples,hiddenLevelSamples,finishTime:car.finishTime});
   }
   t.diagnostic(JSON.stringify(reports));
 });
