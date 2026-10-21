@@ -59,19 +59,19 @@
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
   // Warm, running-engine reference floors, not cold-start/accessory-load maps.
-  // R2.2 uses the user's 830 rpm calibration. Other families remain estimates;
-  // the HEV value applies while its engine is on, not to an EV-only stop.
+  // The user's R2.2 830 rpm observation applies to a six-speed application.
+  // Registered G70/Staria R2.2 variants are eight-speed: retain the estimated
+  // diesel floor until their own idle specifications are verified. The HEV
+  // value applies while its engine is on, not to an EV-only stop.
   const idleModel=(rpm,status,condition)=>({rpm,status,condition,reviewedAt:'2026-10-21'});
   const IDLE_MODELS=freeze({
     gasoline:idleModel(750,'estimated','warm-engine-on'),
     lpg:idleModel(750,'estimated','warm-engine-on'),
     diesel:idleModel(800,'estimated','warm-engine-on'),
-    r22:idleModel(830,'user-calibrated','warm-engine-on'),
     hybrid:idleModel(1000,'estimated','engine-on-reference'),
     electric:idleModel(0,'not-applicable','no-combustion-engine')
   });
-  const R22_VARIANTS=new Set(['g70-2.2d-rwd','g70-2.2d-awd','staria-2.2d-fwd','staria-2.2d-awd']);
-  const idleFor=(type,id)=>R22_VARIANTS.has(id)?IDLE_MODELS.r22:IDLE_MODELS[type]||IDLE_MODELS.gasoline;
+  const idleFor=type=>IDLE_MODELS[type]||IDLE_MODELS.gasoline;
   // User-supplied calibration ranges: MT .35–.55 s / zero drive torque;
   // DCT .08–.15 s / .70–.95 retained torque. The selected values, including
   // automatic-transmission values, are model assumptions, not measurements.
@@ -93,7 +93,7 @@
     const electric=powertrainType==='electric';
     const label=transmissionType==='IVT'?'IVT':transmissionType==='EV'?'전기 구동':gearCount+transmissionType;
     for(const variantId of variantIds)profiles[variantId]={vehicleId,variantId,powertrainType,visible:!electric,transmissionType,gearCount,transmissionLabel:label,
-      idleRPM:idleFor(powertrainType,variantId).rpm,idleModel:idleFor(powertrainType,variantId),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
+      idleRPM:idleFor(powertrainType).rpm,idleModel:idleFor(powertrainType),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
       ratioStep:electric?null:({4:.66,5:.71,6:.75,8:.81}[gearCount]??null),
       ratioStatus:electric?'not-applicable':'estimated',gearRatios:null,finalDriveRatio:null,finalDriveRatios:null,rollingRadiusScale:1,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[sourceId],reviewedAt,verifiedFields:['powertrainType','transmissionType',...(gearCount===null?[]:['gearCount'])],...overrides};
@@ -228,7 +228,7 @@
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline','diesel'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',
-      idleRPM:idleFor(type,null).rpm,idleModel:idleFor(type,null),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,ratioStep:null,
+      idleRPM:idleFor(type).rpm,idleModel:idleFor(type),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,ratioStep:null,
       shiftModel:electric?SHIFT_MODELS.electric:SHIFT_MODELS.unknown,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[],reviewedAt:null,verifiedFields:[],match:'unknown'});
   }

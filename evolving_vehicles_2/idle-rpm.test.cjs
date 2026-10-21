@@ -7,7 +7,7 @@ const DT = Race.FIXED_DT;
 const R22 = new Set(['g70-2.2d-rwd', 'g70-2.2d-awd', 'staria-2.2d-fwd', 'staria-2.2d-awd']);
 const entries = Object.entries(Evolution.VARIANTS).flatMap(([vehicleId, variants]) => variants.map(variant =>
   Evolution.createEntrant({ vehicleId, variantId: variant.id, uid: variant.id, budget: 0 })));
-const expectedIdle = (id, type) => R22.has(id) ? 830 : ({ gasoline: 750, lpg: 750, diesel: 800, hybrid: 1000, electric: 0 })[type];
+const expectedIdle = type => ({ gasoline: 750, lpg: 750, diesel: 800, hybrid: 1000, electric: 0 })[type];
 const close = (a, b, tolerance = 1e-9) => assert.ok(Math.abs(a - b) <= tolerance, `${a} != ${b}`);
 function carFor(e, speed = 0, dynamics = Dynamics) {
   const car = { entrant: e, vehicleId: e.vehicleId, spec: e.spec, speed, reduction: e.spec.reduction, driveReduction: e.spec.reduction };
@@ -24,22 +24,26 @@ const straight = { id: 'idle-return-validation', lengthM: 4800,
   coordinates: [[1000, 0], [2000, 0], [2000, 400], [0, 400], [0, 0], [1000, 0]]
     .map(([x, y]) => [127 + x / (111195.08 * Math.cos(37 * Math.PI / 180)), 37 + y / 111195.08]) };
 
-test('every registered powertrain has the intended idle calibration without treating every 2.2 diesel as R2.2', () => {
-  const calibratedR22 = [];
+test('registered idle floors remain estimates and do not inherit a six-speed R2.2 observation', () => {
+  const eightSpeedR22 = [];
   for (const e of entries) {
-    const p = Profiles.resolve({ entrant: e, spec: e.spec }), idle = expectedIdle(e.variantId, p.powertrainType);
+    const p = Profiles.resolve({ entrant: e, spec: e.spec }), idle = expectedIdle(p.powertrainType);
     assert.ok(Number.isFinite(idle), e.variantId + ': missing family');
     assert.equal(p.variantId, e.variantId); assert.equal(p.idleRPM, idle, e.variantId);
     assert.equal(p.idleModel.rpm, idle);
-    assert.equal(p.idleModel.status, R22.has(e.variantId) ? 'user-calibrated' : p.powertrainType === 'electric' ? 'not-applicable' : 'estimated');
-    if (R22.has(e.variantId)) calibratedR22.push(e.variantId);
+    assert.equal(p.idleModel.status, p.powertrainType === 'electric' ? 'not-applicable' : 'estimated');
+    if (R22.has(e.variantId)) {
+      eightSpeedR22.push(e.variantId);
+      assert.equal(p.transmissionType, 'AT'); assert.equal(p.gearCount, 8);
+      assert.equal(p.idleRPM, 800); assert.notEqual(p.idleRPM, 830);
+    }
     if (p.powertrainType !== 'electric') {
       assert.ok(p.idleRPM >= 500 && p.idleRPM + 1000 < p.shiftRPM && p.shiftRPM <= p.maxRPM);
       assert.ok(p.estimatedFields.includes('idleRPM'), 'an idle calibration is not a factory-certified measurement');
       assert.ok(!p.verifiedFields.includes('idleRPM'));
     }
   }
-  assert.deepEqual(calibratedR22.sort(), [...R22].sort());
+  assert.deepEqual(eightSpeedR22.sort(), [...R22].sort());
   for (const id of ['carnival-2.2d', 'porter-diesel-mt', 'porter-diesel-at']) assert.equal(Profiles.PROFILES[id].idleRPM, 800);
 });
 
