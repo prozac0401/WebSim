@@ -58,6 +58,20 @@
     'hyundai-santafe-au-my21-final-drives':{title:'Hyundai Australia MY21 Santa Fe 8DCT final-drive assignments',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf',observation:'2.2 디젤 8DCT 표: 동일 단별 비율에서 1/2/5/6단은 4.846, 3/4/7/8단은 3.316. MX5 2.5T의 배정에 참고 적용하며 동일 변속기 제어/국내 사양 검증을 뜻하지 않는다.'}
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
+  // Warm, running-engine reference floors, not cold-start/accessory-load maps.
+  // R2.2 uses the user's 830 rpm calibration. Other families remain estimates;
+  // the HEV value applies while its engine is on, not to an EV-only stop.
+  const idleModel=(rpm,status,condition)=>({rpm,status,condition,reviewedAt:'2026-10-21'});
+  const IDLE_MODELS=freeze({
+    gasoline:idleModel(750,'estimated','warm-engine-on'),
+    lpg:idleModel(750,'estimated','warm-engine-on'),
+    diesel:idleModel(800,'estimated','warm-engine-on'),
+    r22:idleModel(830,'user-calibrated','warm-engine-on'),
+    hybrid:idleModel(1000,'estimated','engine-on-reference'),
+    electric:idleModel(0,'not-applicable','no-combustion-engine')
+  });
+  const R22_VARIANTS=new Set(['g70-2.2d-rwd','g70-2.2d-awd','staria-2.2d-fwd','staria-2.2d-awd']);
+  const idleFor=(type,id)=>R22_VARIANTS.has(id)?IDLE_MODELS.r22:IDLE_MODELS[type]||IDLE_MODELS.gasoline;
   // User-supplied calibration ranges: MT .35–.55 s / zero drive torque;
   // DCT .08–.15 s / .70–.95 retained torque. The selected values, including
   // automatic-transmission values, are model assumptions, not measurements.
@@ -79,7 +93,7 @@
     const electric=powertrainType==='electric';
     const label=transmissionType==='IVT'?'IVT':transmissionType==='EV'?'전기 구동':gearCount+transmissionType;
     for(const variantId of variantIds)profiles[variantId]={vehicleId,variantId,powertrainType,visible:!electric,transmissionType,gearCount,transmissionLabel:label,
-      idleRPM:electric?0:900,shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
+      idleRPM:idleFor(powertrainType,variantId).rpm,idleModel:idleFor(powertrainType,variantId),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,
       ratioStep:electric?null:({4:.66,5:.71,6:.75,8:.81}[gearCount]??null),
       ratioStatus:electric?'not-applicable':'estimated',gearRatios:null,finalDriveRatio:null,finalDriveRatios:null,rollingRadiusScale:1,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[sourceId],reviewedAt,verifiedFields:['powertrainType','transmissionType',...(gearCount===null?[]:['gearCount'])],...overrides};
@@ -116,7 +130,7 @@
   // Archived diesel outputs/gear counts are sourced. These lower RPM schedules
   // and ratio progressions remain explicit simulation estimates, not petrol
   // ratios or claimed manufacturer shift/redline maps.
-  const dieselOverrides=(ratedPowerRPM,extra={})=>({idleRPM:800,shiftRPM:4200,maxRPM:4800,ratioStep:.78,ratedPowerRPM,
+  const dieselOverrides=(ratedPowerRPM,extra={})=>({shiftRPM:4200,maxRPM:4800,ratioStep:.78,ratedPowerRPM,
     reviewedAt:'2026-10-19',verifiedFields:['powertrainType','transmissionType','gearCount','ratedPowerRPM'],...extra});
   add('porter2',['porter-diesel-mt'],'diesel','MT',6,'hyundai-porter-diesel-2020',dieselOverrides(3600,{shiftRPM:3800,maxRPM:4500,ratioStep:.75,drivenAxle:'rear',sourceIds:['hyundai-porter-diesel-2020','hyundai-porter-diesel-2020-price','hyundai-porter-a2-2020']}));
   add('porter2',['porter-diesel-at'],'diesel','AT',5,'hyundai-porter-diesel-2020',dieselOverrides(3600,{shiftRPM:3800,maxRPM:4500,ratioStep:.71,drivenAxle:'rear',sourceIds:['hyundai-porter-diesel-2020','hyundai-porter-diesel-2020-price','hyundai-porter-a2-2020']}));
@@ -214,7 +228,7 @@
   function unknown(vehicleId,variantId,spec){
     const electric=spec.electric===true||spec.powertrainType==='electric',type=electric?'electric':['hybrid','lpg','gasoline','diesel'].includes(spec.powertrainType)?spec.powertrainType:'gasoline';
     return freeze({vehicleId,variantId:variantId||null,powertrainType:type,visible:!electric,transmissionType:electric?'EV':'unknown',gearCount:null,transmissionLabel:electric?'전기 구동':'미확인',
-      idleRPM:electric?0:900,shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,ratioStep:null,
+      idleRPM:idleFor(type,null).rpm,idleModel:idleFor(type,null),shiftRPM:electric?0:6000,maxRPM:electric?0:7000,total1stReduction:electric?0:13.5,ratioStep:null,
       shiftModel:electric?SHIFT_MODELS.electric:SHIFT_MODELS.unknown,
       estimatedFields:electric?[]:ESTIMATED,sourceIds:[],reviewedAt:null,verifiedFields:[],match:'unknown'});
   }
@@ -232,6 +246,6 @@
     }
     return PROFILES[FALLBACKS[vehicleId]]||unknown(vehicleId,null,spec);
   }
-  const api=freeze({resolve,PROFILES,FALLBACKS,SOURCES,SHIFT_MODELS,reviewedAt});
+  const api=freeze({resolve,PROFILES,FALLBACKS,SOURCES,SHIFT_MODELS,IDLE_MODELS,reviewedAt});
   root.PowertrainProfiles=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
