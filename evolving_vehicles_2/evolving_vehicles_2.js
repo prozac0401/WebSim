@@ -239,9 +239,16 @@ function updatePowertrainHUD(car){
  const flow=stopped?0:Math.max(-1,Math.min(1,t.battery?.flow||0)),mode=flow<0?'charging':flow>0?'using':'idle',label={charging:'충전 중',using:'사용 중',idle:'대기'}[mode];
  const chargeWidth=(Math.max(0,-flow)*100).toFixed(1)+'%',useWidth=(Math.max(0,flow)*100).toFixed(1)+'%',flowValue=Math.round(flow*100);
  const name='#'+String(car.index+1).padStart(2,'0')+' '+(vehicles.find(v=>v.id===car.vehicleId)?.name||car.name);
- const key=JSON.stringify([name,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue]);
+ const spec=car.entrant.factorySpec||car.spec,litres=(spec.displacementCc/1000).toFixed(1);
+ const engine=spec.powertrainType==='diesel'?litres+'D':spec.powertrainType==='hybrid'?litres+' HEV':spec.powertrainType==='lpg'?litres+' LPG':litres+(/터보/.test(spec.engine||'')?'T':'');
+ const variant='#'+String(car.index+1).padStart(2,'0')+' '+engine+' '+({fwd:'전륜',rwd:'후륜',awd:'사륜'}[spec.factoryDrive]||'');
+ const engineRPM=!stopped&&t.gearSource==='physics'&&Number.isFinite(car.transmission?.rpm)?Math.round(car.transmission.rpm/10)*10:null;
+ const rpmText=engineRPM===null?'— rpm':'≈ '+engineRPM.toLocaleString('en-US')+' rpm';
+ const key=JSON.stringify([name,car.uid,car.entrant.variantId,variant,engineRPM,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue]);
  if(key===powertrainHUDKey)return;powertrainHUDKey=key;hud.hidden=false;
  $('powertrain-car').textContent=name;hud.dataset.kind=t.kind;
+ $('powertrain-variant').textContent=variant;$('powertrain-variant').title=car.entrant.variantLabel;
+ $('powertrain-rpm').textContent=rpmText;hud.dataset.variantId=car.entrant.variantId;hud.dataset.uid=car.uid;
  $('gear-value').textContent=gear;$('gear-value').dataset.wide=String(gear.length>1);
  hud.dataset.shifting=String(!!shifting);$('gear-value').title=shiftDescription;
  $('gear-value').setAttribute('aria-label',stopped?'주행 종료':t.neutral?'변속 중 중립 · 동력 차단':(Number.isInteger(t.gear)?gear+'단':gear)+(shifting?' · 변속 중':''));
@@ -322,6 +329,7 @@ window.render_game_to_text=()=>JSON.stringify({
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  watchTelemetry:watching().telemetry,
  watchTransmission:watching().transmission||null,
+ watchIdentity:{uid:watching().uid,variantId:watching().entrant.variantId,variantLabel:watching().entrant.variantLabel,speedKmh:watching().speed*3.6},
  patrolLights:renderer.getPatrolInfo?.()||[],
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. Performance-dependent per-car racing paths. Independent ghosts. Centre-aligned standing starts.',
  evaluation:{start:'standing',complete:session.evaluationRace.finished,automaticBlocked:session.automaticBlocked},

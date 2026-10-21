@@ -16,7 +16,7 @@
   const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
   const MODEL = Object.freeze({
     purpose: 'read-only physical gear/RPM/shift state; standalone estimates and hybrid flow have no feedback into race physics',
-    rpmScale: 'idleRPM = 0, estimated shiftRPM = 1; numerical RPM is not displayed',
+    rpmScale: 'idleRPM = 0, estimated shiftRPM = 1; the HUD separately displays approximate physical RPM',
     minimumShiftIntervalSeconds: .65,
     shiftLampBlankSeconds: .12,
     downshiftFraction: .53,

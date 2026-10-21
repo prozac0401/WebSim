@@ -186,6 +186,14 @@ ZF 8단이라는 이름만으로 모든 차에 같은 비율을 적용할 수 �
 
 이론상 6500 rpm 차속은 DCT 1–7단 약 **48.46 / 89.82 / 136.92 / 182.38 / 232.90 / 275.95 / 347.09 km/h**, MT 1–6단 약 **56.67 / 100.60 / 151.04 / 197.54 / 232.90 / 275.29 km/h**다. 높은 단의 수치는 공식 최고속도 또는 레이스 도달 가능 속도가 아니다. 변속을 마친 가속 상태의 100 km/h에서는 DCT 3단·MT 2단이고, 높은 단에서 감속한 뒤 100 km/h로 재가속하면 MT는 기존 90% 다운시프트 보호 조건 때문에 3단을 유지한다. 80 km/h에서는 두 변속기 모두 2단으로 복귀한다. 표시가 별도로 단수를 선택하지 않고 물리 변속 상태를 따른다.
 
+## G70 3.3T 회전수 재점검 (2026-10-21)
+
+현재 3.3T RWD/AWD는 위 2019 미국 제조사 발표의 8단 표와 종감속비 3.538을 사용한다. 6단은 0.826, 뒤 타이어는 국내 프리셋의 255/35R19이며, 유효 반경은 명목 0.33055 m × 추정 보정 0.985다. 이 조합의 순정 100 km/h·6단은 약 **2,381 rpm**이다. 추정 업시프트 기준 6500 rpm에서 1→2단은 약 61.5 km/h, 2→3단은 약 94.1 km/h이므로 정지 출발 후 100 km/h 가속 상태는 **3단·약 4,641 rpm**이다. 이는 기어비로 계산한 값이며 실제 변속 제어 맵을 검증한 결과는 아니다.
+
+100 km/h·6단에서 변속등 7칸이 켜진 사용자 사례를 점검했으나 현재 3.3T 물리 상태에서는 재현하지 못했다. 가솔린 기어비를 임의로 변경하지 않았다. 별도의 2.2 디젤 추정 기어비와 가속 튜닝 조합에서는 유사 화면이 재현되지만, 이를 사용자의 3.3T 사례 원인으로 확정하지 않는다. 디젤의 국내 단별·종감속비 확보는 별도 미완료 항목이다.
+
+모바일과 PC의 계기판에 실제 관찰 차량 번호·엔진 사양·구동방식과 계산 RPM을 함께 표시한다. RPM은 물리 변속 상태를 읽어 10 rpm 단위로 반올림하고 ≈를 붙인다. 관찰 전환과 세대 전환 때 동일한 차량의 사양·기어·RPM을 함께 갱신한다. `render_game_to_text`의 `watchIdentity`에는 동일 차량의 UID·variantId·variantLabel·차속을 포함해 상태를 대조할 수 있다. IVT처럼 물리 RPM이 없는 경우 숫자를 만들지 않는다.
+
 ## 프로필 선택 규칙과 API
 
 브라우저에서는 `window.PowertrainProfiles`, Node에서는 CommonJS를 제공한다. `resolve(car)`는 차량·출고 사양, 파워트레인, 변속기 형식·단수, 회전수 기준과 함께 `gearRatios`, `finalDriveRatio`, `finalDriveRatios`, `ratioStatus`, `ratioMarket`, `estimatedFields`, `referenceFields`, `verifiedFields`, `sourceIds`, `shiftModel`을 반환한다. 싼타페 DCT처럼 단마다 종감속비가 다르면 `finalDriveRatios` 배열을 사용한다. 정적 `PROFILES`, `FALLBACKS`, `SOURCES`, `SHIFT_MODELS`도 제공하며 값은 동결되어 있다. 기어비가 미확인인 경우 표는 `null`이며 출처 확인처럼 꾸미지 않는다. `shiftModel.family`는 `manual`, `dual-clutch`, `torque-converter`, `hybrid-step`, `continuous`, `single-speed`, `unknown` 중 하나다. IVT·EV는 `status:'not-applicable'`, 알려지지 않은 변속기는 `status:'unavailable'`이며 다단 변속 이벤트를 만들지 않는다.
