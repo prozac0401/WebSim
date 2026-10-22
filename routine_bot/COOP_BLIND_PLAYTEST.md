@@ -1,5 +1,15 @@
 # Cooperative expansion: independent rendered play
 
+## 2026-10-21 follow-up: access-only environment prepared; exploration blocked
+
+- Target scope: `wait-beat`, `condition-fork`, `coop-finale` only. No answer files or solution-based tests were read and no previous successful stages were replayed.
+- Added isolated local entry: run `node tests/routine-bot-blind-env.cjs`, then open `http://127.0.0.1:8125/blind-play?level=wait-beat` (or either other target ID). Use a fresh browser context for each first-time stage/profile; subsequent reloads preserve authored work. The fixture unlocks only the three target IDs and initializes empty programs, completion, challenge and timing records. It does not solve or execute anything. Production HTML is unchanged.
+- Exported browser profiles: desktop 1440×900; mobile 390×844 and narrow 320×740 with `hasTouch` and `isMobile`. These are configuration data, **not evidence of a completed touch test**. A compatible browser runner must apply them and use actual clicks/taps.
+- Environment checks: `node --test tests/routine-bot-blind-env.test.cjs` — 2 passed. Checks cover access-only fixture contents, isolated bootstrap, normal asset serving and invalid-stage rejection. These do not validate any puzzle solution or usability.
+- Supported cloud browser could open the public game but all target stages were locked on its fresh save. The local static server started successfully, but cloud navigation to `http://127.0.0.1:8123/WebSim/routine_bot/routine_bot.html` returned `ERR_CONNECTION_REFUSED`. No supported viewport/touch/storage-setting browser capability was available. A separate independent agent confirmed the same connection/capability blocker without opening answers.
+- Desktop target solving: **NOT RUN**. Mobile touch target solving: **NOT RUN**. Failure recovery and cooperative tracking evaluation: **NOT RUN**. No reproducible gameplay defect established; no gameplay fix claimed. Real Android/iOS and human enjoyment/comprehension/satisfaction: **NOT RUN**.
+- Remaining requirement: a permitted browser runner connected to the local test server with viewport and real touch input support, or a reachable isolated preview with those browser capabilities. No success, program or runner-state injection is authorized.
+
 2026-10-19. Independent agent exploration, not a human enjoyment or comprehension study.
 
 ## Method and limits
