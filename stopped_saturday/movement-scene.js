@@ -772,6 +772,7 @@
     resize();
     return {
       setScene, advance, snapshot,
+      finish() { elapsed = duration; draw(); },
       setReducedMotion(value) { reduced = Boolean(value); draw(); },
       destroy() { dead = true; if (observer) observer.disconnect(); }
     };

@@ -186,7 +186,7 @@
     const needs = def.eligibility;
     if (needs.location && !needs.location.includes(context.location)) return `위치 조건 불일치: ${context.location}`;
     if (needs.outing && !context.outing) return '실제 외출 이력이 현재 동선에 없음';
-    if (needs.companion && needs.companion !== context.companion) return '해당 동행이 함께 있지 않음';
+    if (needs.companion && needs.companion !== context.companion) return '해당 친구가 함께 있지 않음';
     if (needs.helpRequested && !context.help.requested) return '컵 도움을 요청하지 않음';
     if (needs.seated && context.seat.mode !== 'seated') return '가게의 이용 가능한 자리에 앉지 않음';
     return null;

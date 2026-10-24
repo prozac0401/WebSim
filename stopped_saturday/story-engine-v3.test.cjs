@@ -421,7 +421,7 @@ test('classic optional escalator and kiosk retain explicit helpers and do not cl
   assert.equal(elevator.flags.includes('elevator_used'), true);
   const food = E.choose(s, 'outing-pickup');
   assert.equal(food.context.order.status, 'paid');
-  assert.match(food.reaction.lines.join(' '), /직원에게.*부탁.*동행에게.*옮겨 달라고 부탁/);
+  assert.match(food.reaction.lines.join(' '), /직원에게.*부탁.*친구에게.*옮겨 달라고 부탁/);
 });
 
 test('a paid kiosk order stays paid while waiting for a seat or asking staff for one', () => {
@@ -443,5 +443,5 @@ test('classic automatic door narration and reaction motion show the same entranc
   assert.equal(entered.motion.destinationPose, 'sit');
   assert.deepEqual(entered.motion.encounter, { kind: 'door', doorType: 'automatic', phase: 'passed' });
   assert.match(entered.motion.caption, /자동문/);
-  assert.doesNotMatch(entered.motion.caption, /동행이 잡아준/);
+  assert.doesNotMatch(entered.motion.caption, /친구가 잡아준/);
 });
