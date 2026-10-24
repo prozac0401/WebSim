@@ -7,6 +7,7 @@ let playwright; try { playwright=require('playwright'); } catch { playwright=cre
 const engine=require('../stopped_saturday/story-engine.js');
 const legacyEngine=require('../stopped_saturday/legacy/story-engine-v2.js');
 const storeAPI=require('../stopped_saturday/saturday-store.js');
+const {storyViewport,skipAnimation}=require('./saturday-story-viewport.cjs');
 const base=(process.env.WEBSIM_URL||'http://127.0.0.1:8766/').replace(/\/?$/,'/');
 const url=base+'stopped_saturday/stopped_saturday.html';
 const out=path.resolve(process.env.WEBSIM_EVIDENCE||'output/playwright/saturday-journal');
@@ -25,12 +26,12 @@ async function start(page,scenario='home',conditions={}){
   await page.evaluate(values=>{let index=0;window.__encounterDraws=0;Math.random=()=>{window.__encounterDraws++;return values[index++%values.length];};},draws);
   await page.locator('#start-button').click(); assert.equal((await state(page)).mode,'game');assert.equal(await page.evaluate(()=>window.__encounterDraws),3,'a new day samples its environment exactly once');
 }
-async function choose(page,index=0){await page.locator('#choices button').nth(index).click();assert.equal((await state(page)).mode,'reaction');await page.locator('#continue-button').click();}
+async function choose(page,index=0){await page.locator('#choices button').nth(index).click();await skipAnimation(page);assert.equal((await state(page)).mode,'reaction');await page.locator('#continue-button').click();}
 async function finish(page,index=0){
   let guard=0;
   while((await state(page)).mode!=='result'){
     const current=await state(page);assert.ok(++guard<=current.maxSteps*2+2,'day must finish within its version limit');
-    if(current.mode==='reaction')await page.locator('#continue-button').click();else await choose(page,index);
+    if(current.mode==='animation'){await skipAnimation(page);await page.locator('#continue-button').click();}else if(current.mode==='reaction')await page.locator('#continue-button').click();else await choose(page,index);
   }
   const done=await state(page);assert.equal(done.step,done.maxSteps);return done;
 }
@@ -135,6 +136,7 @@ function observe(page){page.on('pageerror',e=>errors.push(e.message));page.on('c
       const c=await browser.newContext({viewport:{width,height:900}});const p=await c.newPage();observe(p);await ready(p);await start(p,scenarioId);
       for(const id of ['R01-check',...(scenarioId==='doors'?['S02-ask','S03-coordinate']:['S05-staff','S06-ask']),'R02-food'])await chooseId(p,id);
       const before=await state(p);await p.locator('#choices button').nth(before.choiceIds.indexOf('S09-takeout')).click();
+      await skipAnimation(p);
       const returned=await state(p);assert.match(await p.locator('#reaction-text').innerText(),/양손으로 목발.*집에 가져갈 수가 없게/s);
       assert.match(await p.locator('#reaction-text').innerText(),/빈손으로 집에 돌아온다/);assert.equal(returned.context.items.cupLocation,'store-counter');assert.equal(returned.context.items.drinkPlace,null);
       assert.equal(returned.minuteOfDay,before.minuteOfDay+before.choiceDurations[before.choiceIds.indexOf('S09-takeout')]);
@@ -171,7 +173,7 @@ function observe(page){page.on('pageerror',e=>errors.push(e.message));page.on('c
     await finish(vp);await vp.locator('#open-completed').click();await vp.locator('#export-open').click();const olderV3Exchange=await vp.locator('#export-text').inputValue();assert.deepEqual(JSON.parse(olderV3Exchange).conditions,olderV3Conditions);await vp.locator('#export-close').click();await vp.locator('#import-open').click();await vp.locator('#import-text').fill(olderV3Exchange);await vp.locator('#import-preview').click();await vp.locator('#import-confirm').click();assert.deepEqual((await envelope(vp)).imported.at(-1).conditions,olderV3Conditions);await vc.close();
     pass('Earlier v3 records without optional environment fields resume without random sampling or disk writes and retain missing fields through export/import');
     for(const width of [320,390]){
-      const c=await browser.newContext({viewport:{width,height:width===320?568:844},isMobile:true,hasTouch:true});const p=await c.newPage();observe(p);await ready(p);await noOverflow(p);await start(p,'doors');await noOverflow(p);await p.locator('#choices button').first().tap();await noOverflow(p);await p.locator('#continue-button').tap();await finish(p);await p.locator('#open-completed').tap();await noOverflow(p);await screenshot(p,`07-mobile-${width}-journal`);await p.locator('#export-open').tap();await noOverflow(p);await screenshot(p,`08-mobile-${width}-export`);await p.locator('#export-close').tap();await c.close();
+      const c=await browser.newContext({viewport:{width,height:width===320?568:844},isMobile:true,hasTouch:true});const p=await c.newPage();observe(p);await ready(p);await noOverflow(p);await start(p,'doors');await storyViewport(p,`${width}px saved-day start`);await p.locator('#choices button').first().tap();await skipAnimation(p,true);await storyViewport(p,`${width}px saved reaction`);await p.reload();await p.waitForFunction(()=>window.render_game_to_text);await storyViewport(p,`${width}px restored reaction`);await p.locator('#continue-button').tap();await storyViewport(p,`${width}px next scene`);await finish(p);await storyViewport(p,`${width}px result`);await p.locator('#open-completed').tap();await noOverflow(p);await screenshot(p,`07-mobile-${width}-journal`);await p.locator('#export-open').tap();await noOverflow(p);await screenshot(p,`08-mobile-${width}-export`);await p.locator('#export-close').tap();await c.close();
     }
     pass('320×568 and 390×844 touch layouts keep story, journal and exchange dialogs within the viewport');
     const kc=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});const kp=await kc.newPage();observe(kp);await ready(kp);await tabTo(kp,'#start-button');await kp.keyboard.press('Enter');

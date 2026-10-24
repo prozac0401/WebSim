@@ -32,34 +32,10 @@
     <nav class="day-navigation" aria-label="하루와 기록"><button id="home-button" type="button">시작 화면</button><button id="library-button" type="button">토요일 일지 <span id="journal-count">0</span></button><button id="reset-current" type="button" hidden>진행 중인 하루 초기화</button></nav>
     <div class="save-notice" id="save-notice" role="status"><span id="save-status"></span><button id="backup-button" type="button">기록 백업 보기</button></div>
     <div class="game-layout">
-      <aside class="day-panel" aria-label="토요일의 풍경과 상태">
-        <figure class="scene-figure">
-          <div class="scene-top"><span class="day-pill">SATURDAY</span><span id="scene-clock">오전 10:12</span></div>
-          <canvas id="day-canvas" width="960" height="500" role="img" aria-label="오른쪽 다리에 깁스를 하고 목발을 곁에 둔 채 앉아 있는 인물" aria-describedby="scene-caption">그림 설명은 바로 아래에 있습니다.</canvas>
-          <div id="effort-monitor" class="effort-monitor" role="group" aria-labelledby="effort-title" hidden>
-            <div class="effort-heading"><span id="effort-title">머릿속 에너지 모니터</span><output id="effort-value" aria-live="off"></output></div>
-            <div id="effort-bars" class="effort-bars" aria-hidden="true"></div>
-            <p id="effort-thought">몇 걸음만 옮겨도 남은 힘을 계산하게 된다.</p>
-          </div>
-          <figcaption id="scene-caption">발을 받치고 소파에 앉아 있다.</figcaption>
-          <div class="scene-controls"><span>그림의 움직임</span><button id="motion-toggle" type="button" aria-pressed="false">움직임 줄이기</button></div>
-        </figure>
-        <section class="status-panel" id="status-panel" hidden aria-label="오늘의 상태">
-          <div class="status-heading"><h2>지금의 나</h2><span id="day-elapsed">오늘의 몸과 마음</span></div>
-          <div class="status-meters">
-            <div><div class="meter-label"><label for="energy">에너지</label><span id="energy-value"></span></div><meter id="energy" min="0" max="10" value="6">6 / 10</meter></div>
-            <div><div class="meter-label"><label for="mood">기분</label><span id="mood-value"></span></div><meter id="mood" min="0" max="10" value="4">4 / 10</meter></div>
-          </div>
-          <div id="body-overview" hidden></div>
-          <details id="body-notes"><summary>부위별 느낌 자세히 보기 <span id="body-summary"></span></summary><p class="body-intro">이야기 속 인물이 느끼는 불편함입니다.</p><div id="body-list"></div></details>
-          <div class="trace-row"><span class="small-label">오늘 한 일</span><div id="traces"></div></div>
-        </section>
-        <p class="scene-footnote">문을 열거나 물건을 옮길 때도 양손을 어떻게 쓸지 생각해야 한다.</p>
-      </aside>
       <section class="story-panel" id="story-panel" aria-label="이야기">
         <section id="cover">
           <p class="eyebrow">토요일 오전 10시 12분</p>
-          <h2>깁스를 하고 돌아온<br>첫 주말이다.</h2>
+          <h2 id="opening-title" tabindex="-1">깁스를 하고 돌아온<br>첫 주말이다.</h2>
           <div class="opening-story" id="opening-story">
             <p>갑작스럽게 오른쪽 다리를 다쳤다. 그 발로 바닥을 딛지 못하게 됐고, 병원에서 깁스를 하고 목발을 받아 돌아왔다.</p>
             <p>그리고 처음 맞는 토요일 아침. 물 한 잔을 마시려고 일어났는데, 목발을 짚고 나니 컵을 들 손이 없다.</p>
@@ -74,11 +50,18 @@
           <p class="quiet-note">새로 시작할 때 문과 층간 이동 설비, 주문 방식이 무작위로 정해집니다. 이어 하거나 같은 기록을 다시 보면 처음 만난 환경이 유지됩니다.</p>
           <p class="quiet-note">선택에 따라 다른 일이 생깁니다.<br>쉬거나 집으로 돌아가도 끝까지 진행할 수 있습니다.</p>
         </section>
+        <section id="animation-view" hidden aria-labelledby="animation-title">
+          <p class="eyebrow">내가 고른 행동</p>
+          <h2 id="animation-title" tabindex="-1"></h2>
+          <div id="animation-stage"></div>
+          <button class="primary" id="skip-animation" type="button">애니메이션 건너뛰고 결과 읽기 <span aria-hidden="true">→</span></button>
+          <p class="quiet-note">움직임이 끝나면 결과 이야기가 이어집니다.</p>
+        </section>
         <section id="game" hidden>
           <div class="chapter-row"><p class="eyebrow" id="time-label"></p><span id="chapter-label"></span></div>
           <ol class="progress-track" id="progress-track" aria-label="하루의 선택 진행"></ol>
           <div id="decision-view"><h2 id="scene-title" tabindex="-1"></h2><div id="story-text" class="prose"></div><div class="choices" id="choices"></div><p class="keyboard-note">버튼을 누르거나 선택지의 숫자 키를 누르세요.</p></div>
-          <div id="reaction-view" hidden><p class="small-label reaction-label">그다음에 일어난 일</p><h2 id="reaction-title" tabindex="-1"></h2><div id="reaction-text" class="prose"></div><div class="reaction-choice" id="reaction-choice"></div><button class="primary" id="continue-button" type="button">다음으로 <span aria-hidden="true">→</span></button><p class="quiet-note">그림이 움직이는 중에도 다음으로 넘어갈 수 있습니다.</p></div>
+          <div id="reaction-view" hidden><p class="small-label reaction-label">그다음에 일어난 일</p><h2 id="reaction-title" tabindex="-1"></h2><div id="reaction-text" class="prose"></div><div class="reaction-choice" id="reaction-choice"></div><button class="primary" id="continue-button" type="button">다음으로 <span aria-hidden="true">→</span></button></div>
         </section>
         <section id="result" hidden>
           <p class="eyebrow" id="result-time"></p>
@@ -98,6 +81,26 @@
           <section id="record-detail" hidden aria-labelledby="record-heading"><h3 id="record-heading" tabindex="-1"></h3><p id="record-conditions"></p><p id="record-origin"></p><blockquote id="record-quote"></blockquote><ol id="record-scenes" class="record-scenes"></ol><div class="library-actions"><button id="export-open" class="secondary" type="button">친구에게 줄 기록 미리보기</button><button id="delete-record" class="secondary" type="button">이 기록만 삭제</button></div><label for="compare-select">나란히 볼 다른 기록</label><select id="compare-select"><option value="">기록을 고르세요</option></select><div id="comparison" aria-live="polite"></div></section>
         </section>
       </section>
+      <aside class="day-panel" aria-label="토요일의 풍경과 상태">
+        <a class="back-to-story" href="#story-panel">이야기로 돌아가기 ↑</a>
+        <figure class="scene-figure">
+          <div class="scene-top"><span class="day-pill">SATURDAY</span><span id="scene-clock">오전 10:12</span></div>
+          <canvas id="day-canvas" width="960" height="500" role="img" aria-label="오른쪽 다리에 깁스를 하고 목발을 곁에 둔 채 앉아 있는 인물" aria-describedby="scene-caption">그림 설명은 바로 아래에 있습니다.</canvas>
+          <figcaption id="scene-caption">발을 받치고 소파에 앉아 있다.</figcaption>
+          <div class="scene-controls"><span>그림의 움직임</span><button id="motion-toggle" type="button" aria-pressed="false">움직임 줄이기</button></div>
+        </figure>
+        <section class="status-panel" id="status-panel" hidden aria-label="오늘의 상태">
+          <div class="status-heading"><h2>지금의 나</h2><span id="day-elapsed">오늘의 몸과 마음</span></div>
+          <div class="status-meters">
+            <div><div class="meter-label"><label for="energy">에너지</label><span id="energy-value"></span></div><meter id="energy" min="0" max="10" value="6">6 / 10</meter></div>
+            <div><div class="meter-label"><label for="mood">기분</label><span id="mood-value"></span></div><meter id="mood" min="0" max="10" value="4">4 / 10</meter></div>
+          </div>
+          <div id="body-overview" hidden></div>
+          <details id="body-notes"><summary>부위별 느낌 자세히 보기 <span id="body-summary"></span></summary><p class="body-intro">이야기 속 인물이 느끼는 불편함입니다.</p><div id="body-list"></div></details>
+          <div class="trace-row"><span class="small-label">오늘 한 일</span><div id="traces"></div></div>
+        </section>
+        <p class="scene-footnote">문을 열거나 물건을 옮길 때도 양손을 어떻게 쓸지 생각해야 한다.</p>
+      </aside>
     </div>
     <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="no-script">이 게임은 JavaScript가 필요합니다. <a href="stopped_saturday_doc.html">게임 소개와 제작 의도 읽기</a></p></noscript>

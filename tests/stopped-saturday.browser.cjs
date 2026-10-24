@@ -7,6 +7,7 @@ let playwright;
 try { playwright = require('playwright'); }
 catch { playwright = createRequire(path.join(process.env.USERPROFILE || process.env.HOME, '.codex/skills/develop-web-game/package.json'))('playwright'); }
 const story = require('../stopped_saturday/story-engine.js');
+const { storyViewport, skipAnimation, animationViewport } = require('./saturday-story-viewport.cjs');
 const base = (process.env.WEBSIM_URL || 'http://127.0.0.1:8000/').replace(/\/?$/, '/');
 const out = path.resolve(process.env.WEBSIM_EVIDENCE || 'output/playwright/stopped-saturday');
 const checks = [], errors = [], endings = {};
@@ -44,6 +45,7 @@ async function choice(page,index,touch=false) {
   const before=await state(page);
   const b=page.locator('#choices button').nth(index);
   if(touch) await b.tap(); else await b.click();
+  await skipAnimation(page,touch);
   assert.equal((await state(page)).mode,'reaction');
   assert.equal((await state(page)).minuteOfDay,before.minuteOfDay+before.choiceDurations[index]);
   assert.equal(await page.locator('#reaction-text p').count() >= 2,true);
@@ -120,7 +122,7 @@ async function compactBody(page) {
     await page.locator('#continue-button').focus(); await page.keyboard.press('Enter');
     assert.equal(await page.locator('#body-notes').evaluate(el=>el.open),false,'body details fold when moving to the next scene');
     await page.locator('#choices button').first().focus(); await page.keyboard.press('2'); assert.equal((await state(page)).mode,'game');
-    await page.keyboard.press('Enter'); assert.equal((await state(page)).mode,'reaction');
+    await page.keyboard.press('Enter'); await skipAnimation(page); assert.equal((await state(page)).mode,'reaction');
     await page.locator('#continue-button').click();
     await finish(page); record('Focused buttons ignore number shortcuts; Enter progresses; twelve choices end');
     await compactBody(page);assert.equal(await page.locator('#body-notes').evaluate(el=>el.open),false);await shot(page,'05-ending-desktop');
@@ -153,7 +155,9 @@ async function compactBody(page) {
     await page.locator('#choices button').first().click();
     const stairsStart=await state(page);
     assert.equal(stairsStart.motion.kind,'stairs');
-    assert.equal(await page.locator('#effort-monitor').isVisible(),true);
+    assert.equal(await page.locator('#effort-monitor').count(),0);
+    assert.equal(stairsStart.motion.effort.visible,true);
+    assert.equal(stairsStart.motion.effort.endEnergy,stairsStart.energy);
     const canonical=s=>({energy:s.energy,mood:s.mood,body:s.body,step:s.step,traces:s.traces,minuteOfDay:s.minuteOfDay});
     await advance(page,4300); const stairsMiddle=await state(page);
     assert.ok(stairsMiddle.motion.y<stairsStart.motion.y,'stairs ascend vertically');
@@ -167,7 +171,7 @@ async function compactBody(page) {
     assert.equal(stairsEnd.motion.poseKind,'sit');
     assert.equal(stairsEnd.motion.effort.displayEnergy,stairsEnd.energy);
     assert.deepEqual(canonical(stairsEnd),canonical(stairsStart));
-    assert.match(await page.locator('#effort-value').innerText(),new RegExp(`${stairsEnd.energy*10}%`));
+    assert.equal(stairsEnd.motion.effort.endEnergy,stairsEnd.energy);
     await shot(page,'15-stairs-arrival-desktop');
     await page.locator('#continue-button').click();
     assert.equal(await page.locator('#choices button').count(),3,'the next added daily-life scene remains available');
@@ -177,6 +181,7 @@ async function compactBody(page) {
       await toStairs(page);
       await page.locator('#choices button').nth(index).click();
       assert.notEqual((await state(page)).motion.kind,'stairs');
+      await skipAnimation(page);
       await page.locator('#continue-button').click();
       await shot(page,`16-lobby-alternative-${index}`);
     }
@@ -211,12 +216,13 @@ async function compactBody(page) {
       await phone.locator('#choices button').nth(index).tap();
       assert.equal((await state(phone)).minuteOfDay,before.minuteOfDay+before.choiceDurations[index]);
       await advance(phone,900); await noOverflow(phone);
-      const rect=await phone.locator('#day-canvas').boundingBox(); assert.ok(rect.y>=0 && rect.y<250,'reaction movement should be in mobile viewport');
+      await skipAnimation(phone,true);
+      await storyViewport(phone,`mobile reaction ${i+1}`);
       if(i===0) await shot(phone,'09-moving-mobile');
       const touchSize=await phone.locator('#continue-button').boundingBox(); assert.ok(touchSize.height>=44);
       await phone.locator('#continue-button').tap();
     }
-    assert.equal((await state(phone)).mode,'result'); await noOverflow(phone); await shot(phone,'10-ending-mobile'); record('Mobile touch completes twelve timed choices with visible movement and no overflow');
+    assert.equal((await state(phone)).mode,'result'); await storyViewport(phone,'mobile result'); await noOverflow(phone); await shot(phone,'10-ending-mobile'); record('Mobile touch completes twelve timed choices with story-first reactions and no overflow');
     for(const width of [320,360,768]) {
       await phone.setViewportSize({width,height:900}); await ready(phone); await noOverflow(phone); await phone.locator('#start-button').tap(); await noOverflow(phone);
       for(const button of await phone.locator('#choices button').all()) assert.ok((await button.boundingBox()).height>=44);
@@ -225,15 +231,19 @@ async function compactBody(page) {
     record('320/360/390/768px layouts and minimum 44px choice targets');
     await phone.setViewportSize({width:320,height:844}); await toStairs(phone,true);await phone.locator('#choices button').first().tap();
     await advance(phone,4300); await noOverflow(phone);
-    assert.equal(await phone.locator('#effort-monitor').isVisible(),true);
+    assert.equal(await phone.locator('#effort-monitor').count(),0);
+    assert.equal((await state(phone)).motion.effort.visible,true);
+    await animationViewport(phone,'320px staircase animation');
     await shot(phone,'17-stairs-mobile-320');
-    record('320px touch staircase and energy monitor remain readable without overflow');
+    await skipAnimation(phone,true);
+    await storyViewport(phone,'320px staircase reaction');
+    record('320px staircase reaction stays visible; imagined energy stays in the canvas snapshot');
     await mobile.close();
     const reducedContext=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
     await reducedContext.addInitScript(()=>{Math.random=()=>0;});
     const reducedPage=await reducedContext.newPage(); watch(reducedPage); await ready(reducedPage); await reducedPage.locator('#start-button').click(); await skipRhythm(reducedPage);await reducedPage.locator('#choices button').first().click();
     const still=(await state(reducedPage)).motion; await advance(reducedPage,2000); assert.deepEqual((await state(reducedPage)).motion,still); assert.equal(still.moving,false);
-    await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).reducedMotion,false); await advance(reducedPage,400); assert.equal((await state(reducedPage)).motion.moving,true);
+    await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).reducedMotion,false); await advance(reducedPage,400); assert.equal((await state(reducedPage)).mode,'reaction'); assert.equal((await state(reducedPage)).motion.moving,false,'finished reaction does not replay when motion is enabled');
     await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).motion.moving,false); record('OS reduced-motion and manual motion toggle');
     await toStairs(reducedPage);
     await reducedPage.locator('#choices button').first().click(); const reducedStairs=(await state(reducedPage)).motion;

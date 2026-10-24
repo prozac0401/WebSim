@@ -1,6 +1,8 @@
 /* Reading and animation never advance the story clock; only a confirmed choice does. */
 (() => {
   'use strict';
+  // Saved games restore the active passage, not the previous illustration scroll offset.
+  if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
   const $ = id => document.getElementById(id);
   const story = window.SaturdayStory;
   function storageAdapter() {
@@ -22,6 +24,10 @@
   let lastFrame = 0;
   let manualTime = false;
   let runToken = 0;
+  let animationElapsed = 0;
+  const animationMinimum = 1200;
+  const sceneFigure = document.querySelector('.scene-figure');
+  const dayPanel = document.querySelector('.day-panel');
   const scene = window.SaturdayScene.create($('day-canvas'), { reducedMotion: reduced });
   const initialMotion = { kind:'rest', location:'room', caption:'발을 받치고 소파에 앉아 있다.' };
   const intensity = value => value === 0 ? '없음' : value < 3 ? '약함' : value < 7 ? '보통' : '심함';
@@ -41,34 +47,21 @@
       ? `${story.formatTime(entry.startMinute)} → ${story.formatTime(entry.endMinute)} · ${durationText(entry.durationMinutes)}`
       : readableTime(entry.time);
   }
-  for(let i=0;i<10;i++) $('effort-bars').append(document.createElement('span'));
-  let effortText = '';
-
-  function updateEffort() {
-    const snapshot = scene.snapshot(), effort = snapshot.effort;
-    const visible = Boolean(effort && effort.visible && ['game','reaction'].includes(mode));
-    $('effort-monitor').hidden = !visible;
-    if(!visible) return;
-    const amount = Math.max(0,Math.min(10,effort.displayEnergy));
-    Array.from($('effort-bars').children).forEach((bar,i) => bar.style.setProperty('--fill',`${Math.max(0,Math.min(1,amount-i))*100}%`));
-    // The drawing changes between steps; assistive technology receives the result once through the main status.
-    const text = `남은 에너지 ${Math.round(amount*10)}%`;
-    if(effortText !== text) { $('effort-value').textContent=text; effortText=text; }
-    $('effort-thought').textContent = !snapshot.moving ? '도착해서도 돌아갈 때 쓸 힘을 생각한다.'
-      : snapshot.kind === 'stairs' ? '한 계단 오르고 잠깐 쉰다. 내려올 때 쓸 힘도 생각한다.'
-      : '걸음을 옮길 때마다 남은 힘을 가늠한다. 문을 열 때와 돌아올 때 쓸 힘도 생각한다.';
-  }
-
   function paragraphs(target, lines) {
     target.replaceChildren(...lines.map(line => { const p = document.createElement('p'); p.textContent = line; return p; }));
   }
   function focusHeading(id) {
     $(id).focus({ preventScroll:true });
-    // Keep the consequence text and controls in view on a narrow or zoomed screen.
-    if (window.innerWidth <= 740) (mode === 'reaction' ? document.querySelector('.day-panel') : $('story-panel')).scrollIntoView({ block:'start', behavior:'instant' });
-    else if (window.scrollY > 200) $('main').scrollIntoView({ block:'start', behavior:'instant' });
+    // Every transition starts at the new passage, including restored reactions.
+    const passage = ['game','reaction'].includes(mode) ? $('game') : mode === 'animation' ? $('animation-view') : mode === 'result' ? $('result') : mode === 'cover' ? $('cover') : $(id);
+    passage.scrollIntoView({ block:'start', behavior:'instant' });
   }
   function show(next) {
+    if(mode === 'animation' && next !== 'animation') {
+      cancelAnimationFrame(frame); frame=0;
+      scene.finish();
+      dayPanel.insertBefore(sceneFigure,$('status-panel'));
+    }
     if(mode !== next) $('body-notes').open = false;
     mode = next;
     document.body.dataset.mode = next === 'reaction' ? 'game' : next;
@@ -76,7 +69,8 @@
     $('game').hidden = !['game', 'reaction'].includes(next);
     $('result').hidden = next !== 'result';
     $('library').hidden = next !== 'library';
-    $('status-panel').hidden = ['cover','library'].includes(next);
+    $('animation-view').hidden = next !== 'animation';
+    $('status-panel').hidden = ['cover','library','animation'].includes(next);
     $('decision-view').hidden = next !== 'game';
     $('reaction-view').hidden = next !== 'reaction';
   }
@@ -91,18 +85,36 @@
   }
   function tick(now) {
     frame = 0;
-    scene.advance(lastFrame ? Math.min(80, now - lastFrame) : 0);
-    updateEffort();
+    const delta = lastFrame ? Math.min(80, now - lastFrame) : 0;
+    scene.advance(delta);
+    if(mode === 'animation') animationElapsed += delta;
     lastFrame = now;
     const motion = scene.snapshot();
-    if (!manualTime && !reduced && !document.hidden && (motion.moving || motion.environmentMoving)) frame = requestAnimationFrame(tick);
+    if(finishAnimationIfReady(motion)) return;
+    if (!manualTime && !reduced && !document.hidden && (mode === 'animation' || motion.moving || motion.environmentMoving)) frame = requestAnimationFrame(tick);
+  }
+  function finishAnimation() {
+    if(mode !== 'animation') return;
+    show('reaction');
+    focusHeading('reaction-title');
+  }
+  function finishAnimationIfReady(motion) {
+    if(mode !== 'animation' || animationElapsed < animationMinimum || motion.moving || motion.environmentMoving) return false;
+    finishAnimation(); return true;
+  }
+  function beginAnimation(title) {
+    show('animation'); animationElapsed=0;
+    $('animation-title').textContent=title || journal.at(-1)?.title || '선택한 행동';
+    $('animation-stage').append(sceneFigure);
+    focusHeading('animation-title');
+    $('skip-animation').focus({preventScroll:true});
+    requestFrame();
   }
   function setMotion(motion) {
     const selected = motion || initialMotion;
     scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step,minuteOfDay:currentMinute(),scenarioId:state.scenarioId,context:state.context });
     $('scene-caption').textContent = selected.caption;
     $('day-canvas').setAttribute('aria-label', selected.caption);
-    updateEffort();
     requestFrame();
   }
   function status() {
@@ -170,9 +182,9 @@
     if (!choice) return;
     archive.commit(index);
     syncCurrent();
-    renderReaction(choice.title);
+    renderReaction(choice.title,true);
   }
-  function renderReaction(title) {
+  function renderReaction(title,animate=false) {
     show('reaction');
     $('chapter-label').textContent = `선택 ${state.decisions.length} / ${limitFor(state)}`;
     const lastAction=state.history.at(-1);
@@ -183,7 +195,9 @@
     $('reaction-choice').textContent = `내가 고른 행동 · ${title || journal.at(-1)?.title || ''}`;
     $('continue-button').replaceChildren(document.createTextNode(state.scene === 'end' ? '결과 보기 ' : '다음으로 '));
     const arrow = document.createElement('span'); arrow.setAttribute('aria-hidden','true'); arrow.textContent = '→'; $('continue-button').append(arrow);
-    status(); setMotion(state.motion); focusHeading('reaction-title');
+    status(); setMotion(state.motion);
+    if(animate && !reduced) beginAnimation(title);
+    else { if(reduced) scene.finish(); focusHeading('reaction-title'); }
   }
   function ending() {
     show('result');
@@ -336,10 +350,10 @@
     runToken++; syncCurrent();
     setMotion(state.motion || initialMotion); scene.advance(60000);
     if(current.phase==='result') ending();
-    else if(current.phase==='reaction') { renderReaction(); scene.advance(60000); updateEffort(); }
+    else if(current.phase==='reaction') { renderReaction(); scene.finish(); }
     else renderScene();
   }
-  function showCover() { show('cover'); refreshSaveStatus(); $('scenario-select').focus(); }
+  function showCover() { show('cover'); refreshSaveStatus(); focusHeading('opening-title'); }
   function openLibrary(id) {
     show('library'); refreshSaveStatus(); selectedRecordId=null;
     $('record-detail').hidden=true; $('library-feedback').textContent='';
@@ -484,6 +498,7 @@
   $('start-button').addEventListener('click',start);
   $('restart').addEventListener('click',start);
   $('continue-button').addEventListener('click',() => { if(mode !== 'reaction') return; archive.continue(); syncCurrent(); if(state.scene === 'end') ending(); else renderScene(); });
+  $('skip-animation').addEventListener('click',finishAnimation);
   $('copy-result').addEventListener('click',copyResult);
   $('save-image').addEventListener('click',saveImage);
   $('native-share').addEventListener('click',async () => {
@@ -492,29 +507,32 @@
   });
   $('motion-toggle').addEventListener('click',() => {
     manualMotionPreference = true; reduced = !reduced; scene.setReducedMotion(reduced); updateMotionToggle();
-    updateEffort();
+    if(reduced && mode === 'animation') finishAnimation();
     if(reduced) { cancelAnimationFrame(frame); frame=0; } else requestFrame();
   });
   preference.addEventListener('change',event => {
     if(manualMotionPreference) return;
     reduced=event.matches; scene.setReducedMotion(reduced); updateMotionToggle();
-    updateEffort();
+    if(reduced && mode === 'animation') finishAnimation();
     if(reduced) { cancelAnimationFrame(frame); frame=0; } else requestFrame();
   });
   document.addEventListener('visibilitychange',() => {
     if(document.hidden) { cancelAnimationFrame(frame); frame=0; } else requestFrame();
   });
   document.addEventListener('keydown',event => {
+    if(mode === 'animation' && event.key === 'Escape' && !document.querySelector('dialog[open]')) { event.preventDefault(); finishAnimation(); return; }
     if(mode !== 'game' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.repeat || event.isComposing) return;
     if(event.target instanceof Element && event.target.closest('button,a,input,textarea,select,summary,[contenteditable="true"]')) return;
     if(/^[1-4]$/.test(event.key)) { event.preventDefault(); choose(Number(event.key)-1); }
   });
   window.advanceTime = ms => {
     manualTime=true; cancelAnimationFrame(frame); frame=0;
-    scene.advance(Math.max(0,Math.min(Number(ms)||0,60000)));
-    updateEffort();
+    const delta=Math.max(0,Math.min(Number(ms)||0,60000));
+    scene.advance(delta);
+    if(mode === 'animation') animationElapsed += delta;
+    finishAnimationIfReady(scene.snapshot());
   };
-  window.render_game_to_text = () => JSON.stringify({ mode,scene:state.scene,sceneId:mode==='game'?story.getNode(state).sceneId:null,scenarioId:state.scenarioId,scenarioVersion:state.scenarioVersion,conditions:state.initialConditions,step:state.decisions.length,maxSteps:limitFor(state),minuteOfDay:Number.isFinite(state.minuteOfDay)?state.minuteOfDay:null,elapsedMinutes:state.elapsedMinutes??null,timeLabel:story.formatTime(currentMinute()),energy:state.energy,mood:state.mood,body:state.body,context:state.context,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],choiceIds:mode==='game'?story.getNode(state).choices.map(c=>c.id):[],choiceDurations:mode==='game'?story.getNode(state).choices.map(c=>c.durationMinutes??null):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced,storage:{currentId:archive.getSnapshot().current?.record.id,phase:archive.getSnapshot().current?.phase,completed:allRecords().length,persistence:archive.getSnapshot().persistence.mode} });
+  window.render_game_to_text = () => JSON.stringify({ mode,animation:mode==='animation'?{canSkip:true,elapsedMs:Math.round(animationElapsed),minimumMs:animationMinimum}:null,scene:state.scene,sceneId:mode==='game'?story.getNode(state).sceneId:null,scenarioId:state.scenarioId,scenarioVersion:state.scenarioVersion,conditions:state.initialConditions,step:state.decisions.length,maxSteps:limitFor(state),minuteOfDay:Number.isFinite(state.minuteOfDay)?state.minuteOfDay:null,elapsedMinutes:state.elapsedMinutes??null,timeLabel:story.formatTime(currentMinute()),energy:state.energy,mood:state.mood,body:state.body,context:state.context,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],choiceIds:mode==='game'?story.getNode(state).choices.map(c=>c.id):[],choiceDurations:mode==='game'?story.getNode(state).choices.map(c=>c.durationMinutes??null):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced,storage:{currentId:archive.getSnapshot().current?.record.id,phase:archive.getSnapshot().current?.phase,completed:allRecords().length,persistence:archive.getSnapshot().persistence.mode} });
   initialiseArchiveUI();
   updateMotionToggle(); setMotion(initialMotion); scene.advance(1250);
   if(archive.getSnapshot().current) resumeCurrent(); else show('cover');

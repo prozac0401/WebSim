@@ -65,5 +65,37 @@ footer.shell{margin-top:28px!important;padding-block:16px}
   .save-notice{margin-bottom:12px}
   .game-layout{gap:16px}
 }
-.effort-monitor{margin:0 20px 14px;padding:13px 15px 12px;background:#f8f5e8;border:1px solid #c9d0bd;border-radius:8px;color:#46604d}.effort-heading{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:11px;font-weight:700}.effort-heading output{font-size:10px;color:#7f6145;white-space:nowrap;font-weight:400}.effort-bars{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:10px 0}.effort-bars span{display:block;height:8px;border-radius:2px;background:linear-gradient(to right,#718663 var(--fill,100%),#e1e4d5 var(--fill,100%))}.effort-monitor p{font-size:10px;line-height:1.8;margin:0;word-break:keep-all;overflow-wrap:anywhere}@media(max-width:740px){.effort-monitor{margin:0 14px 12px;padding:11px 12px}.effort-heading{font-size:10px}.effort-bars{gap:4px}}
 .progress-track{grid-template-columns:repeat(var(--step-count,12),minmax(0,1fr));gap:5px}.choice-duration{display:inline-block;margin-top:7px;padding:2px 8px;border-radius:12px;background:#e8eddf;color:#455e48;font-size:11px;line-height:1.5}.chapter-row .eyebrow{letter-spacing:0;line-height:1.6}.choice>span:last-child{min-width:0}@media(max-width:740px){.progress-track{gap:4px}.scene-top #scene-clock{font-size:17px}.chapter-row{align-items:flex-start}}
+/* Read the passage and make a choice before consulting the supporting picture. */
+.game-layout{grid-template-columns:minmax(0,1.45fr) minmax(280px,.85fr);gap:clamp(28px,4vw,64px)}
+.story-panel{order:1;padding-top:0;max-width:44rem;width:100%}
+.day-panel{order:2;top:18px}
+#cover,#game,#result{scroll-margin-top:16px}
+.prose p,.opening-story p,#ending-body{font-size:17px;line-height:1.95;letter-spacing:-.015em}
+.prose p+p{margin-top:18px}
+.story-panel h2{margin-top:12px;margin-bottom:22px}
+.choices{margin-top:25px}
+.back-to-story{display:none;width:fit-content;margin:0 0 12px;font-size:12px;line-height:1.8;color:var(--muted);text-underline-offset:4px}
+@media(max-width:900px){
+  .game-layout{display:flex;flex-direction:column;gap:28px}
+  .story-panel{order:1;max-width:none;padding:0}
+  .day-panel{order:2;position:static;width:100%;border-top:1px solid var(--line);padding-top:20px}
+  .prose p,.opening-story p,#ending-body{font-size:16px;line-height:1.95}
+  .story-panel h2{font-size:27px;line-height:1.5}
+  #cover,#game,#result{scroll-margin-top:12px}
+  .back-to-story{display:block;min-height:36px;margin-bottom:8px}
+}
+/* A committed choice has one skippable visual beat before its consequence. */
+body[data-mode=animation] .game-layout{display:block}
+body[data-mode=animation] .story-panel{max-width:680px;margin-inline:auto}
+body[data-mode=animation] .day-panel{display:none}
+#animation-view{scroll-margin-top:12px;min-height:calc(100vh - 24px);min-height:calc(100svh - 24px)}
+.story-panel #animation-title{font-size:22px;line-height:1.5;margin:8px 0 16px}
+#animation-stage .scene-figure{margin-bottom:16px}
+#skip-animation{justify-content:space-between;min-height:48px}
+@media(max-width:900px){
+  .story-panel #animation-title{font-size:20px;margin-bottom:12px}
+  #animation-stage .scene-top{padding-block:8px 0}
+  #animation-stage figcaption{padding-block:4px 8px;font-size:12px}
+  #animation-stage .scene-controls{padding-block:5px}
+}
