@@ -16,18 +16,32 @@
   const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, value));
   const mix = (a, b, t) => a + (b - a) * t;
   const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const hairStyles = ['crop', 'side-part', 'wavy', 'bob', 'ponytail', 'bun'];
+  const outfits = [
+    ['#245b56', '#4c8980', '#285d58', '#397b76', '#285853'],
+    ['#3d5465', '#718d99', '#415b6c', '#5c7e8b', '#3f5767'],
+    ['#806039', '#b48c52', '#86683e', '#a88049', '#765835'],
+    ['#5c5368', '#918093', '#5d5267', '#827287', '#574c61'],
+    ['#865745', '#bd8363', '#875945', '#a86e54', '#775140'],
+    ['#596546', '#8f9970', '#586346', '#79875c', '#505b3f']
+  ];
+  const appearanceFor = value => ({
+    gender: value && value.gender === 'female' ? 'female' : 'male',
+    hairStyle: value && hairStyles.includes(value.hairStyle) ? value.hairStyle : 'crop'
+  });
 
   function create(canvas, options) {
     if (!canvas || !canvas.getContext) throw new TypeError('A canvas is required.');
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D is unavailable.');
     let reduced = Boolean(options && options.reducedMotion), dead = false;
-    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6 };
-    let elapsed = 0, duration = 1250, motionDuration = 1250, environmentDuration = 0, gaitDuration = 1600, stairDuration = 2050;
+    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6, appearance: appearanceFor() };
+    let elapsed = 0, duration = 3000, motionDuration = 3000, environmentDuration = 0, gaitDuration = 1600, stairDuration = 2050;
     let pose = {};
     const stairGeometry = { startX: 360, baseY: 430, tread: 74, rise: 25, count: 4 };
     const stairSurface = x => stairGeometry.baseY - clamp(Math.floor((x - stairGeometry.startX) / stairGeometry.tread) + 1, 0, stairGeometry.count) * stairGeometry.rise;
     const railHeight = x => x < 640 ? 313 - (x - 300) * 103 / 340 : 210;
+    const outfit = () => outfits[hairStyles.indexOf(scene.appearance.hairStyle)];
 
     function line(points, color, width) {
       ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
@@ -471,7 +485,7 @@
         rise: 25 * (index + transfer), landing: recovering };
     }
 
-    function getPose() {
+    function basePose() {
       const time = reduced ? motionDuration : Math.min(elapsed, motionDuration);
       const active = !reduced && elapsed < motionDuration;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
@@ -511,7 +525,7 @@
       const onBench = (scene.location !== 'room' || scene.encounter) && seated;
       const x = seated ? seatX(kind) : scene.location === 'street' ? 530 : 405;
       const lower = seated ? t : 0;
-      const breathe = active ? Math.sin(seatTime / 530) * .8 * lower : 0;
+      const breathe = scene.kind === 'walk' && active ? Math.sin(seatTime / 530) * .8 * lower : 0;
       const rest = kind === 'rest' && !onBench;
       const hipY = mix(296, 327, lower);
       const shoulderX = x + mix(5, rest ? -23 : kind === 'desk' ? 11 : 0, lower);
@@ -523,6 +537,45 @@
         support: seated && lower > .8 ? 'seat' : 'left-foot-and-crutches',
         moving: active, seated: lower, lean: rest ? -.2 : .035, fatigue, kind,
         movementStep: scene.kind === 'walk' ? 3 : null, movementProgress: scene.kind === 'walk' ? 1 : 0 };
+    }
+
+    function activityFor(p) {
+      const time = reduced ? motionDuration : Math.min(elapsed, motionDuration);
+      const progress = clamp(time / motionDuration, 0, 1);
+      const variation = (Math.max(1, Math.floor(Number(scene.step) || 1)) - 1 + ['sit', 'phone', 'desk', 'rest', 'observe', 'stand'].indexOf(p.kind) + 6) % 3;
+      const names = {
+        sit: ['release-grip', 'settle-shoulders', 'rest-palms'],
+        phone: ['read-and-scroll', 'tap-and-read', 'check-and-lower'],
+        desk: ['type-and-pause', 'read-and-type', 'small-edit'],
+        rest: ['slow-exhale', 'rest-open-hands', 'relax-shoulders'],
+        observe: ['look-toward-window', 'look-around', 'quiet-observation'],
+        stand: ['check-space-ahead', 'look-and-wait', 'release-shoulder-tension']
+      };
+      const expressive = scene.kind !== 'walk' && scene.kind !== 'stairs';
+      // The hands leave the crutches only after the seated pose has support.
+      const gesture = expressive && p.moving ? Math.sin(Math.PI * clamp((time - 1050) / 1950, 0, 1)) : 0;
+      const pulse = expressive && p.moving ? Math.sin((time - 1200) / (190 + variation * 35)) * gesture : 0;
+      const breath = expressive && p.moving ? Math.sin(Math.PI * progress) * (1.6 + p.fatigue * .08) : 0;
+      const headTurn = gesture * (p.kind === 'observe' ? [-.16, .13, -.09][variation] : p.kind === 'phone' ? .10 : p.kind === 'desk' ? .085 : p.kind === 'stand' ? [-.08, .075, -.045][variation] : -.07);
+      const handMotion = p.seated > .85 ? pulse : 0;
+      return {
+        name: names[p.kind] ? names[p.kind][variation] : p.kind === 'stairs' ? 'supported-ascent' : 'careful-walk',
+        variation, progress, active: expressive && p.moving,
+        phase: !p.moving ? 'settled' : !expressive ? p.phase : time < 1100 ? p.kind === 'stand' ? 'looking-ahead' : 'settling-into-seat' : time < 2500 ? 'small-action' : 'relaxing',
+        headTurn, breath, gesture, handMotion,
+        blink: expressive && p.moving && progress > .60 + variation * .025 && progress < .65 + variation * .025,
+        gaze: headTurn < 0 ? -1 : headTurn > .02 ? 1 : 0
+      };
+    }
+    function getPose() {
+      const p = basePose();
+      p.activity = activityFor(p);
+      if (scene.kind !== 'walk' && scene.kind !== 'stairs') {
+        p.shoulderY -= p.activity.breath;
+        p.shoulderX += p.activity.gesture * (p.kind === 'rest' ? -2.5 : p.kind === 'desk' ? 2 : 0);
+        p.phase = p.activity.phase;
+      }
+      return p;
     }
 
     function crutch(tipX, tipY, lean, alpha) {
@@ -556,21 +609,60 @@
       }
       ctx.restore();
     }
-    function head(x, y, tilt) {
-      ctx.save(); ctx.translate(x, y); ctx.rotate(tilt); ctx.scale(.9, .94);
-      line([[0, 5], [0, 19]], colors.skin, 13);
-      ellipse(0, -12, 21, 26, gradient(-20, -20, 21, 0, [[0, '#ad7658'], [.5, '#dba17b'], [1, '#e8b38c']]));
-      // Simple profile with visible nose and quiet expression.
-      poly([[15, -15], [24, -6], [16, -3]], colors.skinLight);
-      ellipse(-2, -29, 21, 15, gradient(-20, -38, 16, -17, [[0, '#605248'], [1, '#383630']]));
-      box(-23, -29, 12, 29, 6, colors.hair);
-      ellipse(-13, -7, 5, 7, colors.skin);
-      line([[9, -15], [13, -15]], colors.ink, 2);
-      line([[13, 1], [18, 0]], '#875d4d', 1.7);
+    function head(x, y, tilt, activity) {
+      const feminine = scene.appearance.gender === 'female', style = scene.appearance.hairStyle;
+      const a = activity || { headTurn: 0, blink: false, gaze: 0 };
+      ctx.save(); ctx.translate(x, y); ctx.rotate(tilt + a.headTurn); ctx.scale(.9, .94);
+      const hair = gradient(-27, -42, 19, 8, [[0, '#605248'], [.5, '#403b36'], [1, '#302f2b']]);
+      // Hair silhouette is independent of gender; all six styles use the same face anchor.
+      if (style === 'ponytail') {
+        ctx.beginPath(); ctx.moveTo(-19, -29); ctx.bezierCurveTo(-47, -36, -48, -12, -38, 15);
+        ctx.bezierCurveTo(-31, 23, -29, 16, -32, 8); ctx.bezierCurveTo(-25, -8, -21, -15, -19, -29); ctx.fillStyle = hair; ctx.fill();
+        line([[-26, -24], [-31, -18]], '#b69b72', 4);
+      } else if (style === 'bun') {
+        ellipse(-25, -34, 13, 12, hair); ellipse(-29, -37, 9, 7, '#53473d');
+        line([[-33, -33], [-27, -29], [-20, -32]], '#7d6652', 1.8);
+      } else if (style === 'bob') {
+        ctx.beginPath(); ctx.moveTo(-21, -36); ctx.bezierCurveTo(-34, -20, -29, 0, -28, 13);
+        ctx.quadraticCurveTo(-4, 19, 17, 8); ctx.lineTo(19, -26); ctx.closePath(); ctx.fillStyle = hair; ctx.fill();
+      } else if (style === 'wavy') {
+        [[-18,-28,12,13],[-10,-37,12,10],[4,-39,12,10],[16,-31,12,12],[-23,-13,8,13],[-19,0,8,8]].forEach(v=>ellipse(...v,hair));
+      }
+      line([[0, 5], [0, 19]], colors.skin, feminine ? 11 : 13);
+      ellipse(0, -12, feminine ? 19 : 21, feminine ? 25 : 26, gradient(-20, -20, 21, 0, [[0, '#ad7658'], [.5, '#dba17b'], [1, '#e8b38c']]));
+      poly([[feminine ? 14 : 15, -15], [feminine ? 22 : 24, -6], [16, -3]], colors.skinLight);
+      if (style === 'crop') {
+        ellipse(-2, -29, 21, 15, hair); box(-23, -29, 12, 29, 6, hair);
+        line([[-16,-31],[-10,-36],[0,-37]], '#776255', 1.5);
+      } else if (style === 'side-part') {
+        ctx.beginPath(); ctx.moveTo(-23, -8); ctx.lineTo(-25, -25); ctx.bezierCurveTo(-27,-44,6,-50,22,-32);
+        ctx.quadraticCurveTo(14,-21,-5,-23); ctx.lineTo(-11,-7); ctx.closePath(); ctx.fillStyle=hair; ctx.fill();
+        line([[-10,-38],[-3,-31],[15,-27]], '#9b7e65', 1.8);
+      } else if (style === 'wavy') {
+        [[-17,-25,9,10],[-9,-31,10,9],[1,-32,10,8],[11,-29,9,8],[18,-23,6,7]].forEach(v=>ellipse(...v,hair));
+        line([[-17,-31],[-11,-35],[-5,-31],[2,-35],[9,-32]], '#8c705b', 1.7);
+      } else if (style === 'bob') {
+        ctx.beginPath(); ctx.moveTo(-25,6); ctx.lineTo(-26,-24); ctx.bezierCurveTo(-25,-46,10,-48,22,-28);
+        ctx.lineTo(14,-18); ctx.quadraticCurveTo(4,-30,-8,-24); ctx.lineTo(-10,9); ctx.closePath(); ctx.fillStyle=hair;ctx.fill();
+        line([[-20,-25],[-20,-1]], '#7c6654', 1.6);
+      } else {
+        ctx.beginPath(); ctx.moveTo(-23,-5); ctx.lineTo(-24,-24); ctx.bezierCurveTo(-22,-47,10,-46,21,-28);
+        ctx.quadraticCurveTo(6,-26,-9,-21); ctx.lineTo(-11,-3); ctx.closePath(); ctx.fillStyle=hair;ctx.fill();
+        line([[-19,-29],[-9,-35],[7,-34]], '#7d6855', 1.6);
+      }
+      if(style !== 'bob') ellipse(-13,-7,4.5,6.5,colors.skin);
+      if(a.blink) line([[8,-13],[14,-13]],colors.ink,1.5);
+      else {
+        line([[8,-16],[13,-16]],colors.ink,feminine ? 1.5 : 2);
+        ellipse(12 + a.gaze*.8,-12,1.4,1.6,colors.ink);
+      }
+      line([[12, 1], [17, 0]], '#875d4d', 1.5);
+      if(!feminine) line([[5,8],[12,7]],'rgba(115,76,58,.32)',1);
       ctx.restore();
     }
     function stairCharacter(p) {
       const hip = [p.x, p.y], shoulder = [p.shoulderX, p.shoulderY];
+      const cloth = outfit(), shoulderWidth = scene.appearance.gender === 'female' ? 16 : 19;
       const tip = p.crutchTip, padX = tip[0] + 4, padY = tip[1] - 149;
       const release = smooth((p.seated - .75) / .25);
       const grip = [mix(padX + 5, p.x + 48, release), mix(padY + 37, p.y + 2, release)];
@@ -584,23 +676,25 @@
       line([[tip[0] - 3, tip[1] - 3], [tip[0] + 3, tip[1] - 3]], colors.rubber, 6);
       leg([hip[0] - 7, hip[1]], p.leftKnee, p.leftFoot, false, false);
       leg([hip[0] + 6, hip[1] - 1], p.rightKnee, p.rightFoot, true, true);
-      poly([[shoulder[0] - 18, shoulder[1] + 3], [shoulder[0] + 20, shoulder[1] + 4],
-        [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, '#245b56'], [.45, '#4c8980'], [1, '#285d58']]));
-      line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], colors.darkTeal, 5);
+      poly([[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
+        [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, cloth[0]], [.45, cloth[1]], [1, cloth[2]]]));
+      line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], cloth[4], 5);
       const railElbow = [mix(shoulder[0] - 10, p.railHand[0], .35), shoulder[1] + 41];
-      line([[shoulder[0] - 10, shoulder[1] + 8], railElbow], colors.darkTeal, 14);
+      line([[shoulder[0] - 10, shoulder[1] + 8], railElbow], cloth[4], 14);
       line([railElbow, p.railHand], colors.skin, 10);
       ellipse(p.railHand[0], p.railHand[1] - 1, 7, 5, colors.skin);
-      head(shoulder[0] + 1, shoulder[1] - 20, .055 + p.lean * .08 + p.fatigue * .003);
+      head(shoulder[0] + 1, shoulder[1] - 20, .055 + p.lean * .08 + p.fatigue * .003, p.activity);
       line([[shoulder[0] - 5, shoulder[1] + 2], [shoulder[0] + 7, shoulder[1] + 4]], '#c2ccac', 3);
       const elbow = [mix(shoulder[0] + 21, grip[0] - 12, .45), mix(shoulder[1] + 40, grip[1] - 13, .5)];
-      line([[shoulder[0] + 14, shoulder[1] + 10], elbow], colors.teal, 16);
+      line([[shoulder[0] + 14, shoulder[1] + 10], elbow], cloth[3], 16);
       line([elbow, grip], colors.skinLight, 11);
       ellipse(grip[0], grip[1], 7, 5, colors.skinLight);
+      p.leftHand = [...p.railHand]; p.rightHand = grip;
     }
     function character(p) {
       if (p.kind === 'stairs') { stairCharacter(p); return; }
       const x = p.x, hip = [x, p.y], shoulder = [p.shoulderX, p.shoulderY];
+      const a = p.activity, cloth = outfit(), shoulderWidth = scene.appearance.gender === 'female' ? 16 : 19;
       const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room' && !scene.encounter;
       ellipse(x + 24, 399, sit > .6 ? 78 : 68, 11, 'rgba(73,74,60,.14)');
       const planted = p.leftFoot[1] >= 384.99;
@@ -627,29 +721,53 @@
       const frontKnee = [mix(x + 23, x + 51, sit), mix(p.y + 39, p.y + 7, sit)];
       leg([hip[0] + 6, hip[1] - 1], frontKnee, p.rightFoot, true, true);
       // Torso follows shoulder and pelvis rather than moving as a rigid sprite.
-      const torso = [[shoulder[0] - 18, shoulder[1] + 3], [shoulder[0] + 20, shoulder[1] + 4],
+      const torso = [[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]];
-      poly(torso, gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, '#245b56'], [.45, '#4c8980'], [1, '#285d58']]));
+      poly(torso, gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, cloth[0]], [.45, cloth[1]], [1, cloth[2]]]));
       line([[shoulder[0] - 6, shoulder[1] + 20], [hip[0] - 4, hip[1] - 10]], 'rgba(187,212,181,.22)', 2);
-      line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], colors.darkTeal, 5);
+      line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], cloth[4], 5);
       const rearElbow = [mix(rearHand[0] - 14, x + 5, release), mix(rearHand[1] - 15, p.y - 10, release)];
       const rearGrip = [mix(rearHand[0], x + 23, release), mix(rearHand[1], p.y + 1, release)];
-      line([[shoulder[0] - 10, shoulder[1] + 8], rearElbow], colors.darkTeal, 14);
+      if(sit > .85 && p.kind === 'phone') {
+        rearElbow[0] = mix(rearElbow[0],shoulder[0]+22,a.gesture);
+        rearElbow[1] = mix(rearElbow[1],shoulder[1]+30,a.gesture);
+        rearGrip[0] = mix(rearGrip[0],shoulder[0]+37+a.handMotion*3,a.gesture);
+        rearGrip[1] = mix(rearGrip[1],shoulder[1]-25+a.handMotion*4,a.gesture);
+      } else if(sit > .85 && p.kind === 'desk') {
+        rearElbow[0] = mix(rearElbow[0],x+33,a.gesture);
+        rearElbow[1] = mix(rearElbow[1],302,a.gesture);
+        rearGrip[0] = mix(rearGrip[0],x+65,a.gesture);
+        rearGrip[1] = mix(rearGrip[1],299+a.handMotion*4,a.gesture);
+      }
+      line([[shoulder[0] - 10, shoulder[1] + 8], rearElbow], cloth[4], 14);
       line([rearElbow, rearGrip], colors.skin, 10);
-      head(shoulder[0] + 1, shoulder[1] - 20, rest ? -.08 * sit : .025 + p.fatigue * .003);
+      ellipse(rearGrip[0],rearGrip[1],6,4.5,colors.skin);
+      head(shoulder[0] + 1, shoulder[1] - 20, rest ? -.08 * sit : .025 + p.fatigue * .003, a);
       line([[shoulder[0] - 5, shoulder[1] + 2], [shoulder[0] + 7, shoulder[1] + 4]], '#c2ccac', 3);
       const finalElbow = p.kind === 'phone' ? [shoulder[0] + 38, shoulder[1] + 38]
         : p.kind === 'desk' ? [x + 38, 297] : [x + 30, p.y - 18];
       const finalHand = p.kind === 'phone' ? [shoulder[0] + 30, shoulder[1] - 25]
         : p.kind === 'desk' ? [x + 79, 299] : [x + 48, p.y + 2];
+      if(sit > .85) {
+        if(p.kind === 'desk') { finalHand[0] += a.handMotion*6; finalHand[1] -= Math.abs(a.handMotion)*4; }
+        else if(p.kind === 'phone') { finalHand[0] += a.gesture*2; finalHand[1] += a.handMotion*2; }
+        else { finalHand[0] += a.gesture*7; finalHand[1] -= a.gesture*4; }
+      }
       const elbow = [mix(mix(shoulder[0] + 25, frontHand[0] - 18, .45), finalElbow[0], release), mix(262, finalElbow[1], release)];
       const hand = [mix(frontHand[0], finalHand[0], release), mix(frontHand[1], finalHand[1], release)];
-      line([[shoulder[0] + 14, shoulder[1] + 10], elbow], colors.teal, 16);
+      line([[shoulder[0] + 14, shoulder[1] + 10], elbow], cloth[3], 16);
       line([elbow, hand], colors.skinLight, 11);
       line([[elbow[0] - 2, elbow[1] + 1], [hand[0] - 2, hand[1]]], '#e8b18a', 2);
-      if (p.kind === 'phone' && sit > .9) box(hand[0] - 4, hand[1] - 16, 13, 29, 3, colors.ink);
+      if (p.kind === 'phone' && sit > .9) {
+        box(hand[0] - 4, hand[1] - 16, 15, 29, 3, colors.ink);
+        box(hand[0]-1,hand[1]-12,9,18,1,'#c3d4bc');
+        line([[hand[0]+1,hand[1]-6+a.handMotion*2],[hand[0]+6,hand[1]-6+a.handMotion*2]],'#628d80',1.5);
+      }
       ellipse(hand[0], hand[1], 7, 5, colors.skinLight, -.1);
       if (sit < .45) for (const offset of [-2, 1, 4]) line([[hand[0] + offset, hand[1] - 2], [hand[0] + offset + 1, hand[1] + 3]], '#a56e51', 1);
+      else if(a.gesture > .1 && ['sit','rest','observe'].includes(p.kind)) for(const offset of [-2,1,4])
+        line([[hand[0]+offset,hand[1]],[hand[0]+offset+2+a.gesture*3,hand[1]+4]],'#b67a59',1.2);
+      p.leftHand = rearGrip; p.rightHand = hand;
     }
 
     function effortState() {
@@ -701,6 +819,7 @@
     function setScene(next) {
       scene = { kind: 'rest', location: 'room', body: {}, step: 1, ...next };
       scene.body = { ...(next && next.body || {}) };
+      scene.appearance = appearanceFor(next && next.appearance);
       scene.context = next && next.context ? JSON.parse(JSON.stringify(next.context)) : null;
       const encounter = next && next.encounter;
       scene.encounter = encounter && ['door', 'escalator', 'kiosk'].includes(encounter.kind) ? {
@@ -719,7 +838,7 @@
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
       gaitDuration = 1480 + clamp(fatigue, 0, 10) * 76;
       stairDuration = 2050 + clamp(fatigue, 0, 10) * 85;
-      motionDuration = scene.kind === 'stand' ? 0 : scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
+      motionDuration = scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 3000;
       environmentDuration = scene.encounter?.kind === 'escalator' || scene.encounter?.doorType === 'revolving' ? 4800
         : scene.encounter?.doorType === 'automatic' && scene.encounter.phase !== 'passed' ? 3200 : 0;
       duration = Math.max(motionDuration, environmentDuration);
@@ -741,6 +860,8 @@
         characterMoving: Boolean(pose.moving), environmentMoving: Boolean(encounter && encounter.active), encounter,
         bracedLeg: 'right', elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
         reducedMotion: reduced, fatigue: pose.fatigue,
+        appearance: { ...scene.appearance },
+        activity: { ...pose.activity },
         effort: effortState(),
         contextVisual: hasContext() ? {
           doorMode: scene.context.entrance ? scene.context.entrance.mode : null,
@@ -757,6 +878,7 @@
         rightFoot: pose.rightFoot && pose.rightFoot.map(n => Math.round(n * 100) / 100),
         joints: {
           hip: [pose.x, pose.y], shoulder: [pose.shoulderX, pose.shoulderY],
+          leftHand: pose.leftHand && [...pose.leftHand], rightHand: pose.rightHand && [...pose.rightHand],
           leftKnee: pose.leftKnee || [mix(pose.x - 7, pose.x + 40, pose.seated), mix(pose.y + 43, pose.y + 6, pose.seated)],
           rightKnee: pose.rightKnee || [mix(pose.x + 23, pose.x + 51, pose.seated), mix(pose.y + 39, pose.y + 7, pose.seated)]
         },

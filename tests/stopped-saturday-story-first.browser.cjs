@@ -63,7 +63,11 @@ async function scrollToIllustration(page) {
       await page.locator('#choices button').last().tap();
       await check(page, `${width}: first animation`); await shot(page, `${width}-animation`);
       const committed = await state(page);
+      assert.equal(committed.animation.minimumMs,3000,'automatic presentation lasts at least three seconds');
       assert.equal(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).current.phase,STORAGE_KEY),'reaction','transient animation is saved as a committed reaction');
+      await advance(page,2999);
+      assert.equal((await state(page)).mode,'animation','even a short action stays visible before the three-second boundary');
+      assert.deepEqual(canonical(await state(page)),canonical(committed),'watching does not spend more game time or energy');
       await advance(page,60000);
       await check(page,`${width}: natural animation completion`); await shot(page,`${width}-reaction`);
       assert.equal((await state(page)).mode, 'reaction');

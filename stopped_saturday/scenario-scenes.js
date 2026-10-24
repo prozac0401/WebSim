@@ -18,6 +18,14 @@
   const DEFAULTS = { doorMode: 'manual', helpStyle: 'takeover', phonePayment: false };
   const clone = value => JSON.parse(JSON.stringify(value));
   const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+  function normalizeAppearance(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)
+      || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new Error('외형 조건은 객체여야 합니다.');
+    if (Object.keys(value).length !== 2 || !hasOwn(value, 'gender') || !hasOwn(value, 'hairStyle')
+      || !['male', 'female'].includes(value.gender)
+      || !['crop', 'side-part', 'wavy', 'bob', 'ponytail', 'bun'].includes(value.hairStyle)) throw new Error('허용하지 않는 외형 조건입니다.');
+    return { gender: value.gender, hairStyle: value.hairStyle };
+  }
   function normalizeStart(input = {}) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('시작 조건은 객체여야 합니다.');
     for (const key of Object.keys(input)) if (!['scenarioId', 'conditions'].includes(key)) throw new Error(`허용하지 않는 시작 항목: ${key}`);
@@ -27,6 +35,7 @@
     if (!supplied || typeof supplied !== 'object' || Array.isArray(supplied)) throw new Error('허구의 장면 조건을 확인해 주세요.');
     const conditions = { ...DEFAULTS };
     for (const key of Object.keys(supplied)) {
+      if (key === 'appearance') { conditions.appearance = normalizeAppearance(supplied.appearance); continue; }
       if (!hasOwn(ALLOWED, key) || !ALLOWED[key].includes(supplied[key])) throw new Error(`허용하지 않는 조건: ${key}`);
       conditions[key] = supplied[key];
     }
