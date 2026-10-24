@@ -183,7 +183,7 @@ test('a takeaway attempt cannot bring food home while both hands hold crutches',
     const before = until(E.freshState({ scenarioId, conditions: condition }), 'S09');
     const choice = E.getNode(before).choices.find(ch => ch.id === 'S09-takeout');
     const after = E.choose(before, choice.id);
-    assert.match(after.reaction.lines.join(' '), /양손으로 목발.*집에 가져갈 수가 없게/);
+    assert.match(after.reaction.lines.join(' '), /양손으로 목발.*들고 갈 수가 없다/);
     assert.match(after.reaction.lines.join(' '), /빈손으로 집에 돌아온다/);
     assert.doesNotMatch(after.reaction.lines.join(' '), /집 식탁에 앉아 포장해 온|궁금했던 맛은 볼 수/);
     assert.equal(after.context.items.cupLocation, 'store-counter');
