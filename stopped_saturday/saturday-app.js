@@ -94,7 +94,8 @@
     scene.advance(lastFrame ? Math.min(80, now - lastFrame) : 0);
     updateEffort();
     lastFrame = now;
-    if (!manualTime && !reduced && !document.hidden && scene.snapshot().moving) frame = requestAnimationFrame(tick);
+    const motion = scene.snapshot();
+    if (!manualTime && !reduced && !document.hidden && (motion.moving || motion.environmentMoving)) frame = requestAnimationFrame(tick);
   }
   function setMotion(motion) {
     const selected = motion || initialMotion;
@@ -145,6 +146,10 @@
     $('chapter-label').textContent = `선택 ${state.decisions.length + 1} / ${limitFor(state)}`;
     $('scene-title').textContent = node.title;
     paragraphs($('story-text'), node.lines);
+    if(node.encounter) {
+      const captions={manual:'무거운 문 앞에서 목발을 짚고 서 있다.',automatic:'자동문이 열리는 동안 입구에서 기다린다.',revolving:'회전문 밖에서 돌아가는 문짝을 바라본다.',escalator:'에스컬레이터 옆의 고정된 바닥에 서 있다.',kiosk:'키오스크 화면과 결제 단말기 위치를 살핀다.'};
+      setMotion({kind:'stand',location:'hall',caption:captions[node.encounter.doorType || node.encounter.kind],encounter:node.encounter});
+    }
     $('choices').replaceChildren(...node.choices.map((choice,index) => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'choice';
       b.setAttribute('aria-label', `${index+1}번: ${choice.title}. ${choice.note}${Number.isFinite(choice.durationMinutes)?`. 예상 ${durationText(choice.durationMinutes)}`:''}`);
@@ -200,7 +205,7 @@
     const current = archive.getSnapshot().current;
     if(current && !current.record.complete && current.record.choiceIds.length && !window.confirm('진행 중인 게임을 그만두고 처음부터 시작할까요? 완료된 일지는 그대로 남습니다.')) return;
     runToken++;
-    archive.start({scenarioId:$('scenario-select').value,conditions:{doorMode:'manual',helpStyle:$('help-style').value,phonePayment:$('phone-payment').checked}});
+    archive.start({scenarioId:$('scenario-select').value,conditions:{...window.SaturdayEnvironment.sample(),helpStyle:$('help-style').value,phonePayment:$('phone-payment').checked}});
     syncCurrent();
     $('manual-copy').hidden = true; $('manual-copy').value = '';
     $('body-notes').open = false; document.querySelector('.journal').open = false;
@@ -280,7 +285,9 @@
   function scenarioName(id) { return story.SCENARIOS.find(item=>item.id===id)?.title || id; }
   function conditionText(record) {
     const c=record.conditions;
-    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''} · ${c.doorMode==='automatic'?'자동문':'미는 문'} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
+    const door={manual:'무거운 미는 문',automatic:'자동문',revolving:'회전문'}[c.doorMode] || '출입문';
+    const environment=[door,...(c.verticalRoute?[c.verticalRoute==='escalator'?'에스컬레이터':'계단']:[]),...(c.orderMode?[c.orderMode==='kiosk'?'키오스크 주문':'카운터 주문']:[])].join(' · ');
+    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''} · ${environment} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
   }
   function recordLabel(record) { return `토요일 ${record.serial} · ${record.summary?.endingName || '진행 중'}`; }
   function journalFor(record) {
@@ -365,8 +372,6 @@
         archive.branch(id,index); resumeCurrent();
       })); return li;
     }));
-    $('door-contrast').hidden=record.conditions.doorMode!=='manual' || !entries.some(entry=>entry.sceneId==='S02');
-    $('door-description').hidden=$('door-contrast').hidden;
     $('compare-select').replaceChildren(element('option','기록을 고르세요'));
     $('compare-select').firstChild.value='';
     for(const other of allRecords().filter(item=>item.id!==id)) { const option=element('option',`${recordLabel(other)} · ${scenarioName(other.scenarioId)}`); option.value=other.id; $('compare-select').append(option); }
@@ -382,8 +387,11 @@
     $('comparison').replaceChildren(); if(!otherId || !selectedRecordId) return;
     const comparison=archive.compare(selectedRecordId,otherId);
     const left=archive.getRecord(selectedRecordId),right=archive.getRecord(otherId);
-    const doorOnly=left.scenarioVersion===right.scenarioVersion && left.scenarioId===right.scenarioId && left.conditions.helpStyle===right.conditions.helpStyle && left.conditions.phonePayment===right.conditions.phonePayment && left.conditions.doorMode!==right.conditions.doorMode;
-    const note=comparison.equivalent?'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.':doorOnly?'미는 문을 자동문으로 바꾼 기록입니다. 다른 시작 조건은 같습니다. 같은 환경에서 선택만 바꾼 기록과는 구분해 보세요.':`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. ${comparison.reasons.join(' ')}`;
+    const conditionNames={doorMode:'출입문',verticalRoute:'층간 이동 설비',orderMode:'주문 방식',helpStyle:'도움 제안',phonePayment:'휴대전화 결제'};
+    const differences=comparison.changedConditions.map(key=>conditionNames[key] || '시작 조건');
+    if(left.scenarioVersion!==right.scenarioVersion) differences.push('이야기 버전');
+    if(left.scenarioId!==right.scenarioId) differences.push('플레이한 이야기');
+    const note=comparison.equivalent?'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.':`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. 다른 조건: ${differences.join(', ')}.`;
     $('comparison').append(element('p',note,'comparison-note'));
     const grid=element('div',undefined,'compare-grid');
     for(const record of [left,right]) {
@@ -452,11 +460,6 @@
       if(archive.getSnapshot().imported.some(item=>item.id===selectedRecordId)) archive.deleteImported(selectedRecordId); else archive.deleteRecord(selectedRecordId);
       openLibrary(); $('library-feedback').textContent='선택한 기록 하나를 삭제했습니다.';
     });
-    $('door-contrast').addEventListener('click',()=>{
-      if(!selectedRecordId || !replaceCurrentAllowed()) return;
-      const record=archive.getRecord(selectedRecordId), index=journalFor(record).findIndex(entry=>entry.sceneId==='S02');
-      archive.doorContrast(selectedRecordId,index); resumeCurrent();
-    });
     $('compare-select').addEventListener('change',()=>renderComparison($('compare-select').value));
     $('export-open').addEventListener('click',()=>{if(selectedRecordId) openExport(archive.exportRecord(selectedRecordId),'friend');});
     $('backup-button').addEventListener('click',()=>openExport(archive.exportBackup(),'backup'));
@@ -511,7 +514,7 @@
     scene.advance(Math.max(0,Math.min(Number(ms)||0,60000)));
     updateEffort();
   };
-  window.render_game_to_text = () => JSON.stringify({ mode,scene:state.scene,sceneId:mode==='game'?story.getNode(state).sceneId:null,scenarioId:state.scenarioId,scenarioVersion:state.scenarioVersion,step:state.decisions.length,maxSteps:limitFor(state),minuteOfDay:Number.isFinite(state.minuteOfDay)?state.minuteOfDay:null,elapsedMinutes:state.elapsedMinutes??null,timeLabel:story.formatTime(currentMinute()),energy:state.energy,mood:state.mood,body:state.body,context:state.context,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],choiceIds:mode==='game'?story.getNode(state).choices.map(c=>c.id):[],choiceDurations:mode==='game'?story.getNode(state).choices.map(c=>c.durationMinutes??null):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced,storage:{currentId:archive.getSnapshot().current?.record.id,phase:archive.getSnapshot().current?.phase,completed:allRecords().length,persistence:archive.getSnapshot().persistence.mode} });
+  window.render_game_to_text = () => JSON.stringify({ mode,scene:state.scene,sceneId:mode==='game'?story.getNode(state).sceneId:null,scenarioId:state.scenarioId,scenarioVersion:state.scenarioVersion,conditions:state.initialConditions,step:state.decisions.length,maxSteps:limitFor(state),minuteOfDay:Number.isFinite(state.minuteOfDay)?state.minuteOfDay:null,elapsedMinutes:state.elapsedMinutes??null,timeLabel:story.formatTime(currentMinute()),energy:state.energy,mood:state.mood,body:state.body,context:state.context,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],choiceIds:mode==='game'?story.getNode(state).choices.map(c=>c.id):[],choiceDurations:mode==='game'?story.getNode(state).choices.map(c=>c.durationMinutes??null):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced,storage:{currentId:archive.getSnapshot().current?.record.id,phase:archive.getSnapshot().current?.phase,completed:allRecords().length,persistence:archive.getSnapshot().persistence.mode} });
   initialiseArchiveUI();
   updateMotionToggle(); setMotion(initialMotion); scene.advance(1250);
   if(archive.getSnapshot().current) resumeCurrent(); else show('cover');

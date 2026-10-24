@@ -178,6 +178,62 @@ test('returning home has real distance and time before later home scenes', () =>
   assert.doesNotMatch(E.getNode(s).lines.join(' '), /카페에 도착|엘리베이터에 타서/);
 });
 
+test('a takeaway attempt cannot bring food home while both hands hold crutches', () => {
+  for (const scenarioId of ['doors', 'cafe']) for (const condition of conditions) {
+    const before = until(E.freshState({ scenarioId, conditions: condition }), 'S09');
+    const choice = E.getNode(before).choices.find(ch => ch.id === 'S09-takeout');
+    const after = E.choose(before, choice.id);
+    assert.match(after.reaction.lines.join(' '), /양손으로 목발.*집에 가져갈 수가 없게/);
+    assert.match(after.reaction.lines.join(' '), /빈손으로 집에 돌아온다/);
+    assert.doesNotMatch(after.reaction.lines.join(' '), /집 식탁에 앉아 포장해 온|궁금했던 맛은 볼 수/);
+    assert.equal(after.context.items.cupLocation, 'store-counter');
+    assert.equal(after.context.items.drinkPlace, null);
+    assert.equal(after.context.day.ate, false);
+    assert.equal(after.context.location, 'home');
+    assert.equal(after.context.returned, true);
+    assert.equal(after.minuteOfDay - before.minuteOfDay, choice.durationMinutes);
+    assert.equal(after.history.at(-1).travelMinutes, 12);
+    assert.match(after.traces.at(-1), /운반 불가.*빈손/);
+    assert.doesNotMatch(after.history.at(-1).facts.join(' '), /집에서 마셨다/);
+    assert.match(E.choose(after, 'R03-snack').reaction.lines.join(' '), /집에 있던 음식/);
+    const later = until(after, 'R05');
+    assert.match(E.choose(later, 'R05-simple').reaction.lines.join(' '), /집에 있던/);
+  }
+});
+
+test('packing leftovers later also fails to carry them home with crutches', () => {
+  let s = until(E.freshState({ scenarioId: 'doors' }), 'S10');
+  s = E.choose(s, 'S10-defer');
+  s = until(s, 'REFLECT');
+  const choice = E.getNode(s).choices.find(ch => ch.id === 'REFLECT-change-order');
+  const after = E.choose(s, choice.id);
+  assert.match(after.reaction.lines.join(' '), /양손으로 목발.*집에 가져갈 수 없다/);
+  assert.match(after.reaction.lines.join(' '), /빈손으로 집에 돌아온다/);
+  assert.equal(after.context.items.cupLocation, 'store-counter');
+  assert.equal(after.context.items.drinkPlace, null);
+  assert.equal(after.context.needs.water, 'received');
+  assert.equal(after.context.needs.utensils, 'not-needed');
+  assert.equal(after.minuteOfDay - s.minuteOfDay, choice.durationMinutes);
+  assert.equal(finish(after).scene, 'end');
+});
+
+test('saved v3 takeaway choice IDs still replay every prefix and the home fallback', () => {
+  for (const scenarioId of ['doors', 'cafe']) {
+    const lead = scenarioId === 'doors' ? ['S02-ask', 'S03-coordinate'] : ['S05-staff', 'S06-ask'];
+    for (const activity of ['R03-radio', 'R03-puzzle', 'R03-snack']) for (const home of ['HOME-4-arrange', 'HOME-4-read-traces', 'HOME-4-quiet']) {
+      const ids = ['R01-check', ...lead, 'R02-food', 'S09-takeout', activity, home, 'R04-project', 'R05-later', 'REFLECT-note', 'R06-rest', 'R07-near'];
+      const input = { scenarioVersion: '3', scenarioId, conditions: conditions[0] };
+      for (let length = 0; length <= ids.length; length++) {
+        const replayed = E.replay({ ...input, choiceIds: ids.slice(0, length) });
+        assert.equal(replayed.choiceIds.length, length);
+        if (length >= 5) assert.equal(replayed.context.items.cupLocation, 'store-counter');
+        if (length === 6) assert.equal(E.getNode(replayed).sceneId, 'HOME-4');
+        if (length === 12) assert.equal(replayed.scene, 'end');
+      }
+    }
+  }
+});
+
 test('classic two-floor ascent is preserved and its return is a separate timed event', () => {
   let s = until(E.freshState(), 'outing_lunch');
   s = E.choose(s, 'outing-stairs');
@@ -213,4 +269,179 @@ test('invalid choices are inert and deeply frozen states are accepted', () => {
   assert.equal(E.choose(s, 0).choiceIds.length, 1);
   assert.throws(() => E.replay({ scenarioVersion: '3', choiceIds: Array(13).fill('R01-check') }));
   assert.throws(() => E.replay({ scenarioVersion: '3', scenarioId: 'classic', choiceIds: ['morning-outside'] }));
+});
+
+test('new environment keys are optional and do not alter old three-key saved conditions', () => {
+  const old = { doorMode: 'manual', helpStyle: 'takeover', phonePayment: false };
+  assert.deepEqual(E.normalizeStart({}).conditions, old);
+  assert.deepEqual(E.normalizeStart({ conditions: old }).conditions, old);
+  assert.deepEqual(Object.keys(E.freshState().initialConditions).sort(), Object.keys(old).sort());
+  const expanded = { ...old, doorMode: 'revolving', verticalRoute: 'escalator', orderMode: 'kiosk' };
+  assert.deepEqual(E.normalizeStart({ conditions: expanded }).conditions, expanded);
+  for (const conditions of [{ verticalRoute: 'lift' }, { orderMode: 'app' }, { doorMode: 'random' }]) assert.throws(() => E.normalizeStart({ conditions }));
+  assert.throws(() => E.forVersion('2').normalizeStart({ conditions: expanded }));
+});
+
+test('environment variants are deterministic and complete without any runtime random draw', () => {
+  const random = Math.random;
+  Math.random = () => { throw new Error('Story runtime must not randomize'); };
+  try {
+    for (const scenario of E.SCENARIOS) for (const doorMode of ['manual', 'automatic', 'revolving']) for (const verticalRoute of ['stairs', 'escalator']) for (const orderMode of ['counter', 'kiosk']) for (const phonePayment of [false, true]) {
+      for (let option = 0; option < 4; option++) {
+        const start = { scenarioId: scenario.id, conditions: { doorMode, verticalRoute, orderMode, phonePayment } };
+        const end = finish(E.freshState(start), node => option % node.choices.length);
+        assert.equal(end.choiceIds.length, 12);
+        assert.equal(end.minuteOfDay, 612 + end.history.reduce((sum, entry) => sum + entry.durationMinutes, 0));
+        assert.ok(end.history.every(entry => Number.isInteger(entry.durationMinutes) && entry.durationMinutes > 0));
+        assert.deepEqual(E.replay({ ...start, choiceIds: end.choiceIds }), end);
+      }
+    }
+  } finally { Math.random = random; }
+});
+
+test('manual and automatic doors retain old choices but describe different physical pressures', () => {
+  const manual = until(E.freshState({ scenarioId: 'doors', conditions: { doorMode: 'manual' } }), 'S02');
+  const automatic = until(E.freshState({ scenarioId: 'doors', conditions: { doorMode: 'automatic' } }), 'S02');
+  assert.deepEqual(E.getNode(manual).choiceIds, ['S02-ask', 'S02-wait', 'S02-side']);
+  assert.deepEqual(E.getNode(automatic).choiceIds, ['S02-auto-enter', 'S02-auto-pause', 'S02-auto-side']);
+  assert.match(E.getNode(manual).lines.join(' '), /문을 밀 손과 몸을 지탱할 손/);
+  assert.match(E.getNode(automatic).lines.join(' '), /문짝을 밀 필요는 없지만.*닫히기 전에/);
+  const before = JSON.stringify(automatic);
+  E.getNode(automatic); E.getNode(automatic);
+  assert.equal(JSON.stringify(automatic), before);
+  assert.equal(E.getNode(automatic).encounter.doorType, 'automatic');
+});
+
+test('revolving door never becomes a straight-through passage and side distance is counted once', () => {
+  const start = until(E.freshState({ scenarioId: 'doors', conditions: { doorMode: 'revolving' } }), 'S02');
+  for (const first of E.getNode(start).choices) {
+    const atDoor = E.choose(start, first.id);
+    assert.equal(atDoor.context.entrance.passed, false);
+    assert.equal(atDoor.context.location, 'entrance');
+    assert.deepEqual(E.getNode(atDoor).encounter, { kind: 'door', doorType: 'manual', phase: 'waiting' });
+    assert.equal(atDoor.motion.encounter.doorType, first.id === 'S02-revolving-side' ? 'manual' : 'revolving');
+    assert.match(atDoor.reaction.lines.join(' '), /회전문|옆문|일반 출입구/);
+    for (const nextId of ['S03-coordinate', 'S03-notify-wait']) {
+      const inside = E.choose(atDoor, nextId);
+      assert.equal(inside.context.entrance.selected, 'verified-side');
+      assert.equal(inside.context.entrance.actualMode, 'manual');
+      assert.equal(inside.context.entrance.passed, true);
+      assert.equal(inside.context.environment.spaceCleared, true);
+      assert.equal(inside.context.plan.detourMeters, 30);
+      assert.ok(inside.context.social.requests.some(request => /옆문|일반문/.test(request.forWhat)));
+      assert.deepEqual(inside.motion.encounter, { kind: 'door', doorType: 'manual', phase: 'passed' });
+    }
+    const home = E.choose(atDoor, 'S03-leave');
+    assert.equal(home.context.location, 'home');
+    assert.equal(home.context.entrance.passed, false);
+    assert.equal(home.motion.encounter, undefined);
+  }
+});
+
+test('cafe revolving entrance is bypassed only through a verified ordinary door', () => {
+  const s = until(E.freshState({ scenarioId: 'cafe', conditions: { doorMode: 'revolving' } }), 'S05');
+  assert.equal(E.getNode(s).encounter.doorType, 'revolving');
+  for (const id of ['S05-staff', 'S05-another']) {
+    const next = E.choose(s, id);
+    assert.equal(next.context.entrance.actualMode, 'manual');
+    assert.match(next.reaction.lines.join(' '), /회전문이 아닌 출입구.*잡아 달라고 부탁/);
+    assert.equal(next.motion.encounter.doorType, 'manual');
+  }
+  assert.equal(E.choose(s, 'S05-home').motion.encounter, undefined);
+});
+
+test('kiosk branches record explicit assistance, selected menu, payment and retained card', () => {
+  for (const phonePayment of [false, true]) {
+    const s = until(E.freshState({ scenarioId: 'cafe', conditions: { orderMode: 'kiosk', phonePayment } }), 'S06');
+    const node = E.getNode(s);
+    assert.equal(node.encounter.kind, 'kiosk');
+    assert.equal(node.choices.length, phonePayment ? 4 : 3);
+    assert.equal(s.context.items.cardLocation, 'wallet');
+    assert.match(node.lines.join(' '), /위쪽 확인 버튼은 멀고 카드 단말기는 화면 아래 옆쪽/);
+    for (const choice of node.choices) {
+      const next = E.choose(s, choice.id);
+      assert.equal(next.context.order.status, 'paid');
+      assert.equal(next.context.order.menuConfirmed, true);
+      assert.equal(next.context.items.cardLocation, 'wallet');
+      assert.ok(next.context.social.requests.length > s.context.social.requests.length);
+      assert.match(next.reaction.lines.join(' '), /결제|계산/);
+      const preview = E.getNode(next);
+      assert.equal(preview.sceneId, 'R02');
+      assert.equal(preview.encounter.kind, 'kiosk');
+      const checked = E.choose(next, 'R02-food');
+      assert.equal(checked.context.order.method, next.context.order.method);
+      assert.match(checked.reaction.lines.join(' '), /추가.*선택하지|추가로 주문하지|추가 메뉴/);
+    }
+  }
+});
+
+test('door-focused kiosk preview does not order and does not appear at home or on the street', () => {
+  let s = until(E.freshState({ scenarioId: 'doors', conditions: { orderMode: 'kiosk' } }), 'R02');
+  assert.equal(E.getNode(s).encounter.kind, 'kiosk');
+  s = E.choose(s, 'R02-food');
+  assert.equal(s.context.order.status, 'not-ordered');
+  assert.match(s.reaction.lines.join(' '), /주문이나 결제 버튼은 누르지 않는다/);
+  s = until(s, 'S10');
+  const ordered = E.choose(s, 'S10-all');
+  assert.equal(ordered.context.order.status, 'paid');
+  assert.equal(ordered.context.order.method, 'staff-from-seat');
+  assert.equal(ordered.context.needs.water, 'received');
+  const home = until(E.freshState({ scenarioId: 'home', conditions: { orderMode: 'kiosk' } }), 'R02');
+  assert.equal(E.getNode(home).encounter, undefined);
+  const street = until(E.freshState({ scenarioId: 'company', conditions: { orderMode: 'kiosk' } }), 'R02');
+  assert.equal(street.context.location, 'street');
+  assert.equal(E.getNode(street).encounter, undefined);
+});
+
+test('escalator encounter offers only verified fixed routes or return, with no forced boarding', () => {
+  for (const scenarioId of ['company', 'planning']) {
+    const s = until(E.freshState({ scenarioId, conditions: { verticalRoute: 'escalator' } }), 'S12');
+    const node = E.getNode(s);
+    assert.equal(node.encounter.kind, 'escalator');
+    assert.match(node.lines.join(' '), /움직이는 손잡이.*발판에 올라타지 않고/);
+    assert.deepEqual(node.choiceIds, ['S12-escalator-elevator', 'S12-escalator-confirm', 'S12-escalator-home']);
+    for (const ch of node.choices) {
+      const next = E.choose(s, ch.id);
+      assert.equal(next.context.vertical.used, false);
+      assert.equal(next.context.vertical.encountered, true);
+      assert.equal(next.context.location, ch.id.endsWith('home') ? 'home' : 'elevator-lobby');
+      assert.equal(next.motion.encounter, undefined);
+      assert.ok(next.history.at(-1).durationMinutes >= ch.durationMinutes);
+    }
+  }
+});
+
+test('classic optional escalator and kiosk retain explicit helpers and do not claim stair climbing', () => {
+  const s = until(E.freshState({ conditions: { doorMode: 'revolving', verticalRoute: 'escalator', orderMode: 'kiosk' } }), 'outing_lunch');
+  assert.equal(E.getNode(s).encounter.kind, 'escalator');
+  assert.ok(!E.getNode(s).choiceIds.includes('outing-stairs'));
+  const elevator = E.choose(s, 'outing-escalator-check');
+  assert.equal(elevator.context.vertical.used, false);
+  assert.equal(elevator.flags.includes('stairs_taken'), false);
+  assert.equal(elevator.flags.includes('elevator_used'), true);
+  const food = E.choose(s, 'outing-pickup');
+  assert.equal(food.context.order.status, 'paid');
+  assert.match(food.reaction.lines.join(' '), /직원에게.*부탁.*동행에게.*옮겨 달라고 부탁/);
+});
+
+test('a paid kiosk order stays paid while waiting for a seat or asking staff for one', () => {
+  const paid = until(E.freshState({ scenarioId: 'cafe', conditions: { orderMode: 'kiosk' } }), 'S06');
+  const seated = until(E.choose(paid, 'S06-kiosk-partial'), 'S09');
+  for (const id of ['S09-wait', 'S09-ask']) {
+    const next = E.choose(seated, id);
+    assert.equal(next.context.order.status, 'paid');
+    assert.match(next.reaction.lines.join(' '), /이미 주문/);
+    assert.doesNotMatch(next.reaction.lines.join(' '), /메뉴를 고르는 일을 잠깐 뒤로|메뉴를 다시 펼쳐/);
+  }
+});
+
+test('classic automatic door narration and reaction motion show the same entrance', () => {
+  const start = until(E.freshState({ conditions: { doorMode: 'automatic' } }), 'outside');
+  const entered = E.choose(start, 'outside-ride');
+  assert.equal(entered.context.entrance.heldBy, null);
+  assert.equal(entered.motion.location, 'hall');
+  assert.equal(entered.motion.destinationPose, 'sit');
+  assert.deepEqual(entered.motion.encounter, { kind: 'door', doorType: 'automatic', phase: 'passed' });
+  assert.match(entered.motion.caption, /자동문/);
+  assert.doesNotMatch(entered.motion.caption, /동행이 잡아준/);
 });

@@ -90,6 +90,7 @@ async function compactBody(page) {
   const browser=await playwright.chromium.launch({headless:true});
   try {
     const context=await browser.newContext({ viewport:{width:1440,height:1100}, acceptDownloads:true, permissions:['clipboard-read','clipboard-write'] });
+    await context.addInitScript(()=>{Math.random=()=>0;});
     const page=await context.newPage(); watch(page);
     await ready(page); assert.equal((await state(page)).mode,'cover');
     assert.match(await page.locator('#cover').innerText(),/깁스.*첫 주말/s);assert.match(await page.locator('#opening-story').innerText(),/병원.*목발/s);
@@ -202,6 +203,7 @@ async function compactBody(page) {
     await context.close();
 
     const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+    await mobile.addInitScript(()=>{Math.random=()=>0;});
     const phone=await mobile.newPage(); watch(phone); await ready(phone); await noOverflow(phone); await shot(phone,'07-cover-mobile');
     await phone.locator('#start-button').tap(); await noOverflow(phone); await shot(phone,'08-choice-mobile');
     for(let i=0;i<12;i++) {
@@ -228,6 +230,7 @@ async function compactBody(page) {
     record('320px touch staircase and energy monitor remain readable without overflow');
     await mobile.close();
     const reducedContext=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+    await reducedContext.addInitScript(()=>{Math.random=()=>0;});
     const reducedPage=await reducedContext.newPage(); watch(reducedPage); await ready(reducedPage); await reducedPage.locator('#start-button').click(); await skipRhythm(reducedPage);await reducedPage.locator('#choices button').first().click();
     const still=(await state(reducedPage)).motion; await advance(reducedPage,2000); assert.deepEqual((await state(reducedPage)).motion,still); assert.equal(still.moving,false);
     await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).reducedMotion,false); await advance(reducedPage,400); assert.equal((await state(reducedPage)).motion.moving,true);

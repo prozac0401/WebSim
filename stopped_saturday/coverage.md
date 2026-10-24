@@ -1,19 +1,29 @@
 # 멈춘 토요일 수정 요청 커버리지
 
-기준: 2026-10-24의 `멈춘_토요일_수정_요청_프롬프트.txt`·개선 기획안 v1.0과 이후 12단계·활동 시간 확장 요청입니다. 이전 실행 보고와 첨부 문서의 Edge 7회 진행은 최신 검사 수에 합산하지 않습니다.
+기준: 2026-10-24의 `멈춘_토요일_수정_요청_프롬프트.txt`·개선 기획안 v1.0과 이후 12단계·활동 시간, 포장 귀가, 무작위 환경 확장 요청입니다. 이전 실행 보고와 첨부 문서의 Edge 7회 진행은 최신 검사 수에 합산하지 않습니다.
 
-### 최신 수정: 12단계·선택별 활동 시간·이전 기록 호환
+### 최신 수정: 무작위 문·층간 이동·주문 환경과 포장 귀가
+
+새 하루를 시작할 때 문(`manual`·`automatic`·`revolving`), 층간 이동(`stairs`·`escalator`), 주문(`counter`·`kiosk`) 환경을 한 번 정합니다. 해당 장소에 도달했을 때 조건에 맞는 장면을 보여 주며 새로고침·이어 하기·분기는 환경을 다시 뽑지 않습니다. 전용 자동문 비교 버튼은 제거했습니다. 기존 자동문 비교 기록과 버전 2 기록은 재현할 수 있고, 이전 버전 3에 없던 층간 이동·주문 조건은 임의로 삽입하지 않습니다.
+
+회전문은 확인된 옆 출입구, 에스컬레이터는 엘리베이터·확인된 다른 통로·귀가 선택으로 이어집니다. 에스컬레이터 탑승은 없습니다. 키오스크는 주문과 결제 완료, 도움 범위, 지갑의 카드 위치를 기록합니다. S09 포장 실패는 음식을 가게에 두고 빈손으로 돌아온 상태를 그림·새로고침·후속 글·일지에 유지합니다. 실제 시설의 안전성이나 모든 사람의 이동 능력을 보장하는 장면은 아닙니다.
+
+**최종 검증:** Node **111/111**(이전 엔진 44·새 엔진 27·저장 34·환경 추출 2·카탈로그 4), Chromium 기본 이야기 **22/22**·일지 **25/25** 검사 묶음이 통과했습니다. JavaScript/console 오류 0, 외부 자동 요청 0입니다. 별도의 환경·시각 검사 **16묶음**과 원본 develop-web-game 클라이언트도 통과하고 실제 화면·상태를 확인했습니다. 자동문·회전문·에스컬레이터·키오스크, 320/390px 화면과 포장 귀가 일지를 살폈습니다. 실물 기기·실제 스크린리더·운영체제 공유창·사전 설명 없는 사용자 검토는 미실행입니다.
+
+근거: `../output/playwright/saturday-environment-classic/results.json`, `../output/playwright/saturday-environment-journal/results.json`, `../output/playwright/saturday-environment-client/`, `../output/saturday-environments/`. 일지 검사는 환경 추출 3회·시작 취소 시 0회·복원 시 0회, 저장 조건 유지, 회전문 옆문 경로, 에스컬레이터 비탑승, 키오스크 결제·카드 보존, 구형 v3의 선택 필드 부재, 기존 v2의 다섯 선택 재현을 확인했습니다. S09 포장 실패와 이미 결제한 뒤의 자리 대기 서술도 포함합니다. 아래 95개 Node·22/20개 브라우저 묶음은 이전 12단계 확장의 결과이며 최신 수에 합산하지 않습니다.
+
+### 이전 검증: 12단계·선택별 활동 시간·이전 기록 호환
 
 새 하루는 이야기 버전 3의 열두 선택입니다. 기존 핵심 장면 다섯 개와 준비·식사·남은 시간의 활동·자리·물건 정리 일곱 단계를 진행합니다. 오전 10:12에서 시작해 선택한 활동의 소요 분만 더하고 오전·오후 시각을 표시합니다. 화면 읽기·애니메이션 대기는 게임 속 시각을 늘리지 않으며 장면 전환만으로 특정 시각에 맞춰 건너뛰지 않습니다. 귀가 문구는 실제 외출 여부와 거리·걸린 시간에 맞춥니다.
 
 버전 2의 다섯 선택 기록은 별도 이전 엔진으로 이어 하기·완료·분기·내보내기·가져오기를 지원합니다. 새 시작만 버전 3이 되며, 원래 기록을 열두 선택으로 늘리거나 같은 버전으로 위장하지 않습니다. 최종 Node **95/95**(이전 엔진 44·새 엔진 13·저장 34·카탈로그 4), 실제 Chromium 기본 이야기 **22/22**·일지 **20/20**가 통과했습니다. 원본 develop-web-game 클라이언트도 완료했고 실제 이동 화면과 상태를 직접 확인했습니다. 증거는 `../output/playwright/saturday-time-classic/`, `saturday-time-journal/`, `saturday-time-client-final/`입니다. 아래 70개 Node·21/19개 브라우저 묶음은 5단계 화면 정리 당시의 결과입니다.
 
-이번 요청은 검증 후 기존 Draft PR [#112](https://github.com/prozac0401/WebSim/pull/112)의 브랜치와 설명을 갱신하는 범위입니다. 병합·공개 배포는 포함하지 않습니다. 작업 시작 시 원격 head `84ba9c106d9b492ba9c8be13c46d6af7e8ba9853`에는 GitHub 검사·상태·PR 실행 워크플로가 등록되어 있지 않았습니다. 이는 CI 통과가 확인됐다는 뜻이 아닙니다.
+12단계 확장은 [PR #112](https://github.com/prozac0401/WebSim/pull/112)로 병합한 뒤 GitHub Pages에 배포했고, 공개 화면에서 파일과 열두 선택 진행·저장 복원을 확인했습니다. 해당 작업 시작 시 원격 head `84ba9c106d9b492ba9c8be13c46d6af7e8ba9853`에는 별도의 GitHub 검사·상태·PR 실행 워크플로가 없었습니다. 로컬 검사와 Pages 빌드 확인을 외부 CI 검사 통과로 바꾸어 표현하지 않습니다.
 
 현재 버전의 Node 검사는 이전 엔진과 새 엔진을 함께 실행합니다.
 
 ```sh
-node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
+node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
 ```
 
 ### 이전 수정: 화면 높이와 상태 표시 정리
@@ -42,7 +52,7 @@ node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine
 
 ## 1. 변경 요약과 기존 작업 보존
 
-기존 v0.1에서 이어 온 네 출발 경로·여섯 결말을 바탕으로 한 `classic`과 서로 다른 일상의 조건을 다루는 다섯 시나리오 묶음을 제공합니다. 버전 3의 새 하루는 열두 선택이며, 버전 2의 다섯 선택 기록은 이전 엔진에 보존했습니다. 현재 진행, 완료 일지, 선택을 바꾼 새 기록, 수동으로 가져온 비교 기록을 구분합니다. 작업 위치는 `feat/stopped-saturday` 브랜치의 관리 작업 폴더이고 12단계 확장 시작 HEAD는 `84ba9c106d9b492ba9c8be13c46d6af7e8ba9853`입니다. 앞선 요청은 로컬 수정·검토·테스트만 수행했으며, 이번에는 검증 후 기존 PR 갱신까지 승인된 범위입니다.
+기존 v0.1에서 이어 온 네 출발 경로·여섯 결말을 바탕으로 한 `classic`과 서로 다른 일상의 조건을 다루는 다섯 시나리오 묶음을 제공합니다. 버전 3의 새 하루는 열두 선택이며, 버전 2의 다섯 선택 기록은 이전 엔진에 보존했습니다. 현재 진행, 완료 일지, 선택을 바꾼 새 기록, 수동으로 가져온 비교 기록을 구분합니다. 앞선 로컬 검토와 12단계 확장·배포를 보존하며 최신 요청의 환경과 귀가 수정을 추가했습니다.
 
 현재 상태: 13개 장면과 5개 기능의 로컬 구현·자동 검증 근거를 확보했습니다. 실제 사용자 대상의 사전 설명 없는 플레이 검토와 실물 기기 검증은 별도 미실행 항목입니다.
 
@@ -53,6 +63,7 @@ node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine
 | `scenario-scenes.js` | S01~S13의 장면 조건·선택·효과·후속 결과와 짧은 시나리오 묶음 |
 | `story-engine.js` | 기존 하루를 유지하면서 새 장면·기록의 결정적 재현을 연결하고 실제 경험과 기억을 구별 |
 | `day-rhythm.js`, `legacy/story-engine-v2.js`, `legacy/scenario-scenes-v2.js` | 12단계·시간 규칙과 버전 2의 원래 5단계 재현을 분리 |
+| `day-environment.js` | 새 하루의 세 환경을 한 번 추출하고 선택 기록의 조건으로 전달 |
 | `story-engine.test.cjs` | 13개 장면·모든 조건별 선택·실제 귀가·장소 정보·기존 실내 기억의 회귀 검사 |
 | `story-engine-v3.test.cjs` | 새 열두 단계와 선택별 시간, 실제 귀가·이전 버전 호환 검사 |
 | `saturday-store.js` | 진행·완료·분기·가져온 기록의 버전 관리와 재현·검증 |
@@ -67,34 +78,34 @@ node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine
 
 ## 3. S01~S13 및 F01~F05 추적표
 
-경로는 시작 화면의 시나리오 묶음과 핵심 선택 ID로 기록합니다. 버전 3은 이 핵심 장면 사이에 일곱 추가 단계를 진행합니다. 아래 시험명·수치는 버전 2 확장 때 확보한 근거이며 최신 12단계의 검사 수와 구분합니다. `scenario-scenes.js#Sxx`는 해당 장면 정의를 뜻하며 웹 URL의 앵커가 아닙니다. 선택 ID의 `S01-bottle / split` 표기는 `S01-bottle` 또는 `S01-split`이라는 뜻입니다.
+경로는 시작 화면의 시나리오 묶음과 핵심 선택 ID로 기록합니다. 버전 3은 이 핵심 장면 사이에 일곱 추가 단계를 진행합니다. E·P·B 시험명은 최초 확장 때 확보한 근거이며 최신 추가 검사와 구분합니다. 이번 환경 변경의 추가 근거는 최상단에 기록합니다. `scenario-scenes.js#Sxx`는 해당 장면 정의를 뜻하며 웹 URL의 앵커가 아닙니다. 선택 ID의 `S01-bottle / split` 표기는 `S01-bottle` 또는 `S01-split`이라는 뜻입니다.
 
 시험 약칭: **E** = `story-engine.test.cjs`(44개 통과), **P** = `saturday-store.test.cjs`(22개 통과), **B** = `../tests/stopped-saturday-journal.browser.cjs`(18개 검사 묶음 통과). E의 각 `Sxx …` 이름과 `all new scenarios …`, P의 각 기능별 시험, B의 `Fxx …` 검사를 아래에 연결합니다.
 
 | ID | 구현 위치·반영해야 하는 결과 | 도달 경로 | 관련 시험·결과 | 구현 상태 |
 | --- | --- | --- | --- | --- |
 | S01 | `scenario-scenes.js#S01` — 용기·컵/전화 위치·왕복 수·마신 장소 네 가지 차이 | `home` 시작 → `S01-bottle / split / table / help` | E `S01 leaves four distinct item arrangements…`·전수경로, B 컵/물병/전화 그림 일치 통과 | 완료 |
-| S02 | `scenario-scenes.js#S02` — 문 대기·출입구·요청, 보이는 타인 행동 | `doors` 시작 → `S02-ask / wait / side`; 자동문은 `S02-auto-*` | E `S02 distinguishes asking…`·서 있는 대기 검사, B 자동문 비교 통과 | 완료 |
+| S02 | `scenario-scenes.js#S02` — 미는 문·자동문·회전문에 맞는 대기·출입구·요청 | `doors` → `S02-ask / wait / side`, `S02-auto-*`, `S02-revolving-*` | E의 기존 문 변형·대기 검사 통과. 무작위 세 문 환경 추가 검사는 최상단 참조 | 완료 |
 | S03 | `scenario-scenes.js#S03` — 사전 위험 설명·개인 요청과 실제 통행 정리의 분리 | `doors` → `S02-ask` → `S03-coordinate / leave / notify-wait` | E `S03 waiting progresses only after actual staff action…`·행동/환경 별도 기록 통과 | 완료 |
 | S04 | `scenario-scenes.js#S04` — 감사/속도 설명/다음 편과 기다린 시간 | `company` → `S08-planned` → `S11-slower` → `S12-elevator` → `S04-*` | E 전수경로의 세 선택 완주·`S08 route distance…` 다음 편 경로, 시간제한 없는 UI 검토 통과 | 완료 |
 | S05 | `scenario-scenes.js#S05` — 확인된 출입 조건·다른 장소·귀가와 기대 | `cafe` 시작 → `S05-staff / another / home` | E `S05 returning home uses explicit fallback scenes…`·전수경로 통과 | 완료 |
-| S06 | `scenario-scenes.js#S06` — 대체 결제 소지 조건·떨어진 카드 회수 | `cafe` → `S05-staff` → `S06-ask / pause`; `phonePayment:true`일 때 `S06-phone` | E `S06 alternate payment is conditional…`, B 결제 소지 조건 통과 | 완료 |
+| S06 | `scenario-scenes.js#S06` — 카운터 카드 회수 또는 키오스크 주문·결제 완료와 도움 범위 | `cafe` → `S05-staff` → `S06-ask / pause` 또는 `S06-kiosk-*`; 휴대전화는 소지 조건 필요 | E의 기존 대체 결제 검사 통과. 키오스크·카드 위치 추가 검사는 최상단 참조 | 완료 |
 | S07 | `scenario-scenes.js#S07` — 수락/컵만/거절, 먼저 묻는 도움 변형 | `home` → `S01-help` → `S07-all / cup / decline`; `helpStyle:ask`로 질문형 변형 | E `S07 takeover and asking variants…`의 각 세 선택, B 질문형 도움 통과 | 완료 |
 | S08 | `scenario-scenes.js#S08` — 출발·체류·실제 귀가와 남은 일정 | `company` 시작, 또는 `planning`의 `S13-*` 다음 → `S08-planned / near / later` | E `S08 route distance and S12 detours…`의 300/100m·귀가·출발 취소 통과 | 완료 |
-| S09 | `scenario-scenes.js#S09` — 빈 의자와 쓸 수 있는 낮은 좌석의 구분 | `doors` → `S02-ask` → `S03-coordinate` → `S09-wait / ask / takeout` | E `S09 distinguishes visible high seats…`·실제 착석 전 서 있음 검사 통과 | 완료 |
+| S09 | `scenario-scenes.js#S09` — 낮은 좌석·대기와 포장 음식을 들지 못한 빈손 귀가 | `doors` → `S02-ask` → `S03-coordinate` → `S09-wait / ask / takeout` | E의 좌석·실제 착석 검사 통과. 포장 실패·물건 위치·모바일 일지 추가 검사는 최상단 참조 | 완료 |
 | S10 | `scenario-scenes.js#S10`, `reflectionNode` — 물/식기 미수령과 수령, 재요청 | `doors` → `S02-ask` → `S03-coordinate` → `S09-wait` → `S10-defer` → `REFLECT-request` | E `S10 deferred water stays unresolved…`·주문 변경, B 미수령→재요청·일지 검사 통과 | 완료 |
 | S11 | `scenario-scenes.js#S11` — 놓친 말·되돌아봄·다시 나란히 된 때 | `company` → `S08-planned` → `S11-slower / stop / own` | E `S11 changes conversation participation…`·이후 회고와 관계 점수 부재 통과 | 완료 |
-| S12 | `scenario-scenes.js#S12` — 이용 불가한 다섯 계단, 확인 경로·거리·시간 | `company` → `S08-planned` → `S11-slower` → `S12-elevator / confirm / home` | E `S12 excludes only its specifically unsuitable stairs…`·180/120m·상체 부담·기존 계단 보존 통과 | 완료 |
+| S12 | `scenario-scenes.js#S12` — 다섯 계단·에스컬레이터 앞의 대체 경로·거리·시간 | `company` → `S08-planned` → `S11-slower` → `S12-elevator / confirm / home` 또는 `S12-escalator-*` | E의 계단 대체 경로·기존 계단 보존 검사 통과. 에스컬레이터 대체 경로 추가 검사는 최상단 참조 | 완료 |
 | S13 | `scenario-scenes.js#S13` — 화장실·문턱·거리·쉼터 각각의 확인 여부 | `planning` 첫 핵심 → `S13-check / known / onsite`; `home` 네 번째 핵심에도 도달 | E `S13 keeps all four access fields with provenance…`·목적지 변경 시 확인정보 무효화 통과 | 완료 |
 | F01 | `saturday-store.js`, `saturday-app.js` — 마지막 확정 진행과 상태·이력·조건 복원 | 새 하루 → 선택 → 새로고침/뒤로·앞으로/재열기 → 이어 하기 | P 확정 단계·손상/구버전/차단·저장 실패·다른 탭 보존, B F01 탐색·재열기·중복 선택 통과 | 완료 |
 | F02 | `saturday-store.js`, `saturday-app.js` — 현재 진행과 별도 완료 일지 | 두 하루 완료 → 일지 → 새 하루 → 각 기록 읽기/개별 삭제 | P 완료 중복·초기화·개별/전체 삭제, B F02 두 일지·삭제 확인·범위 통과 | 완료 |
 | F03 | `saturday-store.js`, `saturday-app.js` — 부모 기록·분기점과 원본 불변 | 완료 일지 → 선택 한 곳부터 다시 보기 → 후속 선택 직접 진행 | E canonical replay, P strict prefix·원본 불변·중단, B F03 부모 연결·다른 선택 통과 | 완료 |
-| F04 | `scenario-scenes.js`, `saturday-store.js`, `saturday-app.js` — 자동문만 바꾼 비교 | `doors` 완료 일지 → 자동문 조건 확인 → 별도 하루 | E F04·P 실제 자동문 비교·B F04 사전 조건과 요청 제거·원본 보존 통과 | 완료 |
+| F04 | `day-environment.js`, `scenario-scenes.js`, `saturday-store.js`, `saturday-app.js` — 새 하루의 무작위 환경과 기존 환경 비교 기록 호환 | 새 하루 → 장소에서 환경 확인 → 새로고침·분기에서 보존; 다른 하루와 조건 차이 표시 | 이전 E·P의 자동문 비교 API 검증 유지. 전용 UI는 무작위 만남으로 변경, 최신 브라우저 근거는 최상단 참조 | 최신 요청으로 변경 |
 | F05 | `saturday-store.js`, `saturday-app.js` — 최소 허구 기록의 미리보기·수동 교환 | 일지 → 공유 미리보기 → 복사/파일 → 직접 전달 → 가져오기 → 비교 | P 5필드·16KiB·버전·경로 검증, B F05 실제 복사/파일·확인·안전 입력·조건 불일치·개별 삭제 통과 | 완료 |
 
 ## 4. S01~S13·F01~F05 확장 당시의 검증 결과와 재현 절차
 
-아래는 **S01~S13·F01~F05 확장의 최종 파일로 직접 실행한 결과**입니다. 이번 문구 교정 후 결과와 구별합니다. 과거 38개 검사·20개 Chromium 묶음·첨부 Edge 7회와 합산하지 않았습니다. 확장 완료 시점에 기존 1,024개 경로와 기존 브라우저 20개 묶음도 새로 재실행했습니다.
+아래는 **S01~S13·F01~F05 확장의 최종 파일로 직접 실행한 결과**입니다. 이후 수정 결과와 구별합니다. 과거 38개 검사·20개 Chromium 묶음·첨부 Edge 7회와 합산하지 않았습니다. 확장 완료 시점에 기존 1,024개 경로와 기존 브라우저 20개 묶음도 새로 재실행했습니다. 초기 `saturday-journal` 폴더의 일부 화면은 후속 실행에서 갱신됐으므로 당시 검사 수는 그 실행의 결과 JSON을 기준으로 읽고 최신 화면 근거는 위의 환경 검사 폴더를 사용합니다.
 
 | 검사 | 결과 | 이번 근거 |
 | --- | --- | --- |
@@ -130,7 +141,7 @@ node tests/stopped-saturday.browser.cjs
 
 ## 5. 저장 형식·호환성·삭제·내보내기
 
-저장 키 `websim.stopped-saturday.v1`과 `schemaVersion: 1`은 유지하고 현재 저장 묶음의 `scenarioVersion`은 `"3"`입니다. `current`, `completed`, `replays`, `imported`, `nextSerial`을 구분합니다. 각 기록은 자체 이야기 버전, `id`, `serial`, 시나리오 ID, `conditions`, `choiceIds`, `complete`, `phase`, `parentId`, `branchIndex`, `comparisonKind`를 갖습니다. 시작 조건은 문 유형·도움 제안 방식·휴대전화 결제 소지 여부라는 허구 설정입니다. 현재 장면·게임 속 시각·에너지·조건 플래그는 해당 버전에서 확정 선택 ID를 재현해 얻으며 저장된 파생 수치를 신뢰하지 않습니다. 실제 플레이 시각은 넣지 않습니다.
+저장 키 `websim.stopped-saturday.v1`과 `schemaVersion: 1`은 유지하고 현재 저장 묶음의 `scenarioVersion`은 `"3"`입니다. `current`, `completed`, `replays`, `imported`, `nextSerial`을 구분합니다. 각 기록은 자체 이야기 버전, `id`, `serial`, 시나리오 ID, `conditions`, `choiceIds`, `complete`, `phase`, `parentId`, `branchIndex`, `comparisonKind`를 갖습니다. 시작 조건은 문 유형·층간 이동·주문 방식·도움 제안 방식·휴대전화 결제 소지 여부라는 허구 설정입니다. 새 버전 3은 `doorMode`에 `revolving`을 허용하고 `verticalRoute`·`orderMode`를 기록합니다. 이전 버전 3에 두 선택 필드가 없으면 없는 채로 보존하고 기존 계단·카운터 장면을 재현합니다. 현재 장면·게임 속 시각·에너지·조건 플래그는 해당 버전에서 확정 선택 ID를 재현해 얻으며 저장된 파생 수치를 신뢰하지 않습니다. 실제 플레이 시각은 넣지 않습니다.
 
 | 조작 | 남는 것과 지워지는 것 |
 | --- | --- |
@@ -148,7 +159,7 @@ node tests/stopped-saturday.browser.cjs
 
 ## 6. 재플레이·환경·친구 비교 예시
 
-다음 세 예시는 버전 2의 엔진과 저장 API를 실행한 재현 스크립트로 확인한 이전 검증 기록입니다. 새 버전 3의 열두 단계 전체 경로로 읽지 않습니다. 아래 ID는 설명을 위해 주입한 식별자이며 실제 앱은 무작위 ID를 만듭니다. 우열·승패·공감 점수는 없습니다.
+다음 세 예시는 버전 2의 엔진과 저장 API를 실행한 재현 스크립트로 확인한 이전 검증 기록입니다. 새 버전 3의 열두 단계 전체 경로로 읽지 않습니다. 특히 자동문 전용 버튼과 포장 음식을 집에서 마시는 결과는 현재 버전의 사용법이 아닙니다. 현재 화면은 무작위 환경을 저장하며 포장 음식을 들지 못한 경로는 빈손 귀가로 이어집니다. 아래 ID는 설명을 위해 주입한 식별자이며 실제 앱은 무작위 ID를 만듭니다. 우열·승패·공감 점수는 없습니다.
 
 1. **원본과 분기**: `doors`의 원본 `local-day-1`은 `S02-ask → S03-coordinate → S09-wait → S10-defer → REFLECT-request`로 끝냅니다. 문을 잡아 달라고 부탁하고 공간을 확인한 뒤 낮은 자리를 기다렸으며, 미뤘던 물·식기를 마지막에 실제로 받습니다. 결말 ID는 `shared`이며 교정한 이름은 “누군가에게 말을 건 토요일”입니다. 세 번째 선택 직전(`branchIndex: 2`)에서 만든 `local-day-2`는 앞의 두 선택만 재현하고 `S09-takeout → HOME-4-quiet → REFLECT-note`를 직접 고릅니다. 집에서 마시고 쉬는 결말 `rest`(“쉬면서 보낸 토요일”)가 되며 `parentId`는 원본을 가리킵니다. 원본 기록의 내용은 전후 동일했습니다.
 2. **문 환경만 바꾸기**: 원본의 첫 문 직전에서 `doorMode: manual → automatic`만 바꾼 `local-day-3`을 만듭니다. 첫 선택은 `S02-auto-enter`, 나머지는 `S03-coordinate → S09-wait → S10-defer → REFLECT-request`로 진행합니다. 문을 잡아 달라는 첫 요청은 사라지지만 안쪽 통행 정리·낮은 자리 대기·물과 식기의 재요청은 남습니다. 비교 결과의 `changedConditions`는 `doorMode` 한 개이고 원본은 변하지 않았습니다.
@@ -159,5 +170,5 @@ node tests/stopped-saturday.browser.cjs
 - S01~S13·F01~F05의 **18개 로컬 구현은 완료**이며 각 항목의 자동 검증 근거는 위 표에 있습니다. 구현 보류·미구현 항목은 없습니다. 사람 대상의 사전 설명 없는 플레이 검토와 실물 기기·보조공학 검증은 미실행입니다.
 - 실제 장소의 접근성·의료적 판단을 검증하는 기능은 범위 밖입니다. 기존 공식 서비스 출처의 확인일과 한계는 README와 게임 설명서에 보존합니다.
 - 친구 비교는 사용자가 확인한 파일이나 텍스트를 직접 전달하는 방식입니다. 자동 전송·게시·초대, 계정·서버·기기 간 자동 동기화는 제공하지 않습니다.
-- 앞선 요청은 로컬 변경까지만 수행했습니다. 최신 요청에서는 검증 후 기존 Draft PR의 브랜치·설명을 갱신하며 병합·공개 배포는 수행하지 않습니다.
+- 12단계 확장은 별도의 배포 요청에 따라 PR #112 병합과 GitHub Pages 공개 확인을 마쳤습니다. 최신 수정의 배포 여부는 해당 수정의 검증·배포 기록과 구분합니다.
 - 백업 전체 복원과 실제 사용자 검토는 별도 범위입니다. 알려진 버전 2의 기록 호환은 이번 12단계 확장에 포함합니다.
