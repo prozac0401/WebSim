@@ -96,7 +96,7 @@
       choices = [
         act('R03-radio', '라디오 인터뷰 한 편을 듣는다', '중간에 화면을 보지 않아도 되는 이야기', 35, [`${seatText}이어폰으로 라디오 인터뷰를 듣는다. 손을 움직이지 않고도 이야기를 따라갈 수 있어 편하다.`, '진행자가 마지막 질문을 할 때까지 듣는다. 인터뷰가 끝나자 방금 들은 말 중 한 대목이 궁금해진다.'], '라디오 인터뷰 한 편을 들었음', { effect: 'rest', energy: 1, focus: 'observe', motion: move('rest', location, '앉아서 라디오 인터뷰를 듣는다.') }),
         act('R03-puzzle', '짧은 퍼즐 몇 개를 풀어본다', '작은 화면을 가까이 들지 않기', 40, [`${seatText}휴대전화를 받쳐 두고 짧은 퍼즐을 시작한다. 첫 문제는 쉬운데 세 번째에서 막힌다.`, '힌트를 한 번 보고 다시 풀어본다. 마지막 문제를 풀고 나서야 시간이 꽤 지났다는 것을 알아차린다.'], '짧은 퍼즐 세 개를 풀었음', { effect: 'desk', energy: -1, mood: 1, focus: 'flow', motion: move('desk', location, '화면을 받쳐 두고 퍼즐을 푼다.') }),
-        act('R03-snack', '간단히 먹을 것을 챙겨 먹는다', '한 번에 옮기지 않고 앉은 자리에서 받기', 30, [outside ? `${seatText}직원에게 앉은 자리에서 받을 수 있는 간단한 음식을 주문한다. 가져다준 음식을 먹으며 잠깐 쉰다.` : '바로 먹을 수 있는 음식을 골라 가까이 두고 먹는다. 물건을 한꺼번에 들고 이동하지 않도록 자리부터 정한다.', '배가 조금 차니 다른 일에 눈이 간다. 손이 닿는 음식 포장만 정리하고 큰 정리는 나중으로 미룬다.'], '앉은 자리에서 간단한 음식을 먹었음', { effects: { day: { ate: true, seated: true }, facts: ['앉은 자리에서 간단한 음식을 먹었다'] }, effect: 'settle', energy: 1, focus: 'rest', motion: move('sit', location, '앉은 자리에서 간단한 음식을 먹는다.') })
+        act('R03-snack', '간단히 먹을 것을 챙겨 먹는다', '한 번에 옮기지 않고 앉은 자리에서 받기', 30, [outside ? `${seatText}직원에게 앉은 자리에서 받을 수 있는 간단한 음식을 주문한다. 가져다준 음식을 먹으며 잠깐 쉰다.` : '집에 있던 음식 중 바로 먹을 수 있는 것을 골라 가까이 두고 먹는다. 물건을 한꺼번에 들고 이동하지 않도록 자리부터 정한다.', '배가 조금 차니 다른 일에 눈이 간다. 손이 닿는 음식 포장만 정리하고 큰 정리는 나중으로 미룬다.'], '앉은 자리에서 간단한 음식을 먹었음', { effects: { day: { ate: true, seated: true }, facts: ['앉은 자리에서 간단한 음식을 먹었다'] }, effect: 'settle', energy: 1, focus: 'rest', motion: move('sit', location, '앉은 자리에서 간단한 음식을 먹는다.') })
       ];
       for (const ch of choices) ch.effects.day = { ...ch.effects.day, seated: true };
       // The classic fourth scene begins at home; this transition now happens explicitly.
@@ -123,7 +123,7 @@
       lines = [s.context.day?.ate ? '아까 먹은 것으로 충분한지 생각해 본다. 다시 주문할지, 조금 있다가 먹을지 정할 때다.' : '아직 제대로 식사하지 못했다. 메뉴보다 먼저 음식을 어디에 놓고 먹을지 생각한다.', pending ? '물과 식기는 아직 받지 못했다. 이번에 함께 부탁할 수도 있고, 부탁을 미룬 채 쉴 수도 있다.' : '먹고 난 뒤의 그릇과 포장까지 한 번에 치울 필요는 없다.'];
       choices = [
         act('R05-meal', '식사를 주문하고 필요한 것을 함께 부탁한다', '받는 곳과 물·식기까지 확인', outside ? 45 : 60, [outside ? '직원에게 식사를 주문하며 물과 식기를 함께 부탁한다. 잠시 뒤 테이블에 놓인 것을 확인하고 먹는다.' : '배민에서 식사를 주문하고 도착할 때까지 쉰다. 물과 식기를 가까이 준비한 뒤 받은 음식으로 식사한다.', '식사를 마치고 손 닿는 포장만 모은다. 먹는 일보다 정리할 때 일어나는 횟수가 더 신경 쓰인다.'], '식사와 물·식기를 받아 먹었음', { effects: { needs: { water: 'received', utensils: 'received' }, day: { ate: true }, requests: [{ by: '주인공', forWhat: '식사와 물·식기를 함께 요청' }], facts: ['식사와 물·식기를 실제로 받아 먹었다'] }, effect: 'settle', energy: 1, focus: 'shared', motion: move('sit', location, '식사와 물·식기를 받아 앉은 자리에서 먹는다.') }),
-        act('R05-simple', '간단한 포장 음식으로 먹는다', '식기를 쓰지 않는 음식과 물 따로 받기', 40, [outside ? '손으로 먹을 수 있는 포장 음식을 고르고 물도 부탁한다. 물을 받은 뒤 음식을 먹는다.' : '간단한 포장 음식을 준비해 먹는다. 뚜껑 있는 물병을 가까이 두고 조금씩 마신다.', '별도 식기는 쓰지 않았다. 남은 포장을 가까운 봉투에 모으고 다시 등을 기댄다.'], '물과 간단한 포장 음식으로 식사함', { effects: { needs: { water: 'received', utensils: 'not-needed' }, day: { ate: true }, facts: ['물을 받아 마시고 식기가 필요 없는 음식으로 먹었다'] }, effect: 'settle', energy: 1, focus: 'outing', motion: move('sit', location, '식기가 필요 없는 음식으로 간단히 먹는다.') }),
+        act('R05-simple', outside ? '간단한 포장 음식으로 먹는다' : '집에 있던 음식으로 간단히 먹는다', outside ? '식기를 쓰지 않는 음식과 물 따로 받기' : '집에 있던 음식과 물병 준비하기', 40, [outside ? '손으로 먹을 수 있는 포장 음식을 고르고 물도 부탁한다. 물을 받은 뒤 음식을 먹는다.' : '집에 있던 간단한 포장 음식을 꺼내 먹는다. 뚜껑 있는 물병을 가까이 두고 조금씩 마신다.', '별도 식기는 쓰지 않았다. 남은 포장을 가까운 봉투에 모으고 다시 등을 기댄다.'], outside ? '물과 간단한 포장 음식으로 식사함' : '집에 있던 음식과 물병으로 간단히 식사함', { effects: { needs: { water: 'received', utensils: 'not-needed' }, day: { ate: true }, facts: [outside ? '물을 받아 마시고 식기가 필요 없는 음식으로 먹었다' : '집에 있던 음식과 물병으로 간단히 식사했다'] }, effect: 'settle', energy: 1, focus: 'outing', motion: move('sit', location, '식기가 필요 없는 음식으로 간단히 먹는다.') }),
         act('R05-later', '지금은 주문하지 않고 더 쉰다', '식사와 필요한 부탁은 아직 미뤄 두기', 35, ['아직 주문하지 않기로 한다. 화면을 잠그고 편한 자세로 조금 더 쉰다.', pending ? '물을 받은 것은 아니다. 목이 마르면 다시 부탁해야 한다는 것을 기억해 둔다.' : '음식을 먹지는 않았다. 나중에 배가 고프면 그때 준비하기로 한다.'], '식사를 주문하지 않고 더 쉬었음', { effect: 'rest', energy: 1, focus: 'rest', motion: move('rest', location, '주문을 미루고 잠시 더 쉰다.') })
       ];
     } else if (id === 'R06') {
@@ -148,7 +148,20 @@
       choices[0].effects.facts = ['배달받은 식사와 집에서 준비한 물·식기로 먹었다'];
       choices[1].effects.facts = ['집에서 물을 마시고 식기가 필요 없는 포장 음식으로 먹었다'];
     }
-    return { sceneId: id, title, time: formatTime(s.minuteOfDay), step: s.decisions.length + 1, lines, choices, choiceIds: choices.map(ch => ch.id), eligibility: { eligible: true, matched: true, requestedSceneId: id }, contrastVariant: null, isRhythm: true };
+    if (id === 'R05' && s.context.order) for (const ch of choices.slice(0, 2)) ch.effects.order = { ...s.context.order, status: 'paid', method: outside ? 'staff-later-meal' : 'home-meal', menuConfirmed: true };
+    let encounter;
+    if (id === 'R02' && outside && ['cafe', 'lobby'].includes(s.context.location) && s.initialConditions.orderMode === 'kiosk') {
+      const ordered = s.context.order?.status === 'paid';
+      title = ordered ? '주문 내역과 받을 자리' : '키오스크 메뉴를 먼저 보려는데';
+      lines = ordered
+        ? ['키오스크에서 주문과 결제는 끝냈다. 다시 주문하지 않고 고른 메뉴와 받을 위치를 확인하려고 한다.', '음식을 받는다고 양손이 자유로워지는 것은 아니다. 목발을 짚고 물건을 옮길 방법과 앉을 곳도 따로 생각해야 한다.']
+        : ['메뉴를 보려고 키오스크 앞에 선다. 작은 글씨를 읽고 옵션을 누르는 동안에도 양손으로 몸을 지탱해야 한다.', '위쪽 버튼에 손을 뻗으려다 어깨가 당긴다. 뒤에 사람이 기다리니 읽는 것조차 서두르게 된다. 아직 주문하거나 결제하지는 않았다.'];
+      encounter = { kind: 'kiosk' };
+      choices[0] = { ...choices[0], title: ordered ? '결제한 주문 내역만 확인한다' : '메뉴를 보여 달라고 부탁하고 후보만 고른다', note: ordered ? '추가 주문 없이 메뉴와 받을 위치 확인' : '누르기 어려운 화면은 직원에게 보여 달라고 하기', durationMinutes: ordered ? 7 : 12, effect: 'standing', effects: { ...choices[0].effects, requests: [{ by: '주인공', forWhat: ordered ? '결제한 주문 내역과 받을 위치 확인' : '키오스크 메뉴를 확인하기 위한 화면 도움 요청' }], facts: [ordered ? '결제한 주문 내역만 확인하고 추가 주문하지 않았다' : '직원에게 메뉴 화면을 보여 달라고 부탁하고 후보만 골랐다'] }, followUpText: ordered ? ['직원에게 이미 결제한 주문의 메뉴와 받을 위치를 확인한다. 화면에 뜬 추가 메뉴는 선택하지 않는다.', '주문 내용은 맞다. 이제 앉을 곳과 음식을 받을 방법을 확인해야 한다. 물건을 들고 걸을 손이 생긴 것은 아니다.'] : ['메뉴 화면을 보여 달라고 부탁한다. 직원이 화면을 넘겨 주면 먹고 싶은 것 두 가지만 기억해 둔다.', '주문이나 결제 버튼은 누르지 않는다. 더 서두르지 않고 앉을 자리와 받을 방법부터 생각한다.'], journalTrace: ordered ? '기존 결제 내역 확인 · 추가 주문 없음' : '키오스크 메뉴 도움 요청 · 후보만 선택·미주문', motion: { ...move('stand', location, ordered ? '이미 결제한 주문 내역만 확인한다.' : '직원에게 메뉴 화면을 보여 달라고 부탁한다.'), encounter } };
+      choices[1] = { ...choices[1], followUpText: ['키오스크 앞에서 메뉴 읽기를 잠깐 그만둔다. 앉을 곳을 물어 안내받은 휴게 의자에서 손잡이를 놓고 쉰다.', ordered ? '주문은 이미 끝냈다. 앉아서 손을 쉬며 음식이 나오기를 기다린다.' : '아직 주문하지 않았다. 손과 어깨가 조금 편해지면 어떤 방식으로 주문할지 다시 생각하기로 한다.'] };
+      choices[2] = { ...choices[2], title: '자리와 음식 받는 방법을 먼저 적는다', note: '주문과 운반을 별개로 생각하기', followUpText: ['화면에서 한 걸음 물러나 앉을 자리와 음식 받을 곳을 메모한다. 목발을 쥔 채 봉투와 음료를 들고 갈 수 없다는 점도 적는다.', ordered ? '이미 결제한 주문은 그대로 둔다. 추가로 주문하지 않고 받을 방법을 생각한다.' : '주문은 아직 하지 않았다. 메뉴를 고르는 것과 음식을 옮기는 것은 따로 정해야 한다.'], journalTrace: '음식 받을 방법과 앉을 곳 메모 · 주문 변경 없음', motion: { ...move(seated ? 'phone' : 'stand', location, '키오스크에서 비켜서 음식 받을 방법을 메모한다.'), encounter } };
+    }
+    return { sceneId: id, title, time: formatTime(s.minuteOfDay), step: s.decisions.length + 1, lines, choices, choiceIds: choices.map(ch => ch.id), eligibility: { eligible: true, matched: true, requestedSceneId: id }, contrastVariant: null, isRhythm: true, ...(encounter ? { encounter } : {}) };
   }
   return { DAY_PLAN, START_MINUTE, DAY_LENGTH: DAY_PLAN.length, formatTime, durationForChoice, returnMinutes, returnText, getNode };
 });

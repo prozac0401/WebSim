@@ -23,7 +23,7 @@
     if (!ctx) throw new Error('Canvas 2D is unavailable.');
     let reduced = Boolean(options && options.reducedMotion), dead = false;
     let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6 };
-    let elapsed = 0, duration = 1250, gaitDuration = 1600, stairDuration = 2050;
+    let elapsed = 0, duration = 1250, motionDuration = 1250, environmentDuration = 0, gaitDuration = 1600, stairDuration = 2050;
     let pose = {};
     const stairGeometry = { startX: 360, baseY: 430, tread: 74, rise: 25, count: 4 };
     const stairSurface = x => stairGeometry.baseY - clamp(Math.floor((x - stairGeometry.startX) / stairGeometry.tread) + 1, 0, stairGeometry.count) * stairGeometry.rise;
@@ -44,6 +44,25 @@
     function poly(points, fill) {
       ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
       points.slice(1).forEach(p => ctx.lineTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    }
+    function gradient(x1, y1, x2, y2, stops) {
+      const fill = ctx.createLinearGradient(x1, y1, x2, y2);
+      stops.forEach(([at, color]) => fill.addColorStop(at, color));
+      return fill;
+    }
+    function environmentState() {
+      if (!scene.encounter) return null;
+      const time = reduced ? environmentDuration : Math.min(elapsed, environmentDuration);
+      const encounter = scene.encounter;
+      const active = !reduced && time < environmentDuration;
+      return {
+        ...encounter, active, elapsedMs: Math.round(time), durationMs: environmentDuration,
+        doorOpenFraction: encounter.kind === 'door' && encounter.doorType === 'automatic'
+          ? encounter.phase === 'passed' ? 1 : smooth(time / 1600) : null,
+        rotationRadians: encounter.kind === 'door' && encounter.doorType === 'revolving' ? .35 + time / 4800 * Math.PI * 1.2 : null,
+        stepOffset: encounter.kind === 'escalator' ? time / 850 % 1 : null,
+        boarding: false
+      };
     }
     function leaf(x, y, angle, scale) {
       ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ellipse(0, -12 * scale, 7 * scale, 18 * scale, colors.green); ctx.restore();
@@ -103,6 +122,7 @@
       gradient.addColorStop(0, evening ? '#778d99' : '#b5d2ca');
       gradient.addColorStop(1, evening ? '#cbb8a1' : '#e8dfbd');
       box(x, y, w, h, 1, gradient);
+      poly([[x + 6, y + 5], [x + w * .24, y + 5], [x + w * .72, y + h - 5], [x + w * .53, y + h - 5]], 'rgba(255,251,224,.13)');
       ellipse(x + w * .76, y + h * .25, 21, 21, evening ? '#f2ddbc' : '#f8ecc8');
       [0, 1, 2, 3, 4].forEach(i => {
         const bh = [51, 82, 64, 39, 70][i], bx = x + i * w / 5;
@@ -115,14 +135,15 @@
     }
     function chair(x, y, wide) {
       const w = wide || 75;
+      ellipse(x + w / 2, 395, w * .63, 6, 'rgba(68,75,57,.12)');
       line([[x + 10, y + 22], [x + 4, 391]], '#806b54', 8);
       line([[x + w - 10, y + 22], [x + w - 3, 391]], '#806b54', 8);
       box(x - 3, y - 78, 18, 92, 7, colors.teal);
       box(x, y, w, 20, 7, colors.teal);
     }
     function room() {
-      ctx.fillStyle = colors.wall; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = colors.floor; ctx.fillRect(0, 391, W, 109);
+      ctx.fillStyle = gradient(0, 0, W, 380, [[0, '#f4ebd8'], [.65, '#eadeca'], [1, '#dfcfb6']]); ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = gradient(0, 391, 0, H, [[0, '#cbb79b'], [1, '#e1cfb2']]); ctx.fillRect(0, 391, W, 109);
       box(0, 378, W, 15, 0, '#cdbb9f');
       poly([[120, 230], [330, 230], [610, 391], [275, 391]], 'rgba(255,246,214,.35)');
       cityWindow(72, 55, 270, 183);
@@ -193,6 +214,149 @@
       plant(647, 351, 1);
       line([[376, 61], [376, 374]], '#d1c3aa', 2);
       ellipse(459, 434, 224, 28, 'rgba(149,128,98,.12)');
+    }
+
+    function publicInterior() {
+      // A shared ground plane and converging joints anchor the person and fixtures.
+      ctx.fillStyle = gradient(0, 0, 0, 391, [[0, '#e6e0d4'], [.65, '#f1e9d8'], [1, '#d5c9b5']]);
+      ctx.fillRect(0, 0, W, 391);
+      poly([[0, 0], [355, 32], [355, 391], [0, 391]], '#ded7c8');
+      line([[355, 32], [355, 391]], '#c2b8a8', 3);
+      ctx.fillStyle = gradient(0, 391, 0, 500, [[0, '#bfbba9'], [1, '#ded4be']]); ctx.fillRect(0, 391, W, 109);
+      line([[0, 391], [960, 391]], '#a8a793', 3);
+      [40, 250, 480, 710, 930].forEach(x => line([[mix(500, x, .5), 391], [x, 500]], 'rgba(114,111,94,.22)', 1));
+      [416, 450, 490].forEach(y => line([[0, y], [960, y]], 'rgba(114,111,94,.18)', 1));
+      box(49, 62, 267, 167, 3, '#728982', '#b1afa1', 7);
+      box(59, 72, 247, 147, 1, gradient(59, 72, 306, 219, [[0, '#b9cdc5'], [.5, '#d8e1d1'], [1, '#98aea4']]));
+      poly([[61, 76], [127, 76], [253, 219], [192, 219]], 'rgba(255,252,230,.22)');
+      line([[182, 71], [182, 219]], '#8a9a90', 5); line([[60, 175], [305, 175]], '#a4b0a1', 3);
+      // The seat stays away from the entrance/steps; the existing seated pose uses it.
+      ellipse(194, 399, 104, 10, 'rgba(52,65,57,.16)');
+      box(105, 291, 183, 47, 8, gradient(105, 291, 105, 338, [[0, '#a6b19a'], [1, '#7a8d76']]));
+      box(96, 335, 200, 20, 5, gradient(96, 335, 96, 355, [[0, '#b3bca4'], [1, '#6f826c']]));
+      line([[114, 356], [109, 391]], '#68756a', 7); line([[280, 356], [285, 391]], '#68756a', 7);
+      plant(45, 353, .68);
+      const encounter = environmentState();
+      if (encounter.kind === 'door') entranceDoor(encounter);
+      else if (encounter.kind === 'escalator') escalator(encounter);
+      else kiosk();
+    }
+    function entranceDoor(encounter) {
+      const left = 581, right = 835, top = 83, floor = 391, center = 708;
+      ellipse(center + 7, 399, 143, 15, 'rgba(53,65,60,.18)');
+      box(left - 11, top - 14, right - left + 24, floor - top + 14, 4,
+        gradient(left, 0, right, 0, [[0, '#687d76'], [.1, '#c6cdc0'], [.92, '#8c9e94'], [1, '#4e6862']]));
+      box(left + 1, top, right - left - 2, floor - top, 0, gradient(left, top, right, floor, [[0, '#809d91'], [.65, '#b4c5b4'], [1, '#d6d1bb']]));
+      line([[left + 22, 326], [right - 22, 326]], '#a1b2a0', 2);
+      line([[left + 62, 83], [left + 62, 326]], '#a1b2a0', 2);
+      if (encounter.doorType === 'revolving') {
+        // Radial glass panes rotate in a cylinder, while the character stays outside.
+        ellipse(center, 386, 125, 24, '#a4b0a0');
+        ellipse(center, 103, 125, 24, gradient(left, 103, right, 103, [[0, '#577770'], [.48, '#d4ddd0'], [1, '#577770']]));
+        const panes = Array.from({ length: 3 }, (_, i) => {
+          const angle = encounter.rotationRadians + i * Math.PI * 2 / 3;
+          return { x: center + Math.cos(angle) * 117, z: Math.sin(angle) * 21 };
+        }).sort((a, b) => a.z - b.z);
+        for (const pane of panes) {
+          poly([[center, 106], [pane.x, 106 + pane.z], [pane.x, 386 + pane.z], [center, 386]],
+            gradient(center, 106, pane.x, 386, [[0, 'rgba(218,235,221,.56)'], [.5, 'rgba(133,171,162,.27)'], [1, 'rgba(221,235,224,.6)']]));
+          line([[center, 106], [pane.x, 106 + pane.z], [pane.x, 386 + pane.z], [center, 386]], '#5c8078', 3);
+          line([[pane.x, 106 + pane.z], [pane.x, 386 + pane.z]], '#c9d6cb', 1);
+          line([[mix(center, pane.x, .2), 252 + pane.z * .2], [mix(center, pane.x, .78), 252 + pane.z * .78]], '#53766f', 5);
+        }
+        line([[center, 94], [center, 393]], '#587b71', 8);
+        line([[center - 2, 98], [center - 2, 390]], '#c1d1c2', 2);
+        [left + 2, right - 2].forEach(x => line([[x, 103], [x, 386]], '#718e81', 8));
+        ctx.beginPath(); ctx.ellipse(center, 386, 125, 24, 0, 0, Math.PI); ctx.strokeStyle = '#68877a'; ctx.lineWidth = 6; ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(center, 106, 125, 24, 0, 0, Math.PI * 2); ctx.strokeStyle = '#afc1b2'; ctx.lineWidth = 5; ctx.stroke();
+        // A curved floor marker makes the round route legible in a still frame.
+        ctx.beginPath(); ctx.ellipse(center, 423, 100, 18, 0, .15, 2.7); ctx.strokeStyle = '#7c8a70'; ctx.lineWidth = 3; ctx.stroke();
+        poly([[619, 430], [629, 426], [628, 436]], '#7c8a70');
+      } else if (encounter.doorType === 'automatic') {
+        const opening = encounter.doorOpenFraction;
+        ctx.save(); ctx.beginPath(); ctx.rect(left + 1, top, right - left - 2, floor - top); ctx.clip();
+        for (const side of [-1, 1]) {
+          const x = center + (side < 0 ? -124 : 0) + side * opening * 100;
+          box(x, top + 4, 124, 299, 0, gradient(x, top, x + 124, floor, [[0, '#aec9bd'], [.52, '#d2e0ce'], [1, '#8eada1']]), '#66877c', 4);
+          poly([[x + 8, top + 12], [x + 30, top + 12], [x + 112, 299], [x + 90, 299]], 'rgba(255,255,244,.24)');
+          line([[x + 11, 257], [x + 112, 257]], '#86a494', 5);
+        }
+        ctx.restore();
+        box(center - 20, top - 7, 40, 10, 4, '#3d5653'); ellipse(center, top - 2, 3, 2, '#b5cf96');
+        for (const side of [-1, 1]) {
+          const x = center + side * 93;
+          line([[x - side * 14, 239], [x + side * 12, 239], [x + side * 5, 232]], colors.cream, 3);
+          line([[x + side * 12, 239], [x + side * 5, 246]], colors.cream, 3);
+        }
+      } else {
+        const open = encounter.phase === 'passed' || encounter.phase === 'passing' || scene.context?.entrance?.heldBy ? .92 : .02;
+        const edge = left + 244 * Math.cos(open), inset = Math.sin(open) * 29;
+        const panel = [[left + 3, top + 3], [edge, top + 3 + inset], [edge, floor - 5], [left + 3, floor - 5]];
+        poly(panel, gradient(left, 0, edge, 0, [[0, '#a6825f'], [.2, '#bc9b74'], [.72, '#aa8058'], [1, '#75573f']]));
+        line([...panel, panel[0]], '#725d48', 5);
+        poly([[left + 20, top + 24], [edge - 19, top + 24 + inset], [edge - 19, 213], [left + 20, 213]],
+          gradient(left, top, edge, 213, [[0, '#a4bdb0'], [1, '#d3ded0']]));
+        line([[left + 27, top + 31], [edge - 28, 205]], 'rgba(245,248,229,.45)', 3);
+        poly([[left + 17, 327], [edge - 15, 327], [edge - 15, 375], [left + 17, 375]], '#9da797');
+        [132, 246, 348].forEach(y => box(left - 2, y, 10, 20, 2, '#6e7e74'));
+        line([[edge - 31, 244], [edge - 31, 278]], '#405e59', 7);
+        line([[edge - 33, 245], [edge - 33, 277]], '#bcc6b6', 2);
+        box(left + 20, top + 6, 64, 14, 3, '#657c72');
+        line([[left + 54, top + 17], [left + 112, top + 36], [edge - 48, top + 16 + inset]], '#566e65', 5);
+      }
+      box(left - 6, 387, right - left + 12, 7, 1, '#849286');
+      box(left + 50, 37, 154, 29, 5, '#e9e6d8', '#b6bca9', 1);
+      ctx.fillStyle = '#3e5b50'; ctx.font = '600 19px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(encounter.doorType === 'automatic' ? '자동문' : encounter.doorType === 'revolving' ? '회전문' : '무거운 미는 문', center, 58); ctx.textAlign = 'left';
+    }
+    function escalator(encounter) {
+      const metal = gradient(530, 150, 905, 405, [[0, '#9caea3'], [.25, '#d3d9c8'], [.62, '#8e9f95'], [1, '#62796f']]);
+      ellipse(721, 414, 200, 20, 'rgba(58,74,66,.14)');
+      poly([[520, 390], [588, 390], [838, 174], [927, 174], [927, 227], [858, 227], [625, 435], [520, 435]], metal);
+      box(523, 382, 83, 11, 1, '#6c7b70');
+      for (let x = 530; x < 601; x += 7) line([[x, 383], [x, 391]], '#cad0b8', 1);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(586, 391); ctx.lineTo(839, 171); ctx.lineTo(902, 171); ctx.lineTo(648, 391); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = '#667b72'; ctx.fillRect(575, 165, 337, 230);
+      for (let index = -2; index < 15; index++) {
+        const x = 590 + (index + encounter.stepOffset) * 24;
+        const y = 390 - (index + encounter.stepOffset) * 21;
+        box(x - 1, y - 2, 62, 19, 0, gradient(0, y, 0, y + 19, [[0, '#aeb8a5'], [1, '#60776e']]));
+        line([[x, y], [x + 61, y]], '#e0d9ab', 3);
+        for (let offset = 8; offset < 57; offset += 8) line([[x + offset, y + 3], [x + offset, y + 15]], '#7d9183', 1);
+      }
+      ctx.restore();
+      // Guard panels and rails remain separate from the floor where the person waits.
+      poly([[522, 341], [581, 341], [823, 130], [922, 130], [922, 175], [839, 175], [594, 390], [522, 390]], 'rgba(180,204,188,.57)');
+      line([[521, 341], [581, 341], [823, 130], [925, 130]], '#3d5b52', 10);
+      line([[522, 338], [581, 338], [823, 127], [925, 127]], '#8ca797', 2);
+      line([[544, 372], [608, 372], [847, 163], [925, 163]], '#cbd4c1', 4);
+      line([[524, 414], [623, 414], [863, 201], [925, 201]], '#4e6e62', 10);
+      line([[525, 411], [623, 411], [863, 198], [925, 198]], '#96ac9b', 2);
+      line([[494, 389], [494, 430]], '#bd9d5e', 4);
+      box(839, 55, 76, 40, 5, colors.teal); ctx.fillStyle = colors.cream; ctx.font = '700 25px sans-serif'; ctx.fillText('2F ↑', 849, 83);
+      box(548, 71, 169, 30, 5, '#e9e6d8', '#b6bca9', 1); ctx.fillStyle = '#3e5b50'; ctx.font = '600 19px sans-serif'; ctx.fillText('에스컬레이터', 562, 93);
+    }
+    function kiosk() {
+      // The upper controls are above the character's shoulder; the reader is off to one side.
+      ellipse(712, 400, 116, 14, 'rgba(50,64,57,.22)');
+      poly([[774, 107], [797, 93], [797, 366], [774, 383]], '#607c71');
+      box(620, 92, 154, 283, 10, gradient(620, 0, 774, 0, [[0, '#aebdb0'], [.13, '#e2e5d7'], [.83, '#b1c0b3'], [1, '#7d9888']]), '#6c8679', 2);
+      box(632, 105, 130, 150, 6, '#263f3e'); box(638, 111, 118, 138, 3, '#eeeede');
+      box(638, 111, 118, 25, 3, '#3e7767'); ctx.fillStyle = '#f5f0dc'; ctx.font = '600 15px sans-serif'; ctx.fillText('메뉴 선택', 648, 129);
+      for (const [x, y] of [[648, 147], [704, 147], [648, 192], [704, 192]]) {
+        box(x, y, 43, 35, 3, '#dce3cf', '#bbc6ae', 1);
+        ellipse(x + 21, y + 13, 12, 6, '#c99d5b'); line([[x + 10, y + 17], [x + 32, y + 17]], '#7a9c6c', 3);
+        line([[x + 12, y + 26], [x + 30, y + 26]], '#9a9d80', 2);
+      }
+      poly([[641, 112], [652, 112], [738, 246], [727, 246]], 'rgba(255,255,244,.22)');
+      box(731, 267, 43, 47, 5, '#365b51'); box(738, 274, 29, 13, 2, '#9fbaa5');
+      line([[739, 299], [764, 299]], '#d5dfc8', 3); line([[741, 292], [762, 292]], '#243e39', 2);
+      box(645, 276, 61, 8, 2, '#688375'); box(654, 282, 43, 51, 1, '#f1ecdc');
+      [294, 302, 310].forEach(y => line([[661, y], [690, y]], '#bdc4ae', 2));
+      box(647, 341, 103, 19, 3, '#a4b5a4'); box(606, 375, 190, 17, 5, '#6d877a');
+      box(815, 278, 145, 16, 3, '#ad9471'); box(825, 294, 135, 97, 0, '#b6baa3');
+      cup(856, 260); box(839, 232, 66, 24, 4, '#758f7b');
+      box(635, 44, 131, 29, 5, '#e9e6d8', '#b6bca9', 1); ctx.fillStyle = '#3e5b50'; ctx.font = '600 19px sans-serif'; ctx.fillText('주문 키오스크', 644, 65);
     }
     function street() {
       const evening = Number.isFinite(scene.minuteOfDay) ? scene.minuteOfDay % 1440 >= 1080 || scene.minuteOfDay % 1440 < 360 : scene.step >= 5;
@@ -308,13 +472,13 @@
     }
 
     function getPose() {
-      const time = reduced ? duration : Math.min(elapsed, duration);
-      const active = !reduced && elapsed < duration;
+      const time = reduced ? motionDuration : Math.min(elapsed, motionDuration);
+      const active = !reduced && elapsed < motionDuration;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
       if (scene.kind === 'stairs') return stairPose(time, active, fatigue);
       const destination = scene.destinationPose;
       const seatedKinds = ['sit', 'desk', 'phone', 'rest', 'observe'];
-      const seatX = kind => scene.location !== 'room' ? 779 : kind === 'desk' ? 698 : 281;
+      const seatX = kind => scene.encounter ? 205 : scene.location !== 'room' ? 779 : kind === 'desk' ? 698 : 281;
       const gaitTime = gaitDuration * 3;
       if (scene.kind === 'walk' && (!destination || time < gaitTime)) {
         const cycleCount = 3, stride = 55;
@@ -329,7 +493,7 @@
         const footLift = Math.sin(Math.PI * footAdvance) * 12;
         const isSettled = !active || phase > .85;
         return { x, y: 296 - Math.sin(Math.PI * transfer) * 3,
-          shoulderX: x + 5 + Math.sin(Math.PI * transfer) * 5,
+          shoulderX: x + 5 + Math.sin(Math.PI * transfer) * 8,
           shoulderY: 218 - fatigue * .35,
           leftFoot: [base - 8 + stride * footAdvance, 385 - footLift],
           rightFoot: [x + 29, 368 - Math.sin(Math.PI * transfer) * 3],
@@ -344,7 +508,7 @@
       const seatTime = scene.kind === 'walk' ? time - gaitTime : time;
       const seated = seatedKinds.includes(kind);
       const t = smooth(seatTime / 1100);
-      const onBench = scene.location !== 'room' && seated;
+      const onBench = (scene.location !== 'room' || scene.encounter) && seated;
       const x = seated ? seatX(kind) : scene.location === 'street' ? 530 : 405;
       const lower = seated ? t : 0;
       const breathe = active ? Math.sin(seatTime / 530) * .8 * lower : 0;
@@ -364,8 +528,11 @@
     function crutch(tipX, tipY, lean, alpha) {
       const topX = tipX - lean;
       ctx.save(); ctx.globalAlpha = alpha;
+      ellipse(tipX + 1, 393, tipY >= 390 ? 7 : 10, 2, tipY >= 390 ? 'rgba(45,67,59,.20)' : 'rgba(45,67,59,.06)');
       line([[topX - 8, 244], [topX + 1, 292], [tipX, tipY - 6]], colors.metal, 4);
       line([[topX + 8, 244], [topX + 9, 292], [tipX, tipY - 6]], colors.metal, 4);
+      line([[topX - 9, 246], [topX, 292], [tipX - 1, tipY - 8]], '#d4ded1', 1);
+      line([[topX + 9, 246], [topX + 10, 292], [tipX + 1, tipY - 8]], '#6e8880', 1);
       line([[topX - 10, 242], [topX + 11, 242]], colors.rubber, 8);
       line([[topX - 2, 281], [topX + 11, 281]], colors.rubber, 5);
       line([[tipX - 3, tipY - 2], [tipX + 3, tipY - 2]], colors.rubber, 7);
@@ -374,26 +541,28 @@
     }
     function leg(hip, knee, ankle, front, braced) {
       line([hip, knee, ankle], front ? colors.trouser : '#4a6066', front ? 20 : 17);
+      line([hip, knee, ankle].map(([x, y]) => [x - 4, y]), front ? '#526872' : '#617477', 3);
       const footX = ankle[0], footY = ankle[1];
       ctx.save(); ctx.translate(footX, footY); ctx.rotate(braced ? -.05 : .02);
       box(-9, -4, 33, 12, 5, colors.shoe);
       line([[-7, 7], [23, 7]], '#b8aa90', 3);
       if (braced) {
         // A pale plaster cast, with soft wrap lines instead of brace straps.
-        box(-10, -28, 21, 31, 4, '#f3f0e4', '#a6aa9e', 1.2);
-        box(-7, -7, 29, 15, 5, '#f3f0e4', '#a6aa9e', 1.2);
+        const plaster = gradient(-10, 0, 17, 0, [[0, '#d2d3c8'], [.3, '#faf7ea'], [.68, '#f0ecdf'], [1, '#bfc4b7']]);
+        box(-10, -28, 21, 31, 4, plaster, '#a6aa9e', 1.2);
+        box(-7, -7, 29, 15, 5, plaster, '#a6aa9e', 1.2);
         for (const y of [-22,-15,-8]) line([[-8,y],[9,y+2]], '#d0d1c4', 1.4);
         line([[-3,0],[18,2]], '#d0d1c4', 1.4);
       }
       ctx.restore();
     }
     function head(x, y, tilt) {
-      ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(tilt); ctx.scale(.9, .94);
       line([[0, 5], [0, 19]], colors.skin, 13);
-      ellipse(0, -12, 21, 26, colors.skinLight);
+      ellipse(0, -12, 21, 26, gradient(-20, -20, 21, 0, [[0, '#ad7658'], [.5, '#dba17b'], [1, '#e8b38c']]));
       // Simple profile with visible nose and quiet expression.
       poly([[15, -15], [24, -6], [16, -3]], colors.skinLight);
-      ellipse(-2, -29, 21, 15, colors.hair);
+      ellipse(-2, -29, 21, 15, gradient(-20, -38, 16, -17, [[0, '#605248'], [1, '#383630']]));
       box(-23, -29, 12, 29, 6, colors.hair);
       ellipse(-13, -7, 5, 7, colors.skin);
       line([[9, -15], [13, -15]], colors.ink, 2);
@@ -416,7 +585,7 @@
       leg([hip[0] - 7, hip[1]], p.leftKnee, p.leftFoot, false, false);
       leg([hip[0] + 6, hip[1] - 1], p.rightKnee, p.rightFoot, true, true);
       poly([[shoulder[0] - 18, shoulder[1] + 3], [shoulder[0] + 20, shoulder[1] + 4],
-        [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], colors.teal);
+        [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, '#245b56'], [.45, '#4c8980'], [1, '#285d58']]));
       line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], colors.darkTeal, 5);
       const railElbow = [mix(shoulder[0] - 10, p.railHand[0], .35), shoulder[1] + 41];
       line([[shoulder[0] - 10, shoulder[1] + 8], railElbow], colors.darkTeal, 14);
@@ -432,8 +601,11 @@
     function character(p) {
       if (p.kind === 'stairs') { stairCharacter(p); return; }
       const x = p.x, hip = [x, p.y], shoulder = [p.shoulderX, p.shoulderY];
-      const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room';
+      const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room' && !scene.encounter;
       ellipse(x + 24, 399, sit > .6 ? 78 : 68, 11, 'rgba(73,74,60,.14)');
+      const planted = p.leftFoot[1] >= 384.99;
+      ellipse(p.leftFoot[0] + 8, 393, planted ? 20 : 24, planted ? 3 : 5, planted ? 'rgba(42,61,53,.23)' : 'rgba(42,61,53,.06)');
+      ellipse(p.rightFoot[0] + 9, 394, 24, 5, 'rgba(42,61,53,.06)');
       if (rest && sit > .7) {
         box(x + 80, 361, 64, 17, 7, '#e8d4ab');
         box(x + 86, 377, 50, 7, 4, '#ab8960');
@@ -457,7 +629,8 @@
       // Torso follows shoulder and pelvis rather than moving as a rigid sprite.
       const torso = [[shoulder[0] - 18, shoulder[1] + 3], [shoulder[0] + 20, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]];
-      poly(torso, colors.teal);
+      poly(torso, gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, '#245b56'], [.45, '#4c8980'], [1, '#285d58']]));
+      line([[shoulder[0] - 6, shoulder[1] + 20], [hip[0] - 4, hip[1] - 10]], 'rgba(187,212,181,.22)', 2);
       line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], colors.darkTeal, 5);
       const rearElbow = [mix(rearHand[0] - 14, x + 5, release), mix(rearHand[1] - 15, p.y - 10, release)];
       const rearGrip = [mix(rearHand[0], x + 23, release), mix(rearHand[1], p.y + 1, release)];
@@ -473,8 +646,10 @@
       const hand = [mix(frontHand[0], finalHand[0], release), mix(frontHand[1], finalHand[1], release)];
       line([[shoulder[0] + 14, shoulder[1] + 10], elbow], colors.teal, 16);
       line([elbow, hand], colors.skinLight, 11);
+      line([[elbow[0] - 2, elbow[1] + 1], [hand[0] - 2, hand[1]]], '#e8b18a', 2);
       if (p.kind === 'phone' && sit > .9) box(hand[0] - 4, hand[1] - 16, 13, 29, 3, colors.ink);
       ellipse(hand[0], hand[1], 7, 5, colors.skinLight, -.1);
+      if (sit < .45) for (const offset of [-2, 1, 4]) line([[hand[0] + offset, hand[1] - 2], [hand[0] + offset + 1, hand[1] + 3]], '#a56e51', 1);
     }
 
     function effortState() {
@@ -508,7 +683,8 @@
       if (dead) return;
       ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      if (scene.location === 'stairs' || scene.kind === 'stairs') stairs(); else if (scene.location === 'street') street(); else if (scene.location === 'hall') hall(); else room();
+      if (scene.encounter) publicInterior();
+      else if (scene.location === 'stairs' || scene.kind === 'stairs') stairs(); else if (scene.location === 'street') street(); else if (scene.location === 'hall') hall(); else room();
       pose = getPose(); character(pose); imaginedBattery();
       // A restrained paper-like border keeps the illustration legible on light backgrounds.
       ctx.strokeStyle = 'rgba(85,78,59,.08)'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
@@ -526,13 +702,27 @@
       scene = { kind: 'rest', location: 'room', body: {}, step: 1, ...next };
       scene.body = { ...(next && next.body || {}) };
       scene.context = next && next.context ? JSON.parse(JSON.stringify(next.context)) : null;
+      const encounter = next && next.encounter;
+      scene.encounter = encounter && ['door', 'escalator', 'kiosk'].includes(encounter.kind) ? {
+        kind: encounter.kind,
+        ...(encounter.kind === 'door' ? { doorType: ['manual', 'automatic', 'revolving'].includes(encounter.doorType)
+          ? encounter.doorType : ['manual', 'automatic', 'revolving'].includes(scene.context?.entrance?.mode) ? scene.context.entrance.mode : 'manual' } : {}),
+        phase: ['waiting', 'passing', 'passed'].includes(encounter.phase) ? encounter.phase : scene.context?.entrance?.passed && encounter.kind === 'door' ? 'passed' : 'waiting'
+      } : null;
+      // No gait is demonstrated on moving stairs or inside a revolving enclosure.
+      if (scene.encounter && (scene.encounter.kind === 'escalator' || scene.encounter.doorType === 'revolving')) {
+        scene.kind = 'stand'; scene.location = 'hall'; scene.destinationPose = null;
+      }
       scene.energyBefore = Number.isFinite(Number(scene.energyBefore)) ? clamp(Number(scene.energyBefore), 0, 10) : 6;
       scene.energyAfter = Number.isFinite(Number(scene.energyAfter)) ? clamp(Number(scene.energyAfter), 0, 10) : scene.energyBefore;
       if (!['sit', 'desk', 'phone', 'rest', 'observe'].includes(scene.destinationPose)) scene.destinationPose = null;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
       gaitDuration = 1480 + clamp(fatigue, 0, 10) * 76;
       stairDuration = 2050 + clamp(fatigue, 0, 10) * 85;
-      duration = scene.kind === 'stand' ? 0 : scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
+      motionDuration = scene.kind === 'stand' ? 0 : scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
+      environmentDuration = scene.encounter?.kind === 'escalator' || scene.encounter?.doorType === 'revolving' ? 4800
+        : scene.encounter?.doorType === 'automatic' && scene.encounter.phase !== 'passed' ? 3200 : 0;
+      duration = Math.max(motionDuration, environmentDuration);
       elapsed = 0; draw();
     }
     function advance(ms) {
@@ -542,17 +732,19 @@
       draw();
     }
     function snapshot() {
+      const encounter = environmentState();
       return {
         coordinateSystem: '960x500; origin top-left; +x right, +y down',
         kind: scene.kind, poseKind: pose.kind === 'stairs' && pose.seated >= 1 ? 'sit' : pose.kind, destinationPose: scene.destinationPose || null, location: scene.location, step: scene.step, minuteOfDay: scene.minuteOfDay ?? null,
         x: Math.round(pose.x * 100) / 100, y: Math.round(pose.y * 100) / 100,
         phase: pose.phase, support: pose.support, moving: Boolean(pose.moving),
-        bracedLeg: 'right', elapsedMs: Math.round(elapsed), durationMs: duration,
+        characterMoving: Boolean(pose.moving), environmentMoving: Boolean(encounter && encounter.active), encounter,
+        bracedLeg: 'right', elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
         reducedMotion: reduced, fatigue: pose.fatigue,
         effort: effortState(),
         contextVisual: hasContext() ? {
           doorMode: scene.context.entrance ? scene.context.entrance.mode : null,
-          itemsVisible: scene.location === 'room' && hasHomeItems(),
+          itemsVisible: !scene.encounter && scene.location === 'room' && hasHomeItems(),
           items: scene.context.items ? { container: scene.context.items.container, cupLocation: scene.context.items.cupLocation,
             phoneLocation: scene.context.items.phoneLocation, drinkPlace: scene.context.items.drinkPlace, carryTrips: scene.context.items.carryTrips } : null
         } : null,

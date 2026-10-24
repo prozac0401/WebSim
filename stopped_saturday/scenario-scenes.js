@@ -14,7 +14,7 @@
     { id: 'company', title: '같이 걷는 하루', description: '친구들과 걸으며 대화하고, 돌아올 길도 정하는 하루.', scenes: ['S08', 'S11', 'S12', 'S04', 'REFLECT'], conditions: [] },
     { id: 'planning', title: '메뉴보다 먼저', description: '외출 전에 화장실과 쉬어 갈 곳을 찾아보고, 갈 곳을 고른다.', scenes: ['S13', 'S08', 'S12', 'S04', 'REFLECT'], conditions: [] }
   ];
-  const ALLOWED = { doorMode: ['manual', 'automatic'], helpStyle: ['takeover', 'ask'], phonePayment: [false, true] };
+  const ALLOWED = { doorMode: ['manual', 'automatic', 'revolving'], helpStyle: ['takeover', 'ask'], phonePayment: [false, true], verticalRoute: ['stairs', 'escalator'], orderMode: ['counter', 'kiosk'] };
   const DEFAULTS = { doorMode: 'manual', helpStyle: 'takeover', phonePayment: false };
   const clone = value => JSON.parse(JSON.stringify(value));
   const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
@@ -39,7 +39,7 @@
       companion: start.scenarioId === 'company' ? 'friends' : start.scenarioId === 'home' ? 'housemate' : 'none',
       goal: start.scenarioId === 'home' ? '햇빛 드는 창가에서 마시기' : '편한 자리에 앉아 시간을 보내고 돌아오기',
       entrance: { mode: start.conditions.doorMode, selected: 'front', passed: false, heldBy: null, waitMinutes: 0 },
-      environment: { layout: start.conditions.doorMode === 'automatic' ? 'sliding-door' : 'swing-door', hazardObserved: false, spaceCleared: false, responsibleActors: [], action: '아직 확인하지 않음' },
+      environment: { layout: start.conditions.doorMode === 'automatic' ? 'sliding-door' : start.conditions.doorMode === 'revolving' ? 'revolving-door' : 'swing-door', hazardObserved: false, spaceCleared: false, responsibleActors: [], action: '아직 확인하지 않음' },
       seat: { visibleEmpty: 'unknown', usable: null, mode: 'none', waitedMinutes: 0 },
       items: { container: 'favorite-cup', cupLocation: 'kitchen', phoneLocation: 'kitchen', carryTrips: 0, drinkPlace: null, cardLocation: 'wallet' },
       needs: { water: 'not-requested', utensils: 'not-requested' },
@@ -47,7 +47,9 @@
       social: { requests: [], unspoken: [], conversations: [], missedWords: false, together: false },
       plan: { destination: '아직 고르지 않은 장소', outboundMeters: 0, returnMeters: 0, detourMeters: 0, timeMinutes: 0, returnConsidered: false },
       access: { toilet: 'unknown', threshold: 'unknown', distance: 'unknown', rest: 'unknown' }, accessSource: null,
-      facts: [], actions: [], skipped: [], day: { seated: !outside, ate: false }
+      facts: [], actions: [], skipped: [], day: { seated: !outside, ate: false },
+      ...(hasOwn(start.conditions, 'orderMode') ? { order: { mode: start.conditions.orderMode, status: 'not-ordered', method: null } } : {}),
+      ...(hasOwn(start.conditions, 'verticalRoute') ? { vertical: { kind: start.conditions.verticalRoute, encountered: false, used: false } } : {})
     };
   }
   const mm = (kind, location, caption, destinationPose) => ({ kind, location, caption, ...(destinationPose ? { destinationPose } : {}) });
@@ -145,7 +147,7 @@
   ], () => [
     act('S09-wait', '낮은 자리가 날 때까지 기다린다', '기다린 뒤 실제로 빈 자리 확인', { seat: { visibleEmpty: 'high-and-low', usable: 'low-chair', mode: 'seated', waitedMinutes: 7 }, addMinutes: 7, facts: ['손님이 떠난 뒤 비게 된 낮은 자리에 앉았다'] }, ['메뉴를 고르는 일을 잠깐 뒤로 미루고 기다린다. 몇 분 뒤 다른 손님이 식사를 마치고 자리를 떠난다.', '손님이 떠난 낮은 자리에 앉는다. 조금 기다렸지만, 이제 컵을 편하게 내려놓을 수 있다.'], '높은 빈자리와 구별 · 낮은 자리 대기 7분 후 착석', { energy: -1, motion: mm('sit', 'room', '실제로 비게 된 낮은 자리에 앉는다.') }),
     act('S09-ask', '직원에게 이용 가능한 자리를 묻는다', '안쪽에 낮은 의자가 있는지 물어보기', { seat: { visibleEmpty: 'high-and-low', usable: 'low-chair', mode: 'seated', waitedMinutes: 3 }, requests: [request('이용 가능한 낮은 자리 확인')], addMinutes: 3, facts: ['직원이 안쪽의 사용하지 않던 낮은 자리를 확인해 안내했다'] }, ['직원이 안쪽을 확인하고 사용하지 않던 낮은 자리를 안내한다. 앉아 있던 손님을 이동시키지는 않는다.', '바깥 풍경은 잘 안 보이지만 편하게 앉을 수 있다. 이제 메뉴를 다시 펼쳐 본다.'], '직원 확인 · 안쪽 낮은 자리 / 다른 손님 이동 없음', { focus: 'shared' }),
-    act('S09-takeout', '포장해서 집에서 마신다', '마시고 싶은 음료를 포장해 가기', { location: 'home', outing: false, returned: true, returnReason: '이용할 좌석 대신 포장 후 귀가', seat: { visibleEmpty: 'high-only', usable: null, mode: 'takeout' }, items: { container: 'takeout-cup', cupLocation: 'table', drinkPlace: 'table' }, facts: ['가게에는 앉지 않고 포장한 음료를 집에서 마셨다'] }, ['가게에 머무는 대신 포장해 돌아간다. 높은 빈자리는 끝내 이용하지 않았다.', '집 식탁에 앉아 포장해 온 음료를 마신다. 가게에서 쉬지는 못했지만, 궁금했던 맛은 볼 수 있었다. 돌아오느라 지친 다리도 좀 쉬게 한다.'], '높은 자리 이용 안 함 · 포장·귀가 / 집 식탁에서 마심', { energy: -1, focus: 'rest', motion: mm('walk', 'room', '포장한 음료와 함께 귀가해 식탁에 앉는다.', 'sit') })
+    act('S09-takeout', '포장해서 가져가려 한다', '집에서 먹으려고 포장을 부탁하기', { location: 'home', outing: false, returned: true, returnReason: '목발을 짚느라 포장한 음식물을 가져가지 못하고 빈손으로 귀가', seat: { visibleEmpty: 'high-only', usable: null, mode: 'takeout' }, items: { container: 'takeout-cup', cupLocation: 'store-counter', drinkPlace: null }, facts: ['양손으로 목발을 짚고 있어 포장한 음식물을 집에 가져갈 수 없었다', '포장한 음식물은 가게에 두고 빈손으로 돌아왔다'] }, ['집에서 먹으려고 포장을 부탁한다. 그런데 양손으로 목발을 짚고 있어 포장한 음식물을 집에 가져갈 수가 없게 되었다. 봉투를 들면 목발 손잡이를 제대로 잡을 수 없다.', '직원에게 사정을 설명하고 포장한 음식물은 가게에 둔다. 먹고 싶었던 것을 가져오지 못한 채 빈손으로 집에 돌아온다. 앉고 나서도 아쉬움이 남는다.'], '목발 때문에 포장 음식 운반 불가 · 음식은 가게에 두고 빈손으로 귀가', { energy: -1, focus: 'rest', motion: mm('walk', 'room', '포장한 음식물은 가게에 두고 빈손으로 집에 돌아와 앉는다.', 'sit') })
   ]);
   scene('S10', '앉고 나서 보이는 셀프 코너', { location: ['cafe'], outing: true, seated: true }, () => [
     '자리에 앉아 편하게 먹고 싶다. 그제야 물과 식기가 셀프 코너에 있다는 안내를 본다.',
@@ -181,6 +183,88 @@
     act('S13-known', '조건을 확인한 가까운 곳을 고른다', '선택 폭은 줄지만 계획은 구체적으로', { accessSource: 'nearby-cafe', access: { toilet: 'confirmed-fiction-phone', threshold: 'confirmed-fiction-phone', distance: 'known-fiction-route', rest: 'confirmed-fiction-phone' }, plan: { destination: '조건을 확인한 가까운 곳' }, facts: ['가까운 곳의 화장실·문턱·거리·쉴 곳을 확인한 내용을 적었다'] }, ['가까운 곳의 화장실 위치와 문턱, 쉴 곳을 문의하고 적어 둔다. 거리는 알고 있는 길을 기준으로 확인한다.', '사진으로 봤던 가게는 이번에 가지 않기로 한다. 가까운 곳은 입구와 쉴 자리까지 알게 돼 준비하기가 조금 수월하다.'], '가까운 곳 / 화장실·문턱·거리·쉴 곳 확인', { focus: 'outing' }),
     act('S13-onsite', '가 보고 현장에서 판단하기로 한다', '기대는 유지하고 변경 가능성도 남기기', { accessSource: 'planned-cafe', access: { toilet: 'unknown', threshold: 'unknown', distance: 'map-estimate', rest: 'unknown' }, facts: ['현장 판단을 계획하고 접근 정보의 미확인 상태를 유지했다'] }, ['사진 속 장소를 후보에 둔다. 화장실과 문턱, 쉴 곳은 아직 모른다고 표시하고 현장에서 계획을 바꿀 수도 있다고 적는다.', '사진 속 풍경은 여전히 가 보고 싶다. 아직 출발 전이다. 확인하지 못한 곳은 현장에서 살펴보고, 필요하면 계획을 바꾸기로 한다.'], '현장 판단 계획 / 화장실·문턱·휴식 미확인 / 거리 추정', { focus: 'create' })
   ]);
+
+  const doorEncounter = (doorType, phase = 'waiting') => ({ kind: 'door', doorType, phase });
+  function decorateNode(node, s) {
+    const door = s.initialConditions.doorMode;
+    const kiosk = s.initialConditions.orderMode === 'kiosk';
+    if (node.sceneId === 'S02') {
+      node.encounter = doorEncounter(door);
+      if (door === 'manual') node.lines.push('문을 미는 데 생각보다 힘이 든다. 양손은 목발 손잡이를 잡고 있다. 문을 밀 손과 몸을 지탱할 손을 동시에 마련하기 어렵다. 뒤에 사람이 서자 더 빨리 들어가야 할 것 같아 어깨에 힘이 들어간다.');
+      else if (door === 'automatic') node.lines.push('문짝을 밀 필요는 없지만, 문이 열리자 뒤에 있던 사람들도 움직인다. 문이 닫히기 전에 지나가야 할 것 같아 마음이 급해진다. 서두르려다 목발 손잡이를 더 세게 쥔 것을 알아차린다.');
+      else {
+        node.title = '회전문 앞에서 타이밍을 놓친다';
+        node.lines = ['유리 칸이 천천히 돌아간다. 다른 사람은 빈 칸에 맞춰 들어가는데, 목발과 발을 둘 자리를 생각하는 사이 다음 칸이 지나간다.', '들어간 뒤에는 곡선을 따라 움직여야 한다. 한쪽 목발만 먼저 돌아가고 몸이 뒤처질 것 같아 발을 떼기 어렵다. 뒤에서 기다리는 사람이 보이자 손바닥에 더 힘이 들어간다.', '회전문 안으로 들어가지는 않았다. 옆에 일반 출입구 표시가 있지만 실제로 열려 있는지는 아직 모른다.'];
+        node.choices = [
+          act('S02-revolving-watch', '한쪽으로 비켜서 움직임을 살핀다', '회전문에 들어가지 않고 옆 출입구 확인', { entrance: { selected: 'revolving-front', passed: false, waitMinutes: 3 }, environment: { hazardObserved: true, action: '회전문 밖에서 움직임과 옆 출입구 표지를 확인했다' }, addMinutes: 3, facts: ['회전문의 속도와 곡선 이동이 부담스러워 들어가지 않았다'] }, ['통행을 막지 않는 옆 공간으로 비켜선다. 문이 한 바퀴 도는 동안 눈으로 따라가지만, 들어갈 순간을 정하기 어렵다.', '회전문은 이용하지 않기로 한다. 옆 출입구가 실제로 열리는지 확인해야 한다. 기다리는 동안 왼쪽 다리가 묵직해진다.'], '회전문 비탑승 · 바깥에서 3분 확인', { durationMinutes: 5, effect: 'standing', energy: -1, motion: mm('stand', 'hall', '회전문 바깥에서 움직임을 살핀다.') }),
+          act('S02-revolving-ask', '직원에게 일반 출입구를 물어본다', '옆문을 이용할 수 있는지 말로 확인', { entrance: { selected: 'side-unverified', passed: false }, requests: [request('회전문 대신 이용할 일반 출입구 문의')], addMinutes: 4, facts: ['회전문을 이용하기 어려워 직원에게 옆 출입구를 물었다'] }, ['“목발을 짚고 있어서 회전문으로 들어가기 어려워요. 다른 문을 이용할 수 있을까요?” 직원이 옆문을 확인하러 간다.', '답을 기다리며 문 밖에 선다. 누가 밀어 주면 해결되는 문이 아니라는 설명을 하고 나니 어깨에 들어간 힘이 조금 풀린다. 아직 들어가지는 않았다.'], '회전문 비탑승 · 일반 출입구 문의', { durationMinutes: 6, effect: 'standing', focus: 'shared', motion: mm('stand', 'hall', '직원에게 일반 출입구를 문의하고 바깥에서 기다린다.') }),
+          act('S02-revolving-side', '옆 출입구 표지 쪽으로 돌아간다', '표지만 보고 이용 가능하다고 단정하지 않기', { entrance: { selected: 'side-unverified', sideReached: true, passed: false }, detourMeters: 30, addMinutes: 5, facts: ['회전문에 들어가지 않고 옆 출입구까지 30m 돌아갔다'] }, ['회전문을 따라 돌지 않고 옆 출입구 표지 쪽으로 간다. 유리문에는 직원 확인이 필요하다는 안내가 붙어 있다.', '문 앞에 도착했지만 바로 들어갈 수 있는 것은 아니다. 손잡이를 당기며 버티는 대신 직원에게 확인할 준비를 한다.'], '회전문 비탑승 · 옆문까지 30m 우회', { durationMinutes: 8, energy: -1, motion: mm('walk', 'hall', '회전문을 피해서 옆 출입구 표지까지 간다.') })
+        ];
+      }
+      for (const ch of node.choices) ch.motion = { ...ch.motion, encounter: doorEncounter(door === 'revolving' && ch.effects.entrance?.sideReached ? 'manual' : door, ch.effects.entrance?.passed ? 'passed' : 'waiting') };
+    }
+    if (node.sceneId === 'S03') {
+      node.encounter = doorEncounter(door === 'revolving' ? 'manual' : door);
+      if (door === 'revolving') {
+        node.title = '옆문을 이용할 수 있을까?';
+        node.lines = ['회전문에는 들어가지 않았다. 옆 일반문은 직원이 열어 주어야 하고, 그 안쪽에는 카트와 대기선이 겹쳐 있다.', '옆문을 여는 것과 지나갈 공간을 확보하는 것은 다른 일이다. 직원에게 문과 통로를 함께 확인해 달라고 말할지 생각한다.'];
+        node.choices = [
+          act('S03-coordinate', '옆문과 통로를 함께 확인해 달라고 한다', '직원이 열고 공간을 비운 뒤 이동', { location: 'cafe', entrance: { selected: 'verified-side', actualMode: 'manual', passed: true, heldBy: '직원' }, environment: { layout: 'swing-door', hazardObserved: true, spaceCleared: true, responsibleActors: ['직원'], action: '직원이 옆 일반문을 열고 카트를 옮겨 통로를 확보했다' }, requests: [request('옆 일반문 개방과 통로 확보 요청')], detourMeters: s.context.entrance.sideReached ? 0 : 30, addMinutes: 4, facts: ['직원이 옆 일반문과 통로를 확인한 뒤 그쪽으로 들어갔다', '회전문은 이용하지 않았다'] }, ['직원에게 옆문을 열고 통로도 확인해 달라고 부탁한다. 직원이 카트를 옮긴 뒤 일반문을 잡아 준다.', '확인된 옆문으로 천천히 들어간다. 문이 나를 따라 돌지 않아도, 목발을 짚고 몸을 돌리는 동안 등과 어깨에는 힘이 들어간다.'], '회전문 대신 확인된 옆문 · 직원 요청 후 통로 확보', { durationMinutes: 10, effect: 'walk', energy: -1, focus: 'shared', motion: { ...mm('walk', 'hall', '직원이 확보한 통로와 옆 일반문을 통과한다.'), encounter: doorEncounter('manual', 'passed') } }),
+          act('S03-leave', '옆문 확인을 기다리지 않고 돌아간다', '회전문과 미확인 옆문 모두 이용하지 않기', { location: 'home', outing: false, returned: true, returnReason: '회전문과 미확인 옆문을 이용하지 않고 귀가', environment: { hazardObserved: true, spaceCleared: false, action: '확인되지 않은 출입구를 이용하지 않았다' }, facts: ['회전문과 미확인 옆문으로 들어가지 않고 집에 돌아왔다'] }, ['직원에게 이번에는 들어가지 않겠다고 말한다. 회전문이나 아직 확인되지 않은 옆문으로는 가지 않는다.', '빈손으로 집에 돌아와 앉는다. 가게 안에 들어가고 싶었던 마음이 남아 있다. 지금은 팔을 좀 쉬게 하고 싶다.'], '회전문·옆문 이용 안 함 · 귀가', { durationMinutes: 12, effect: 'walk', energy: -1, focus: 'rest', motion: mm('walk', 'room', '입구를 이용하지 않고 집에 돌아와 앉는다.', 'sit') }),
+          act('S03-notify-wait', '옆문을 열어 줄 직원을 기다린다', '문 개방과 통로 확보를 확인한 뒤 이동', { location: 'cafe', entrance: { selected: 'verified-side', actualMode: 'manual', passed: true, heldBy: '직원' }, environment: { layout: 'swing-door', hazardObserved: true, spaceCleared: true, responsibleActors: ['직원'], action: '직원이 옆문을 열고 대기선을 비웠다' }, requests: [request('옆문 이용 안내와 개방 요청')], detourMeters: s.context.entrance.sideReached ? 0 : 30, addMinutes: 7, facts: ['기다린 뒤 직원이 연 옆 일반문으로 들어갔다', '회전문은 이용하지 않았다'] }, ['옆문을 이용하고 싶다고 알린 뒤 기다린다. 직원이 와서 문을 열고 안쪽 대기선을 비워 준다.', '문과 통로가 확보된 것을 확인하고 들어간다. 기다리는 동안 버티던 왼쪽 다리는 조금 뻐근하다. 회전문 안으로 들어간 것은 아니다.'], '옆문 안내 요청 · 7분 대기 후 일반문으로 입장', { durationMinutes: 12, effect: 'walk', energy: -1, motion: { ...mm('walk', 'hall', '직원이 옆문과 통로를 확보한 뒤 들어간다.'), encounter: doorEncounter('manual', 'passed') } })
+        ];
+      } else for (const ch of node.choices) if (!ch.effects.returned) ch.motion = { ...ch.motion, encounter: doorEncounter(door, 'passed') };
+    }
+    if (node.sceneId === 'S05') {
+      node.encounter = doorEncounter(door);
+      const description = door === 'automatic' ? '자동문이 열리자 뒤의 사람도 앞으로 움직인다. 문을 밀 필요는 없어도 턱 앞에서 발과 목발을 둘 곳을 확인할 시간이 필요하다.' : door === 'revolving' ? '입구의 회전문이 계속 돌아간다. 목발과 발을 같은 칸 안에서 옮기고 곡선을 따라 나갈 자신이 없다. 한 번 들어가면 내 속도로 멈출 수 있을지 걱정돼 문 밖에 선다.' : '문은 무겁고 손을 놓으면 다시 닫힌다. 양손은 목발에 있어 문짝을 밀면서 몸을 앞으로 옮기기 어렵다. 문턱도 한 번에 넘을 수 있을지 먼저 봐야 한다.';
+      node.lines = [...node.lines, description];
+      node.choices = node.choices.map(ch => {
+        if (ch.effects.returned) return ch;
+        if (door !== 'revolving') return { ...ch, motion: { ...ch.motion, encounter: doorEncounter(door, 'passed') } };
+        return { ...ch, durationMinutes: (ch.id === 'S05-staff' ? 12 : 20), effects: { ...ch.effects, entrance: { ...ch.effects.entrance, actualMode: 'manual', heldBy: '직원' }, requests: [...(ch.effects.requests || []), request('회전문이 아닌 출입구 확인과 문 잡기 요청')], facts: [...ch.effects.facts, '회전문을 통과하지 않고 확인된 일반 출입구를 이용했다'] }, followUpText: [ch.followUpText[0], '회전문이 아닌 출입구라는 것을 확인하고, 문을 잠깐 잡아 달라고 부탁한다. 직원이 잡아 준 일반문을 지나 들어간다.'], motion: { ...ch.motion, encounter: doorEncounter('manual', 'passed') } };
+      });
+    }
+    if (node.sceneId === 'S06' && kiosk) {
+      node.title = '키오스크 앞에서 한 손이 모자란다';
+      node.encounter = { kind: 'kiosk' };
+      node.lines = ['메뉴판 대신 키오스크가 먼저 보인다. 주문 시작 버튼은 손이 닿지만, 위쪽 확인 버튼은 멀고 카드 단말기는 화면 아래 옆쪽에 떨어져 있다.', '버튼을 누르려고 한 손을 떼려다 반대쪽 어깨와 목발 손잡이에 힘이 몰린다. 메뉴를 고르고 화면에서 단말기 쪽으로 팔을 옮기는 동안에도 몸을 계속 받쳐야 한다.', '뒤에서 기다리는 사람의 발소리가 들린다. 서둘러 아무 메뉴나 누르고 싶지는 않다. 주문 방법을 바꾸거나 필요한 조작만 부탁할 수 있다.'];
+      const paid = method => ({ items: { cardLocation: 'wallet' }, order: { mode: 'kiosk', status: 'paid', method, menuConfirmed: true } });
+      const stance = { ...mm('stand', 'hall', '키오스크 앞에서 주문 내용을 확인한다.'), encounter: { kind: 'kiosk' } };
+      node.choices = [
+        act('S06-kiosk-staff', '메뉴를 말하고 화면 조작을 부탁한다', '내가 고른 메뉴와 금액은 직접 확인', { ...paid('staff-on-kiosk'), requests: [request('목발 때문에 키오스크 화면 조작 도움 요청')], facts: ['고른 메뉴를 말하고 직원에게 화면 조작을 부탁했다', '메뉴와 금액을 확인하고 결제했다'] }, ['직원에게 고른 메뉴를 말하고 화면 조작을 부탁한다. 직원이 누르기 전에 크기와 추가 옵션을 하나씩 확인해 준다.', '최종 메뉴와 금액을 보고 결제를 마친다. 카드는 다시 지갑에 넣는다. 주문은 끝났지만 음식이나 음료를 들고 갈 손은 여전히 없다.'], '키오스크 조작 요청 · 메뉴 확인·결제 완료', { durationMinutes: 9, effect: 'standing', focus: 'shared', motion: stance }),
+        act('S06-kiosk-counter', '카운터에서 주문할 수 있는지 묻는다', '가능하다는 답을 듣고 주문 방법 바꾸기', { ...paid('counter'), requests: [request('카운터 주문 가능 여부 문의')], addMinutes: 4, facts: ['직원에게 확인한 뒤 카운터에서 주문하고 결제했다'] }, ['카운터에서 주문할 수 있는지 묻는다. 직원이 가능하다고 해 메뉴를 말하고 주문 내용을 확인한다.', '직원이 결제 단말기를 손 닿는 쪽으로 놓아 준다. 계산을 마치고 카드를 지갑에 넣는다. 잠깐 더 기다렸지만 높은 화면을 계속 누르지는 않아도 됐다.'], '카운터 주문 확인 · 결제 완료', { durationMinutes: 12, effect: 'standing', focus: 'outing', motion: { ...stance, caption: '이용 가능한 카운터 주문과 결제를 확인한다.' } }),
+        act('S06-kiosk-partial', '누르기 어려운 버튼만 부탁한다', '가능한 선택은 직접, 높은 확인 버튼은 도움받기', { ...paid('partial-help'), requests: [request('높은 확인 버튼과 결제 단말기 위치 도움 요청')], facts: ['직접 고른 메뉴를 확인한 뒤 높은 버튼 조작만 부탁했다', '결제를 마치고 카드를 지갑에 넣었다'] }, ['손이 닿는 메뉴를 골랐지만 위쪽 확인 버튼은 멀다. 더 뻗으려다 허리가 기울고 어깨가 당겨 팔을 거둔다.', '확인 버튼과 결제 단말기만 도와 달라고 부탁한다. 직원이 선택한 메뉴를 읽어 준 뒤 결제를 돕는다. 카드를 지갑에 넣고 손을 다시 쉬게 한다.'], '메뉴 직접 선택 · 높은 조작부 도움 요청·결제 완료', { durationMinutes: 10, effect: 'reach', energy: -1, focus: 'create', motion: stance })
+      ];
+      if (s.initialConditions.phonePayment) node.choices.push(act('S06-kiosk-phone', '메뉴를 말하고 휴대전화로 결제한다', '준비된 결제 수단과 직원의 주문 도움 이용', { ...paid('phone-payment'), requests: [request('메뉴 입력과 휴대전화 결제 위치 안내 요청')], facts: ['직원에게 메뉴 입력을 부탁하고 준비된 휴대전화로 결제했다', '카드는 지갑에서 꺼내지 않았다'] }, ['직원에게 메뉴 입력을 부탁한 뒤 준비해 둔 휴대전화 결제를 이용한다. 단말기를 손이 닿는 쪽에 놓아 달라고 말한다.', '결제 완료 표시를 확인하고 휴대전화를 넣는다. 카드는 지갑에 그대로 있다. 음식은 자리를 정한 뒤 어떻게 받을지 따로 생각해야 한다.'], '직원 주문 입력 · 준비된 휴대전화 결제', { durationMinutes: 8, effect: 'standing', focus: 'shared', motion: stance }));
+    } else if (node.sceneId === 'S06' && hasOwn(s.initialConditions, 'orderMode')) {
+      node.choices = node.choices.map(ch => ({ ...ch, effects: { ...ch.effects, order: { mode: 'counter', status: 'paid', method: 'counter', menuConfirmed: true } } }));
+    }
+    if (node.sceneId === 'S09' && s.context.order?.status === 'paid') {
+      node.choices = node.choices.map(ch => {
+        if (ch.id === 'S09-wait') return { ...ch, followUpText: ['이미 주문은 마쳤다. 낮은 자리가 날 때까지 잠깐 기다린다. 몇 분 뒤 다른 손님이 식사를 마치고 자리를 떠난다.', ch.followUpText[1]] };
+        if (ch.id === 'S09-ask') return { ...ch, followUpText: [ch.followUpText[0], '바깥 풍경은 잘 안 보이지만 편하게 앉을 수 있다. 이미 주문한 음식을 어디에서 받을지 확인한다.'] };
+        return ch;
+      });
+    }
+    if (node.sceneId === 'S10' && kiosk && s.context.order?.status !== 'paid') {
+      node.lines = ['자리는 확보했지만 메뉴 후보만 골랐을 뿐 아직 주문하지 않았다. 직원에게 앉은 자리에서 주문할 수 있는지 물으니 가능하다고 한다.', ...node.lines];
+      const titles = { 'S10-all': '메뉴와 물·식기를 한 번에 부탁한다', 'S10-separate': '메뉴를 주문하고 필요한 것은 따로 부탁한다', 'S10-defer': '간단한 메뉴를 주문하고 추가 부탁은 미룬다' };
+      const minutes = { 'S10-all': 14, 'S10-separate': 18, 'S10-defer': 11 };
+      node.choices = node.choices.map(ch => ({ ...ch, title: titles[ch.id], durationMinutes: minutes[ch.id], effects: { ...ch.effects, order: { mode: 'kiosk', status: 'paid', method: 'staff-from-seat', menuConfirmed: true }, requests: ch.id === 'S10-all' ? [request('앉은 자리에서 메뉴 주문과 물·식기를 함께 요청')] : [request('앉은 자리에서 메뉴 주문'), ...(ch.effects.requests || [])], facts: ['직원에게 앉은 자리에서 메뉴를 말하고 주문과 결제를 마쳤다', ...ch.effects.facts] }, followUpText: [`메뉴와 금액을 확인하고 앉은 자리에서 주문과 결제를 마친다. ${ch.followUpText[0]}`, ch.followUpText[1]], journalTrace: `메뉴 주문·결제 / ${ch.journalTrace}` }));
+    }
+    if (node.sceneId === 'S12' && s.initialConditions.verticalRoute === 'escalator') {
+      node.title = '움직이는 발판 앞에서';
+      node.encounter = { kind: 'escalator' };
+      node.lines = ['가까운 길은 에스컬레이터다. 발판이 평평한 바닥에서 갈라져 올라간다. 사람들은 망설임 없이 발을 올리지만, 나는 목발과 발을 옮길 순서를 생각하는 사이 타이밍을 놓친다.', '양손으로 목발을 짚은 채 움직이는 손잡이까지 잡을 수는 없다. 올라탄 뒤 흔들리면 몸을 어떻게 받칠지도 걱정된다. 뒤에 사람이 다가오자 어깨에 힘이 더 들어간다.', '발판에 올라타지 않고 옆의 고정된 바닥으로 비켜선다. 엘리베이터 표시를 찾거나 직원에게 다른 길을 확인할 수 있다.'];
+      node.choices = [
+        act('S12-escalator-elevator', '에스컬레이터 대신 엘리베이터로 간다', '움직이는 발판에 타지 않고 안내 표지 따라가기', { location: 'elevator-lobby', vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'elevator' }, plan: { returnConsidered: true }, detourMeters: 180, addMinutes: 8, facts: ['에스컬레이터에 타지 않고 180m 돌아 엘리베이터 앞으로 갔다'] }, ['발판에 발이나 목발을 올리지 않고 엘리베이터 표지 쪽으로 간다. 목적지와 반대 방향으로 돌아가는 것 같아 지도를 한 번 더 본다.', '엘리베이터 앞에 도착하니 손바닥과 왼쪽 허벅지가 묵직하다. 아직 탑승하지 않았다. 돌아올 때 쓸 길도 확인한다.'], '에스컬레이터 비탑승 · 엘리베이터까지 180m 우회', { durationMinutes: 14, effect: 'walk', energy: -2, focus: 'outing', motion: mm('walk', 'hall', '에스컬레이터를 이용하지 않고 엘리베이터 앞으로 간다.') }),
+        act('S12-escalator-confirm', '직원에게 고정된 바닥으로 가는 길을 묻는다', '안내받은 연결 통로를 확인하고 이동', { location: 'elevator-lobby', vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'verified-passage' }, access: { threshold: 'confirmed-fiction-connecting-passage' }, requests: [request('에스컬레이터 없이 이동할 연결 통로 확인')], detourMeters: 120, addMinutes: 10, facts: ['직원에게 확인한 고정된 연결 통로로 엘리베이터 앞에 왔다', '에스컬레이터에는 타지 않았다'] }, ['목발을 짚고 있어 에스컬레이터 대신 갈 길을 찾는다고 말한다. 직원이 연결 통로가 열려 있는지 확인한 뒤 알려 준다.', '안내받은 고정된 통로를 지나 엘리베이터 앞에 선다. 길을 묻고 확인하는 데 시간이 들었지만 움직이는 발판에 맞춰 서두르지는 않았다.'], '에스컬레이터 비탑승 · 직원 확인 후 연결 통로 120m', { durationMinutes: 17, effect: 'walk', energy: -1, focus: 'shared', motion: mm('walk', 'hall', '직원이 확인한 고정된 통로로 엘리베이터 앞에 간다.') }),
+        act('S12-escalator-home', '다른 층에 가지 않고 집으로 돌아간다', '에스컬레이터를 이용하지 않고 귀가', { location: 'home', outing: false, returned: true, returnReason: '에스컬레이터와 다른 층 이동을 포기하고 귀가', vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'home' }, plan: { returnConsidered: true }, facts: ['에스컬레이터에 타지 않고 집으로 돌아왔다'] }, ['다른 층에 가는 계획을 바꾼다. 에스컬레이터를 타지 않고 집으로 돌아갈 길을 확인한다.', '집에 와서 앉는다. 가 보고 싶었던 곳은 못 갔다. 손잡이를 놓고 손을 펴 보니 조금 전까지 얼마나 힘을 주고 있었는지 알겠다.'], '에스컬레이터 비탑승 · 다른 층에 가지 않고 귀가', { durationMinutes: 12, effect: 'walk', energy: -1, focus: 'rest', motion: mm('walk', 'room', '에스컬레이터를 이용하지 않고 집으로 돌아온다.', 'sit') })
+      ];
+    }
+    return node;
+  }
 
   function eligible(def, context) {
     const needs = def.eligibility;
@@ -240,7 +324,7 @@
     if (s.history.some(entry => entry.sceneId === 'S11')) lines.push(s.context.social.together ? '친구와 나란히 걷거나 멈춰 서서 이야기를 나눴다. 그때 끝까지 들었던 말이 떠오른다.' : '친구와 같은 곳으로 걸었지만, 앞에서 나누던 이야기는 일부 놓쳤다. 무슨 얘기였는지 아직 궁금하다.');
     const choices = pending && stillCafe ? [
       act('REFLECT-request', '미뤘던 물과 식기를 지금 부탁한다', '물을 마시고 기록 마치기', { needs: { water: 'received', utensils: 'received' }, requests: [request('미뤘던 물과 식기를 다시 요청')], facts: ['미뤘던 물과 식기를 마지막에 요청해 실제로 받았다'] }, ['미뤘던 물과 식기를 다시 부탁한다. 잠시 뒤 테이블에 물과 식기가 놓인다.', '물을 한 모금 마시고 오늘의 기록을 마무리한다. 부탁을 미뤘던 시간도 함께 떠오른다.'], '재요청 뒤 물·식기 실제 수령', { focus: 'shared' }),
-      act('REFLECT-change-order', '물을 부탁하고 남은 음식은 포장한다', '식기는 필요 없는 방식으로 변경', { needs: { water: 'received', utensils: 'not-needed' }, requests: [request('물과 남은 음식 포장 요청')], facts: ['물은 받고 남은 음식은 포장했다', '식기는 포장 방식으로 필요 없어졌다'] }, ['물은 부탁해 받고 남은 음식은 포장한다. 남은 음식은 집에서 먹기로 했다. 여기서는 식기를 더 쓸 일이 없다.', '물을 한 모금 마시고 포장된 음식을 챙긴다. 이제 집으로 갈 길을 확인한다.'], '물 수령 / 음식 포장 / 식기는 미수령·불필요로 변경', { focus: 'create' }),
+      act('REFLECT-change-order', '물을 부탁하고 남은 음식은 포장하려 한다', '남은 음식을 집에서 먹으려는 생각', { needs: { water: 'received', utensils: 'not-needed' }, items: { container: 'takeout-cup', cupLocation: 'store-counter', drinkPlace: null }, requests: [request('물과 남은 음식 포장 요청')], facts: ['물은 받아 마셨지만 양손으로 목발을 짚어 포장 음식을 가져갈 수 없었다', '남은 음식은 가게에 두고 빈손으로 돌아왔다'] }, ['물을 부탁해 마시고 남은 음식을 포장한다. 자리에서 일어나 목발을 잡고 나니 봉투를 들 손이 없다. 양손으로 목발을 짚어야 해서 포장한 음식을 집에 가져갈 수 없다.', '직원에게 가져갈 수 없다고 말하고 포장은 가게에 둔다. 남은 음식이 아깝지만 빈손으로 집에 돌아온다.'], '물 수령 / 포장 음식 운반 불가 / 음식은 가게에 두고 빈손으로 귀가', { focus: 'create' }),
       act('REFLECT-unresolved', '더 부탁하지 않고 식사를 마친다', '물과 식기는 받지 못한 채로 두기', { facts: ['물을 받지 않은 미해결 요청을 그대로 기록했다'] }, ['더 부탁하지 않고 식사를 마친다. 물과 식기는 받지 못했다. 말을 꺼내려다 망설였던 일이 생각난다.', '물을 받지 못했다고 메모한다. 부탁하지 않아 편했던 것만은 아니다. 다음에는 어떻게 말할지 잠깐 생각한다.'], '물·식기 미수령 상태로 기록 / 해결했다고 쓰지 않음')
     ] : [
       act('REFLECT-note', '오늘 기억나는 일을 한 줄 적는다', '했던 일과 못 했던 일 함께', { facts: ['오늘 있었던 일을 한 줄로 적었다'] }, ['오늘 했던 일과 하려다 그만둔 일을 적는다. 길게 설명하지 않고 기억나는 것만 쓴다.', '메모를 저장한다. 나중에 읽으면 오늘 무엇을 했는지 기억날 것 같다.'], '했던 일과 하지 않은 일을 함께 적음'),
@@ -278,6 +362,7 @@
       if (reason) node = homeNode(s, requested, reason);
       else node = { sceneId: requested, title: def.title, time: times[coreIndex(s)], step: coreIndex(s) + 1, eligibility: { eligible: true, requestedSceneId: requested, matched: true, requires: clone(def.eligibility) }, lines: def.lines(s), choices: def.choices(s), contrastVariant: typeof def.contrastVariant === 'function' ? def.contrastVariant(s) : def.contrastVariant };
     }
+    node = decorateNode(node, s);
     node.choiceIds = node.choices.map(ch => ch.id);
     node.choices = node.choices.map(ch => ({ ...ch, followUpText: [...ch.followUpText], journalTrace: ch.journalTrace, contrastVariant: node.contrastVariant }));
     return node;
@@ -286,7 +371,7 @@
     const node = getNode(s);
     if (!node) { s.scene = 'end'; return s; }
     s.scene = node.sceneId;
-    if (node.sceneId === 'S06') s.context.items.cardLocation = 'floor';
+    if (node.sceneId === 'S06' && s.initialConditions.orderMode !== 'kiosk') s.context.items.cardLocation = 'floor';
     if (node.sceneId === 'S09') s.context.seat.visibleEmpty = 'high-only';
     if (node.sceneId === 'S10') { s.context.needs.water = 'pending'; s.context.needs.utensils = 'pending'; }
     if (!node.eligibility.matched) s.context.skipped.push({ sceneId: node.eligibility.requestedSceneId, reason: node.eligibility.reason });
@@ -295,7 +380,7 @@
   function applyEffects(context, effects) {
     const c = clone(context);
     for (const key of ['location', 'outing', 'returned', 'returnReason', 'accessSource', 'companion']) if (hasOwn(effects, key)) c[key] = effects[key];
-    for (const key of ['entrance', 'environment', 'seat', 'items', 'needs', 'help', 'plan', 'access', 'day']) if (effects[key]) c[key] = { ...c[key], ...clone(effects[key]) };
+    for (const key of ['entrance', 'environment', 'seat', 'items', 'needs', 'help', 'plan', 'access', 'day', 'order', 'vertical']) if (effects[key]) c[key] = { ...c[key], ...clone(effects[key]) };
     if (effects.socialPatch) c.social = { ...c.social, ...effects.socialPatch };
     for (const key of ['requests', 'unspoken', 'conversations']) if (effects[key]) c.social[key].push(...clone(effects[key]));
     if (effects.facts) c.facts.push(...effects.facts);

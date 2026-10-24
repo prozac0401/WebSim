@@ -39,6 +39,8 @@
   const motion = (kind, location, caption, destinationPose) => ({ kind, location, caption, ...(destinationPose ? { destinationPose } : {}) });
   const bodyEffects = {
     neutral: {},
+    standing: { ankle: 0, shoulder: 1, back: 1, palm: 1, goodLeg: 1 },
+    reach: { ankle: 0, shoulder: 2, back: 2, underarm: 1, palm: 1, goodLeg: 1 },
     transfer: { ankle: 1, shoulder: 1, back: 1, palm: 1, goodLeg: 1 },
     walk: { ankle: 1, shoulder: 2, back: 1, underarm: 1, palm: 2, goodLeg: 2 },
     stairs: { ankle: 1, shoulder: 3, back: 2, underarm: 2, palm: 2, goodLeg: 3 },
@@ -320,6 +322,8 @@
   }
   function sensation(s, effect) {
     if (effect === 'neutral') return '몸의 반응 · 발목은 여전히 묵직하다.';
+    if (effect === 'standing') return '몸의 반응 · 목발을 짚고 서 있는 동안 왼쪽 허벅지와 손바닥이 묵직해진다. 기다리는 시간이 길어지니 어깨에도 힘이 들어간다.';
+    if (effect === 'reach') return '몸의 반응 · 높은 화면 쪽으로 팔을 뻗으려다 어깨 앞과 등 옆이 당긴다. 반대쪽 손바닥에는 목발 손잡이가 더 깊이 눌린다. 팔을 거두고 필요한 조작을 부탁한다.';
     if (effect === 'stairs') return '몸의 반응 · 손잡이를 누르던 손바닥이 얼얼하고, 어깨 앞쪽과 등 옆이 당긴다. 겨드랑이 옆은 옷이 닿을 때 유독 신경 쓰인다. 몸을 받치던 왼쪽 다리도 묵직해져 2층 의자에 앉아 쉰다.';
     if (effect === 'rest') return '몸의 반응 · 손과 어깨가 조금 편해졌다. 그래도 발목은 묵직하고, 오래 힘을 준 근육도 아직 뻐근하다.';
     if (effect === 'walk' || effect === 'transfer') {
@@ -343,7 +347,44 @@
     if (s.scenarioId !== 'classic') return scenes.getNode(s);
     const node = NODES[s.coreScene];
     if (!node) return null;
-    return { sceneId: s.coreScene, title: node.title, lines: node.lines(s), eligibility: { eligible: true, matched: true, requestedSceneId: s.coreScene }, contrastVariant: null, choices: node.choices.map(c => ({ ...c, effects: classicEffects(c), followUpText: typeof c.lines === 'function' ? c.lines(s) : [...c.lines], journalTrace: c.trace, isClassic: true })) };
+    const result = { sceneId: s.coreScene, title: node.title, lines: node.lines(s), eligibility: { eligible: true, matched: true, requestedSceneId: s.coreScene }, contrastVariant: null, choices: node.choices.map(c => ({ ...c, effects: classicEffects(c), followUpText: typeof c.lines === 'function' ? c.lines(s) : [...c.lines], journalTrace: c.trace, isClassic: true })) };
+    if (s.coreScene === 'outside' && s.initialConditions.doorMode === 'automatic') {
+      result.lines[2] = '자동문이라면 문짝을 밀 손은 필요하지 않다. 그래도 문이 열리는 동안 지나가야 할 것 같아 마음이 급해질 수 있다. 갔다가 돌아오는 길까지 내 속도로 움직일 수 있을지 생각해 본다.';
+      const ch = result.choices.find(item => item.id === 'outside-ride');
+      ch.followUpText = [ch.followUpText[0], '상가 자동문이 열리자 뒤에 있던 사람도 앞으로 움직인다. 문이 닫히기 전에 지나가야 할 것 같아 어깨에 힘이 들어간다. 앞쪽 공간을 확인하고 자기 속도로 지나 1층 로비 의자에 앉는다. 가려던 카페는 2층이다.'];
+      ch.effects.entrance = { mode: 'automatic', actualMode: 'automatic', passed: true, heldBy: null };
+      ch.effects.facts.push('자동문을 지나 상가 로비에 앉았다');
+      ch.motion = { ...ch.motion, location: 'hall', caption: '자동문을 지나 1층 로비 의자에 앉는다.', encounter: { kind: 'door', doorType: 'automatic', phase: 'passed' } };
+    }
+    if (s.coreScene === 'outside' && s.initialConditions.doorMode === 'revolving') {
+      const ch = result.choices.find(item => item.id === 'outside-ride');
+      ch.followUpText = [ch.followUpText[0], '상가 앞 회전문이 계속 돌아간다. 목발과 발을 같은 칸에 맞추고 곡선을 따라 움직이기가 어렵겠다. 동행에게 직원과 다른 출입구를 확인해 달라고 부탁한다. 직원이 확인한 옆 일반문을 잡아 준 뒤 그쪽으로 들어가 1층 로비에 앉는다. 가려던 카페는 2층이다.'];
+      ch.effects.entrance = { mode: 'revolving', actualMode: 'manual', selected: 'verified-side', passed: true, heldBy: '직원' };
+      ch.effects.requests = [{ by: '주인공', forWhat: '회전문 대신 이용할 출입구 확인과 문 잡기 요청' }];
+      ch.effects.facts.push('회전문을 이용하지 않고 직원이 확인한 옆 일반문으로 들어갔다');
+      ch.durationMinutes = 40;
+      ch.motion = { ...ch.motion, encounter: { kind: 'door', doorType: 'manual', phase: 'passed' } };
+    }
+    if (s.coreScene === 'outing_lunch' && s.initialConditions.verticalRoute === 'escalator') {
+      result.title = '2층으로 올라가는 에스컬레이터';
+      result.encounter = { kind: 'escalator' };
+      result.lines = ['2층 카페로 올라가는 가까운 길은 에스컬레이터다. 발판이 계속 움직이고 손잡이도 함께 지나간다.', '양손은 목발을 쥐고 있다. 올라탈 때 맞춰 발과 목발을 옮길 생각을 하니 어깨에 힘이 들어간다. 곧 다음 사람이 올 것 같아 조급하지만 발판에 올라서지는 않는다.', ...result.lines.slice(2)];
+      result.choices = result.choices.map(ch => {
+        if (ch.id === 'outing-stairs') return { ...ch, id: 'outing-escalator-check', title: '에스컬레이터를 타지 않고 다른 길로 올라간다', note: '동행과 확인한 뒤편 엘리베이터 이용', effect: 'walk', flags: ['elevator_used', 'access_note'], durationMinutes: 24, reactionTitle: '움직이지 않는 통로로 돌아서', followUpText: ['에스컬레이터 옆의 고정된 바닥으로 비켜선다. 동행에게 뒤편 엘리베이터가 실제로 열려 있는지 함께 확인해 달라고 부탁한다.', '안내받은 통로로 돌아 엘리베이터를 이용해 2층에 도착한다. 가까운 의자에 앉아 손을 쉰다. 움직이는 발판에는 올라타지 않았다.'], journalTrace: '에스컬레이터 비탑승 · 확인한 엘리베이터로 2층 이동', effects: { ...ch.effects, requests: [{ by: '주인공', forWhat: '에스컬레이터 대신 이용할 엘리베이터 확인 요청' }], vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'elevator' }, facts: ['에스컬레이터에 타지 않고 확인한 엘리베이터로 2층에 올라갔다'] }, motion: motion('walk', 'hall', '확인한 엘리베이터를 이용해 2층 의자에 앉는다.', 'sit') };
+        const copy = { ...ch, effects: { ...ch.effects, vertical: { kind: 'escalator', encountered: true, used: false, alternative: ch.id === 'outing-elevator' ? 'elevator' : ch.id === 'outing-delivery' ? 'home' : 'ground-floor' } } };
+        if (ch.id === 'outing-elevator') copy.followUpText = [ch.followUpText[0], '2층 의자에 앉는다. 조금 돌아왔지만 움직이는 발판에 올라탈 필요는 없었다. 다음에도 찾을 수 있도록 뒤편 엘리베이터 위치를 적는다.'];
+        return copy;
+      });
+    }
+    if (s.coreScene === 'outing_lunch' && s.initialConditions.orderMode === 'kiosk') {
+      const ch = result.choices.find(item => item.id === 'outing-pickup');
+      ch.title = '1층에서 주문 방법을 확인하고 점심을 먹는다';
+      ch.note = '키오스크 조작과 음식 운반 도움을 각각 부탁';
+      ch.durationMinutes = 50;
+      ch.followUpText = ['1층에서 적용 가능한 혜택과 주문 방법을 확인한다. 키오스크 위쪽 버튼에 손을 뻗으려니 목발을 잡은 다른 손에 힘이 몰린다. 직원에게 메뉴를 말하고 화면 조작을 부탁한 뒤 금액을 확인해 결제한다.', '음식과 음료가 나와도 양손으로 목발을 짚고 있어 들고 갈 수 없다. 동행에게 봉투와 음료를 자리까지 옮겨 달라고 부탁한다. 옮겨 받은 음식을 함께 먹는다.'];
+      ch.effects = { ...ch.effects, order: { mode: 'kiosk', status: 'paid', method: 'staff-on-kiosk', menuConfirmed: true }, requests: [...(ch.effects.requests || []), { by: '주인공', forWhat: '키오스크 메뉴 입력 요청' }, { by: '주인공', forWhat: '동행에게 음식과 음료 운반 요청' }], facts: ['직원에게 키오스크 조작을 부탁해 결제했다', '동행에게 음식과 음료 운반을 부탁한 뒤 함께 먹었다'] };
+    }
+    return result;
   }
   function getNode(s) {
     if (isLegacy(s)) return legacy.getNode(s);
@@ -368,6 +409,7 @@
     if (rhythm.DAY_PLAN[s.decisions.length] === 'core' && s.scenarioId !== 'classic') scenes.prepare(s);
     const node = getNode(s);
     if (!node) throw new Error('다음 하루 장면을 찾을 수 없습니다.');
+    if (node.encounter?.kind === 'escalator') s.context.vertical = { ...s.context.vertical, kind: 'escalator', encountered: true, used: false };
     s.scene = node.sceneId;
     return s;
   }
