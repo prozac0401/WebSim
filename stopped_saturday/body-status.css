@@ -1,0 +1,59 @@
+/* Scoped component styles. Intensity is also written in words and shown in bars. */
+.sbs { container-type: inline-size; color: #253f3b; margin: 18px 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+.sbs, .sbs * { box-sizing: border-box; }
+.sbs-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 12px; margin-bottom: 12px; }
+.sbs-heading h3 { margin: 0; font-size: 14px; line-height: 1.5; }
+.sbs-heading > span { color: #637063; font-size: 10px; line-height: 1.6; }
+.sbs-layout { display: grid; grid-template-columns: minmax(110px, .8fr) minmax(0, 2fr); gap: 12px; align-items: center; }
+.sbs-figure { margin: 0; min-width: 0; text-align: center; }
+.sbs-anatomy { display: block; width: 100%; max-width: 190px; height: auto; margin-inline: auto; overflow: visible; }
+.sbs .sbs-caption { margin: 0; padding: 0; min-height: 0; font-size: 10px; line-height: 1.7; color: #657165; white-space: nowrap; }
+.sbs-zone, .sbs-card { --sbs-color: #879184; --sbs-tint: #edf0e7; --sbs-weight: 1.6; }
+.sbs [data-level="1"] { --sbs-color: #65785d; --sbs-tint: #e6ecdc; --sbs-weight: 2; }
+.sbs [data-level="2"] { --sbs-color: #937342; --sbs-tint: #eee1c7; --sbs-weight: 2.5; }
+.sbs [data-level="3"] { --sbs-color: #8b573f; --sbs-tint: #e8c8b2; --sbs-weight: 3.5; }
+.sbs-highlight { fill: var(--sbs-tint); fill-opacity: .78; stroke: var(--sbs-color); stroke-width: var(--sbs-weight); stroke-linecap: round; stroke-linejoin: round; }
+.sbs-zone[data-level="0"] .sbs-highlight, .sbs-zone[data-level="unknown"] .sbs-highlight { fill-opacity: .15; stroke-opacity: .65; }
+.sbs-back-zone { stroke-dasharray: 4 4; fill-opacity: .5; }
+.sbs-side-zone { fill: none; stroke-width: calc(var(--sbs-weight) + 3px); }
+.sbs-leader { fill: none; stroke: var(--sbs-color); stroke-width: 1.5; }
+.sbs-map-number { fill: #fffdf7; stroke: var(--sbs-color); stroke-width: var(--sbs-weight); }
+.sbs-map-digit { font: 700 19px "Malgun Gothic", sans-serif; fill: #354b3d; }
+.sbs-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
+.sbs-card { min-width: 0; padding: 10px; border: 1px solid #d4d9ca; border-radius: 8px; background: #fcfaf4; }
+.sbs-card-title { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.sbs-card-title strong { font-size: 12px; line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
+.sbs-card-number { display: inline-grid; place-items: center; flex: 0 0 18px; width: 18px; height: 18px; border: 1px solid var(--sbs-color); border-radius: 50%; color: #354b3d; font-size: 10px; font-weight: 700; background: #fffdf7; }
+.sbs-level { display: block; margin-top: 7px; color: #394e3f; font-size: 12px; font-weight: 700; line-height: 1.3; }
+.sbs-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 5px; }
+.sbs-bars > span { display: block; height: 4px; border: 1px solid #d1d8c9; border-radius: 1px; background: #edf0e7; }
+.sbs-bars > .is-filled { border-color: var(--sbs-color); background: var(--sbs-color); }
+.sbs .sbs-sensation { margin: 7px 0 0; color: #5a685d; font-size: 11px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
+.sbs .sbs-note { margin: 10px 0 0; color: #657165; font-size: 10px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.sbs-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@container (max-width: 440px) {
+  .sbs-layout { grid-template-columns: 100px minmax(0, 1fr); gap: 8px; }
+  .sbs-cards { gap: 6px; }
+  .sbs-card { padding: 7px 6px; border-radius: 6px; }
+  .sbs-card-title { gap: 4px; }
+  .sbs-card-title strong { font-size: 11px; }
+  .sbs-card-number { flex-basis: 16px; width: 16px; height: 16px; font-size: 9px; }
+  .sbs-level { margin-top: 5px; font-size: 11px; }
+  .sbs .sbs-sensation { display: none; }
+  .sbs-heading { gap: 3px 8px; margin-bottom: 9px; }
+  .sbs-heading h3 { font-size: 13px; }
+  .sbs-heading > span { font-size: 9px; }
+  .sbs .sbs-caption { font-size: 9px; }
+}
+@container (max-width: 275px) {
+  .sbs-layout { grid-template-columns: 86px minmax(0, 1fr); gap: 6px; }
+  .sbs-card-title { gap: 3px; }
+  .sbs-card-title strong { font-size: 10px; }
+  .sbs-card { padding-inline: 5px; }
+}
+@media (forced-colors: active) {
+  .sbs-card, .sbs-card-number, .sbs-bars > span { border-color: CanvasText; }
+  .sbs-bars > .is-filled { background: CanvasText; forced-color-adjust: none; }
+  .sbs-highlight, .sbs-leader, .sbs-map-number { stroke: CanvasText; }
+  .sbs-map-digit { fill: CanvasText; }
+}

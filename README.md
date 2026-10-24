@@ -2,12 +2,13 @@
 
 **지금 만나 볼 이야기: [주말 계획표 시즌2](weekend_season2/index.html)** — 가상의 다른 삶에서 일·가족·취미·휴식을 챙기며 주말을 계획하고, 한 해의 이야기를 만들어 보세요. 홈페이지 첫 화면에서 바로 시작할 수 있습니다.
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 30개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 31개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
 ## 생활과 도구
 
+- [멈춘 토요일](stopped_saturday/stopped_saturday.html) — 깁스를 하고 처음 맞는 주말을 열두 번의 선택으로 플레이하며, 행동에 따른 시간과 몸의 변화를 확인하는 이야기 · [사용법](stopped_saturday/stopped_saturday_doc.html) · [구현과 검사](stopped_saturday/README.md)
 - [주말 계획표 시즌2](weekend_season2/index.html) — 자동으로 만난 가상 인물의 일상을 따라가고 중요한 순간을 선택하며 2026년 한 해를 살아보는 생활 게임 · [사용법](weekend_season2/weekend_season2_doc.html) · [구현과 검사](weekend_season2/README.md)
 - [이상한 카메라](rolling_shutter/rolling_shutter.html) — 줄마다 다른 순간을 찍는 카메라로, 휘어진 사진의 촬영 조건을 찾아봅니다. · [사용법](rolling_shutter/rolling_shutter_doc.html)
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)
