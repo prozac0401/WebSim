@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2ea">
+  <meta name="description" content="시간은 남아돈다. 발목은 남아돌지 않는다. 다섯 번의 선택과 몸에 남은 작은 감각으로 쓰는 토요일 이야기.">
+  <title>멈춘 토요일 · WebSim</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="saturday.css">
+  <script src="story-engine.js" defer></script>
+  <script src="movement-scene.js" defer></script>
+  <script src="saturday-app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#story-panel">이야기로 건너뛰기</a>
+  <header class="site-header shell">
+    <a class="brand" href="../index.html"><span aria-hidden="true">W·</span> WebSim</a>
+    <nav aria-label="페이지 이동"><a href="../index.html#catalog">다른 실험</a><a href="stopped_saturday_doc.html">게임 방법 <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main class="shell" id="main">
+    <div class="edition"><span>작은 하루를 플레이하다</span><span>INTERACTIVE STORY · 01</span></div>
+    <div class="title-row"><h1>멈춘 토요일<span>.</span></h1><p>SATURDAY,<br>INTERRUPTED</p></div>
+    <div class="game-layout">
+      <aside class="day-panel" aria-label="토요일의 풍경과 상태">
+        <figure class="scene-figure">
+          <div class="scene-top"><span class="day-pill">SATURDAY</span><span id="scene-clock">10:12 AM</span></div>
+          <canvas id="day-canvas" width="960" height="500" role="img" aria-label="보조기를 한 오른쪽 발목을 쉬게 하며 집 안에 앉아 있는 인물" aria-describedby="scene-caption">그림 설명은 바로 아래에 있습니다.</canvas>
+          <figcaption id="scene-caption">평소와 같은 방. 조금 다른 토요일.</figcaption>
+          <div class="scene-controls"><span>오늘의 움직임을 천천히</span><button id="motion-toggle" type="button" aria-pressed="false">움직임 줄이기</button></div>
+        </figure>
+        <section class="status-panel" id="status-panel" hidden aria-label="오늘의 상태">
+          <div class="status-heading"><h2>지금의 나</h2><span>점수가 아닌, 하루의 결</span></div>
+          <div class="status-meters">
+            <div><div class="meter-label"><label for="energy">에너지</label><span id="energy-value"></span></div><meter id="energy" min="0" max="10" value="6">6 / 10</meter></div>
+            <div><div class="meter-label"><label for="mood">마음의 온도</label><span id="mood-value"></span></div><meter id="mood" min="0" max="10" value="4">4 / 10</meter></div>
+          </div>
+          <details id="body-notes"><summary>몸이 남긴 메모 <span id="body-summary"></span></summary><p class="body-intro">이 인물의 감각을 표현한 이야기입니다. 의학적 통증 척도가 아닙니다.</p><div id="body-list"></div></details>
+          <div class="trace-row"><span class="small-label">오늘의 흔적</span><div id="traces"></div></div>
+        </section>
+        <p class="scene-footnote">한 발이 조심스러워지면, 하루의 동선도 달라진다.</p>
+      </aside>
+      <section class="story-panel" id="story-panel" aria-label="이야기">
+        <section id="cover">
+          <p class="eyebrow">토요일 오전 10시 12분</p>
+          <h2>시간은 남아돈다.<br>발목은 남아돌지 않는다.</h2>
+          <p class="lead">가고 싶은 곳은 많은데,<br>물 한 잔부터 계획이 필요해졌다.</p>
+          <p>목발을 짚는 손, 자꾸 올라가는 어깨, 편한 자리를 찾는 등. 평소엔 배경이었던 몸과 집 안의 거리가 오늘은 자꾸 말을 건다.</p>
+          <p>밖으로 나갈까. 무언가에 빠져볼까.<br>아니면, 그냥 창밖부터 볼까.</p>
+          <button id="start-button" class="primary" type="button">나의 토요일 시작하기 <span aria-hidden="true">→</span></button>
+          <div class="cover-meta"><span>다섯 번의 선택</span><span>여섯 가지 결말</span><span>약 3–5분</span></div>
+          <p class="quiet-note">잘 보낸 하루의 정답은 없습니다.<br>쉬거나 계획을 바꿔도, 이야기는 계속됩니다.</p>
+        </section>
+        <section id="game" hidden>
+          <div class="chapter-row"><p class="eyebrow" id="time-label"></p><span id="chapter-label"></span></div>
+          <ol class="progress-track" id="progress-track" aria-label="다섯 번의 선택"><li></li><li></li><li></li><li></li><li></li></ol>
+          <div id="decision-view"><h2 id="scene-title" tabindex="-1"></h2><div id="story-text" class="prose"></div><div class="choices" id="choices"></div><p class="keyboard-note">버튼을 누르거나 숫자 1–4로 선택하세요.</p></div>
+          <div id="reaction-view" hidden><p class="small-label reaction-label">선택 뒤에 남은 장면</p><h2 id="reaction-title" tabindex="-1"></h2><div id="reaction-text" class="prose"></div><div class="reaction-choice" id="reaction-choice"></div><button class="primary" id="continue-button" type="button">다음 장면으로 <span aria-hidden="true">→</span></button><p class="quiet-note">그림을 기다리지 않아도 다음으로 갈 수 있습니다.</p></div>
+        </section>
+        <section id="result" hidden>
+          <p class="eyebrow">20:16 · 오늘의 마지막 페이지</p>
+          <p class="ending-label">나의 토요일은</p><h2 id="ending-name" tabindex="-1"></h2>
+          <blockquote id="ending-quote"></blockquote><p id="ending-body"></p><p id="ending-takeaway" class="takeaway"></p>
+          <details class="journal"><summary>오늘의 다섯 장면 다시 읽기</summary><ol id="journal-list"></ol></details>
+          <div class="result-actions"><button class="primary" id="save-image" type="button">결말 이미지 저장 <span aria-hidden="true">↓</span></button><button class="secondary" id="copy-result" type="button">결말 문구 복사</button><button class="secondary" id="native-share" type="button" hidden>공유 메뉴 열기</button><button class="secondary" id="restart" type="button">다른 토요일 시작하기</button></div>
+          <p id="feedback" role="status" aria-live="polite"></p><textarea id="manual-copy" aria-label="복사할 결말 문구" readonly hidden></textarea>
+        </section>
+      </section>
+    </div>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p class="no-script">이 게임은 JavaScript가 필요합니다. <a href="stopped_saturday_doc.html">게임 소개와 제작 의도 읽기</a></p></noscript>
+  </main>
+  <footer class="shell"><span>토요일이 멈춘 게 아니라, 조금 느려졌을 뿐일지도.</span><a href="stopped_saturday_doc.html#intent">이 이야기에 관하여 ↗</a></footer>
+</body>
+</html>
