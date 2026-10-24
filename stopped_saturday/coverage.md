@@ -2,7 +2,19 @@
 
 기준: 2026-10-24의 `멈춘_토요일_수정_요청_프롬프트.txt`·개선 기획안 v1.0과 이후 12단계·활동 시간, 포장 귀가, 무작위 환경 확장 요청입니다. 이전 실행 보고와 첨부 문서의 Edge 7회 진행은 최신 검사 수에 합산하지 않습니다.
 
-### 최신 수정: 본문 중심 화면·선택 후 애니메이션·대사 교정
+### 최신 수정: 최소 3초 애니메이션·다양한 동작·외형 보존
+
+선택 뒤 애니메이션의 자동 종료는 최소 3초 이후로 조정하며, 건너뛰기·Escape·움직임 줄이기는 유지합니다. 행동에 맞는 움직임을 보강하고 새 하루에서 성별과 머리 모양을 독립적으로 정합니다. `conditions.appearance`는 `gender`와 `hairStyle`만 담으며, 세 환경에 이어 성별·머리를 한 번씩 정하므로 새 시작의 추출은 총 다섯 번입니다. 복원·분기·내보내기·가져오기는 저장된 외형을 유지합니다. 기존 기록에 외형 정보가 없으면 없는 채로 보존하고 그림에만 기본 외형을 사용합니다.
+
+이야기 선택·효과·시간·신체 상태·저장 버전은 바꾸지 않습니다. 외형만 다른 두 기록은 같은 게임 조건으로 비교하며, 외형 차이는 별도로 설명합니다. 앉기·전화·책상 작업·휴식·관찰·서 있기에는 시선·호흡·손동작의 짧은 변주를 넣고 끝난 뒤 안정된 자세로 돌아옵니다.
+
+**최종 검증:** Node **119/119**(이전 엔진 44·새 엔진 27·저장 34·환경/외형 추출 3·외형 호환 7·카탈로그 4), Chromium 기본 이야기 **22/22**·일지 **26/26**·애니메이션 흐름 **6/6**·외형 및 실제 재생 통합 **4/4**·렌더러 **4/4** 묶음이 통과했습니다. 일지는 다섯 번의 시작 추출, 복원·분기·공유 외형 유지, 외형만 다른 기록 비교, 기존 기록의 외형 필드 부재 보존을 확인했습니다. 실제 시계로 측정한 자동 완료는 약 3,020ms였으며, 스킵과 움직임 줄이기는 먼저 결과로 넘어갑니다.
+
+외형 12조합과 짧은 활동 18종을 확인했고, 이동·계단의 5ms 간격 22,116프레임 검사에서는 지지 누락과 지면 침투가 0건이었습니다. 자동화된 삽화 검사이며 의료적 보행 검증은 아닙니다. 애니메이션 흐름의 146회 화면 위치 측정, 원본 클라이언트 PNG·상태 JSON, 외형·동작 모음 이미지와 모바일 화면을 확인했습니다. JavaScript/console 오류 0, 일지 검사의 외부 자동 요청 0입니다.
+
+근거: `../output/playwright/saturday-character-classic/results.json`, `../output/playwright/saturday-character-journal/results.json`, `../output/playwright/saturday-character-flow/results.json`, `../output/playwright/saturday-character-integration/results.json`, `../output/playwright/saturday-character-renderer/results.json`, `../output/playwright/saturday-character-client/`. 아래 111개 Node·22/25/6개 Chromium 묶음은 이전 화면·대사 수정의 결과이며 이번 결과로 합산하지 않습니다. 실물 모바일·실제 스크린리더·운영체제 기본 공유창·사전 설명 없는 사용자 검토는 미실행입니다.
+
+### 이전 검증: 본문 중심 화면·선택 후 애니메이션·대사 교정
 
 본문과 선택지를 먼저 보여 주고, **선택 → 건너뛸 수 있는 삽화 애니메이션 → 결과 글** 순으로 진행합니다. 건너뛰기 버튼과 Escape를 제공하고, 움직임 줄이기를 존중합니다. 삽화 아래의 큰 에너지 모니터는 제거하며 그림 안의 작은 표시만 유지합니다. 애니메이션 중 새로고침하면 이미 확정된 선택의 결과 글을 복구하고 시간·에너지를 다시 적용하지 않습니다.
 
@@ -33,7 +45,7 @@
 현재 버전의 Node 검사는 이전 엔진과 새 엔진을 함께 실행합니다.
 
 ```sh
-node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
+node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/appearance.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
 ```
 
 ### 이전 수정: 화면 높이와 상태 표시 정리
@@ -73,7 +85,7 @@ node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine
 | `scenario-scenes.js` | S01~S13의 장면 조건·선택·효과·후속 결과와 짧은 시나리오 묶음 |
 | `story-engine.js` | 기존 하루를 유지하면서 새 장면·기록의 결정적 재현을 연결하고 실제 경험과 기억을 구별 |
 | `day-rhythm.js`, `legacy/story-engine-v2.js`, `legacy/scenario-scenes-v2.js` | 12단계·시간 규칙과 버전 2의 원래 5단계 재현을 분리 |
-| `day-environment.js` | 새 하루의 세 환경을 한 번 추출하고 선택 기록의 조건으로 전달 |
+| `day-environment.js` | 새 하루의 환경과 외형을 한 번 추출하고 선택 기록의 조건으로 전달 |
 | `story-engine.test.cjs` | 13개 장면·모든 조건별 선택·실제 귀가·장소 정보·기존 실내 기억의 회귀 검사 |
 | `story-engine-v3.test.cjs` | 새 열두 단계와 선택별 시간, 실제 귀가·이전 버전 호환 검사 |
 | `saturday-store.js` | 진행·완료·분기·가져온 기록의 버전 관리와 재현·검증 |

@@ -15,7 +15,11 @@
     return {
       doorMode: pick(['manual', 'automatic', 'revolving']),
       verticalRoute: pick(['stairs', 'escalator']),
-      orderMode: pick(['counter', 'kiosk'])
+      orderMode: pick(['counter', 'kiosk']),
+      appearance: {
+        gender: pick(['male', 'female']),
+        hairStyle: pick(['crop', 'side-part', 'wavy', 'bob', 'ponytail', 'bun'])
+      }
     };
   }
   return { sample };

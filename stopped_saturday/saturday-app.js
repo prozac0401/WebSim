@@ -25,7 +25,7 @@
   let manualTime = false;
   let runToken = 0;
   let animationElapsed = 0;
-  const animationMinimum = 1200;
+  const animationMinimum = 3000;
   const sceneFigure = document.querySelector('.scene-figure');
   const dayPanel = document.querySelector('.day-panel');
   const scene = window.SaturdayScene.create($('day-canvas'), { reducedMotion: reduced });
@@ -112,9 +112,9 @@
   }
   function setMotion(motion) {
     const selected = motion || initialMotion;
-    scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step,minuteOfDay:currentMinute(),scenarioId:state.scenarioId,context:state.context });
+    scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step,minuteOfDay:currentMinute(),scenarioId:state.scenarioId,context:state.context,appearance:state.initialConditions?.appearance });
     $('scene-caption').textContent = selected.caption;
-    $('day-canvas').setAttribute('aria-label', selected.caption);
+    $('day-canvas').setAttribute('aria-label', [appearanceText(state.initialConditions?.appearance),selected.caption].filter(Boolean).join('. '));
     requestFrame();
   }
   function status() {
@@ -212,7 +212,7 @@
     $('feedback').textContent = '일지에서 선택을 바꾸고 결과를 비교해 볼 수 있습니다.';
     $('native-share').hidden = typeof navigator.share !== 'function';
     setMotion({ kind:'rest',location:'room',caption:'방에 편히 앉아 오늘 있었던 일을 돌아본다.' });
-    scene.advance(1250);
+    scene.finish();
     status(); focusHeading('ending-name');
   }
   function start() {
@@ -224,7 +224,7 @@
     $('manual-copy').hidden = true; $('manual-copy').value = '';
     $('body-notes').open = false; document.querySelector('.journal').open = false;
     $('feedback').textContent = '';
-    setMotion(state.motion || initialMotion); scene.advance(1250); renderScene();
+    setMotion(state.motion || initialMotion); scene.finish(); renderScene();
   }
   function publicURL() {
     // A public URL is included only when this very document has loaded at its final public address.
@@ -297,11 +297,16 @@
     const saved=archive.getSnapshot(); return [...saved.completed,...saved.replays,...saved.imported];
   }
   function scenarioName(id) { return story.SCENARIOS.find(item=>item.id===id)?.title || id; }
+  function appearanceText(appearance) {
+    if(!appearance) return '';
+    const hair={crop:'짧은 머리','side-part':'가르마 머리',wavy:'웨이브 머리',bob:'단발머리',ponytail:'묶은 머리',bun:'올림머리'}[appearance.hairStyle];
+    return `${appearance.gender==='female'?'여성':'남성'} · ${hair}`;
+  }
   function conditionText(record) {
     const c=record.conditions;
     const door={manual:'무거운 미는 문',automatic:'자동문',revolving:'회전문'}[c.doorMode] || '출입문';
     const environment=[door,...(c.verticalRoute?[c.verticalRoute==='escalator'?'에스컬레이터':'계단']:[]),...(c.orderMode?[c.orderMode==='kiosk'?'키오스크 주문':'카운터 주문']:[])].join(' · ');
-    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''} · ${environment} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
+    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''}${c.appearance?` · ${appearanceText(c.appearance)}`:''} · ${environment} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
   }
   function recordLabel(record) { return `토요일 ${record.serial} · ${record.summary?.endingName || '진행 중'}`; }
   function journalFor(record) {
@@ -401,11 +406,11 @@
     $('comparison').replaceChildren(); if(!otherId || !selectedRecordId) return;
     const comparison=archive.compare(selectedRecordId,otherId);
     const left=archive.getRecord(selectedRecordId),right=archive.getRecord(otherId);
-    const conditionNames={doorMode:'출입문',verticalRoute:'층간 이동 설비',orderMode:'주문 방식',helpStyle:'도움 제안',phonePayment:'휴대전화 결제'};
+    const conditionNames={doorMode:'출입문',verticalRoute:'층간 이동 설비',orderMode:'주문 방식',helpStyle:'도움 제안',phonePayment:'휴대전화 결제',appearance:'인물의 외형'};
     const differences=comparison.changedConditions.map(key=>conditionNames[key] || '시작 조건');
     if(left.scenarioVersion!==right.scenarioVersion) differences.push('이야기 버전');
     if(left.scenarioId!==right.scenarioId) differences.push('플레이한 이야기');
-    const note=comparison.equivalent?'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.':`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. 다른 조건: ${differences.join(', ')}.`;
+    const note=comparison.equivalent?(comparison.changedConditions.includes('appearance')?'플레이 조건은 같습니다. 인물의 성별과 머리 스타일은 결과에 영향을 주지 않습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.':'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.'):`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. 다른 조건: ${differences.join(', ')}.`;
     $('comparison').append(element('p',note,'comparison-note'));
     const grid=element('div',undefined,'compare-grid');
     for(const record of [left,right]) {
@@ -534,6 +539,6 @@
   };
   window.render_game_to_text = () => JSON.stringify({ mode,animation:mode==='animation'?{canSkip:true,elapsedMs:Math.round(animationElapsed),minimumMs:animationMinimum}:null,scene:state.scene,sceneId:mode==='game'?story.getNode(state).sceneId:null,scenarioId:state.scenarioId,scenarioVersion:state.scenarioVersion,conditions:state.initialConditions,step:state.decisions.length,maxSteps:limitFor(state),minuteOfDay:Number.isFinite(state.minuteOfDay)?state.minuteOfDay:null,elapsedMinutes:state.elapsedMinutes??null,timeLabel:story.formatTime(currentMinute()),energy:state.energy,mood:state.mood,body:state.body,context:state.context,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],choiceIds:mode==='game'?story.getNode(state).choices.map(c=>c.id):[],choiceDurations:mode==='game'?story.getNode(state).choices.map(c=>c.durationMinutes??null):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced,storage:{currentId:archive.getSnapshot().current?.record.id,phase:archive.getSnapshot().current?.phase,completed:allRecords().length,persistence:archive.getSnapshot().persistence.mode} });
   initialiseArchiveUI();
-  updateMotionToggle(); setMotion(initialMotion); scene.advance(1250);
+  updateMotionToggle(); setMotion(initialMotion); scene.finish();
   if(archive.getSnapshot().current) resumeCurrent(); else show('cover');
 })();
