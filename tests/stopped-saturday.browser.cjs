@@ -88,6 +88,42 @@ async function noOverflow(page) {
     }
     record('Desk, window and street arrivals finish seated and match the narrative');
     await ready(page); await page.locator('#start-button').click();
+    await choice(page,0); await choice(page,0);
+    assert.equal((await state(page)).scene,'outing_lunch');
+    assert.match(await page.locator('#story-text').innerText(),/2층/);
+    await shot(page,'13-stairs-decision');
+    await page.locator('#choices button').first().click();
+    const stairsStart=await state(page);
+    assert.equal(stairsStart.motion.kind,'stairs');
+    assert.equal(await page.locator('#effort-monitor').isVisible(),true);
+    const canonical=s=>({energy:s.energy,mood:s.mood,body:s.body,step:s.step,traces:s.traces});
+    await advance(page,4300); const stairsMiddle=await state(page);
+    assert.ok(stairsMiddle.motion.y<stairsStart.motion.y,'stairs ascend vertically');
+    assert.ok(stairsMiddle.motion.x>stairsStart.motion.x,'stairs advance horizontally');
+    assert.ok(stairsMiddle.motion.effort.displayEnergy<=stairsStart.motion.effort.displayEnergy);
+    assert.deepEqual(canonical(stairsMiddle),canonical(stairsStart),'animation must not repeatedly drain energy');
+    await shot(page,'14-stairs-moving-desktop');
+    await advance(page,20000); const stairsEnd=await state(page);
+    assert.equal(stairsEnd.motion.moving,false);
+    assert.equal(stairsEnd.motion.support,'seat');
+    assert.equal(stairsEnd.motion.poseKind,'sit');
+    assert.equal(stairsEnd.motion.effort.displayEnergy,stairsEnd.energy);
+    assert.deepEqual(canonical(stairsEnd),canonical(stairsStart));
+    assert.match(await page.locator('#effort-value').innerText(),new RegExp(`${stairsEnd.energy*10}%`));
+    await shot(page,'15-stairs-arrival-desktop');
+    await page.locator('#continue-button').click();
+    assert.equal(await page.locator('#choices button').count(),4,'tired arrival keeps every choice available');
+    record('Actual 2F ascent and imagined step monitor; elapsed time cannot spend story energy twice');
+    // The other lobby decisions must remain distinct and never imply stairs were climbed.
+    for(const index of [1,2,3]) {
+      await ready(page); await page.locator('#start-button').click(); await choice(page,0); await choice(page,0);
+      await page.locator('#choices button').nth(index).click();
+      assert.notEqual((await state(page)).motion.kind,'stairs');
+      await page.locator('#continue-button').click();
+      await shot(page,`16-lobby-alternative-${index}`);
+    }
+    record('Elevator, ground-floor pickup and delivery remain separate from the staircase experience');
+    await ready(page); await page.locator('#start-button').click();
     // Emulate denied browser capabilities to validate fallbacks, not native OS UI.
     await play(page,Object.values(endings)[0]);
     await page.evaluate(() => {
@@ -126,12 +162,25 @@ async function noOverflow(page) {
       await shot(phone,`11-choice-${width}`);
     }
     record('320/360/390/768px layouts and minimum 44px choice targets');
+    await phone.setViewportSize({width:320,height:844}); await ready(phone); await phone.locator('#start-button').tap();
+    await choice(phone,0,true); await choice(phone,0,true); await phone.locator('#choices button').first().tap();
+    await advance(phone,4300); await noOverflow(phone);
+    assert.equal(await phone.locator('#effort-monitor').isVisible(),true);
+    await shot(phone,'17-stairs-mobile-320');
+    record('320px touch staircase and energy monitor remain readable without overflow');
     await mobile.close();
     const reducedContext=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
     const reducedPage=await reducedContext.newPage(); watch(reducedPage); await ready(reducedPage); await reducedPage.locator('#start-button').click(); await reducedPage.locator('#choices button').first().click();
     const still=(await state(reducedPage)).motion; await advance(reducedPage,2000); assert.deepEqual((await state(reducedPage)).motion,still); assert.equal(still.moving,false);
     await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).reducedMotion,false); await advance(reducedPage,400); assert.equal((await state(reducedPage)).motion.moving,true);
     await reducedPage.locator('#motion-toggle').click(); assert.equal((await state(reducedPage)).motion.moving,false); record('OS reduced-motion and manual motion toggle');
+    await ready(reducedPage); await reducedPage.locator('#start-button').click(); await choice(reducedPage,0); await choice(reducedPage,0);
+    await reducedPage.locator('#choices button').first().click(); const reducedStairs=(await state(reducedPage)).motion;
+    assert.equal(reducedStairs.kind,'stairs'); assert.equal(reducedStairs.moving,false);
+    await advance(reducedPage,20000); assert.deepEqual((await state(reducedPage)).motion,reducedStairs);
+    assert.equal(reducedStairs.effort.displayEnergy,(await state(reducedPage)).energy);
+    await shot(reducedPage,'18-stairs-reduced-motion');
+    record('Reduced-motion stairs show the settled landing and final energy immediately');
     await reducedContext.close();
     assert.deepEqual(errors,[]); record('No JavaScript exceptions or console errors');
     fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({checks,errors,endings,untested:['Actual screen-reader speech','Physical iOS/Android browsers and native OS sharing','All internal behaviors of existing simulators']},null,2));

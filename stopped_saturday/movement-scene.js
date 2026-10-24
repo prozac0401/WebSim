@@ -22,9 +22,12 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D is unavailable.');
     let reduced = Boolean(options && options.reducedMotion), dead = false;
-    let scene = { kind: 'rest', location: 'room', body: {}, step: 1 };
-    let elapsed = 0, duration = 1250, gaitDuration = 1600;
+    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6 };
+    let elapsed = 0, duration = 1250, gaitDuration = 1600, stairDuration = 2050;
     let pose = {};
+    const stairGeometry = { startX: 360, baseY: 430, tread: 74, rise: 25, count: 4 };
+    const stairSurface = x => stairGeometry.baseY - clamp(Math.floor((x - stairGeometry.startX) / stairGeometry.tread) + 1, 0, stairGeometry.count) * stairGeometry.rise;
+    const railHeight = x => x < 640 ? 313 - (x - 300) * 103 / 340 : 210;
 
     function line(points, color, width) {
       ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
@@ -168,10 +171,96 @@
       ellipse(504, 431, 128, 19, 'rgba(118,121,96,.12)');
     }
 
+    function stairs() {
+      ctx.fillStyle = '#e9dfcb'; ctx.fillRect(0, 0, W, H);
+      cityWindow(63, 55, 183, 157);
+      box(744, 62, 175, 268, 5, '#bca98c'); box(755, 73, 153, 257, 2, '#d0c7ac');
+      box(771, 93, 120, 106, 3, '#c0d1bc');
+      line([[832, 94], [832, 198]], '#e9dfc6', 5);
+      line([[883, 238], [883, 260]], colors.ink, 4);
+      box(651, 65, 68, 49, 7, colors.teal);
+      ctx.fillStyle = colors.cream; ctx.font = '700 28px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('2F', 685, 99); ctx.textAlign = 'left';
+      // Four visible rises compress the journey to the second-floor landing.
+      // The drawing conveys effort, not a prescribed stair-climbing technique.
+      const profile = [[0, 430], [360, 430]];
+      for (let i = 0; i < 4; i++) {
+        const x = 360 + i * 74, y = 405 - i * 25;
+        profile.push([x, y], [i === 3 ? 960 : x + 74, y]);
+      }
+      profile.push([960, 500], [0, 500]); poly(profile, '#c9b799');
+      for (let i = 0; i < 4; i++) {
+        const x = 360 + i * 74, y = 405 - i * 25;
+        box(x, y, i === 3 ? 378 : 74, 8, 0, '#e3d4b9');
+        line([[x + 1, y + 10], [x + 1, y + 25]], '#a89476', 2);
+      }
+      line([[0, 431], [356, 431]], '#e3d4b9', 6);
+      // The hand follows this exact rail curve throughout the illustrated ascent.
+      [306, 380, 454, 528, 602, 800].forEach(x => line([[x, railHeight(x)], [x, stairSurface(x)]], '#8b9987', 6));
+      line([[278, railHeight(278)], [640, 210], [915, 210]], colors.teal, 10);
+      line([[278, railHeight(278) - 3], [640, 207], [915, 207]], '#5f9380', 3);
+      if (scene.destinationPose) {
+        box(602, 220, 123, 45, 7, '#a6b399');
+        box(592, 269, 145, 15, 5, '#8f9f84');
+        line([[608, 284], [602, 330]], '#6d7f6a', 6); line([[724, 284], [730, 330]], '#6d7f6a', 6);
+      }
+      plant(76, 393, .85);
+      box(137, 290, 99, 65, 5, '#d9cbb1');
+      box(148, 301, 77, 42, 3, '#eee4ce');
+      line([[165, 321], [205, 321], [196, 313]], colors.teal, 4); line([[205, 321], [196, 329]], colors.teal, 4);
+    }
+
+    function liftedPath(from, to, progress, clearance) {
+      const p = clamp(progress, 0, 1), raised = Math.min(from[1], to[1]) - clearance;
+      if (p < .25) return [from[0], mix(from[1], raised, smooth(p / .25))];
+      if (p < .75) return [mix(from[0], to[0], smooth((p - .25) / .5)), raised];
+      return [to[0], mix(raised, to[1], smooth((p - .75) / .25))];
+    }
+    function bentKnee(hip, foot, length) {
+      const dx = foot[0] - hip[0], dy = foot[1] - hip[1], distance = Math.max(1, Math.hypot(dx, dy));
+      const bend = Math.sqrt(Math.max(0, length * length - distance * distance / 4));
+      return [(hip[0] + foot[0]) / 2 + dy / distance * bend, (hip[1] + foot[1]) / 2 - dx / distance * bend];
+    }
+    function stairPose(time, active, fatigue) {
+      const total = stairDuration * 4;
+      const progress = Math.min(4, time / stairDuration);
+      const index = Math.min(3, Math.floor(progress));
+      const phase = progress >= 4 ? 1 : progress - index;
+      const oldX = 332 + index * 74, oldFloor = 430 - index * 25;
+      const transfer = smooth((phase - .43) / .37);
+      const recovering = time >= total;
+      const lower = recovering && scene.destinationPose ? smooth((time - total) / 1100) : 0;
+      const x = oldX + 8 + 74 * transfer, y = oldFloor - 96 - 25 * transfer + 32 * lower;
+      const footProgress = clamp((phase - .32) / .30, 0, 1);
+      const supportProgress = clamp((phase - .08) / .20, 0, 1);
+      const leftFoot = liftedPath([oldX, oldFloor - 7], [oldX + 74, oldFloor - 32], footProgress, 12);
+      leftFoot[0] = mix(leftFoot[0], x + 58, lower);
+      const tip = liftedPath([oldX - 20, oldFloor], [oldX + 54, oldFloor - 25], supportProgress, 17);
+      const rightFoot = [mix(x - 16, x + 83, lower), mix(oldFloor - 32 - 25 * transfer, 315, lower)];
+      const strain = Math.sin(Math.PI * transfer);
+      const recovery = recovering ? smooth((time - total) / 1100) : 0;
+      const shoulderX = x + 7 + 10 * strain - 7 * lower;
+      const breath = lower >= 1 ? Math.sin(Math.PI * clamp((time - total - 1100) / 600, 0, 1)) * .9 : 0;
+      const shoulderY = y - 78 - fatigue * .35 + recovery * 2 + breath;
+      const release = smooth((lower - .75) / .25);
+      const railHand = [mix(x + 29, x + 23, release), mix(railHeight(x + 29), y + 1, release)];
+      const onFoot = Math.abs(leftFoot[1] + 7 - stairSurface(leftFoot[0])) < .02;
+      const onCrutch = Math.abs(tip[1] - stairSurface(tip[0])) < .02;
+      return { x, y, shoulderX, shoulderY, leftFoot, rightFoot,
+        leftKnee: bentKnee([x - 7, y], leftFoot, 50), rightKnee: bentKnee([x + 6, y - 1], rightFoot, 45),
+        railHand, crutchTip: tip, crutchTipX: tip[0], crutchLift: onCrutch ? 0 : 1,
+        phase: !active ? 'settled' : recovering ? scene.destinationPose && lower < 1 ? 'settling-into-seat' : 'landing-recovery' : phase < .08 || phase >= .8 ? 'pause' : phase < .30 ? 'placing-support' : 'step-transfer',
+        support: lower > .8 ? 'seat' : recovering ? 'landing-and-handrail' : onFoot ? 'foot-and-handrail' : 'crutch-and-handrail',
+        contacts: { leftFoot: onFoot, crutches: onCrutch, seat: lower > .8, handrail: release < .001 },
+        moving: active, seated: lower, lean: strain, fatigue, kind: 'stairs',
+        movementStep: Math.min(4, index + 1), movementProgress: (index + transfer) / 4,
+        rise: 25 * (index + transfer), landing: recovering };
+    }
+
     function getPose() {
       const time = reduced ? duration : Math.min(elapsed, duration);
       const active = !reduced && elapsed < duration;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
+      if (scene.kind === 'stairs') return stairPose(time, active, fatigue);
       const destination = scene.destinationPose;
       const seatedKinds = ['sit', 'desk', 'phone', 'rest', 'observe'];
       const seatX = kind => scene.location !== 'room' ? 779 : kind === 'desk' ? 698 : 281;
@@ -197,7 +286,8 @@
           crutchLift: Math.sin(Math.PI * crutchAdvance) * 7,
           phase: !active ? 'settled' : phase < .32 ? 'crutches-forward' : phase < .83 ? 'hand-supported-transfer' : 'pause',
           support: phase >= .34 && phase < .85 && active ? 'both-crutches' : 'left-foot-and-crutches',
-          moving: active, seated: 0, lean: isSettled ? .035 : .07, fatigue, kind: scene.kind };
+          moving: active, seated: 0, lean: isSettled ? .035 : .07, fatigue, kind: scene.kind,
+          movementStep: Math.min(3, cycle + 1), movementProgress: (cycle + transfer) / 3 };
       }
       const kind = scene.kind === 'walk' ? destination : scene.kind;
       const seatTime = scene.kind === 'walk' ? time - gaitTime : time;
@@ -216,7 +306,8 @@
         crutchTipX: x + 21, crutchLift: 0,
         phase: active ? (seated ? 'settling-into-seat' : 'looking-out') : 'settled',
         support: seated && lower > .8 ? 'seat' : 'left-foot-and-crutches',
-        moving: active, seated: lower, lean: rest ? -.2 : .035, fatigue, kind };
+        moving: active, seated: lower, lean: rest ? -.2 : .035, fatigue, kind,
+        movementStep: scene.kind === 'walk' ? 3 : null, movementProgress: scene.kind === 'walk' ? 1 : 0 };
     }
 
     function crutch(tipX, tipY, lean, alpha) {
@@ -257,7 +348,37 @@
       line([[13, 1], [18, 0]], '#875d4d', 1.7);
       ctx.restore();
     }
+    function stairCharacter(p) {
+      const hip = [p.x, p.y], shoulder = [p.shoulderX, p.shoulderY];
+      const tip = p.crutchTip, padX = tip[0] + 4, padY = tip[1] - 149;
+      const release = smooth((p.seated - .75) / .25);
+      const grip = [mix(padX + 5, p.x + 48, release), mix(padY + 37, p.y + 2, release)];
+      // A rail and a hand-held support remain visible. This is a compressed
+      // narrative illustration, deliberately without numbered gait instructions.
+      ellipse(p.leftFoot[0] + 7, stairSurface(p.leftFoot[0]) + 3, 23, 4, 'rgba(73,74,60,.12)');
+      line([[padX - 8, padY + 2], [padX + 1, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
+      line([[padX + 8, padY + 2], [padX + 9, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
+      line([[padX - 10, padY], [padX + 11, padY]], colors.rubber, 8);
+      line([[padX - 2, padY + 39], [padX + 11, padY + 39]], colors.rubber, 5);
+      line([[tip[0] - 3, tip[1] - 3], [tip[0] + 3, tip[1] - 3]], colors.rubber, 6);
+      leg([hip[0] - 7, hip[1]], p.leftKnee, p.leftFoot, false, false);
+      leg([hip[0] + 6, hip[1] - 1], p.rightKnee, p.rightFoot, true, true);
+      poly([[shoulder[0] - 18, shoulder[1] + 3], [shoulder[0] + 20, shoulder[1] + 4],
+        [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], colors.teal);
+      line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], colors.darkTeal, 5);
+      const railElbow = [mix(shoulder[0] - 10, p.railHand[0], .35), shoulder[1] + 41];
+      line([[shoulder[0] - 10, shoulder[1] + 8], railElbow], colors.darkTeal, 14);
+      line([railElbow, p.railHand], colors.skin, 10);
+      ellipse(p.railHand[0], p.railHand[1] - 1, 7, 5, colors.skin);
+      head(shoulder[0] + 1, shoulder[1] - 20, .055 + p.lean * .08 + p.fatigue * .003);
+      line([[shoulder[0] - 5, shoulder[1] + 2], [shoulder[0] + 7, shoulder[1] + 4]], '#c2ccac', 3);
+      const elbow = [mix(shoulder[0] + 21, grip[0] - 12, .45), mix(shoulder[1] + 40, grip[1] - 13, .5)];
+      line([[shoulder[0] + 14, shoulder[1] + 10], elbow], colors.teal, 16);
+      line([elbow, grip], colors.skinLight, 11);
+      ellipse(grip[0], grip[1], 7, 5, colors.skinLight);
+    }
     function character(p) {
+      if (p.kind === 'stairs') { stairCharacter(p); return; }
       const x = p.x, hip = [x, p.y], shoulder = [p.shoulderX, p.shoulderY];
       const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room';
       ellipse(x + 24, 399, sit > .6 ? 78 : 68, 11, 'rgba(73,74,60,.14)');
@@ -304,12 +425,39 @@
       ellipse(hand[0], hand[1], 7, 5, colors.skinLight, -.1);
     }
 
+    function effortState() {
+      const visible = scene.kind === 'walk' || scene.kind === 'stairs';
+      const startEnergy = scene.energyBefore, endEnergy = scene.energyAfter;
+      const progress = visible ? clamp(pose.movementProgress || 0, 0, 1) : 1;
+      return {
+        displayEnergy: Number(mix(startEnergy, endEnergy, progress).toFixed(2)),
+        startEnergy, endEnergy, step: visible ? pose.movementStep : null,
+        totalSteps: scene.kind === 'stairs' ? 4 : scene.kind === 'walk' ? 3 : 0,
+        active: visible && Boolean(pose.moving), visible, progress: Number(progress.toFixed(4))
+      };
+    }
+    function imaginedBattery() {
+      const effort = effortState();
+      if (!effort.visible) return;
+      const x = clamp(pose.x - 150, 14, 818), y = clamp(pose.shoulderY - 49, 18, 404);
+      box(x, y, 119, 38, 12, 'rgba(249,244,228,.93)', 'rgba(70,105,92,.25)', 1);
+      box(x + 12, y + 10, 92, 18, 4, '#e8e3d1', '#77968a', 1);
+      box(x + 104, y + 15, 4, 8, 1, '#77968a');
+      for (let i = 0; i < 10; i++) {
+        const fill = clamp(effort.displayEnergy - i, 0, 1);
+        box(x + 17 + i * 8, y + 14, 5, 10, 1, '#cbd2bd');
+        if (fill > 0) box(x + 17 + i * 8, y + 14 + (1 - fill) * 10, 5, fill * 10, 1, colors.teal);
+      }
+      ellipse(x + 125, y + 34, 3, 3, 'rgba(249,244,228,.86)');
+      ellipse(x + 132, y + 40, 2, 2, 'rgba(249,244,228,.7)');
+    }
+
     function draw() {
       if (dead) return;
       ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      if (scene.location === 'street') street(); else if (scene.location === 'hall') hall(); else room();
-      pose = getPose(); character(pose);
+      if (scene.location === 'stairs' || scene.kind === 'stairs') stairs(); else if (scene.location === 'street') street(); else if (scene.location === 'hall') hall(); else room();
+      pose = getPose(); character(pose); imaginedBattery();
       // A restrained paper-like border keeps the illustration legible on light backgrounds.
       ctx.strokeStyle = 'rgba(85,78,59,.08)'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
     }
@@ -325,10 +473,13 @@
     function setScene(next) {
       scene = { kind: 'rest', location: 'room', body: {}, step: 1, ...next };
       scene.body = { ...(next && next.body || {}) };
+      scene.energyBefore = Number.isFinite(Number(scene.energyBefore)) ? clamp(Number(scene.energyBefore), 0, 10) : 6;
+      scene.energyAfter = Number.isFinite(Number(scene.energyAfter)) ? clamp(Number(scene.energyAfter), 0, 10) : scene.energyBefore;
       if (!['sit', 'desk', 'phone', 'rest', 'observe'].includes(scene.destinationPose)) scene.destinationPose = null;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
       gaitDuration = 1480 + clamp(fatigue, 0, 10) * 76;
-      duration = scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
+      stairDuration = 2050 + clamp(fatigue, 0, 10) * 85;
+      duration = scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
       elapsed = 0; draw();
     }
     function advance(ms) {
@@ -340,19 +491,25 @@
     function snapshot() {
       return {
         coordinateSystem: '960x500; origin top-left; +x right, +y down',
-        kind: scene.kind, poseKind: pose.kind, destinationPose: scene.destinationPose || null, location: scene.location, step: scene.step,
+        kind: scene.kind, poseKind: pose.kind === 'stairs' && pose.seated >= 1 ? 'sit' : pose.kind, destinationPose: scene.destinationPose || null, location: scene.location, step: scene.step,
         x: Math.round(pose.x * 100) / 100, y: Math.round(pose.y * 100) / 100,
         phase: pose.phase, support: pose.support, moving: Boolean(pose.moving),
         bracedLeg: 'right', elapsedMs: Math.round(elapsed), durationMs: duration,
         reducedMotion: reduced, fatigue: pose.fatigue,
+        effort: effortState(),
+        stairs: scene.kind === 'stairs' ? {
+          step: pose.movementStep, totalSteps: 4, rise: Number(pose.rise.toFixed(2)),
+          landing: pose.landing, railHand: [...pose.railHand], crutchTip: [...pose.crutchTip],
+          geometry: { ...stairGeometry, landingX: 582, landingY: 330 }
+        } : null,
         leftFoot: pose.leftFoot && pose.leftFoot.map(n => Math.round(n * 100) / 100),
         rightFoot: pose.rightFoot && pose.rightFoot.map(n => Math.round(n * 100) / 100),
         joints: {
           hip: [pose.x, pose.y], shoulder: [pose.shoulderX, pose.shoulderY],
-          leftKnee: [mix(pose.x - 7, pose.x + 40, pose.seated), mix(pose.y + 43, pose.y + 6, pose.seated)],
-          rightKnee: [mix(pose.x + 23, pose.x + 51, pose.seated), mix(pose.y + 39, pose.y + 7, pose.seated)]
+          leftKnee: pose.leftKnee || [mix(pose.x - 7, pose.x + 40, pose.seated), mix(pose.y + 43, pose.y + 6, pose.seated)],
+          rightKnee: pose.rightKnee || [mix(pose.x + 23, pose.x + 51, pose.seated), mix(pose.y + 39, pose.y + 7, pose.seated)]
         },
-        contacts: {
+        contacts: pose.contacts || {
           leftFoot: Boolean(pose.leftFoot && pose.leftFoot[1] >= 384.99),
           crutches: pose.seated >= .65 || pose.crutchLift <= .01,
           seat: pose.seated >= .8

@@ -26,6 +26,11 @@
         <figure class="scene-figure">
           <div class="scene-top"><span class="day-pill">SATURDAY</span><span id="scene-clock">10:12 AM</span></div>
           <canvas id="day-canvas" width="960" height="500" role="img" aria-label="보조기를 한 오른쪽 발목을 쉬게 하며 집 안에 앉아 있는 인물" aria-describedby="scene-caption">그림 설명은 바로 아래에 있습니다.</canvas>
+          <div id="effort-monitor" class="effort-monitor" role="group" aria-labelledby="effort-title" hidden>
+            <div class="effort-heading"><span id="effort-title">머릿속 에너지 모니터</span><output id="effort-value" aria-live="off"></output></div>
+            <div id="effort-bars" class="effort-bars" aria-hidden="true"></div>
+            <p id="effort-thought">가는 힘, 문을 여는 힘, 돌아올 힘까지.</p>
+          </div>
           <figcaption id="scene-caption">평소와 같은 방. 조금 다른 토요일.</figcaption>
           <div class="scene-controls"><span>오늘의 움직임을 천천히</span><button id="motion-toggle" type="button" aria-pressed="false">움직임 줄이기</button></div>
         </figure>

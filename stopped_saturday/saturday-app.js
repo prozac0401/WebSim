@@ -16,6 +16,23 @@
   const scene = window.SaturdayScene.create($('day-canvas'), { reducedMotion: reduced });
   const initialMotion = { kind:'rest', location:'room', caption:'평소와 같은 방. 조금 다른 토요일.' };
   const intensity = value => value < 2 ? '희미함' : value < 4 ? '신경 쓰임' : value < 7 ? '뚜렷함' : '많이 신경 쓰임';
+  for(let i=0;i<10;i++) $('effort-bars').append(document.createElement('span'));
+  let effortText = '';
+
+  function updateEffort() {
+    const snapshot = scene.snapshot(), effort = snapshot.effort;
+    const visible = Boolean(effort && effort.visible && ['game','reaction'].includes(mode));
+    $('effort-monitor').hidden = !visible;
+    if(!visible) return;
+    const amount = Math.max(0,Math.min(10,effort.displayEnergy));
+    Array.from($('effort-bars').children).forEach((bar,i) => bar.style.setProperty('--fill',`${Math.max(0,Math.min(1,amount-i))*100}%`));
+    // The drawing changes between steps; assistive technology receives the result once through the main status.
+    const text = `떠올린 여유 ${Math.round(amount*10)}%`;
+    if(effortText !== text) { $('effort-value').textContent=text; effortText=text; }
+    $('effort-thought').textContent = !snapshot.moving ? '도착하고 나서도, 돌아갈 길이 머리에 남는다.'
+      : snapshot.kind === 'stairs' ? '한 단, 잠깐 멈춤. 올라가는 힘 옆에 내려갈 힘도 적힌다.'
+      : '한 걸음마다 켜진다. 가는 힘, 문을 여는 힘, 돌아올 힘까지.';
+  }
 
   function paragraphs(target, lines) {
     target.replaceChildren(...lines.map(line => { const p = document.createElement('p'); p.textContent = line; return p; }));
@@ -48,14 +65,16 @@
   function tick(now) {
     frame = 0;
     scene.advance(lastFrame ? Math.min(80, now - lastFrame) : 0);
+    updateEffort();
     lastFrame = now;
     if (!manualTime && !reduced && !document.hidden && scene.snapshot().moving) frame = requestAnimationFrame(tick);
   }
   function setMotion(motion) {
     const selected = motion || initialMotion;
-    scene.setScene({ ...selected, body:state.body, step:state.step });
+    scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step });
     $('scene-caption').textContent = selected.caption;
     $('day-canvas').setAttribute('aria-label', selected.caption);
+    updateEffort();
     requestFrame();
   }
   function status() {
@@ -220,11 +239,13 @@
   });
   $('motion-toggle').addEventListener('click',() => {
     manualMotionPreference = true; reduced = !reduced; scene.setReducedMotion(reduced); updateMotionToggle();
+    updateEffort();
     if(reduced) { cancelAnimationFrame(frame); frame=0; } else requestFrame();
   });
   preference.addEventListener('change',event => {
     if(manualMotionPreference) return;
     reduced=event.matches; scene.setReducedMotion(reduced); updateMotionToggle();
+    updateEffort();
     if(reduced) { cancelAnimationFrame(frame); frame=0; } else requestFrame();
   });
   document.addEventListener('visibilitychange',() => {
@@ -238,6 +259,7 @@
   window.advanceTime = ms => {
     manualTime=true; cancelAnimationFrame(frame); frame=0;
     scene.advance(Math.max(0,Math.min(Number(ms)||0,60000)));
+    updateEffort();
   };
   window.render_game_to_text = () => JSON.stringify({ mode,scene:state.scene,step:state.decisions.length,energy:state.energy,mood:state.mood,body:state.body,route:state.route,traces:state.traces,choices:mode==='game'?story.getNode(state).choices.map(c=>c.title):[],reaction:mode==='reaction'?state.reaction:null,ending:mode==='result'?story.determineEnding(state).name:null,motion:scene.snapshot(),reducedMotion:reduced });
   show('cover'); updateMotionToggle(); setMotion(initialMotion); scene.advance(1250);
