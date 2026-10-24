@@ -43,7 +43,7 @@ test('catalog counts agree with all 31 unique cards and retain the season 2 feat
 test('new card exposes the requested category, exact description, tags, and every search keyword', () => {
   assert.ok(saturday);
   assert.match(saturday, /data-category="생활·도구"/);
-  assert.ok(saturday.includes('시간이 남아도는데 할 수 있는 일은 줄어든 토요일. 다섯 번의 선택으로 나만의 하루를 만들어보세요.'));
+  assert.ok(saturday.includes('깁스를 하고 처음 맞는 주말. 열두 번의 선택에 따라 시간과 몸의 상태가 달라지는 하루를 경험해보세요.'));
   for (const tag of ['선택형 이야기', '일상의 발견']) assert.ok(saturday.includes(`<span>${tag}</span>`));
   const keywords = saturday.match(/data-keywords="([^"]+)"/)[1];
   for (const keyword of ['주말', '토요일', '선택', '이야기', '무료함', '몰입', '접근성', '이동 제약', '경험', 'saturday', 'interactive story']) {
@@ -71,7 +71,7 @@ test('guide uses the shared documentation shell and preserves local navigation',
     assert.ok(guide.includes(`href="${href}"`));
     assert.ok(fs.existsSync(path.resolve(path.dirname(guidePath), href.split('#')[0])));
   }
-  for (const name of ['시간 도둑을 만난 토요일', '누군가에게 닿은 토요일', '300미터의 대모험', '제대로 멈춘 토요일', '창가의 탐험가', '아직 끝나지 않은 토요일']) {
+  for (const name of ['취미에 푹 빠진 토요일', '누군가에게 말을 건 토요일', '외출 방법을 알아본 토요일', '쉬면서 보낸 토요일', '주변을 둘러본 토요일', '새로운 일을 시작한 토요일']) {
     assert.ok(guide.includes(name));
   }
   assert.ok(guide.includes('의료적 판단이나 조언을 제공하지 않습니다.'));

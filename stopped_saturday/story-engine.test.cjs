@@ -1,9 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const E = require('./story-engine.js');
+const E = require('./story-engine.js').forVersion('2');
 
 const BODY_KEYS = ['ankle', 'shoulder', 'back', 'underarm', 'palm', 'goodLeg'];
-const ENDING_NAMES = ['시간 도둑을 만난 토요일', '누군가에게 닿은 토요일', '300미터의 대모험', '제대로 멈춘 토요일', '창가의 탐험가', '아직 끝나지 않은 토요일'];
+const ENDING_NAMES = ['취미에 푹 빠진 토요일', '누군가에게 말을 건 토요일', '외출 방법을 알아본 토요일', '쉬면서 보낸 토요일', '주변을 둘러본 토요일', '새로운 일을 시작한 토요일'];
 function play(path) { return path.reduce((s, i) => E.choose(s, i), E.freshState()); }
 function freeze(value) {
   if (value && typeof value === 'object') {
@@ -17,7 +17,7 @@ function allPaths(visitor, state = E.freshState(), path = []) {
   if (state.scene !== 'end') E.getNode(state).choices.forEach((_, i) => allPaths(visitor, E.choose(state, i), [...path, i]));
 }
 
-test('fresh game preserves 10:12, four original intents and identity sentence', () => {
+test('fresh game preserves 10:12 and four original intents with a concrete description', () => {
   const s = E.freshState();
   const node = E.getNode(s);
   assert.equal(s.energy, 6);
@@ -25,9 +25,9 @@ test('fresh game preserves 10:12, four original intents and identity sentence', 
   assert.equal(s.step, 1);
   assert.match(node.time, /10:12/);
   assert.deepEqual(node.choices.map(c => c.title), [
-    '밖으로 나가고 싶다', '집에서 새로운 세계에 빠져본다', '누군가와 연결되고 싶다', '창밖부터 바라본다'
+    '밖으로 나가고 싶다', '집에서 게임이나 새로운 일을 해본다', '누군가에게 연락하고 싶다', '창밖부터 바라본다'
   ]);
-  assert.ok(node.lines.includes('시간은 남아돈다. 발목은 남아돌지 않는다.'));
+  assert.ok(node.lines.includes('시간은 많은데, 발목이 불편해서 할 수 있는 일은 줄었다.'));
 });
 
 test('all 1024 paths finish after exactly five choices and keep every status in bounds', () => {
@@ -142,7 +142,7 @@ test('rest gives partial relief while preserving an ankle symptom and accumulate
   assert.ok(after.body.shoulder > 0);
   assert.equal(after.history.length, 4);
   assert.equal(after.motion.kind, 'rest');
-  assert.match(after.reaction.lines[2], /모두 없어지지 않는다/);
+  assert.match(after.reaction.lines[2], /발목은 묵직.*아직 뻐근하다/);
 });
 
 test('desk work can tire the back while hands and supporting leg recover', () => {
@@ -219,8 +219,8 @@ test('both evening moods are reachable and choosing rest need not manufacture ha
   assert.equal(curious.scene, 'evening');
   assert.ok(quiet.mood < 8);
   assert.ok(curious.mood >= 8);
-  assert.match(E.getNode(quiet).lines[1], /아쉬워하는 마음/);
-  assert.match(E.getNode(curious).lines[1], /좋았던 장면/);
+  assert.match(E.getNode(quiet).lines[1], /아쉽고 심심한/);
+  assert.match(E.getNode(curious).lines[1], /재미있게 한 일.*기분이 괜찮다/);
   const beforeRest = play([0, 2]);
   const afterRest = E.choose(beforeRest, 2);
   assert.equal(beforeRest.mood, afterRest.mood);
@@ -270,7 +270,7 @@ test('choosing the stairs really reaches the second floor, costs effort and pres
   assert.ok(upstairs.flags.includes('stairs_taken'));
   assert.match(upstairs.reaction.lines[1], /2층에 닿아 의자에 앉는다/);
   assert.match(upstairs.reaction.lines[0], /계단참.*쉰다/);
-  assert.match(upstairs.reaction.lines[1], /내려갈 몫/);
+  assert.match(upstairs.reaction.lines[1], /내려갈 때도 힘이 필요/);
   assert.match(E.getNode(upstairs).lines[0], /내려와 집에 돌아왔다/);
   for (const key of BODY_KEYS) assert.ok(upstairs.body[key] > lobby.body[key]);
   assert.equal(upstairs.energy, Math.max(0, lobby.energy - 2));
@@ -340,4 +340,385 @@ test('motion energy is a snapshot of the single semantic choice, including clamp
   assert.equal(stairs.motion.energyAfter, 0);
   assert.equal(stairs.energy, 0);
   assert.equal(E.getNode(stairs).choices.length, 4);
+});
+
+function scenarioPlay(scenarioId, choiceIds, conditions = {}) {
+  return E.replay({ scenarioId, conditions, choiceIds });
+}
+function walkScenario(state, visitor) {
+  visitor(state);
+  const node = E.getNode(state);
+  if (node) for (const ch of node.choices) walkScenario(E.choose(state, ch.id), visitor);
+}
+const scenarioConditions = [];
+for (const doorMode of ['manual', 'automatic']) for (const helpStyle of ['takeover', 'ask']) for (const phonePayment of [false, true]) scenarioConditions.push({ doorMode, helpStyle, phonePayment });
+
+test('version 2 normalizes only fictional conditions and preserves the classic default', () => {
+  assert.equal(E.SCENARIO_VERSION, '2');
+  assert.deepEqual(E.SCENARIOS.map(p => p.id), ['classic', 'home', 'doors', 'cafe', 'company', 'planning']);
+  assert.deepEqual(E.normalizeStart(), { scenarioId: 'classic', scenarioVersion: '2', conditions: { doorMode: 'manual', helpStyle: 'takeover', phonePayment: false } });
+  assert.equal(E.freshState().scene, 'morning');
+  for (const input of [null, [], { name: 'a' }, { scenarioId: 'unknown' }, { conditions: { health: 'a' } }, { conditions: { doorMode: 'broken' } }, { conditions: { phonePayment: 1 } }, { conditions: { helpStyle: 'always' } }]) assert.throws(() => E.normalizeStart(input));
+  assert.equal(E.freshState({ scenarioId: 'doors' }).motion.location, 'hall');
+  assert.equal(E.freshState({ scenarioId: 'cafe' }).motion.location, 'hall');
+  assert.equal(E.freshState({ scenarioId: 'home' }).motion.location, 'room');
+});
+
+test('all new scenarios and all eight condition combinations end in five choices with every S01-S13 choice covered', () => {
+  let complete = 0;
+  const sceneChoices = new Map();
+  const helpVariants = new Map();
+  for (const pack of E.SCENARIOS.filter(p => p.id !== 'classic')) for (const conditions of scenarioConditions) {
+    walkScenario(E.freshState({ scenarioId: pack.id, conditions }), s => {
+      assert.equal(s.history.length, s.decisions.length);
+      assert.equal(s.choiceIds.length, s.decisions.length);
+      assert.deepEqual(s.choiceIds, s.history.map(h => h.choiceId));
+      assert.ok([s.energy, s.mood, ...Object.values(s.body)].every(v => Number.isInteger(v) && v >= 0 && v <= 10));
+      assert.ok(s.body.ankle >= 2);
+      if (s.scene === 'end') {
+        complete++;
+        assert.equal(s.decisions.length, 5);
+        assert.ok(ENDING_NAMES.includes(E.determineEnding(s).name));
+        assert.notEqual(s.context.items.cardLocation, 'floor');
+        assert.equal(E.choose(s, 0), s);
+        assert.doesNotMatch(E.determineEnding(s).body, /。/);
+        return;
+      }
+      const node = E.getNode(s);
+      assert.equal(node.sceneId, s.scene);
+      assert.equal(node.step, s.decisions.length + 1);
+      assert.ok(node.eligibility.eligible);
+      assert.deepEqual(node.choiceIds, node.choices.map(c => c.id));
+      assert.equal(new Set(node.choiceIds).size, node.choiceIds.length);
+      for (const ch of node.choices) {
+        assert.ok(ch.effects && typeof ch.effects === 'object');
+        assert.ok(Array.isArray(ch.followUpText) && ch.followUpText.length >= 2);
+        assert.ok(typeof ch.journalTrace === 'string' && ch.journalTrace.length > 0);
+        if (/^S\d\d$/.test(node.sceneId)) {
+          if (!sceneChoices.has(node.sceneId)) sceneChoices.set(node.sceneId, new Set());
+          sceneChoices.get(node.sceneId).add(ch.id);
+        }
+        if (node.sceneId === 'S07') {
+          const variant = node.contrastVariant.value;
+          if (!helpVariants.has(variant)) helpVariants.set(variant, new Set());
+          helpVariants.get(variant).add(ch.id);
+        }
+      }
+    });
+  }
+  assert.equal(complete, 10152);
+  assert.deepEqual([...sceneChoices.keys()].sort(), Array.from({ length: 13 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
+  for (const [id, choices] of sceneChoices) assert.equal(choices.size, id === 'S01' ? 4 : id === 'S02' ? 6 : 3, id);
+  assert.deepEqual([...helpVariants.keys()].sort(), ['ask', 'takeover']);
+  for (const choices of helpVariants.values()) assert.equal(choices.size, 3);
+});
+
+test('canonical replay reproduces conditions and choice prefixes without mutation or stale choices', () => {
+  for (const pack of E.SCENARIOS) {
+    const conditions = { doorMode: 'automatic', helpStyle: 'ask', phonePayment: true };
+    let state = E.freshState({ scenarioId: pack.id, conditions });
+    for (let step = 0; step < 5; step++) {
+      const before = JSON.stringify(state);
+      freeze(state);
+      const node = E.getNode(state);
+      const chosen = node.choices[Math.min(1, node.choices.length - 1)].id;
+      const next = E.choose(state, chosen);
+      assert.equal(JSON.stringify(state), before);
+      assert.deepEqual(E.replay({ scenarioId: pack.id, conditions, choiceIds: next.choiceIds }), next);
+      state = next;
+    }
+  }
+  assert.throws(() => scenarioPlay('doors', ['S02-ask'], { doorMode: 'automatic' }), /현재 장면/);
+  assert.throws(() => scenarioPlay('cafe', ['S05-home', 'S06-ask']), /현재 장면/);
+  assert.throws(() => E.replay({ scenarioId: 'home', conditions: {}, choiceIds: ['S01-bottle'], body: {} }), /허용하지/);
+  assert.throws(() => E.replay({ scenarioId: 'home', conditions: {}, choiceIds: new Array(6).fill('S01-help') }), /다섯/);
+  assert.throws(() => E.replay({ scenarioId: 'home', conditions: {}, choiceIds: [null] }), /문자열/);
+});
+
+test('S01 leaves four distinct item arrangements, places and trip counts', () => {
+  const start = E.freshState({ scenarioId: 'home' });
+  const results = E.getNode(start).choices.map(ch => E.choose(start, ch.id));
+  assert.equal(new Set(results.map(s => JSON.stringify(s.context.items))).size, 4);
+  assert.deepEqual(results.map(s => s.context.items.container), ['bottle', 'favorite-cup', 'favorite-cup', 'favorite-cup']);
+  assert.deepEqual(results.map(s => s.context.items.carryTrips), [1, 3, 0, 1]);
+  assert.deepEqual(results.map(s => s.context.items.drinkPlace), ['window', 'window', 'table', 'window']);
+  assert.equal(results[2].context.items.phoneLocation, 'kitchen');
+  assert.equal(results[3].context.help.requested, true);
+  assert.equal(results[0].context.help.requested, false);
+});
+
+test('S02 distinguishes asking, uncertain waiting and detour from S03 shared safety', () => {
+  const asked = scenarioPlay('doors', ['S02-ask']);
+  const waited = scenarioPlay('doors', ['S02-wait']);
+  const detour = scenarioPlay('doors', ['S02-side']);
+  assert.equal(asked.context.entrance.heldBy, '지나가던 사람');
+  assert.equal(asked.context.entrance.passed, false);
+  assert.equal(waited.context.entrance.waitMinutes, 4);
+  assert.equal(waited.context.environment.spaceCleared, false);
+  assert.equal(waited.context.social.requests.length, 0);
+  assert.ok(waited.context.social.unspoken.length > 0);
+  assert.equal(detour.context.entrance.selected, 'side');
+  assert.equal(detour.context.plan.detourMeters, 30);
+  for (const state of [asked, waited, detour]) {
+    assert.equal(state.scene, 'S03');
+    assert.match(E.getNode(state).lines.join(' '), /스친다/);
+    assert.equal(state.context.environment.spaceCleared, false);
+  }
+});
+
+test('S03 waiting progresses only after actual staff action and withdrawal retains unresolved environment facts', () => {
+  const before = scenarioPlay('doors', ['S02-wait']);
+  for (const id of ['S03-coordinate', 'S03-notify-wait']) {
+    const next = E.choose(before, id);
+    assert.equal(next.context.location, 'cafe');
+    assert.equal(next.context.environment.spaceCleared, true);
+    assert.ok(next.context.environment.responsibleActors.includes('직원'));
+    assert.match(next.context.environment.action, /옮겼다|비웠다/);
+    assert.equal(next.history.at(-1).actions.requests.length, 1);
+    assert.ok(next.history.at(-1).actions.environmentAction);
+  }
+  const leave = E.choose(before, 'S03-leave');
+  assert.equal(leave.context.location, 'home');
+  assert.equal(leave.context.environment.spaceCleared, false);
+  assert.equal(leave.context.entrance.passed, false);
+  assert.equal(E.getNode(leave).eligibility.requestedSceneId, 'S09');
+  assert.equal(E.getNode(leave).eligibility.matched, false);
+});
+
+test('F04 changes only the starting door environment and removes door-holding requests without fixing other barriers', () => {
+  const manual = E.freshState({ scenarioId: 'doors', conditions: { doorMode: 'manual' } });
+  const auto = E.freshState({ scenarioId: 'doors', conditions: { doorMode: 'automatic' } });
+  assert.equal(manual.energy, auto.energy);
+  assert.equal(manual.mood, auto.mood);
+  assert.deepEqual(manual.body, auto.body);
+  assert.equal(manual.context.goal, auto.context.goal);
+  assert.equal(manual.context.companion, auto.context.companion);
+  assert.deepEqual(manual.context.seat, auto.context.seat);
+  assert.ok(E.getNode(manual).choiceIds.includes('S02-ask'));
+  assert.ok(!E.getNode(auto).choiceIds.includes('S02-ask'));
+  for (const choice of E.getNode(auto).choices) assert.ok(!(choice.effects.requests || []).some(r => /문.*잡/.test(r.forWhat)));
+  const original = scenarioPlay('doors', ['S02-ask', 'S03-coordinate']);
+  const changed = scenarioPlay('doors', ['S02-auto-enter', 'S03-coordinate'], { doorMode: 'automatic' });
+  assert.equal(original.context.social.requests.length - changed.context.social.requests.length, 1);
+  assert.equal(original.scene, 'S09');
+  assert.equal(changed.scene, 'S09');
+  assert.deepEqual(E.getNode(original).choiceIds, E.getNode(changed).choiceIds);
+  assert.equal(changed.context.seat.visibleEmpty, 'high-only');
+});
+
+test('S05 returning home uses explicit fallback scenes and does not invent payment, seats or self-service', () => {
+  let state = scenarioPlay('cafe', ['S05-home']);
+  const skipped = [];
+  for (let i = 0; i < 3; i++) {
+    const node = E.getNode(state);
+    skipped.push(node.eligibility.requestedSceneId);
+    assert.ok(node.eligibility.reason);
+    assert.equal(node.eligibility.matched, false);
+    assert.match(node.sceneId, /^HOME-/);
+    state = E.choose(state, 0);
+  }
+  assert.deepEqual(skipped, ['S06', 'S09', 'S10']);
+  assert.deepEqual(state.history.map(h => h.sceneId), ['S05', 'HOME-2', 'HOME-3', 'HOME-4']);
+  assert.equal(state.context.items.cardLocation, 'wallet');
+  assert.equal(state.context.seat.usable, null);
+  assert.equal(state.context.needs.water, 'not-requested');
+});
+
+test('S06 alternate payment is conditional and every option returns the dropped card to the wallet', () => {
+  const without = scenarioPlay('cafe', ['S05-staff']);
+  const withPhone = scenarioPlay('cafe', ['S05-staff'], { phonePayment: true });
+  assert.equal(without.context.items.cardLocation, 'floor');
+  assert.equal(E.getNode(without).choices.length, 2);
+  assert.equal(E.getNode(withPhone).choices.length, 3);
+  assert.ok(!E.getNode(without).choiceIds.includes('S06-phone'));
+  for (const ch of E.getNode(withPhone).choices) {
+    const after = E.choose(withPhone, ch.id);
+    assert.equal(after.context.items.cardLocation, 'wallet');
+    assert.match(after.reaction.lines.join(' '), /카드.*지갑|지갑.*카드/);
+  }
+});
+
+test('S07 takeover and asking variants both preserve consent and assigned task scope', () => {
+  for (const helpStyle of ['takeover', 'ask']) {
+    const state = scenarioPlay('home', ['S01-help'], { helpStyle });
+    assert.equal(state.scene, 'S07');
+    assert.equal(E.getNode(state).contrastVariant.value, helpStyle);
+    const all = E.choose(state, 'S07-all');
+    const cup = E.choose(state, 'S07-cup');
+    const noMore = E.choose(state, 'S07-decline');
+    assert.ok(all.context.help.delegated.includes('남은 준비'));
+    assert.deepEqual(cup.context.help.delegated, ['컵 옮기기']);
+    assert.ok(cup.context.help.ownTasks.includes('남은 준비'));
+    assert.equal(noMore.context.help.scope, 'none-further');
+    assert.equal(noMore.context.items.cupLocation, 'window');
+    assert.equal(cup.mood, noMore.mood);
+  }
+  const noRequest = scenarioPlay('home', ['S01-table']);
+  assert.equal(E.getNode(noRequest).eligibility.requestedSceneId, 'S07');
+  assert.match(E.getNode(noRequest).eligibility.reason, /요청하지/);
+});
+
+test('S08 route distance and S12 detours survive into the actual final return and home deferral skips outings', () => {
+  const planned = scenarioPlay('company', ['S08-planned', 'S11-slower', 'S12-elevator', 'S04-thanks']);
+  const near = scenarioPlay('company', ['S08-near', 'S11-stop', 'S12-confirm', 'S04-next']);
+  assert.match(E.getNode(planned).lines.join(' '), /300m.*180m/);
+  assert.match(E.getNode(near).lines.join(' '), /100m.*120m/);
+  for (const s of [planned, near]) {
+    const end = E.choose(s, 'REFLECT-note');
+    assert.equal(end.context.location, 'home');
+    assert.equal(end.context.returned, true);
+    assert.equal(end.context.outing, false);
+    assert.match(end.history.at(-1).reaction.lines.join(' '), /귀가 길로 집에 돌아온다.*기본 거리.*우회/);
+  }
+  let home = scenarioPlay('company', ['S08-later']);
+  for (const requested of ['S11', 'S12', 'S04']) {
+    assert.equal(E.getNode(home).eligibility.requestedSceneId, requested);
+    assert.equal(E.getNode(home).eligibility.matched, false);
+    home = E.choose(home, 0);
+  }
+  assert.equal(home.context.outing, false);
+  assert.equal(home.context.returned, false);
+  assert.equal(home.context.plan.returnMeters, 0);
+});
+
+test('S09 distinguishes visible high seats from a usable seat and takeout skips S10', () => {
+  const state = scenarioPlay('cafe', ['S05-staff', 'S06-ask']);
+  assert.equal(state.context.seat.visibleEmpty, 'high-only');
+  assert.equal(state.context.seat.usable, null);
+  for (const id of ['S09-wait', 'S09-ask']) {
+    const after = E.choose(state, id);
+    assert.equal(after.context.seat.usable, 'low-chair');
+    assert.equal(after.context.seat.mode, 'seated');
+    assert.equal(after.scene, 'S10');
+  }
+  const takeout = E.choose(state, 'S09-takeout');
+  assert.equal(takeout.context.seat.usable, null);
+  assert.equal(takeout.context.location, 'home');
+  assert.equal(E.getNode(takeout).eligibility.requestedSceneId, 'S10');
+  assert.equal(E.getNode(takeout).eligibility.matched, false);
+});
+
+test('S10 deferred water stays unresolved until an explicit later request and is never silently credited', () => {
+  const before = scenarioPlay('cafe', ['S05-staff', 'S06-ask', 'S09-wait']);
+  assert.equal(before.context.needs.water, 'pending');
+  assert.equal(before.context.needs.utensils, 'pending');
+  const all = E.choose(before, 'S10-all');
+  const separate = E.choose(before, 'S10-separate');
+  const deferred = E.choose(before, 'S10-defer');
+  assert.equal(all.context.needs.water, 'received');
+  assert.equal(separate.context.social.requests.length - before.context.social.requests.length, 2);
+  assert.equal(deferred.context.needs.water, 'pending');
+  assert.equal(deferred.context.needs.utensils, 'pending');
+  assert.ok(E.getNode(deferred).choiceIds.includes('REFLECT-request'));
+  const received = E.choose(deferred, 'REFLECT-request');
+  const changed = E.choose(deferred, 'REFLECT-change-order');
+  const unresolved = E.choose(deferred, 'REFLECT-unresolved');
+  assert.equal(received.context.needs.water, 'received');
+  assert.equal(received.context.needs.utensils, 'received');
+  assert.equal(changed.context.needs.water, 'received');
+  assert.equal(changed.context.needs.utensils, 'not-needed');
+  assert.equal(unresolved.context.needs.water, 'pending');
+  assert.equal(unresolved.context.needs.utensils, 'pending');
+  assert.match(E.determineEnding(unresolved).body, /미해결/);
+  assert.equal(unresolved.mood, received.mood);
+});
+
+test('S11 changes conversation participation rather than judging friends or rewarding silence', () => {
+  const start = scenarioPlay('company', ['S08-planned']);
+  const rejoin = E.choose(start, 'S11-slower');
+  const pause = E.choose(start, 'S11-stop');
+  const own = E.choose(start, 'S11-own');
+  assert.equal(rejoin.context.social.together, true);
+  assert.equal(pause.context.social.together, true);
+  assert.equal(own.context.social.together, false);
+  assert.equal(own.context.social.missedWords, true);
+  assert.equal(own.context.social.requests.length, 0);
+  assert.equal(rejoin.mood, own.mood);
+  const later = scenarioPlay('company', ['S08-planned', 'S11-own', 'S12-elevator', 'S04-thanks']);
+  assert.match(E.getNode(later).lines.join(' '), /이야기는 일부 놓쳤다.*아직 궁금하다/);
+});
+
+test('S12 excludes only its specifically unsuitable stairs and actual detours increase physical effort', () => {
+  const before = scenarioPlay('company', ['S08-planned', 'S11-stop']);
+  const node = E.getNode(before);
+  assert.match(node.lines.join(' '), /난간이 중간에 끊겨 있고 기다릴 자리도 좁다/);
+  assert.ok(node.choices.every(ch => ch.motion.kind !== 'stairs'));
+  const after = E.choose(before, 'S12-elevator');
+  assert.equal(after.context.location, 'elevator-lobby');
+  assert.equal(after.context.plan.detourMeters, 180);
+  assert.ok(after.body.shoulder > before.body.shoulder);
+  assert.doesNotMatch(after.reaction.lines.at(-1), /왕복을 줄이자/);
+  assert.equal(play([0, 0, 0]).motion.kind, 'stairs', 'classic second-floor ascent remains available');
+});
+
+test('S13 keeps all four access fields with provenance and changing the destination invalidates unrelated confirmations', () => {
+  const checked = scenarioPlay('planning', ['S13-check']);
+  const known = scenarioPlay('planning', ['S13-known']);
+  const onsite = scenarioPlay('planning', ['S13-onsite']);
+  for (const state of [checked, known, onsite]) assert.deepEqual(Object.keys(state.context.access).sort(), ['distance', 'rest', 'threshold', 'toilet']);
+  assert.equal(checked.context.access.toilet, 'unknown');
+  assert.equal(checked.context.access.threshold, 'confirmed-fiction-phone');
+  assert.ok(Object.values(known.context.access).every(v => v !== 'unknown'));
+  assert.equal(onsite.context.access.toilet, 'unknown');
+  assert.equal(onsite.context.access.threshold, 'unknown');
+  assert.equal(onsite.context.access.rest, 'unknown');
+  assert.equal(E.choose(known, 'S08-planned').context.access.toilet, 'unknown');
+  assert.equal(E.choose(known, 'S08-near').context.access.toilet, 'confirmed-fiction-phone');
+  assert.equal(E.choose(checked, 'S08-planned').context.access.threshold, 'confirmed-fiction-phone');
+  assert.equal(E.choose(checked, 'S08-near').context.access.threshold, 'unknown');
+});
+
+test('home and recovery scenes offer distinct purposes instead of repeating one filler scene', () => {
+  const first = scenarioPlay('home', ['S01-table']);
+  const second = E.choose(first, 'HOME-2-listen');
+  assert.notEqual(E.getNode(first).title, E.getNode(second).title);
+  assert.deepEqual(E.getNode(second).choiceIds, ['HOME-3-message', 'HOME-3-photo', 'HOME-3-playlist']);
+  const playlist = E.choose(second, 'HOME-3-playlist');
+  assert.match(playlist.reaction.lines[0], /방금 들은 곡/);
+  const recovered = scenarioPlay('cafe', ['S05-home', 'HOME-2-listen', 'HOME-3-message']);
+  assert.deepEqual(E.getNode(recovered).choiceIds, ['HOME-4-arrange', 'HOME-4-read-traces', 'HOME-4-quiet']);
+});
+
+test('classic indoor notes distinguish present cup difficulty, remembered doors and imagined game events', () => {
+  for (const path of [[3, 0, 1], [1, 1, 1]]) {
+    const state = play(path);
+    assert.ok(!state.flags.includes('outing'));
+    assert.match(state.reaction.lines[0], /예전에 만난 무거운 문/);
+    assert.match(state.reaction.lines[0], /오늘 다녀온 곳과 헷갈리지 않도록 “예전 일”/);
+    const shared = E.choose(state, 1);
+    if (!state.flags.includes('photos')) assert.match(shared.reaction.lines[0], /예전에 겪은 일이라고 덧붙인다/);
+    const imagined = E.choose(state, 3);
+    assert.match(imagined.reaction.lines[0], /상상 속.*실제 오늘의 사건과는 별개/);
+  }
+});
+
+test('door and payment scenes remain standing until a seat is actually obtained', () => {
+  for (const scenarioId of ['doors', 'cafe']) assert.equal(E.freshState({ scenarioId }).motion.kind, 'stand');
+  for (const id of ['S02-ask', 'S02-wait']) assert.equal(scenarioPlay('doors', [id]).motion.kind, 'stand');
+  const auto = scenarioPlay('doors', ['S02-auto-enter'], { doorMode: 'automatic' });
+  assert.equal(auto.motion.kind, 'walk');
+  assert.equal(auto.motion.destinationPose, undefined);
+  const paid = scenarioPlay('cafe', ['S05-staff', 'S06-ask']);
+  assert.equal(paid.motion.kind, 'stand');
+  assert.equal(paid.context.seat.usable, null);
+  assert.equal(E.choose(paid, 'S09-wait').motion.kind, 'sit');
+  const elevator = scenarioPlay('company', ['S08-planned', 'S11-stop', 'S12-elevator']);
+  assert.equal(elevator.motion.destinationPose, undefined);
+  assert.equal(scenarioPlay('company', ['S08-planned', 'S11-stop']).motion.kind, 'stand');
+  assert.equal(scenarioPlay('home', ['S01-bottle']).motion.destinationPose, 'observe');
+});
+
+test('completed canonical journals retain chosen facts, separate requests and environment actions', () => {
+  const state = scenarioPlay('doors', ['S02-ask', 'S03-coordinate', 'S09-ask', 'S10-defer', 'REFLECT-request']);
+  assert.deepEqual(state.history.map(h => h.sceneId), ['S02', 'S03', 'S09', 'S10', 'REFLECT']);
+  assert.equal(state.history[1].actions.requests[0].forWhat, '문 주변 양쪽 통행과 대기 공간 정리 요청');
+  assert.match(state.history[1].actions.environmentAction, /직원/);
+  assert.ok(state.history[3].facts.includes('물과 식기를 받지 않은 상태로 요청을 미뤘다'));
+  assert.ok(state.history[4].facts.includes('미뤘던 물과 식기를 마지막에 요청해 실제로 받았다'));
+  assert.equal(state.context.needs.water, 'received');
+  assert.equal(state.context.location, 'home');
+  assert.deepEqual(scenarioPlay('doors', state.choiceIds, state.initialConditions), state);
+  assert.ok(!Object.hasOwn(state.context, 'moralScore'));
+  assert.ok(!Object.hasOwn(state.context.social, 'score'));
+  assert.ok(!Object.hasOwn(state.context.environment, 'score'));
 });

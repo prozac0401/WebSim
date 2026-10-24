@@ -8,7 +8,7 @@
 
 ## 생활과 도구
 
-- [멈춘 토요일](stopped_saturday/stopped_saturday.html) — 시간이 남아도는데 할 수 있는 일은 줄어든 토요일. 다섯 번의 선택과 몸의 반응으로 나만의 하루를 만나는 이야기 · [사용법](stopped_saturday/stopped_saturday_doc.html) · [구현과 검사](stopped_saturday/README.md)
+- [멈춘 토요일](stopped_saturday/stopped_saturday.html) — 깁스를 하고 처음 맞는 주말을 열두 번의 선택으로 플레이하며, 행동에 따른 시간과 몸의 변화를 확인하는 이야기 · [사용법](stopped_saturday/stopped_saturday_doc.html) · [구현과 검사](stopped_saturday/README.md)
 - [주말 계획표 시즌2](weekend_season2/index.html) — 자동으로 만난 가상 인물의 일상을 따라가고 중요한 순간을 선택하며 2026년 한 해를 살아보는 생활 게임 · [사용법](weekend_season2/weekend_season2_doc.html) · [구현과 검사](weekend_season2/README.md)
 - [이상한 카메라](rolling_shutter/rolling_shutter.html) — 줄마다 다른 순간을 찍는 카메라로, 휘어진 사진의 촬영 조건을 찾아봅니다. · [사용법](rolling_shutter/rolling_shutter_doc.html)
 - [주말 회복 플래너](weekend_recovery_simulator/weekend_recovery_simulator.html) — 활동과 휴식을 배치해 계획의 여유 비교 · [사용법](weekend_recovery_simulator/weekend_recovery_simulator_doc.html)

@@ -62,8 +62,42 @@
       ctx.beginPath(); ctx.arc(x + 14, y + 7, 6, -.5 * Math.PI, .5 * Math.PI); ctx.lineWidth = 3; ctx.strokeStyle = colors.cream; ctx.stroke();
       box(x, y, 15, 17, 3, colors.cream); ellipse(x + 7.5, y + 1, 6, 2, '#705e4b');
     }
+    function hasContext() { return Boolean(scene.scenarioId && scene.scenarioId !== 'classic' && scene.context); }
+    function hasHomeItems() { return hasContext() && scene.context.location === 'home'; }
+    function bottle(x, y) {
+      box(x, y, 13, 27, 4, '#94b9ae'); box(x + 3, y - 5, 7, 7, 2, colors.cream);
+    }
+    function phone(x, y) {
+      box(x, y, 24, 9, 3, colors.ink); box(x + 4, y + 2, 15, 4, 1, '#b9cec2');
+    }
+    function roomItems() {
+      const items = scene.context.items || {};
+      const spots = { kitchen: [885, 286], window: [304, 220], table: [420, 322] };
+      const cupSpot = spots[items.cupLocation];
+      if (cupSpot) {
+        cup(...cupSpot);
+        if (items.container === 'takeout-cup') box(cupSpot[0] - 2, cupSpot[1] - 3, 19, 4, 2, '#c9ad83');
+      }
+      if (items.container === 'bottle' && spots[items.drinkPlace]) {
+        const spot = spots[items.drinkPlace]; bottle(spot[0] - 28, spot[1] - 10);
+      }
+      if (items.phoneLocation === 'window') phone(258, 228);
+      else if (items.phoneLocation === 'kitchen') phone(848, 294);
+      // A small location key makes the fictional arrangement readable at a glance.
+      // The same positions are announced as text by the main UI.
+      const names = { window: '창가', table: '식탁', kitchen: '부엌' };
+      ['window', 'table', 'kitchen'].forEach((place, index) => {
+        const x = 147 + index * 224;
+        box(x, 451, 205, 34, 9, '#efe5d1', items.drinkPlace === place ? '#638f7c' : '#c1b498', 1.5);
+        ctx.fillStyle = colors.ink; ctx.font = '600 15px sans-serif'; ctx.fillText(names[place], x + 12, 473);
+        let iconX = x + 80;
+        if (items.cupLocation === place) { cup(iconX, 459); iconX += 30; }
+        if (items.container === 'bottle' && items.drinkPlace === place) { bottle(iconX, 457); iconX += 29; }
+        if (items.phoneLocation === place) phone(iconX, 464);
+      });
+    }
     function cityWindow(x, y, w, h) {
-      const evening = scene.step >= 5;
+      const evening = Number.isFinite(scene.minuteOfDay) ? scene.minuteOfDay % 1440 >= 1080 || scene.minuteOfDay % 1440 < 360 : scene.step >= 5;
       box(x - 10, y - 10, w + 20, h + 22, 4, '#e4d8c1');
       const gradient = ctx.createLinearGradient(0, y, 0, y + h);
       gradient.addColorStop(0, evening ? '#778d99' : '#b5d2ca');
@@ -110,19 +144,20 @@
       box(789, 257, 74, 44, 5, colors.ink); box(795, 263, 62, 32, 2, '#b7cdc1');
       line([[801, 274], [835, 274]], '#749b90', 3); line([[801, 282], [846, 282]], '#90b0a0', 3);
       box(779, 299, 96, 5, 2, '#6d7c76');
-      box(745, 296, 25, 7, 2, '#e3c69a'); cup(885, 286);
+      box(745, 296, 25, 7, 2, '#e3c69a'); if (!hasHomeItems()) cup(885, 286);
       plant(865, 213, .65); box(809, 236, 104, 8, 2, '#b28b62');
       plant(55, 354, .9);
       // Small clock and framed print.
       ellipse(518, 82, 26, 26, '#dfd0b6'); ellipse(518, 82, 22, 22, colors.cream);
-      const hour = scene.step >= 5 ? 8 : scene.step >= 4 ? 4 : scene.step >= 3 ? 1 : 10;
+      const minutes = Number.isFinite(scene.minuteOfDay) ? scene.minuteOfDay % 1440 : (scene.step >= 5 ? 20*60+16 : scene.step >= 4 ? 16*60+24 : scene.step >= 3 ? 13*60+16 : 612);
+      const hour = minutes / 60 % 12;
       line([[518, 82], [518 + Math.sin(hour * Math.PI / 6) * 11, 82 - Math.cos(hour * Math.PI / 6) * 11]], colors.ink, 2.5);
-      line([[518, 82], [532, 88]], colors.ink, 2);
+      line([[518, 82], [518 + Math.sin(minutes % 60 * Math.PI / 30) * 17, 82 - Math.cos(minutes % 60 * Math.PI / 30) * 17]], colors.ink, 2);
       box(620, 63, 88, 102, 3, '#c2ab8b'); box(627, 70, 74, 88, 0, '#efe2c9');
       ellipse(667, 98, 15, 15, '#d4a76d'); poly([[634, 146], [657, 113], [676, 137], [695, 121], [695, 150]], '#91a18a');
       // A water bottle sits within reach rather than being carried while on crutches.
       box(402, 339, 60, 9, 4, '#af8660'); line([[415, 349], [413, 391]], '#917355', 5); line([[450, 349], [452, 391]], '#917355', 5);
-      box(425, 311, 13, 27, 4, '#94b9ae'); box(428, 306, 7, 7, 2, colors.cream);
+      if (hasHomeItems()) roomItems(); else bottle(425, 311);
     }
     function hall() {
       ctx.fillStyle = '#e9dfcb'; ctx.fillRect(0, 0, W, H);
@@ -130,8 +165,24 @@
       box(0, 379, W, 13, 0, '#bcae95');
       // A door held open onto the same level; a low sill remains visible.
       box(83, 48, 244, 345, 7, '#b49c7b'); box(96, 59, 217, 333, 2, '#b6c8bd');
-      poly([[96, 59], [173, 91], [173, 385], [96, 392]], '#c5ac86');
-      line([[157, 222], [157, 248]], colors.ink, 4);
+      const entrance = hasContext() ? scene.context.entrance : null;
+      if (entrance && entrance.mode === 'automatic') {
+        box(96, 59, 67, 329, 2, '#a0bbb1'); box(246, 59, 67, 329, 2, '#a0bbb1');
+        box(104, 75, 51, 283, 1, '#c1d7c6'); box(254, 75, 51, 283, 1, '#c1d7c6');
+        box(188, 64, 33, 8, 4, colors.ink);
+        line([[145, 232], [119, 232], [127, 225]], colors.teal, 3); line([[119, 232], [127, 239]], colors.teal, 3);
+        line([[264, 232], [290, 232], [282, 225]], colors.teal, 3); line([[290, 232], [282, 239]], colors.teal, 3);
+      } else if (entrance && !entrance.passed && !entrance.heldBy) {
+        box(96, 59, 217, 329, 2, '#c5ac86'); box(112, 81, 184, 112, 2, '#b4cabd');
+        line([[285, 221], [285, 249]], colors.ink, 5);
+      } else {
+        poly([[96, 59], [173, 91], [173, 385], [96, 392]], '#c5ac86');
+        line([[157, 222], [157, 248]], colors.ink, 4);
+      }
+      if (entrance) {
+        ctx.fillStyle = colors.ink; ctx.font = '600 17px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(entrance.mode === 'automatic' ? '자동문' : '미는 문', 205, 37); ctx.textAlign = 'left';
+      }
       box(96, 387, 222, 6, 1, '#8e8c7b');
       box(433, 111, 130, 80, 6, '#d8ccb4');
       box(445, 122, 106, 58, 3, '#eee5d4');
@@ -144,7 +195,7 @@
       ellipse(459, 434, 224, 28, 'rgba(149,128,98,.12)');
     }
     function street() {
-      const evening = scene.step >= 5;
+      const evening = Number.isFinite(scene.minuteOfDay) ? scene.minuteOfDay % 1440 >= 1080 || scene.minuteOfDay % 1440 < 360 : scene.step >= 5;
       ctx.fillStyle = evening ? '#a5b8b3' : '#c3d8cd'; ctx.fillRect(0, 0, W, H);
       ellipse(806, 70, 29, 29, evening ? '#f3ddb7' : '#f4e6b9');
       box(0, 164, W, 225, 0, '#c5ccb8');
@@ -328,10 +379,11 @@
       box(-9, -4, 33, 12, 5, colors.shoe);
       line([[-7, 7], [23, 7]], '#b8aa90', 3);
       if (braced) {
-        box(-9, -23, 19, 24, 3, '#cbd6ce', colors.ink, 1.4);
-        line([[-9, -16], [10, -16]], colors.ink, 4);
-        line([[-8, -6], [12, -6]], colors.ink, 4);
-        box(6, -20, 4, 20, 1, '#6c8581');
+        // A pale plaster cast, with soft wrap lines instead of brace straps.
+        box(-10, -28, 21, 31, 4, '#f3f0e4', '#a6aa9e', 1.2);
+        box(-7, -7, 29, 15, 5, '#f3f0e4', '#a6aa9e', 1.2);
+        for (const y of [-22,-15,-8]) line([[-8,y],[9,y+2]], '#d0d1c4', 1.4);
+        line([[-3,0],[18,2]], '#d0d1c4', 1.4);
       }
       ctx.restore();
     }
@@ -473,13 +525,14 @@
     function setScene(next) {
       scene = { kind: 'rest', location: 'room', body: {}, step: 1, ...next };
       scene.body = { ...(next && next.body || {}) };
+      scene.context = next && next.context ? JSON.parse(JSON.stringify(next.context)) : null;
       scene.energyBefore = Number.isFinite(Number(scene.energyBefore)) ? clamp(Number(scene.energyBefore), 0, 10) : 6;
       scene.energyAfter = Number.isFinite(Number(scene.energyAfter)) ? clamp(Number(scene.energyAfter), 0, 10) : scene.energyBefore;
       if (!['sit', 'desk', 'phone', 'rest', 'observe'].includes(scene.destinationPose)) scene.destinationPose = null;
       const fatigue = Math.max(scene.body.shoulder || 0, scene.body.goodLeg || 0, scene.body.back || 0);
       gaitDuration = 1480 + clamp(fatigue, 0, 10) * 76;
       stairDuration = 2050 + clamp(fatigue, 0, 10) * 85;
-      duration = scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
+      duration = scene.kind === 'stand' ? 0 : scene.kind === 'stairs' ? stairDuration * 4 + (scene.destinationPose ? 1700 : 1100) : scene.kind === 'walk' ? gaitDuration * 3 + (scene.destinationPose ? 1250 : 0) : 1250;
       elapsed = 0; draw();
     }
     function advance(ms) {
@@ -491,12 +544,18 @@
     function snapshot() {
       return {
         coordinateSystem: '960x500; origin top-left; +x right, +y down',
-        kind: scene.kind, poseKind: pose.kind === 'stairs' && pose.seated >= 1 ? 'sit' : pose.kind, destinationPose: scene.destinationPose || null, location: scene.location, step: scene.step,
+        kind: scene.kind, poseKind: pose.kind === 'stairs' && pose.seated >= 1 ? 'sit' : pose.kind, destinationPose: scene.destinationPose || null, location: scene.location, step: scene.step, minuteOfDay: scene.minuteOfDay ?? null,
         x: Math.round(pose.x * 100) / 100, y: Math.round(pose.y * 100) / 100,
         phase: pose.phase, support: pose.support, moving: Boolean(pose.moving),
         bracedLeg: 'right', elapsedMs: Math.round(elapsed), durationMs: duration,
         reducedMotion: reduced, fatigue: pose.fatigue,
         effort: effortState(),
+        contextVisual: hasContext() ? {
+          doorMode: scene.context.entrance ? scene.context.entrance.mode : null,
+          itemsVisible: scene.location === 'room' && hasHomeItems(),
+          items: scene.context.items ? { container: scene.context.items.container, cupLocation: scene.context.items.cupLocation,
+            phoneLocation: scene.context.items.phoneLocation, drinkPlace: scene.context.items.drinkPlace, carryTrips: scene.context.items.carryTrips } : null
+        } : null,
         stairs: scene.kind === 'stairs' ? {
           step: pose.movementStep, totalSteps: 4, rise: Number(pose.rise.toFixed(2)),
           landing: pose.landing, railHand: [...pose.railHand], crutchTip: [...pose.crutchTip],
