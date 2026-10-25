@@ -26,7 +26,7 @@ function watch(page) {
       await context.addInitScript(values => {
         window.appearanceDraws = 0;
         Math.random = () => values[window.appearanceDraws++] ?? 0;
-      }, [0,0,0,gender === 'male' ? 0 : .75,(index+.5)/6,0]);
+      }, [0,0,0,gender === 'male' ? 0 : .75,(index+.5)/6,0,0]);
       const page = await context.newPage(); watch(page);
       await page.goto(base+'stopped_saturday/stopped_saturday.html');
       await advance(page,0);
@@ -35,7 +35,7 @@ function watch(page) {
       const initial = await state(page), expected = {gender,hairStyle};
       assert.deepEqual(initial.conditions.appearance,expected);
       assert.deepEqual(initial.motion.appearance,expected,'sampled appearance reaches the visible character');
-      assert.equal(await page.evaluate(() => appearanceDraws),6);
+      assert.equal(await page.evaluate(() => appearanceDraws),7);
       pictures.add(await page.locator('#day-canvas').evaluate(c => c.toDataURL()));
       // The third preparation option is a short seated rest action.
       await page.locator('#choices button').last().click();
@@ -49,7 +49,7 @@ function watch(page) {
       await advance(page,1);
       assert.equal((await state(page)).mode,'reaction','short action finishes at three seconds');
       assert.deepEqual(canonical(await state(page)),canonical(committed));
-      assert.equal(await page.evaluate(() => appearanceDraws),6,'animation never rerolls the character or room');
+      assert.equal(await page.evaluate(() => appearanceDraws),7,'animation never rerolls the character, room or injury');
       appearances.push(expected);
       if(index === 4) await page.screenshot({path:path.join(out,gender+'-ponytail-result.png')});
       await context.close();

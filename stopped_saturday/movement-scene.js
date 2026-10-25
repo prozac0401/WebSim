@@ -68,7 +68,7 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D is unavailable.');
     let reduced = Boolean(options && options.reducedMotion), dead = false;
-    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6, appearance: appearanceFor(), roomLayout:'window-left' };
+    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6, appearance: appearanceFor(), roomLayout:'window-left', injuredSide:'right' };
     let elapsed = 0, duration = 3000, motionDuration = 3000, environmentDuration = 0, gaitDuration = 1600, stairDuration = 2050;
     let pose = {};
     const stairGeometry = { startX: 360, baseY: 430, tread: 74, rise: 25, count: 4 };
@@ -645,6 +645,39 @@
         movementStep: scene.kind === 'walk' ? 3 : null, movementProgress: scene.kind === 'walk' ? 1 : 0 };
     }
 
+    function anatomicalPose(p) {
+      // basePose describes the existing right-injury gait. Keep that trajectory
+      // unchanged, then give a left injury its own lifted leg and right-foot support.
+      const leftInjury=scene.injuredSide==='left';
+      const supportingFoot=[...p.leftFoot], originalInjured=[...p.rightFoot];
+      const originalContacts=p.contacts || {
+        leftFoot:Boolean(p.leftFoot && p.leftFoot[1]>=384.99),
+        crutches:p.seated>=.65 || p.crutchLift<=.01, seat:p.seated>=.8
+      };
+      p.leftKnee=p.leftKnee || [mix(p.x-7,p.x+40,p.seated),mix(p.y+43,p.y+6,p.seated)];
+      p.rightKnee=p.rightKnee || [mix(p.x+23,p.x+51,p.seated),mix(p.y+39,p.y+7,p.seated)];
+      if(leftInjury){
+        const rest=p.kind==='rest' && scene.location==='room' && !scene.encounter;
+        p.rightFoot=supportingFoot;
+        if(p.kind==='stairs'){
+          // The raised foot stays clear of the next tread as well as this one.
+          // Continuous offsets avoid snapping when a toe passes a stair edge.
+          p.leftFoot=[mix(p.x+18,p.x+94,p.seated),mix(originalInjured[1]-25,313,p.seated)];
+          p.rightKnee=bentKnee([p.x+6,p.y-1],p.rightFoot,50);
+          p.leftKnee=bentKnee([p.x-7,p.y],p.leftFoot,45);
+        }else{
+          p.leftFoot=[mix(p.x-21,rest?p.x+105:p.x+96,p.seated),mix(originalInjured[1]-5,rest?354:372,p.seated)];
+          p.rightKnee=[mix(p.x+5,p.x+40,p.seated),mix(p.y+43,p.y+6,p.seated)];
+          p.leftKnee=[mix(p.x+13,p.x+46,p.seated),mix(p.y+40,p.y+5,p.seated)];
+        }
+      }
+      p.contacts={...originalContacts,leftFoot:leftInjury?false:Boolean(originalContacts.leftFoot),rightFoot:leftInjury?Boolean(originalContacts.leftFoot):false};
+      p.contacts.cushion=p.kind==='rest' && scene.location==='room' && !scene.encounter && p.seated>=.999;
+      const supportingSide=leftInjury?'right':'left';
+      if(p.support==='left-foot-and-crutches')p.support=supportingSide+'-foot-and-crutches';
+      if(p.support==='foot-and-handrail'||p.support==='landing-and-handrail')p.support=supportingSide+'-foot-and-handrail';
+      return p;
+    }
     function activityFor(p) {
       const time = reduced ? motionDuration : Math.min(elapsed, motionDuration);
       const progress = clamp(time / motionDuration, 0, 1);
@@ -674,7 +707,7 @@
       };
     }
     function getPose() {
-      const p = basePose();
+      const p = anatomicalPose(basePose());
       p.activity = activityFor(p);
       if (scene.kind !== 'walk' && scene.kind !== 'stairs') {
         p.shoulderY -= p.activity.breath;
@@ -714,6 +747,16 @@
         line([[-3,0],[18,2]], '#d0d1c4', 1.4);
       }
       ctx.restore();
+    }
+    function characterLegs(p) {
+      const leftHip=[p.x-7,p.y],rightHip=[p.x+6,p.y-1];
+      if(scene.injuredSide==='left'){
+        leg(rightHip,p.rightKnee,p.rightFoot,false,false);
+        leg(leftHip,p.leftKnee,p.leftFoot,true,true);
+      }else{
+        leg(leftHip,p.leftKnee,p.leftFoot,false,false);
+        leg(rightHip,p.rightKnee,p.rightFoot,true,true);
+      }
     }
     function head(x, y, tilt, activity) {
       const feminine = scene.appearance.gender === 'female', style = scene.appearance.hairStyle;
@@ -774,14 +817,14 @@
       const grip = [mix(padX + 5, p.x + 48, release), mix(padY + 37, p.y + 2, release)];
       // A rail and a hand-held support remain visible. This is a compressed
       // narrative illustration, deliberately without numbered gait instructions.
-      ellipse(p.leftFoot[0] + 7, stairSurface(p.leftFoot[0]) + 3, 23, 4, 'rgba(73,74,60,.12)');
+      const supportFoot=scene.injuredSide==='left'?p.rightFoot:p.leftFoot;
+      ellipse(supportFoot[0] + 7, stairSurface(supportFoot[0]) + 3, 23, 4, 'rgba(73,74,60,.12)');
       line([[padX - 8, padY + 2], [padX + 1, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
       line([[padX + 8, padY + 2], [padX + 9, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
       line([[padX - 10, padY], [padX + 11, padY]], colors.rubber, 8);
       line([[padX - 2, padY + 39], [padX + 11, padY + 39]], colors.rubber, 5);
       line([[tip[0] - 3, tip[1] - 3], [tip[0] + 3, tip[1] - 3]], colors.rubber, 6);
-      leg([hip[0] - 7, hip[1]], p.leftKnee, p.leftFoot, false, false);
-      leg([hip[0] + 6, hip[1] - 1], p.rightKnee, p.rightFoot, true, true);
+      characterLegs(p);
       poly([[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, cloth[0]], [.45, cloth[1]], [1, cloth[2]]]));
       line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], cloth[4], 5);
@@ -803,9 +846,11 @@
       const a = p.activity, cloth = outfit(), shoulderWidth = scene.appearance.gender === 'female' ? 16 : 19;
       const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room' && !scene.encounter;
       ellipse(x + 24, 399, sit > .6 ? 78 : 68, 11, 'rgba(73,74,60,.14)');
-      const planted = p.leftFoot[1] >= 384.99;
-      ellipse(p.leftFoot[0] + 8, 393, planted ? 20 : 24, planted ? 3 : 5, planted ? 'rgba(42,61,53,.23)' : 'rgba(42,61,53,.06)');
-      ellipse(p.rightFoot[0] + 9, 394, 24, 5, 'rgba(42,61,53,.06)');
+      const supportFoot=scene.injuredSide==='left'?p.rightFoot:p.leftFoot;
+      const injuredFoot=scene.injuredSide==='left'?p.leftFoot:p.rightFoot;
+      const planted = supportFoot[1] >= 384.99;
+      ellipse(supportFoot[0] + 8, 393, planted ? 20 : 24, planted ? 3 : 5, planted ? 'rgba(42,61,53,.23)' : 'rgba(42,61,53,.06)');
+      ellipse(injuredFoot[0] + 9, 394, 24, 5, 'rgba(42,61,53,.06)');
       if (rest && sit > .7) {
         box(x + 80, 361, 64, 17, 7, '#e8d4ab');
         box(x + 86, 377, 50, 7, 4, '#ab8960');
@@ -813,7 +858,7 @@
         line([[x + 129, 384], [x + 130, 393]], '#8e7557', 4);
       }
       // Once seated, move the equipment beside the chair continuously.
-      // Both feet and the seat remain supported throughout this transition.
+      // The healthy foot and seat provide support while the injured foot stays raised.
       const release = smooth((sit - .45) / .55);
       const park = smooth((sit - .65) / .35);
       const parkedX = p.kind === 'desk' ? x - 75 : x - 99;
@@ -822,10 +867,7 @@
       const frontTipX = mix(p.crutchTipX + 17, parkedX + 17, park);
       // Drawing the parked equipment behind the seated body keeps hands legible.
       const frontHand = crutch(frontTipX, 391 - p.crutchLift, lean, 1);
-      const rearKnee = [mix(x - 7, x + 40, sit), mix(p.y + 43, p.y + 6, sit)];
-      leg([hip[0] - 7, hip[1]], rearKnee, p.leftFoot, false, false);
-      const frontKnee = [mix(x + 23, x + 51, sit), mix(p.y + 39, p.y + 7, sit)];
-      leg([hip[0] + 6, hip[1] - 1], frontKnee, p.rightFoot, true, true);
+      characterLegs(p);
       // Torso follows shoulder and pelvis rather than moving as a rigid sprite.
       const torso = [[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]];
@@ -927,6 +969,7 @@
       scene.body = { ...(next && next.body || {}) };
       scene.appearance = appearanceFor(next && next.appearance);
       scene.roomLayout = roomLayoutFor(next && next.roomLayout);
+      scene.injuredSide = next && next.injuredSide === 'left' ? 'left' : 'right';
       scene.context = next && next.context ? JSON.parse(JSON.stringify(next.context)) : null;
       const encounter = next && next.encounter;
       scene.encounter = encounter && ['door', 'escalator', 'kiosk'].includes(encounter.kind) ? {
@@ -965,7 +1008,9 @@
         x: Math.round(pose.x * 100) / 100, y: Math.round(pose.y * 100) / 100,
         phase: pose.phase, support: pose.support, moving: Boolean(pose.moving),
         characterMoving: Boolean(pose.moving), environmentMoving: Boolean(encounter && encounter.active), encounter,
-        bracedLeg: 'right', elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
+        bracedLeg: scene.injuredSide, supportingLeg: scene.injuredSide==='left'?'right':'left',
+        cast: { side:scene.injuredSide, ankle:(scene.injuredSide==='left'?pose.leftFoot:pose.rightFoot).map(n=>Math.round(n*100)/100), foreground:true },
+        elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
         reducedMotion: reduced, fatigue: pose.fatigue,
         appearance: { ...scene.appearance },
         roomLayout: scene.roomLayout, roomLayoutApplied: roomLayoutApplied(),
@@ -1001,11 +1046,7 @@
           leftKnee: pose.leftKnee || [mix(pose.x - 7, pose.x + 40, pose.seated), mix(pose.y + 43, pose.y + 6, pose.seated)],
           rightKnee: pose.rightKnee || [mix(pose.x + 23, pose.x + 51, pose.seated), mix(pose.y + 39, pose.y + 7, pose.seated)]
         },
-        contacts: pose.contacts || {
-          leftFoot: Boolean(pose.leftFoot && pose.leftFoot[1] >= 384.99),
-          crutches: pose.seated >= .65 || pose.crutchLift <= .01,
-          seat: pose.seated >= .8
-        }
+        contacts: { ...pose.contacts }
       };
     }
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;

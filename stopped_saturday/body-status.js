@@ -32,13 +32,18 @@
     const item = descriptions.find(entry => entry && entry.key === part.key);
     const value = item && Number.isFinite(item.value) ? Math.max(0, Math.min(10, item.value)) : null;
     const level = value === null ? null : value === 0 ? 0 : value <= 2 ? 1 : value <= 6 ? 2 : 3;
-    return { ...part, label: item && item.label || part.label, value, level,
+    return { ...part, label: item && item.label || part.label, short: item && item.short || part.short,
+      side: item && item.side || (part.key === 'ankle' ? 'right' : part.key === 'goodLeg' ? 'left' : null), value, level,
       text: item && typeof item.text === 'string' ? item.text : '표시할 상태 정보가 없습니다.' };
   }
 
   function diagram(doc, parts) {
     const svg = svgElement(doc, 'svg', { viewBox: '0 0 240 350', class: 'sbs-anatomy', 'aria-hidden': 'true', focusable: 'false' });
-    const shape = (tag, attrs, parent = svg) => svgElement(doc, tag, attrs, parent);
+    const injuredLeft = parts.find(part => part.key === 'ankle')?.side === 'left';
+    const mirror = injuredLeft ? { transform:'translate(240 0) scale(-1 1)' } : {};
+    svg.dataset.injuredSide = injuredLeft ? 'left' : 'right';
+    const person = svgElement(doc, 'g', { class:'sbs-person', ...mirror }, svg);
+    const shape = (tag, attrs, parent = person) => svgElement(doc, tag, attrs, parent);
     shape('ellipse', { cx: 122, cy: 327, rx: 58, ry: 8, fill: '#dedfcf' });
     const outline = { stroke: '#657367', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
     // Anatomical right is on the viewer's left in this front view.
@@ -77,10 +82,11 @@
       goodLeg: [184, 261, 'M171 261 L146 261']
     };
     parts.forEach((part, index) => {
-      const group = shape('g', { class: 'sbs-zone', 'data-body-key': part.key, 'data-level': part.level === null ? 'unknown' : part.level });
-      zones[part.key].forEach(([tag, attrs]) => shape(tag, { ...attrs, class: `sbs-highlight ${attrs.class || ''}`.trim() }, group));
-      const [cx, cy, line] = markers[part.key];
-      if (line) shape('path', { d: line, class: 'sbs-leader' }, group);
+      const group = shape('g', { class: 'sbs-zone', 'data-body-key': part.key, 'data-side': part.side || 'both', 'data-level': part.level === null ? 'unknown' : part.level }, svg);
+      zones[part.key].forEach(([tag, attrs]) => shape(tag, { ...attrs, ...mirror, class: `sbs-highlight ${attrs.class || ''}`.trim() }, group));
+      const [baseX, cy, line] = markers[part.key];
+      const cx = injuredLeft ? 240 - baseX : baseX;
+      if (line) shape('path', { d: line, ...mirror, class: 'sbs-leader' }, group);
       shape('circle', { cx, cy, r: 13, class: 'sbs-map-number' }, group);
       const number = shape('text', { x: cx, y: cy + 1, class: 'sbs-map-digit', 'text-anchor': 'middle', 'dominant-baseline': 'middle' }, group);
       number.textContent = String(index + 1);
