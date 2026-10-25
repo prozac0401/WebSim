@@ -5,6 +5,7 @@
   if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
   const $ = id => document.getElementById(id);
   const story = window.SaturdayStory;
+  const roomNames = { 'window-left':'왼쪽 창가 거실', 'window-right':'오른쪽 창가 거실', 'wide-living':'넓은 거실', 'compact-studio':'작은 원룸' };
   function storageAdapter() {
     try { return window.localStorage; }
     catch { return { getItem(){ throw new Error('저장 접근 차단'); }, setItem(){ throw new Error('저장 접근 차단'); } }; }
@@ -112,9 +113,12 @@
   }
   function setMotion(motion) {
     const selected = motion || initialMotion;
-    scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step,minuteOfDay:currentMinute(),scenarioId:state.scenarioId,context:state.context,appearance:state.initialConditions?.appearance });
+    scene.setScene({ energyBefore:state.energy, energyAfter:state.energy, ...selected, body:state.body, step:state.step,minuteOfDay:currentMinute(),scenarioId:state.scenarioId,context:state.context,appearance:state.initialConditions?.appearance,roomLayout:state.initialConditions?.roomLayout });
+    const atHome = selected.location === 'room' && !selected.encounter && (state.scenarioId === 'classic' || !state.context || state.context.location === 'home');
+    const roomName = atHome ? roomNames[state.initialConditions?.roomLayout] || roomNames['window-left'] : '';
+    $('scene-place').textContent = roomName || 'SATURDAY';
     $('scene-caption').textContent = selected.caption;
-    $('day-canvas').setAttribute('aria-label', [appearanceText(state.initialConditions?.appearance),selected.caption].filter(Boolean).join('. '));
+    $('day-canvas').setAttribute('aria-label', [roomName,appearanceText(state.initialConditions?.appearance),selected.caption].filter(Boolean).join('. '));
     requestFrame();
   }
   function status() {
@@ -306,7 +310,7 @@
     const c=record.conditions;
     const door={manual:'무거운 미는 문',automatic:'자동문',revolving:'회전문'}[c.doorMode] || '출입문';
     const environment=[door,...(c.verticalRoute?[c.verticalRoute==='escalator'?'에스컬레이터':'계단']:[]),...(c.orderMode?[c.orderMode==='kiosk'?'키오스크 주문':'카운터 주문']:[])].join(' · ');
-    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''}${c.appearance?` · ${appearanceText(c.appearance)}`:''} · ${environment} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
+    return `${scenarioName(record.scenarioId)} · ${limitFor(record)}단계${record.scenarioVersion==='2'?' 이전 기록':''}${c.appearance?` · ${appearanceText(c.appearance)}`:''}${c.roomLayout?` · ${roomNames[c.roomLayout]}`:''} · ${environment} · ${c.helpStyle==='ask'?'먼저 묻는 도움':'모두 해주겠다는 도움'} · 휴대전화 결제 ${c.phonePayment?'있음':'없음'}`;
   }
   function recordLabel(record) { return `토요일 ${record.serial} · ${record.summary?.endingName || '진행 중'}`; }
   function journalFor(record) {
@@ -406,11 +410,14 @@
     $('comparison').replaceChildren(); if(!otherId || !selectedRecordId) return;
     const comparison=archive.compare(selectedRecordId,otherId);
     const left=archive.getRecord(selectedRecordId),right=archive.getRecord(otherId);
-    const conditionNames={doorMode:'출입문',verticalRoute:'층간 이동 설비',orderMode:'주문 방식',helpStyle:'도움 제안',phonePayment:'휴대전화 결제',appearance:'인물의 외형'};
+    const conditionNames={doorMode:'출입문',verticalRoute:'층간 이동 설비',orderMode:'주문 방식',helpStyle:'도움 제안',phonePayment:'휴대전화 결제',appearance:'인물의 외형',roomLayout:'방 구조'};
     const differences=comparison.changedConditions.map(key=>conditionNames[key] || '시작 조건');
     if(left.scenarioVersion!==right.scenarioVersion) differences.push('이야기 버전');
     if(left.scenarioId!==right.scenarioId) differences.push('플레이한 이야기');
-    const note=comparison.equivalent?(comparison.changedConditions.includes('appearance')?'플레이 조건은 같습니다. 인물의 성별과 머리 스타일은 결과에 영향을 주지 않습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.':'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.'):`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. 다른 조건: ${differences.join(', ')}.`;
+    const visualNotes=[];
+    if(comparison.changedConditions.includes('appearance')) visualNotes.push('인물의 성별과 머리 스타일은 결과에 영향을 주지 않습니다.');
+    if(comparison.changedConditions.includes('roomLayout')) visualNotes.push('방의 배치는 이야기의 결과에 영향을 주지 않습니다.');
+    const note=comparison.equivalent?(visualNotes.length?`플레이 조건은 같습니다. ${visualNotes.join(' ')} 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.`:'같은 이야기와 조건으로 시작했습니다. 서로 고른 행동과 그 결과를 나란히 볼 수 있습니다.'):`시작 조건이 달라 선택만으로 결과를 비교하기는 어렵습니다. 다른 조건: ${differences.join(', ')}.`;
     $('comparison').append(element('p',note,'comparison-note'));
     const grid=element('div',undefined,'compare-grid');
     for(const record of [left,right]) {
