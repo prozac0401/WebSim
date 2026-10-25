@@ -331,6 +331,7 @@ window.render_game_to_text=()=>JSON.stringify({
  watchTransmission:watching().transmission||null,
  watchIdentity:{uid:watching().uid,variantId:watching().entrant.variantId,variantLabel:watching().entrant.variantLabel,speedKmh:watching().speed*3.6},
  patrolLights:renderer.getPatrolInfo?.()||[],
+ brakeLights:renderer.getBrakeInfo?.()||[],
  coordinateSystem:'3D local metres: x east, y south, elevation AMSL. Performance-dependent per-car racing paths. Independent ghosts. Centre-aligned standing starts.',
  evaluation:{start:'standing',complete:session.evaluationRace.finished,automaticBlocked:session.automaticBlocked},
  guidance:window.RacingGuidance?.preview(race,watching(),[watching().distance])[0],

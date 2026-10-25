@@ -30,6 +30,7 @@
   data=root.VehicleWheels?.prepare(data)||data;
   data=root.VehicleDRL?.prepare(data)||data;
   data=root.VehiclePaintMaterials?.prepare(data)||data;
+  data=root.VehicleBrakeLights?.prepare(data)||data;
   // A managed script commits only after its own load + decoding complete.
   // An expired script retains its invalid token in the WeakMap, so even a late
   // execution after element removal cannot become an untracked registration.
@@ -80,11 +81,21 @@
        const fill=p.paint?color:p.drlCover?'rgba('+channels.join(',')+','+p.alpha+')':'#'+channels.map(c=>c.toString(16).padStart(2,'0')).join('');
        for(let i=0;i<p.indices.length;i+=3){const vertices=[];
         for(let j=0;j<3;j++){const k=p.indices[i+j]*8;vertices.push({x:(p.vertices[k]+mesh.modelOffset[0])*mesh.modelScale[0],y:(p.vertices[k+1]+mesh.modelOffset[1])*mesh.modelScale[1],z:(p.vertices[k+2]+mesh.modelOffset[2])*mesh.modelScale[2]});}
-        faces.push({vertices,fill,material:p.drl?'light':p.paint?'paint':'trim',...(p.drl?{drl:true}:{}),...(p.wheel?{wheel:p.wheel}:{})});
+        faces.push({vertices,fill,material:p.drl?'light':p.paint?'paint':'trim',...(p.drl?{drl:true}:{}),...(p.brakeLight?{brakeLight:p.brakeLight}:{}),...(p.wheel?{wheel:p.wheel}:{})});
        }
       }
       fallback={faces};
-     }else fallback=assetOnly.has(id)?{faces:[]}:root.VehicleMeshes.create(id,spec,color);
+     }else {
+      fallback=assetOnly.has(id)?{faces:[]}:root.VehicleMeshes.create(id,spec,color);
+      // Canvas uses an independently authored body for these models. Tag its
+      // own upper red lenses so the lamps remain on that body's surface;
+      // importing CAD lenses here would place them on a different silhouette.
+      if(data.primitives.some(p=>p.brakeLight))fallback={...fallback,faces:fallback.faces.map(face=>
+       face.material==='light'&&face.fill==='#a90c17'&&
+       ['upper-tail-lens','tail-pixels','lamp-signature'].includes(face.part)&&
+       face.vertices.every(v=>v.x<0)&&face.vertices.reduce((sum,v)=>sum+v.z,0)/face.vertices.length>height*.35
+        ?{...face,brakeLight:{vehicle:id,role:'stop',source:'authored Canvas rear lamp'}}:face)};
+     }
     }
     return fallback.faces;
    }};

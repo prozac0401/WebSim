@@ -695,6 +695,7 @@
       return this.meshCache.get(key);
     }
     getPatrolInfo(){return (this.race?.cars||[]).filter(c=>c.vehicleId==='g70').map(car=>{const mesh=this._mesh(car),state=car.id===this.watch?root.G70PatrolLights?.sample(this.race,car,mesh):null;return {id:car.id,paint:mesh.paint,active:!!state,red:!!state?.red,blue:!!state?.blue};});}
+    getBrakeInfo(){return (this.race?.cars||[]).map(car=>({id:car.id,vehicleId:car.vehicleId,active:!!car.brakeLightState?.on,intensity:car.brakeLightState?.intensity||0,brakeForceN:car.serviceBrakeForceN||0}));}
     _drawVehicles(entries,camera){
       // Coincident ghost runs share one body outline. Keep the watched entrant
       // visible without drawing identical geometry eight times at the start.
@@ -758,6 +759,8 @@
       root.VehicleWheels?.prepareFaces(mesh);
       const effect=selected&&car.id===this.watch?root.G70PatrolLights?.create(this.race,car,mesh):null;
       for(const face of effect?[...mesh.faces,...effect.faces]:mesh.faces){
+        const brake=face.brakeLight?clamp(car.brakeLightState?.intensity||0,0,1):0;
+        if(face.brakeLight?.overlay&&!brake)continue;
         const wheel=face.wheel&&root.VehicleWheels?.localWheel(mesh,face.wheel),spin=wheel?root.VehicleWheels.angle(mesh,face.wheel,car):0;
         const vertices=face.vertices.map(v=>transform(spin?root.VehicleWheels.rotate(v,wheel,spin,face.wheel.space==='mesh'?undefined:mesh.modelScale):v));let fill=face.fill;
         // Reference meshes include physical trim ribbons. Skip their duplicate
@@ -768,6 +771,11 @@
           const n=point(u.y*v.z-u.z*v.y,u.z*v.x-u.x*v.z,u.x*v.y-u.y*v.x),len=Math.hypot(n.x,n.y,n.z)||1;
           const shade=.52+.38*Math.max(0,(-.35*n.x-.5*n.y+.85*n.z)/len)+.22*Math.max(0,(.2*n.x+.8*n.y+.5*n.z)/len);
           fill=tint(fill,clamp(shade-1,-.48,.12));
+        }
+        if(brake){
+          const base=parseInt(String(fill).replace('#',''),16),amount=brake*.94;
+          const channels=[base>>16&255,base>>8&255,base&255].map((value,i)=>Math.round(value*(1-amount)+[255,14,6][i]*amount));
+          fill='rgba('+channels.join(',')+','+(face.brakeLight.overlay?brake:1)+')';
         }
         this._queue({...face,fill,vertices,stroke:face.stroke||(fill?fill:undefined),width:face.stroke?face.width:.6,priority:selected?1:0},camera,queue);
       }

@@ -19,6 +19,7 @@
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   const TRANSMISSION = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
+  const BRAKE_LIGHTS = root.BrakeLightState || (typeof require === 'function' ? require('./brake-light-state.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
@@ -293,7 +294,7 @@
           speed: initialSpeed, distance: 0, lap: 0, currentLap: 1, lapTimes: [], bestLap: null,
           standingStartDistance: initialSpeed > 0 ? null : 0, finishSpeed: null, finishRemainderSeconds: 0,
           finished: false, finishTime: null, dnf: false, retiredAt: null, dnfReason: null, stalledFor: 0,
-          targetSpeed: 0, phase: 'accelerating', acceleration: 0,
+          targetSpeed: 0, phase: 'accelerating', acceleration: 0, serviceBrakeForceN: 0, brakeDemand: 0,
           maxSpeed: 0, lastLapAt: 0, elevation: this.track.hasElevation ? this.pathPoints[0].z : null, grade: this.pathPoints[0].grade,
           slopeAcceleration: 0, grip: spec.gripG * G * gripFactor * loadSensitivity * balanceFactor * rollFactor,
           braking: entrant ? Math.min(brakingHardware, longitudinalGrip) : brakingHardware,
@@ -324,6 +325,7 @@
           car.driveReductionSource = firstReduction ? transmission.ratioStatus : transmission.reductionStatus;
         }
         if (TRANSMISSION) car.transmission = TRANSMISSION.create(car);
+        if (BRAKE_LIGHTS) car.brakeLightState = BRAKE_LIGHTS.create();
         const line = this.usesRacingLine && VEHICLE_LINE ? VEHICLE_LINE.build(this, car) : null;
         car.racingLine = line;
         car.pathPoints = line?.points || this.pathPoints;
@@ -482,8 +484,16 @@
         car.powerPs * PS_WATTS * car.efficiency * part.torqueFactor / Math.max(4, oldSpeed), tractionForce), 0)
         : Math.min(torqueForce, powerForce, tractionForce);
       const availableAcceleration = (driveForce - resistance) / car.massKg;
-      const minimumAcceleration = -this._brakingCapacity(car, oldSpeed, grade) - resistance / car.massKg;
+      const brakingCapacity = this._brakingCapacity(car, oldSpeed, grade);
+      const minimumAcceleration = -brakingCapacity - resistance / car.massKg;
       const acceleration = Math.max(minimumAcceleration, Math.min(availableAcceleration, (target - oldSpeed) / dt));
+      // Applied wheel braking excludes gravity, rolling resistance and drag.
+      // This observation does not feed back into handling or gear selection;
+      // the model does not split regenerative and friction brake commands.
+      const wheelForce = car.massKg * acceleration + resistance;
+      car.serviceBrakeForceN = Math.max(0, -wheelForce);
+      car.brakeDemand = brakingCapacity > 0 ? clamp(car.serviceBrakeForceN / (car.massKg * brakingCapacity), 0, 1) : 0;
+      if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, dt, { brakeForceN: car.serviceBrakeForceN, massKg: car.massKg });
       car.speed = Math.max(0, oldSpeed + acceleration * dt);
       const travel = (oldSpeed + car.speed) * .5 * dt;
       car.distance = Math.min(car.totalDistance, oldDistance + travel);
@@ -502,7 +512,6 @@
         // Observe applied wheel work, not acceleration alone: gravity/drag can
         // change speed without propulsion or regenerative braking. This is
         // energy display only; gear/RPM are read from the physical snapshot.
-        const wheelForce = car.massKg * acceleration + resistance;
         const meanSpeed = (oldSpeed + car.speed) * .5;
         TELEMETRY.update(car, car.telemetry, dt, {
           drivePowerW: Math.max(0, wheelForce) * meanSpeed,
@@ -516,6 +525,8 @@
       if (car.stalledFor + 1e-9 >= 30) {
         car.dnf = true; car.retiredAt = now + dt; car.phase = 'dnf';
         car.dnfReason = grade > .01 && availableAcceleration < .1 ? '오르막 구동력 부족' : '30초간 주행 지속 불가';
+        car.serviceBrakeForceN = car.brakeDemand = 0;
+        if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, dnf: true });
         if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         return;
       }
@@ -527,7 +538,12 @@
         const crossingTime = now + crossingDt, lapTime = crossingTime - car.lastLapAt;
         car.lapTimes.push(lapTime); car.bestLap = car.bestLap === null ? lapTime : Math.min(car.bestLap, lapTime);
         car.lastLapAt = crossingTime; car.lap++; car.currentLap = Math.min(this.laps, car.lap + 1);
-        if (car.lap === this.laps) { car.finished = true; car.finishTime = crossingTime; car.finishSpeed = endSpeedAtLine; car.finishRemainderSeconds = dt - crossingDt; car.distance = car.totalDistance; if (TELEMETRY) TELEMETRY.stop(car.telemetry); }
+        if (car.lap === this.laps) {
+          car.finished = true; car.finishTime = crossingTime; car.finishSpeed = endSpeedAtLine; car.finishRemainderSeconds = dt - crossingDt; car.distance = car.totalDistance;
+          car.serviceBrakeForceN = car.brakeDemand = 0;
+          if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, finished: true });
+          if (TELEMETRY) TELEMETRY.stop(car.telemetry);
+        }
       }
     }
 
