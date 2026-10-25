@@ -139,13 +139,13 @@ function observe(page){page.on('pageerror',e=>errors.push(e.message));page.on('c
       for(const id of ['R01-check',...(scenarioId==='doors'?['S02-ask','S03-coordinate']:['S05-staff','S06-ask']),'R02-food'])await chooseId(p,id);
       const before=await state(p);await p.locator('#choices button').nth(before.choiceIds.indexOf('S09-takeout')).click();
       await skipAnimation(p);
-      const returned=await state(p);assert.match(await p.locator('#reaction-text').innerText(),/양손으로 목발.*집에 가져갈 수가 없게/s);
+      const returned=await state(p);assert.match(await p.locator('#reaction-text').innerText(),/양손으로 목발.*들고 갈 수가 없다/s);
       assert.match(await p.locator('#reaction-text').innerText(),/빈손으로 집에 돌아온다/);assert.equal(returned.context.items.cupLocation,'store-counter');assert.equal(returned.context.items.drinkPlace,null);
       assert.equal(returned.minuteOfDay,before.minuteOfDay+before.choiceDurations[before.choiceIds.indexOf('S09-takeout')]);
       await p.evaluate(()=>window.advanceTime(20000));assert.equal((await state(p)).motion.contextVisual.items.cupLocation,'store-counter');await noOverflow(p);await screenshot(p,'13-takeout-'+width);
       await p.reload();assert.equal((await state(p)).mode,'reaction');assert.equal((await state(p)).context.items.drinkPlace,null);assert.match(await p.locator('#reaction-text').innerText(),/빈손으로 집에 돌아온다/);
       await finish(p);await p.locator('#open-completed').click();const entry=p.locator('#record-scenes li').nth(4);
-      assert.match(await entry.innerText(),/포장해서 가져가려 한다/);assert.match(await entry.innerText(),/집에 가져갈 수가 없게/);assert.doesNotMatch(await entry.innerText(),/집 식탁에 앉아 포장해 온|궁금했던 맛은 볼 수/);await screenshot(p,'14-takeout-journal-'+width);await c.close();
+      assert.match(await entry.innerText(),/포장해서 가져가려 한다/);assert.match(await entry.innerText(),/들고 갈 수가 없다/);assert.doesNotMatch(await entry.innerText(),/집 식탁에 앉아 포장해 온|궁금했던 맛은 볼 수/);await screenshot(p,'14-takeout-journal-'+width);await c.close();
     }
     pass('S09 takeaway fails with both hands on crutches; empty-handed return and absent food persist in desktop/mobile reloads and journals');
     const needsContext=await browser.newContext();const needsPage=await needsContext.newPage();observe(needsPage);await ready(needsPage);await start(needsPage,'doors');await reachScene(needsPage,'S02');await chooseId(needsPage,'S02-ask');await reachScene(needsPage,'S03');await chooseId(needsPage,'S03-coordinate');await reachScene(needsPage,'S09');await chooseId(needsPage,'S09-wait');await reachScene(needsPage,'S10');await chooseId(needsPage,'S10-defer');assert.equal((await state(needsPage)).context.needs.water,'pending');await reachScene(needsPage,'REFLECT',{R05:'R05-later'});assert.equal((await state(needsPage)).context.needs.water,'pending');await chooseId(needsPage,'REFLECT-request');assert.equal((await state(needsPage)).context.needs.water,'received');await finish(needsPage);await needsPage.locator('#open-completed').click();assert.match(await needsPage.locator('#record-scenes').innerText(),/미수령|아직 테이블에 없다/);await screenshot(needsPage,'11-later-request');await needsContext.close();

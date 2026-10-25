@@ -419,7 +419,7 @@
       if(record.scenarioId!=='classic') {
         const context=record.summary.context;
         const place={home:'집',cafe:'가게',street:'길',entrance:'출입구','elevator-lobby':'엘리베이터 앞'}[context.location] || context.location;
-        column.append(element('p',`마지막 장소: ${place} · 준비·대기·우회 ${context.plan.timeMinutes}분 · 말로 꺼낸 요청 ${context.social.requests.length}회`));
+        column.append(element('p',`마지막 장소: ${place} · 준비·대기·우회 ${context.plan.timeMinutes}분 · 부탁하거나 물어본 횟수 ${context.social.requests.length}회`));
         column.append(element('p','아래에서 각자 고른 행동과 그 뒤에 일어난 일을 비교할 수 있습니다.'));
       }
       const list=element('ol',undefined,'journal-entries'); list.setAttribute('role','list');

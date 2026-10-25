@@ -183,7 +183,7 @@ test('a takeaway attempt cannot bring food home while both hands hold crutches',
     const before = until(E.freshState({ scenarioId, conditions: condition }), 'S09');
     const choice = E.getNode(before).choices.find(ch => ch.id === 'S09-takeout');
     const after = E.choose(before, choice.id);
-    assert.match(after.reaction.lines.join(' '), /양손으로 목발.*집에 가져갈 수가 없게/);
+    assert.match(after.reaction.lines.join(' '), /양손으로 목발.*(?:들고 갈 수가 없다|집에 가져갈 수 없다)/);
     assert.match(after.reaction.lines.join(' '), /빈손으로 집에 돌아온다/);
     assert.doesNotMatch(after.reaction.lines.join(' '), /집 식탁에 앉아 포장해 온|궁금했던 맛은 볼 수/);
     assert.equal(after.context.items.cupLocation, 'store-counter');
@@ -380,7 +380,7 @@ test('door-focused kiosk preview does not order and does not appear at home or o
   assert.equal(E.getNode(s).encounter.kind, 'kiosk');
   s = E.choose(s, 'R02-food');
   assert.equal(s.context.order.status, 'not-ordered');
-  assert.match(s.reaction.lines.join(' '), /주문이나 결제 버튼은 누르지 않는다/);
+  assert.match(s.reaction.lines.join(' '), /주문 버튼은 아직 누르지 않는다/);
   s = until(s, 'S10');
   const ordered = E.choose(s, 'S10-all');
   assert.equal(ordered.context.order.status, 'paid');
@@ -445,3 +445,4 @@ test('classic automatic door narration and reaction motion show the same entranc
   assert.match(entered.motion.caption, /자동문/);
   assert.doesNotMatch(entered.motion.caption, /친구가 잡아준/);
 });
+
