@@ -29,13 +29,46 @@
     gender: value && value.gender === 'female' ? 'female' : 'male',
     hairStyle: value && hairStyles.includes(value.hairStyle) ? value.hairStyle : 'crop'
   });
+  // Every room shares the same foreground floor and seated hip height. Furniture,
+  // supported destinations and objects use these anchors rather than independent offsets.
+  const rooms = {
+    'window-left': {
+      window: { x:72, y:55, width:270, height:183 }, sofa: { x:122, y:269, width:240, seatX:281, seatY:327 },
+      desk: { x:725, y:303, width:198, seatX:698, seatY:327 }, door: { x:526, y:80, width:96, height:311 },
+      kitchen: { x:12, y:283, width:92 }, storage: null, windowSeat: null,
+      sideTable: { x:444, y:339, width:60 }, rug: { x:441, width:278 }, clock: [462,82], art: [650,63], plant: [643,354],
+      standX:405, walkStartX:390
+    },
+    'window-right': {
+      window: { x:610, y:52, width:270, height:183 }, sofa: { x:585, y:269, width:220, seatX:715, seatY:327 },
+      desk: { x:260, y:303, width:198, seatX:233, seatY:327 }, door: { x:18, y:82, width:108, height:309 },
+      kitchen: { x:472, y:268, width:100 }, storage: null, windowSeat: null,
+      sideTable: { x:872, y:339, width:52 }, rug: { x:650, width:256 }, clock: [512,112], art: [305,63], plant: [944,354],
+      standX:516, walkStartX:400
+    },
+    'wide-living': {
+      window: { x:340, y:48, width:340, height:173 }, sofa: { x:106, y:269, width:240, seatX:265, seatY:327 },
+      desk: { x:754, y:303, width:198, seatX:727, seatY:327 }, door: { x:4, y:85, width:80, height:306 },
+      kitchen: { x:590, y:277, width:90 }, storage: null, windowSeat: { x:428, y:330, width:77, seatX:467, seatY:327 },
+      sideTable: { x:364, y:285, width:54, wallMounted:true }, rug: { x:440, width:315 }, clock: [764,79], art: [168,63], plant: null,
+      standX:505, walkStartX:95
+    },
+    'compact-studio': {
+      window: { x:420, y:50, width:252, height:164 }, sofa: { x:505, y:269, width:195, seatX:616, seatY:327 },
+      desk: { x:245, y:303, width:174, seatX:218, seatY:327 }, door: { x:850, y:93, width:96, height:298 },
+      kitchen: { x:20, y:270, width:125 }, storage: { x:765, y:165, width:65 }, windowSeat: null,
+      sideTable: { x:435, y:285, width:52, wallMounted:true }, rug: { x:498, width:238 }, clock: [735,78], art: [225,63], plant: null,
+      standX:455, walkStartX:390
+    }
+  };
+  const roomLayoutFor = value => Object.prototype.hasOwnProperty.call(rooms, value) ? value : 'window-left';
 
   function create(canvas, options) {
     if (!canvas || !canvas.getContext) throw new TypeError('A canvas is required.');
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D is unavailable.');
     let reduced = Boolean(options && options.reducedMotion), dead = false;
-    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6, appearance: appearanceFor() };
+    let scene = { kind: 'rest', location: 'room', body: {}, step: 1, energyBefore: 6, energyAfter: 6, appearance: appearanceFor(), roomLayout:'window-left', injuredSide:'right' };
     let elapsed = 0, duration = 3000, motionDuration = 3000, environmentDuration = 0, gaitDuration = 1600, stairDuration = 2050;
     let pose = {};
     const stairGeometry = { startX: 360, baseY: 430, tread: 74, rise: 25, count: 4 };
@@ -97,6 +130,22 @@
     }
     function hasContext() { return Boolean(scene.scenarioId && scene.scenarioId !== 'classic' && scene.context); }
     function hasHomeItems() { return hasContext() && scene.context.location === 'home'; }
+    function roomLayoutApplied() { return scene.location === 'room' && !scene.encounter && (!hasContext() || scene.context.location === 'home'); }
+    function roomDescriptor() { return rooms[roomLayoutApplied() ? scene.roomLayout : 'window-left']; }
+    function roomSeat(kind) {
+      const r = roomDescriptor();
+      const tableAction = kind === 'sit' && hasHomeItems() && scene.context.actions?.at(-1)?.choiceId === 'S01-table';
+      return kind === 'desk' || tableAction ? r.desk : kind === 'observe' && r.windowSeat ? r.windowSeat : r.sofa;
+    }
+    function itemPositions() {
+      const r = roomDescriptor(), w = r.window, k = r.kitchen, d = r.desk;
+      return {
+        cup: { kitchen:[k.x+10,k.y-17], window:[w.x+w.width-38,w.y+w.height-18], table:[d.x+12,d.y-17] },
+        phone: { kitchen:[k.x+35,k.y-9], window:[w.x+w.width-84,w.y+w.height-10], table:[d.x+39,d.y-9] },
+        bottle: { kitchen:[k.x+64,k.y-27], window:[w.x+w.width-66,w.y+w.height-28], table:[d.x+150,d.y-27] },
+        surfaces: { kitchen:k.y, window:w.y+w.height-1, table:d.y }
+      };
+    }
     function bottle(x, y) {
       box(x, y, 13, 27, 4, '#94b9ae'); box(x + 3, y - 5, 7, 7, 2, colors.cream);
     }
@@ -105,17 +154,16 @@
     }
     function roomItems() {
       const items = scene.context.items || {};
-      const spots = { kitchen: [885, 286], window: [304, 220], table: [420, 322] };
+      const positions = itemPositions(), spots = positions.cup;
       const cupSpot = spots[items.cupLocation];
       if (cupSpot) {
         cup(...cupSpot);
         if (items.container === 'takeout-cup') box(cupSpot[0] - 2, cupSpot[1] - 3, 19, 4, 2, '#c9ad83');
       }
       if (items.container === 'bottle' && spots[items.drinkPlace]) {
-        const spot = spots[items.drinkPlace]; bottle(spot[0] - 28, spot[1] - 10);
+        bottle(...positions.bottle[items.drinkPlace]);
       }
-      if (items.phoneLocation === 'window') phone(258, 228);
-      else if (items.phoneLocation === 'kitchen') phone(848, 294);
+      if (positions.phone[items.phoneLocation]) phone(...positions.phone[items.phoneLocation]);
       // A small location key makes the fictional arrangement readable at a glance.
       // The same positions are announced as text by the main UI.
       const names = { window: '창가', table: '식탁', kitchen: '부엌' };
@@ -155,7 +203,7 @@
       box(x - 3, y - 78, 18, 92, 7, colors.teal);
       box(x, y, w, 20, 7, colors.teal);
     }
-    function room() {
+    function legacyRoom() {
       ctx.fillStyle = gradient(0, 0, W, 380, [[0, '#f4ebd8'], [.65, '#eadeca'], [1, '#dfcfb6']]); ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = gradient(0, 391, 0, H, [[0, '#cbb79b'], [1, '#e1cfb2']]); ctx.fillRect(0, 391, W, 109);
       box(0, 378, W, 15, 0, '#cdbb9f');
@@ -193,6 +241,64 @@
       // A water bottle sits within reach rather than being carried while on crutches.
       box(402, 339, 60, 9, 4, '#af8660'); line([[415, 349], [413, 391]], '#917355', 5); line([[450, 349], [452, 391]], '#917355', 5);
       if (hasHomeItems()) roomItems(); else bottle(425, 311);
+    }
+    function room() {
+      if(!roomLayoutApplied()) { legacyRoom(); return; }
+      const r=roomDescriptor(), w=r.window, s=r.sofa, d=r.desk, k=r.kitchen, door=r.door;
+      ctx.fillStyle=gradient(0,0,0,391,[[0,'#f4ebd8'],[.65,'#eadeca'],[1,'#dfcfb6']]);ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=gradient(0,391,0,H,[[0,'#cbb79b'],[1,'#e1cfb2']]);ctx.fillRect(0,391,W,109);
+      box(0,378,W,15,0,'#cdbb9f');
+      poly([[w.x+24,w.y+w.height],[w.x+w.width-15,w.y+w.height],[Math.min(945,w.x+w.width+155),391],[w.x+90,391]],'rgba(255,246,214,.35)');
+      cityWindow(w.x,w.y,w.width,w.height);
+      box(w.x-24,w.y-12,26,w.height+27,6,'#d7c6aa');box(w.x+w.width+1,w.y-12,25,w.height+27,6,'#d7c6aa');
+      line([[w.x-27,w.y-12],[w.x+w.width+30,w.y-12]],'#9b8c76',4);
+      // A clear doorway remains separate from the sofa, counter and desk footprints.
+      box(door.x,door.y,door.width,door.height,5,'#ae9778');
+      box(door.x+7,door.y+8,door.width-14,door.height-9,2,gradient(door.x,0,door.x+door.width,0,[[0,'#d9c9ac'],[1,'#b6a282']]));
+      box(door.x+16,door.y+21,door.width-32,door.height*.36,2,'#cebea0','#b4a082',1.5);
+      line([[door.x+door.width-22,door.y+door.height*.57],[door.x+door.width-22,door.y+door.height*.57+16]],colors.ink,3);
+      line([[door.x+7,389],[door.x+door.width-7,389]],'#8c826c',3);
+      ellipse(r.rug.x,436,r.rug.width,36,'#c7bb9f');ellipse(r.rug.x,436,r.rug.width-29,27,'#d9ceb4');
+      // A separate kitchen counter gives the kitchen objects a real supporting surface.
+      box(k.x,k.y,k.width,391-k.y,3,'#b7bba3');
+      box(k.x-3,k.y-2,k.width+6,8,3,'#b18a62');
+      line([[k.x+k.width*.5,k.y+12],[k.x+k.width*.5,384]],'#959e87',1.5);
+      line([[k.x+k.width*.5-9,k.y+27],[k.x+k.width*.5-9,k.y+43]],'#718372',3);
+      line([[k.x+k.width*.5+9,k.y+27],[k.x+k.width*.5+9,k.y+43]],'#718372',3);
+      box(k.x+k.width-27,k.y-5,20,5,2,'#7c9386');
+      line([[k.x+k.width-15,k.y-7],[k.x+k.width-15,k.y-24],[k.x+k.width-22,k.y-24]],'#83998e',3);
+      const cabinetOverWindow = k.x+4 < w.x+w.width+14 && k.x+k.width-4 > w.x-14 && k.y-74 < w.y+w.height+11 && k.y-38 > w.y;
+      if(!cabinetOverWindow)box(k.x+4,k.y-74,k.width-8,36,3,'#c7c7b0','#b1b49d',1);
+      if(r.storage){const c=r.storage;box(c.x,c.y,c.width,391-c.y,3,'#bfae91');box(c.x+7,c.y+8,c.width-14,72,2,'#e2d8bf');for(const yy of [c.y+103,c.y+145]){line([[c.x+6,yy],[c.x+c.width-6,yy]],'#927c5c',2);line([[c.x+c.width/2-7,yy+17],[c.x+c.width/2+7,yy+17]],'#806b54',2);}}
+      // Low sofa: the seat anchor always falls on the drawn cushion.
+      const sx=s.x,sy=s.y,sw=s.width;
+      box(sx,sy,sw,77,17,'#b7bd9e');
+      box(sx+16,sy+13,sw*.39,58,13,'#c9cbb0');box(sx+sw*.48,sy+13,sw*.44,58,13,'#c5c8aa');
+      box(sx-3,sy+59,sw+9,35,12,'#9fae90');
+      box(sx-13,sy+34,25,68,10,'#aeb899');box(sx+sw-12,sy+34,25,68,10,'#aeb899');
+      line([[sx+15,sy+98],[sx+11,389]],'#786b51',7);line([[sx+sw-14,sy+98],[sx+sw-8,389]],'#786b51',7);
+      if(r.windowSeat)chair(r.windowSeat.x,r.windowSeat.y,r.windowSeat.width);
+      chair(d.seatX-39,330,77);
+      box(d.x,d.y,d.width,13,5,'#a77e58');
+      line([[d.x+19,d.y+14],[d.x+11,391]],'#8b7055',8);line([[d.x+d.width-21,d.y+14],[d.x+d.width-14,391]],'#8b7055',8);
+      box(d.x+64,d.y-46,74,44,5,colors.ink);box(d.x+70,d.y-40,62,32,2,'#b7cdc1');
+      line([[d.x+76,d.y-29],[d.x+110,d.y-29]],'#749b90',3);line([[d.x+76,d.y-21],[d.x+121,d.y-21]],'#90b0a0',3);
+      box(d.x+54,d.y-4,96,5,2,'#6d7c76');
+      if(!hasHomeItems()) {box(d.x+20,d.y-7,25,7,2,'#e3c69a');cup(d.x+d.width-38,d.y-17);}
+      if(r.plant)plant(...r.plant,.72);
+      const [cx,cy]=r.clock;
+      ellipse(cx,cy,26,26,'#dfd0b6');ellipse(cx,cy,22,22,colors.cream);
+      const minutes=Number.isFinite(scene.minuteOfDay)?scene.minuteOfDay%1440:612,hour=minutes/60%12;
+      line([[cx,cy],[cx+Math.sin(hour*Math.PI/6)*11,cy-Math.cos(hour*Math.PI/6)*11]],colors.ink,2.5);
+      line([[cx,cy],[cx+Math.sin(minutes%60*Math.PI/30)*17,cy-Math.cos(minutes%60*Math.PI/30)*17]],colors.ink,2);
+      const [ax,ay]=r.art;box(ax,ay,88,102,3,'#c2ab8b');box(ax+7,ay+7,74,88,0,'#efe2c9');
+      ellipse(ax+47,ay+35,15,15,'#d4a76d');poly([[ax+14,ay+83],[ax+37,ay+50],[ax+56,ay+74],[ax+75,ay+58],[ax+75,ay+87]],'#91a18a');
+      if(r.sideTable){const t=r.sideTable;box(t.x,t.y,t.width,9,4,'#af8660');
+        if(t.wallMounted){line([[t.x+9,t.y+9],[t.x+9,t.y+25],[t.x+25,t.y+9]],'#917355',3);line([[t.x+t.width-9,t.y+9],[t.x+t.width-9,t.y+25]],'#917355',3);}
+        else{line([[t.x+13,t.y+10],[t.x+11,391]],'#917355',5);line([[t.x+t.width-12,t.y+10],[t.x+t.width-10,391]],'#917355',5);}
+        if(!hasHomeItems())bottle(t.x+23,t.y-28);
+      }
+      if(hasHomeItems())roomItems();
     }
     function hall() {
       ctx.fillStyle = '#e9dfcb'; ctx.fillRect(0, 0, W, H);
@@ -492,7 +598,7 @@
       if (scene.kind === 'stairs') return stairPose(time, active, fatigue);
       const destination = scene.destinationPose;
       const seatedKinds = ['sit', 'desk', 'phone', 'rest', 'observe'];
-      const seatX = kind => scene.encounter ? 205 : scene.location !== 'room' ? 779 : kind === 'desk' ? 698 : 281;
+      const seatX = kind => scene.encounter ? 205 : scene.location !== 'room' ? 779 : roomLayoutApplied() ? roomSeat(kind).seatX : kind === 'desk' ? 698 : 281;
       const gaitTime = gaitDuration * 3;
       if (scene.kind === 'walk' && (!destination || time < gaitTime)) {
         const cycleCount = 3, stride = 55;
@@ -500,7 +606,7 @@
         const cycle = Math.min(cycleCount - 1, Math.floor(progress));
         const phase = progress >= cycleCount ? 1 : progress - cycle;
         const transfer = smooth((phase - .34) / .47);
-        const base = (destination ? seatX(destination) - cycleCount * stride : 390) + cycle * stride;
+        const base = (destination ? seatX(destination) - cycleCount * stride : roomLayoutApplied() ? roomDescriptor().walkStartX : 390) + cycle * stride;
         const x = base + stride * transfer;
         const crutchAdvance = smooth(phase / .30);
         const footAdvance = smooth((phase - .40) / .45);
@@ -523,7 +629,7 @@
       const seated = seatedKinds.includes(kind);
       const t = smooth(seatTime / 1100);
       const onBench = (scene.location !== 'room' || scene.encounter) && seated;
-      const x = seated ? seatX(kind) : scene.location === 'street' ? 530 : 405;
+      const x = seated ? seatX(kind) : scene.location === 'street' ? 530 : roomLayoutApplied() ? roomDescriptor().standX : 405;
       const lower = seated ? t : 0;
       const breathe = scene.kind === 'walk' && active ? Math.sin(seatTime / 530) * .8 * lower : 0;
       const rest = kind === 'rest' && !onBench;
@@ -539,6 +645,39 @@
         movementStep: scene.kind === 'walk' ? 3 : null, movementProgress: scene.kind === 'walk' ? 1 : 0 };
     }
 
+    function anatomicalPose(p) {
+      // basePose describes the existing right-injury gait. Keep that trajectory
+      // unchanged, then give a left injury its own lifted leg and right-foot support.
+      const leftInjury=scene.injuredSide==='left';
+      const supportingFoot=[...p.leftFoot], originalInjured=[...p.rightFoot];
+      const originalContacts=p.contacts || {
+        leftFoot:Boolean(p.leftFoot && p.leftFoot[1]>=384.99),
+        crutches:p.seated>=.65 || p.crutchLift<=.01, seat:p.seated>=.8
+      };
+      p.leftKnee=p.leftKnee || [mix(p.x-7,p.x+40,p.seated),mix(p.y+43,p.y+6,p.seated)];
+      p.rightKnee=p.rightKnee || [mix(p.x+23,p.x+51,p.seated),mix(p.y+39,p.y+7,p.seated)];
+      if(leftInjury){
+        const rest=p.kind==='rest' && scene.location==='room' && !scene.encounter;
+        p.rightFoot=supportingFoot;
+        if(p.kind==='stairs'){
+          // The raised foot stays clear of the next tread as well as this one.
+          // Continuous offsets avoid snapping when a toe passes a stair edge.
+          p.leftFoot=[mix(p.x+18,p.x+94,p.seated),mix(originalInjured[1]-25,313,p.seated)];
+          p.rightKnee=bentKnee([p.x+6,p.y-1],p.rightFoot,50);
+          p.leftKnee=bentKnee([p.x-7,p.y],p.leftFoot,45);
+        }else{
+          p.leftFoot=[mix(p.x-21,rest?p.x+105:p.x+96,p.seated),mix(originalInjured[1]-5,rest?354:372,p.seated)];
+          p.rightKnee=[mix(p.x+5,p.x+40,p.seated),mix(p.y+43,p.y+6,p.seated)];
+          p.leftKnee=[mix(p.x+13,p.x+46,p.seated),mix(p.y+40,p.y+5,p.seated)];
+        }
+      }
+      p.contacts={...originalContacts,leftFoot:leftInjury?false:Boolean(originalContacts.leftFoot),rightFoot:leftInjury?Boolean(originalContacts.leftFoot):false};
+      p.contacts.cushion=p.kind==='rest' && scene.location==='room' && !scene.encounter && p.seated>=.999;
+      const supportingSide=leftInjury?'right':'left';
+      if(p.support==='left-foot-and-crutches')p.support=supportingSide+'-foot-and-crutches';
+      if(p.support==='foot-and-handrail'||p.support==='landing-and-handrail')p.support=supportingSide+'-foot-and-handrail';
+      return p;
+    }
     function activityFor(p) {
       const time = reduced ? motionDuration : Math.min(elapsed, motionDuration);
       const progress = clamp(time / motionDuration, 0, 1);
@@ -568,7 +707,7 @@
       };
     }
     function getPose() {
-      const p = basePose();
+      const p = anatomicalPose(basePose());
       p.activity = activityFor(p);
       if (scene.kind !== 'walk' && scene.kind !== 'stairs') {
         p.shoulderY -= p.activity.breath;
@@ -608,6 +747,16 @@
         line([[-3,0],[18,2]], '#d0d1c4', 1.4);
       }
       ctx.restore();
+    }
+    function characterLegs(p) {
+      const leftHip=[p.x-7,p.y],rightHip=[p.x+6,p.y-1];
+      if(scene.injuredSide==='left'){
+        leg(rightHip,p.rightKnee,p.rightFoot,false,false);
+        leg(leftHip,p.leftKnee,p.leftFoot,true,true);
+      }else{
+        leg(leftHip,p.leftKnee,p.leftFoot,false,false);
+        leg(rightHip,p.rightKnee,p.rightFoot,true,true);
+      }
     }
     function head(x, y, tilt, activity) {
       const feminine = scene.appearance.gender === 'female', style = scene.appearance.hairStyle;
@@ -668,14 +817,14 @@
       const grip = [mix(padX + 5, p.x + 48, release), mix(padY + 37, p.y + 2, release)];
       // A rail and a hand-held support remain visible. This is a compressed
       // narrative illustration, deliberately without numbered gait instructions.
-      ellipse(p.leftFoot[0] + 7, stairSurface(p.leftFoot[0]) + 3, 23, 4, 'rgba(73,74,60,.12)');
+      const supportFoot=scene.injuredSide==='left'?p.rightFoot:p.leftFoot;
+      ellipse(supportFoot[0] + 7, stairSurface(supportFoot[0]) + 3, 23, 4, 'rgba(73,74,60,.12)');
       line([[padX - 8, padY + 2], [padX + 1, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
       line([[padX + 8, padY + 2], [padX + 9, padY + 50], [tip[0], tip[1] - 4]], colors.metal, 4);
       line([[padX - 10, padY], [padX + 11, padY]], colors.rubber, 8);
       line([[padX - 2, padY + 39], [padX + 11, padY + 39]], colors.rubber, 5);
       line([[tip[0] - 3, tip[1] - 3], [tip[0] + 3, tip[1] - 3]], colors.rubber, 6);
-      leg([hip[0] - 7, hip[1]], p.leftKnee, p.leftFoot, false, false);
-      leg([hip[0] + 6, hip[1] - 1], p.rightKnee, p.rightFoot, true, true);
+      characterLegs(p);
       poly([[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]], gradient(shoulder[0] - 18, shoulder[1], hip[0] + 19, hip[1], [[0, cloth[0]], [.45, cloth[1]], [1, cloth[2]]]));
       line([[hip[0] - 14, hip[1] - 6], [hip[0] + 15, hip[1] - 6]], cloth[4], 5);
@@ -697,9 +846,11 @@
       const a = p.activity, cloth = outfit(), shoulderWidth = scene.appearance.gender === 'female' ? 16 : 19;
       const sit = p.seated, rest = p.kind === 'rest' && scene.location === 'room' && !scene.encounter;
       ellipse(x + 24, 399, sit > .6 ? 78 : 68, 11, 'rgba(73,74,60,.14)');
-      const planted = p.leftFoot[1] >= 384.99;
-      ellipse(p.leftFoot[0] + 8, 393, planted ? 20 : 24, planted ? 3 : 5, planted ? 'rgba(42,61,53,.23)' : 'rgba(42,61,53,.06)');
-      ellipse(p.rightFoot[0] + 9, 394, 24, 5, 'rgba(42,61,53,.06)');
+      const supportFoot=scene.injuredSide==='left'?p.rightFoot:p.leftFoot;
+      const injuredFoot=scene.injuredSide==='left'?p.leftFoot:p.rightFoot;
+      const planted = supportFoot[1] >= 384.99;
+      ellipse(supportFoot[0] + 8, 393, planted ? 20 : 24, planted ? 3 : 5, planted ? 'rgba(42,61,53,.23)' : 'rgba(42,61,53,.06)');
+      ellipse(injuredFoot[0] + 9, 394, 24, 5, 'rgba(42,61,53,.06)');
       if (rest && sit > .7) {
         box(x + 80, 361, 64, 17, 7, '#e8d4ab');
         box(x + 86, 377, 50, 7, 4, '#ab8960');
@@ -707,7 +858,7 @@
         line([[x + 129, 384], [x + 130, 393]], '#8e7557', 4);
       }
       // Once seated, move the equipment beside the chair continuously.
-      // Both feet and the seat remain supported throughout this transition.
+      // The healthy foot and seat provide support while the injured foot stays raised.
       const release = smooth((sit - .45) / .55);
       const park = smooth((sit - .65) / .35);
       const parkedX = p.kind === 'desk' ? x - 75 : x - 99;
@@ -716,10 +867,7 @@
       const frontTipX = mix(p.crutchTipX + 17, parkedX + 17, park);
       // Drawing the parked equipment behind the seated body keeps hands legible.
       const frontHand = crutch(frontTipX, 391 - p.crutchLift, lean, 1);
-      const rearKnee = [mix(x - 7, x + 40, sit), mix(p.y + 43, p.y + 6, sit)];
-      leg([hip[0] - 7, hip[1]], rearKnee, p.leftFoot, false, false);
-      const frontKnee = [mix(x + 23, x + 51, sit), mix(p.y + 39, p.y + 7, sit)];
-      leg([hip[0] + 6, hip[1] - 1], frontKnee, p.rightFoot, true, true);
+      characterLegs(p);
       // Torso follows shoulder and pelvis rather than moving as a rigid sprite.
       const torso = [[shoulder[0] - shoulderWidth + 1, shoulder[1] + 3], [shoulder[0] + shoulderWidth + 1, shoulder[1] + 4],
         [hip[0] + 19, hip[1] - 5], [hip[0] - 17, hip[1] - 4]];
@@ -820,6 +968,8 @@
       scene = { kind: 'rest', location: 'room', body: {}, step: 1, ...next };
       scene.body = { ...(next && next.body || {}) };
       scene.appearance = appearanceFor(next && next.appearance);
+      scene.roomLayout = roomLayoutFor(next && next.roomLayout);
+      scene.injuredSide = next && next.injuredSide === 'left' ? 'left' : 'right';
       scene.context = next && next.context ? JSON.parse(JSON.stringify(next.context)) : null;
       const encounter = next && next.encounter;
       scene.encounter = encounter && ['door', 'escalator', 'kiosk'].includes(encounter.kind) ? {
@@ -858,14 +1008,28 @@
         x: Math.round(pose.x * 100) / 100, y: Math.round(pose.y * 100) / 100,
         phase: pose.phase, support: pose.support, moving: Boolean(pose.moving),
         characterMoving: Boolean(pose.moving), environmentMoving: Boolean(encounter && encounter.active), encounter,
-        bracedLeg: 'right', elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
+        bracedLeg: scene.injuredSide, supportingLeg: scene.injuredSide==='left'?'right':'left',
+        cast: { side:scene.injuredSide, ankle:(scene.injuredSide==='left'?pose.leftFoot:pose.rightFoot).map(n=>Math.round(n*100)/100), foreground:true },
+        elapsedMs: Math.round(Math.min(elapsed, motionDuration)), durationMs: motionDuration,
         reducedMotion: reduced, fatigue: pose.fatigue,
         appearance: { ...scene.appearance },
+        roomLayout: scene.roomLayout, roomLayoutApplied: roomLayoutApplied(),
+        roomAnchors: roomLayoutApplied() ? JSON.parse(JSON.stringify({ ...roomDescriptor(),
+          seats: { sofa:roomDescriptor().sofa.seatX, desk:roomDescriptor().desk.seatX, window:(roomDescriptor().windowSeat || roomDescriptor().sofa).seatX },
+          workSurface: { x:roomDescriptor().desk.seatX+79, y:roomDescriptor().desk.y-4 },
+          castCushion: { x:roomDescriptor().sofa.seatX+80, y:361, width:64, height:17 },
+          items:itemPositions()
+        })) : null,
         activity: { ...pose.activity },
         effort: effortState(),
         contextVisual: hasContext() ? {
           doorMode: scene.context.entrance ? scene.context.entrance.mode : null,
           itemsVisible: !scene.encounter && scene.location === 'room' && hasHomeItems(),
+          itemPositions: roomLayoutApplied() && hasHomeItems() ? {
+            cup: itemPositions().cup[scene.context.items?.cupLocation] || null,
+            phone: itemPositions().phone[scene.context.items?.phoneLocation] || null,
+            bottle: scene.context.items?.container === 'bottle' ? itemPositions().bottle[scene.context.items?.drinkPlace] || null : null
+          } : null,
           items: scene.context.items ? { container: scene.context.items.container, cupLocation: scene.context.items.cupLocation,
             phoneLocation: scene.context.items.phoneLocation, drinkPlace: scene.context.items.drinkPlace, carryTrips: scene.context.items.carryTrips } : null
         } : null,
@@ -882,11 +1046,7 @@
           leftKnee: pose.leftKnee || [mix(pose.x - 7, pose.x + 40, pose.seated), mix(pose.y + 43, pose.y + 6, pose.seated)],
           rightKnee: pose.rightKnee || [mix(pose.x + 23, pose.x + 51, pose.seated), mix(pose.y + 39, pose.y + 7, pose.seated)]
         },
-        contacts: pose.contacts || {
-          leftFoot: Boolean(pose.leftFoot && pose.leftFoot[1] >= 384.99),
-          crutches: pose.seated >= .65 || pose.crutchLift <= .01,
-          seat: pose.seated >= .8
-        }
+        contacts: { ...pose.contacts }
       };
     }
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;

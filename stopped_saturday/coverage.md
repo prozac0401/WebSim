@@ -2,7 +2,33 @@
 
 기준: 2026-10-24의 `멈춘_토요일_수정_요청_프롬프트.txt`·개선 기획안 v1.0과 이후 12단계·활동 시간, 포장 귀가, 무작위 환경 확장 요청입니다. 이전 실행 보고와 첨부 문서의 Edge 7회 진행은 최신 검사 수에 합산하지 않습니다.
 
-### 최신 수정: 최소 3초 애니메이션·다양한 동작·외형 보존
+### 최신 수정: 다친 쪽의 무작위 선택과 좌우 일치
+
+새 하루는 기존 환경·외형·방의 여섯 번 추출 뒤에 `conditions.injuredSide`를 `right` 또는 `left`로 한 번 정합니다. 시작 전 도입은 “한쪽 다리”로 설명하고, 시작 뒤 본문·몸 상태의 발목과 반대쪽 다리·삽화의 깁스와 지지 다리를 함께 맞춥니다. 선택 효과·활동 시간·결말은 좌우에 따라 달라지지 않습니다. 다친 쪽만 다른 기록을 비교할 때 같은 규칙을 적용한다는 사실과 좌우 차이를 표시합니다.
+
+다친 쪽은 당일 장면·새로고침·분기·내보내기·가져오기에서 유지합니다. 이전 기록에 필드가 없으면 없는 채로 보존하고 기존 오른쪽 부상 설정으로 재현합니다. 저장 버전과 친구 파일의 최상위 필드는 유지합니다. 이는 게임의 대칭 규칙이며 실제 좌우 부상의 영향을 같다고 검증한 결과는 아닙니다.
+
+**최종 검증:** Node **135/135**(이전 엔진 44·새 엔진 27·저장 34·무작위 추출 5·외형 호환 7·방 호환 6·부상측 호환 8·카탈로그 4), Chromium 기본 이야기 **22/22**·일지 **26/26**·부상측 UI **6/6**·애니메이션 흐름 **6/6**·외형 및 실제 재생 **4/4**·방 UI **10/10** 묶음이 통과했습니다. 부상측 렌더러 **5/5**, 기존 외형 렌더러 **4/4**·방 렌더러 **5/5** 회귀도 통과했습니다.
+
+일지는 일곱 번의 추출, 왼쪽 기록의 저장·복원·분기·공유, 깁스와 지지 다리의 반대 관계 및 몸 상세 라벨, 잘못된 값 거부, 좌우만 또는 외형·방까지 함께 다른 기록의 비교를 확인했습니다. v2·초기 v3와 방 정보까지 있는 이전 기록의 부상측 필드 부재를 보존합니다. 기본 오른쪽인 이전 기록과 명시적 `right` 기록을 비교할 때 “다친 쪽은 다르며”라는 안내가 나오지 않는 회귀 검사도 추가해 전체 26개 묶음을 다시 통과했습니다. JavaScript/console 오류 0, 일지 검사의 외부 자동 요청 0입니다.
+
+렌더러는 양쪽 부상과 방·동작을 포함한 200조합·196,104프레임을 검사했습니다. 걷기·계단에서 다친 발에 체중을 싣지 않는 표시와 지지의 연속성, 쉬는 자세의 깁스 받침을 확인하고 방·글자 자체는 뒤집지 않았습니다. 양쪽 부상 비교 이미지, 320px 화면, 네 방의 휴식 화면과 원본 develop-web-game 클라이언트 PNG·상태 JSON도 직접 확인했습니다. 이 수치는 자동화된 삽화 검사이며 의료적 보행 검증은 아닙니다. 실물 모바일·실제 스크린리더·운영체제 기본 공유창·사전 설명 없는 사용자 검토는 미실행입니다.
+
+근거: `../output/playwright/saturday-injury-classic/results.json`, `../output/playwright/saturday-injury-journal/results.json`, `../output/playwright/saturday-injury/results.json`, `../output/playwright/saturday-injury-flow-final/results.json`, `../output/playwright/saturday-injury-character-final/results.json`, `../output/playwright/saturday-injury-room-final/results.json`, `../output/playwright/saturday-injury-renderer/results.json`, `../output/playwright/saturday-injury-character-regression/results.json`, `../output/playwright/saturday-injury-room-regression/results.json`, `../output/playwright/saturday-injury-client/`. 아래 126개 Node 및 Chromium 수치는 이전 방 배치 작업의 완료된 이력이며 이번 수에 합산하지 않습니다.
+
+### 이전 검증: 네 가지 방 배치와 기록 유지
+
+새 하루마다 `conditions.roomLayout`을 `window-left`·`window-right`·`wide-living`·`compact-studio` 중 하나로 정합니다. 환경 세 번·성별·머리의 기존 순서를 유지하고 방을 마지막 여섯 번째 독립 추출로 추가합니다. 당일 장면과 복원·분기·내보내기·가져오기에서 같은 방을 유지하며, 이전 기록에 필드가 없으면 없는 채로 보존하고 그림에서만 `window-left`를 사용합니다. 방이나 외형만 다른 기록은 같은 게임 조건으로 비교합니다. 선택·몸 상태·시간·결말·저장 버전은 바꾸지 않습니다.
+
+**최종 검증:** Node **126/126**(이전 엔진 44·새 엔진 27·저장 34·무작위 추출 4·외형 호환 7·방 호환 6·카탈로그 4), Chromium 기본 이야기 **22/22**·일지 **26/26**·애니메이션 흐름 **6/6**·외형 및 실제 재생 **4/4**·방 UI **10/10**·방 렌더러 **5/5**·기존 외형 렌더러 회귀 **4/4** 묶음이 통과했습니다. 일지는 여섯 번의 시작 추출, 방 복원·분기·공유, 잘못된 방 값 거부, 이전 기록의 필드 부재와 표시 대체, 외형만·방만·둘 다 다른 기록의 비교를 확인했습니다. 외형은 있지만 방 정보는 없는 직전 버전의 기록도 가져오기·내보내기·분기 때 방 필드를 삽입하지 않습니다.
+
+네 방의 창문·소파·책상·문·부엌 배치를 구분하고, 실제 집에 있을 때만 적용합니다. 넓은 거실의 별도 창가 좌석, 작은 원룸의 수납장, 소파 옆 탁자·선반·깁스 받침도 확인했습니다. 방 UI는 320/390px × 네 방의 96개 선택과 카페에 집 이름이 표시되지 않는지 검사했으며, 최종 가구 간격 조정 뒤 다시 통과했습니다. 렌더러는 소품 받침 12경우·이동 15,852프레임에서 지지 누락 0건, 외부 장소 5종의 불변을 확인했습니다. 기존 외형 렌더러 회귀의 22,116프레임과 애니메이션 흐름의 146회 화면 위치 측정도 별도 묶음으로 통과했습니다. 이 수치는 자동화된 삽화 검사이며 의료적 보행 검증은 아닙니다.
+
+JavaScript/console 오류 0, 일지 검사의 외부 자동 요청 0입니다. 원본 develop-web-game 클라이언트도 통과했고, 여성·묶은 머리·왼쪽 창가 거실의 1,500ms 동작 PNG·상태 JSON을 직접 확인했습니다. 네 방의 모바일 화면과 넓은 거실의 책상·오른쪽 창가의 휴식·작은 원룸의 창가 소품 화면도 확인했습니다. 실물 모바일·실제 스크린리더·운영체제 기본 공유창·사전 설명 없는 사용자 검토는 미실행입니다.
+
+근거: `../output/playwright/saturday-room-classic/results.json`, `../output/playwright/saturday-room-journal/results.json`, `../output/playwright/saturday-room-flow/results.json`, `../output/playwright/saturday-room-character/results.json`, `../output/playwright/saturday-room-integration-final/results.json`, `../output/playwright/saturday-rooms/results.json`, `../output/playwright/saturday-room-character-renderer/results.json`, `../output/playwright/saturday-room-client/`. 아래 119개 Node 및 Chromium 수치는 이전 외형 작업의 완료된 이력이며 이번 수에 합산하지 않습니다.
+
+### 이전 검증: 최소 3초 애니메이션·다양한 동작·외형 보존
 
 선택 뒤 애니메이션의 자동 종료는 최소 3초 이후로 조정하며, 건너뛰기·Escape·움직임 줄이기는 유지합니다. 행동에 맞는 움직임을 보강하고 새 하루에서 성별과 머리 모양을 독립적으로 정합니다. `conditions.appearance`는 `gender`와 `hairStyle`만 담으며, 세 환경에 이어 성별·머리를 한 번씩 정하므로 새 시작의 추출은 총 다섯 번입니다. 복원·분기·내보내기·가져오기는 저장된 외형을 유지합니다. 기존 기록에 외형 정보가 없으면 없는 채로 보존하고 그림에만 기본 외형을 사용합니다.
 
@@ -45,7 +71,7 @@
 현재 버전의 Node 검사는 이전 엔진과 새 엔진을 함께 실행합니다.
 
 ```sh
-node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/appearance.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
+node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/appearance.test.cjs stopped_saturday/room-layout.test.cjs stopped_saturday/injury-side.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
 ```
 
 ### 이전 수정: 화면 높이와 상태 표시 정리
@@ -85,7 +111,7 @@ node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine
 | `scenario-scenes.js` | S01~S13의 장면 조건·선택·효과·후속 결과와 짧은 시나리오 묶음 |
 | `story-engine.js` | 기존 하루를 유지하면서 새 장면·기록의 결정적 재현을 연결하고 실제 경험과 기억을 구별 |
 | `day-rhythm.js`, `legacy/story-engine-v2.js`, `legacy/scenario-scenes-v2.js` | 12단계·시간 규칙과 버전 2의 원래 5단계 재현을 분리 |
-| `day-environment.js` | 새 하루의 환경과 외형을 한 번 추출하고 선택 기록의 조건으로 전달 |
+| `day-environment.js` | 새 하루의 환경·외형·방 배치·다친 쪽을 한 번 추출하고 선택 기록의 조건으로 전달 |
 | `story-engine.test.cjs` | 13개 장면·모든 조건별 선택·실제 귀가·장소 정보·기존 실내 기억의 회귀 검사 |
 | `story-engine-v3.test.cjs` | 새 열두 단계와 선택별 시간, 실제 귀가·이전 버전 호환 검사 |
 | `saturday-store.js` | 진행·완료·분기·가져온 기록의 버전 관리와 재현·검증 |

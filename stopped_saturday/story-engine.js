@@ -13,6 +13,25 @@
   const ENDING_KEYS = ['flow', 'shared', 'outing', 'rest', 'observe', 'create'];
   const clamp = n => Math.max(0, Math.min(10, n));
   const isLegacy = s => String(s && s.scenarioVersion) === '2';
+  const injuredSide = s => !isLegacy(s) && s.initialConditions?.injuredSide === 'left' ? 'left' : 'right';
+  // Only authored anatomical tokens vary. Resolved history and room/door directions
+  // never contain these tokens, so repeated rendering cannot reverse them again.
+  function bodyText(s, text) {
+    if (!text.includes('[[')) return text;
+    const injured = injuredSide(s);
+    return text.replace(/\[\[(injured|support):(ankle-spaced|ankle|leg-spaced|leg|foot|thigh|hip)\]\]/g, (_, role, part) => {
+      const side = role === 'injured' ? injured : injured === 'right' ? 'left' : 'right';
+      const prefix = side === 'right' ? '오른' : '왼';
+      const parts = { 'ankle-spaced': '쪽 발목', ankle: '발목', 'leg-spaced': '쪽 다리', leg: '다리', foot: '발', thigh: '쪽 허벅지', hip: '쪽 엉덩이' };
+      return prefix + parts[part];
+    });
+  }
+  function bodyTextIn(s, value) {
+    if (typeof value === 'string') return bodyText(s, value);
+    if (Array.isArray(value)) return value.map(item => bodyTextIn(s, item));
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, bodyTextIn(s, item)]));
+    return value;
+  }
   const turnLimit = value => String(typeof value === 'object' ? value.scenarioVersion : value) === '2' ? 5 : rhythm.DAY_LENGTH;
   function normalizeStart(options = {}) {
     const { scenarioVersion, ...start } = options;
@@ -60,7 +79,7 @@
       time: '10:12 · 토요일 오전', step: 1, title: '주말이 이렇게 길었나?',
       lines: s => [
         `휴대폰을 내려놓는다. 지금은 ${rhythm.formatTime(s.minuteOfDay)}. 평소라면 차 키를 찾거나 새로운 프로젝트의 파일명을 고민했을 시간이다.`,
-        '오른다리에 깁스를 한 채 앉아 있다. 일어나려다 먼저 발의 위치를 본다. 왼발에 힘을 모으자 허벅지가 단단해지고, 어깨도 덩달아 올라간다.',
+        '[[injured:leg]]에 깁스를 한 채 앉아 있다. 일어나려다 먼저 발의 위치를 본다. [[support:foot]]에 힘을 모으자 허벅지가 단단해지고, 어깨도 덩달아 올라간다.',
         '목발은 소파 옆에 있다. 목발을 짚으면 컵과 휴대폰을 들 손이 없다. 몇 걸음 옮길 때마다 얼마나 더 움직일 수 있을지 생각하게 된다.',
         '시간은 많은데, 발목이 불편해서 할 수 있는 일은 줄었다.'
       ],
@@ -68,7 +87,7 @@
         choice('morning-outside', '밖으로 나가고 싶다', '어떻게 갈지 먼저 알아보기', 'outside', 'transfer', 'outing', '목발로 현관까지 이동', '일단 현관까지', [
           '열쇠를 집으려다 다시 내려놓는다. 오늘은 직접 운전하지 않기로 했다. 택시를 타건, 누군가 날 픽업하러 오건, 차에 타러 가는 길부터 확인해야 한다.',
           '목발을 짚고 현관으로 간다. 몇 걸음 걷고 잠깐 쉰다. 현관까지 가는 것뿐 아니라 돌아와 다시 앉을 때 쓸 힘도 생각해 둔다.'
-        ], motion('walk', 'hall', '오른발을 보호하며 짧게 이동하고, 현관 앞에서 멈춘다.'), { route: 'outside', energy: -1, mood: 0, weight: 2 }),
+        ], motion('walk', 'hall', '[[injured:foot]]을 보호하며 짧게 이동하고, 현관 앞에서 멈춘다.'), { route: 'outside', energy: -1, mood: 0, weight: 2 }),
         choice('morning-inside', '집에서 게임이나 새로운 일을 해본다', '책상까지 천천히 가서 앉기', 'inside', 'transfer', 'create', '책상으로 이동해 앉음', '책상은 가까운데', [
           '노트북은 바로 앞이다. 의자에 앉으려고 몸을 돌리다가 발목이 걸릴까 봐 멈춘다. 앉을 자리를 한 번 더 보고 천천히 몸을 옮긴다.',
           '의자에 앉아 손잡이를 놓는다. 손바닥에 눌린 감각이 남아 잠깐 손을 펴 둔다. 화면에는 아직 “새 문서”가 떠 있다. 이제 뭘 쓸지 생각해 본다.'
@@ -113,7 +132,7 @@
       time: '11:08 · 책상 앞', step: 2, title: '집에서 무엇을 해볼까?',
       lines: () => [
         '노트북을 켠다. 게임도 있고 영상도 볼 수 있다. 그런데 의자에는 어떻게 앉아도 편하지가 않다.',
-        '오른발을 피해서 앉다 보니 몸통이 살짝 비틀려 있다. 허리 뒤에 빈 공간이 느껴져 쿠션을 옮긴다. 노트북도 같이 옮긴다. 이제 충전선이 짧다.',
+        '[[injured:foot]]을 피해서 앉다 보니 몸통이 살짝 비틀려 있다. 허리 뒤에 빈 공간이 느껴져 쿠션을 옮긴다. 노트북도 같이 옮긴다. 이제 충전선이 짧다.',
         '자리를 몇 번이나 고친 끝에 화면을 정면으로 본다. 이제는 뭘 좀 해볼까.'
       ],
       choices: [
@@ -165,7 +184,7 @@
       time: '11:14 · 창가', step: 2, title: '창밖을 보다 보니',
       lines: () => [
         '버스가 지나가고 가게 문이 열린다. 배달원 한 명이 같은 현관을 두 번 들여다본다.',
-        '오른발을 계속 의식하니 왼쪽 엉덩이에 체중이 몰린다. 앉아 있는데도 자리를 조금씩 다시 잡게 된다.',
+        '[[injured:foot]]을 계속 의식하니 [[support:hip]]에 체중이 몰린다. 앉아 있는데도 자리를 조금씩 다시 잡게 된다.',
         '잠깐 보려던 건데 자꾸 다른 사람이 눈에 들어온다. 사진을 찍어 볼까. 저 사람은 어디로 가는 걸까.'
       ],
       choices: [
@@ -198,7 +217,7 @@
       choices: [
         choice('outing-stairs', '중간에 쉬어 가며 2층에 올라간다', '친구와 함께, 올라간 뒤 앉을 자리까지', 'afternoon', 'stairs', 'outing', '계단참에서 쉬며 2층에 올라감', '2층에 올라와 앉았다', [
           '서두르지 않고 계단을 오른다. 한 칸 오를 때마다 몸을 다시 가누느라 시간이 걸린다. 한 층을 오르는 동안 머릿속 에너지 막대는 자꾸 줄어든다. 계단참에서 친구와 잠깐 쉰다.',
-          '2층에 닿아 의자에 앉는다. 어깨 앞과 겨드랑이 옆이 뻐근하고, 비스듬히 힘을 주었던 등도 당긴다. 왼쪽 허벅지는 뒤늦게 떨린다. 올라올 수는 있었지만 꽤 힘들었다. 내려갈 때도 힘이 필요해서 조금 더 쉰다.'
+          '2층에 닿아 의자에 앉는다. 어깨 앞과 겨드랑이 옆이 뻐근하고, 비스듬히 힘을 주었던 등도 당긴다. [[support:thigh]]는 뒤늦게 떨린다. 올라올 수는 있었지만 꽤 힘들었다. 내려갈 때도 힘이 필요해서 조금 더 쉰다.'
         ], motion('stairs', 'stairs', '계단참에서 멈춰 쉬며 실제로 2층까지 올라가, 도착한 뒤 앉아 숨을 돌린다.', 'sit'), { energy: -2, mood: 0, flags: ['stairs_taken'], weight: 2 }),
         choice('outing-elevator', '뒤편 엘리베이터를 확인해 2층으로 간다', '조금 돌아가되 오르내리는 힘을 줄이기', 'afternoon', 'walk', 'observe', '뒤편에서 찾은 엘리베이터', '같은 층으로 가는 다른 길', [
           '친구가 안내를 확인하고 뒤편 문을 잡아 준다. 건물을 조금 돌아 엘리베이터에 탄다. 층수 표시가 바뀌는 동안 목발 손잡이를 쥔 손의 힘을 잠깐 푼다.',
@@ -247,7 +266,7 @@
     afternoon: {
       time: '토요일', step: 4, title: '이제 무엇을 해볼까?',
       lines: s => [
-        has(s, 'stairs_taken') ? '2층에서 충분히 앉아 있다가 친구와 내려와 집에 돌아왔다. 내려오는 데도 생각보다 힘이 들었다. 지금은 왼쪽 허벅지와 어깨가 묵직하다.'
+        has(s, 'stairs_taken') ? '2층에서 충분히 앉아 있다가 친구와 내려와 집에 돌아왔다. 내려오는 데도 생각보다 힘이 들었다. 지금은 [[support:thigh]]와 어깨가 묵직하다.'
           : has(s, 'elevator_used') ? '2층에서 쉬었다가 엘리베이터로 내려와 귀가했다. 아까 저장한 “뒤편 출입” 메모를 다시 본다. 돌아오는 길에도 그쪽을 찾을 수 있어 다행이었다.'
           : has(s, 'pickup_help') ? (has(s, 'outing') ? '1층에서 점심을 먹은 뒤 친구와 집에 돌아왔다. 목발을 짚느라 음식 봉투를 들 수 없었는데, 친구가 옮겨 줘서 편하게 먹었다.' : '점심 봉투가 비어 있다. 가게에 들러 음식을 가져다준 덕분에 집에서 편하게 먹었다.')
           : has(s, 'delivery') ? '배달받은 점심을 정리하고 앱을 닫는다. 못 쓴 매장 할인은 여전히 조금 아깝다. 그래도 직접 가지러 다녀오지 않은 건 편했다.'
@@ -295,7 +314,7 @@
           '내일 해보고 싶은 것을 하나 적는다. 실제로 할지는 내일 몸 상태를 보고 정하기로 한다.',
           '메모를 저장하고 휴대폰을 가까이 둔다. 내일 다시 보면 또 하고 싶을까. 지금은 등을 기대고 쉬고 싶다.'
         ], motion('sit', 'room', '내일 하고 싶은 일을 적고 편히 앉는다.'), { flags: ['future'], weight: 2 }),
-        choice('evening-close', '이제는 편하게 쉰다', '편하게 앉아 몸을 쉬게 하기', 'end', 'rest', 'rest', '편하게 앉아 휴식을 취함', '편히 앉아 쉬기로 했다', [
+        choice('evening-close', '이제부턴 휴식을 취한다', '편하게 앉아 몸을 쉬게 하기', 'end', 'rest', 'rest', '편하게 앉아 휴식을 취함', '편히 앉아 쉬기로 했다', [
           '알림을 끄고 휴대폰을 내려놓는다. 다른 것을 틀까 하다가 손을 거둔다. 지금은 그냥 쉬고 싶다.',
           '필요한 물건을 가까이 두고 다리를 받친다. 손을 펴고 기대어 앉는다. 아직 피곤해서 한동안 그대로 쉰다.'
         ], motion('rest', 'room', '휴대폰을 내려놓고 다리를 받친 채 쉰다.'), { energy: 1, mood: 0, flags: ['accept'], weight: 2 }),
@@ -314,25 +333,27 @@
     observe: { id: 'observe', name: '주변을 둘러본 토요일', quote: '“평소에는 그냥 지나쳤던 것을 자세히 봤다.”', body: '주변을 살펴보거나 오늘 있었던 일을 생각해 봤다. 익숙한 곳에서도 전에는 몰랐던 점이 보였다.', takeaway: '오늘 한 일 · 주변을 살펴보기' },
     create: { id: 'create', name: '새로운 일을 시작한 토요일', quote: '“글이나 아이디어를 조금 써봤다.”', body: '짧은 글을 쓰거나 새로운 아이디어와 계획을 생각해 봤다. 한 번에 다 끝내지는 않았다. 더 해보고 싶은 부분은 나중에 이어 할 수 있도록 적어 두었다.', takeaway: '오늘 한 일 · 글이나 아이디어 써 보기' }
   };
-  function bodyContext(s) {
+  function bodyContext(s) { return bodyText(s, bodyContextText(s)); }
+  function bodyContextText(s) {
     if (s.body.shoulder >= 5 && s.body.palm >= 3) return '손을 펴 보니 손바닥이 얼얼하다. 앉아 있어도 어깨는 뻐근하다. 목발 손잡이를 그렇게 세게 쥐고 있었나 싶다.';
     if (s.body.back >= 5) return '등을 펴려다 뻣뻣해서 잠깐 멈춘다. 아픈 발을 피하느라 몸이 비스듬히 기울어 있었다. 자세를 고치고 나서야 그쪽에 힘이 들어갔던 걸 느낀다.';
-    if (s.body.goodLeg >= 3) return '왼쪽 허벅지가 묵직하다. 몸을 받치느라 계속 힘이 들어갔던 쪽이다. 다시 일어나기 전에 조금 더 앉아 있고 싶다.';
+    if (s.body.goodLeg >= 3) return '[[support:thigh]]가 묵직하다. 몸을 받치느라 계속 힘이 들어갔던 쪽이다. 다시 일어나기 전에 조금 더 앉아 있고 싶다.';
     return '발목은 여전히 묵직하고 불편하다. 자세를 바꿀 때마다 힘이 들어가는 곳도 조금씩 달라진다.';
   }
-  function sensation(s, effect) {
+  function sensation(s, effect) { return bodyText(s, sensationText(s, effect)); }
+  function sensationText(s, effect) {
     if (effect === 'neutral') return '몸의 반응 · 발목은 여전히 묵직하다.';
-    if (effect === 'standing') return '몸의 반응 · 가만히 기다리는데도 왼쪽 허벅지와 손바닥이 묵직해진다. 목발 손잡이를 고쳐 쥔다. 어느새 올라가 있던 어깨도 신경 쓰인다.';
+    if (effect === 'standing') return '몸의 반응 · 가만히 기다리는데도 [[support:thigh]]와 손바닥이 묵직해진다. 목발 손잡이를 고쳐 쥔다. 어느새 올라가 있던 어깨도 신경 쓰인다.';
     if (effect === 'reach') return '몸의 반응 · 높은 화면으로 손을 뻗는 순간 어깨 앞과 등 옆이 당긴다. 반대쪽 손바닥에는 목발 손잡이가 더 깊이 눌린다. 팔을 거두고 필요한 조작을 부탁한다.';
-    if (effect === 'stairs') return '몸의 반응 · 손잡이를 누르던 손바닥이 얼얼하고, 어깨 앞쪽과 등 옆이 당긴다. 겨드랑이 옆은 옷이 닿을 때 유독 신경 쓰인다. 몸을 받치던 왼쪽 다리도 묵직해져 2층 의자에 앉아 쉰다.';
+    if (effect === 'stairs') return '몸의 반응 · 손잡이를 누르던 손바닥이 얼얼하고, 어깨 앞쪽과 등 옆이 당긴다. 겨드랑이 옆은 옷이 닿을 때 유독 신경 쓰인다. 몸을 받치던 [[support:leg-spaced]]도 묵직해져 2층 의자에 앉아 쉰다.';
     if (effect === 'rest') return '몸의 반응 · 손을 펴 두니 손바닥과 어깨가 조금 편하다. 다시 자세를 고치면 발목의 묵직함이 느껴진다. 오래 힘을 준 곳의 뻐근함도 아직 남아 있다.';
     if (effect === 'walk' || effect === 'transfer') {
-      const text = s.body.shoulder >= 5 ? '손잡이를 누를 때마다 어깨 앞쪽이 뻐근하다. 손을 잠깐 펴도 손바닥에는 눌린 감각이 남아 있다.' : '몇 걸음 옮기고 멈춘다. 손바닥과 왼쪽 다리에 번갈아 힘이 들어갔다. 고개를 돌리려니 어깨까지 올라가 있는 게 느껴진다.';
-      return `몸의 반응 · ${text}${s.body.underarm > 0 ? ' 겨드랑이 옆에 닿던 천이 쓸리는 느낌도 있어 팔의 긴장을 풀고 쉰다.' : ' 오른발목은 움직임이 끝나도 둔하게 욱신거린다.'}`;
+      const text = s.body.shoulder >= 5 ? '손잡이를 누를 때마다 어깨 앞쪽이 뻐근하다. 손을 잠깐 펴도 손바닥에는 눌린 감각이 남아 있다.' : '몇 걸음 옮기고 멈춘다. 손바닥과 [[support:leg-spaced]]에 번갈아 힘이 들어갔다. 고개를 돌리려니 어깨까지 올라가 있는 게 느껴진다.';
+      return `몸의 반응 · ${text}${s.body.underarm > 0 ? ' 겨드랑이 옆에 닿던 천이 쓸리는 느낌도 있어 팔의 긴장을 풀고 쉰다.' : ' [[injured:ankle]]은 움직임이 끝나도 둔하게 욱신거린다.'}`;
     }
-    if (effect === 'desk') return `몸의 반응 · ${s.body.back >= 5 ? '손을 멈추고 등을 펴려니 날개뼈 아래가 당긴다. 오른발을 피하느라 비스듬히 앉아 있었다.' : '화면에서 눈을 떼자 숙이고 있던 목과 등이 뻣뻣하다. 발을 조심하느라 상체까지 기울어 있었다.'} 손을 쉬고 자세부터 다시 고친다.`;
+    if (effect === 'desk') return `몸의 반응 · ${s.body.back >= 5 ? '손을 멈추고 등을 펴려니 날개뼈 아래가 당긴다. [[injured:foot]]을 피하느라 비스듬히 앉아 있었다.' : '화면에서 눈을 떼자 숙이고 있던 목과 등이 뻣뻣하다. 발을 조심하느라 상체까지 기울어 있었다.'} 손을 쉬고 자세부터 다시 고친다.`;
     if (effect === 'phone') return '몸의 반응 · 화면을 보느라 힘이 들어간 어깨가 묵직하다. 팔을 편히 받치고 쉬니 조금 낫다. 발목은 여전히 욱신거린다.';
-    if (effect === 'settle') return '몸의 반응 · 앉아서 손을 펴고 쉬니 손바닥과 왼쪽 다리가 조금 편하다. 자세를 고칠 때는 발목의 묵직한 욱신거림이 다시 느껴진다.';
+    if (effect === 'settle') return '몸의 반응 · 앉아서 손을 펴고 쉬니 손바닥과 [[support:leg-spaced]]가 조금 편하다. 자세를 고칠 때는 발목의 묵직한 욱신거림이 다시 느껴진다.';
     return '몸의 반응 · 같은 자세로 오래 앉아 있으니 등 한쪽이 당긴다. 몸의 방향을 조금 바꾸고 팔을 내려놓는다.';
   }
   function classicEffects(ch) {
@@ -402,7 +423,7 @@
       }
       return { ...ch, effects, followUpText, travelMinutes, durationMinutes: rhythm.durationForChoice(ch) + travelMinutes, contrastVariant: node.contrastVariant };
     });
-    return { ...node, time: rhythm.formatTime(s.minuteOfDay), step: s.decisions.length + 1, dayStep: s.decisions.length + 1, coreStep: s.coreStep, choices, choiceIds: choices.map(ch => ch.id) };
+    return bodyTextIn(s, { ...node, time: rhythm.formatTime(s.minuteOfDay), step: s.decisions.length + 1, dayStep: s.decisions.length + 1, coreStep: s.coreStep, choices, choiceIds: choices.map(ch => ch.id) });
   }
   function prepare(s) {
     if (s.decisions.length >= rhythm.DAY_LENGTH) { s.scene = 'end'; return s; }
@@ -485,7 +506,7 @@
     }
     return state;
   }
-  const BODY_LABELS = { ankle: '오른쪽 발목', shoulder: '어깨', back: '등·허리', underarm: '겨드랑이 옆', palm: '손바닥', goodLeg: '몸을 받치는 왼쪽 다리' };
+  const BODY_LABELS = { ankle: '[[injured:ankle-spaced]]', shoulder: '어깨', back: '등·허리', underarm: '겨드랑이 옆', palm: '손바닥', goodLeg: '몸을 받치는 [[support:leg-spaced]]' };
   const BODY_WORDS = {
     ankle: ['발목이 묵직함', '움직인 뒤 욱신거림', '자세를 바꿀 때마다 아픔'],
     shoulder: ['팔을 들면 어깨가 당김', '목발을 짚은 뒤 어깨가 뻐근함', '팔을 내려놓고 쉬고 싶을 만큼 뻐근함'],
@@ -496,7 +517,9 @@
   };
   function bodyDescription(s) {
     if (isLegacy(s)) return legacy.bodyDescription(s);
-    return BODY_KEYS.map(key => ({ key, label: BODY_LABELS[key], value: s.body[key], text: s.body[key] === 0 ? '지금은 크게 불편하지 않음' : BODY_WORDS[key][s.body[key] >= 7 ? 2 : s.body[key] >= 3 ? 1 : 0] }));
+    const injured = injuredSide(s), support = injured === 'right' ? 'left' : 'right';
+    const short = { ankle: bodyText(s, '[[injured:ankle]]'), shoulder: '어깨', back: '등·허리', underarm: '겨드랑이', palm: '손바닥', goodLeg: bodyText(s, '[[support:leg-spaced]]') };
+    return BODY_KEYS.map(key => ({ key, label: bodyText(s, BODY_LABELS[key]), short: short[key], side: key === 'ankle' ? injured : key === 'goodLeg' ? support : null, value: s.body[key], text: s.body[key] === 0 ? '지금은 크게 불편하지 않음' : BODY_WORDS[key][s.body[key] >= 7 ? 2 : s.body[key] >= 3 ? 1 : 0] }));
   }
   const api = { freshState, NODES, ENDINGS, getNode, choose, determineEnding, bodyDescription, bodyContext, SCENARIOS: scenes.SCENARIOS, SCENARIO_VERSION: scenes.SCENARIO_VERSION, normalizeStart, replay, DAY_LENGTH: rhythm.DAY_LENGTH, DAY_PLAN: rhythm.DAY_PLAN, formatTime: rhythm.formatTime, turnLimit };
   api.forVersion = version => {
