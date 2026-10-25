@@ -14,7 +14,7 @@
     { id: 'company', title: '같이 걷는 하루', description: '친구들과 걸으며 대화하고, 돌아올 길도 정하는 하루.', scenes: ['S08', 'S11', 'S12', 'S04', 'REFLECT'], conditions: [] },
     { id: 'planning', title: '메뉴보다 먼저', description: '외출 전에 화장실과 쉬어 갈 곳을 찾아보고, 갈 곳을 고른다.', scenes: ['S13', 'S08', 'S12', 'S04', 'REFLECT'], conditions: [] }
   ];
-  const ALLOWED = { doorMode: ['manual', 'automatic', 'revolving'], helpStyle: ['takeover', 'ask'], phonePayment: [false, true], verticalRoute: ['stairs', 'escalator'], orderMode: ['counter', 'kiosk'] };
+  const ALLOWED = { doorMode: ['manual', 'automatic', 'revolving'], helpStyle: ['takeover', 'ask'], phonePayment: [false, true], verticalRoute: ['stairs', 'escalator'], orderMode: ['counter', 'kiosk'], roomLayout: ['window-left', 'window-right', 'wide-living', 'compact-studio'] };
   const DEFAULTS = { doorMode: 'manual', helpStyle: 'takeover', phonePayment: false };
   const clone = value => JSON.parse(JSON.stringify(value));
   const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);

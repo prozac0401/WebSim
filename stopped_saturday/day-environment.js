@@ -19,7 +19,8 @@
       appearance: {
         gender: pick(['male', 'female']),
         hairStyle: pick(['crop', 'side-part', 'wavy', 'bob', 'ponytail', 'bun'])
-      }
+      },
+      roomLayout: pick(['window-left', 'window-right', 'wide-living', 'compact-studio'])
     };
   }
   return { sample };

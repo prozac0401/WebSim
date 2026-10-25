@@ -25,7 +25,7 @@ python -m http.server 8000
 | `saturday-app.js` | 화면 전환, 이어 하기·일지·비교, 공유 미리보기, 검증용 브라우저 훅 |
 | `story-engine.js` | 기존 하루의 순수 상태 전이, 경로별 대사, 신체 반응, 결말 판정 |
 | `day-rhythm.js` | R01~R07 추가 단계, 활동별 소요 시간, 오전·오후 시각과 귀가 시간 |
-| `day-environment.js` | 새 하루의 환경과 외형을 한 번 정하는 무작위 추출 |
+| `day-environment.js` | 새 하루의 환경·외형·방 배치를 한 번 정하는 무작위 추출 |
 | `legacy/story-engine-v2.js`, `legacy/scenario-scenes-v2.js` | 이전 버전 2의 다섯 선택 기록을 원래 규칙으로 재현 |
 | `scenario-scenes.js` | S01~S13의 조건·선택·후속 결과, 짧은 시나리오 묶음과 결정적 재현 |
 | `saturday-store.js` | 현재 진행·완료·분기·가져온 기록, 저장 버전과 최소 공유 데이터 검증 |
@@ -33,8 +33,9 @@ python -m http.server 8000
 | `body-status.js`, `body-status.css` | 현재 화면에서는 숨긴 인체 그림·부위 카드 컴포넌트 |
 | `story-engine.test.cjs` | 전체 선택 경로 및 상태 규칙 검사 |
 | `story-engine-v3.test.cjs` | 12단계·활동 시간·귀가 조건·이전 엔진 호환 검사 |
-| `day-environment.test.cjs` | 환경·외형 추출의 횟수·경계·입력 범위 검사 |
+| `day-environment.test.cjs` | 환경·외형·방 배치 추출의 횟수·경계·입력 범위 검사 |
 | `appearance.test.cjs` | 외형 정규화·진행 규칙 불변·저장·공유·비교 호환 검사 |
+| `room-layout.test.cjs` | 방 정규화·진행 규칙 불변·저장·공유·이전 기록과 비교 호환 검사 |
 | `saturday-store.test.cjs` | 저장 재개·삭제·원본 보존·엄격한 공유 입력 검사 |
 | `stopped_saturday_doc.html` | 첫 플레이, 상태, 공유, 접근성, 제작 의도 |
 | `coverage.md` | S01~S13·F01~F05의 18행 구현·경로·시험 근거와 미검증 범위 |
@@ -44,11 +45,13 @@ python -m http.server 8000
 | `../tests/stopped-saturday-story-first.browser.cjs` | 본문 위치·애니메이션·결과 글 전환과 입력·복원 검사 |
 | `../tests/stopped-saturday-character.browser.cjs` | 최소 3초의 실제 재생과 외형 전달·저장 통합 검사 |
 | `../tests/saturday-character-renderer.browser.cjs` | 외형 조합·짧은 활동·이동과 계단 지지·동작 줄이기 검사 |
+| `../tests/stopped-saturday-room.browser.cjs` | 네 방의 화면 표시·복원·외부 장소 구분과 모바일 배치 검사 |
 
 ## 설계
 
 - 시작 화면에서 하루의 시나리오와 허구 인물의 시작 조건을 고릅니다. 문·층간 이동·주문 환경은 새 하루를 시작할 때 한 번 무작위로 정하고 기록에 보관합니다. 새 하루는 열두 번의 선택 후 결과에 도달합니다. 본문과 선택지가 먼저 보이며, **선택 → 건너뛸 수 있는 삽화 애니메이션 → 결과 글** 순으로 진행합니다. 삽화를 보거나 결과 글을 읽고 넘기는 동작은 추가 선택으로 세지 않습니다.
 - 인물의 성별과 머리 모양도 새 하루를 시작할 때 각각 무작위로 정합니다. 두 값은 서로 독립이며 당일 장면·이어 하기·다시 플레이·내보내기와 가져오기에서 유지됩니다. 외형은 선택 효과나 신체 상태·난이도에 영향을 주지 않습니다.
+- 집 안의 배치도 새 하루마다 왼쪽 창가 거실·오른쪽 창가 거실·넓은 거실·작은 원룸 중 하나로 정합니다. 같은 하루에서는 방을 유지하며, 방 배치는 이야기의 선택 효과·시간·결말을 바꾸지 않습니다.
 - 게임 속 시계는 오전 10:12에 시작해 선택한 활동의 소요 분만큼 진행합니다. 화면은 오전·오후 시각을 표시하며, 일지에는 활동 전후 시각과 소요 시간을 남깁니다. 장면 제목에 맞추려고 시각을 자동으로 건너뛰지 않습니다. 화면을 읽거나 애니메이션을 기다리는 실제 시간은 시계·체력에 더하지 않습니다.
 - 신체적 부담, 부탁과 설명, 공동 통행 안전을 각각 행동과 조건으로 남깁니다. 도움 수락·거절·범위 지정, 우회·귀가에 인성 점수나 우열을 붙이지 않습니다. 컵·전화의 위치, 카드 회수, 좌석, 아직 받지 못한 물·식기도 실제 선택을 따라갑니다.
 - 에너지·기분과 선택한 행동을 기록합니다. 낮은 에너지는 패배나 선택 잠금으로 이어지지 않습니다.
@@ -91,7 +94,9 @@ python -m http.server 8000
 
 새 버전 3 기록의 조건에는 `doorMode`(`manual`·`automatic`·`revolving`), `verticalRoute`(`stairs`·`escalator`), `orderMode`(`counter`·`kiosk`)와 도움 방식·휴대전화 결제 여부를 담습니다. 이전 버전 3 기록에 `verticalRoute`·`orderMode`가 없으면 없는 채로 보존하고 기존 계단·카운터 장면으로 재현합니다. 다시 열거나 공유할 때 임의의 새 환경을 넣지 않습니다. 이전에 만든 자동문 비교 기록도 읽고 재현할 수 있지만 전용 비교 시작 버튼은 현재 화면에서 제거했습니다.
 
-새 기록의 `conditions.appearance`는 `gender`(`male`·`female`)와 `hairStyle`(`crop`·`side-part`·`wavy`·`bob`·`ponytail`·`bun`)을 담습니다. 시작할 때 환경 세 번·성별 한 번·머리 한 번을 추출하며 복원 중에는 다시 추출하지 않습니다. 기존 기록에 외형 정보가 없으면 저장 조건을 그대로 보존하고 그림에서만 기본 외형을 사용합니다. 외형만 다른 두 기록은 같은 게임 조건으로 비교하고 외형의 차이는 따로 표시합니다. 저장 버전과 친구 JSON의 최상위 다섯 필드는 바꾸지 않습니다.
+새 기록의 `conditions.appearance`는 `gender`(`male`·`female`)와 `hairStyle`(`crop`·`side-part`·`wavy`·`bob`·`ponytail`·`bun`)을 담습니다. `conditions.roomLayout`은 `window-left`·`window-right`·`wide-living`·`compact-studio` 중 하나입니다. 시작할 때 환경 세 번·성별 한 번·머리 한 번·방 배치 한 번 순서로 총 여섯 번 추출하며, 복원 중에는 다시 추출하지 않습니다. 방도 이어 하기·분기·내보내기·가져오기에서 유지됩니다.
+
+기존 기록에 외형이나 방 정보가 없으면 저장 조건을 그대로 보존하고 그림에서만 기본 외형과 왼쪽 창가 거실(`window-left`)을 사용합니다. 외형이나 방 배치만 다른 두 기록은 같은 게임 조건으로 비교하고, 표시 차이는 따로 설명합니다. 저장 버전과 친구 JSON의 최상위 다섯 필드는 바꾸지 않습니다.
 
 친구용 JSON은 `schemaVersion`, `scenarioVersion`, `scenarioId`, `conditions`, `choiceIds`의 다섯 필드만 허용합니다. 16 KiB 제한, 정확한 필드·버전·시작 조건과 해당 버전에서 가능한 완료 경로를 검증합니다. 선택 수는 버전 3에서 열두 개, 버전 2에서 다섯 개입니다. 서버 인증이나 사람의 신원을 증명하는 파일은 아니며, 문자열은 HTML로 실행하지 않습니다. 로컬 저장의 지원 범위는 2 MiB·일지 500개입니다. 로컬 전체 백업은 다른 형식으로 현재 진행·일지와 보존 중인 저장 원문을 담고 친구 비교용 가져오기에 쓰지 않습니다.
 
@@ -104,7 +109,7 @@ python -m http.server 8000
 저장소 루트에서 실행합니다.
 
 ```sh
-node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/appearance.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
+node --test stopped_saturday/story-engine.test.cjs stopped_saturday/story-engine-v3.test.cjs stopped_saturday/day-environment.test.cjs stopped_saturday/appearance.test.cjs stopped_saturday/room-layout.test.cjs stopped_saturday/saturday-store.test.cjs tests/stopped-saturday-catalog.test.cjs
 ```
 
 검증에서는 버전 3의 열두 단계·선택별 시간 누적·오전/오후 표시·실제 귀가 조건과 버전 2 기록의 재현을 구분합니다. 저장 검사는 선택 재현·중복 방지·원본 보존·버전별 완료 길이·삭제 범위·손상/차단 대안·공유 데이터 검증을 확인합니다. 카탈로그 검사는 실제 카드 수와 안내 문구, 신규 분류·검색어, 기존 실행 및 사용법 경로를 확인합니다. 카탈로그 경로 검사는 기존 시뮬레이터 내부의 모든 동작을 보장하지 않습니다. 실제 실행한 검사 수와 범위는 아래 이력 및 [coverage.md](coverage.md)에 기록합니다.
@@ -118,6 +123,7 @@ node tests/stopped-saturday-journal.browser.cjs
 node tests/stopped-saturday-story-first.browser.cjs
 node tests/stopped-saturday-character.browser.cjs
 node tests/saturday-character-renderer.browser.cjs
+node tests/stopped-saturday-room.browser.cjs
 ```
 
 이번 S01~S13·F01~F05 확장의 정확한 시험 명령·실행 결과·재현 경로는 [coverage.md](coverage.md)를 확인하세요. 실행하지 않은 브라우저·보조공학 환경은 통과로 간주하지 않습니다. 수동 확인 항목은 스크린리더의 실제 발음·탐색, iOS/Android의 시스템 공유 메뉴와 다운로드 동작, 사전 설명 없이 플레이한 사용자가 선택의 차이를 어떻게 이해하는지에 대한 피드백입니다.
@@ -139,7 +145,13 @@ node tests/saturday-character-renderer.browser.cjs
 
 브랜드 로고나 앱 화면을 복제하지 않으며 별도 API·로그인·결제 연동은 없습니다. 이야기의 가격 비교와 감정은 창작 장면이고, 특정 계정의 실제 혜택 검증이나 현재 할인 추천 서비스가 아닙니다.
 
-### 최신 수정: 최소 3초 애니메이션과 하루의 외형
+### 최신 수정: 하루마다 다른 방 배치
+
+새 하루의 여섯 번째 추출로 네 가지 방 배치를 정하고, 선택·복원·분기·수동 공유에서 유지합니다. 창문·소파·책상·문·부엌의 위치를 방마다 다르게 배치하고 집 밖의 장소에는 적용하지 않습니다. 방이 없는 이전 기록은 필드가 없는 채로 보존하며 기본 방으로 표시합니다. 방과 외형은 이야기의 진행 규칙에 영향을 주지 않습니다.
+
+최종 Node **126/126**, Chromium 기본 이야기 **22/22**·일지 **26/26**·애니메이션 흐름 **6/6**·외형 및 실제 재생 **4/4**·방 UI **10/10**·방 렌더러 **5/5**·기존 외형 렌더러 회귀 **4/4** 묶음이 통과했습니다. 원본 클라이언트도 완료하고 화면·상태를 직접 확인했습니다. 방 유지·필드 부재·잘못된 값·외형과 방의 비교, 320/390px의 네 방 진행을 확인했습니다. 상세 근거와 검증 한계는 [coverage.md](coverage.md)에 기록합니다. 아래 수치는 이전 외형 작업의 완료된 이력이며 이번 수에 더하지 않습니다.
+
+### 이전 검증: 최소 3초 애니메이션과 하루의 외형
 
 자동 애니메이션 종료를 최소 3초 이후로 조정하고, 행동에 맞는 시선·호흡·손동작과 새 하루의 무작위 성별·머리 모양을 추가했습니다. 스킵·Escape·움직임 줄이기는 유지합니다. 외형은 해당 하루와 보관 기록에서 유지하며 이전 기록의 외형 필드 부재도 보존합니다. 외형만 다른 기록은 같은 게임 조건으로 비교합니다.
 
