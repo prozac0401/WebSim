@@ -17,14 +17,14 @@ const pass=name=>{checks.push(name);console.log('PASS',name);};
   try{
     for(const width of [320,390])for(const [index,roomLayout]of layouts.entries()){
       const context=await browser.newContext({viewport:{width,height:700},isMobile:true,hasTouch:true});
-      await context.addInitScript(values=>{window.roomDraws=0;Math.random=()=>values[window.roomDraws++]??0;},[0,0,0,.8,.6,(index+.5)/4]);
+      await context.addInitScript(values=>{window.roomDraws=0;Math.random=()=>values[window.roomDraws++]??0;},[0,0,0,.8,.6,(index+.5)/4,0]);
       const p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
       await p.goto(base+'stopped_saturday/stopped_saturday.html');await advance(p,0);
       assert.equal(await p.evaluate(()=>roomDraws),0);
       await p.locator('#scenario-select').selectOption('home');await p.locator('#start-button').tap();
       const initial=await state(p),appearance={gender:'female',hairStyle:'bob'};
       assert.equal(initial.conditions.roomLayout,roomLayout);assert.equal(initial.motion.roomLayout,roomLayout);
-      assert.deepEqual(initial.motion.appearance,appearance);assert.equal(await p.evaluate(()=>roomDraws),6);
+      assert.deepEqual(initial.motion.appearance,appearance);assert.equal(await p.evaluate(()=>roomDraws),7);
       assert.equal(await p.locator('#scene-place').innerText(),names[index]);
       if(width===390)pictures.add(await p.locator('#day-canvas').evaluate(c=>c.toDataURL()));
       measurements.push(await storyViewport(p,`${width}/${roomLayout}: start`));
@@ -59,7 +59,7 @@ const pass=name=>{checks.push(name);console.log('PASS',name);};
       pass(`${width}px ${roomLayout}: room and character persist through real choices, walking, skip, mid-animation reload and final result`);
     }
     const cafeContext=await browser.newContext({viewport:{width:390,height:700}});
-    await cafeContext.addInitScript(()=>{const values=[0,0,0,.8,.6,.8];let n=0;Math.random=()=>values[n++]??0;});
+    await cafeContext.addInitScript(()=>{const values=[0,0,0,.8,.6,.8,0];let n=0;Math.random=()=>values[n++]??0;});
     const cafe=await cafeContext.newPage();cafe.on('pageerror',e=>errors.push(e.message));cafe.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
     await cafe.goto(base+'stopped_saturday/stopped_saturday.html');await advance(cafe,0);
     await cafe.locator('#scenario-select').selectOption('doors');await cafe.locator('#start-button').click();let steps=0;

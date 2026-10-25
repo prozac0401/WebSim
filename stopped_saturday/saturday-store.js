@@ -321,7 +321,7 @@
       for (const key of new Set([...Object.keys(leftRecord.conditions), ...Object.keys(rightRecord.conditions)])) {
         if (!same(leftRecord.conditions[key], rightRecord.conditions[key])) changedConditions.push(key);
       }
-      const changedGameplayConditions = changedConditions.filter(key => !['appearance', 'roomLayout'].includes(key));
+      const changedGameplayConditions = changedConditions.filter(key => !['appearance', 'roomLayout', 'injuredSide'].includes(key));
       if (changedGameplayConditions.length) reasons.push(`시작 조건이 다릅니다: ${changedGameplayConditions.join(', ')}. 같은 조건의 비교가 아닙니다.`);
       const choices = [];
       for (let i = 0; i < Math.max(leftRecord.choiceIds.length, rightRecord.choiceIds.length); i++) {
