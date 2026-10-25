@@ -50,6 +50,11 @@ test('diesel gearing distinguishes its own reference tables from fallback estima
       assert.equal(p.finalDriveRatio,3.385); assert.equal(p.ratioStep,null);
       assert.equal(p.ratioSourceId,'genesis-g70-diesel-de-2024-ratios');
       assert.ok(!p.sourceIds.includes('genesis-g70-us-2019-ratios'));
+    } else if (vehicleId === 'carnival') {
+      assert.equal(p.ratioStatus,'reference-market'); assert.equal(p.gearRatios.length,8);
+      assert.equal(p.finalDriveRatio,3.510); assert.equal(p.ratioStep,null);
+      assert.equal(p.ratioSourceId,'kia-carnival-diesel-il-2024-ratios');
+      assert.ok(!p.sourceIds.includes('kia-carnival-us-2025-ratios'));
     } else {
       assert.equal(p.ratioStatus,'estimated'); assert.equal(p.gearRatios,null); assert.equal(p.finalDriveRatio,null);
       for (const key of ['total1stReduction','ratioStep']) assert.ok(p.estimatedFields.includes(key));

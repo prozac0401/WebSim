@@ -46,6 +46,7 @@
     'hyundai-staria-diesel-2021-catalog':{title:'현대 2021 국내 스타리아 라운지 카탈로그 보관본',url:'https://autocatalogarchive.com/wp-content/uploads/2021/05/Hyundai-Staria-Lounge-2021-KR.pdf',observation:'제조사 책자의 정부 신고 연비 표: 라운지 7인승 18인치 8AT FWD 2320 kg/AWD 2390 kg. 현재 검색 색인에서 표 확인; 직접 PDF 요청은 403. 9인승·리무진 질량과 구분한다.'},
     'hyundai-staria-r-family-au':{title:'Hyundai Australia Staria February 2023 specification sheet',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/staria/2021/docs/STARIA_Spec-Table_Feb_2023_v1.pdf',observation:'동일 2199 cc 디젤의 R series 2.2 VGT 계열 명칭 참고. 호주 D4HB 코드·AWD 기어비를 국내 코드·기어비 확인값으로 표시하지 않는다.'},
     'kia-carnival-diesel-2024':{title:'기아 2024.04 국내 카니발 카탈로그',url:'https://rental.kia.com/rentfile/carseries/carseries_1713417958657.pdf',observation:'PDF 14/16쪽: 2151 cc 디젤 194 PS/3800 rpm·45 kgf·m, 9인승 18인치 8AT 2115 kg·235/60R18. 스마트스트림 D2.2이며 구형 2199 cc R2.2와 구분한다. 가솔린 8AT의 단별·종감속비를 전용하지 않는다.'},
+    'kia-carnival-diesel-il-2024-ratios':{title:'Kia Carnival 이스라엘 공식 딜러 보관 제원표 (2024.02)',url:'https://kia-shahak.co.il/wp-content/uploads/2024/02/%D7%9E%D7%A4%D7%A8%D7%98-%D7%98%D7%9B%D7%A0%D7%99-%D7%9C%D7%A8%D7%9B%D7%91-%D7%A7%D7%99%D7%94-%D7%A7%D7%A8%D7%A0%D7%99%D7%91%D7%9C-2024-%D7%94%D7%97%D7%93%D7%A9-%D7%A1%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%A7%D7%99%D7%94-%D7%A9%D7%97%D7%A7.pdf',observation:'PDF 2쪽: KA4 2151 cc 2.2 CRDi 디젤과 3.5 MPI 가솔린에 공통으로 제시된 8AT 단별 기어비 및 종감속 3.510. 디젤 201 PS/3800 rpm·45 kgf·m, EX 235/60R18. 페이스리프트 이전 수출 사양의 참고값이며 국내 2024 디젤의 기어비 일치는 미확인. 국내 출력·질량·연식은 유지한다.'},
     'kia-carnival-smartstream-family':{title:'기아 2023.08 카니발 국내 가격표',url:'https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_4thcarnival.pdf',observation:'같은 KA4 2151 cc 디젤의 스마트스트림 D2.2 계열 명칭 확인. 출력·질량·외형은 별도 2024 페이스리프트 자료를 사용한다.'},
     'genesis-g70-2019':{title:'전기형 G70 2019 제조사 카탈로그 보관본',url:'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',observation:'국내 2.0T/3.3T, RWD/AWD: 8단 자동. 현행 2.5T 또는 북미 6MT 사양을 혼합하지 않는다.'},
     'toyota-supra-2019':{title:'토요타 2019 일본 수프라 공식 제원표',url:'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf',observation:'RZ 3.0: 8단 스포츠 AT, 1~8단 기어비 및 종감속 3.154. 최고출력 5000rpm은 레드라인이 아니다.'},
@@ -207,6 +208,8 @@
     estimatedFields: [...profiles['k5-2.5t-gt'].estimatedFields,'finalDriveRatios','finalDriveGearAssignment']
   });
   applyRatios(['carnival-3.5'], [4.808,2.901,1.864,1.424,1.219,1,.799,.648], 3.510, 'kia-carnival-us-2025-ratios', 'reference-market', 6400, 6500, 'US', 'front');
+  applyRatios(['carnival-2.2d'], [4.808,2.901,1.864,1.424,1.219,1,.799,.648], 3.510, 'kia-carnival-diesel-il-2024-ratios', 'reference-market', 3800, 4200, 'IL', 'front');
+  profiles['carnival-2.2d'].reviewedAt = '2026-10-25';
   applyRatios(['carnival-1.6heV'], [4.639,2.826,1.841,1.386,1,.772], 3.648, 'kia-carnival-hev-us-2025-ratios', 'reference-market', null, 6000, 'US', 'front');
   applyRatios(['santafe-2.5t-fwd','santafe-2.5t-awd'], [3.429,2.217,2.217,1.621,.860,.673,.791,.653], [4.846,4.846,3.316,3.316,4.846,4.846,3.316,3.316], 'hyundai-santafe-au-mx5-ratios', 'reference-market', 5800, 6000, 'AU', 'front');
   for (const id of ['santafe-2.5t-fwd','santafe-2.5t-awd']) {

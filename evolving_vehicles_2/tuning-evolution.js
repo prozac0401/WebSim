@@ -131,7 +131,7 @@
         lengthMm: 5155, wheelbaseMm: 3090, frontTrackMm: 1746, rearTrackMm: 1746,
         sourceUrl: 'https://rental.kia.com/rentfile/carseries/carseries_1713417958657.pdf',
         engineFamilySourceUrl: 'https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_4thcarnival.pdf',
-        sourceNote: '2024.04 국내 페이스리프트 9인승 18인치 디젤 194 PS·45 kgf·m·2115 kg. 2151 cc 스마트스트림 D2.2이며 이전 2199 cc R2.2와 구분 · 동역학 계수·기어비·변속 회전수는 모형 추정값'
+        sourceNote: '2024.04 국내 페이스리프트 9인승 18인치 디젤 194 PS·45 kgf·m·2115 kg. 2151 cc 스마트스트림 D2.2이며 이전 2199 cc R2.2와 구분 · 기어비는 이스라엘 KA4 디젤 참고값으로 국내 일치 미확인 · 동역학 계수·변속 회전수는 모형 추정값'
       })
     ],
     g80: [
