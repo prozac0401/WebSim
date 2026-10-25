@@ -40,6 +40,8 @@
     'hyundai-porter-a2-2020':{title:'현대 2020.03 포터 II 특장차 기본차 가격표',url:'https://www.hyundai.com/content/dam/hyundai/kr/ko/data/vehicles/price/porter2-special-vehicle-price.pdf',observation:'기본차 파워트레인 A-2 2.5 CRDi 계열 명칭 확인에만 사용. 특장차 질량을 일반 초장축 슈퍼캡에 적용하지 않는다.'},
     'genesis-g70-diesel-2019':{title:'제네시스 2019 국내 G70 디젤 제조사 카탈로그 보관본',url:'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',observation:'PDF 16/22/26쪽: 2199 cc 202 PS/3800 rpm·45 kgf·m, 8AT 17인치 RWD 1690 kg/AWD 1765 kg, 225/50R17. 가솔린 8AT의 단별·종감속비를 디젤에 전용하지 않는다.'},
     'genesis-g70-r-family':{title:'Genesis G70 Korean-market launch specifications',url:'https://newsroom.genesis.com/genesis-g70-resets-expectations-of-customer-focused-performance-and-luxury/',observation:'국내 사양 R-FR 2.2 VGT 디젤 계열과 202 PS·45 kgf·m, RWD/AWD를 확인한다. 엔진 세부 코드와 WOT 변속 맵은 이 자료로 확인하지 않는다.'},
+    'genesis-g70-diesel-de-2024-ratios':{title:'Genesis Germany April 2024 G70 diesel technical specifications',url:'https://org-eu.genesis.com/content/dam/genesis-web-eu/site/document/de/pricelist/Genesis_G70_Pricelist_DE_English.pdf',observation:'PDF 9쪽 디젤 2.2 8AT RWD/AWD 공통 단별 기어비. 2019 국내 동일성은 미확인인 해외 참고값. 종감속비·공회전·변속 맵은 이 표로 확인하지 않는다.'},
+    'genesis-g70-diesel-uk-2021-overall':{title:'Genesis UK August 2021 G70 manufacturer price list, archived copy',url:'https://device.report/m/ee32bebec90f86ea9912d7ea92ec248ce79bc3c3a1343dc104d51eb33862acad.pdf',observation:'PDF 9쪽 디젤 2.2 8AT RWD 표의 총감속 13.418/8.354/5.449/3.980/3.385/2.816/2.207/1.912. 독일 표의 5단 1.000과 대조해 종감속 3.385를 산출하며 전 단 곱을 0.001 이내로 교차 확인했다. 직접 표기된 종감속값이나 국내 2019 확인값은 아니다. AWD 종감속 적용은 별도 추정이다.'},
     'hyundai-staria-diesel-2021':{title:'현대 2021 스타리아 라운지 모델 역사·제원',url:'https://www.hyundai.com/kr/ko/brand/brandstory/model/staria-history/2021-staria-lounge',observation:'2021.04 디젤 VGT 2.2 2199 cc·177 PS/3800 rpm·44 kgf·m·8AT·235/55R18. 국내 전륜구동 2WD 2320 kg.'},
     'hyundai-staria-diesel-2021-catalog':{title:'현대 2021 국내 스타리아 라운지 카탈로그 보관본',url:'https://autocatalogarchive.com/wp-content/uploads/2021/05/Hyundai-Staria-Lounge-2021-KR.pdf',observation:'제조사 책자의 정부 신고 연비 표: 라운지 7인승 18인치 8AT FWD 2320 kg/AWD 2390 kg. 현재 검색 색인에서 표 확인; 직접 PDF 요청은 403. 9인승·리무진 질량과 구분한다.'},
     'hyundai-staria-r-family-au':{title:'Hyundai Australia Staria February 2023 specification sheet',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/staria/2021/docs/STARIA_Spec-Table_Feb_2023_v1.pdf',observation:'동일 2199 cc 디젤의 R series 2.2 VGT 계열 명칭 참고. 호주 D4HB 코드·AWD 기어비를 국내 코드·기어비 확인값으로 표시하지 않는다.'},
@@ -127,9 +129,9 @@
   add('bmw_m2',['bmw-m2-3.0t-mt'],'gasoline','MT',6,'bmw-m2-2016-de',{reviewedAt:'2026-10-19'});
   add('gr86',['gr86-2.4-rz-mt'],'gasoline','MT',6,'toyota-gr86-jp-2022',{reviewedAt:'2026-10-19'});
   add('gr86',['gr86-2.4-rz-at'],'gasoline','AT',6,'toyota-gr86-jp-2022',{reviewedAt:'2026-10-19'});
-  // Archived diesel outputs/gear counts are sourced. These lower RPM schedules
-  // and ratio progressions remain explicit simulation estimates, not petrol
-  // ratios or claimed manufacturer shift/redline maps.
+  // Archived diesel outputs/gear counts are sourced. RPM schedules and the
+  // fallback ratio progression remain estimates; G70 ratios are overridden
+  // below with diesel-specific references, independently of shift maps.
   const dieselOverrides=(ratedPowerRPM,extra={})=>({shiftRPM:4200,maxRPM:4800,ratioStep:.78,ratedPowerRPM,
     reviewedAt:'2026-10-19',verifiedFields:['powertrainType','transmissionType','gearCount','ratedPowerRPM'],...extra});
   add('porter2',['porter-diesel-mt'],'diesel','MT',6,'hyundai-porter-diesel-2020',dieselOverrides(3600,{shiftRPM:3800,maxRPM:4500,ratioStep:.75,drivenAxle:'rear',sourceIds:['hyundai-porter-diesel-2020','hyundai-porter-diesel-2020-price','hyundai-porter-a2-2020']}));
@@ -157,6 +159,19 @@
   applyRatios(['g80-3.5t-rwd','g80-3.5t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.727, 'genesis-g80-au-2026-ratios', 'reference-market', 5800, 6200, 'AU');
   applyRatios(['g70-2.0t-rwd','g70-2.0t-awd'], [3.964,2.468,1.610,1.176,1,.832,.652,.565], 3.727, 'genesis-g70-us-2019-ratios', 'reference-market', 6200, 6500, 'US');
   applyRatios(['g70-3.3t-rwd','g70-3.3t-awd'], [3.665,2.396,1.610,1.190,1,.826,.643,.556], 3.538, 'genesis-g70-us-2019-ratios', 'reference-market', 6000, 6500, 'US');
+  applyRatios(['g70-2.2d-rwd','g70-2.2d-awd'], [3.964,2.468,1.610,1.176,1,.832,.652,.565], 3.385, 'genesis-g70-diesel-de-2024-ratios', 'reference-market', 3800, 4200, 'EU (DE/UK)');
+  for (const id of ['g70-2.2d-rwd','g70-2.2d-awd']) {
+    const p = profiles[id], awd = id.endsWith('-awd');
+    p.reviewedAt = '2026-10-25';
+    p.finalDriveSourceId = 'genesis-g70-diesel-uk-2021-overall';
+    p.sourceIds.push(p.finalDriveSourceId);
+    p.finalDriveStatus = awd ? 'estimated-rwd-reference' : 'derived-reference-market';
+    p.finalDriveDerivation = 'UK RWD fifth overall 3.385 / DE fifth gear 1.000';
+    if (awd) {
+      p.referenceFields = p.referenceFields.filter(field => field !== 'finalDriveRatio');
+      p.estimatedFields.push('finalDriveRatio', 'awdFinalDriveMatch');
+    }
+  }
   applyRatios(['supra-3.0t-rz'], [5.250,3.360,2.172,1.720,1.316,1,.822,.640], 3.154, 'toyota-supra-2019', 'verified-exact-market', 5000, 6500, 'JP');
   applyRatios(['bmw-m2-3.0t-dct'], [4.806,2.593,1.701,1.277,1,.844,.671], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');
   applyRatios(['bmw-m2-3.0t-mt'], [4.110,2.315,1.542,1.179,1,.846], 3.462, 'bmw-m2-2016-de', 'verified-exact-market', 6500, 6500, 'DE');

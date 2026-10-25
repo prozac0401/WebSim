@@ -211,7 +211,7 @@
         transmissionType: 'AT', gearCount: 8, engineFamily: 'R-FR 2.2 VGT', frontTrackMm: 1592, rearTrackMm: 1628,
         sourceUrl: 'https://www.auto-brochures.com/makes/genesis/G70/Genesis_int%20G70_2019.pdf',
         engineFamilySourceUrl: 'https://newsroom.genesis.com/genesis-g70-resets-expectations-of-customer-focused-performance-and-luxury/',
-        sourceNote: '2019 국내 전기형 R2.2 디젤 202 PS·45 kgf·m·8AT·17인치. RWD 1690 kg/AWD 1765 kg · 가솔린 기어비를 전용하지 않으며 동역학 계수·기어비·변속 회전수는 모형 추정값'
+        sourceNote: '2019 국내 전기형 R2.2 디젤 202 PS·45 kgf·m·8AT·17인치. RWD 1690 kg/AWD 1765 kg · 단별 기어비는 유럽 디젤 참고값, 종감속 3.385는 영국 RWD 총감속표에서 산출하며 AWD 적용은 추정. 국내 기어비 일치는 미확인이고 동역학 계수·변속 회전수는 모형 추정값'
       }))
     ],
     supra: [

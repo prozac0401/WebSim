@@ -42,14 +42,22 @@ test('seven diesel presets keep each complete domestic year/drive/gearbox/tyre c
   }
 });
 
-test('diesel gearing and shift schedules remain estimated without borrowing petrol ratios or mistaking rated power RPM for a limiter', () => {
+test('diesel gearing distinguishes its own reference tables from fallback estimates and keeps shift schedules estimated', () => {
   for (const [vehicleId,id] of cases) {
     const entry = entrant(vehicleId,id), p = Profiles.resolve({ entrant: entry });
-    assert.equal(p.ratioStatus,'estimated'); assert.equal(p.gearRatios,null);
-    assert.equal(p.finalDriveRatio,null); assert.equal(p.finalDriveRatios,null);
+    if (vehicleId === 'g70') {
+      assert.equal(p.ratioStatus,'reference-market'); assert.equal(p.gearRatios.length,8);
+      assert.equal(p.finalDriveRatio,3.385); assert.equal(p.ratioStep,null);
+      assert.equal(p.ratioSourceId,'genesis-g70-diesel-de-2024-ratios');
+      assert.ok(!p.sourceIds.includes('genesis-g70-us-2019-ratios'));
+    } else {
+      assert.equal(p.ratioStatus,'estimated'); assert.equal(p.gearRatios,null); assert.equal(p.finalDriveRatio,null);
+      for (const key of ['total1stReduction','ratioStep']) assert.ok(p.estimatedFields.includes(key));
+    }
+    assert.equal(p.finalDriveRatios,null);
     assert.equal(p.ratedPowerRPM,vehicleId === 'porter2' ? 3600 : 3800);
     assert.ok(p.verifiedFields.includes('ratedPowerRPM'));
-    for (const key of ['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep','shiftModel']) {
+    for (const key of ['idleRPM','shiftRPM','maxRPM','shiftModel']) {
       assert.ok(p.estimatedFields.includes(key)); assert.ok(!p.verifiedFields.includes(key));
     }
     assert.ok(p.ratedPowerRPM < p.shiftRPM && p.shiftRPM < p.maxRPM && p.maxRPM < 5000);

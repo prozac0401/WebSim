@@ -166,12 +166,13 @@ test('exact-market Supra ratios, tuning ratio changes and unsourced fallback rem
   for (const v of diesel) {
     const car = carFor('g70', v.id), p = Profiles.resolve(car), gearing = Telemetry.describeGearing(car);
     assert.equal(p.powertrainType, 'diesel'); assert.equal(p.gearCount, 8);
-    assert.equal(p.gearRatios, null); assert.equal(p.finalDriveRatio, null); assert.equal(p.finalDriveRatios, null);
-    assert.equal(p.ratioStatus, 'estimated'); assert.equal(gearing.sourceId, null);
+    assert.deepEqual(p.gearRatios, [3.964,2.468,1.610,1.176,1,.832,.652,.565]);
+    assert.equal(p.finalDriveRatio, 3.385); assert.equal(p.finalDriveRatios, null);
+    assert.equal(p.ratioStatus, 'reference-market'); assert.equal(gearing.sourceId, 'genesis-g70-diesel-de-2024-ratios');
     assert.ok(!p.sourceIds.includes('genesis-g70-us-2019-ratios'), 'gasoline tables must not label the diesel reduction as sourced');
     assert.ok(p.sourceIds.includes('genesis-g70-diesel-2019'));
     assert.equal(gearing.shiftRPM, 4200); assert.equal(p.maxRPM, 4800);
-    assert.deepEqual(gearing.totalRatios, Array.from({ length: 8 }, (_, i) => 13.5 * Math.pow(.78, i)));
+    assert.deepEqual(gearing.totalRatios, [3.964,2.468,1.610,1.176,1,.832,.652,.565].map(r => r * 3.385));
   }
 });
 
