@@ -105,7 +105,7 @@
     outside: {
       time: '11:03 · 현관 앞', step: 2, title: '가까운 카페에 갈 수 있을까?',
       lines: () => [
-        '네이버지도를 연다. 목적지까지 300미터, 화면에는 4분이라고 나온다. 현관에서 신발을 정리하는 데만 그만큼 쓴 것 같은데. 오늘은 저 시간대로 가기 어렵겠다.',
+        '네이버지도를 연다. 목적지까지 300미터, 화면에는 4분이라고 나온다. 현관에서 신발을 정리하는 데만 그만큼 쓴 것 같은데. 오늘은 4분 만에 가기는 어렵겠다.',
         '자동문인지, 문턱이 있는지, 기다리며 앉을 곳이 있는지 확인한다. 평소라면 메뉴부터 봤을 텐데 오늘은 입구 사진을 먼저 찾는다.',
         '목발을 쥔 채 문손잡이를 본다. 저걸 잡으면 몸을 받칠 손이 하나 줄어든다. 들어가는 것도 일이지만 돌아올 때는 어떨지 자꾸 계산하게 된다.'
       ],
@@ -211,8 +211,8 @@
       lines: () => [
         '네이버지도에서는 한 점으로 보이던 1층과 2층 사이에 계단이 있다. 올라갈 수는 있다. 다만 오늘은 한 층을 오르는 데도 온몸에 힘이 들어간다.',
         '계단참과 난간, 친구가 기다릴 자리부터 본다. 한 층을 올라가는 데 얼마나 힘이 들지, 내려올 때도 버틸 수 있을지 생각한다.',
-        '버거킹 앱의 등급과 쿠폰함도 열어 본다. 오늘 눈에 띈 매장 행사는 딜리버리 제외다. 별도로 뜨는 배달 혜택도 살펴본다. 오래 쓴 앱인데, 지금 끌리는 할인과 지금 가능한 주문이 어긋난다.',
-        '이 상가에는 뒤편 엘리베이터와 1층에서 해결할 점심도 있다. 어떤 이동을 할지는 여기서 다시 고를 수 있다.'
+        '버거킹 앱의 등급과 쿠폰함도 열어 본다. 오늘 눈에 띈 매장 행사는 딜리버리 제외다. 별도로 뜨는 배달 혜택도 살펴본다. 오래 쓴 앱인데도 혜택이 헷갈린다. 눈에 띈 매장 할인은 배달 주문에 쓸 수 없다.',
+        '뒤편에는 엘리베이터도 있고, 1층에서 점심을 먹을 수도 있다. 꼭 저 계단으로 올라가야 하는 건 아니다. 여기서 다시 생각해 보자.'
       ],
       choices: [
         choice('outing-stairs', '중간에 쉬어 가며 2층에 올라간다', '친구와 함께, 올라간 뒤 앉을 자리까지', 'afternoon', 'stairs', 'outing', '계단참에서 쉬며 2층에 올라감', '2층에 올라와 앉았다', [
@@ -224,7 +224,7 @@
           '2층 의자에 앉는다. 조금 돌아왔지만 계단을 오르지 않아 덜 힘들다. 다음에도 찾을 수 있도록 네이버지도 메모에 “뒤편 출입”을 적는다.'
         ], motion('walk', 'hall', '뒤편 엘리베이터를 이용해 2층으로 간 뒤 가까운 의자에 앉는다.', 'sit'), { energy: -1, mood: 1, flags: ['elevator_used', 'access_note'], weight: 3 }),
         choice('outing-pickup', '1층에서 버거킹 픽업으로 점심을 바꾼다', '사용 가능한 혜택과 수령 조건을 확인', 'afternoon', 'settle', 'shared', '친구가 옮겨 준 점심을 함께 먹음', '음식 봉투도 옮겨야 한다', [
-          '내 주문에 적용되는 픽업 혜택을 확인하고 1층에서 점심을 해결한다. 회원 등급이 모든 주문 방식을 같게 만들어 주지는 않는다. 오늘 화면에 뜬 혜택 안에서 고른다.',
+          '내 주문에 적용되는 픽업 혜택을 확인하고 1층에서 점심을 해결한다. 같은 회원 등급인데도 배달할 때와 가지러 갈 때 쓸 수 있는 쿠폰이 다르다. 지금 쓸 수 있는 것을 골라 본다.',
           '봉투를 받으려는데 양손으로 목발을 짚고 있다. 친구가 음식과 음료를 옮겨 준다. 할인액만 생각했는데, 누가 들고 갈지도 정해야 했다. 자리에 앉고 나니 그 도움이 가장 크게 느껴진다.'
         ], motion('sit', 'street', '1층에서 친구와 점심을 받아 앉고, 봉투 운반을 나눈다.'), { energy: 0, mood: 1, flags: ['pickup_help', 'connection'], weight: 3 }),
         choice('outing-delivery', '돌아가서 배민 배달로 점심을 정한다', '돌아갈 힘을 생각하고 주문 비교', 'afternoon', 'settle', 'rest', '집에 돌아와 배민으로 점심 주문', '집에서 배달을 기다리기로 했다', [
@@ -246,7 +246,7 @@
       ],
       choices: [
         choice('lunch-reroute', '배민으로 주문하고 물병을 가까이 둔다', '배달 조건을 확인하고 오가는 일 줄이기', 'afternoon', 'settle', 'outing', '배달 주문 후 물병을 가까이 둠', '오늘은 배달로 먹기로 했다', s => [
-          has(s, 'scheduled_help') ? '배민에서 오늘 주문에 적용되는 배달 혜택과 총액을 확인한다. 잠시 뒤 들른 사람이 봉투와 물병을 옮겨 준다. 부탁했던 목록에 충전기 하나를 보탠다.' : '배민에서 오늘 주문에 적용되는 배달 혜택과 총액을 확인한다. 아까 본 매장 할인은 못 쓰지만 픽업 왕복은 줄어든다. 도착한 봉투를 둘 자리와 뚜껑 있는 물병도 가까이 정한다.',
+          has(s, 'scheduled_help') ? '배민에서 오늘 주문에 적용되는 배달 혜택과 총액을 확인한다. 잠시 뒤 들른 사람이 봉투와 물병을 옮겨 준다. 부탁했던 목록에 충전기 하나를 보탠다.' : '배민에서 오늘 주문에 적용되는 배달 혜택과 총액을 확인한다. 아까 본 매장 할인은 못 쓰지만 픽업 왕복은 줄어든다. 배달 봉투를 놓을 자리를 가까이 비워 두고, 옆에 뚜껑 있는 물병을 둘 곳도 정한다.',
           '쿠폰 하나가 아까워 앱을 한 번 더 열었다가 닫는다. 방은 그대로인데 오갈 일이 줄었다. 남은 시간에 쓸 힘이 조금 남을 것 같다.'
         ], motion('sit', 'room', '배달 조건을 비교하고 물병과 음식을 손 닿는 자리에 둔다.'), { energy: 1, mood: 0, flags: ['reroute', 'delivery'], weight: 2 }),
         choice('lunch-note', '오늘 불편했던 일을 짧게 적는다', '컵을 옮기기 어려웠던 일을 메모', 'afternoon', 'desk', 'observe', '컵 운반과 예전 출입구에 관한 메모', '컵 하나도 들기 어렵다', s => [
@@ -292,7 +292,7 @@
           '등을 받치고 앉아 창문 쪽을 본다. 어깨는 조금 덜 뻐근하지만 발목은 여전히 욱신거린다. 아직 다 나은 건 아니다.'
         ], motion('rest', 'room', '다리를 받치고 다음에 보고 싶은 풍경을 고른 뒤 쉰다.'), { energy: 2, mood: 0, flags: ['rest'], weight: 4 }),
         choice('afternoon-create', '오늘 일을 소재로 게임 아이디어를 적는다', '짧은 만화나 제목부터 써 보기', 'evening', 'desk', 'create', '물컵을 소재로 게임 아이디어 작성', '물컵 가지러 가는 게임', [
-          '“물컵 원정대”라고 제목을 적는다. 상상 속 게임 지도에는 소파와 부엌만 있다. 실제 오늘의 사건과는 별개로 무거운 문을 최종 보스로, 미지근한 물을 보물로 정한다.',
+          '“물컵 원정대”라고 제목을 적는다. 상상 속 게임 지도에는 소파와 부엌만 있다. 상상 속에서는 무거운 문이 최종 보스가 된다. 보물은 미지근한 물 한 잔이다.',
           '읽어 보고 혼자 웃는다. 아직 제목과 간단한 설정뿐이다. 저장해 두고 나머지는 나중에 생각하기로 한다.'
         ], motion('desk', 'room', '책상에서 작은 초안을 만들고 손을 내려놓는다.'), { energy: -1, mood: 2, flags: ['create'], weight: 4 })
       ]
@@ -327,7 +327,7 @@
   };
   const ENDINGS = {
     flow: { id: 'flow', name: '취미에 푹 빠진 토요일', quote: '“재미있어서 생각보다 오래 하게 됐다.”', body: '재미있는 일을 찾아 한동안 계속했다. 몸이 불편할 때는 쉬거나 자세를 고쳤다. 그러고도 하던 일이 궁금해서 다시 하게 됐다.', takeaway: '오늘 한 일 · 재미있는 일에 집중하기' },
-    shared: { id: 'shared', name: '누군가에게 말을 건 토요일', quote: '“먼저 연락하거나 필요한 부탁을 해봤다.”', body: '안부를 보내거나 필요한 도움을 부탁했다. 연락하거나 부탁한 내용은 아래 기록에서 다시 볼 수 있다.', takeaway: '오늘 한 일 · 연락하거나 도움을 부탁하기' },
+    shared: { id: 'shared', name: '누군가에게 말을 건 토요일', quote: '“먼저 연락하거나 필요한 부탁을 해봤다.”', body: '안부를 보내거나 필요한 도움을 부탁했다. 누구에게 무슨 말을 했는지 하나씩 떠오른다.', takeaway: '오늘 한 일 · 연락하거나 도움을 부탁하기' },
     outing: { id: 'outing', name: '외출 방법을 알아본 토요일', quote: '“가까운 곳도 입구와 돌아올 길부터 확인하게 됐다.”', body: '가까운 곳에 가는 방법부터 살펴봤다. 계단과 문, 앉을 곳, 돌아오는 길까지 알아볼 것이 많았다. 확인한 내용은 다음에 외출할 때도 필요하겠다.', takeaway: '오늘 한 일 · 출입구와 이동 방법 알아보기' },
     rest: { id: 'rest', name: '쉬면서 보낸 토요일', quote: '“하던 일을 몇 가지 미루고 편히 앉아 쉬었다.”', body: '하려던 일을 미루고 쉬는 시간을 가졌다. 몸이 조금 편해져도 심심하거나 아쉬울 수 있었다. 발목은 여전히 불편해서 자세를 바꾸어 가며 쉬었다.', takeaway: '오늘 한 일 · 하던 일을 미루고 쉬기' },
     observe: { id: 'observe', name: '주변을 둘러본 토요일', quote: '“평소에는 그냥 지나쳤던 것을 자세히 봤다.”', body: '주변을 살펴보거나 오늘 있었던 일을 생각해 봤다. 익숙한 곳에서도 전에는 몰랐던 점이 보였다.', takeaway: '오늘 한 일 · 주변을 살펴보기' },
@@ -372,7 +372,7 @@
     if (s.coreScene === 'outside' && s.initialConditions.doorMode === 'automatic') {
       result.lines[2] = '자동문이라면 문짝을 밀 손은 필요하지 않다. 그래도 문이 열리는 동안 지나가야 할 것 같아 마음이 급해질 수 있다. 갔다가 돌아오는 길까지 내 속도로 움직일 수 있을지 생각해 본다.';
       const ch = result.choices.find(item => item.id === 'outside-ride');
-      ch.followUpText = [ch.followUpText[0], '상가 자동문이 열리자 뒤에 있던 사람도 앞으로 움직인다. 문이 닫히기 전에 지나가야 할 것 같아 어깨에 힘이 들어간다. 앞쪽 공간을 확인하고 자기 속도로 지나 1층 로비 의자에 앉는다. 가려던 카페는 2층이다.'];
+      ch.followUpText = [ch.followUpText[0], '상가 자동문이 열리자 뒤에 있던 사람도 앞으로 움직인다. 문이 닫히기 전에 지나가야 할 것 같아 어깨에 힘이 들어간다. 앞쪽 공간을 살피고 내 속도로 지나 1층 로비 의자에 앉는다. 가려던 카페는 2층이다.'];
       ch.effects.entrance = { mode: 'automatic', actualMode: 'automatic', passed: true, heldBy: null };
       ch.effects.facts.push('자동문을 지나 상가 로비에 앉았다');
       ch.motion = { ...ch.motion, location: 'hall', caption: '자동문을 지나 1층 로비 의자에 앉는다.', encounter: { kind: 'door', doorType: 'automatic', phase: 'passed' } };
@@ -391,7 +391,7 @@
       result.encounter = { kind: 'escalator' };
       result.lines = ['2층 카페로 올라가는 가까운 길은 에스컬레이터다. 발판이 계속 움직이고 손잡이도 함께 지나간다.', '양손은 목발을 쥐고 있다. 올라탈 때 맞춰 발과 목발을 옮길 생각을 하니 어깨에 힘이 들어간다. 곧 다음 사람이 올 것 같아 조급하지만 발판에 올라서지는 않는다.', ...result.lines.slice(2)];
       result.choices = result.choices.map(ch => {
-        if (ch.id === 'outing-stairs') return { ...ch, id: 'outing-escalator-check', title: '에스컬레이터를 타지 않고 다른 길로 올라간다', note: '친구와 확인한 뒤편 엘리베이터 이용', effect: 'walk', flags: ['elevator_used', 'access_note'], durationMinutes: 24, reactionTitle: '움직이지 않는 통로로 돌아서', followUpText: ['에스컬레이터 옆의 고정된 바닥으로 비켜선다. 친구에게 뒤편 엘리베이터가 실제로 열려 있는지 함께 확인해 달라고 부탁한다.', '안내받은 통로로 돌아 엘리베이터를 이용해 2층에 도착한다. 가까운 의자에 앉아 손을 쉰다. 움직이는 발판에는 올라타지 않았다.'], journalTrace: '에스컬레이터 비탑승 · 확인한 엘리베이터로 2층 이동', effects: { ...ch.effects, requests: [{ by: '주인공', forWhat: '에스컬레이터 대신 이용할 엘리베이터 확인 요청' }], vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'elevator' }, facts: ['에스컬레이터에 타지 않고 확인한 엘리베이터로 2층에 올라갔다'] }, motion: motion('walk', 'hall', '확인한 엘리베이터를 이용해 2층 의자에 앉는다.', 'sit') };
+        if (ch.id === 'outing-stairs') return { ...ch, id: 'outing-escalator-check', title: '에스컬레이터를 타지 않고 다른 길로 올라간다', note: '친구와 확인한 뒤편 엘리베이터 이용', effect: 'walk', flags: ['elevator_used', 'access_note'], durationMinutes: 24, reactionTitle: '엘리베이터 쪽으로 돌아서', followUpText: ['에스컬레이터 옆의 고정된 바닥으로 비켜선다. 친구에게 뒤편 엘리베이터가 실제로 열려 있는지 함께 확인해 달라고 부탁한다.', '안내받은 통로로 돌아 엘리베이터를 이용해 2층에 도착한다. 가까운 의자에 앉아 손을 쉰다. 움직이는 발판에는 올라타지 않았다.'], journalTrace: '에스컬레이터 비탑승 · 확인한 엘리베이터로 2층 이동', effects: { ...ch.effects, requests: [{ by: '주인공', forWhat: '에스컬레이터 대신 이용할 엘리베이터 확인 요청' }], vertical: { kind: 'escalator', encountered: true, used: false, alternative: 'elevator' }, facts: ['에스컬레이터에 타지 않고 확인한 엘리베이터로 2층에 올라갔다'] }, motion: motion('walk', 'hall', '확인한 엘리베이터를 이용해 2층 의자에 앉는다.', 'sit') };
         const copy = { ...ch, effects: { ...ch.effects, vertical: { kind: 'escalator', encountered: true, used: false, alternative: ch.id === 'outing-elevator' ? 'elevator' : ch.id === 'outing-delivery' ? 'home' : 'ground-floor' } } };
         if (ch.id === 'outing-elevator') copy.followUpText = [ch.followUpText[0], '2층 의자에 앉는다. 조금 돌아왔지만 움직이는 발판에 올라탈 필요는 없었다. 다음에도 찾을 수 있도록 뒤편 엘리베이터 위치를 적는다.'];
         return copy;
@@ -400,9 +400,9 @@
     if (s.coreScene === 'outing_lunch' && s.initialConditions.orderMode === 'kiosk') {
       const ch = result.choices.find(item => item.id === 'outing-pickup');
       ch.title = '1층에서 주문 방법을 확인하고 점심을 먹는다';
-      ch.note = '키오스크 조작과 음식 운반 도움을 각각 부탁';
+      ch.note = '화면 누르기와 음식 옮기기를 따로 부탁하기';
       ch.durationMinutes = 50;
-      ch.followUpText = ['1층에서 적용 가능한 혜택과 주문 방법을 확인한다. 키오스크 위쪽 버튼에 손을 뻗으려니 목발을 잡은 다른 손에 힘이 몰린다. 직원에게 메뉴를 말하고 화면 조작을 부탁한 뒤 금액을 확인해 결제한다.', '음식과 음료가 나와도 양손으로 목발을 짚고 있어 들고 갈 수 없다. 친구에게 봉투와 음료를 자리까지 옮겨 달라고 부탁한다. 옮겨 받은 음식을 함께 먹는다.'];
+      ch.followUpText = ['1층에서 적용 가능한 혜택과 주문 방법을 확인한다. 키오스크 위쪽 버튼에 손을 뻗으려니 목발을 잡은 다른 손에 힘이 몰린다. 직원에게 메뉴를 말하고 화면 조작을 부탁한 뒤 금액을 확인해 결제한다.', '음식과 음료가 나와도 양손으로 목발을 짚고 있어 들고 갈 수 없다. 친구에게 봉투와 음료를 자리까지 옮겨 달라고 부탁한다. 친구가 가져다준 음식을 함께 먹는다.'];
       ch.effects = { ...ch.effects, order: { mode: 'kiosk', status: 'paid', method: 'staff-on-kiosk', menuConfirmed: true }, requests: [...(ch.effects.requests || []), { by: '주인공', forWhat: '키오스크 메뉴 입력 요청' }, { by: '주인공', forWhat: '친구에게 음식과 음료 운반 요청' }], facts: ['직원에게 키오스크 조작을 부탁해 결제했다', '친구에게 음식과 음료 운반을 부탁한 뒤 함께 먹었다'] };
     }
     return result;
@@ -529,3 +529,4 @@
   };
   return api;
 });
+
