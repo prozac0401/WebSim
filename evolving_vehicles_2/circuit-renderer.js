@@ -778,7 +778,7 @@
         }
         if(brake){
           const base=parseInt(String(fill).replace('#',''),16),amount=brake*.94;
-          const target=face.brakeLight.boost?[255,46,15]:[255,14,6];
+          const target=face.brakeLight.tint?face.brakeLight.tint.map(c=>c*255):face.brakeLight.boost?[255,46,15]:[255,14,6];
           const channels=[base>>16&255,base>>8&255,base&255].map((value,i)=>Math.round(value*(1-amount)+target[i]*amount));
           fill='rgba('+channels.join(',')+','+(face.brakeLight.overlay?brake:1)+')';
         }

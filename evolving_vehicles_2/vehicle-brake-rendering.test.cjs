@@ -23,8 +23,8 @@ function gpuFixture() {
     uniform4f:(name,...values)=>uniforms.set(name,values), uniform3fv:(name,value)=>uniforms.set(name,Array.from(value)),
     vertexAttrib3fv:(name,value)=>{if(name==='aColor')color=Array.from(value);},
     depthMask:value=>{depthWrite=value;},
-    drawElements:()=>draws.push({kind:'asset',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],color,depthWrite}),
-    drawArrays:()=>draws.push({kind:'effect',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],depthWrite})
+    drawElements:()=>draws.push({kind:'asset',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),tint:uniforms.get('uBrakeTint'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],color,depthWrite}),
+    drawArrays:()=>draws.push({kind:'effect',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),tint:uniforms.get('uBrakeTint'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],depthWrite})
   }, {get:(object,key)=>key in object?object[key]:()=>{}});
   const canvas={width:390,height:400,getContext:()=>gl,addEventListener(){}};
   const context={document:{createElement:()=>canvas}};
@@ -48,13 +48,22 @@ function canvasRenderer(mesh, extra = {}) {
 const appearance=faces=>faces.map(f=>JSON.stringify([f.vertices,f.fill,f.material])).sort();
 
 test('GPU brake emission is per car and primitive, resets for the next car and never tints patrol effects',()=>{
-  const f=gpuFixture(),before=JSON.stringify(f.data);
-  const entries=[f.entry(1,.8),f.entry(2,0),{...f.entry(0,1,true),effect:{faces:[face('#258aff')]}}];
+  const f=gpuFixture(),customTint=[1,.38,.24],defaultTint=[1,.18,.06];
+  f.lamp.brakeLight={role:'stop',boost:1,tint:customTint};
+  const defaultLamp=primitive({brakeLight:{role:'stop',boost:1}});
+  f.data.primitives=f.data.fallbackPrimitives=[f.body,f.lamp,defaultLamp];
+  const defaultData={primitives:[f.body,defaultLamp]},before=JSON.stringify([f.data,defaultData]);
+  const entries=[f.entry(1,.8),f.entry(2,0),{...f.entry(0,1,true),mesh:{...f.mesh,manufacturer:defaultData},effect:{faces:[face('#258aff')]}}];
   const draws=f.render(entries);
-  assert.deepEqual(draws.filter(d=>d.kind==='asset').map(d=>[d.car,d.brake]),[[1,0],[1,.8],[2,0],[2,0],[0,0],[0,1]]);
+  const assets=draws.filter(d=>d.kind==='asset');
+  assert.deepEqual(assets.map(d=>[d.car,d.brake]),[[1,0],[1,.8],[1,.8],[2,0],[2,0],[2,0],[0,0],[0,1]]);
+  assert.deepEqual(assets.map(d=>d.tint),[defaultTint,customTint,defaultTint,defaultTint,customTint,defaultTint,defaultTint,defaultTint],
+    'each primitive and the next vehicle receive their own tint, including unlit lamps');
+  assert.deepEqual(assets.map(d=>d.boost),[0,1,1,0,1,1,0,1]);
   assert.deepEqual(draws.filter(d=>d.kind==='effect').map(d=>[d.car,d.brake,d.opacity]),[[0,0,1]]);
-  draws.filter(d=>d.kind==='asset').forEach((d,i)=>assert.deepEqual(d.color,i%2?f.lamp.color:f.body.color));
-  assert.equal(JSON.stringify(f.data),before,'shared colors, typed geometry and tags are not rewritten per vehicle');
+  assert.deepEqual(draws.filter(d=>d.kind==='effect').map(d=>d.tint),[defaultTint],'patrol effects reset the custom lamp uniform');
+  assert.deepEqual(assets.map(d=>d.color),[f.body.color,f.lamp.color,defaultLamp.color,f.body.color,f.lamp.color,defaultLamp.color,f.body.color,defaultLamp.color]);
+  assert.equal(JSON.stringify([f.data,defaultData]),before,'shared colors, typed geometry and tags are not rewritten per vehicle');
 });
 
 test('switching a shared lamp off restores its source draw without rebuilding buffers, including release fade while on is false',()=>{
@@ -89,14 +98,17 @@ test('enhanced high stop lenses keep source alpha when off and become visible wh
 });
 
 test('Canvas fallback lights every rendered car independently and preserves off lenses, body faces and patrol colors',()=>{
-  const lamp=face('#361015',{brakeLight:{role:'stop'}}),body=face('#447799',{material:'trim'}),overlay=face('#b30405',{brakeLight:{role:'stop',overlay:true}});
-  const mesh={length:4.5,width:1.8,height:1.4,faces:[lamp,body,overlay]},before=JSON.stringify(mesh);
+  const lamp=face('#361015',{brakeLight:{role:'stop'}}),custom=face('#361015',{brakeLight:{role:'stop',boost:1,tint:[1,.38,.24]}}),body=face('#447799',{material:'trim'}),overlay=face('#b30405',{brakeLight:{role:'stop',overlay:true,boost:1}});
+  const mesh={length:4.5,width:1.8,height:1.4,faces:[lamp,custom,body,overlay]},before=JSON.stringify(mesh);
   const patrol=face('#258aff',{part:'patrol-rear'}),r=canvasRenderer(mesh,{G70PatrolLights:{create:()=>({faces:[patrol]})}});
   const draw=(id,intensity,selected)=>{const queue=[];r._carFaces({id,brakeLightState:{on:false,intensity}},{x:0,y:0,elevation:0,angle:0},camera,queue,selected);return queue;};
   const off=draw(0,0,true),lit=draw(0,.5,true),ghost=draw(1,.5,false);
-  assert.equal(off.filter(f=>f.brakeLight).length,1);assert.equal(off.find(f=>f.brakeLight).fill,lamp.fill);
-  assert.equal(lit.filter(f=>f.brakeLight).length,2);assert.equal(ghost.filter(f=>f.brakeLight).length,2);
+  assert.equal(off.filter(f=>f.brakeLight).length,2);assert.ok(off.filter(f=>f.brakeLight).every(f=>f.fill===lamp.fill));
+  assert.equal(lit.filter(f=>f.brakeLight).length,3);assert.equal(ghost.filter(f=>f.brakeLight).length,3);
   assert.deepEqual(lit.filter(f=>f.brakeLight).map(f=>f.fill),ghost.filter(f=>f.brakeLight).map(f=>f.fill));
+  assert.equal(lit.find(f=>f.brakeLight?.tint).fill,'rgba(148,54,40,1)','custom display tint reaches the Canvas lens');
+  assert.equal(lit.find(f=>f.brakeLight&&!f.brakeLight.boost).fill,'rgba(148,15,14,1)','legacy red is unchanged by a neighboring custom lamp');
+  assert.equal(lit.find(f=>f.brakeLight?.overlay).fill,'rgba(215,24,10,0.5)','other models retain the default enhanced tint');
   assert.match(lit.find(f=>f.brakeLight?.overlay).fill,/,0\.5\)$/);
   assert.equal(lit.find(f=>f.part==='patrol-rear').fill,patrol.fill);assert.equal(ghost.some(f=>f.part==='patrol-rear'),false);
   assert.ok(off.some(f=>f.fill===body.fill)&&lit.some(f=>f.fill===body.fill));assert.equal(JSON.stringify(mesh),before);
@@ -115,6 +127,10 @@ test('all thirteen actual model registrations expose existing fallback stop face
     assert.ok(lights.length,id+' actual manufacturer fallback has stop lamps');
     assert.equal(mesh.faces,faces,id+' fallback faces are cached');
     for(const f of lights){assert.ok(f.vertices.every(v=>v.x<0),id+' rear lamps only');assert.ok(f.fill,'source lens appearance retained');}
+    const sourceLights=mesh.manufacturer.primitives.filter(p=>p.brakeLight);
+    assert.ok(sourceLights.length,id+' actual source has stop-lamp metadata');
+    for(const item of [...sourceLights,...lights])assert.deepEqual(Array.from(item.brakeLight.tint||[]),id==='ioniq5'?[1,.38,.24]:[],
+      id+' custom tint belongs only to Ioniq source lamps and is propagated to its authored Canvas lamps');
     if(!mesh.manufacturer.fallbackPrimitives){
       assert.equal(faces.length,authored.faces.length,id+' authored body triangle count unchanged');
       assert.deepEqual(appearance(faces),appearance(authored.faces),id+' only metadata changes in authored fallback');

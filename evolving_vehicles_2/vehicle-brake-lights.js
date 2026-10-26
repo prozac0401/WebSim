@@ -63,7 +63,11 @@
     const Index=map.size<65536?Uint16Array:Uint32Array;
     return {...p,vertices:new Float32Array(vertices),indices:new Index(remapped),indexType:Index.BYTES_PER_ELEMENT,bounds,triangles:indices.length/3,...(sourceParts?{sourceParts}:{} )};
   }
-  function tag(p,info,id){return {...p,brakeLight:Object.freeze({vehicle:id,boost:id==='g70'||id==='g80'?0:1,restScale:(id==='supra'||id==='gr86')?.35:1,...info})};}
+  // Small clear-lens pixels lose apparent brightness when minified against
+  // their dark grid. Keep the optical footprint and unlit lens unchanged;
+  // this brighter display red is an Ioniq-only emission calibration.
+  const ioniqStopTint=Object.freeze([1,.38,.24]);
+  function tag(p,info,id){return {...p,brakeLight:Object.freeze({vehicle:id,boost:id==='g70'||id==='g80'?0:1,restScale:(id==='supra'||id==='gr86')?.35:1,...(id==='ioniq5'?{tint:ioniqStopTint}:{}),...info})};}
 
   // Several imported lenses are opaque, or attenuate a light twice. Project
   // the actual optical guides onto their own outer lens instead of emitting

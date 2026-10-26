@@ -90,11 +90,12 @@
       // Canvas uses an independently authored body for these models. Tag its
       // own upper red lenses so the lamps remain on that body's surface;
       // importing CAD lenses here would place them on a different silhouette.
-      if(data.primitives.some(p=>p.brakeLight))fallback={...fallback,faces:fallback.faces.map(face=>
+      const stopLamp=data.primitives.find(p=>p.brakeLight)?.brakeLight;
+      if(stopLamp)fallback={...fallback,faces:fallback.faces.map(face=>
        face.material==='light'&&face.fill==='#a90c17'&&
        ['upper-tail-lens','tail-pixels','lamp-signature'].includes(face.part)&&
        face.vertices.every(v=>v.x<0)&&face.vertices.reduce((sum,v)=>sum+v.z,0)/face.vertices.length>height*.35
-        ?{...face,brakeLight:{vehicle:id,role:'stop',boost:id==='g70'||id==='g80'?0:1,source:'authored Canvas rear lamp'}}:face)};
+        ?{...face,brakeLight:{vehicle:id,role:'stop',boost:id==='g70'||id==='g80'?0:1,...(stopLamp.tint?{tint:stopLamp.tint}:{}),source:'authored Canvas rear lamp'}}:face)};
      }
     }
     return fallback.faces;

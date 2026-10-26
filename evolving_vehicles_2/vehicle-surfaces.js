@@ -9,6 +9,7 @@ const rgb=hex=>{
  const n=parseInt(t,16);return Number.isFinite(n)?[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]:[.5,.6,.65];
 };
 const materials={paint:0,glass:1,rubber:2,chrome:3,light:4,interior:2,plastic:2};
+const defaultBrakeTint=[1,.18,.06];
 class VehicleSurfaces {
  constructor(onUpdate) {
   this.canvas=document.createElement('canvas');this.cache=new Map();this.assetCache=new Map();this.lodCache=new WeakMap();this.textures=new Map();this.repeatTextureKeys=new Map();this.textureGeneration=0;this.available=false;this.onUpdate=onUpdate;
@@ -41,7 +42,7 @@ class VehicleSurfaces {
     precision highp float;
     varying vec3 vNormal;varying vec3 vColor;varying vec3 vWorld;varying vec3 vLocal;varying float vMaterial;varying vec2 vUV;uniform vec3 uEye;
     uniform vec4 uPaint;uniform sampler2D uFlakes;
-    uniform sampler2D uTexture;uniform bool uHasTexture;uniform bool uOpaqueTexture;uniform float uOpacity;uniform float uBrake;uniform float uBrakeBoost;
+    uniform sampler2D uTexture;uniform bool uHasTexture;uniform bool uOpaqueTexture;uniform float uOpacity;uniform float uBrake;uniform float uBrakeBoost;uniform vec3 uBrakeTint;
     varying vec3 vPhotoA;varying vec3 vPhotoB;uniform bool uPhotoMode;uniform sampler2D uPhotoTextureA;uniform sampler2D uPhotoTextureB;uniform float uPhotoBlend;
     vec3 shade(vec3 base,float material){
      vec3 N=normalize(vNormal),V=normalize(uEye-vWorld);if(dot(N,V)<0.0)N=-N;
@@ -99,7 +100,7 @@ class VehicleSurfaces {
      float lens=clamp(dot(texel.rgb,vec3(.2126,.7152,.0722)),0.0,1.0);
      // LDR output needs a warmer luminous core, not just saturated red with
      // almost the same luminance as an unlit red lens. Preserve G70/G80 tuning.
-     vec3 stopColor=mix(vec3(1.0,.055,.025),vec3(1.0,.18,.06),uBrakeBoost);
+     vec3 stopColor=mix(vec3(1.0,.055,.025),uBrakeTint,uBrakeBoost);
      c=mix(c,stopColor*(.88+.12*lens),clamp(uBrake,0.0,1.0)*.94);
      gl_FragColor=vec4(clamp(c,0.0,1.0),alpha);
     }`;
@@ -107,7 +108,7 @@ class VehicleSurfaces {
    this.program=gl.createProgram();gl.attachShader(this.program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(this.program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);
    if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(this.program));
    this.attributes=Object.fromEntries(['aPosition','aNormal','aColor','aMaterial','aUV'].map(n=>[n,gl.getAttribLocation(this.program,n)]));
-   this.uniforms=Object.fromEntries(['uCar','uPose','uTarget','uCamera','uViewport','uClip','uEye','uModelScale','uModelOffset','uWheel','uPaint','uFlakes','uTexture','uHasTexture','uOpaqueTexture','uOpacity','uBrake','uBrakeBoost','uPhotoMode','uPhotoMatrixA','uPhotoMatrixB','uPhotoTextureA','uPhotoTextureB','uPhotoBlend'].map(n=>[n,gl.getUniformLocation(this.program,n)]));
+   this.uniforms=Object.fromEntries(['uCar','uPose','uTarget','uCamera','uViewport','uClip','uEye','uModelScale','uModelOffset','uWheel','uPaint','uFlakes','uTexture','uHasTexture','uOpaqueTexture','uOpacity','uBrake','uBrakeBoost','uBrakeTint','uPhotoMode','uPhotoMatrixA','uPhotoMatrixB','uPhotoTextureA','uPhotoTextureB','uPhotoBlend'].map(n=>[n,gl.getUniformLocation(this.program,n)]));
    this.uintIndices=gl.getExtension('OES_element_index_uint');
    this.available=true;
   } catch(error){this.failure=String(error);}
@@ -287,6 +288,7 @@ class VehicleSurfaces {
    const boost=p.brakeLight?.boost||0,alpha=p.alpha??1;
    const opacity=p.brakeLight?.overlay?alpha*brake:alpha+(1-alpha)*brake*boost;
    gl.uniform1f(U.uBrake,brake);gl.uniform1f(U.uBrakeBoost,boost);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
+   gl.uniform3fv(U.uBrakeTint,p.brakeLight?.tint||defaultBrakeTint);
    const wheel=p.wheel,angle=wheel?(root.VehicleWheels?.angle?.(mesh,wheel,car)||0):0;
    gl.uniform4f(U.uWheel,wheel?.center?.[0]||0,wheel?.center?.[1]||0,wheel?.center?.[2]||0,angle);
    // A photo-fill panel is estimated, not a factory matte finish. Keep its
@@ -330,7 +332,7 @@ class VehicleSurfaces {
    gl.uniform3f(U.uCar,p.x,p.y,(p.elevation||0)+.055);gl.uniform2f(U.uPose,p.angle||0,Math.atan(p.grade||0));
    if(mesh.manufacturer)this._drawAsset(mesh,p,camera,entry.selected===false,entry.car);
    for(const geometry of [mesh.manufacturer?null:mesh,entry.effect].filter(Boolean)){
-    gl.uniform1f(U.uBrake,0);gl.uniform1f(U.uBrakeBoost,0);
+    gl.uniform1f(U.uBrake,0);gl.uniform1f(U.uBrakeBoost,0);gl.uniform3f(U.uBrakeTint,1,.18,.06);
     gl.uniform1i(U.uPhotoMode,0);gl.uniform4f(U.uWheel,0,0,0,0);this._bindPaint(geometry.paintFinish||null);
     gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
     const b=this._buffer(geometry);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
