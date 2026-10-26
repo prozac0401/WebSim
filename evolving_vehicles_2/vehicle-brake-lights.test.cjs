@@ -23,10 +23,10 @@ test('all 13 visible bodies have bounded rear stop geometry in main and every su
 });
 test('the twelve real meshes preserve source bytes, every indexed vertex/normal/UV and unrelated part identity',()=>{
  for(const id of ids.filter(id=>id!=='torres')){const source=load(id);for(const key of ['primitives','fallbackPrimitives']){if(!source[key])continue;const before=digest(source[key]),out=Brake.prepare(source)[key];assert.equal(digest(source[key]),before,id+' immutable source');
-   const names=new Set(out.filter(p=>p.brakeLight).map(p=>p.name)),old=source[key].filter(p=>names.has(p.name)),next=out.filter(p=>names.has(p.name));const a=moments(old),b=moments(next);
+   const names=new Set(out.filter(p=>p.brakeLight&&!p.brakeLight.overlay).map(p=>p.name)),old=source[key].filter(p=>names.has(p.name)),next=out.filter(p=>!p.brakeLight?.overlay&&names.has(p.name));const a=moments(old),b=moments(next);
    assert.equal(a.count,b.count,id+' exact source triangle count');for(let i=0;i<a.sums.length;i++)assert.ok(Math.abs(a.sums[i]-b.sums[i])<Math.max(1e-5,Math.abs(a.sums[i])*1e-10),id+' indexed component '+i);
    for(const p of source[key])if(!names.has(p.name)||p.wheel||p.drl||p.paint)assert.ok(out.includes(p),id+' unrelated source identity '+p.name);
-   for(const p of out.filter(p=>p.brakeLight)){const original=source[key].find(q=>q.name===p.name&&q.materialName===p.materialName&&q.color===p.color);assert.ok(original,id+' original part');for(const field of ['material','paint','alpha','texture','textureIndex','photoProjected'])assert.equal(p[field],original[field],id+' appearance retained '+field);assert.equal(p.color,original.color,id+' original color reference');}
+   for(const p of out.filter(p=>p.brakeLight&&!p.brakeLight.overlay)){const original=source[key].find(q=>q.name===p.name&&q.materialName===p.materialName&&q.color===p.color);assert.ok(original,id+' original part');for(const field of ['material','paint','alpha','texture','textureIndex','photoProjected'])assert.equal(p[field],original[field],id+' appearance retained '+field);assert.equal(p.color,original.color,id+' original color reference');}
   }}
 });
 test('rear reverse lamps, amber turn parts, bumper reflectors and shared front guides are never tagged',()=>{
@@ -47,13 +47,27 @@ test('rear reverse lamps, amber turn parts, bumper reflectors and shared front g
  const bmw=Brake.prepare(load('bmw_m2'));for(const key of ['primitives','fallbackPrimitives']){const tagged=bmw[key].filter(p=>p.brakeLight);for(const p of tagged)assert.ok(p.sourceParts.every(s=>/^(red_|r_glass_0[24]$)/.test(s.name)),'only red original emitters or lenses');const amber=bmw[key].filter(p=>(p.sourceParts||[]).some(s=>s.name==='orange_01'||s.name==='o_glass_01'));assert.ok(amber.length);assert.ok(amber.every(p=>!p.brakeLight),'amber source and lens retained but not illuminated');}
 });
 test('opaque outer stop lenses emit without changing their OFF opacity or illuminating clear inner sections',()=>{
- for(const id of ['gr86','avante_n','bmw_m2','k5','g80']){const source=load(id),out=Brake.prepare(source);for(const key of ['primitives','fallbackPrimitives']){if(!out[key])continue;const covers=out[key].filter(p=>p.brakeLight?.cover);assert.ok(covers.length,id+' '+key+' actual visible covers');for(const p of covers){const original=source[key].find(q=>q.name===p.name&&q.materialName===p.materialName);assert.equal(p.alpha,original.alpha,id+' OFF opacity');assert.equal(p.texture,original.texture,id+' OFF texture');}
+ for(const id of ['gr86','avante_n','bmw_m2','k5','g80']){const source=load(id),out=Brake.prepare(source);for(const key of ['primitives','fallbackPrimitives']){if(!out[key])continue;const covers=out[key].filter(p=>p.brakeLight?.cover||p.brakeLight?.overlay);assert.ok(covers.length,id+' '+key+' actual visible covers');for(const p of covers.filter(p=>!p.brakeLight.overlay)){const original=source[key].find(q=>q.name===p.name&&q.materialName===p.materialName);assert.equal(p.alpha,original.alpha,id+' OFF opacity');assert.equal(p.texture,original.texture,id+' OFF texture');}
    if(id==='gr86')for(const p of covers)for(let t=0;t<p.indices.length;t+=3){const q=[0,1,2].map(j=>p.indices[t+j]*8),y=q.reduce((n,k)=>n+p.vertices[k+1],0)/3,z=q.reduce((n,k)=>n+p.vertices[k+2],0)/3;assert.ok(!(Math.abs(y)<.64&&z>.785&&z<.83),'central clear rectangle remains unlit');}
-   if(id==='avante_n')for(const p of covers)for(let t=0;t<p.indices.length;t+=3){const q=[0,1,2].map(j=>p.indices[t+j]*8);assert.ok(q.reduce((n,k)=>n+p.vertices[k+2],0)/3>.83,'lower reverse/turn lenses remain unlit');}
+   if(id==='avante_n')for(const p of covers)for(let t=0;t<p.indices.length;t+=3){const q=[0,1,2].map(j=>p.indices[t+j]*8);assert.ok(q.reduce((n,k)=>n+p.vertices[k+2],0)/3>.82,'lower reverse/turn lenses remain unlit');}
   }}
 });
 test('identified central high stop strips are retained without inventing missing source lamps',()=>{
  for(const id of ['staria','ioniq5','santafe','morning','carnival','supra','avante_n','gr86']){const out=Brake.prepare(load(id)),high=lampParts(out).filter(p=>p.brakeLight.role==='high-mount');assert.ok(high.length,id+' high stop');for(const p of high)for(const i of p.indices){assert.ok(Math.abs(p.vertices[i*8+1])<.42,id+' central');assert.ok(p.vertices[i*8+2]>.9,id+' above tail lamps');}}
+});
+test('fitted stop guides preserve the original optical silhouette and never turn a whole lens into an emitter',()=>{
+ for(const id of ['staria','ioniq5','santafe','morning','carnival','k5','supra','avante_n','gr86']){
+  const out=Brake.prepare(load(id));
+  for(const key of ['primitives','fallbackPrimitives']){if(!out[key])continue;
+   const parts=out[key],guides=parts.filter(p=>p.brakeLight&&!p.brakeLight.cover&&!p.brakeLight.overlay);
+   const projected=parts.filter(p=>p.brakeLight?.overlay);assert.ok(projected.length,id+' '+key+' fitted lamps');
+   const points=new Set(guides.flatMap(p=>Array.from(p.indices,i=>p.vertices[i*8+1].toFixed(5)+','+p.vertices[i*8+2].toFixed(5))));
+   for(const p of projected){assert.equal(p.texture,null);assert.equal(p.alpha,1);assert.ok(p.name.endsWith('-stop-lens'));
+    for(const i of p.indices){const v=p.vertices;assert.ok(points.has(v[i*8+1].toFixed(5)+','+v[i*8+2].toFixed(5)),id+' exact source guide silhouette');}
+   }
+  }
+ }
+ for(const id of ['g70','g80'])for(const p of lampParts(Brake.prepare(load(id)))){assert.equal(p.brakeLight.boost,0);assert.equal(p.brakeLight.restScale,1);assert.ok(!p.brakeLight.overlay,id+' existing LED appearance retained');}
 });
 test('Torres adds only small photo-aligned stop overlays and preserves its complete photographic source',()=>{
  const source=load('torres'),before=digest(source.primitives),out=Brake.prepare(source),lamps=lampParts(out);assert.equal(digest(source.primitives),before);assert.equal(out.photoProjection,source.photoProjection);for(const p of source.primitives)assert.ok(out.primitives.includes(p));

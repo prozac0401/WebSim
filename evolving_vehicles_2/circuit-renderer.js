@@ -772,9 +772,14 @@
           const shade=.52+.38*Math.max(0,(-.35*n.x-.5*n.y+.85*n.z)/len)+.22*Math.max(0,(.2*n.x+.8*n.y+.5*n.z)/len);
           fill=tint(fill,clamp(shade-1,-.48,.12));
         }
+        if(face.brakeLight?.restScale!==undefined&&face.brakeLight.restScale!==1&&/^#[0-9a-f]{6}$/i.test(fill||'')){
+          const n=parseInt(fill.slice(1),16),scale=face.brakeLight.restScale;
+          fill='#'+[n>>16&255,n>>8&255,n&255].map(c=>Math.round(c*scale).toString(16).padStart(2,'0')).join('');
+        }
         if(brake){
           const base=parseInt(String(fill).replace('#',''),16),amount=brake*.94;
-          const channels=[base>>16&255,base>>8&255,base&255].map((value,i)=>Math.round(value*(1-amount)+[255,14,6][i]*amount));
+          const target=face.brakeLight.boost?[255,46,15]:[255,14,6];
+          const channels=[base>>16&255,base>>8&255,base&255].map((value,i)=>Math.round(value*(1-amount)+target[i]*amount));
           fill='rgba('+channels.join(',')+','+(face.brakeLight.overlay?brake:1)+')';
         }
         this._queue({...face,fill,vertices,stroke:face.stroke||(fill?fill:undefined),width:face.stroke?face.width:.6,priority:selected?1:0},camera,queue);

@@ -94,7 +94,7 @@
        face.material==='light'&&face.fill==='#a90c17'&&
        ['upper-tail-lens','tail-pixels','lamp-signature'].includes(face.part)&&
        face.vertices.every(v=>v.x<0)&&face.vertices.reduce((sum,v)=>sum+v.z,0)/face.vertices.length>height*.35
-        ?{...face,brakeLight:{vehicle:id,role:'stop',source:'authored Canvas rear lamp'}}:face)};
+        ?{...face,brakeLight:{vehicle:id,role:'stop',boost:id==='g70'||id==='g80'?0:1,source:'authored Canvas rear lamp'}}:face)};
      }
     }
     return fallback.faces;
