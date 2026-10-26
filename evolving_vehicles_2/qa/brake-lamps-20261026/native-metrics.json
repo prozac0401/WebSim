@@ -1,0 +1,86 @@
+[
+  {
+    "id": "supra",
+    "beforeSignal": 5485.7,
+    "afterSignal": 33322.5,
+    "offChangedPixels": 425,
+    "onChangedPixels": 538
+  },
+  {
+    "id": "morning",
+    "beforeSignal": 2476.9,
+    "afterSignal": 35728.6,
+    "offChangedPixels": 0,
+    "onChangedPixels": 1139
+  },
+  {
+    "id": "staria",
+    "beforeSignal": 1106.8,
+    "afterSignal": 11270.9,
+    "offChangedPixels": 0,
+    "onChangedPixels": 1046
+  },
+  {
+    "id": "carnival",
+    "beforeSignal": 11035.0,
+    "afterSignal": 29915.5,
+    "offChangedPixels": 0,
+    "onChangedPixels": 489
+  },
+  {
+    "id": "ioniq5",
+    "beforeSignal": 3000.3,
+    "afterSignal": 7846.7,
+    "offChangedPixels": 0,
+    "onChangedPixels": 411
+  },
+  {
+    "id": "santafe",
+    "beforeSignal": 24279.3,
+    "afterSignal": 53716.7,
+    "offChangedPixels": 0,
+    "onChangedPixels": 758
+  },
+  {
+    "id": "k5",
+    "beforeSignal": 70483.9,
+    "afterSignal": 31955.4,
+    "offChangedPixels": 2,
+    "onChangedPixels": 4486
+  },
+  {
+    "id": "bmw_m2",
+    "beforeSignal": 22371.0,
+    "afterSignal": 32402.6,
+    "offChangedPixels": 0,
+    "onChangedPixels": 652
+  },
+  {
+    "id": "avante_n",
+    "beforeSignal": 25162.8,
+    "afterSignal": 32773.0,
+    "offChangedPixels": 0,
+    "onChangedPixels": 1023
+  },
+  {
+    "id": "gr86",
+    "beforeSignal": 33605.0,
+    "afterSignal": 33112.5,
+    "offChangedPixels": 114,
+    "onChangedPixels": 917
+  },
+  {
+    "id": "g70",
+    "beforeSignal": 33716.2,
+    "afterSignal": 33716.2,
+    "offChangedPixels": 0,
+    "onChangedPixels": 0
+  },
+  {
+    "id": "g80",
+    "beforeSignal": 59400.9,
+    "afterSignal": 59400.9,
+    "offChangedPixels": 0,
+    "onChangedPixels": 0
+  }
+]

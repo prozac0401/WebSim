@@ -52,7 +52,7 @@
       {part:p=>/_DarkRed$/.test(p.materialName||''),point:(x,y,z)=>x<-1.5&&Math.abs(y)<.2&&z>1,info:high('original central rear-window stop strip')}
     ],
     gr86:[
-      {part:p=>p.materialName==='Ln4Mtl',point:(x,y,z)=>x<-1.6&&Math.abs(y)>.45&&z>.68,info:outer('original red rear optical geometry; lower reflector/fog region excluded')},
+      {part:p=>p.materialName==='Ln4Mtl',point:(x,y,z)=>x<-1.6&&Math.abs(y)>.45&&z>.68&&!(Math.abs(y)<.655&&z>.778&&z<.835),info:outer('original C-shaped red rear optical geometry; central clear rectangle and lower reflector/fog region excluded')},
       {part:p=>p.materialName==='Ln4Mtl',point:(x,y,z)=>x<-1.6&&Math.abs(y)<.23&&z>.92,info:high('original central trunk stop strip within shared red material')},
       {part:p=>p.name==='Object_11'&&p.materialName==='Wind0011Mtl',point:(x,y,z)=>x<-1.6&&(z>.835||z<.778||Math.abs(y)>.655),info:{...outer('original opaque C-shaped stop cover; central clear rectangle excluded by its separate triangles'),cover:true}}
     ]
@@ -63,7 +63,86 @@
     const Index=map.size<65536?Uint16Array:Uint32Array;
     return {...p,vertices:new Float32Array(vertices),indices:new Index(remapped),indexType:Index.BYTES_PER_ELEMENT,bounds,triangles:indices.length/3,...(sourceParts?{sourceParts}:{} )};
   }
-  function tag(p,info,id){return {...p,brakeLight:Object.freeze({vehicle:id,...info})};}
+  function tag(p,info,id){return {...p,brakeLight:Object.freeze({vehicle:id,boost:id==='g70'||id==='g80'?0:1,restScale:(id==='supra'||id==='gr86')?.35:1,...info})};}
+
+  // Several imported lenses are opaque, or attenuate a light twice. Project
+  // the actual optical guides onto their own outer lens instead of emitting
+  // the entire cover. In particular the clear/amber holes stay unlit. This
+  // preserves all source buffers and needs no depth-test bypass or glow quad.
+  const lensParts={
+    staria:p=>p.name==='BODYTYPE_PREMIUM'&&p.materialName==='Glass',
+    ioniq5:p=>p.name==='STOCK_LIGHTS'&&p.materialName==='CLEARGLASS',
+    santafe:p=>/^rearlamp_set2_coverglass/.test(p.name),
+    morning:p=>p.name==='Ext_GTL_taillights_glassclear1001',
+    carnival:p=>p.name==='RL cover',
+    k5:p=>p.name==='lights glass_Material #2125716590_0',
+    supra:p=>/lampCover/.test(p.name)||p.name==='Object_19 | Object_20'&&p.materialName==='Glass.013',
+    avante_n:p=>/_BrakeLightsGlass$/.test(p.materialName||'')||/_RedMainGlass$/.test(p.materialName||''),
+    gr86:p=>p.name==='Object_11'&&p.materialName==='Wind0011Mtl'
+  };
+  function lensOverlays(parts,id){
+    const select=lensParts[id];if(!select)return parts;
+    const covers=[];
+    for(const p of parts.filter(select))for(let t=0;t<p.indices.length;t+=3){
+      const a=[0,1,2].map(j=>Array.from(p.vertices.subarray(p.indices[t+j]*8,p.indices[t+j]*8+3)));
+      if(a.some(q=>q[0]>-1))continue;
+      const [A,B,C]=a,den=(B[2]-C[2])*(A[1]-C[1])+(C[1]-B[1])*(A[2]-C[2]);
+      if(Math.abs(den)<1e-12)continue;
+      covers.push({a,den,minY:Math.min(...a.map(q=>q[1])),maxY:Math.max(...a.map(q=>q[1])),minZ:Math.min(...a.map(q=>q[2])),maxZ:Math.max(...a.map(q=>q[2]))});
+    }
+    const project=(y,z)=>{
+      let x=Infinity;
+      for(const {a:[A,B,C],den,minY,maxY,minZ,maxZ}of covers){
+        if(y<minY-1e-6||y>maxY+1e-6||z<minZ-1e-6||z>maxZ+1e-6)continue;
+        const s=((B[2]-C[2])*(y-C[1])+(C[1]-B[1])*(z-C[2]))/den;
+        const t=((C[2]-A[2])*(y-C[1])+(A[1]-C[1])*(z-C[2]))/den;
+        if(s>=-1e-5&&t>=-1e-5&&s+t<=1.00001)x=Math.min(x,s*A[0]+t*B[0]+(1-s-t)*C[0]);
+      }
+      return Number.isFinite(x)?x-.0007:null;
+    };
+    // Picanto's red optical material also contains the back of the lamp bowl.
+    // Preserve its opaque internal masks instead of projecting that hidden
+    // backing over the clear indicator opening. A rear Y/Z grid bounds the
+    // one-time visibility queries; no per-frame raycasts are introduced.
+    const grid=new Map(),cell=(y,z)=>Math.floor(y*64)+','+Math.floor(z*64);
+    if(id==='morning')for(const p of parts.filter(p=>(p.alpha??1)>=.99))for(let t=0;t<p.indices.length;t+=3){
+      const a=[0,1,2].map(j=>Array.from(p.vertices.subarray(p.indices[t+j]*8,p.indices[t+j]*8+3)));
+      if(a.some(q=>q[0]>-1)||a.every(q=>q[2]<.7)||a.every(q=>q[2]>1.1))continue;
+      const [A,B,C]=a,den=(B[2]-C[2])*(A[1]-C[1])+(C[1]-B[1])*(A[2]-C[2]);if(Math.abs(den)<1e-12)continue;
+      for(let y=Math.floor(Math.min(...a.map(q=>q[1]))*64);y<=Math.floor(Math.max(...a.map(q=>q[1]))*64);y++)for(let z=Math.floor(Math.min(...a.map(q=>q[2]))*64);z<=Math.floor(Math.max(...a.map(q=>q[2]))*64);z++){
+        const key=y+','+z;if(!grid.has(key))grid.set(key,[]);grid.get(key).push({a,den});
+      }
+    }
+    const visible=(x,y,z)=>{
+      for(const {a:[A,B,C],den}of grid.get(cell(y,z))||[]){
+        const s=((B[2]-C[2])*(y-C[1])+(C[1]-B[1])*(z-C[2]))/den,t=((C[2]-A[2])*(y-C[1])+(A[1]-C[1])*(z-C[2]))/den;
+        if(s>=0&&t>=0&&s+t<=1&&s*A[0]+t*B[0]+(1-s-t)*C[0]<x-.001)return false;
+      }return true;
+    };
+    const overlays=[];
+    for(const p of parts.filter(p=>p.brakeLight&&!p.brakeLight.cover&&(p.brakeLight.role==='stop'||id==='supra'&&p.brakeLight.role==='high-mount'))){
+      const points=new Map(),vertices=[],indices=[];
+      for(let t=0;t<p.indices.length;t+=3){
+        if(id==='morning'){
+          const q=[0,1,2].map(j=>p.indices[t+j]*8),center=[0,1,2].map(j=>q.reduce((n,k)=>n+p.vertices[k+j],0)/3);
+          if(!visible(...center))continue;
+        }
+        const triangle=[];
+        for(let j=0;j<3;j++){
+          const old=p.indices[t+j];let n=points.get(old);
+          if(n===undefined){const k=old*8,y=p.vertices[k+1],z=p.vertices[k+2],x=project(y,z);
+            n=x===null?-1:vertices.length/8;points.set(old,n);if(n>=0)vertices.push(x,y,z,-1,0,0,0,0);}
+          triangle.push(n);
+        }
+        if(triangle.every(n=>n>=0))indices.push(...triangle);
+      }
+      if(!indices.length)continue;
+      const I=vertices.length/8<65536?Uint16Array:Uint32Array;
+      overlays.push(tag({name:p.name+'-stop-lens',materialName:'projected-original-stop-guide',vertices:new Float32Array(vertices),indices:new I(indices),indexType:I.BYTES_PER_ELEMENT,triangles:indices.length/3,color:[1,.03,.015],material:4,paint:false,alpha:1,texture:null},
+        {role:p.brakeLight.role,overlay:true,source:'original stop-guide silhouette fitted to its own rear lens; 0.7 mm display offset'},id));
+    }
+    return [...parts,...overlays];
+  }
   function split(parts,recipe,id){
     const out=[];
     for(const p of parts){
@@ -133,7 +212,8 @@
       // decoded fallback. The integration uses these same source-space overlays.
       result.brakeLightOverlays=overlays;
     }else{
-      const convert=parts=>recipes[data.id].reduce((out,recipe)=>split(out,recipe,data.id),parts);
+      // For fitted models retain the source cover itself, unsplit and unlit.
+      const convert=parts=>lensOverlays(recipes[data.id].filter(recipe=>!lensParts[data.id]||!recipe.info.cover).reduce((out,recipe)=>split(out,recipe,data.id),parts),data.id);
       result={...data,primitives:convert(data.primitives),...(data.fallbackPrimitives?{fallbackPrimitives:convert(data.fallbackPrimitives)}:{})};
     }
     cache.set(data,result);cache.set(result,result);return result;

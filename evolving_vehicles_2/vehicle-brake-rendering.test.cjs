@@ -23,8 +23,8 @@ function gpuFixture() {
     uniform4f:(name,...values)=>uniforms.set(name,values), uniform3fv:(name,value)=>uniforms.set(name,Array.from(value)),
     vertexAttrib3fv:(name,value)=>{if(name==='aColor')color=Array.from(value);},
     depthMask:value=>{depthWrite=value;},
-    drawElements:()=>draws.push({kind:'asset',buffer:bound,brake:uniforms.get('uBrake'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],color,depthWrite}),
-    drawArrays:()=>draws.push({kind:'effect',buffer:bound,brake:uniforms.get('uBrake'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],depthWrite})
+    drawElements:()=>draws.push({kind:'asset',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],color,depthWrite}),
+    drawArrays:()=>draws.push({kind:'effect',buffer:bound,brake:uniforms.get('uBrake'),boost:uniforms.get('uBrakeBoost'),opacity:uniforms.get('uOpacity'),car:uniforms.get('uCar')[0],depthWrite})
   }, {get:(object,key)=>key in object?object[key]:()=>{}});
   const canvas={width:390,height:400,getContext:()=>gl,addEventListener(){}};
   const context={document:{createElement:()=>canvas}};
@@ -72,6 +72,20 @@ test('photo-only overlays are absent when off and use per-car opacity without wr
   entry.car.brakeLightState.intensity=.5;
   const draws=f.render([entry]);assert.equal(draws.length,2);assert.equal(draws[1].brake,.5);assert.equal(draws[1].opacity,.5);assert.equal(draws[1].depthWrite,false);
   entry.car.brakeLightState.intensity=0;assert.equal(f.render([entry]).length,1);
+});
+test('fitted guides draw after translucent covers with depth testing and reset enhanced emission for other parts and effects',()=>{
+ const f=gpuFixture(),cover=primitive({alpha:.22,color:[.2,0,0]}),overlay=primitive({color:[1,.03,.015],brakeLight:{role:'stop',overlay:true,boost:1}});
+ f.data.primitives=[f.body,overlay,cover];
+ const entry={...f.entry(0,.8,true),effect:{faces:[face('#258aff')]}};
+ let draws=f.render([entry]);assert.deepEqual(draws.filter(d=>d.kind==='asset').map(d=>d.color),[f.body.color,cover.color,overlay.color]);
+ assert.deepEqual(draws.map(d=>d.boost),[0,0,1,0]);assert.equal(draws[2].opacity,.8);assert.equal(draws[2].depthWrite,false);
+ entry.car.brakeLightState.intensity=0;draws=f.render([entry]);assert.equal(draws.filter(d=>d.kind==='asset').length,2,'the entire source cover remains when off');
+ assert.ok(draws.every(d=>d.boost===0));
+});
+test('enhanced high stop lenses keep source alpha when off and become visible when braking without changing shared material',()=>{
+ const f=gpuFixture();f.lamp.alpha=.22;f.lamp.brakeLight={role:'high-mount',boost:1};const entry=f.entry(0,0,true);
+ assert.equal(f.render([entry])[1].opacity,.22);
+ entry.car.brakeLightState.intensity=1;assert.equal(f.render([entry])[1].opacity,1);assert.equal(f.lamp.alpha,.22);
 });
 
 test('Canvas fallback lights every rendered car independently and preserves off lenses, body faces and patrol colors',()=>{
