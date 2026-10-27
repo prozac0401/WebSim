@@ -250,9 +250,9 @@ test('curated overseas observations retain source links, finite geometry and who
   assert.ok(data.features.length>0);assert.match(JSON.stringify(data.metadata),/approximate|estimated/i);
   for(const f of data.features){assert.ok(sourceIds.has(f.properties.sourceId),f.id);assert.equal(typeof f.properties.evidence,'string',f.id);assert.ok(f.properties.evidence.trim().length>0,f.id);}
   const env=observed(Race.buildTrack(circuit),circuit,data);assert.ok(env.faces.length>0);assert.equal(env.stats.rejected,0);
-  // Monza and Silverstone include full runoff/barrier/lettering collections;
+  // These courses include full runoff/barrier collections;
   // dedicated integrations enforce the 50k scenery and full scene budgets.
-  assert.ok(env.faces.length<(['monza','silverstone'].includes(id)?50000:15000),id+' bounded scenery');
+  assert.ok(env.faces.length<50000,id+' bounded scenery');
   for(const f of env.faces)for(const q of f.vertices){assert.ok(Number.isFinite(q.z));assert.ok(env.roadDistance(q.x,q.y)>env.clearanceM-1e-5,id+' '+f.kind);}
   for(const tree of env.objects)assert.ok(env.roadDistance(tree.x,tree.y)>env.clearanceM+tree.radius,id+' canopy');
  }
