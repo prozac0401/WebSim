@@ -134,10 +134,10 @@
       const region={kind:f.properties.kind,outer:rings[0],holes:rings.slice(1),bounds:bounds(rings[0])},i=observedRegions.push(region)-1,b=region.bounds;
       for(let x=Math.floor(b.minX/CELL);x<=Math.floor(b.maxX/CELL);x++)for(let y=Math.floor(b.minY/CELL);y<=Math.floor(b.maxY/CELL);y++){const k=key(x,y);if(!regionGrid.has(k))regionGrid.set(k,[]);regionGrid.get(k).push(i);}
     }
-    function reservedSurface(p,r,allObserved=false){
+    function reservedSurface(p,r,allObserved=false,forReeds=false){
       const ids=new Set();for(let x=Math.floor((p.x-r)/CELL);x<=Math.floor((p.x+r)/CELL);x++)for(let y=Math.floor((p.y-r)/CELL);y<=Math.floor((p.y+r)/CELL);y++)for(const i of regionGrid.get(key(x,y))||[])ids.add(i);
       const touches=ring=>ring.some((a,i)=>nearestOn(a,ring[(i+1)%ring.length],p).distance<=r);
-      for(const i of ids){const region=observedRegions[i];if(!allObserved&&['grass','forest'].includes(region.kind))continue;
+      for(const i of ids){const region=observedRegions[i];if(!allObserved&&(region.kind==='grass'||region.kind==='tall-grass'||region.kind==='forest'&&!forReeds))continue;
         if(inside(p,region.outer)){const hole=region.holes.find(ring=>inside(p,ring));if(!hole||touches(hole))return true;}
         else if(touches(region.outer))return true;
       }return false;
@@ -218,6 +218,53 @@
       const group=groupsMap.get(key(Math.floor(p.x/CELL),Math.floor(p.y/CELL)));if(group)group.objects.push(o);
       return true;
     }
+    function tallGrass(rings,p,featureId,rng) {
+      const number=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+      const outer=rings[0],holes=rings.slice(1),b=bounds(outer);
+      const h=clamp(number(p.height,1.65),.6,2.5),radius=clamp(number(p.clumpRadius,.6),.2,1.4);
+      const maxDistance=clamp(number(p.maxRoadDistance,70),15,70),maximum=Math.round(clamp(number(p.maxClumps,250),0,400));
+      stats.tallGrassClumps=stats.tallGrassClumps||0;stats.tallGrassCandidates=stats.tallGrassCandidates||0;
+      const available=Math.max(0,Math.min(maximum,800-stats.tallGrassClumps));if(!available)return;
+      let spacing=clamp(number(p.clumpSpacing,4),2,8);
+      while(Math.ceil((b.maxX-b.minX)/spacing)*Math.ceil((b.maxY-b.minY)/spacing)>12000)spacing*=1.05;
+      const choices=[],touches=(q,ring)=>ring.some((a,i)=>nearestOn(a,ring[(i+1)%ring.length],q).distance<=radius+.05);
+      for(let x=b.minX+spacing*.5;x<b.maxX;x+=spacing)for(let y=b.minY+spacing*.5;y<b.maxY;y+=spacing){
+        const q=point(x+(rng()-.5)*spacing*.65,y+(rng()-.5)*spacing*.65),rank=rng();stats.tallGrassCandidates++;
+        if(!inside(q,outer)||touches(q,outer)||holes.some(r=>inside(q,r)||touches(q,r)))continue;
+        const road=nearest(q.x,q.y).distance;
+        if(road<clearance+radius+.1||road>maxDistance||reservedSurface(q,radius+.1,false,true)||options.excludeTree?.(q.x,q.y,radius+.1))continue;
+        choices.push({q,rank});
+      }
+      // Rank the whole field, rather than truncating a scan at one corner.
+      // Shape randomness is independent of placement and all existing trees.
+      choices.sort((a,b)=>a.rank-b.rank);
+      const color=(value,fallback)=>/^#[0-9a-f]{6}$/i.test(value||'')?value:fallback;
+      const stem=color(p.stemColor,'#a8915f'),plume=color(p.plumeColor,'#c5b581'),leaf=color(p.leafColor,'#9f9367');
+      for(const {q} of choices.slice(0,available)){
+        // Atomic clumps: the scenery cap must never leave a floating plume.
+        if(faces.length+39>50000){stats.tallGrassLimitReached=true;break;}
+        const shape=seeded(id+':'+featureId+':'+q.x.toFixed(6)+','+q.y.toFixed(6)+':reed-shape'),phase=shape()*Math.PI*2,parts=[];
+        const add=(vertices,fill,part)=>parts.push({vertices,fill,part});
+        for(let stalk=0;stalk<3;stalk++){
+          const angle=phase+stalk*Math.PI*2/3+(shape()-.5)*.2,offset=radius*(.12+shape()*.18);
+          const x=q.x+Math.cos(angle)*offset,y=q.y+Math.sin(angle)*offset,z=groundHeight(x,y),height=h*(.74+shape()*.26);
+          const leanAngle=phase+(shape()-.5)*.8,dx=Math.cos(leanAngle)*radius*.2,dy=Math.sin(leanAngle)*radius*.2;
+          const at=t=>point(x+dx*t,y+dy*t,z+height*t),neck=at(.74),middle=at(.87),tip=at(1),stemRadius=clamp(height*.004,.004,.009);
+          const bottom=Array.from({length:3},(_,i)=>{const a=angle+i*Math.PI*2/3,px=x+Math.cos(a)*stemRadius,py=y+Math.sin(a)*stemRadius;return point(px,py,groundHeight(px,py));});
+          const top=bottom.map(v=>point(neck.x+v.x-x,neck.y+v.y-y,neck.z));
+          for(let i=0;i<3;i++)add([bottom[i],bottom[(i+1)%3],top[(i+1)%3],top[i]],tint(stem,.86+i*.08),'stem');
+          const plumeRadius=radius*(.105+shape()*.025),ring=Array.from({length:4},(_,i)=>{const a=angle+i*Math.PI/2;return point(middle.x+Math.cos(a)*plumeRadius,middle.y+Math.sin(a)*plumeRadius,middle.z);});
+          for(let i=0;i<4;i++){const j=(i+1)%4;add([neck,ring[j],ring[i]],tint(plume,.84+i*.04),'plume');add([ring[i],ring[j],tip],tint(plume,.96+i*.025),'plume');}
+          const leafBase=at(.39),leafMid=at(.46),leafTip=at(.43),lx=Math.cos(angle),ly=Math.sin(angle),w=radius*.045;
+          leafMid.x+=lx*radius*.30;leafMid.y+=ly*radius*.30;leafTip.x+=lx*radius*.48;leafTip.y+=ly*radius*.48;
+          add([leafBase,point(leafMid.x-ly*w,leafMid.y+lx*w,leafMid.z-.025),leafTip],leaf,'leaf');
+          add([leafBase,leafTip,point(leafMid.x+ly*w,leafMid.y-lx*w,leafMid.z-.025)],tint(leaf,.88),'leaf');
+        }
+        for(const f of parts)addFace(f.vertices,f.fill,'tall-grass',featureId,{growthForm:'reed-like',vegetationPart:f.part,geometryApproximation:'three-stalk-reed-like-clump'});
+        objects.push({kind:'tall-grass',x:q.x,y:q.y,z:groundHeight(q.x,q.y),height:h,radius,featureId,growthForm:'reed-like',individualPositionEstimated:true,growthFormEstimated:true});
+        stats.tallGrassClumps++;
+      }
+    }
     function lineStations(line,spacing,side=1) {
       const parts=[],nodes=[];let total=0;
       for(let i=1;i<line.length;i++){
@@ -278,7 +325,7 @@
       const valid=color=>/^#[0-9a-f]{6}$/i.test(color||'');
       const material=typeof p.material==='string'&&p.material.trim()?p.material:'concrete';
       const colors=valid(p.color)?[p.color]:(Array.isArray(p.colors)?p.colors:[]).filter(valid);
-      if(!colors.length)colors.push(...(material==='tire-stack'?['#343736']:['#3f80a7','#e5e8dc']));
+      if(!colors.length)colors.push(...(material==='tire-stack'?['#343736']:material==='pvc-corrugated'?['#e3e3db']:['#3f80a7','#e5e8dc']));
       if(material==='tire-stack'){
         // Estimated low-poly tire envelopes, not individual scanned tires.
         // Short observed impact zones use 33 faces/stack and at most 512 stacks.
@@ -310,15 +357,46 @@
         }
         return;
       }
-      const nodes=lineStations(line,spacing);
+      const nodes=lineStations(line,spacing),ribDepth=material==='pvc-corrugated'?.035:0;
+      const striped=p.hazardStripes===true&&!ribDepth,stripeWidth=clamp(numeric(p.hazardStripeWidth,1),.5,2);
+      const total=striped?line.slice(1).reduce((sum,q,i)=>sum+distance(line[i],q),0):0;
       const edge=(q,side)=>{const x=q.x+q.nx*width*.5*side,y=q.y+q.ny*width*.5*side;return point(x,y,groundHeight(x,y));};
+      function stripedSide(a,b,start,end,extra){
+        // Clip the vertical side itself into diagonal bands: no coplanar decals
+        // and no new elevation. The same arc-length phase continues at joints.
+        const value=q=>start+(end-start)*q.u+height*q.v;
+        const clip=(poly,limit,above)=>{
+          const out=[];for(let i=0;i<poly.length;i++){
+            const a=poly[i],b=poly[(i+1)%poly.length],av=value(a)-limit,bv=value(b)-limit,ain=above?av>=0:av<=0,bin=above?bv>=0:bv<=0;
+            if(ain)out.push(a);if(ain!==bin){const t=av/(av-bv);out.push({u:a.u+(b.u-a.u)*t,v:a.v+(b.v-a.v)*t});}
+          }return out.filter((q,i)=>{const a=out[(i+out.length-1)%out.length];return Math.hypot(q.u-a.u,q.v-a.v)>1e-10;});
+        };
+        const lo=Math.floor(Math.min(start,end)/stripeWidth),hi=Math.ceil((Math.max(start,end)+height)/stripeWidth);
+        for(let band=lo;band<hi;band++){
+          const poly=clip(clip([{u:0,v:0},{u:1,v:0},{u:1,v:1},{u:0,v:1}],band*stripeWidth,true),(band+1)*stripeWidth,false);
+          const area=Math.abs(poly.reduce((sum,q,i)=>{const r=poly[(i+1)%poly.length];return sum+q.u*r.v-q.v*r.u;},0))/2;if(area<1e-10)continue;
+          addFace(poly.map(q=>point(a.x+(b.x-a.x)*q.u,a.y+(b.y-a.y)*q.u,a.z+(b.z-a.z)*q.u+height*q.v)),band%2?'#2d3030':'#d8b337','safety-wall',featureId,{...extra,barrierPart:'hazard-stripe',stripeIndex:band});
+        }
+      }
       for(let i=1;i<nodes.length;i++){
-        const a=nodes[i-1],b=nodes[i],margin=clearance+width*.5+.01;
+        const a=nodes[i-1],b=nodes[i],margin=clearance+width*.5+ribDepth+.01;
         if(distance(a,b)<EPS||candidates(bounds([a,b]),margin).some(s=>segmentDistance(a,b,s.a,s.b)<margin))continue;
         const low=[edge(a,1),edge(b,1),edge(b,-1),edge(a,-1)],top=low.map(q=>point(q.x,q.y,q.z+height));
-        const fill=colors[(i-1)%colors.length],extra={barrierMaterial:material,geometryApproximation:'solid-barrier-envelope',sectionIndex:i-1};
-        for(let j=0;j<4;j++)addFace([low[j],low[(j+1)%4],top[(j+1)%4],top[j]],fill,'safety-wall',featureId,extra);
+        const fill=colors[(i-1)%colors.length],extra={barrierMaterial:material,geometryApproximation:ribDepth?'closed-pvc-corrugated-envelope':'solid-barrier-envelope',sectionIndex:i-1};
+        for(let j=0;j<4;j++){
+          if(striped&&(j===0||j===2)){
+            const start=(i-1)*spacing,end=Math.min(total,i*spacing);
+            stripedSide(low[j],low[(j+1)%4],j===0?start:end,j===0?end:start,extra);
+          }else addFace([low[j],low[(j+1)%4],top[(j+1)%4],top[j]],fill,'safety-wall',featureId,extra);
+        }
         addFace(top,tint(fill,1.06),'safety-wall',featureId,extra);
+        if(ribDepth)for(const side of [-1,1])for(const level of [.22,.52,.82]){
+          const section=q=>{const base=edge(q,side);return [point(base.x,base.y,base.z+height*(level-.075)),point(base.x+q.nx*side*ribDepth,base.y+q.ny*side*ribDepth,base.z+height*level),point(base.x,base.y,base.z+height*(level+.075))];};
+          const u=section(a),v=section(b),detail={...extra,barrierPart:'corrugation',corrugationLevel:level};
+          addFace([u[0],v[0],v[1],u[1]],tint(fill,.92),'safety-wall',featureId,detail);
+          addFace([u[1],v[1],v[2],u[2]],tint(fill,1.04),'safety-wall',featureId,detail);
+          addFace(u,fill,'safety-wall',featureId,detail);addFace(v.slice().reverse(),fill,'safety-wall',featureId,detail);
+        }
       }
     }
     function catchFence(line,p,featureId) {
@@ -382,6 +460,10 @@
       const rng=seeded(id+':'+featureId),kind=p.kind;
       if(g.type==='Point'&&kind==='tree'){tree(project(g.coordinates),p,featureId,rng);continue;}
       if(g.type==='Polygon'&&kind==='vegetation-exclusion')continue;
+      if(g.type==='Polygon'&&kind==='tall-grass'){
+        if(p.growthForm!=='reed-like'||typeof p.evidence!=='string'||!p.evidence.trim()){stats.features--;stats.rejected++;continue;}
+        tallGrass(g.coordinates.map(r=>r.map(project)),p,featureId,rng);continue;
+      }
       // A cited grass reserve can use the matching base ground material. Its
       // footprint still excludes trees, without a redundant intersecting sheet.
       if(g.type==='Polygon'&&kind==='grass'&&p.baseMaterial===true)continue;

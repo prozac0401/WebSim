@@ -86,5 +86,14 @@ test('Korean source route joins are bounded and geometry length estimates remain
     assert.equal(circuit.lengthM, Math.round(circuit.geometryLengthM));
     assert.ok(circuit.referenceLengthM > circuit.lengthM);
   }
-  assert.equal(circuits.find(c => c.id === 'pocheon').category, '운영 확인 필요');
+  const pocheon=circuits.find(c => c.id === 'pocheon');
+  assert.equal(pocheon.category, '자동차 경주장');
+  assert.equal(pocheon.statusNote,'주행·시승 행사 활용 코스');
+  assert.equal(pocheon.statusSourceUrl,'https://www.awak.or.kr/article/view/awak202301190001');
+  const source=read('kr-osm/pocheon.geojson').properties;
+  const extracted=read('kr-osm/kic-pocheon.metadata.json').find(c=>c.id==='pocheon');
+  const listed=manifest.circuits.find(c=>c.id==='pocheon');
+  for(const field of ['category','statusNote','statusSourceUrl','description','sourceNote']) {
+    for(const record of [source,extracted,listed]) assert.equal(record[field],pocheon[field],field+': Pocheon source and published guidance agree');
+  }
 });

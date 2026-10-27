@@ -29,7 +29,7 @@
     }
   ],
   "metadata": {
-    "reviewedDate": "2026-10-15",
+    "reviewedDate": "2026-10-27",
     "localAxes": "x east, y south; scaled local metres from buildTrack.projection",
     "coverage": "Historical photographed pit/service building, paddock, lane and wall on eastern main straight.",
     "facilityType": "historical-racing-pits",
@@ -52,11 +52,12 @@
       "lateralUncertaintyM": 10
     },
     "limitations": [
-      "Source records the built 2018 facility; present operating status or later changes not verified.",
+      "Pit architecture sources record the2018 facility appearance. The2023 event-use record is cited separately in circuit/environment metadata; no present daily opening timetable is asserted.",
       "Oblique aerial is not a georeferenced survey; placement and dimensions are approximate.",
       "Garage doors and individually painted pit-stop boxes cannot be counted reliably and are deliberately omitted.",
-      "Concrete-wall height estimated from starter stand photograph; metal safety fence not modelled by this data."
-    ]
+      "The concrete safety-wall trace and catch fence are rendered once by the environment collection; this pit file retains the three service/building surfaces only."
+    ],
+    "protectionRendering": "The original pocheon-wall trace is rendered as pocheon-concrete-pit-wall in environment/korea/pocheon-features.json with source-backed fence and separate hazard-painted curve. No duplicate pit wall is drawn; garage, apron and service-lane geometry remain unchanged."
   },
   "features": [
     {
@@ -195,47 +196,6 @@
         "estimatedProperties": [
           "width",
           "entry-exit-junctions"
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "pocheon-wall",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -46.68,
-            -101.03
-          ],
-          [
-            -19.4,
-            -47.02
-          ],
-          [
-            15.65,
-            3.79
-          ],
-          [
-            47.43,
-            49.9
-          ],
-          [
-            63.88,
-            73.7
-          ]
-        ]
-      },
-      "properties": {
-        "kind": "pit-wall",
-        "sourceId": "pocheon-encar-pit-wall",
-        "evidence": "Concrete pit wall and fence confirmed by ground photo; wall body height approximate, safety-fence geometry not asserted here.",
-        "label": "포천 피트월",
-        "height": 1.35,
-        "color": "#b3b4aa",
-        "estimatedProperties": [
-          "height",
-          "endpoints"
         ]
       }
     }

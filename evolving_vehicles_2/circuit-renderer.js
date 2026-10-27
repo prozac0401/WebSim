@@ -282,7 +282,7 @@
       this.pits=root.PitFacilities?.build(this.displayTrack,root.PitFacilityData?.[race.track.id])||null;
       this.environment=root.TrackEnvironment?.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;
       this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this._classicFollowState=null;this.landmark=null;
-      if(this.reliefField&&this.terrainGeometry&&this.environment){
+      if((this.reliefField||metadata?.groundSceneryOnTerrain===true)&&this.terrainGeometry&&this.environment){
         const fallback=this.environment.groundHeight,terrain=this.terrainGeometry;
         this.environment=root.TrackEnvironment.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r),groundHeight:(x,y)=>terrain.sampleHeight(x,y)??fallback(x,y)});
       }
@@ -627,7 +627,7 @@
       if(this.reliefField){const g=this.reliefField.bounds;b.minX=Math.min(b.minX,g.minX+180);b.maxX=Math.max(b.maxX,g.maxX-180);b.minY=Math.min(b.minY,g.minY+180);b.maxY=Math.max(b.maxY,g.maxY-180);}
       b.width=b.maxX-b.minX;b.height=b.maxY-b.minY;
       if(root.CircuitTerrain){
-        this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight,...(this.reliefField?{gridAnchor,relief:(x,y,z)=>this.pits?.contains(x,y,100)?0:this.reliefField.delta(x,y,z),reliefRoadBlendM:40}:{})});
+        this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight,...(this.environment?.source?.gradedShoulder===true?{gradedShoulder:true}:{}),...(this.reliefField?{gridAnchor,relief:(x,y,z)=>this.pits?.contains(x,y,100)?0:this.reliefField.delta(x,y,z),reliefRoadBlendM:40}:{})});
         this.contextGround=this.terrainGeometry.faces;
         const groundColor=this.roadEdgeStyle?.defaultGroundColor;
         if(groundColor)this.contextGround=this.contextGround.map(f=>['context-ground','terrain-bank'].includes(f.kind)?{...f,fill:groundColor,...(f.stroke?{stroke:groundColor}:{})}:f);

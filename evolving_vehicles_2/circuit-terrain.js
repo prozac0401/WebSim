@@ -180,18 +180,25 @@
     // rescale. Distance is measured against every road/curb triangle so a high
     // return leg cannot make the relief cross a nearby lower road corridor.
     const relief = typeof options.relief === 'function' ? options.relief : null;
-    const blendM = relief ? options.reliefRoadBlendM ?? 40 : 0;
-    if (relief && (!Number.isFinite(blendM) || blendM <= 0 || blendM > 1000))
+    // A graded shoulder can also be requested without authored relief. It uses
+    // the same road-edge envelope and refinement, with zero additive height;
+    // no surveyed mountain/valley field is inferred from this option.
+    const graded = !!relief || options.gradedShoulder === true;
+    const blendM = graded ? options.reliefRoadBlendM ?? 40 : 0;
+    if (graded && (!Number.isFinite(blendM) || blendM <= 0 || blendM > 1000))
       throw new RangeError('Terrain relief road blend must be between 0 and 1000 metres.');
-    const reliefIndex = relief ? spatial(cell) : null;
-    if (relief) for (let i = 0; i < roadEdges.length; i++) {
+    const reliefIndex = graded ? spatial(cell) : null;
+    if (graded) for (let i = 0; i < roadEdges.length; i++) {
       const a = roadEdges[i], b = roadEdges[(i + 1) % roadEdges.length];
       for (const vertices of [[a.outerLeft, b.outerLeft, b.outerRight], [a.outerLeft, b.outerRight, a.outerRight]]) {
         if (!vertices.every(p => p && Number.isFinite(p.x + p.y + p.z))) throw new TypeError('Road edge coordinates must be finite.');
         if (Math.abs(cross(...vertices)) > 1e-9) reliefIndex.add(vertices, boundsOf(vertices));
       }
     }
-    const shoulderM = 8, shoulderCellM = 6;
+    // Standalone grading uses a finer shoulder to keep a nearby lower return
+    // leg from pulling a coarse triangle down underneath roadside protection.
+    // Existing authored-relief meshes retain their original 6 m subdivision.
+    const shoulderM = 8, shoulderCellM = relief ? 6 : 3;
     function roadProximity(x, y, radius) {
       const p = { x, y }; let distance2 = radius * radius, z = null;
       for (const v of reliefIndex.query({ minX: x - radius, maxX: x + radius, minY: y - radius, maxY: y + radius })) {
@@ -206,12 +213,12 @@
       }
       return { distance: Math.sqrt(distance2), z };
     }
-    const reliefStats = relief ? { blendM, shoulderM, shoulderCellM, refinedCells: 0, sampleCount: 0, minDeltaM: Infinity, maxDeltaM: -Infinity, minAppliedM: Infinity, maxAppliedM: -Infinity } : null;
+    const reliefStats = graded ? { blendM, shoulderM, shoulderCellM, refinedCells: 0, sampleCount: 0, minDeltaM: Infinity, maxDeltaM: -Infinity, minAppliedM: Infinity, maxAppliedM: -Infinity } : null;
     const heightCache = new Map();
     function fieldHeight(x, y) {
       const key = x + ',' + y;
       if (heightCache.has(key)) return heightCache.get(key);
-      const baseZ = options.groundHeight(x, y), delta = relief(x, y, baseZ);
+      const baseZ = options.groundHeight(x, y), delta = relief ? relief(x, y, baseZ) : 0;
       if (!Number.isFinite(baseZ) || !Number.isFinite(delta)) throw new TypeError('Terrain relief height must be finite.');
       const near = roadProximity(x, y, shoulderM + blendM), u = Math.max(0, Math.min(1, (near.distance - shoulderM) / blendM));
       const weight = near.z === null ? 1 : u * u * (3 - 2 * u);
@@ -229,7 +236,7 @@
     for (let y = 0; y <= ny; y++) {
       const row = [];
       for (let x = 0; x <= nx; x++) {
-        const px = bounds.minX + x * cell, py = bounds.minY + y * cell, z = relief ? fieldHeight(px, py) : options.groundHeight(px, py) - .22;
+        const px = bounds.minX + x * cell, py = bounds.minY + y * cell, z = graded ? fieldHeight(px, py) : options.groundHeight(px, py) - .22;
         if (!Number.isFinite(z)) throw new TypeError('Terrain height must be finite.');
         row.push(point(px, py, z));
       }
@@ -270,7 +277,7 @@
     }
     function constrainedRoadHeight(x, y) {
       const road = roadHeight(x, y);
-      if (road !== null || !relief) return road;
+      if (road !== null || !graded) return road;
       // Clipping roundoff can leave a point a few micrometres outside the
       // footprint, yet within the later T-junction stitch tolerance. Such a
       // point must use road height before it is shared with an underlay edge;
@@ -288,7 +295,7 @@
     }
     const polygons = [], stats = { gridCells: nx * ny, roadTriangles: roadTriangles.length, clippedGridTriangles: 0, bankFaces: 0, underlayFaces: 0, stitchedVertices: 0 };
     function tile(a, b, c, d) {
-      if (relief && b.x - a.x > shoulderCellM) {
+      if (graded && b.x - a.x > shoulderCellM) {
         const x = (a.x + c.x) / 2, y = (a.y + c.y) / 2, radius = shoulderM + Math.hypot(b.x - a.x, d.y - a.y) / 2;
         if (roadProximity(x, y, radius).z !== null) {
           if (++reliefStats.refinedCells > 100000) throw new RangeError('Terrain shoulder exceeds the bounded refinement budget.');
@@ -318,7 +325,7 @@
       const road = constrainedRoadHeight(p.x, p.y);
       // Apply the corridor blend at clipping vertices too. Interpolating only
       // the lifted coarse grid can otherwise carry a ridge right to the edge.
-      const z = road !== null ? road - CLEARANCE : relief ? fieldHeight(p.x, p.y) : sampleBaseHeight(p.x, p.y);
+      const z = road !== null ? road - CLEARANCE : graded ? fieldHeight(p.x, p.y) : sampleBaseHeight(p.x, p.y);
       const v = { x: p.x, y: p.y, z, road: road !== null, id: vertices.length };
       if (!Number.isFinite(z)) throw new TypeError('Clipped terrain escaped its bounds.');
       vertices.push(v); vertexMap.set(key, v); vertexIndex.add(v, boundsOf([v])); return v;
@@ -371,7 +378,8 @@
       return height;
     }
     stats.faces = faces.length;
-    if (reliefStats) stats.relief = reliefStats;
+    if (relief) stats.relief = reliefStats;
+    else if (graded) stats.gradedShoulder = reliefStats;
     return { faces, bounds, grid: { cell, columns: nx, rows: ny }, sampleHeight, heightAt: sampleHeight, sampleBaseHeight, roadHeight, stats,
       classification: 'illustrative road-constrained terrain envelope; not surveyed terrain or mapped retaining walls', clearanceM: CLEARANCE };
   }

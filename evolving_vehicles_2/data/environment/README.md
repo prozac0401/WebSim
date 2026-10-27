@@ -15,7 +15,7 @@
 | 용인 스피드웨이 | 2026-10-27 [사용자 온보드 영상](https://www.youtube.com/watch?v=l4SqvpMkvYc), [2024 운영사 사진](https://rnc.samsungcnt.com/pr/news/1225267_15633.html), OSM을 대조했다. 좌우별 연석·흰 경계선, 마른 잔디와 포장 런오프, 가드레일·타이어 방벽, 수목열·혼합 수형, 확인된 노면 표식을 표시한다. [자료와 근사 범위](everland-reference-20261027.md). |
 | 인제 스피디움 | [운영사 전경 사진](https://www.speedium.co.kr/company/img/content/s0101img04.jpg)과 2026-10-27 OSM 대조. 관람석 서쪽 숲·식별 가능한 잔디 섬·피트 동쪽 패독과 내부 잔디 띠. 기존 패독 위의 숲 오배치를 정정했다. 사진 촬영일 미표기. |
 | HMG 태안 | 2026-10-27 [2022 사용자 주행 영상](https://www.youtube.com/watch?v=kg9MqltDL5U)과 [2025 공식 브로슈어](https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf)를 대조했다. 3.4km 마른 노면 코스의 흰 선·짧은 노란 띠·포장 어깨·금속레일·녹색 덮개 방호시설을 구분하고 식생 섬을 보존한다. 별도 오벌·체험광장을 통째로 포장하지 않으며 임의 배경 수목을 끈다. [시점·위치 오차·미채택 도식](hmg-taean-reference-20261027.md). |
-| 포천 | 엔카의 2018년 현장 기사와 실제 항공사진. 식별 가능한 인필드·외곽 숲. 현재 상태와 운영 여부를 확인한 자료로 취급하지 않습니다. 원문·사진 URL은 [국내 출처 목록](korea-references.json)에 있습니다. |
+| 포천 | 2026-10-27 [MotorKlasse의 2018년 주행 영상](https://www.youtube.com/watch?v=s0QiK0GTXl4)과 Encar 현장 사진을 대조했다. 마른 초본·흙·산림, 청백 연석, PVC 가드레일과 콘크리트 안전벽·철망을 구분한다. [AWAK의 2023년 실차 행사 기록](https://www.awak.or.kr/article/view/awak202301190001)은 별도의 사용 근거이며 2026년 일반 개방 일정으로 확대하지 않는다. [자료 시점·방향 변환·근사 범위](pocheon-reference-20261027.md). |
 | 영암 GP·상설 | 2026-10-27 [2013 경기 관람 영상](https://www.youtube.com/watch?v=caVSBA3tmrw)(2022년 업로드), FIA 2013 도면·행사 자료, 운영사 항공사진과 OSM을 대조했다. T9–T10 및 별도 T11의 줄무늬 포장, 범례로 구분한 런오프·자갈, 국부 연석·레일·철망과 역사적 관람석을 표시한다. 두 레이아웃에 공통 시설을 재투영하며 임의 배경 수목은 끈다. [자료의 시점·정합·추정 범위](yeongam-reference-20261027.md). |
 | 태백 | 2026-10-27 [사용자 제공 재포장 후 영상](https://www.youtube.com/watch?v=Ji6CW56nQz0)과 태백시 2024년 사진을 대조했습니다. 적백 연석 7구간, 흰 가장자리선, 잔디 뒤 금속 가드레일·덮개벽·콘크리트벽과 철망을 구분합니다. 주변 391점 DEM으로 산 능선·골짜기를 보강하고 OSM 숲 경계 안에 추정 수목과 암반 재질을 표시합니다. [근거와 근사 범위](taebaek-reference-20261027.md). |
 | BMW 인천 | BMW 공식 2014·2026년 보도사진을 확인했습니다. 지표 다각형 정합은 미확인입니다. 별도로 추정 배경을 표시하며, 확인된 센터·정비 시설 구역에는 나무를 놓지 않습니다. |
@@ -30,6 +30,8 @@
 용인에는 자료에서 확인한 수형을 구분한다. `growthForm`은 `rounded`·`tufted`·`columnar`·`conical`이며 `growthForms:[{form,weight}]`로 숲을 혼합할 수 있다. 형상용 난수는 배치용 난수와 분리하며 수종명이 확인되지 않은 가로수는 좁고 긴 낙엽수형으로만 기록한다. `metadata.backgroundGrowthForms`와 `backgroundTreeLimit`은 해당 코스의 추정 배경에만 적용한다. 실제 자료가 없는 다른 코스의 기존 형상·난수열을 바꾸지 않는다.
 
 `guardrail.profile:"armco"`는 아래가 비어 있는 W형 금속 빔과 독립 기둥이며, `safety-wall`은 저상 덮개벽 또는 `material:"tire-stack"`의 3단 타이어 형상을 구분한다. 도로의 좌우 전체 구간을 일률적으로 벽으로 두르지 않고 근거가 있는 위치에 배치한다. `colored-surface`는 녹색이 보이지만 도장·매트 재질을 확정하지 못한 띠다. `vegetation-exclusion`은 연못 등 수목이 들어가면 안 되는 관찰 구역을 예약하며 확인되지 않은 수면 높이를 생성하지 않는다.
+
+포천은 `safety-wall.material:"pvc-corrugated"`의 백색 PVC 가드레일을 콘크리트 안전벽과 구분한다. `tall-grass`는 영상의 키 큰 마른 초본을 줄기·잎·이삭으로 근사하며 정확한 종·높이·밀도를 측정한 것은 아니다. `gradedShoulder`로 도로 옆 표시 지면을 가장자리 높이에 맞춰 완만하게 연결하고, `groundSceneryOnTerrain`은 그 실제 표시 면에서 식생·방호시설의 밑면을 구한다. 새 DEM이나 별도의 산·둔덕 높이를 더하지 않고 원본 도로·물리 고도를 유지하지만 도로 밖 표시 지면은 조정된다. 이는 실측 갓길·옹벽 단면이 아니다. 흙·초본밭 재질은 지형 위 마스크로 표시하며 기존 피트벽은 환경 데이터로 옮겨 중복해서 그리지 않는다.
 
 노면·연석 색과 구간은 `metadata.roadEdges`·`roadCurbColors`·`roadCurbBlockLengthM`, 기본 노면색은 `roadSurfaceColor`·`defaultGroundColor`에 기록한다. `roadMarkings`는 출처가 있는 선·체크선·열린 그리드를 기존 아스팔트 평면에 나누어 칠하며, `distanceBoards`는 판독 가능한 거리 숫자만 사용한다. 거리는 차량별 주행선이 아닌 원본 중심선 미터다. 영상으로 구분한 초봄 마른 잔디를 표시하며 자료의 계절·현재성·치수 한계는 용인 근거 문서와 JSON에 남긴다.
 
