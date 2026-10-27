@@ -238,7 +238,7 @@ function updatePowertrainHUD(car){
  const lamps=stopped?0:t.shiftLights,cue=!stopped&&t.shiftCue,rpm=stopped?0:Math.round(t.rpmNormalized*100);
  const flow=stopped?0:Math.max(-1,Math.min(1,t.battery?.flow||0)),mode=flow<0?'charging':flow>0?'using':'idle',label={charging:'충전 중',using:'사용 중',idle:'대기'}[mode];
  const chargeWidth=(Math.max(0,-flow)*100).toFixed(1)+'%',useWidth=(Math.max(0,flow)*100).toFixed(1)+'%',flowValue=Math.round(flow*100);
- const name='#'+String(car.index+1).padStart(2,'0')+' '+(vehicles.find(v=>v.id===car.vehicleId)?.name||car.name);
+ const name=vehicles.find(v=>v.id===car.vehicleId)?.name||car.name;
  const spec=car.entrant.factorySpec||car.spec,litres=(spec.displacementCc/1000).toFixed(1);
  const engine=spec.powertrainType==='diesel'?litres+'D':spec.powertrainType==='hybrid'?litres+' HEV':spec.powertrainType==='lpg'?litres+' LPG':litres+(/터보/.test(spec.engine||'')?'T':'');
  const variant='#'+String(car.index+1).padStart(2,'0')+' '+engine+' '+({fwd:'전륜',rwd:'후륜',awd:'사륜'}[spec.factoryDrive]||'');
