@@ -34,6 +34,7 @@ test('terrain module works as a script tag and rejects missing or unbounded geom
   const sandbox = { window: {} };
   vm.runInNewContext(fs.readFileSync(require.resolve('./circuit-terrain.js'), 'utf8'), sandbox);
   assert.equal(typeof sandbox.window.CircuitTerrain.build, 'function');
+  assert.equal(typeof sandbox.window.CircuitTerrain.paintSurface, 'function');
   assert.throws(() => Terrain.build({}, []), /track/);
   assert.throws(() => Terrain.build(fixtureData.track, fixtureData.edges), /groundHeight/);
   assert.throws(() => Terrain.build(fixtureData.track, [], { groundHeight: () => NaN }), /finite/);
@@ -98,6 +99,83 @@ test('terrain construction is deterministic and never mutates track or road vert
   const second = Terrain.build(fixtureData.track, fixtureData.edges, fixtureData.options);
   assert.deepEqual(second.faces, fixtureTerrain.faces); assert.deepEqual(second.stats, fixtureTerrain.stats);
   assert.equal(JSON.stringify(fixtureData), before);
+});
+
+const xyArea = faces => faces.reduce((sum, f) => sum + Math.abs(f.vertices.reduce((n, p, i) => {
+  const q = f.vertices[(i + 1) % f.vertices.length]; return n + p.x * q.y - p.y * q.x;
+}, 0)) / 2, 0);
+function surfaceHeight(face, x, y) {
+  const [a, b, c] = face.vertices, denominator = cross(a, b, c);
+  if (Math.abs(denominator) < 1e-10) return null;
+  const p = { x, y }, u = cross(b, c, p) / denominator, v = cross(c, a, p) / denominator, w = 1 - u - v;
+  return Math.min(u, v, w) >= -1e-8 ? u * a.z + v * b.z + w * c.z : null;
+}
+function materialPatch(x0, y0, x1, y1, fill = '#444444', featureId = 'paddock') {
+  // Deliberately use the opposite diagonal and unrelated heights from ground.
+  const p = (x, y) => ({ x, y, z: 999 });
+  const a = p(x0, y0), b = p(x1, y0), c = p(x1, y1), d = p(x0, y1);
+  return [[a, b, d], [b, c, d]].map(vertices => ({ vertices, fill, kind: 'asphalt', featureId }));
+}
+function bentGround() {
+  const a = { x: 0, y: 0, z: 0 }, b = { x: 20, y: 0, z: 5 }, c = { x: 20, y: 20, z: 24 }, d = { x: 0, y: 20, z: 3 };
+  return [[a, b, c], [a, c, d]].map(vertices => ({ vertices, fill: '#829569', kind: 'context-ground', priority: -3, estimated: true }));
+}
+
+test('surface paint follows each original sloped plane without hovering, grass shards or coverage changes', () => {
+  const faces = bentGround(), overlays = materialPatch(3, 4, 16, 17), before = JSON.stringify({ faces, overlays });
+  const painted = Terrain.paintSurface(faces, overlays);
+  assert.equal(JSON.stringify({ faces, overlays }), before, 'both source arrays and all vertices remain immutable');
+  assert.deepEqual(Terrain.paintSurface(faces, overlays), painted, 'deterministic splitting and source order');
+  const dense = [];
+  for (let x = 0; x < 20; x += 2) for (let y = 0; y < 20; y += 2) dense.push(...materialPatch(x, y, x + 2, y + 2));
+  assert.equal(Terrain.paintSurface(faces, dense).length, faces.length,
+    'a fully covered ground triangle stays one triangle despite dense material tessellation');
+  assert.ok(Math.abs(xyArea(painted) - 400) < 1e-7, 'the original ground is partitioned, not covered by a second layer');
+  assert.ok(Math.abs(xyArea(painted.filter(f => f.featureId === 'paddock')) - 169) < 1e-7);
+  for (const f of painted) for (const p of f.vertices) {
+    const heights = faces.map(old => surfaceHeight(old, p.x, p.y)).filter(z => z !== null);
+    assert.ok(heights.some(z => Math.abs(z - p.z) < 1e-8), 'new vertices lie on the original piecewise ground planes');
+  }
+  for (let x = .173; x < 20; x += .41) for (let y = .227; y < 20; y += .43) {
+    const hits = painted.filter(f => surfaceHeight(f, x, y) !== null), inside = x > 3 && x < 16 && y > 4 && y < 17;
+    assert.ok(hits.length, 'no hole in the original ground coverage');
+    assert.ok(hits.every(f => f.fill === (inside ? '#444444' : '#829569')), 'the entire patch is asphalt and the outside remains grass');
+    const z = faces.map(f => surfaceHeight(f, x, y)).find(v => v !== null);
+    for (const f of hits) assert.ok(Math.abs(surfaceHeight(f, x, y) - z) < 1e-8, 'no offset or alternate slope at interior samples');
+  }
+});
+
+test('triangulated material holes and later overlay priority are retained without repainting other terrain layers', () => {
+  const faces = bentGround(), overlays = [
+    ...materialPatch(2, 2, 18, 8), ...materialPatch(2, 12, 18, 18),
+    ...materialPatch(2, 8, 8, 12), ...materialPatch(12, 8, 18, 12)
+  ];
+  const painted = Terrain.paintSurface(faces, overlays);
+  assert.ok(Math.abs(xyArea(painted.filter(f => f.featureId === 'paddock')) - 240) < 1e-7, '4×4 grass island stays a hole in the 16×16 overlay');
+  assert.ok(painted.filter(f => surfaceHeight(f, 9, 10) !== null).every(f => f.fill === '#829569'));
+  const later = Terrain.paintSurface(faces, [...overlays, ...materialPatch(6, 6, 14, 14, '#aa2222', 'later')]);
+  assert.ok(later.filter(f => surfaceHeight(f, 7, 7) !== null).every(f => f.fill === '#aa2222'), 'later material wins over earlier asphalt');
+  const protectedFaces = ['terrain-underlay', 'terrain-boundary', 'terrain-base', 'road'].map(kind => ({ ...faces[0], kind }));
+  const untouched = Terrain.paintSurface(protectedFaces, materialPatch(-10, -10, 30, 30));
+  untouched.forEach((f, i) => assert.equal(f, protectedFaces[i], 'road support and closure faces are not paint targets'));
+  const outside = Terrain.paintSurface(faces, materialPatch(100, 100, 110, 110));
+  outside.forEach((f, i) => assert.equal(f, faces[i], 'nonoverlapping original faces keep identity and style'));
+  assert.deepEqual(Terrain.paintSurface(faces, []), faces);
+});
+
+test('painting road-constrained terrain cannot fill road cutouts or change the original elevation envelope', () => {
+  const model = fixtureTerrain, before = JSON.stringify(model.faces), overlay = materialPatch(-10, -12, 130, 42);
+  const painted = Terrain.paintSurface(model.faces, overlay), changed = painted.filter(f => f.featureId === 'paddock');
+  assert.ok(changed.length, 'the fixture includes actual bank and context ground painting');
+  assert.equal(JSON.stringify(model.faces), before);
+  assert.ok(Math.abs(xyArea(painted) - xyArea(model.faces)) < 1e-6);
+  for (const face of changed) {
+    const p = face.vertices.reduce((s, v) => ({ x: s.x + v.x / 3, y: s.y + v.y / 3, z: s.z + v.z / 3 }), { x: 0, y: 0, z: 0 });
+    assert.equal(model.roadHeight(p.x, p.y), null, 'only existing off-road top geometry receives paint');
+    assert.ok(Math.abs(model.sampleHeight(p.x, p.y) - p.z) < 1e-7);
+  }
+  for (const f of model.faces.filter(f => ['terrain-underlay', 'terrain-boundary', 'terrain-base'].includes(f.kind)))
+    assert.ok(painted.includes(f), 'the complete source road-support and perimeter envelope stays intact');
 });
 
 test('Taebaek relief uses the display heights once and keeps sampled road triangles above terrain', t => {

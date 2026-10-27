@@ -580,13 +580,21 @@
       this.roadEdges=edges;this.datum=datum;
     }
     _makeContextGround(){
-      this.contextGround=[];this.terrainGeometry=null;if(!this.race||!this.environment&&!this.pits)return;
+      this.contextGround=[];this.terrainGeometry=null;this._drapedFeatures=new Set();if(!this.race||!this.environment&&!this.pits)return;
       // User-requested default grass fills unclassified ground. Its height and
       // material are illustrative; photographed land cover is drawn above it.
       const road=this.race.track.bounds,pit=this.pits?.bounds,b={minX:Math.min(road.minX,pit?.minX??road.minX),maxX:Math.max(road.maxX,pit?.maxX??road.maxX),minY:Math.min(road.minY,pit?.minY??road.minY),maxY:Math.max(road.maxY,pit?.maxY??road.maxY)};b.width=b.maxX-b.minX;b.height=b.maxY-b.minY;
       if(root.CircuitTerrain){
         this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight});
-        this.contextGround=this.terrainGeometry.faces;return;
+        this.contextGround=this.terrainGeometry.faces;
+        const overlays=this.environment?.terrainOverlays;
+        if(overlays?.length&&root.CircuitTerrain.paintSurface){
+          // Paint on the exact ground triangles. An independently triangulated
+          // paved sheet can intersect undulating terrain and expose grass shards.
+          this.contextGround=root.CircuitTerrain.paintSurface(this.contextGround,overlays);
+          this._drapedFeatures=new Set(overlays.map(f=>f.featureId));
+        }
+        return;
       }
       const cell=clamp(Math.max(b.width,b.height)/64,24,55),margin=180,ground=this.environment?.groundHeight||this.pits.groundHeight;
       const nx=Math.ceil((b.width+2*margin)/cell),ny=Math.ceil((b.height+2*margin)/cell),vertices=[];
@@ -622,14 +630,15 @@
       if(depth<Math.max(.3,camera.distance*.018))return null;
       return {x:camera.cx+(dx*camera.cosYaw+dy*camera.sinYaw)*camera.f/depth,y:camera.cy+(horizontal*camera.sinPitch-dz*camera.cosPitch)*camera.f/depth,depth,scale:camera.f/depth};
     }
-    _queueWorldFaces(faces,camera,queue){
+    _queueWorldFaces(faces,camera,queue,outline=false){
       if(!faces?.length)return;
       const builder=root.WorldFaceBatches||(typeof require==='function'?require('./world-face-batches.js'):null);
-      if(!builder){for(const face of faces)this._queue(face,camera,queue);return;}
+      const enqueue=face=>this._queue(outline?{...face,stroke:face.fill,width:.55}:face,camera,queue);
+      if(!builder){for(const face of faces)enqueue(face);return;}
       this._worldFaceBatches??=new WeakMap();
       let batches=this._worldFaceBatches.get(faces);
       if(!batches||batches.stats.faces!==faces.length){batches=builder.build(faces);this._worldFaceBatches.set(faces,batches);}
-      for(const face of batches.query(camera,this.width,this.height))this._queue(face,camera,queue);
+      for(const face of batches.query(camera,this.width,this.height))enqueue(face);
     }
     _queue(face,camera,queue){
       // Asphalt/curbs are top surfaces, not a two-sided ribbon. Their underside
@@ -851,10 +860,11 @@
       // return legs. Drawing background grass first exposed roads behind hills.
       this._queueWorldFaces(this.contextGround,camera,queue);
       const scenery=this.environment?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
-      for(const group of scenery)for(const face of group.faces){if(!this._isFollowView()&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
+      for(const group of scenery)for(const face of group.faces){if(this._drapedFeatures?.has(face.featureId)||!this._isFollowView()&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
       this._queueWorldFaces(this.roadFaces,camera,queue);
-      const facilities=this.pits?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Infinity)||[];
-      for(const group of facilities)for(const face of group.faces)this._queue({...face,stroke:face.fill,width:.55},camera,queue);
+      // Long grandstands and distant hotel facades must remain visible in the
+      // camera frustum rather than appearing abruptly at a 440 m radius.
+      this._queueWorldFaces(this.pits?.faces,camera,queue,true);
       this._startLine(camera,queue);
       this.markerPositions=[];
       // Rear-follow views show only the watched run and competitors ahead in

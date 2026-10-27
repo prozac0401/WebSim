@@ -2,6 +2,10 @@
 
 검토일: 2026-10-15.
 
+인제 주변 시설 추가 검토: 2026-10-27. [운영사 관람석 사진](https://cc.speedium.co.kr:8443/content/03facility/02_01.jsp), [피트·계시대 사진](https://cc.speedium.co.kr:8443/content/03facility/04_01.jsp), [호텔·콘도와 전체 항공사진](https://www.speedium.co.kr/company/content/01_01.jsp)을 현재 OSM 건물 외곽과 대조했다. 긴 파란 하층 관람석과 짧은 녹색 상층·은색 곡면 캐노피를 별도 외곽으로 만들고, 흰 트러스·회색 방송실·LAP/TIME 계시대·파란 옥상 설비를 추가했다. 동쪽 코스 밖의 호텔과 콘도는 곡선 외곽을 따르는 반복 유리창과 밝은 외벽으로 단순화한다. 관제탑은 운영사 기준 지상 4층·지하 1층으로 구분한다. 좌석 행·높이·부재·뒷면 깊이는 사진 추정이며 원본 사진을 텍스처로 배포하지 않는다.
+
+계시대는 항공사진과 피트동 남단의 관계를 바탕으로 배치했고 종방향 약 ±40m 불확실성이 있다. 게임 거리 원점, 공식 START LINE, Finish/Control Line은 서로 같다고 보장하지 않는다. 이를 추가하면서 물리 주행 경로나 거리 원점을 옮기지 않는다. 길게 이어지는 관람석은 표시 지면의 종방향 높이를 따라 기초를 연결하고, 분할한 숙박동은 `baseGroup`의 공통 기초 기준으로 층을 맞춘다. 지표 자체는 인접 도로에서 추정한 값이다.
+
 이 디렉터리의 11개 GeoJSON 컬렉션은 실제 사진과 운영사·행사 배치도에서 확인한 피트 건물, 피트레인, 작업마당, 분리벽 및 차량 대기 시설을 표현한다. 경기장마다 다른 시설 위치와 형태를 보존하기 위한 풍경 데이터다. **피트 진입·정차·정비·재출발, 피트 속도 제한, 타이어 교체와 피트 전략 시뮬레이션은 구현하지 않는다.** 경기 차량의 주행 경로·랩 타임·점수에도 영향을 주지 않는다.
 
 사진을 바탕으로 단순화한 외형이며 측량 모델은 아니다. 건물 높이, 캐노피 깊이, 일부 차고 수, 바닥 구획, 진출입 연결선과 사진에서 가려진 외곽은 추정값을 포함한다. 사진의 촬영일과 현재 운영 상태가 확인되지 않는 경우도 있다. 각 JSON의 `sources`, `metadata.limitations`, feature의 `evidence`와 `estimatedProperties`가 해당 범위의 근거다.
@@ -44,6 +48,8 @@
 - 지면 표고는 현재 서킷의 도로 표고 모델에서 파생한다. 시설의 실제 지표·기초 높이를 별도로 측량한 자료는 아니다.
 
 지원 형식은 `pit-lane`·`pit-wall`·`pit-box-row`의 LineString과 `pit-building`·`pit-apron`·`pit-box`의 Polygon이다. `pit-building.garageEdge`는 닫기 전 외곽선의 0부터 시작하는 변 번호다. `garageCount`를 생략하면 차고 셔터를 그리지 않는다. 이 덕분에 센터 건물을 가짜 레이스 차고로 만들지 않는다.
+
+추가 형식: `grandstand` Polygon은 `frontEdge`가 본선 쪽 앞변이다. `rows`, `seatingHeight`, `seatingBaseHeight`, 두 좌석 색상, `canopy:false` 또는 `height`·`canopyDepth`·`roofRise`, `pressBoxHeight`로 계단식 좌석과 별도 지붕을 만든다. `timing-gantry`는 기둥 중심을 잇는 두 점 LineString이며 `clearanceHeight`는 횡단 도로의 최고 표시 높이 위 최소 7m로 제한한다. 본선과 겹치는 기둥은 생성하지 않는다. 검은 계시판은 정적 대시를 표시하며 실제 기록으로 가장하지 않는다. `pit-building.windowRows`는 반복 창 띠, `baseGroup`은 분할 건물의 공통 기초, `rooftopEquipment`는 지붕 안쪽에 한정한 설비 외곽을 지원한다. 모든 시설의 높이·폭은 미터이며, 표시 도로의 1.75배 지면 고도 위에 시설 자체 높이를 한 번만 더한다.
 
 `pit-box-row` 선은 작업칸의 차로 쪽 경계이며 `depth`는 작업칸 안쪽 깊이다. x 동쪽/y 남쪽 좌표계에서 진행 벡터가 `(dx, dy)`일 때 `side: "left"`는 `(dy, -dx)`, `"right"`는 `(-dy, dx)` 방향이다. 차고 모듈을 묶은 표시를 사용하는 경우 `evidence`와 `estimatedBayCount`에 추정임을 명시한다. 전체 바닥 도색이 확인되지 않는 시설에서는 행을 생략한다.
 

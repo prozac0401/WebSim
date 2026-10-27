@@ -40,12 +40,37 @@
         "redistributed": false
       },
       "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "inje-pit-fence-2026",
+      "title": "Official main straight and pit fence photograph",
+      "url": "https://cc.speedium.co.kr:8443/content/03facility/04_01.jsp",
+      "imageUrl": "https://cc.speedium.co.kr:8443/img/03facility/s0401img.jpg",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-pit-front.jpg",
+      "reviewedDate": "2026-10-27",
+      "sha256": "11a7ab82e01648602c9c16391acb1da1729487a35917d0371ebd3a8270041800",
+      "rights": "Reference only; original photograph is not distributed. Procedural geometry is a visual approximation."
+    },
+    {
+      "id": "inje-land-cover-osm-2026",
+      "title": "OpenStreetMap mapped paddock, grass median and western woodland",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=128.287,37.999,128.296,38.005",
+      "sourceType": "mapped-land-cover",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-osm.xml",
+      "sha256": "46d713e755b48aafa5fc6ded786e4b8da787c0c442c085b62369f65bd57535ed",
+      "retrievedDate": "2026-10-27",
+      "rights": {
+        "ownerOrPublisher": "OpenStreetMap contributors",
+        "license": "ODbL-1.0",
+        "redistributed": true
+      },
+      "observation": "OSM826453303 Paddock/parking is east of the pit building; official aerial confirms paving. OSM827570708 is its grass median. Western wood691479249 contains the conservative displayed forest subset."
     }
   ],
   "metadata": {
     "name": "인제 스피디움",
     "method": "photo-traced; approximate footprint",
-    "reviewedDate": "2026-10-15",
+    "reviewedDate": "2026-10-27",
     "sourceIndex": "../korea-references.json",
     "captureYear": "See individual sources; otherwise unknown.",
     "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
@@ -54,8 +79,12 @@
     "limitations": [
       "Oblique aerial has perspective distortion; only broad clearly identifiable footprints are interpreted.",
       "Individual trees, heights and outside-track elevations are not measured.",
-      "Pale runoff patches remain unclassified; no sand/gravel inference from colour."
-    ]
+      "Pale runoff patches remain unclassified; no sand/gravel inference from colour.",
+      "2026-10-27 correction: former central-forest interpretation was over the mapped paddock. The western forest is a conservative subset inside OSM woodland691479249, not a complete measured woodland outline. Paddock material is photograph-observed; the OSM parking feature itself does not specify surface material."
+    ],
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/"
   },
   "features": [
     {
@@ -66,52 +95,76 @@
         "coordinates": [
           [
             [
-              -159.04,
-              272.92
+              -740,
+              80
             ],
             [
-              -103.45,
-              266.45
+              -620,
+              50
             ],
             [
-              -43.99,
-              284.55
+              -520,
+              60
             ],
             [
-              7.72,
-              320.75
+              -450,
+              90
             ],
             [
-              9.01,
-              506.89
+              -405,
+              125
             ],
             [
-              -31.06,
-              536.62
+              -365,
+              180
             ],
             [
-              -69.84,
-              566.35
+              -365,
+              260
             ],
             [
-              -109.92,
-              628.4
+              -380,
+              350
             ],
             [
-              -159.04,
-              669.77
+              -415,
+              410
             ],
             [
-              -159.04,
-              272.92
+              -410,
+              475
+            ],
+            [
+              -465,
+              480
+            ],
+            [
+              -530,
+              535
+            ],
+            [
+              -620,
+              545
+            ],
+            [
+              -700,
+              520
+            ],
+            [
+              -740,
+              450
+            ],
+            [
+              -740,
+              80
             ]
           ]
         ]
       },
       "properties": {
         "kind": "forest",
-        "sourceId": "inje-official-aerial",
-        "evidence": "photo-traced; approximate footprint",
+        "sourceId": "inje-land-cover-osm-2026",
+        "evidence": "Conservative displayed subset inside OSM woodland way691479249 west of the grandstand, corroborated by the official aerial. Replaces the earlier incorrect forest placement on the east-side paddock. Individual trees and heights remain estimates.",
         "approximation": true,
         "location": "Large wooded hill opposite the pit complex, within central circuit outline",
         "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary.",
@@ -500,6 +553,628 @@
         "approximation": true,
         "location": "Inner southwestern hairpin grass island",
         "boundaryMethod": "Manual visual correspondence between cited photograph and north-up track plot; not a surveyed boundary."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-grandstand-guardrail",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -207.8,
+            620
+          ],
+          [
+            -206.8,
+            500
+          ],
+          [
+            -205.4,
+            400
+          ],
+          [
+            -203,
+            300
+          ],
+          [
+            -200.6,
+            200
+          ],
+          [
+            -198.5,
+            110
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "guardrail",
+        "sourceId": "inje-pit-fence-2026",
+        "evidence": "Metal protection barrier between main straight and lower grandstand is visible in official photos. Parallel offset/height is image-based, not surveyed.",
+        "height": 0.75
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-grandstand-catch-fence",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -207.8,
+            620
+          ],
+          [
+            -206.8,
+            500
+          ],
+          [
+            -205.4,
+            400
+          ],
+          [
+            -203,
+            300
+          ],
+          [
+            -200.6,
+            200
+          ],
+          [
+            -198.5,
+            110
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "catch-fence",
+        "sourceId": "inje-pit-fence-2026",
+        "evidence": "Open catch fencing above the main-straight grandstand barrier is visible. Post spacing, wire hints and inward lean approximate the photo while preserving transparent gaps.",
+        "height": 3.7,
+        "postSpacing": 7.5,
+        "lean": 0.4,
+        "side": "right",
+        "color": "#9aa8aa"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-pit-catch-fence",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -185.424,
+            552.257
+          ],
+          [
+            -177.01,
+            232.18
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "catch-fence",
+        "sourceId": "inje-pit-fence-2026",
+        "evidence": "Open safety fence follows the mapped/photographed low pit wall. The underlying concrete wall remains a separate facility; wires do not create an opaque panel.",
+        "height": 2.8,
+        "postSpacing": 7.5,
+        "lean": 0,
+        "color": "#a9b5b2"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-paved-paddock",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -127.777,
+              229.105
+            ],
+            [
+              -138.207,
+              622.447
+            ],
+            [
+              -123.344,
+              605.968
+            ],
+            [
+              -121.362,
+              603.773
+            ],
+            [
+              -119.145,
+              601.324
+            ],
+            [
+              -116.068,
+              597.331
+            ],
+            [
+              -113.148,
+              592.4
+            ],
+            [
+              -109.767,
+              588.407
+            ],
+            [
+              -107.611,
+              584.866
+            ],
+            [
+              -104.23,
+              582.252
+            ],
+            [
+              -102.535,
+              580.564
+            ],
+            [
+              -98.058,
+              577.023
+            ],
+            [
+              -95.372,
+              574.751
+            ],
+            [
+              -92.174,
+              572.765
+            ],
+            [
+              -87.914,
+              570.261
+            ],
+            [
+              -84.942,
+              569.269
+            ],
+            [
+              -40.403,
+              547.979
+            ],
+            [
+              -32.589,
+              544.229
+            ],
+            [
+              -24.566,
+              539.464
+            ],
+            [
+              -20.611,
+              536.717
+            ],
+            [
+              -19.09,
+              534.996
+            ],
+            [
+              -15.639,
+              531.345
+            ],
+            [
+              -14.013,
+              527.385
+            ],
+            [
+              -12.996,
+              523.933
+            ],
+            [
+              -11.884,
+              519.057
+            ],
+            [
+              -11.38,
+              515.715
+            ],
+            [
+              -10.293,
+              503.669
+            ],
+            [
+              -6.782,
+              464.709
+            ],
+            [
+              1.702,
+              394.212
+            ],
+            [
+              5.692,
+              350.464
+            ],
+            [
+              7.726,
+              319.214
+            ],
+            [
+              7.526,
+              302.569
+            ],
+            [
+              6.909,
+              295.653
+            ],
+            [
+              5.7,
+              290.865
+            ],
+            [
+              1.267,
+              283.221
+            ],
+            [
+              -11.901,
+              275.191
+            ],
+            [
+              -34.614,
+              268.264
+            ],
+            [
+              -36.839,
+              275.29
+            ],
+            [
+              -40.959,
+              273.26
+            ],
+            [
+              -88.627,
+              249.909
+            ],
+            [
+              -97.98,
+              245.937
+            ],
+            [
+              -127.777,
+              229.105
+            ]
+          ],
+          [
+            [
+              -88.627,
+              249.909
+            ],
+            [
+              -86.689,
+              253.747
+            ],
+            [
+              -79.231,
+              258.755
+            ],
+            [
+              -52.885,
+              281.258
+            ],
+            [
+              -51.598,
+              282.659
+            ],
+            [
+              -51.711,
+              288.262
+            ],
+            [
+              -52.189,
+              311.802
+            ],
+            [
+              -53.589,
+              338.33
+            ],
+            [
+              -54.397,
+              353.762
+            ],
+            [
+              -54.51,
+              390.252
+            ],
+            [
+              -54.519,
+              391.653
+            ],
+            [
+              -54.519,
+              409.136
+            ],
+            [
+              -55.388,
+              440.993
+            ],
+            [
+              -55.684,
+              451.913
+            ],
+            [
+              -57.196,
+              493.179
+            ],
+            [
+              -57.196,
+              523.138
+            ],
+            [
+              -57.544,
+              532.062
+            ],
+            [
+              -57.666,
+              535.261
+            ],
+            [
+              -59.3,
+              544.935
+            ],
+            [
+              -75.154,
+              556.716
+            ],
+            [
+              -60.847,
+              550.34
+            ],
+            [
+              -57.083,
+              548.663
+            ],
+            [
+              -35.049,
+              534.676
+            ],
+            [
+              -46.592,
+              533.86
+            ],
+            [
+              -46.557,
+              530.849
+            ],
+            [
+              -46.47,
+              524.308
+            ],
+            [
+              -46.34,
+              492.561
+            ],
+            [
+              -46.244,
+              469.629
+            ],
+            [
+              -43.906,
+              440.254
+            ],
+            [
+              -42.167,
+              389.711
+            ],
+            [
+              -42.046,
+              386.049
+            ],
+            [
+              -40.829,
+              338.011
+            ],
+            [
+              -40.646,
+              330.918
+            ],
+            [
+              -38.212,
+              288.317
+            ],
+            [
+              -37.613,
+              277.882
+            ],
+            [
+              -38.43,
+              275.544
+            ],
+            [
+              -40.959,
+              273.26
+            ],
+            [
+              -88.627,
+              249.909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "inje-land-cover-osm-2026",
+        "referenceSourceIds": [
+          "inje-official-aerial"
+        ],
+        "evidence": "Exact transformed OSM way826453303 names the Paddock/parking behind the pit building; grey paving is observed in the official aerial, not inferred from an absent OSM surface tag. The mapped grass median is retained as a hole.",
+        "drapeOnTerrain": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-paddock-grass-median",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.627,
+              249.909
+            ],
+            [
+              -86.689,
+              253.747
+            ],
+            [
+              -79.231,
+              258.755
+            ],
+            [
+              -52.885,
+              281.258
+            ],
+            [
+              -51.598,
+              282.659
+            ],
+            [
+              -51.711,
+              288.262
+            ],
+            [
+              -52.189,
+              311.802
+            ],
+            [
+              -53.589,
+              338.33
+            ],
+            [
+              -54.397,
+              353.762
+            ],
+            [
+              -54.51,
+              390.252
+            ],
+            [
+              -54.519,
+              391.653
+            ],
+            [
+              -54.519,
+              409.136
+            ],
+            [
+              -55.388,
+              440.993
+            ],
+            [
+              -55.684,
+              451.913
+            ],
+            [
+              -57.196,
+              493.179
+            ],
+            [
+              -57.196,
+              523.138
+            ],
+            [
+              -57.544,
+              532.062
+            ],
+            [
+              -57.666,
+              535.261
+            ],
+            [
+              -59.3,
+              544.935
+            ],
+            [
+              -75.154,
+              556.716
+            ],
+            [
+              -60.847,
+              550.34
+            ],
+            [
+              -57.083,
+              548.663
+            ],
+            [
+              -35.049,
+              534.676
+            ],
+            [
+              -46.592,
+              533.86
+            ],
+            [
+              -46.557,
+              530.849
+            ],
+            [
+              -46.47,
+              524.308
+            ],
+            [
+              -46.34,
+              492.561
+            ],
+            [
+              -46.244,
+              469.629
+            ],
+            [
+              -43.906,
+              440.254
+            ],
+            [
+              -42.167,
+              389.711
+            ],
+            [
+              -42.046,
+              386.049
+            ],
+            [
+              -40.829,
+              338.011
+            ],
+            [
+              -40.646,
+              330.918
+            ],
+            [
+              -38.212,
+              288.317
+            ],
+            [
+              -37.613,
+              277.882
+            ],
+            [
+              -38.43,
+              275.544
+            ],
+            [
+              -40.959,
+              273.26
+            ],
+            [
+              -88.627,
+              249.909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grass",
+        "sourceId": "inje-land-cover-osm-2026",
+        "referenceSourceIds": [
+          "inje-official-aerial"
+        ],
+        "evidence": "Mapped OSM way827570708 grass median inside the paddock, retained separately from the surrounding photograph-confirmed paved surface.",
+        "drapeOnTerrain": true
       }
     }
   ]

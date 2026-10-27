@@ -121,12 +121,13 @@
         else if(touches(region.outer))return true;
       }return false;
     }
+    const drapedFeatures=new Set((data.features||[]).filter(f=>f.properties?.drapeOnTerrain===true).map(f=>f.id));
     const groupsMap=new Map(),faces=[],objects=[],terrain=[],stats={features:0,rejected:0,faces:0,trees:0,sourceTrees:0,backgroundTrees:0,backgroundPlacementCandidates:0,illustrativeVegetation:false,kinds:{},approximateVerticalGeometry:true};
     const tint=(hex,f)=>'#'+[1,3,5].map(i=>clamp(Math.round(parseInt(hex.slice(i,i+2),16)*f),0,255).toString(16).padStart(2,'0')).join('');
     function addFace(vertices,fill,kind,featureId,extra={}) {
       if(faces.length>=50000&&!Object.hasOwn(COLORS,kind))return; const center=vertices.reduce((p,v)=>point(p.x+v.x/vertices.length,p.y+v.y/vertices.length,p.z+v.z/vertices.length),point(0,0));
       const k=key(Math.floor(center.x/CELL),Math.floor(center.y/CELL));if(!groupsMap.has(k))groupsMap.set(k,{id:k,faces:[],objects:[],bounds:{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity}});
-      const g=groupsMap.get(k),f={vertices,fill,kind,featureId,...extra};g.faces.push(f);faces.push(f);
+      const g=groupsMap.get(k),f={vertices,fill,kind,featureId,...extra,...(drapedFeatures.has(featureId)?{terrainDrape:true}:{})};g.faces.push(f);faces.push(f);
       for(const v of vertices){g.bounds.minX=Math.min(g.bounds.minX,v.x);g.bounds.maxX=Math.max(g.bounds.maxX,v.x);g.bounds.minY=Math.min(g.bounds.minY,v.y);g.bounds.maxY=Math.max(g.bounds.maxY,v.y);}stats.kinds[kind]=(stats.kinds[kind]||0)+1;
     }
     function tree(p,properties,featureId,rng) {
@@ -149,6 +150,58 @@
       const tr=h*.019;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2;addFace([point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z+h*.58),point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z+h*.58)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
       const group=groupsMap.get(key(Math.floor(p.x/CELL),Math.floor(p.y/CELL)));if(group)group.objects.push(o);
       return true;
+    }
+    function catchFence(line,p,featureId) {
+      const number=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+      const height=clamp(number(p.height,3.5),1,6),spacing=clamp(number(p.postSpacing,6),4,12),lean=clamp(number(p.lean,.45),0,1.2);
+      const fill=/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#74818a',side=p.side==='left'?-1:1,postWidth=.07;
+      const nodes=[],parts=[];let total=0;
+      for(let i=1;i<line.length;i++){
+        const a=line[i-1],b=line[i],length=distance(a,b);if(length<EPS)continue;
+        parts.push({a,b,length,start:total});total+=length;
+      }
+      if(!parts.length)return;
+      // A dense source polyline must not turn every map vertex into a post.
+      // Resample by physical distance; each resulting bay is still road-checked.
+      const count=Math.ceil(total/spacing);let cursor=0;
+      for(let i=0;i<=count;i++){
+        const s=total*i/count;while(cursor<parts.length-1&&s>parts[cursor].start+parts[cursor].length)cursor++;
+        const part=parts[cursor],t=clamp((s-part.start)/part.length,0,1);
+        nodes.push(point(part.a.x+(part.b.x-part.a.x)*t,part.a.y+(part.b.y-part.a.y)*t));
+      }
+      for(let i=0;i<nodes.length;i++){
+        const node=nodes[i],a=nodes[Math.max(0,i-1)],b=nodes[Math.min(nodes.length-1,i+1)],length=distance(a,b)||1;
+        node.z=groundHeight(node.x,node.y);node.nx=-(b.y-a.y)/length*side;node.ny=(b.x-a.x)/length*side;
+      }
+      const at=(node,z)=>{const offset=lean*clamp((z/height-.8)/.2,0,1);return point(node.x+node.nx*offset,node.y+node.ny*offset,node.z+z);};
+      function rod(a,b,width,part,solid=false){
+        const delta=[b.x-a.x,b.y-a.y,b.z-a.z],length=Math.hypot(...delta);if(length<EPS)return;
+        const d=delta.map(v=>v/length),axis=Math.abs(d[2])>.9?[1,0,0]:[0,0,1];
+        const u=[d[1]*axis[2]-d[2]*axis[1],d[2]*axis[0]-d[0]*axis[2],d[0]*axis[1]-d[1]*axis[0]],norm=Math.hypot(...u);
+        for(let i=0;i<3;i++)u[i]*=width/(2*norm);
+        const v=[d[1]*u[2]-d[2]*u[1],d[2]*u[0]-d[0]*u[2],d[0]*u[1]-d[1]*u[0]];
+        const shift=(q,s,t)=>point(q.x+u[0]*s+v[0]*t,q.y+u[1]*s+v[1]*t,q.z+u[2]*s+v[2]*t);
+        const add=vertices=>addFace(vertices,fill,'catch-fence',featureId,{fencePart:part});
+        if(solid){
+          const corners=[[1,1],[-1,1],[-1,-1],[1,-1]],low=corners.map(([s,t])=>shift(a,s,t)),high=corners.map(([s,t])=>shift(b,s,t));
+          for(let i=0;i<4;i++)add([low[i],low[(i+1)%4],high[(i+1)%4],high[i]]);
+          add(low);add(high);
+        }else{
+          // Crossed thin strips remain visible from either side without making
+          // an opaque fence sheet. Empty cells remain actual geometry gaps.
+          add([shift(a,1,0),shift(b,1,0),shift(b,-1,0),shift(a,-1,0)]);
+          add([shift(a,0,1),shift(b,0,1),shift(b,0,-1),shift(a,0,-1)]);
+        }
+      }
+      const posts=new Set(),post=i=>{if(posts.has(i))return;posts.add(i);const node=nodes[i],elbow=at(node,height*(lean ? .8 : 1));rod(at(node,0),elbow,postWidth,'post',true);if(lean)rod(elbow,at(node,height),postWidth,'arm',true);};
+      for(let i=1;i<nodes.length;i++){
+        const a=nodes[i-1],b=nodes[i],margin=clearance+lean+postWidth;
+        // Check every nearby road leg, including the leaning arm's footprint.
+        if(candidates(bounds([a,b]),margin).some(s=>segmentDistance(a,b,s.a,s.b)<margin))continue;
+        post(i-1);post(i);
+        for(const level of [.12,.30,.48,.66,.8,1])rod(at(a,height*level),at(b,height*level),.012,'wire');
+        rod(at(a,height*.12),at(b,height*.8),.009,'mesh');rod(at(a,height*.8),at(b,height*.12),.009,'mesh');
+      }
     }
     for(const feature of data.features||[]) {
       const p=feature.properties||{},g=feature.geometry,featureId=feature.id||'feature-'+stats.features;
@@ -173,6 +226,8 @@
           const spacing=clamp(p.treeSpacing||19,12,35);let count=0;
           for(let x=b.minX+spacing*.5;x<b.maxX&&count<650;x+=spacing)for(let y=b.minY+spacing*.5;y<b.maxY&&count<650;y+=spacing){const q=point(x+(rng()-.5)*spacing*.65,y+(rng()-.5)*spacing*.65);if(inside(q,outer)&&!holes.some(r=>inside(q,r))){tree(q,p,featureId,rng);count++;}}
         }
+      } else if(g.type==='LineString'&&kind==='catch-fence') {
+        catchFence(g.coordinates.map(project),p,featureId);
       } else if(g.type==='LineString'&&['retaining-wall','guardrail'].includes(kind)) {
         const line=g.coordinates.map(project),height=clamp(p.height||(kind==='guardrail'?.8:2.1),.3,8),width=kind==='guardrail'?.18:.55;
         for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],length=distance(a,b),n=Math.ceil(length/9);if(length<EPS)continue;for(let j=0;j<n;j++){const u=point(a.x+(b.x-a.x)*j/n,a.y+(b.y-a.y)*j/n),v=point(a.x+(b.x-a.x)*(j+1)/n,a.y+(b.y-a.y)*(j+1)/n);if(candidates(bounds([u,v]),clearance+width).some(s=>segmentDistance(u,v,s.a,s.b)<clearance+width))continue;const nx=-(b.y-a.y)/length*width*.5,ny=(b.x-a.x)/length*width*.5;const verts=[point(u.x+nx,u.y+ny,groundHeight(u.x,u.y)),point(v.x+nx,v.y+ny,groundHeight(v.x,v.y)),point(v.x-nx,v.y-ny,groundHeight(v.x,v.y)),point(u.x-nx,u.y-ny,groundHeight(u.x,u.y))],top=verts.map(q=>point(q.x,q.y,q.z+height));for(let k=0;k<4;k++)addFace([verts[k],verts[(k+1)%4],top[(k+1)%4],top[k]],kind==='guardrail'?'#9caaa9':k%2?'#77796c':'#939285',kind,featureId);addFace(top,kind==='guardrail'?'#b4c0bd':'#aba99b',kind,featureId);}}
@@ -211,7 +266,7 @@
     stats.faces=faces.length;
     const worldBounds=faces.length?bounds(faces.flatMap(f=>f.vertices)):{...track.bounds};
     function query(x,y,radius=320) { if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(radius)||radius<0)return [];return groups.filter(g=>Math.hypot(Math.max(g.bounds.minX-x,0,x-g.bounds.maxX),Math.max(g.bounds.minY-y,0,y-g.bounds.maxY))<=radius); }
-    return {id,groups,faces,objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
+    return {id,groups,faces,terrainOverlays:faces.filter(f=>f.terrainDrape),objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
   }
   const api={build,conformTerrain};root.TrackEnvironment=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -46,21 +46,62 @@
       "observation": "Mapped lane 677355827 and garage footprint 826321354; official photo match. Official two above-ground levels used instead of conflicting OSM three-level tag.",
       "sha256": "977f7e7db3d91545328adb7c319d44a6bdace8e662891366dc02249dfaebd760",
       "rights": "© OpenStreetMap contributors, ODbL-1.0"
+    },
+    {
+      "id": "inje-grandstand-2026",
+      "title": "Official grandstand: blue lower seats, green upper tier, silver canopy and white truss",
+      "url": "https://cc.speedium.co.kr:8443/content/03facility/02_01.jsp",
+      "imageUrl": "https://cc.speedium.co.kr:8443/img/03facility/s0201img.jpg",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-grandstand.jpg",
+      "reviewedDate": "2026-10-27",
+      "sha256": "bc5bae6965053974d4e363d09a4e0114b2555a3935d7884471751a2ce0a2b50d",
+      "rights": "Reference only; original photograph is not distributed. Procedural geometry is a visual approximation."
+    },
+    {
+      "id": "inje-hotel-2026",
+      "title": "Official hotel: curved cream facade and cyan horizontal glass",
+      "url": "https://www.speedium.co.kr/company/content/01_01.jsp",
+      "imageUrl": "https://www.speedium.co.kr/company/img/content/s0101img07.jpg",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-hotel.jpg",
+      "reviewedDate": "2026-10-27",
+      "sha256": "fded74c68475e0b81e4a167887b195b3020d61c056f62416e3e1d97808eba1b4",
+      "rights": "Reference only; original photograph is not distributed. Procedural geometry is a visual approximation."
+    },
+    {
+      "id": "inje-condo-2026",
+      "title": "Official condominium: curved white balcony grid and ochre accents",
+      "url": "https://www.speedium.co.kr/company/content/01_01.jsp",
+      "imageUrl": "https://www.speedium.co.kr/company/img/content/s0101img09.jpg",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-condo.jpg",
+      "reviewedDate": "2026-10-27",
+      "sha256": "36e49ad6abe0f753d7eec870e85116b90f920ef989083ae9b35580ff5b69a9f1",
+      "rights": "Reference only; original photograph is not distributed. Procedural geometry is a visual approximation."
+    },
+    {
+      "id": "inje-osm-2026",
+      "title": "OpenStreetMap grandstands, hotel and condominium footprints",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=128.287,37.999,128.296,38.005",
+      "localEvidenceFile": "output/threads-track-detail-qa/references/inje-osm.xml",
+      "reviewedDate": "2026-10-27",
+      "sha256": "46d713e755b48aafa5fc6ded786e4b8da787c0c442c085b62369f65bd57535ed",
+      "rights": "© OpenStreetMap contributors, ODbL-1.0"
     }
   ],
   "metadata": {
-    "coverage": "Photo-confirmed pit compound and mapped pit lane; simplified architectural envelope.",
-    "reviewedDate": "2026-10-15",
+    "coverage": "Photo-confirmed pit complex, mapped grandstand tiers and east-side hotel/condominium; simplified procedural architecture.",
+    "reviewedDate": "2026-10-27",
     "limitations": [
-      "Pit-building 36 official rooms are represented by a simplified evenly spaced facade.",
-      "Heights, wall offset and apron/strip widths are image-based estimates; rooftop machinery omitted.",
-      "No complete permanent painted service-box row is visible; do not mislabel concrete expansion joints as service-box markings."
+      "Facility footprints are OSM-derived; heights, seat rows, canopy trusses and facade modules are image-based approximations, not a surveyed architectural model.",
+      "LAP/TIME gantry is placed near the photographed south end of the pit building; longitudinal uncertainty is approximately ±40 m. It is separate from the simulation distance origin and the official START LINE.",
+      "Hotel and condominium front curves follow their mapped outline; rear depth and repeated glazing/balcony modules are simplified. Grounds use adjacent-road estimated elevation.",
+      "Source photographs are local references only; no photograph or third-party texture is distributed."
     ],
     "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
     "attribution": "© OpenStreetMap contributors",
     "license": "ODbL-1.0",
     "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
-    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled.",
+    "focusFeatureId": "inje-garages"
   },
   "features": [
     {
@@ -293,7 +334,7 @@
       "properties": {
         "kind": "pit-building",
         "sourceId": "inje-osm",
-        "evidence": "OSM footprint matched to official photos. Official website reports 36 rooms and two above-ground levels; uniform garage spacing and 10 m envelope height are simplified estimates. Blue roof enclosures omitted rather than placing them at ground level.",
+        "evidence": "Mapped footprint and official 36-room/two-storey facade retained. Photo-confirmed green-grey glass, dark garage shutters and blue rooftop equipment enclosures; enclosure positions and size are estimated.",
         "height": 10,
         "levels": 2,
         "roofColor": "#d4d7d5",
@@ -302,7 +343,35 @@
         "windowBand": true,
         "canopyDepth": 0.8,
         "garageEdge": 5,
-        "garageCount": 36
+        "garageCount": 36,
+        "glassColor": "#73928e",
+        "doorColor": "#3d4c53",
+        "rooftopEquipment": [
+          {
+            "u": 0.12,
+            "v": 0.52,
+            "width": 8,
+            "depth": 5,
+            "height": 2.6,
+            "color": "#347fab"
+          },
+          {
+            "u": 0.44,
+            "v": 0.52,
+            "width": 8,
+            "depth": 5,
+            "height": 2.6,
+            "color": "#347fab"
+          },
+          {
+            "u": 0.77,
+            "v": 0.52,
+            "width": 8,
+            "depth": 5,
+            "height": 2.6,
+            "color": "#347fab"
+          }
+        ]
       }
     },
     {
@@ -370,14 +439,17 @@
       "properties": {
         "kind": "pit-building",
         "sourceId": "inje-osm",
-        "evidence": "South end control tower visible in aerial; separate footprint. Five levels from OSM; 19 m envelope height is estimated.",
+        "evidence": "Mapped south-end control-tower footprint. Operator reports four above-ground levels plus one basement; 19 m envelope and glazing modules remain photographic estimates, rather than treating the basement as a fifth above-ground floor.",
         "height": 19,
-        "levels": 5,
+        "levels": 4,
         "roofColor": "#b2b6b8",
         "wallColor": "#a4aaad",
         "roofStyle": "flat",
         "windowBand": true,
-        "garageCount": 0
+        "garageCount": 0,
+        "windowRows": 4,
+        "glassColor": "#668a92",
+        "garageEdge": 9
       }
     },
     {
@@ -476,6 +548,1208 @@
         "evidence": "Low concrete wall separates pit travel lane from main straight; 0.9 m concrete height estimated. Mesh fencing is not represented as solid concrete.",
         "height": 0.9,
         "color": "#b9bdba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-lower-grandstand",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -232.544,
+              488.656
+            ],
+            [
+              -232.013,
+              625.183
+            ],
+            [
+              -216.428,
+              625.349
+            ],
+            [
+              -208.032,
+              99.395
+            ],
+            [
+              -225.668,
+              98.766
+            ],
+            [
+              -228.989,
+              246.357
+            ],
+            [
+              -232.544,
+              488.656
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "inje-osm-2026",
+        "evidence": "OSM way827519065 traces the long uncovered lower blue seating, distinct from the shorter covered upper tier. Blue seating and low concrete steps confirmed in official grandstand photos. Estimated 9 visual rows, not the official seat inventory.",
+        "frontEdge": 2,
+        "height": 6,
+        "seatingHeight": 5.5,
+        "rows": 9,
+        "canopy": false,
+        "concourseDepth": 0,
+        "lowerSeatColor": "#2581bd",
+        "upperSeatColor": "#2581bd",
+        "frontSlabDepth": 1.2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-covered-grandstand",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -249.059,
+              246.423
+            ],
+            [
+              -253.683,
+              488.359
+            ],
+            [
+              -232.544,
+              488.656
+            ],
+            [
+              -228.989,
+              246.357
+            ],
+            [
+              -249.059,
+              246.423
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "inje-osm-2026",
+        "evidence": "OSM way827519064 is the shorter central roofed block behind the lower blue tier. Official photos show green upper seats, a grey broadcast/VIP strip, silver curved canopy, exposed white truss and red end supports. Height and structural member spacing estimated.",
+        "frontEdge": 2,
+        "height": 22,
+        "seatingBaseHeight": 6,
+        "seatingHeight": 12,
+        "rows": 8,
+        "canopy": true,
+        "canopyDepth": 23,
+        "roofRise": 1.8,
+        "concourseDepth": 1.4,
+        "pressBoxHeight": 2.2,
+        "pressBoxDepth": 3,
+        "lowerSeatColor": "#438468",
+        "upperSeatColor": "#438468",
+        "roofColor": "#d9ddd8",
+        "structureColor": "#e2e5dc",
+        "columnSpacing": 18
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-lap-time-gantry",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -212,
+            565
+          ],
+          [
+            -184,
+            565
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "timing-gantry",
+        "sourceId": "inje-pit-photo",
+        "evidence": "Official pit-front photograph shows a white upper beam, black LAP/TIME display and unlit start-light housings near the pit south end. Aerial and mapped control-tower relationship support y≈565 m, with approximately ±40 m longitudinal uncertainty. Not placed at the game distance origin or assumed identical to the separate official start line.",
+        "clearanceHeight": 7.5,
+        "beamHeight": 1.5,
+        "beamDepth": 1,
+        "boardWidth": 25,
+        "boardHeight": 1.4,
+        "pierWidth": 0.65,
+        "lapText": "--",
+        "timeText": "--:--"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              165.002,
+              250.548
+            ],
+            [
+              143.863,
+              263.377
+            ],
+            [
+              155.267,
+              278.574
+            ],
+            [
+              174.86,
+              266.791
+            ],
+            [
+              165.002,
+              250.548
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              143.863,
+              263.377
+            ],
+            [
+              128.078,
+              278.257
+            ],
+            [
+              143.405,
+              289.486
+            ],
+            [
+              155.267,
+              278.574
+            ],
+            [
+              143.863,
+              263.377
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              128.078,
+              278.257
+            ],
+            [
+              119.012,
+              297.296
+            ],
+            [
+              136.795,
+              303.986
+            ],
+            [
+              143.405,
+              289.486
+            ],
+            [
+              128.078,
+              278.257
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              119.012,
+              297.296
+            ],
+            [
+              113.77,
+              316.291
+            ],
+            [
+              132.474,
+              319.63
+            ],
+            [
+              136.795,
+              303.986
+            ],
+            [
+              119.012,
+              297.296
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              113.77,
+              316.291
+            ],
+            [
+              111.928,
+              336.974
+            ],
+            [
+              130.921,
+              337.488
+            ],
+            [
+              132.474,
+              319.63
+            ],
+            [
+              113.77,
+              316.291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              111.928,
+              336.974
+            ],
+            [
+              112.414,
+              366.359
+            ],
+            [
+              131.401,
+              365.651
+            ],
+            [
+              130.921,
+              337.488
+            ],
+            [
+              111.928,
+              336.974
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-hotel-7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              112.414,
+              366.359
+            ],
+            [
+              114.014,
+              392.91
+            ],
+            [
+              132.98,
+              391.767
+            ],
+            [
+              131.401,
+              365.651
+            ],
+            [
+              112.414,
+              366.359
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way651685857 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 25.5 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 25.5,
+        "levels": 7,
+        "windowRows": 6,
+        "windowBand": true,
+        "wallColor": "#e6e8dd",
+        "sideColor": "#e6e8dd",
+        "glassColor": "#70aeba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-hotel"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.931,
+              421.038
+            ],
+            [
+              102.045,
+              439.051
+            ],
+            [
+              117.009,
+              440.088
+            ],
+            [
+              118.849,
+              422.6
+            ],
+            [
+              103.931,
+              421.038
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              102.045,
+              439.051
+            ],
+            [
+              101.74,
+              452.641
+            ],
+            [
+              116.695,
+              451.486
+            ],
+            [
+              117.009,
+              440.088
+            ],
+            [
+              102.045,
+              439.051
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              101.74,
+              452.641
+            ],
+            [
+              103.887,
+              462.9
+            ],
+            [
+              118.444,
+              459.283
+            ],
+            [
+              116.695,
+              451.486
+            ],
+            [
+              101.74,
+              452.641
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.887,
+              462.9
+            ],
+            [
+              106.956,
+              473.633
+            ],
+            [
+              120.636,
+              467.48
+            ],
+            [
+              118.444,
+              459.283
+            ],
+            [
+              103.887,
+              462.9
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              106.956,
+              473.633
+            ],
+            [
+              116.726,
+              491.447
+            ],
+            [
+              130.163,
+              484.781
+            ],
+            [
+              120.636,
+              467.48
+            ],
+            [
+              106.956,
+              473.633
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              116.726,
+              491.447
+            ],
+            [
+              119.203,
+              498.319
+            ],
+            [
+              134.093,
+              496.507
+            ],
+            [
+              130.163,
+              484.781
+            ],
+            [
+              116.726,
+              491.447
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              119.203,
+              498.319
+            ],
+            [
+              119.012,
+              510.232
+            ],
+            [
+              133.882,
+              512.205
+            ],
+            [
+              134.093,
+              496.507
+            ],
+            [
+              119.203,
+              498.319
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-8",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              119.012,
+              510.232
+            ],
+            [
+              116.048,
+              522.101
+            ],
+            [
+              130.376,
+              526.54
+            ],
+            [
+              133.882,
+              512.205
+            ],
+            [
+              119.012,
+              510.232
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-9",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              116.048,
+              522.101
+            ],
+            [
+              112.441,
+              531.444
+            ],
+            [
+              126.26,
+              537.277
+            ],
+            [
+              130.376,
+              526.54
+            ],
+            [
+              116.048,
+              522.101
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-10",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              112.441,
+              531.444
+            ],
+            [
+              108.007,
+              541.151
+            ],
+            [
+              121.546,
+              547.609
+            ],
+            [
+              126.26,
+              537.277
+            ],
+            [
+              112.441,
+              531.444
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-11",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              108.007,
+              541.151
+            ],
+            [
+              103.496,
+              550.197
+            ],
+            [
+              118.201,
+              547.239
+            ],
+            [
+              121.546,
+              547.609
+            ],
+            [
+              108.007,
+              541.151
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "inje-condo-12",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              103.496,
+              550.197
+            ],
+            [
+              112.866,
+              565.309
+            ],
+            [
+              125.614,
+              557.405
+            ],
+            [
+              118.201,
+              547.239
+            ],
+            [
+              103.496,
+              550.197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "inje-osm-2026",
+        "evidence": "Facade segment follows OSM way779842337 track-facing curved outline. Official photograph supplies cream/white frame and horizontal glazing appearance; 27 m height, rear depth and repeated facade modules are visual estimates.",
+        "garageEdge": 0,
+        "garageCount": 0,
+        "height": 27,
+        "levels": 8,
+        "windowRows": 7,
+        "windowBand": true,
+        "wallColor": "#ece7dc",
+        "sideColor": "#ece7dc",
+        "glassColor": "#9cb8ba",
+        "roofColor": "#d5d7cf",
+        "roofStyle": "flat",
+        "estimatedProperties": [
+          "height",
+          "rear-depth",
+          "facade-modules"
+        ],
+        "baseGroup": "inje-condo",
+        "facadeAccentColor": "#d79b53",
+        "facadeAccentRows": [
+          4,
+          6
+        ]
       }
     }
   ]

@@ -24,6 +24,53 @@ test('disabling illustrative vegetation leaves missing source evidence empty',()
  assert.equal(observed(track,'unknown',{coordinateSystem:'local-metres',features:[]}).faces.length,0);
  assert.equal(observed(track,'unknown',{coordinateSystem:'local-metres',features:[polygon('bad','grass',[[20,0],[30,0],[30,10]])].map(f=>({...f,properties:{kind:'grass'}}))}).faces.length,0);
 });
+const fence=(coordinates,properties={})=>({coordinateSystem:'local-metres',sources:[{id:'fixture-observation'}],features:[
+ {id:'catch-fence',properties:{kind:'catch-fence',sourceId:'fixture-observation',height:3.5,postSpacing:6,lean:.45,...properties},geometry:{type:'LineString',coordinates}}
+]});
+test('a 320 m catch fence has bounded, open, deterministic geometry and leaves its source unchanged',()=>{
+ const data=fence([[20,-160],[20,0],[20,160]],{color:'#657783'}),before=JSON.stringify({track,data});
+ const a=observed(track,'fence',data),b=observed(track,'fence',data);
+ assert.deepEqual(a.faces,b.faces);assert.equal(JSON.stringify({track,data}),before);
+ assert.ok(a.faces.length>500&&a.faces.length<=2000,'posts and sparse mesh stay within the 320 m scene budget');
+ const dense=observed(track,'dense-fence',fence(Array.from({length:321},(_,i)=>[20,i-160])));
+ assert.equal(dense.faces.length,a.faces.length,'1 m source vertices do not multiply the post or wire budget');
+ assert.deepEqual(new Set(a.faces.map(f=>f.fencePart)),new Set(['post','arm','wire','mesh']));
+ assert.ok(a.faces.every(f=>f.kind==='catch-fence'&&f.fill==='#657783'));
+ for(const f of a.faces)for(const p of f.vertices)assert.ok([p.x,p.y,p.z].every(Number.isFinite));
+ const sideArea=a.faces.reduce((sum,f)=>sum+Math.abs(f.vertices.reduce((s,p,i)=>{const q=f.vertices[(i+1)%f.vertices.length];return s+p.y*q.z-p.z*q.y;},0))/2,0);
+ assert.ok(sideArea<320*3.5*.12,'thin rails and mesh occupy under 12% of the side elevation, with no solid sheet');
+ assert.equal(a.groups.reduce((sum,g)=>sum+g.faces.length,0),a.faces.length,'every face belongs to one spatial group');
+ assert.ok(a.query(20,0,30).length>0);assert.equal(a.query(10000,10000,20).length,0);
+ delete data.features[0].properties.sourceId;
+ assert.equal(observed(track,'fence',data).faces.length,0,'uncited fence geometry is not generated');
+});
+
+test('catch fences reject road crossings and leaning arms that would enter any road clearance envelope',()=>{
+ const crossing=observed(track,'fence-crossing',fence([[-30,0],[30,0]]));
+ assert.ok(crossing.faces.length,'safe portions on both sides remain');
+ for(const f of crossing.faces){
+  const center={x:f.vertices.reduce((s,p)=>s+p.x/f.vertices.length,0),y:f.vertices.reduce((s,p)=>s+p.y/f.vertices.length,0)};
+  for(const p of [...f.vertices,center])assert.ok(crossing.roadDistance(p.x,p.y)>=crossing.clearanceM-1e-8,'post, arm and wire remain off every road leg');
+ }
+ const near=observed(track,'fence-lean',fence([[7.4,-50],[7.4,50]],{side:'right'}));
+ assert.ok(near.roadDistance(7.4,0)>near.clearanceM,'the centerline alone would appear safe');
+ assert.equal(near.faces.length,0,'the inward arm plus wire thickness is included in clearance');
+});
+
+test('catch fence upper arms follow explicit left/right and keep physical height on already scaled ground',()=>{
+ const flat={...track,points:track.points.map(p=>({...p,z:70}))},line=[[20,-50],[20,50]];
+ const right=observed(flat,'right',fence(line,{side:'right'})),left=observed(flat,'left',fence(line,{side:'left'}));
+ const averageArmX=env=>{const points=env.faces.filter(f=>f.fencePart==='arm').flatMap(f=>f.vertices);return points.reduce((s,p)=>s+p.x/points.length,0);};
+ assert.ok(averageArmX(right)<19.9&&averageArmX(left)>20.1,'north-to-south line leans west on the right and east on the left');
+ const straight=observed(flat,'vertical',fence(line,{lean:0}));
+ assert.equal(straight.faces.some(f=>f.fencePart==='arm'),false);
+ const z=straight.faces.flatMap(f=>f.vertices.map(p=>p.z)),ground=straight.groundHeight(20,0);
+ assert.ok(Math.abs(Math.max(...z)-ground-3.5)<.01,'3.5 m fence height is not multiplied by display terrain gain');
+ assert.ok(Math.abs(Math.min(...z)-ground)<1e-8,'posts touch their own supplied terrain height');
+ const duplicate=observed(flat,'duplicates',fence([[20,-50],[20,-50],[20,50]]));
+ assert.deepEqual(duplicate.faces,right.faces,'duplicate line nodes create no zero-length rods or repeated posts');
+});
+
 test('all circuit road legs stay clear even when a supplied polygon crosses the road',()=>{
  for(const circuit of circuits){const t=Race.buildTrack(circuit),p=t.points[Math.floor(t.points.length*.25)],r=34;
   const data={coordinateSystem:'local-metres',features:[polygon('cross-road','gravel',[[p.x-r,p.y-r],[p.x+r,p.y-r],[p.x+r,p.y+r],[p.x-r,p.y+r],[p.x-r,p.y-r]])]};

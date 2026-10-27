@@ -53,6 +53,19 @@ test('renderer caches static array identity and rebuilds replaced or extended ge
   faces.push({ ...faces[0], fill: '#000' }); exact(r, [faces], view, 'extended'); assert.notEqual(r._worldFaceBatches.get(faces), first);
 });
 
+test('facility batches retain visible distant architecture and its existing outline style', () => {
+  const r=renderer(900,565),view=camera(r,{x:0,y:0,z:3},12,0,.02);
+  const faces=[{vertices:[{x:-65,y:-900,z:0},{x:65,y:-900,z:0},{x:65,y:-900,z:28},{x:-65,y:-900,z:28}],fill:'#e1e5dd'},
+    {vertices:[{x:3000,y:400,z:0},{x:3002,y:400,z:0},{x:3000,y:400,z:20}],fill:'#aabbbb'}];
+  const before=JSON.stringify(faces),expected=[],actual=[];
+  for(const f of faces)r._queue({...f,stroke:f.fill,width:.55},view,expected);
+  r._queueWorldFaces(faces,view,actual,true);
+  assert(expected.length>0,'hotel 900 m ahead is actually on screen');
+  assert.deepEqual(actual,expected,'same projection, depth, ordering and facility outline');
+  assert.equal(JSON.stringify(faces),before,'shared source geometry is immutable');
+  assert(r._worldFaceBatches.get(faces).stats.candidateFaces<faces.length,'offscreen facility is rejected');
+});
+
 test('all eleven real road and terrain meshes keep exact queues through follow, orbit, pan, zoom, top and horizon views', t => {
   const reports = [];
   for (const circuit of circuits) {

@@ -59,6 +59,105 @@
     const p = { x, y }, u = cross(b, c, p) / denominator, v = cross(c, a, p) / denominator, w = 1 - u - v;
     return Math.min(u, v, w) >= -1e-6 ? u * a.z + v * b.z + w * c.z : null;
   }
+  // Paint existing top triangles, rather than drawing a separately triangulated
+  // patch above them. Overlay Z is deliberately ignored: each fragment remains
+  // on its original ground plane, including where adjacent planes change slope.
+  function paintSurface(faces, overlays) {
+    if (!Array.isArray(faces) || !Array.isArray(overlays)) throw new TypeError('Terrain paint requires face arrays.');
+    if (!overlays.length) return faces.slice();
+    const sameStyle = (a, b) => a && b && a.fill === b.fill && a.kind === b.kind && a.featureId === b.featureId && a.priority === b.priority;
+    const index = spatial(64); let order = 0, indexedCells = 0, group = -1, previous = null;
+    for (const overlay of overlays) {
+      const points = overlay.vertices;
+      if (!Array.isArray(points) || points.length < 3 || !overlay.fill) continue;
+      if (points.some(p => !Number.isFinite(p.x + p.y))) throw new TypeError('Terrain paint XY must be finite.');
+      if (!sameStyle(previous, overlay)) group++;
+      previous = overlay;
+      for (let i = 1; i < points.length - 1; i++) {
+        let vertices = [points[0], points[i], points[i + 1]];
+        const turn = cross(...vertices); if (Math.abs(turn) < 1e-9) continue;
+        if (turn < 0) vertices = [vertices[0], vertices[2], vertices[1]];
+        const bounds = boundsOf(vertices);
+        indexedCells += (Math.ceil((bounds.maxX - bounds.minX) / 64) + 2) * (Math.ceil((bounds.maxY - bounds.minY) / 64) + 2);
+        if (indexedCells > 1000000) throw new RangeError('Terrain paint exceeds the bounded intersection index.');
+        index.add({ vertices, bounds, overlay, group, order: order++ }, bounds);
+      }
+    }
+    function partition(vertices, cutter) {
+      if (!overlap(boundsOf(vertices), cutter.bounds)) return null;
+      if (cutter.vertices.some((a, i) => vertices.every(p => cross(a, cutter.vertices[(i + 1) % 3], p) < -EPS))) return null;
+      const outside = []; let inside = vertices;
+      for (let i = 0; i < 3 && inside.length; i++) {
+        const [keep, rest] = split(inside, cutter.vertices[i], cutter.vertices[(i + 1) % 3]);
+        if (rest.length) outside.push(rest); inside = keep;
+      }
+      // Touching an edge alone must neither repaint nor subdivide that face.
+      return inside.length ? { inside, outside } : null;
+    }
+    const result = [];
+    for (const face of faces) {
+      if (!['context-ground', 'terrain-bank'].includes(face.kind)) { result.push(face); continue; }
+      const faceBounds = boundsOf(face.vertices);
+      const candidates = index.query(faceBounds).filter(c => overlap(faceBounds, c.bounds)).sort((a, b) => a.order - b.order);
+      if (!candidates.length) { result.push(face); continue; }
+      const groups = [];
+      for (const cutter of candidates) {
+        if (!groups.length || groups.at(-1)[0].group !== cutter.group) groups.push([]);
+        groups.at(-1).push(cutter);
+      }
+      const output = []; let changed = false;
+      for (let i = 1; i < face.vertices.length - 1; i++) {
+        const source = [face.vertices[0], face.vertices[i], face.vertices[i + 1]];
+        if (Math.abs(cross(...source)) < 1e-9) continue;
+        let pieces = [{ vertices: source, overlay: null }];
+        for (const cutters of groups) {
+          const overlay = cutters[0].overlay;
+          const next = [];
+          for (const piece of pieces) {
+            if (sameStyle(piece.overlay, overlay)) { next.push(piece); continue; }
+            let remaining = [piece.vertices]; const painted = [];
+            // Only unpainted residuals need testing against the next triangle
+            // of one material region. Later different regions still repaint.
+            for (const cutter of cutters) {
+              if (!remaining.length) break;
+              const outside = [];
+              for (const vertices of remaining) {
+                const clipped = partition(vertices, cutter);
+                if (!clipped) { outside.push(vertices); continue; }
+                changed = true; outside.push(...clipped.outside); painted.push(clipped.inside);
+              }
+              remaining = outside;
+            }
+            if (!painted.length) next.push(piece);
+            else if (!remaining.length) next.push({ vertices: piece.vertices, overlay });
+            else {
+              for (const vertices of remaining) next.push({ vertices, overlay: piece.overlay });
+              for (const vertices of painted) next.push({ vertices, overlay });
+            }
+          }
+          pieces = next;
+        }
+        for (const piece of pieces) {
+          const vertices = piece.vertices.map(p => {
+            const original = source.find(q => q.x === p.x && q.y === p.y);
+            if (original) return original;
+            const z = triangleHeight(source, p.x, p.y);
+            if (!Number.isFinite(z)) throw new TypeError('Painted terrain escaped its source plane.');
+            return point(p.x, p.y, z);
+          });
+          for (let j = 1; j < vertices.length - 1; j++) {
+            const triangle = [vertices[0], vertices[j], vertices[j + 1]];
+            if (Math.abs(cross(...triangle)) < 1e-9) continue;
+            const style = piece.overlay ? { fill: piece.overlay.fill, kind: piece.overlay.kind, featureId: piece.overlay.featureId } : {};
+            output.push({ ...face, ...style, vertices: triangle, center: {
+              x: triangle.reduce((sum, p) => sum + p.x / 3, 0), y: triangle.reduce((sum, p) => sum + p.y / 3, 0) } });
+          }
+        }
+      }
+      result.push(...(changed ? output : [face]));
+    }
+    return result;
+  }
   function build(track, roadEdges, options = {}) {
     if (!track?.bounds || !Array.isArray(roadEdges)) throw new TypeError('CircuitTerrain requires a track and road edges.');
     if (typeof options.groundHeight !== 'function') throw new TypeError('CircuitTerrain requires groundHeight.');
@@ -189,7 +288,7 @@
     return { faces, bounds, grid: { cell, columns: nx, rows: ny }, sampleHeight, sampleBaseHeight, roadHeight, stats,
       classification: 'illustrative road-constrained terrain envelope; not surveyed terrain or mapped retaining walls', clearanceM: CLEARANCE };
   }
-  const api = { build };
+  const api = { build, paintSurface };
   root.CircuitTerrain = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
