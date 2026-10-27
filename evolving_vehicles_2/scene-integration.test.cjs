@@ -73,6 +73,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('track-environment.js')<index('circuit-renderer.js'));
   assert.ok(index('circuit-terrain.js')>=0&&index('circuit-terrain.js')<index('circuit-renderer.js'));
   assert.ok(index('terrain-surfaces.js')>=0&&index('terrain-surfaces.js')<index('circuit-renderer.js'));
+  assert.ok(index('road-skidmarks.js')>index('circuit-road.js')&&index('road-skidmarks.js')<index('circuit-renderer.js'));
   assert.ok(index('pit-facility-data.js')>=0&&index('pit-facilities.js')<index('circuit-renderer.js'));
   const context=vm.createContext({});vm.runInContext('window=globalThis',context);
   const needed=new Set(['../evolving_vehicles/vehicle-specs.js','circuit-vehicle-specs.js','spa-elevation-profile.js','taebaek-elevation-profile.js','powertrain-profiles.js','powertrain-dynamics.js','powertrain-telemetry.js','circuits.js','vehicle-racing-line.js','race-engine.js','driving-pose.js','racing-guidance.js']);

@@ -5,7 +5,9 @@ const rule=(startM,endM,side,style)=>({startM,endM,side,style,sourceId:'observed
 const area=vertices=>Math.abs(vertices.reduce((sum,p,i)=>{const q=vertices[(i+1)%vertices.length];return sum+p.x*q.y-p.y*q.x;},0)/2);
 function makeRoad(track,metadata){
   const saved=globalThis.TrackEnvironmentData;
-  try{globalThis.TrackEnvironmentData={[track.id]:{metadata}};const renderer=Object.create(Renderer.prototype);renderer.race={track};renderer.displayTrack=track;renderer._makeRoad();return renderer;}
+  // These assertions concern the unchanged base asphalt/edge partitions.
+  // Historical tyre decals are verified separately against these same planes.
+  try{globalThis.TrackEnvironmentData={[track.id]:{metadata}};const renderer=Object.create(Renderer.prototype);renderer.race={track};renderer.displayTrack=track;renderer._makeRoad();renderer.roadFaces=renderer.roadFaces.filter(f=>f.kind!=='road-skidmark');return renderer;}
   finally{globalThis.TrackEnvironmentData=saved;}
 }
 test('road edge intervals use half-open canonical metres, wrap the seam and resolve each side independently',()=>{
@@ -40,7 +42,7 @@ test('unconfigured Inje and Spa retain the exact legacy asphalt and alternating 
     assert.equal(r.roadFaces.length,edges.length*3);
     for(let i=0;i<edges.length;i++){
       const a=edges[i],b=edges[(i+1)%edges.length],road=r.roadFaces[i*3],left=r.roadFaces[i*3+1],right=r.roadFaces[i*3+2];
-      assert.deepEqual(road,{vertices:[a.left,b.left,b.right,a.right],fill:'#465250',stroke:'#465250',width:.55,road:true});
+      assert.deepEqual(road,{vertices:[a.left,b.left,b.right,a.right],fill:'#465250',stroke:'#465250',width:.55,road:true,kind:'road-asphalt'});
       const fill=Math.floor(a.s/8)%2?(id==='spa'?'#dec847':'#f0ecdf'):'#ba6759';
       assert.deepEqual(left,{vertices:[a.outerLeft,b.outerLeft,b.left,a.left],fill,road:true});
       assert.deepEqual(right,{vertices:[a.right,b.right,b.outerRight,a.outerRight],fill,road:true});

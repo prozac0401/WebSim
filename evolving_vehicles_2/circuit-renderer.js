@@ -566,10 +566,10 @@
       if(car&&root.ManufacturerModels?.requiresAsset(car.vehicleId))return {kind:'unavailable',label:'3D 외형을 불러오지 못했습니다. 화면의 다시 불러오기를 눌러 주세요.'};
       return {kind:'photo-reference',label:'제조사 사진·제원 기반 외형'};
     }
-    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this._isFollowView()?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
+    getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,skidmarks:this.skidmarks?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this._isFollowView()?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();this.terrainRenderer?.dispose();}
     _makeRoad(){
-      this.roadFaces=[];this.supports=[];this.roadEdgeStyle=null;if(!this.race)return;
+      this.roadFaces=[];this.supports=[];this.roadEdgeStyle=null;this.skidmarks=null;if(!this.race)return;
       const track=this.displayTrack,pts=track.points,n=pts.length,step=n>1300?2:1;
       const builder=root.CircuitRoad||(typeof require==='function'?require('./circuit-road.js'):null);
       this.roadSourceTrack=track;this.roadGeometry=builder?.build(track)||null;
@@ -610,13 +610,17 @@
       for(let i=0;i<edges.length;i++){
         const a=edges[i],b=edges[(i+1)%edges.length],endS=i+1<edges.length?b.s:track.centerlineLength||track.length;
         if(i===0||Math.floor(a.s/120)>Math.floor(edges[i-1].s/120))this.supports.push([point(a.p.x,a.p.y,datum),point(a.p.x,a.p.y,a.p.z||0)]);
-        this.roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:roadFill,stroke:roadFill,width:.55,road:true,...(root.TrackEnvironmentData?.[track.id]?.metadata?.roadMarkings?.length?{kind:'road-asphalt'}:{})});
+        this.roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:roadFill,stroke:roadFill,width:.55,road:true,kind:'road-asphalt'});
         addEdge(a,b,'left',endS);addEdge(a,b,'right',endS);
       }
       this.roadEdges=edges;this.datum=datum;
+      const asphalt=this.roadFaces;
       const markings=root.RoadMarkings||(typeof require==='function'?require('./road-markings.js'):null);
       const painted=markings?.apply(this.roadFaces,{...this.roadGeometry,length:track.centerlineLength||track.length},root.TrackEnvironmentData?.[track.id]?.metadata,track.width);
       if(painted){this.roadFaces=painted.faces;this.roadMarkingStats=painted.stats;}else this.roadMarkingStats=null;
+      const rubber=root.RoadSkidmarks||(typeof require==='function'?require('./road-skidmarks.js'):null);
+      this.skidmarks=rubber?.build(asphalt,this.roadGeometry,{length:track.centerlineLength||track.length,width:track.width,id:track.id,protectedFaces:this.roadFaces.filter(f=>f.kind==='road-marking')})||null;
+      if(this.skidmarks?.faces.length)this.roadFaces.push(...this.skidmarks.faces);
     }
     _makeContextGround(){
       this.contextGround=[];this.terrainGeometry=null;this._drapedFeatures=new Set();if(!this.race||!this.environment&&!this.pits)return;

@@ -80,24 +80,25 @@
   }
   function prepareScene(scene){
     if(!Array.isArray(scene?.faces))throw new TypeError('A static world scene requires immutable faces.');
-    const opaque=[],transparent=[],bounds={minX:Infinity,minY:Infinity,minZ:Infinity,maxX:-Infinity,maxY:-Infinity,maxZ:-Infinity};
+    const opaque=[],decals=[],transparent=[],bounds={minX:Infinity,minY:Infinity,minZ:Infinity,maxX:-Infinity,maxY:-Infinity,maxZ:-Infinity};
     let vertices=0;
     for(const face of scene.faces){
       if(!face.fill||!Array.isArray(face.vertices)||face.vertices.length<3)continue;
       if(face.vertices.some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw new TypeError('Static world vertices must be finite.');
       for(const p of face.vertices){bounds.minX=Math.min(bounds.minX,p.x);bounds.minY=Math.min(bounds.minY,p.y);bounds.minZ=Math.min(bounds.minZ,p.z);bounds.maxX=Math.max(bounds.maxX,p.x);bounds.maxY=Math.max(bounds.maxY,p.y);bounds.maxZ=Math.max(bounds.maxZ,p.z);}
-      (color(face.fill)[3]>=.999?opaque:transparent).push(face);vertices+=(face.vertices.length-2)*3;
+      const c=color(face.fill),blackDecal=face.kind==='road-skidmark'&&face.road&&c[0]===0&&c[1]===0&&c[2]===0&&c[3]>0&&c[3]<1;
+      (c[3]>=.999?opaque:blackDecal?decals:transparent).push(face);vertices+=(face.vertices.length-2)*3;
     }
     const origin=vertices?{x:(bounds.minX+bounds.maxX)/2,y:(bounds.minY+bounds.maxY)/2,z:(bounds.minZ+bounds.maxZ)/2}:{x:0,y:0,z:0};
     const data=new Float32Array(vertices*11),ranges=[];let cursor=0;
-    for(const list of [opaque,transparent])for(const face of list){
+    for(const list of [opaque,decals,transparent])for(const face of list){
       const start=cursor/11,c=color(face.fill),plane=facePlane(face,origin);
       for(let i=1;i<face.vertices.length-1;i++)for(const p of [face.vertices[0],face.vertices[i],face.vertices[i+1]]){
         data.set([p.x-origin.x,p.y-origin.y,p.z-origin.z,...c,...plane],cursor);cursor+=11;
       }
       if(list===transparent)ranges.push({face,start,count:cursor/11-start});
     }
-    return {scene,data,origin,bounds:vertices?bounds:null,opaqueCount:opaque.reduce((n,f)=>n+(f.vertices.length-2)*3,0),transparent:ranges,vertices};
+    return {scene,data,origin,bounds:vertices?bounds:null,opaqueCount:opaque.reduce((n,f)=>n+(f.vertices.length-2)*3,0),decalCount:decals.reduce((n,f)=>n+(f.vertices.length-2)*3,0),decalFaces:decals.length,transparent:ranges,vertices};
   }
   function sceneRange(cache,c,queue){
     const near=Math.max(.3,c.distance*.018)+.001,D=[c.sinYaw*c.cosPitch,-c.cosYaw*c.cosPitch,-c.sinPitch],b=cache.bounds;
@@ -204,6 +205,10 @@
           if(data.length){gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.length/7);}
         };
         world();if(cache.opaqueCount)gl.drawArrays(gl.TRIANGLES,0,cache.opaqueCount);
+        // Black tyre traces have commutative source-over blending, even where
+        // many old curves overlap. Keep their immutable mesh in one GPU draw;
+        // depth testing still hides it behind higher roads, earth and barriers.
+        if(cache.decalCount){gl.depthMask(false);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,cache.opaqueCount,cache.decalCount);gl.depthMask(true);gl.disable(gl.BLEND);}
         const dynamic=ordered(dynamicQueue);screen(dynamic.opaque);
         const alpha=[];let cpuProjectedFaces=0;
         for(const item of cache.transparent){if(!showShadows&&item.face.kind==='tree-shadow')continue;cpuProjectedFaces++;const projected=projectFace(item.face,camera,width,height);if(projected)alpha.push({...item,depth:projected.depth,priority:projected.priority});}
@@ -217,7 +222,7 @@
         }
         if(pending.length)screen(pending);
         gl.depthMask(true);gl.disable(gl.BLEND);
-        this.sceneStats={faces:scene.faces.length,vertices:cache.vertices,staticBytes:cache.vertices*44,staticUploads:this._sceneUploads,transparentFaces:alpha.length,cpuProjectedFaces,near:range.near,far:range.far};
+        this.sceneStats={faces:scene.faces.length,vertices:cache.vertices,staticBytes:cache.vertices*44,staticUploads:this._sceneUploads,groundDecalFaces:cache.decalFaces,groundDecalDraws:cache.decalCount?1:0,transparentFaces:alpha.length,cpuProjectedFaces,near:range.near,far:range.far};
         return this.canvas;
       }catch(error){this.failure=String(error.message||error);this.available=false;this.kind='software-depth';return fallback();}
     }

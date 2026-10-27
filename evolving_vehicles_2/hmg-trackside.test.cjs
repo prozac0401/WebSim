@@ -75,7 +75,8 @@ test('material correction preserves exact road XYZ, terrain seams and the separa
  assert.equal(JSON.stringify(data),sourceBefore);assert.equal(JSON.stringify(bundled[id]),bundleBefore);assert.equal(JSON.stringify(race),raceBefore);assert.equal(hash(race.circuit),sourceCircuitHash);
  assert.equal(race.track.centerlineLength,3400);assert(race.cars[0].trackLength<race.track.centerlineLength-50,'canonical road stations differ from the racing line');
  assert.deepEqual(r.roadEdges,baseline.roadEdges);assert.deepEqual(r.supports,baseline.supports);
- assert(Math.abs(r.roadFaces.reduce((s,f)=>s+area(f.vertices),0)-baseline.roadFaces.reduce((s,f)=>s+area(f.vertices),0))<1e-5,'paint partitions preserve complete road coverage');
+ const baseArea=faces=>faces.filter(f=>f.kind!=='road-skidmark').reduce((s,f)=>s+area(f.vertices),0);
+ assert(Math.abs(baseArea(r.roadFaces)-baseArea(baseline.roadFaces))<1e-5,'paint partitions preserve complete road coverage beneath the independent tyre decals');
  assert(r.roadFaces.every(f=>f.road===true));const datum=race.track.elevationMin||0;
  for(let i=0;i<race.track.points.length;i++){const p=race.track.points[i],q=r.roadSourceTrack.points[i];assert.equal(p.x,q.x);assert.equal(p.y,q.y);assert(Math.abs(q.z-(datum+(p.z-datum)*1.75))<1e-8);}
  assert.equal(r.environment.stats.rejected,0);assert.equal(r.pits.stats.rejected,0);
