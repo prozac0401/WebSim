@@ -279,6 +279,12 @@
       this.pits=root.PitFacilities?.build(this.displayTrack,root.PitFacilityData?.[race.track.id])||null;
       this.environment=root.TrackEnvironment?.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;
       this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this._classicFollowState=null;this.landmark=null;
+      const metadata=root.TrackEnvironmentData?.[race.track.id]?.metadata;
+      this._sceneryFollowFaces=metadata?.conservativeSceneryVisibility?this.environment?.faces.filter(f=>!f.terrainDrape).map(f=>({...f,stroke:f.fill,width:1})):null;
+      this._sceneryOverviewFaces=this._sceneryFollowFaces?.filter(f=>f.kind!=='tree-shadow');
+      const boards=root.TracksideBoards||(typeof require==='function'?require('./trackside-boards.js'):null);
+      this.tracksideBoards=boards&&this.roadGeometry&&this.environment?boards.build({...this.roadGeometry,length:this.roadSourceTrack.centerlineLength||this.roadSourceTrack.length},metadata,{groundHeight:this.environment.groundHeight,roadDistance:this.environment.roadDistance,roadClearance:this.environment.clearanceM}):null;
+      this._staticWorldScene=metadata?.staticWorldGeometry?{faces:[...this.contextGround,...(this._sceneryFollowFaces||[]),...this.roadFaces,...(this.pits?.faces||[]),...(this.tracksideBoards?.faces||[])]}:null;
     }
     _isFollowView(){return this.mode==='follow'||this.mode==='follow-classic';}
     setView(mode){
@@ -557,7 +563,7 @@
     getState(){const source=this.getModelInfo(),appearance={'manufacturer-mesh':'manufacturer-geometry','dealer-mesh':'dealer-geometry','community-mesh':'community-geometry','photo-reconstruction':'photo-reconstructed-geometry',loading:'loading',unavailable:'unavailable'}[source.kind]||'manufacturer-reference-meshes';return {renderer:'perspective-mesh',surfaceRenderer:this.surfaceRenderer?.available?'webgl-smooth':'canvas2d',terrainRenderer:this.terrainRenderer?.kind||'canvas-painter',terrain:this.terrainGeometry?.stats||null,threeDimensional:true,mode:this.mode,interactionMode:this.interactionMode,pan:{...this.panOffset},yaw:this._isFollowView()?this.followYaw:this.yaw,pitch:this.pitch,zoom:this.zoomLevel,followCamera:this._followCameraInfo(),metresPerUnit:1,elevationExaggeration:ELEVATION_EXAGGERATION,carModels:root.TrackRace?.VEHICLES?.length||Object.keys(MODELS).length,carAppearance:appearance,modelSource:source,markerPositions:this.markerPositions.map(p=>({id:p.id,x:Math.round(p.x),y:Math.round(p.y),labelVisible:!!p.labelVisible}))};}
     destroy(){for(const [type,fn,opts]of this.listeners)this.canvas.removeEventListener(type,fn,opts);this.listeners=[];this.pointers.clear();this.meshCache.clear();this.surfaceRenderer?.dispose();this.terrainRenderer?.dispose();}
     _makeRoad(){
-      this.roadFaces=[];this.supports=[];if(!this.race)return;
+      this.roadFaces=[];this.supports=[];this.roadEdgeStyle=null;if(!this.race)return;
       const track=this.displayTrack,pts=track.points,n=pts.length,step=n>1300?2:1;
       const builder=root.CircuitRoad||(typeof require==='function'?require('./circuit-road.js'):null);
       this.roadSourceTrack=track;this.roadGeometry=builder?.build(track)||null;
@@ -569,15 +575,42 @@
         const at=(d,z=0)=>point(p.x+nx*d,p.y+ny*d,(p.z||0)+z);
         edges.push({left:at(-half),right:at(half),outerLeft:at(-half-curb),outerRight:at(half+curb),p,index:i,s:i*(track.centerlineSpacing||track.spacing)});
       }
+      const edgeModule=root.RoadEdgeStyle||(typeof require==='function'?require('./road-edge-style.js'):null);
+      const edgeStyle=edgeModule?.compile(root.TrackEnvironmentData?.[track.id]?.metadata,track.centerlineLength||track.length);
+      this.roadEdgeStyle=edgeStyle;
+      const roadFill=edgeStyle?.roadSurfaceColor||'#465250';
+      const curbColor=s=>{const stripe=Math.floor(s/(edgeStyle?.curbBlockLengthM||8))%2;return edgeStyle?.curbColors?edgeStyle.curbColors[stripe?1:0]:stripe?(track.id==='spa'?'#dec847':'#f0ecdf'):'#ba6759';};
+      const blend=(inner,outer,t)=>point(inner.x+(outer.x-inner.x)*t,inner.y+(outer.y-inner.y)*t,inner.z+(outer.z-inner.z)*t);
+      const addEdge=(a,b,side,endS)=>{
+        const left=side==='left',innerA=left?a.left:a.right,innerB=left?b.left:b.right,outerA=left?a.outerLeft:a.outerRight,outerB=left?b.outerLeft:b.outerRight;
+        const face=(iA,iB,oA,oB,fill)=>this.roadFaces.push({vertices:left?[oA,oB,iB,iA]:[iA,iB,oB,oA],fill,road:true});
+        const style=edgeStyle?.styleAt(a.s,side)||'curb';
+        if(style==='white-line'){
+          // Partition the original strip: no coplanar overlay, height lift or
+          // change to the road/terrain boundary. The inner 12 cm is paint.
+          const fraction=Math.min(1,.12/curb),midA=blend(innerA,outerA,fraction),midB=blend(innerB,outerB,fraction);
+          face(innerA,innerB,midA,midB,'#edf0e5');face(midA,midB,outerA,outerB,roadFill);
+        }else if(style==='curb'&&edgeStyle?.splitCurbBlocks){
+          // Paint block boundaries along the existing longitudinal edges. No
+          // extra centreline sampling moves the asphalt or terrain boundary.
+          const block=edgeStyle.curbBlockLengthM,span=endS-a.s,cuts=[];
+          for(let s=(Math.floor(a.s/block)+1)*block;s<endS-1e-9;s+=block)cuts.push((s-a.s)/span);
+          cuts.push(1);let start=0,iA=innerA,oA=outerA;
+          for(const end of cuts){const iB=end===1?innerB:blend(innerA,innerB,end),oB=end===1?outerB:blend(outerA,outerB,end);
+            face(iA,iB,oA,oB,curbColor(a.s+span*(start+end)*.5));start=end;iA=iB;oA=oB;
+          }
+        }else face(innerA,innerB,outerA,outerB,style==='grass'?'#829569':style==='asphalt'?roadFill:curbColor(a.s));
+      };
       for(let i=0;i<edges.length;i++){
-        const a=edges[i],b=edges[(i+1)%edges.length],stripe=Math.floor(a.s/8)%2;
+        const a=edges[i],b=edges[(i+1)%edges.length],endS=i+1<edges.length?b.s:track.centerlineLength||track.length;
         if(i===0||Math.floor(a.s/120)>Math.floor(edges[i-1].s/120))this.supports.push([point(a.p.x,a.p.y,datum),point(a.p.x,a.p.y,a.p.z||0)]);
-        this.roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:'#465250',stroke:'#465250',width:.55,road:true});
-        const curbFill=stripe?(track.id==='spa'?'#dec847':'#f0ecdf'):'#ba6759';
-        this.roadFaces.push({vertices:[a.outerLeft,b.outerLeft,b.left,a.left],fill:curbFill,road:true});
-        this.roadFaces.push({vertices:[a.right,b.right,b.outerRight,a.outerRight],fill:curbFill,road:true});
+        this.roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:roadFill,stroke:roadFill,width:.55,road:true,...(root.TrackEnvironmentData?.[track.id]?.metadata?.roadMarkings?.length?{kind:'road-asphalt'}:{})});
+        addEdge(a,b,'left',endS);addEdge(a,b,'right',endS);
       }
       this.roadEdges=edges;this.datum=datum;
+      const markings=root.RoadMarkings||(typeof require==='function'?require('./road-markings.js'):null);
+      const painted=markings?.apply(this.roadFaces,{...this.roadGeometry,length:track.centerlineLength||track.length},root.TrackEnvironmentData?.[track.id]?.metadata,track.width);
+      if(painted){this.roadFaces=painted.faces;this.roadMarkingStats=painted.stats;}else this.roadMarkingStats=null;
     }
     _makeContextGround(){
       this.contextGround=[];this.terrainGeometry=null;this._drapedFeatures=new Set();if(!this.race||!this.environment&&!this.pits)return;
@@ -587,6 +620,8 @@
       if(root.CircuitTerrain){
         this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight});
         this.contextGround=this.terrainGeometry.faces;
+        const groundColor=this.roadEdgeStyle?.defaultGroundColor;
+        if(groundColor)this.contextGround=this.contextGround.map(f=>['context-ground','terrain-bank'].includes(f.kind)?{...f,fill:groundColor,...(f.stroke?{stroke:groundColor}:{})}:f);
         const overlays=this.environment?.terrainOverlays;
         if(overlays?.length&&root.CircuitTerrain.paintSurface){
           // Paint on the exact ground triangles. An independently triangulated
@@ -668,9 +703,9 @@
         if(face.stroke){ctx.strokeStyle=face.stroke;ctx.lineWidth=face.width;ctx.stroke();}
       }
     }
-    _paintWorld(queue){
+    _paintWorld(queue,camera,useStatic=false){
       if(!this.terrainRenderer&&root.TerrainSurfaces)this.terrainRenderer=new root.TerrainSurfaces();
-      if(this.terrainRenderer){const layer=this.terrainRenderer.render(queue,this.width,this.height,this.dpr);this.ctx.drawImage(layer,0,0,this.width,this.height);}
+      if(this.terrainRenderer){const layer=useStatic?this.terrainRenderer.renderScene(this._staticWorldScene,camera,queue,this.width,this.height,this.dpr,{showShadows:this._isFollowView()}):this.terrainRenderer.render(queue,this.width,this.height,this.dpr);this.ctx.drawImage(layer,0,0,this.width,this.height);}
       else this._paint(queue);
     }
     _line(vertices,camera,color,width,dashed){
@@ -812,6 +847,7 @@
       if(!this._isFollowView())for(const support of this.supports)this._line(support,camera,'rgba(100,123,90,.15)',.75);
     }
     _startLine(camera,queue){
+      if(root.TrackEnvironmentData?.[this.race.track.id]?.metadata?.replaceSimulationStartPaint)return;
       const source=this.roadSourceTrack||this.displayTrack,line=source.points[0],next=source.points[1];
       const angle=Math.atan2(next.y-line.y,next.x-line.x),dx=Math.cos(angle),dy=Math.sin(angle),width=this.race.track.width;
       for(let j=0;j<2;j++)for(let i=0;i<8;i++){
@@ -856,15 +892,23 @@
       const car=this.race.cars.find(c=>c.id===watch)||this.race.cars[0];if(!car)return;
       const ctx=this.ctx;ctx.setTransform(this.dpr,0,0,this.dpr,0,0);const camera=this._camera(car);this._lastCamera=camera;
       this._background(camera);const queue=[];
+      if(this._staticWorldScene&&!this.terrainRenderer&&root.TerrainSurfaces)this.terrainRenderer=new root.TerrainSurfaces();
+      const useStatic=!!(this._staticWorldScene&&this.terrainRenderer?.available&&this.terrainRenderer.renderScene);
       // The complete ground and road share one depth buffer, including distant
       // return legs. Drawing background grass first exposed roads behind hills.
+      if(!useStatic){
       this._queueWorldFaces(this.contextGround,camera,queue);
-      const scenery=this.environment?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
-      for(const group of scenery)for(const face of group.faces){if(this._drapedFeatures?.has(face.featureId)||!this._isFollowView()&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
+      if(this._sceneryFollowFaces)this._queueWorldFaces(this._isFollowView()?this._sceneryFollowFaces:this._sceneryOverviewFaces,camera,queue);
+      else{
+        const scenery=this.environment?.query(camera.target.x,camera.target.y,this._isFollowView()?Math.max(440,camera.distance*6):Math.max(this.race.track.bounds.width,this.race.track.bounds.height)*2)||[];
+        for(const group of scenery)for(const face of group.faces){if(face.terrainDrape&&this._drapedFeatures?.has(face.featureId)||!this._isFollowView()&&face.kind==='tree-shadow')continue;this._queue({...face,stroke:face.fill,width:1},camera,queue);}
+      }
       this._queueWorldFaces(this.roadFaces,camera,queue);
       // Long grandstands and distant hotel facades must remain visible in the
       // camera frustum rather than appearing abruptly at a 440 m radius.
       this._queueWorldFaces(this.pits?.faces,camera,queue,true);
+      this._queueWorldFaces(this.tracksideBoards?.faces,camera,queue);
+      }
       this._startLine(camera,queue);
       this.markerPositions=[];
       // Rear-follow views show only the watched run and competitors ahead in
@@ -878,7 +922,7 @@
         if(projected.x>-60&&projected.x<this.width+60&&projected.y>-60&&projected.y<this.height+60)this.markerPositions.push({id:c.id,x:projected.x,y:projected.y,anchorX:projected.x,anchorY:projected.y,color:c.color,length:mesh.length*projected.scale,radius:Math.max(12,mesh.width*projected.scale*.6)});
       }
       if(showLine&&this.mode!=='pits')this._queueRacingGuidance(car,camera,queue);
-      this._paintWorld(queue);
+      this._paintWorld(queue,camera,useStatic);
       // Cars are redrawn after the trajectory so the line never cuts across a roof.
       const visibleCars=[];
       for(const c of displayedCars){const p=this._displayPose(root.DrivingPose?.sampleCar?.(this.race,c)||root.DrivingPose?.sample(this.race,c.distance)||this.race.sampleForCar?.(c,c.distance)||this.race.sample(c.distance),c),v=this._project(point(p.x,p.y,(p.elevation??p.z)+.7),camera);if(v&&v.x>-120&&v.x<this.width+120&&v.y>-120&&v.y<this.height+120)visibleCars.push({car:c,mesh:this._mesh(c),position:p,selected:c.id===car.id});}

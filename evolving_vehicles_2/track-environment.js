@@ -4,12 +4,22 @@
 (function (root) {
   'use strict';
   const CELL = 96, ROAD_CELL = 64, EPS = 1e-7;
-  const COLORS = { grass: '#6c8050', forest: '#526749', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960' };
+  const COLORS = { grass: '#6c8050', forest: '#526749', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960', 'colored-surface': '#4f785b' };
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const cross = (a,b,c) => (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
   const point = (x,y,z=0) => ({x,y,z});
   const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
   function seeded(seed) { let s=2166136261; for(const c of String(seed)) s=Math.imul(s^c.charCodeAt(0),16777619); return () => {s=(s+0x6D2B79F5)|0; let t=Math.imul(s^s>>>15,1|s); t^=t+Math.imul(t^t>>>7,61|t); return ((t^t>>>14)>>>0)/4294967296;}; }
+  const GROWTH_FORMS = new Set(['rounded','tufted','conical','columnar']);
+  function selectGrowthForm(properties,rng) {
+    if(GROWTH_FORMS.has(properties.growthForm))return properties.growthForm;
+    const choices=(Array.isArray(properties.growthForms)?properties.growthForms:[])
+      .map(p=>typeof p==='string'?{form:p,weight:1}:p)
+      .filter(p=>p&&GROWTH_FORMS.has(p.form)&&Number.isFinite(p.weight)&&p.weight>0);
+    const sum=choices.reduce((s,p)=>s+p.weight,0);if(!sum)return null;
+    let target=rng()*sum;for(const p of choices){target-=p.weight;if(target<0)return p.form;}
+    return choices.at(-1).form;
+  }
   function nearestOn(a,b,p) { const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1); return {x:a.x+t*dx,y:a.y+t*dy,z:a.z+t*(b.z-a.z),distance:Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}; }
   function inside(p,ring) { let v=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++) {const a=ring[i],b=ring[j]; if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)v=!v;} return v; }
   function inTriangle(p,a,b,c) { const d=[cross(a,b,p),cross(b,c,p),cross(c,a,p)]; return d.every(n=>n>=-EPS)||d.every(n=>n<=EPS); }
@@ -103,7 +113,7 @@
     function nearest(x,y) {const p=point(x,y),b={minX:x,maxX:x,minY:y,maxY:y};let best=null; for(let r=64;r<=4096;r*=2) {for(const s of candidates(b,r)){const q=nearestOn(s.a,s.b,p);if(!best||q.distance<best.distance)best=q;}if(best&&best.distance<=r)return best;}for(const s of segments){const q=nearestOn(s.a,s.b,p);if(!best||q.distance<best.distance)best=q;}return best;}
     const groundHeight=(x,y)=>nearest(x,y).z-.07;
     const clearance=track.width*.5+Math.min(1.1,track.width*.065)+.35;
-    function clearTriangle(t) { for(const s of candidates(bounds(t),clearance)){if(inTriangle(s.a,...t)||inTriangle(s.b,...t))return false;for(let i=0;i<3;i++)if(segmentDistance(t[i],t[(i+1)%3],s.a,s.b)<clearance)return false;}return true; }
+    function clearTriangle(t,margin=clearance) { for(const s of candidates(bounds(t),margin)){if(inTriangle(s.a,...t)||inTriangle(s.b,...t))return false;for(let i=0;i<3;i++)if(segmentDistance(t[i],t[(i+1)%3],s.a,s.b)<margin)return false;}return true; }
     // Reserve every cited polygon before placing trees, including polygons that
     // appear later in the input. A crown must not overlap a paved/gravel surface;
     // illustrative vegetation additionally stays outside all observed areas.
@@ -127,29 +137,168 @@
     function addFace(vertices,fill,kind,featureId,extra={}) {
       if(faces.length>=50000&&!Object.hasOwn(COLORS,kind))return; const center=vertices.reduce((p,v)=>point(p.x+v.x/vertices.length,p.y+v.y/vertices.length,p.z+v.z/vertices.length),point(0,0));
       const k=key(Math.floor(center.x/CELL),Math.floor(center.y/CELL));if(!groupsMap.has(k))groupsMap.set(k,{id:k,faces:[],objects:[],bounds:{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity}});
-      const g=groupsMap.get(k),f={vertices,fill,kind,featureId,...extra,...(drapedFeatures.has(featureId)?{terrainDrape:true}:{})};g.faces.push(f);faces.push(f);
+      const g=groupsMap.get(k),f={vertices,fill,kind,featureId,...extra,...(drapedFeatures.has(featureId)&&Object.hasOwn(COLORS,kind)?{terrainDrape:true}:{})};g.faces.push(f);faces.push(f);
       for(const v of vertices){g.bounds.minX=Math.min(g.bounds.minX,v.x);g.bounds.maxX=Math.max(g.bounds.maxX,v.x);g.bounds.minY=Math.min(g.bounds.minY,v.y);g.bounds.maxY=Math.max(g.bounds.maxY,v.y);}stats.kinds[kind]=(stats.kinds[kind]||0)+1;
     }
     function tree(p,properties,featureId,rng) {
       const h=clamp(properties.height||9+rng()*8,3,32),r=clamp(properties.crownRadius||h*.24,1.3,6);
       const illustrative=properties.illustrativeVegetation===true;
       if(nearest(p.x,p.y).distance<clearance+r+3||reservedSurface(p,r+1,illustrative)||options.excludeTree?.(p.x,p.y,r+1))return false;
+      // Shape changes must not consume the forest-placement RNG. Background
+      // trees historically consumed 13 extra draws; retain that exact cadence.
+      const shapeRng=seeded(id+':'+featureId+':'+p.x.toFixed(6)+','+p.y.toFixed(6)+':growth');
+      const form=selectGrowthForm(properties,shapeRng),crownRng=form?shapeRng:rng;
+      if(form&&illustrative)for(let i=0;i<13;i++)rng();
       const z=groundHeight(p.x,p.y),o={kind:'tree',x:p.x,y:p.y,z,height:h,radius:r,featureId,individualPositionEstimated:properties.kind==='forest'||illustrative,illustrativeVegetation:illustrative};objects.push(o);stats.trees++;
+      if(form){o.growthForm=form;o.growthFormEstimated=true;}
       if(illustrative){stats.backgroundTrees++;stats.illustrativeVegetation=true;}else stats.sourceTrees++;
       const n=6,ring=Array.from({length:n},(_,i)=>{const a=i*Math.PI*2/n;return point(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,z+h*.61);}),tip=point(p.x+.12*r,p.y-.08*r,z+h),bottom=point(p.x,p.y,z+h*.35);
       const shadow=ring.map(q=>point(q.x+h*.20,q.y+h*.13,z+.025));
       if(shadow.slice(1,-1).every((q,i)=>clearTriangle([shadow[0],q,shadow[i+2]])))addFace(shadow,'rgba(26,42,22,.20)','tree-shadow',featureId,{detail:1});
-      if(illustrative){
+      if(form==='tufted'||form==='columnar'){
+        const color=/^#[0-9a-f]{6}$/i.test(properties.crownColor||'')?properties.crownColor:'#526d45';
+        const extra={growthForm:form,...(illustrative?{illustrativeVegetation:true}:{})};
+        const add=(vertices,factor,kind='tree')=>addFace(vertices,tint(kind==='tree'?color:'#665947',factor),kind,featureId,extra);
+        const phase=crownRng()*Math.PI*2;
+        if(form==='columnar'){
+          // A narrow layered crown is a growth-form estimate, not a species or
+          // seasonal claim. Four rings retain a tall exposed straight trunk.
+          const rings=[[.42,.45],[.60,1],[.81,.65],[.98,.18]].map(([level,scale])=>Array.from({length:n},(_,i)=>{
+            const a=phase+i*Math.PI*2/n,rr=r*scale*(.90+crownRng()*.1);
+            return point(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,z+h*level);
+          }));
+          for(let level=1;level<rings.length;level++)for(let i=0;i<n;i++){const j=(i+1)%n;add([rings[level-1][i],rings[level-1][j],rings[level][j],rings[level][i]],.79+i*.035+level*.025);}
+          add(rings[0].slice().reverse(),.72);add(rings.at(-1),1.04);
+        }else{
+          // Three flattened, offset crowns with visible connecting branches:
+          // no tall triangular cone, at most 35 faces including trunk/shadow.
+          for(let k=0;k<3;k++){
+            const a=phase+k*Math.PI*2/3,cx=p.x+Math.cos(a)*r*.28,cy=p.y+Math.sin(a)*r*.28;
+            const low=[.55,.69,.82][k],high=[.70,.85,1][k],rr=r*(.60+crownRng()*.08);
+            const lower=Array.from({length:n},(_,i)=>{const angle=phase+i*Math.PI*2/n,rad=rr*(.88+crownRng()*.12);return point(cx+Math.cos(angle)*rad,cy+Math.sin(angle)*rad*.86,z+h*low);});
+            const upper=lower.map(q=>point(cx+(q.x-cx)*.78,cy+(q.y-cy)*.78,z+h*high));
+            for(let i=0;i<n;i++){const j=(i+1)%n;add([lower[i],lower[j],upper[j],upper[i]],.80+i*.035);}
+            add(lower.slice().reverse(),.70);add(upper,1.02);
+            const start=point(p.x,p.y,z+h*(low-.06)),end=point(cx,cy,z+h*(low+.02)),w=h*.007;
+            add([point(start.x-w,start.y,start.z),point(end.x-w,end.y,end.z),point(end.x+w,end.y,end.z),point(start.x+w,start.y,start.z)],.9,'tree-trunk');
+            add([point(start.x,start.y-w,start.z),point(end.x,end.y-w,end.z),point(end.x,end.y+w,end.z),point(start.x,start.y+w,start.z)],.8,'tree-trunk');
+          }
+        }
+      }else if(form==='rounded'||(!form&&illustrative)){
         // Two irregular crown rings produce broad, rounded silhouettes instead
         // of repeating the same pointed conifer on a regular planting grid.
-        const phase=rng()*Math.PI*2,upperRadius=properties.crownShape==='spreading'?.80:.62,color=properties.crownColor||'#5b7546';
-        const lower=Array.from({length:n},(_,i)=>{const a=phase+i*Math.PI*2/n,rr=r*(.82+rng()*.18);return point(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,z+h*(.53+rng()*.06));});
+        const phase=crownRng()*Math.PI*2,upperRadius=properties.crownShape==='spreading'?.80:.62,color=properties.crownColor||'#5b7546';
+        const lower=Array.from({length:n},(_,i)=>{const a=phase+i*Math.PI*2/n,rr=r*(.82+crownRng()*.18);return point(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,z+h*(.53+crownRng()*.06));});
         const upper=lower.map((q,i)=>point(p.x+(q.x-p.x)*upperRadius+.08*r,p.y+(q.y-p.y)*upperRadius,z+h*(.81+(i%2)*.04)));
-        for(let i=0;i<n;i++){const j=(i+1)%n;addFace([lower[i],lower[j],upper[j],upper[i]],tint(color,.82+i*.035),'tree',featureId,{illustrativeVegetation:true});addFace([upper[i],upper[j],tip],tint(color,.94+i*.025),'tree',featureId,{illustrativeVegetation:true});addFace([lower[j],lower[i],bottom],tint(color,.72+i*.025),'tree',featureId,{detail:1,illustrativeVegetation:true});}
+        const extra=illustrative?{illustrativeVegetation:true}:{growthForm:form};
+        for(let i=0;i<n;i++){const j=(i+1)%n;addFace([lower[i],lower[j],upper[j],upper[i]],tint(color,.82+i*.035),'tree',featureId,extra);addFace([upper[i],upper[j],tip],tint(color,.94+i*.025),'tree',featureId,extra);addFace([lower[j],lower[i],bottom],tint(color,.72+i*.025),'tree',featureId,{detail:1,...extra});}
       }else for(let i=0;i<n;i++){addFace([ring[i],ring[(i+1)%n],tip],tint('#496642',.81+i*.055),'tree',featureId);addFace([ring[(i+1)%n],ring[i],bottom],tint('#3f5738',.82+i*.035),'tree',featureId,{detail:1});}
-      const tr=h*.019;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2;addFace([point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z+h*.58),point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z+h*.58)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
+      const tr=h*(form==='tufted'?.012:.019),trunkHeight=form==='tufted'?.89:form==='columnar'?.64:.58;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2;addFace([point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z+h*trunkHeight),point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z+h*trunkHeight)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
       const group=groupsMap.get(key(Math.floor(p.x/CELL),Math.floor(p.y/CELL)));if(group)group.objects.push(o);
       return true;
+    }
+    function lineStations(line,spacing,side=1) {
+      const parts=[],nodes=[];let total=0;
+      for(let i=1;i<line.length;i++){
+        const a=line[i-1],b=line[i],length=distance(a,b);if(length<EPS)continue;
+        parts.push({a,b,length,start:total});total+=length;
+      }
+      if(!parts.length)return nodes;
+      const count=Math.ceil(total/spacing);let cursor=0;
+      for(let i=0;i<=count;i++){
+        const s=Math.min(total,i*spacing);while(cursor<parts.length-1&&s>parts[cursor].start+parts[cursor].length)cursor++;
+        const part=parts[cursor],t=clamp((s-part.start)/part.length,0,1);
+        nodes.push(point(part.a.x+(part.b.x-part.a.x)*t,part.a.y+(part.b.y-part.a.y)*t));
+      }
+      for(let i=0;i<nodes.length;i++){
+        const node=nodes[i],a=nodes[Math.max(0,i-1)],b=nodes[Math.min(nodes.length-1,i+1)],length=distance(a,b)||1;
+        node.z=groundHeight(node.x,node.y);node.nx=-(b.y-a.y)/length*side;node.ny=(b.x-a.x)/length*side;
+      }
+      return nodes;
+    }
+    function armco(line,p,featureId) {
+      const numeric=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+      const height=clamp(numeric(p.height,.8),.8,1.1),rails=Math.round(clamp(numeric(p.rails,1),1,3));
+      const spacing=clamp(numeric(p.postSpacing,3),3,6),side=p.side==='left'?-1:1;
+      const fill=/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#a7b0b2',nodes=lineStations(line,spacing,side);
+      const at=(node,offset,z)=>point(node.x+node.nx*offset,node.y+node.ny*offset,node.z+z);
+      const add=(vertices,shade,part,extra={})=>addFace(vertices,tint(fill,shade),'guardrail',featureId,{railProfile:'armco',barrierPart:part,...extra});
+      const posts=new Set();
+      function post(index){
+        if(posts.has(index))return;posts.add(index);
+        const q=nodes[index],low=[[-.035,-.17],[.035,-.17],[.035,-.07],[-.035,-.07]].map(([u,v])=>{
+          const center=at(q,v,0),x=center.x+q.ny*u,y=center.y-q.nx*u;return point(x,y,groundHeight(x,y));
+        }),top=low.map(v=>point(v.x,v.y,v.z+height-.03));
+        for(let i=0;i<4;i++)add([low[i],low[(i+1)%4],top[(i+1)%4],top[i]],.71+i*.035,'post');
+        add(top,.91,'post');
+      }
+      // Display-only estimated metal profile: two outward ribs and a valley,
+      // with real empty space below and between beams. No opaque wall backing.
+      const beamHeight=rails===1?.30:rails===2?.24:.20,profile=[[0,0],[.07,.25],[-.025,.5],[.07,.75],[0,1]];
+      for(let i=1;i<nodes.length;i++){
+        const a=nodes[i-1],b=nodes[i],margin=clearance+.20;
+        // The full W profile AND rear posts stay outside every nearby road leg.
+        // Unit normals bound corners without unbounded miter extensions.
+        if(distance(a,b)<EPS||candidates(bounds([a,b]),margin).some(s=>segmentDistance(a,b,s.a,s.b)<margin))continue;
+        post(i-1);post(i);
+        for(let rail=0;rail<rails;rail++){
+          const bottom=height-beamHeight-rail*(beamHeight+.04);
+          for(let j=1;j<profile.length;j++){
+            const [offset0,z0]=profile[j-1],[offset1,z1]=profile[j];
+            add([at(a,offset0,bottom+z0*beamHeight),at(b,offset0,bottom+z0*beamHeight),at(b,offset1,bottom+z1*beamHeight),at(a,offset1,bottom+z1*beamHeight)],j%2?.92:1.08,'beam',{railIndex:rail});
+          }
+        }
+      }
+    }
+    function safetyWall(line,p,featureId) {
+      const numeric=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+      const height=clamp(numeric(p.height,1),.3,2),width=clamp(numeric(p.width,.45),.2,1.5);
+      const spacing=clamp(numeric(p.sectionLength,5),2,12);
+      const valid=color=>/^#[0-9a-f]{6}$/i.test(color||'');
+      const material=typeof p.material==='string'&&p.material.trim()?p.material:'concrete';
+      const colors=valid(p.color)?[p.color]:(Array.isArray(p.colors)?p.colors:[]).filter(valid);
+      if(!colors.length)colors.push(...(material==='tire-stack'?['#343736']:['#3f80a7','#e5e8dc']));
+      if(material==='tire-stack'){
+        // Estimated low-poly tire envelopes, not individual scanned tires.
+        // Short observed impact zones use 33 faces/stack and at most 512 stacks.
+        const diameter=clamp(numeric(p.diameter,.8),.6,.8),radius=diameter*.5,nodes=lineStations(line,diameter);
+        for(let i=1;i<nodes.length&&i<=512;i++){
+          const a=nodes[i-1],b=nodes[i],x=(a.x+b.x)/2,y=(a.y+b.y)/2;
+          if(nearest(x,y).distance<clearance+radius+.01)continue;
+          const z=groundHeight(x,y),phase=Math.atan2(b.y-a.y,b.x-a.x),fill=colors[Math.floor((i-.5)*diameter/spacing)%colors.length];
+          const ring=(r,height,ground=false)=>Array.from({length:6},(_,j)=>{
+            const angle=phase+j*Math.PI/3,px=x+Math.cos(angle)*r,py=y+Math.sin(angle)*r;
+            return point(px,py,ground?groundHeight(px,py):z+height);
+          });
+          const add=(vertices,color,part,layer)=>addFace(vertices,color,'safety-wall',featureId,{barrierMaterial:material,
+            geometryApproximation:'three-layer-hexagonal-tires',barrierPart:part,stackIndex:i-1,layerIndex:layer});
+          for(let layer=0;layer<3;layer++){
+            const bottom=ring(radius*.94,height*layer/3,layer===0),top=ring(radius,height*(layer+1)/3);
+            for(let j=0;j<6;j++)add([bottom[j],bottom[(j+1)%6],top[(j+1)%6],top[j]],tint(fill,.80+j*.035+layer*.025),'tire-side',layer);
+            if(layer<2)add(top,tint(fill,.68),'tire-seam',layer);
+            else{
+              const inner=ring(radius*.55,height),recess=ring(radius*.55,height-.10);
+              for(let j=0;j<6;j++){
+                const k=(j+1)%6;
+                add([top[j],top[k],inner[k],inner[j]],'#3b403e','tire-rim',layer);
+                add([inner[j],inner[k],recess[k],recess[j]],'#252a28','tire-cavity',layer);
+              }
+              add(recess,'#171c1a','tire-cavity',layer);
+            }
+          }
+        }
+        return;
+      }
+      const nodes=lineStations(line,spacing);
+      const edge=(q,side)=>{const x=q.x+q.nx*width*.5*side,y=q.y+q.ny*width*.5*side;return point(x,y,groundHeight(x,y));};
+      for(let i=1;i<nodes.length;i++){
+        const a=nodes[i-1],b=nodes[i],margin=clearance+width*.5+.01;
+        if(distance(a,b)<EPS||candidates(bounds([a,b]),margin).some(s=>segmentDistance(a,b,s.a,s.b)<margin))continue;
+        const low=[edge(a,1),edge(b,1),edge(b,-1),edge(a,-1)],top=low.map(q=>point(q.x,q.y,q.z+height));
+        const fill=colors[(i-1)%colors.length],extra={barrierMaterial:material,geometryApproximation:'solid-barrier-envelope',sectionIndex:i-1};
+        for(let j=0;j<4;j++)addFace([low[j],low[(j+1)%4],top[(j+1)%4],top[j]],fill,'safety-wall',featureId,extra);
+        addFace(top,tint(fill,1.06),'safety-wall',featureId,extra);
+      }
     }
     function catchFence(line,p,featureId) {
       const number=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -208,10 +357,15 @@
       if(!g||!p.sourceId||!p.kind){stats.rejected++;continue;}stats.features++;
       const rng=seeded(id+':'+featureId),kind=p.kind;
       if(g.type==='Point'&&kind==='tree'){tree(project(g.coordinates),p,featureId,rng);continue;}
+      if(g.type==='Polygon'&&kind==='vegetation-exclusion')continue;
+      // A cited grass reserve can use the matching base ground material. Its
+      // footprint still excludes trees, without a redundant intersecting sheet.
+      if(g.type==='Polygon'&&kind==='grass'&&p.baseMaterial===true)continue;
       if(g.type==='Polygon'&&Object.hasOwn(COLORS,kind)) {
         const rings=g.coordinates.map(r=>r.map(project)),outer=rings[0],holes=rings.slice(1),b=bounds(outer);
+        const surfaceClearance=p.drapeOnTerrain&&p.edgeContact?track.width*.5+Math.min(1.1,track.width*.065)+.01:clearance;
         function renderTriangle(t,depth=0) {
-          const edges=[distance(t[0],t[1]),distance(t[1],t[2]),distance(t[2],t[0])],long=Math.max(...edges),center=point((t[0].x+t[1].x+t[2].x)/3,(t[0].y+t[1].y+t[2].y)/3),clear=clearTriangle(t);
+          const edges=[distance(t[0],t[1]),distance(t[1],t[2]),distance(t[2],t[0])],long=Math.max(...edges),center=point((t[0].x+t[1].x+t[2].x)/3,(t[0].y+t[1].y+t[2].y)/3),clear=clearTriangle(t,surfaceClearance);
           const holeHit=holes.some(r=>t.some(q=>inside(q,r))||r.some(q=>inTriangle(q,...t))||t.some((a,i)=>r.some((c,j)=>intersects(a,t[(i+1)%3],c,r[(j+1)%r.length]))));
           if((!clear||holeHit||long>(kind==='forest'?42:25))&&long>2&&depth<18){const i=edges.indexOf(long),a=t[i],b=t[(i+1)%3],c=t[(i+2)%3],m=point((a.x+b.x)/2,(a.y+b.y)/2);renderTriangle([a,m,c],depth+1);renderTriangle([m,b,c],depth+1);return;}
           if(!clear||holeHit||Math.abs(cross(...t))<.04)return;
@@ -228,13 +382,17 @@
         }
       } else if(g.type==='LineString'&&kind==='catch-fence') {
         catchFence(g.coordinates.map(project),p,featureId);
+      } else if(g.type==='LineString'&&kind==='guardrail'&&p.profile==='armco') {
+        armco(g.coordinates.map(project),p,featureId);
+      } else if(g.type==='LineString'&&kind==='safety-wall') {
+        safetyWall(g.coordinates.map(project),p,featureId);
       } else if(g.type==='LineString'&&['retaining-wall','guardrail'].includes(kind)) {
         const line=g.coordinates.map(project),height=clamp(p.height||(kind==='guardrail'?.8:2.1),.3,8),width=kind==='guardrail'?.18:.55;
         for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],length=distance(a,b),n=Math.ceil(length/9);if(length<EPS)continue;for(let j=0;j<n;j++){const u=point(a.x+(b.x-a.x)*j/n,a.y+(b.y-a.y)*j/n),v=point(a.x+(b.x-a.x)*(j+1)/n,a.y+(b.y-a.y)*(j+1)/n);if(candidates(bounds([u,v]),clearance+width).some(s=>segmentDistance(u,v,s.a,s.b)<clearance+width))continue;const nx=-(b.y-a.y)/length*width*.5,ny=(b.x-a.x)/length*width*.5;const verts=[point(u.x+nx,u.y+ny,groundHeight(u.x,u.y)),point(v.x+nx,v.y+ny,groundHeight(v.x,v.y)),point(v.x-nx,v.y-ny,groundHeight(v.x,v.y)),point(u.x-nx,u.y-ny,groundHeight(u.x,u.y))],top=verts.map(q=>point(q.x,q.y,q.z+height));for(let k=0;k<4;k++)addFace([verts[k],verts[(k+1)%4],top[(k+1)%4],top[k]],kind==='guardrail'?'#9caaa9':k%2?'#77796c':'#939285',kind,featureId);addFace(top,kind==='guardrail'?'#b4c0bd':'#aba99b',kind,featureId);}}
       }
     }
     if(options.backgroundVegetation!==false){
-      const requested=Number.isFinite(options.backgroundTreeLimit)?options.backgroundTreeLimit:400;
+      const requested=Number.isFinite(options.backgroundTreeLimit)?options.backgroundTreeLimit:Number.isFinite(data.metadata?.backgroundTreeLimit)?data.metadata.backgroundTreeLimit:400;
       const length=track.centerlineLength||segments.reduce((s,q)=>s+distance(q.a,q.b),0),budget=Math.floor(clamp(Math.min(requested,Math.max(260,length/10)),0,400));
       const rng=seeded(id+':illustrative-background-v1'),treeGrid=new Map(),TREE_CELL=16;
       function indexTree(o){const k=key(Math.floor(o.x/TREE_CELL),Math.floor(o.y/TREE_CELL));if(!treeGrid.has(k))treeGrid.set(k,[]);treeGrid.get(k).push(o);}
@@ -254,7 +412,7 @@
           const p=point(center.x+u*Math.cos(rotation)-v*Math.sin(rotation),center.y+u*Math.sin(rotation)+v*Math.cos(rotation));
           const r=1.9+rng()*2.2,road=nearest(p.x,p.y).distance;
           if(road<45+r||road>180-r||occupied(p,r)||reservedSurface(p,r+1,true)||options.excludeTree?.(p.x,p.y,r+1))continue;
-          const spreading=rng()<.42,properties={illustrativeVegetation:true,height:(spreading?5.5:7)+rng()*6,crownRadius:r,crownShape:spreading?'spreading':'rounded',crownColor:['#607b49','#536e44','#6e8350','#587547'][Math.floor(rng()*4)]};
+          const spreading=rng()<.42,properties={illustrativeVegetation:true,height:(spreading?5.5:7)+rng()*6,crownRadius:r,crownShape:spreading?'spreading':'rounded',crownColor:['#607b49','#536e44','#6e8350','#587547'][Math.floor(rng()*4)],growthForms:options.backgroundGrowthForms??data.metadata?.backgroundGrowthForms};
           if(tree(p,properties,'illustrative-background-'+id+'-'+cluster,rng))indexTree(objects.at(-1));
         }
       }
