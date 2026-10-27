@@ -223,7 +223,7 @@ function updateUI(){
  const cursor=car.finished?1000:(car.distance%car.trackLength)/car.trackLength*1000;$('elevation-cursor').setAttribute('x1',cursor);$('elevation-cursor').setAttribute('x2',cursor);
  $('vehicle-source').href=spec.sourceUrl||(window.CircuitVehicleSpecs||VehicleSpecs)[car.vehicleId].sourceUrl;$('vehicle-source').textContent='출고 사양 출처 ↗';
  if(imageId!==car.vehicleId){imageId=car.vehicleId;const art=VehicleArtwork[imageId];
-  if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png'+(imageId==='g70'?'?v=20261020-g70-1':['bmw_m2','gr86','k5'].includes(imageId)?'?v=20261019-finish-1':'');image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
+  if(ManufacturerModels.requiresAsset(imageId)){const image=document.createElement('img');image.src='assets/reference/'+imageId+'-model-preview.png'+(['g70','supra'].includes(imageId)?'?v=20261027-handedness-2':['bmw_m2','gr86','k5'].includes(imageId)?'?v=20261019-finish-1':'');image.alt='';image.style.cssText='width:100%;height:100%;object-fit:contain';$('car-image').replaceChildren(image);}
   else if(art){const [x,y,w,h]=art.bounds;$('car-image').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+[x-15,y-15,w+30,h+30].join(' ')+'"><image href="../evolving_vehicles/'+art.file+'" width="'+art.width+'" height="'+art.height+'"/></svg>';}
   else $('car-image').replaceChildren();
  }
