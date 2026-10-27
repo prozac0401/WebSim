@@ -64,6 +64,8 @@ Open-Meteo 제공 자료는 [CC BY 4.0](https://open-meteo.com/en/licence), Cope
 
 ## 재생성과 근사 범위
 
+2026-10-27 HMG 태안은 [2022-11-26 사용자 주행 영상](https://www.youtube.com/watch?v=kg9MqltDL5U)과 [2025 공식 브로슈어](https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf)를 대조해 마른 노면 코스의 흰 가장자리선·짧은 노란 띠·점선·포장 어깨·금속 가드레일·녹색 덮개 방호시설을 구분했다. 원본 중심선에 코너 순서를 대응한 위치는 약±60m의 근사이며, 실패한 도식 정합은 포장 좌표로 사용하지 않았다. 식생 섬은 기존 지형에 맞추고 임의 배경 숲은 끈다. 별도 고속 오벌과 다른 체험 코스는 포장·연석·방호시설 범위에 섞지 않는다. [자료의 시점·채택 범위·권리](data/environment/hmg-taean-reference-20261027.md)에 한계를 기록했으며 도로·고도·차량 주행 계산과 랩 계측 원점은 유지한다.
+
 2026-10-27 영암 GP와 상설은 [2013 코리아 GP 관람 영상](https://www.youtube.com/watch?v=caVSBA3tmrw)(2022-01-05 업로드), [FIA 2013 범례 지도](https://www.fia.com/sites/default/files/external_archive/node4128/14-korea-circuit-print.pdf)·행사 자료, 운영사 항공사진과 OSM 시설 외곽을 대조했다. 영상은 T3가 아닌 T9–T10 고정 관람 구역이며, 별도 T11 줄무늬는 항공사진 근거다. 포장·자갈·연석·녹색 가장자리·금속 방호시설과 관람석·한옥 교량을 구분하고, 공통 시설은 WGS84를 거쳐 두 코스에 재투영한다. FIA 중심선 정합 RMS 약1.30m는 지표 경계 측량 정확도가 아니며, 줄무늬7m 주기·4.5m 도색·2.5m 간격·위상, 시설 높이와 세부 구조는 추정이다. 열린 내부에는 임의 배경 나무를 생성하지 않는다. [자료의 시점·표현 범위·권리](data/environment/yeongam-reference-20261027.md)에 세부 근거를 남겼으며 도로·고도·주행 계산과 랩 계측 원점은 유지한다.
 
 태백의 주변 산지는 2026-10-27 취득한 Open-Meteo / Copernicus DEM GLO-90의 실제 391점(75m 조회 간격, 원 자료 약90m 해상도)으로 보강했다. OSM 산림 8057853·외곽선 655059092와 영상의 노출 암반을 대조해 지표와 수목을 나눈다. 도로·연석·물리 고도는 유지하며 주변 지형만 연결한다. 개별 나무와 갓길 연결 형상은 표시용 근사이고, [자료·보간·보호 범위](data/environment/taebaek-reference-20261027.md)에 한계를 남겼다.

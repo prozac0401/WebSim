@@ -4,6 +4,7 @@
 (function (root) {
   'use strict';
   const CELL = 96, ROAD_CELL = 64, EPS = 1e-7;
+  const PAINT_ORDER = Symbol('terrain-paint-order');
   const COLORS = { grass: '#6c8050', forest: '#526749', rock: '#858a7c', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960', 'colored-surface': '#4f785b' };
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const cross = (a,b,c) => (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
@@ -86,6 +87,7 @@
       const boundary = [];
       for (let i = 0; i < 3; i++) boundary.push(...edge(t.ids[i], t.ids[(i + 1) % 3]).slice(0, -1));
       const metadata = { fill: t.fill, kind: t.kind, featureId: t.featureId, priority: t.priority };
+      if(t[PAINT_ORDER]!==undefined)metadata[PAINT_ORDER]=t[PAINT_ORDER];
       if (boundary.length === 3) {
         faces.push({ ...metadata, vertices: boundary.map(id => vertices[id]) });
         continue;
@@ -141,7 +143,7 @@
       }return false;
     }
     const drapedFeatures=new Set((data.features||[]).filter(f=>f.properties?.drapeOnTerrain===true).map(f=>f.id));
-    const groupsMap=new Map(),faces=[],objects=[],terrain=[],stats={features:0,rejected:0,faces:0,trees:0,sourceTrees:0,backgroundTrees:0,backgroundPlacementCandidates:0,illustrativeVegetation:false,kinds:{},approximateVerticalGeometry:true};
+    const groupsMap=new Map(),faces=[],objects=[],terrain=[],paintMasks=[],stats={features:0,rejected:0,faces:0,trees:0,sourceTrees:0,backgroundTrees:0,backgroundPlacementCandidates:0,illustrativeVegetation:false,kinds:{},approximateVerticalGeometry:true};
     const tint=(hex,f)=>'#'+[1,3,5].map(i=>clamp(Math.round(parseInt(hex.slice(i,i+2),16)*f),0,255).toString(16).padStart(2,'0')).join('');
     function addFace(vertices,fill,kind,featureId,extra={}) {
       if(faces.length>=50000&&!Object.hasOwn(COLORS,kind))return; const center=vertices.reduce((p,v)=>point(p.x+v.x/vertices.length,p.y+v.y/vertices.length,p.z+v.z/vertices.length),point(0,0));
@@ -372,7 +374,9 @@
         rod(at(a,height*.12),at(b,height*.8),.009,'mesh');rod(at(a,height*.8),at(b,height*.12),.009,'mesh');
       }
     }
+    let featureOrder=0;
     for(const feature of data.features||[]) {
+      const order=featureOrder++;
       const p=feature.properties||{},g=feature.geometry,featureId=feature.id||'feature-'+stats.features;
       if(!g||!p.sourceId||!p.kind){stats.rejected++;continue;}stats.features++;
       const rng=seeded(id+':'+featureId),kind=p.kind;
@@ -383,6 +387,15 @@
       if(g.type==='Polygon'&&kind==='grass'&&p.baseMaterial===true)continue;
       if(g.type==='Polygon'&&Object.hasOwn(COLORS,kind)) {
         const rings=g.coordinates.map(r=>r.map(project)),outer=rings[0],holes=rings.slice(1),b=bounds(outer);
+        // These opt-in XY masks are painted onto the existing terrain, whose
+        // road cutouts and triangle planes already provide the exact clipping.
+        // Refining them against the road first creates redundant internal cuts.
+        // Holes, forests and unavailable painters retain the legacy path.
+        if(p.terrainPaintOnly===true&&p.drapeOnTerrain===true&&kind!=='forest'&&!holes.length&&typeof root.CircuitTerrain?.paintSurface==='function'){
+          const fill=tint(/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:COLORS[kind],1);
+          for(const vertices of triangulate(outer))paintMasks.push({order,face:{vertices,fill,kind,featureId,priority:-2,terrainDrape:true}});
+          continue;
+        }
         const surfaceClearance=p.drapeOnTerrain&&p.edgeContact?track.width*.5+Math.min(1.1,track.width*.065)+.01:clearance;
         function renderTriangle(t,depth=0) {
           const edges=[distance(t[0],t[1]),distance(t[1],t[2]),distance(t[2],t[0])],long=Math.max(...edges),center=point((t[0].x+t[1].x+t[2].x)/3,(t[0].y+t[1].y+t[2].y)/3),clear=clearTriangle(t,surfaceClearance);
@@ -393,7 +406,7 @@
           // A forest or meadow is one material, not a visible patchwork of
           // triangulation cells. Keep tiny variation only for loose gravel.
           const grain=kind==='painted-runoff'?1:.965+rng()*.07;
-          terrain.push({vertices:t,fill:tint(color,kind==='gravel'?grain:1),kind,featureId,priority:-2});
+          terrain.push({vertices:t,fill:tint(color,kind==='gravel'?grain:1),kind,featureId,priority:-2,[PAINT_ORDER]:order});
         }
         if(!(kind==='forest'&&p.baseMaterial===true))for(const t of triangulate(outer))renderTriangle(t);
         if(kind==='forest'&&p.trees!==false) {
@@ -441,12 +454,18 @@
     }
     const conforming=conformTerrain(terrain,groundHeight);
     stats.terrain={sourceTriangles:conforming.sourceTriangles,conformingTriangles:conforming.faces.length,insertedBoundaryVertices:conforming.insertedBoundaryVertices,sharedVertices:conforming.sharedVertices};
-    for(const f of conforming.faces)addFace(f.vertices,f.fill,f.kind,f.featureId,{priority:f.priority});
+    const orderedOverlays=[];
+    for(const f of conforming.faces){
+      addFace(f.vertices,f.fill,f.kind,f.featureId,{priority:f.priority});
+      if(paintMasks.length&&faces.at(-1).terrainDrape)orderedOverlays.push({order:f[PAINT_ORDER],face:faces.at(-1)});
+    }
+    const terrainOverlays=paintMasks.length?[...orderedOverlays,...paintMasks].sort((a,b)=>a.order-b.order).map(item=>item.face):faces.filter(f=>f.terrainDrape);
+    if(paintMasks.length)stats.terrainPaintMasks=paintMasks.length;
     const groups=[...groupsMap.values()];for(const g of groups){g.center=point((g.bounds.minX+g.bounds.maxX)/2,(g.bounds.minY+g.bounds.maxY)/2);g.radius=Math.hypot(g.bounds.maxX-g.bounds.minX,g.bounds.maxY-g.bounds.minY)/2;}
     stats.faces=faces.length;
     const worldBounds=faces.length?bounds(faces.flatMap(f=>f.vertices)):{...track.bounds};
     function query(x,y,radius=320) { if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(radius)||radius<0)return [];return groups.filter(g=>Math.hypot(Math.max(g.bounds.minX-x,0,x-g.bounds.maxX),Math.max(g.bounds.minY-y,0,y-g.bounds.maxY))<=radius); }
-    return {id,groups,faces,terrainOverlays:faces.filter(f=>f.terrainDrape),objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:suppliedGround?'sampled from supplied display terrain; individual trees and unclassified background vegetation are illustrative':'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
+    return {id,groups,faces,terrainOverlays,objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:suppliedGround?'sampled from supplied display terrain; individual trees and unclassified background vegetation are illustrative':'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
   }
   const api={build,conformTerrain};root.TrackEnvironment=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
