@@ -56,9 +56,10 @@
     "placementMethod": "공식 사진·배치도의 수작업 판독을 현재 centerline/projection에 정합. 측량·지적도 데이터가 아님.",
     "verticalGeometry": "건물 높이·지붕 상승량·정비칸 깊이는 사진 추정. 지면 고도는 현재 서킷 고도 모델에서 파생.",
     "raceOperations": "풍경용 시설 데이터. 대회별 차고 배정, 실제 피트 속도선, 진입 허가 및 레이스의 피트 전략을 정의하지 않음.",
-    "reviewedDate": "2026-10-15",
+    "reviewedDate": "2026-10-27",
     "approximateHorizontalUncertaintyM": 20,
-    "focusFeatureId": "monza-main-garages"
+    "focusFeatureId": "monza-main-garages",
+    "protectionRendering": "Original monza-pit-wall geometry is rendered once as monza-concrete-pit-wall in environment/overseas/monza-features.json for attached PIRELLI wordmarks. Other five service/building features and focus remain unchanged."
   },
   "features": [
     {
@@ -351,40 +352,6 @@
         "roofStyle": "pitched",
         "roofRise": 1.5,
         "windowBand": true,
-        "complex": "f1"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "monza-pit-wall",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            9.28137581,
-            45.61896455
-          ],
-          [
-            9.28148524,
-            45.61986035
-          ],
-          [
-            9.28161576,
-            45.62093373
-          ],
-          [
-            9.28170821,
-            45.62169403
-          ]
-        ]
-      },
-      "properties": {
-        "kind": "pit-wall",
-        "sourceId": "monza-official-photo",
-        "evidence": "본선과 fast lane 사이 콘크리트 벽을 사진으로 확인. 높이 1.15m·두께 .4m는 추정.",
-        "height": 1.15,
-        "width": 0.4,
-        "color": "#c1c6c2",
         "complex": "f1"
       }
     },

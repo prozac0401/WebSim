@@ -64,6 +64,8 @@ Open-Meteo 제공 자료는 [CC BY 4.0](https://open-meteo.com/en/licence), Cope
 
 ## 재생성과 근사 범위
 
+2026-10-27 몬차는 [F1 24 게임 가이드 영상](https://www.youtube.com/watch?v=ca5pPA1_Vks)(2025-02-12 업로드)을 [FIA 2024 변경 기록](https://www.fia.com/sites/default/files/decision-document/2024%20Italian%20Grand%20Prix%20-%20Race%20Director%27s%20Event%20Notes%20V4.pdf)과 실제2024 Formula 1 사진에 대조했다. 자갈과 아스팔트 런오프를 구별하고, FIA가 명시한 T2 왼쪽·T4–T5 오른쪽의 폭2.5m 자갈띠를 게임의 기존 자갈 구역과 분리한다. 벽면 광고의 배치·글자는 자료별 시점을 남긴 표시용 근사이며 공식 로고 원본을 재배포하지 않는다. 기존 피트벽은 같은 좌표로 환경 데이터에 옮겨 중복 표시하지 않는다. [자료 시점·치수·권리 범위](data/environment/monza-reference-20261027.md)에 한계를 기록했으며 원본 도로·고도·주행 물리는 유지한다.
+
 2026-10-27 포천은 [MotorKlasse의 2018년 주행 영상](https://www.youtube.com/watch?v=s0QiK0GTXl4)과 [Encar 현장 취재·사진](https://www.encar.com/mg/post.do?method=view&pagetype=news&postid=110235&subid=news1)을 대조했다. 저장 경로와 반대인 영상 방향을 변환해 청백 연석, 키 큰 마른 초본·흙·산림, PVC 가드레일과 콘크리트 안전벽·철망을 구분한다. 기존 피트벽은 환경 데이터로 옮겨 중복 표시하지 않는다. 미니맵 정합은 도식 대응이며 시설 경계를 측량한 것이 아니고, 원본 경로와 다른 북서쪽 돌출부에는 새 근접 시설을 배치하지 않는다. [자료 시점·방향·추정 범위](data/environment/pocheon-reference-20261027.md)에 한계를 기록했다. 기존 도로 XY·길이·방향·고도·물리 계산은 유지한다. 도로 옆 표시 지면은 연속 방호벽을 받치도록 완만하게 연결하고 식생·방호시설을 그 면에 맞춘다. 새 DEM이나 실측 옹벽을 추가한 것이 아니며 도로 밖 표시 지면 높이는 조정될 수 있다.
 
 2026-10-27 HMG 태안은 [2022-11-26 사용자 주행 영상](https://www.youtube.com/watch?v=kg9MqltDL5U)과 [2025 공식 브로슈어](https://drivingexperience.hyundai.co.kr/kr/common/pdf/hmg_driving_experience_center_ko_2025.pdf)를 대조해 마른 노면 코스의 흰 가장자리선·짧은 노란 띠·점선·포장 어깨·금속 가드레일·녹색 덮개 방호시설을 구분했다. 원본 중심선에 코너 순서를 대응한 위치는 약±60m의 근사이며, 실패한 도식 정합은 포장 좌표로 사용하지 않았다. 식생 섬은 기존 지형에 맞추고 임의 배경 숲은 끈다. 별도 고속 오벌과 다른 체험 코스는 포장·연석·방호시설 범위에 섞지 않는다. [자료의 시점·채택 범위·권리](data/environment/hmg-taean-reference-20261027.md)에 한계를 기록했으며 도로·고도·차량 주행 계산과 랩 계측 원점은 유지한다.

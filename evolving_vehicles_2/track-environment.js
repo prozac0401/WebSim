@@ -6,6 +6,29 @@
   const CELL = 96, ROAD_CELL = 64, EPS = 1e-7;
   const PAINT_ORDER = Symbol('terrain-paint-order');
   const COLORS = { grass: '#6c8050', forest: '#526749', rock: '#858a7c', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960', 'colored-surface': '#4f785b' };
+  // Generic 5x7 lettering, not sponsor artwork or a reproduction of a brand's
+  // proprietary typography. Adjacent lit cells in each row become one quad.
+  const WALL_FONT = {
+    A:['01110','10001','10001','11111','10001','10001','10001'], B:['11110','10001','10001','11110','10001','10001','11110'],
+    C:['01111','10000','10000','10000','10000','10000','01111'], D:['11110','10001','10001','10001','10001','10001','11110'],
+    E:['11111','10000','10000','11110','10000','10000','11111'], F:['11111','10000','10000','11110','10000','10000','10000'],
+    G:['01111','10000','10000','10111','10001','10001','01111'], H:['10001','10001','10001','11111','10001','10001','10001'],
+    I:['11111','00100','00100','00100','00100','00100','11111'], J:['00111','00010','00010','00010','10010','10010','01100'],
+    K:['10001','10010','10100','11000','10100','10010','10001'], L:['10000','10000','10000','10000','10000','10000','11111'],
+    M:['10001','11011','10101','10101','10001','10001','10001'], N:['10001','11001','10101','10011','10001','10001','10001'],
+    O:['01110','10001','10001','10001','10001','10001','01110'], P:['11110','10001','10001','11110','10000','10000','10000'],
+    Q:['01110','10001','10001','10001','10101','10010','01101'], R:['11110','10001','10001','11110','10100','10010','10001'],
+    S:['01111','10000','10000','01110','00001','00001','11110'], T:['11111','00100','00100','00100','00100','00100','00100'],
+    U:['10001','10001','10001','10001','10001','10001','01110'], V:['10001','10001','10001','10001','10001','01010','00100'],
+    W:['10001','10001','10001','10101','10101','10101','01010'], X:['10001','10001','01010','00100','01010','10001','10001'],
+    Y:['10001','10001','01010','00100','00100','00100','00100'], Z:['11111','00001','00010','00100','01000','10000','11111'],
+    '0':['01110','10001','10011','10101','11001','10001','01110'], '1':['00100','01100','00100','00100','00100','00100','01110'],
+    '2':['01110','10001','00001','00010','00100','01000','11111'], '3':['11110','00001','00001','01110','00001','00001','11110'],
+    '4':['00010','00110','01010','10010','11111','00010','00010'], '5':['11111','10000','10000','11110','00001','00001','11110'],
+    '6':['01111','10000','10000','11110','10001','10001','01110'], '7':['11111','00001','00010','00100','01000','01000','01000'],
+    '8':['01110','10001','10001','01110','10001','10001','01110'], '9':['01110','10001','10001','01111','00001','00001','11110'],
+    '.':['00000','00000','00000','00000','00000','00110','00110'], ' ':['00000','00000','00000','00000','00000','00000','00000']
+  };
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const cross = (a,b,c) => (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
   const point = (x,y,z=0) => ({x,y,z});
@@ -318,12 +341,68 @@
         }
       }
     }
+    function wallAdvertisement(p,material) {
+      if(p.advertisement===undefined)return null;
+      const state=stats.advertisements||(stats.advertisements={requested:0,walls:0,repeatAttempts:0,repeats:0,faces:0,rejectedUnsourced:0,rejectedInvalid:0,rejectedClearance:0,truncatedRepeats:0,font:'generic-5x7',wordmarkApproximation:true});
+      state.requested++;
+      const hasText=v=>typeof v==='string'&&v.trim().length>0;
+      if(!hasText(p.sourceId)||!(hasText(p.evidence)||Array.isArray(p.evidence)&&p.evidence.some(hasText))){state.rejectedUnsourced++;return null;}
+      const a=p.advertisement,repeatLength=a?.repeatLength??12;
+      if(!a||Array.isArray(a)||typeof a.text!=='string'||!(/^[A-Za-z0-9 .]+$/).test(a.text)||!(/[A-Za-z0-9]/).test(a.text)||a.text.trim().length>24||
+        !(/^#[0-9a-f]{6}$/i).test(a.color||'')||(a.side!==1&&a.side!==-1)||!Number.isFinite(repeatLength)||repeatLength<2||repeatLength>80||['tire-stack','pvc-corrugated'].includes(material)){
+        state.rejectedInvalid++;return null;
+      }
+      const text=a.text.trim().toUpperCase(),runs=[];
+      for(let index=0;index<text.length;index++)for(let row=0;row<7;row++){
+        const bits=WALL_FONT[text[index]][row];let column=0;
+        while(column<5){if(bits[column]!=='1'){column++;continue;}const start=column;while(column<5&&bits[column]==='1')column++;
+          runs.push({index,row,from:index*6+start,to:index*6+column});}
+      }
+      return{text,runs,color:a.color,side:a.side,repeatLength,columns:text.length*6-1,state};
+    }
+    function advertiseWall(segments,total,height,p,featureId,ad) {
+      if(!ad||!segments.length||total<EPS)return;
+      const state=ad.state,count=Math.ceil(total/ad.repeatLength),firstRepeat=state.repeats;
+      function firstSegment(s){let lo=0,hi=segments.length;while(lo<hi){const mid=(lo+hi)>>1;if(segments[mid].to<=s+EPS)lo=mid+1;else hi=mid;}return lo;}
+      for(let repeat=0;repeat<count;repeat++){
+        if(state.repeatAttempts>=128){state.truncatedRepeats+=count-repeat;break;}state.repeatAttempts++;
+        const start=repeat*ad.repeatLength,length=Math.min(ad.repeatLength,total-start);if(length<.5)continue;
+        const cell=Math.min(height*.65/7,length*.82/ad.columns),textWidth=cell*ad.columns,center=start+length/2,from=center-textWidth/2,to=center+textWidth/2;
+        let covered=from;
+        for(let i=firstSegment(from);i<segments.length&&covered<to-EPS;i++){
+          const s=segments[i];if(s.from>covered+EPS)break;covered=Math.min(to,s.to);
+        }
+        if(covered<to-EPS){state.rejectedClearance++;continue;}
+        const local=[],textTop=height/2+cell*3.5;
+        for(const run of ad.runs){
+          // The renderer uses +Y south: from +normal, screen-right advances
+          // with chainage; from -normal it advances against it. This controls
+          // the bitmap, independently of the outward-facing polygon winding.
+          const a=ad.side===-1?to-run.to*cell:from+run.from*cell,b=ad.side===-1?to-run.from*cell:from+run.to*cell;
+          const high=textTop-run.row*cell,low=high-cell;
+          for(let i=firstSegment(a);i<segments.length&&segments[i].from<b-EPS;i++){
+            const s=segments[i],left=Math.max(a,s.from),right=Math.min(b,s.to);if(right-left<EPS)continue;
+            const pointAt=(chainage,z)=>{const u=(chainage-s.from)/(s.to-s.from);return point(s.a.x+(s.b.x-s.a.x)*u+s.nx*.01,s.a.y+(s.b.y-s.a.y)*u+s.ny*.01,s.a.z+(s.b.z-s.a.z)*u+z);};
+            let vertices=[pointAt(left,low),pointAt(right,low),pointAt(right,high),pointAt(left,high)];if(ad.side===1)vertices=vertices.reverse();
+            local.push({vertices,sectionIndex:s.index,characterIndex:run.index,glyphRow:run.row});
+          }
+        }
+        // Commit complete repeated labels only; a cap must not publish a
+        // partial word. The scene-wide non-material cap remains authoritative.
+        if(state.faces+local.length>12000||faces.length+local.length>50000){state.truncatedRepeats+=count-repeat;break;}
+        for(const f of local)addFace(f.vertices,ad.color,'wall-advertisement',featureId,{barrierPart:'lettering',sourceId:p.sourceId,advertisementText:ad.text,
+          advertisementSide:ad.side,wordmarkApproximation:true,font:'generic-5x7',repeatIndex:repeat,sectionIndex:f.sectionIndex,characterIndex:f.characterIndex,glyphRow:f.glyphRow});
+        state.repeats++;state.faces+=local.length;
+      }
+      if(state.repeats>firstRepeat)state.walls++;
+    }
     function safetyWall(line,p,featureId) {
       const numeric=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
       const height=clamp(numeric(p.height,1),.3,2),width=clamp(numeric(p.width,.45),.2,1.5);
       const spacing=clamp(numeric(p.sectionLength,5),2,12);
       const valid=color=>/^#[0-9a-f]{6}$/i.test(color||'');
       const material=typeof p.material==='string'&&p.material.trim()?p.material:'concrete';
+      const advertisement=wallAdvertisement(p,material),advertisingSegments=[];
       const colors=valid(p.color)?[p.color]:(Array.isArray(p.colors)?p.colors:[]).filter(valid);
       if(!colors.length)colors.push(...(material==='tire-stack'?['#343736']:material==='pvc-corrugated'?['#e3e3db']:['#3f80a7','#e5e8dc']));
       if(material==='tire-stack'){
@@ -359,7 +438,7 @@
       }
       const nodes=lineStations(line,spacing),ribDepth=material==='pvc-corrugated'?.035:0;
       const striped=p.hazardStripes===true&&!ribDepth,stripeWidth=clamp(numeric(p.hazardStripeWidth,1),.5,2);
-      const total=striped?line.slice(1).reduce((sum,q,i)=>sum+distance(line[i],q),0):0;
+      const total=striped||advertisement?line.slice(1).reduce((sum,q,i)=>sum+distance(line[i],q),0):0;
       const edge=(q,side)=>{const x=q.x+q.nx*width*.5*side,y=q.y+q.ny*width*.5*side;return point(x,y,groundHeight(x,y));};
       function stripedSide(a,b,start,end,extra){
         // Clip the vertical side itself into diagonal bands: no coplanar decals
@@ -382,6 +461,10 @@
         const a=nodes[i-1],b=nodes[i],margin=clearance+width*.5+ribDepth+.01;
         if(distance(a,b)<EPS||candidates(bounds([a,b]),margin).some(s=>segmentDistance(a,b,s.a,s.b)<margin))continue;
         const low=[edge(a,1),edge(b,1),edge(b,-1),edge(a,-1)],top=low.map(q=>point(q.x,q.y,q.z+height));
+        if(advertisement){
+          const A=advertisement.side===1?low[0]:low[3],B=advertisement.side===1?low[1]:low[2],d=distance(A,B);
+          if(d>EPS)advertisingSegments.push({a:A,b:B,from:(i-1)*spacing,to:Math.min(total,i*spacing),nx:-(B.y-A.y)/d*advertisement.side,ny:(B.x-A.x)/d*advertisement.side,index:i-1});
+        }
         const fill=colors[(i-1)%colors.length],extra={barrierMaterial:material,geometryApproximation:ribDepth?'closed-pvc-corrugated-envelope':'solid-barrier-envelope',sectionIndex:i-1};
         for(let j=0;j<4;j++){
           if(striped&&(j===0||j===2)){
@@ -398,6 +481,7 @@
           addFace(u,fill,'safety-wall',featureId,detail);addFace(v.slice().reverse(),fill,'safety-wall',featureId,detail);
         }
       }
+      advertiseWall(advertisingSegments,total,height,p,featureId,advertisement);
     }
     function catchFence(line,p,featureId) {
       const number=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;

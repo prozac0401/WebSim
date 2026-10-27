@@ -247,8 +247,12 @@ test('WGS84 projection matches track origin transform',()=>{
 test('curated overseas observations retain source links, finite geometry and whole-road clearance',()=>{
  for(const id of ['spa','monza','silverstone']){
   const data=require('./data/environment/overseas/'+id+'-features.json'),circuit=circuits.find(c=>c.id===id),sourceIds=new Set(data.sources.map(s=>s.id));
-  assert.ok(data.features.length>0);for(const f of data.features){assert.ok(sourceIds.has(f.properties.sourceId),f.id);assert.ok(f.properties.evidence.includes('approximate'));}
-  const env=observed(Race.buildTrack(circuit),circuit,data);assert.ok(env.faces.length>0);assert.equal(env.stats.rejected,0);assert.ok(env.faces.length<15000);
+  assert.ok(data.features.length>0);assert.match(JSON.stringify(data.metadata),/approximate|estimated/i);
+  for(const f of data.features){assert.ok(sourceIds.has(f.properties.sourceId),f.id);assert.equal(typeof f.properties.evidence,'string',f.id);assert.ok(f.properties.evidence.trim().length>0,f.id);}
+  const env=observed(Race.buildTrack(circuit),circuit,data);assert.ok(env.faces.length>0);assert.equal(env.stats.rejected,0);
+  // Monza now includes the circuit's runoff/barrier/lettering collection; its
+  // dedicated integration also enforces the 50k scenery and full scene budgets.
+  assert.ok(env.faces.length<(id==='monza'?50000:15000),id+' bounded scenery');
   for(const f of env.faces)for(const q of f.vertices){assert.ok(Number.isFinite(q.z));assert.ok(env.roadDistance(q.x,q.y)>env.clearanceM-1e-5,id+' '+f.kind);}
   for(const tree of env.objects)assert.ok(env.roadDistance(tree.x,tree.y)>env.clearanceM+tree.radius,id+' canopy');
  }
