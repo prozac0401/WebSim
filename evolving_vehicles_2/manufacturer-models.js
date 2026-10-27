@@ -4,6 +4,12 @@
 (function(root){
  'use strict';
  const models=new Map(),pending=new Set(),failures=[],wheelSelections=new WeakMap();
+ // These older conversions retained the source's right-handed forward/left/up
+ // frame. The circuit uses east/south/up and forward/right/up: a reflection,
+ // not another rotation, is required. Already corrected meshes and calibrated
+ // photographic models retain their own basis. See assets/models/HANDEDNESS.md.
+ const legacyLeftAxis=new Set(['g70','g80','ioniq5','santafe','staria','carnival','morning','supra']);
+ const lateralSign=data=>legacyLeftAxis.has(data.id)&&data.coordinateTransform?.handednessCorrectedForRenderer!==true?-1:1;
  const assetOnly=new Set(['g70','supra','bmw_m2','avante_n','gr86','k5']);
  const files=new Set(['g80','ioniq5','santafe','staria','carnival','morning','ray','k5','avante','grandeur','torres','musso_ev','porter2',...assetOnly]),loading=new Map(),states=new Map(),listeners=new Set(),scripts=new WeakMap();
  const LOAD_POLICY=Object.freeze({maxAttempts:2,timeoutMs:45000,retryDelayMs:500});
@@ -23,7 +29,18 @@
   if(context&&!context.active)return false;
   if(!data||typeof data.id!=='string'||!Array.isArray(data.primitives))throw new Error('Invalid model registration');
   if(context&&data.id!==context.id)throw new Error('Model file registered '+data.id+' instead of '+context.id);
-  const unpack=p=>({...p,texture:p.texture??data.textures?.[p.textureIndex],vertices:decode(p.vertices,Float32Array),indices:decode(p.indices,p.indexType===2?Uint16Array:Uint32Array)});
+  const unpack=p=>{
+   const vertices=decode(p.vertices,Float32Array);
+   // The authored Supra plate alone had reversed U to mask the old mirrored
+   // body. Remove that compensation when reflecting the complete vehicle;
+   // original source UVs, textures and all other authored details stay intact.
+   if(data.id==='supra'&&lateralSign(data)<0&&p.materialName==='WebSim_display_plate')for(let i=6;i<vertices.length;i+=8)vertices[i]=1-vertices[i];
+   // Carnival came from raw PlayCanvas JSON, whose loader flips V on import.
+   // Its old converter copied that UV buffer without the parser's conversion.
+   // GLB models already carry image-oriented UVs and must not receive this.
+   if(data.id==='carnival'&&data.coordinateTransform?.uvOriginCorrectedForRenderer!==true&&(p.texture||p.textureIndex!==undefined))for(let i=7;i<vertices.length;i+=8)vertices[i]=1-vertices[i];
+   return {...p,texture:p.texture??data.textures?.[p.textureIndex],vertices,indices:decode(p.indices,p.indexType===2?Uint16Array:Uint32Array)};
+  };
   data.primitives=data.primitives.map(unpack);
   if(data.fallbackPrimitives)data.fallbackPrimitives=data.fallbackPrimitives.map(unpack);
   if(data.wheelVariants)data.wheelVariants=Object.fromEntries(Object.entries(data.wheelVariants).map(([key,value])=>[key,{...value,primitives:value.primitives.map(unpack)}]));
@@ -69,10 +86,10 @@
    data=selections.get(wheelVariant);
   }
   let fallback;
-  const length=(spec.lengthMm||5000)/1000,height=(spec.heightMm||1500)/1000,sourceLength=data.bounds.max[0]-data.bounds.min[0],sourceHeight=data.bounds.max[2]-data.bounds.min[2];
+  const length=(spec.lengthMm||5000)/1000,height=(spec.heightMm||1500)/1000,sourceLength=data.bounds.max[0]-data.bounds.min[0],sourceHeight=data.bounds.max[2]-data.bounds.min[2],side=lateralSign(data);
   const mesh={length,width:(spec.widthMm||1900)/1000,height,manufacturer:data,sourceAsset,paint:color,
-   modelScale:[length/sourceLength,length/sourceLength,height/sourceHeight],modelOffset:[-(data.bounds.max[0]+data.bounds.min[0])/2,-(data.bounds.max[1]+data.bounds.min[1])/2,-data.bounds.min[2]],
-   metadata:{id,...data.source,triangles:data.triangles,...(wheelVariant?{wheelVariant}:{})},get faces(){
+   modelScale:[length/sourceLength,side*length/sourceLength,height/sourceHeight],modelOffset:[-(data.bounds.max[0]+data.bounds.min[0])/2,-(data.bounds.max[1]+data.bounds.min[1])/2,-data.bounds.min[2]],
+   metadata:{id,...data.source,triangles:data.triangles,lateralSign:side,...(wheelVariant?{wheelVariant}:{})},get faces(){
     if(!fallback){
      if(data.fallbackPrimitives){
       const faces=[];
@@ -81,6 +98,7 @@
        const fill=p.paint?color:p.drlCover?'rgba('+channels.join(',')+','+p.alpha+')':'#'+channels.map(c=>c.toString(16).padStart(2,'0')).join('');
        for(let i=0;i<p.indices.length;i+=3){const vertices=[];
         for(let j=0;j<3;j++){const k=p.indices[i+j]*8;vertices.push({x:(p.vertices[k]+mesh.modelOffset[0])*mesh.modelScale[0],y:(p.vertices[k+1]+mesh.modelOffset[1])*mesh.modelScale[1],z:(p.vertices[k+2]+mesh.modelOffset[2])*mesh.modelScale[2]});}
+        if(side<0)[vertices[1],vertices[2]]=[vertices[2],vertices[1]];
         faces.push({vertices,fill,material:p.drl?'light':p.paint?'paint':'trim',...(p.drl?{drl:true}:{}),...(p.brakeLight?{brakeLight:p.brakeLight}:{}),...(p.wheel?{wheel:p.wheel}:{})});
        }
       }

@@ -95,7 +95,7 @@
   }
   function localWheel(mesh,wheel){
     if(!valid(wheel))return null;if(wheel.space==='mesh')return wheel;const scale=mesh.modelScale||[1,1,1],offset=mesh.modelOffset||[0,0,0];
-    return {...wheel,center:wheel.center.map((v,i)=>(v+offset[i])*scale[i]),radius:wheel.radius*Math.abs(scale[0])};
+    return {...wheel,center:wheel.center.map((v,i)=>(v+offset[i])*scale[i]),side:wheel.side*Math.sign(scale[1]||1),radius:wheel.radius*Math.abs(scale[0])};
   }
   // Procedural Canvas fallback faces already have metric coordinates. Only its
   // authored "wheels" group is considered, never neighboring wings or arches.

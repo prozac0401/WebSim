@@ -78,12 +78,14 @@
       return Number.isFinite(front)?{x:(front+lift+mesh.modelOffset[0])*mesh.modelScale[0],y:(y+mesh.modelOffset[1])*mesh.modelScale[1],z:(z+mesh.modelOffset[2])*mesh.modelScale[2]}:null;
     }
     const result={};
+    // These LEDs are authored here. Preserve their physical left/right colors
+    // when the imported body uses a reflected lateral basis.
     for(const phase of ['red','blue','dark']){
       const faces=[];
       for(const [window,x0,x1]of [['front',.39,.47],['rear',-1.59,-1.51]])for(const side of [-1,1])for(let i=0;i<6;i++){
         const y0=side*.09+(side<0?-1:1)*i*.075,y1=y0+side*.065;
         const vertices=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(([x,y])=>point(x,y,.006));if(vertices.some(v=>!v))continue;
-        const color=side<0?'red':'blue',lit=color===phase;
+        const color=side*Math.sign(mesh.modelScale[1])<0?'red':'blue',lit=color===phase;
         faces.push({vertices,fill:lit?(color==='red'?'#ff344e':'#258aff'):'#17242f',material:'light',flat:true,part:'patrol-'+window});
         if(lit){const core=[[x0+.023,y0+side*.014],[x1-.023,y0+side*.014],[x1-.023,y1-side*.014],[x0+.023,y1-side*.014]].map(([x,y])=>point(x,y,.009));if(core.every(Boolean))faces.push({vertices:core,fill:color==='red'?'#ffd6df':'#d3efff',material:'light',flat:true,part:'patrol-'+window});}
       }
@@ -92,7 +94,7 @@
         const vertices=[[y0,z0],[y1,z0],[y1,z1],[y0,z1]].map(([y,z])=>grillePoint(y,z,.010));if(vertices.some(v=>!v))continue;
         // In the reference's two exposure phases, the grille and windshield
         // show opposite colors. Keep that alternation within the same latch.
-        const color=side<0?'red':'blue',lit=phase!=='dark'&&color!==phase;
+        const color=side*Math.sign(mesh.modelScale[1])<0?'red':'blue',lit=phase!=='dark'&&color!==phase;
         faces.push({vertices,fill:lit?(color==='red'?'#ff344e':'#258aff'):'#101820',material:'light',flat:true,part:'patrol-grille'});
         if(lit){const core=[[y0+.004,z0+.004],[y1-.004,z0+.004],[y1-.004,z1-.004],[y0+.004,z1-.004]].map(([y,z])=>grillePoint(y,z,.012));if(core.every(Boolean))faces.push({vertices:core,fill:color==='red'?'#ffd6df':'#d3efff',material:'light',flat:true,part:'patrol-grille'});}
       }
