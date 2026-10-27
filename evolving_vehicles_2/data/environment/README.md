@@ -21,7 +21,7 @@
 | BMW 인천 | BMW 공식 2014·2026년 보도사진을 확인했습니다. 지표 다각형 정합은 미확인입니다. 별도로 추정 배경을 표시하며, 확인된 센터·정비 시설 구역에는 나무를 놓지 않습니다. |
 | 스파 | [2022년 공식 라디용 사진](https://www.spa-francorchamps.be/en/news/275_the-spa-francorchamps-track-is-decked-out-in-new-colours)과 [2026 안내 지도](https://www.spa-francorchamps.be/assets/e70cff50-ae5d-4aaa-896b-54c8a953a357/all-plan-acces.pdf). 오 루주–라디용·케멜 초입의 잔디·숲·서비스 포장·색상 런오프. 나머지 구역의 기본 바탕과 나무는 사진 고증 범위를 넓힌 것이 아니라 별도의 추정 배경입니다. |
 | 몬차 | 2026-10-27 [F1 24 게임 가이드](https://www.youtube.com/watch?v=ca5pPA1_Vks)를 실제2024 FIA 변경 기록·Formula 1 사진과 대조했다. 자갈과 아스팔트 런오프, 벽면 광고를 구분하며 게임을 실측 자료로 취급하지 않는다. 기존 메인 직선 잔디·수림은 운영사 사진 근거다. [시점·치수·브랜드 표시 한계](monza-reference-20261027.md). |
-| 실버스톤 | 운영사 사진에서 식별한 해밀턴 스트레이트 주변 잔디·자갈 일부. [사진 및 경계 근거](overseas/silverstone-features.json). |
+| 실버스톤 | 2026-10-27 [FORMULA 1의 2025 실제 폴랩](https://www.youtube.com/watch?v=ooeujTa2-k8)을 운영사2023년 Abbey 자갈 일부 포장 전환·FIA2025 변경 기록과 대조했다. 흑백 연석·파란색·보라색 포장 구역·녹색 포장과 자갈·아스팔트·잔디를 나누고, 열린 들판의 임의 배경 나무는 끈다. Wing·National의 기존 피트벽은 같은 좌표로 환경에 옮겨 행사 광고와 함께 한 번만 표시한다. [시점·거리 원점·추정 범위](silverstone-reference-20261027.md). |
 
 모래밭과 옹벽은 생성 기능을 갖췄지만, 이번 확보 자료에서 재질과 위치를 함께 확정한 영역이 없어 임의로 배치하지 않았습니다. 위 표에 없는 구역을 재현 완료한 것으로 주장하지 않습니다.
 

@@ -30,6 +30,8 @@
 
 몬차의 기존 monza-pit-wall 네 점 좌표·높이·두께는 2026-10-27 [주변 환경 데이터](../environment/overseas/monza-features.json)로 옮겨 PIRELLI 글자를 벽면에 한 번만 표시한다. 레인·청색 작업마당·두 건물·작업칸과 피트 초점은 그대로 유지한다. [영상·실사진의 시점과 근사 범위](../environment/monza-reference-20261027.md)를 구분한다.
 
+실버스톤의 Wing·National 두 피트벽은 2026-10-27 원래 WGS 좌표·높이·두께를 유지해 [주변 환경 데이터](../environment/overseas/silverstone-features.json)로 옮겼다. 2025년 영상의 QATAR AIRWAYS·ARAMCO 글자를 벽면에 한 번만 표시하며, 나머지 13개 피트·서비스 시설과 두 단지의 구분·피트 초점은 유지한다. [영상과 공식 자료의 적용 범위](../environment/silverstone-reference-20261027.md)를 참고한다.
+
 ## 지도 데이터 권리와 사진 보관
 
 다음 네 컬렉션의 피트레인·건물 외곽은 OpenStreetMap 데이터를 포함하거나 그 데이터에서 파생했다.

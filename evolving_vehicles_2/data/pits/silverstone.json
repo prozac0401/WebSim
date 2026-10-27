@@ -56,11 +56,12 @@
     "placementMethod": "공식 사진·배치도의 수작업 판독을 현재 centerline/projection에 정합. 측량·지적도 데이터가 아님.",
     "verticalGeometry": "건물 높이·지붕 상승량·정비칸 깊이는 사진 추정. 지면 고도는 현재 서킷 고도 모델에서 파생.",
     "raceOperations": "풍경용 시설 데이터. 대회별 차고 배정, 실제 피트 속도선, 진입 허가 및 레이스의 피트 전략을 정의하지 않음.",
-    "reviewedDate": "2026-10-15",
+    "reviewedDate": "2026-10-27",
     "approximateHorizontalUncertaintyM": 25,
     "primaryComplex": "international-wing",
     "secondaryComplex": "national",
-    "focusFeatureId": "silverstone-wing-hall-2"
+    "focusFeatureId": "silverstone-wing-hall-2",
+    "protectionRendering": "The two original Wing/National pitwall traces and dimensions are rendered once by environment/overseas/silverstone-features.json for attached2025wordmarks. Thirteen other pit/service features and camera focus unchanged."
   },
   "features": [
     {
@@ -464,40 +465,6 @@
     },
     {
       "type": "Feature",
-      "id": "silverstone-wing-pit-wall",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -1.02363406,
-            52.06777251
-          ],
-          [
-            -1.02266276,
-            52.06855149
-          ],
-          [
-            -1.02150946,
-            52.06947611
-          ],
-          [
-            -1.02035707,
-            52.07039938
-          ]
-        ]
-      },
-      "properties": {
-        "kind": "pit-wall",
-        "sourceId": "silverstone-wing-photo",
-        "evidence": "사진의 fast lane과 본선 사이 잔디 섬 안쪽 분리벽. 본선 가장자리로 옮기지 않음. 높이 1.1m 추정.",
-        "height": 1.1,
-        "width": 0.35,
-        "color": "#ad5654",
-        "complex": "international-wing"
-      }
-    },
-    {
-      "type": "Feature",
       "id": "silverstone-wing-service-bays",
       "geometry": {
         "type": "LineString",
@@ -872,40 +839,6 @@
         "windowBand": true,
         "complex": "national",
         "geometryConfidence": "low; massing only"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "silverstone-national-wall",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -1.01736172,
-            52.07854135
-          ],
-          [
-            -1.01532968,
-            52.07865605
-          ],
-          [
-            -1.01344169,
-            52.0787571
-          ],
-          [
-            -1.01219759,
-            52.07878541
-          ]
-        ]
-      },
-      "properties": {
-        "kind": "pit-wall",
-        "sourceId": "silverstone-national-photo",
-        "evidence": "Heritage 공식 현장사진의 적색 National 레인 분리 방호벽. renderer 단순 벽으로 표시하여 금속 가드레일 단면은 생략. 높이 .95m 추정.",
-        "height": 0.95,
-        "width": 0.3,
-        "color": "#b8554d",
-        "complex": "national"
       }
     },
     {
