@@ -158,3 +158,96 @@ test('a long grandstand follows longitudinal road elevation instead of floating 
   assert(press.every(p=>p.z-ground(p.x)>=12.59&&p.z-ground(p.x)<=14.61));
   assert(Math.max(...roof.map(p=>p.z))-Math.min(...roof.map(p=>p.z))>20,'roof must not be a single flat maximum-height slab');
 });
+
+test('roofed bridges keep a true road opening, grounded piers and the existing pit-camera focus',t=>{
+  const hilly={...track,points:track.points.map(p=>({...p,z:p.y===100?12:4}))};
+  const building=feature('pit-building','Polygon',[area(20,30,20,12)],{height:8,garageEdge:0});
+  const bridge=feature('roofed-bridge','LineString',[[50,-20],[50,120]],{deckClearance:2,deckWidth:5});
+  const data=collection([building,bridge]),before=JSON.stringify({hilly,data}),baseline=Pits.build(hilly,collection([building])),model=Pits.build(hilly,data);
+  assert.equal(model.stats.roofedBridges,1);assert.equal(model.stats.rejected,0);assert.equal(model.stats.buildings,1);
+  assert.deepEqual(model.focus,baseline.focus,'the bridge cannot take over the pit camera');
+  const faces=model.faces.filter(f=>f.featureId==='roofed-bridge');assert(faces.length>=400&&faces.length<=900,'bounded detailed geometry even at a long span');
+  for(const f of faces)for(const p of f.vertices){
+    assert(Number.isFinite(p.x+p.y+p.z));
+    if(f.kind!=='roofed-bridge-pier')assert(p.z>=12+7-1e-8,'arches as well as the deck clear the highest crossed road');
+  }
+  for(const kind of ['roofed-bridge-pier','roofed-bridge-deck','roofed-bridge-window','roofed-bridge-frame','roofed-bridge-roof','roofed-bridge-arch','roofed-bridge-arch-web'])assert(faces.some(f=>f.kind===kind),kind);
+  assert(model.contains(50,-20,.1));assert(model.contains(50,120,.1));
+  assert(!model.contains(50,0,1)&&!model.contains(50,100,1),'only piers reserve ground, never the road opening');
+  assert.equal(JSON.stringify({hilly,data}),before);assert.deepEqual(Pits.build(hilly,data).faces,model.faces);
+  assert.equal(Pits.build(hilly,collection([bridge])).focus,null,'a bridge by itself is not a pit facility camera target');
+  t.diagnostic(`${faces.length} faces for bounded 140 m roofed bridge`);
+});
+
+test('bridge piers reject other road legs and a later pit lane, while malformed or uncited spans add no geometry',()=>{
+  const source=feature('roofed-bridge','LineString',[[50,-20],[50,40]]);
+  const bad=[
+    {...source,geometry:{type:'LineString',coordinates:[[50,-20],[50,99]]}},
+    {...source,geometry:{type:'LineString',coordinates:[[50,-20],[50,40],[50,50]]}},
+    {...source,geometry:{type:'LineString',coordinates:[[50,-20],[50,1000]]}},
+    {...source,properties:{...source.properties,sourceId:'unreviewed'}}
+  ];
+  for(const f of bad){const model=Pits.build(track,collection([f]));assert.equal(model.stats.rejected,1);assert.equal(model.faces.length,0);assert.equal(model.stats.roofedBridges,undefined);}
+  const lane=feature('pit-lane','LineString',[[35,40],[65,40]],{width:6});
+  for(const features of [[source,lane],[lane,source]]){
+    const model=Pits.build(track,collection(features));assert.equal(model.stats.rejected,1);assert.equal(model.stats.lanes,1);
+    assert(!model.faces.some(f=>f.kind.startsWith('roofed-bridge-')),'footway endpoints inside a live pit lane are not accepted as piers');
+  }
+});
+
+test('officially located GP bridge endpoints fit the current main road and independent GP pit lane',t=>{
+  const circuit=circuits.find(c=>c.id==='yeongam'),built=Race.buildTrack(circuit),datum=built.elevationMin||0;
+  const display={...built,points:built.points.map(p=>({...p,z:datum+((p.z||0)-datum)*1.75}))};
+  const data=JSON.parse(fs.readFileSync(path.join(__dirname,'data/pits/yeongam.json'),'utf8'));
+  const bridge=feature('roofed-bridge','LineString',[[604.641,788.984],[584.335,843.510]],{sourceId:'kic-gp-front',evidence:'KIC official kic_bg_3 photograph; OSM covered way 236366224 endpoints; procedural estimated structure.'});
+  const features=[...data.features.filter(f=>f.properties.kind!=='roofed-bridge'),bridge],before=JSON.stringify({display,data});
+  const model=Pits.build(display,{...data,features}),faces=model.faces.filter(f=>f.featureId===bridge.id);
+  assert.equal(model.stats.roofedBridges,1);assert.equal(model.stats.rejected,0);assert.equal(faces.length,748);
+  const bottomByXY=new Map();for(const face of faces.filter(f=>f.kind==='roofed-bridge-pier'))for(const p of face.vertices){const key=p.x+','+p.y;bottomByXY.set(key,Math.min(bottomByXY.get(key)??Infinity,p.z));}
+  for(const [key,z] of bottomByXY){const[x,y]=key.split(',').map(Number);assert(Math.abs(z-model.groundHeight(x,y))<1e-9,'all eight footing corners meet their ground');}
+  const mid={x:(604.641+584.335)/2,y:(788.984+843.510)/2};
+  assert(!Pits.build(display,{...data,features:[bridge]}).contains(mid.x,mid.y,1));
+  assert.equal(JSON.stringify({display,data}),before);t.diagnostic(`${faces.length} faces at the 58.185 m mapped GP bridge`);
+});
+
+test('explicit flat grandstand roofs do not invent a bowed roof',()=>{
+  const stand=feature('grandstand','Polygon',[area(150,30,100,24)],{frontEdge:0,height:20,seatingHeight:11,rows:14,canopyDepth:22});
+  const original=Pits.build(track,collection([stand])),flat=Pits.build(track,collection([{...stand,properties:{...stand.properties,roofRise:0}}]));
+  const heights=m=>m.faces.filter(f=>f.kind==='grandstand-canopy').flatMap(f=>f.vertices.map(p=>p.z));
+  assert(Math.max(...heights(original))>25);assert(Math.abs(Math.max(...heights(flat))-24)<1e-9);assert(Math.abs(Math.min(...heights(flat))-23.82)<1e-9);
+});
+
+test('opt-in grandstand foundations extend existing ground walls only, including the thin front slab',()=>{
+  const source=feature('grandstand','Polygon',[area(20,30,120,24)],{frontEdge:0,height:20,seatingHeight:11,rows:14,canopyDepth:22,pressBoxHeight:2});
+  const data=collection([source]),before=JSON.stringify({track,data}),original=Pits.build(track,data);
+  const hash=require('node:crypto').createHash('sha256').update(JSON.stringify(original.faces)).digest('hex');
+  assert.equal(hash,'b51598584b9ef7e0935ef8569645f27c758a7726832ecfdb60fa289a6acd9a75','omitted option preserves the frozen default face geometry');
+  for(const value of [0,-2])assert.deepEqual(Pits.build(track,collection([{...source,properties:{...source.properties,foundationDepth:value}}])).faces,original.faces);
+  for(const [value,depth] of [[2,2],[20,5]]){
+    const model=Pits.build(track,collection([{...source,properties:{...source.properties,foundationDepth:value}}]));
+    assert.equal(model.faces.length,original.faces.length,'extend existing walls without adding faces');assert.deepEqual(model.stats,original.stats);assert.deepEqual(model.focus,original.focus);
+    const changed=new Map();
+    for(let i=0;i<original.faces.length;i++){
+      const a=original.faces[i],b=model.faces[i];assert.equal(b.kind,a.kind);assert.equal(b.fill,a.fill);assert.equal(b.vertices.length,a.vertices.length);
+      for(let j=0;j<a.vertices.length;j++){
+        const p=a.vertices[j],q=b.vertices[j],groundWall=['grandstand-riser','grandstand-slab','grandstand-concourse'].includes(a.kind)&&p.z===4;
+        assert.equal(q.x,p.x);assert.equal(q.y,p.y);assert.equal(q.z,p.z-(groundWall?depth:0),'all seat, slab-top, roof and raised press-box vertices stay fixed');
+        if(groundWall)changed.set(a.kind,(changed.get(a.kind)||0)+1);
+      }
+    }
+    for(const kind of ['grandstand-slab','grandstand-riser','grandstand-concourse'])assert(changed.get(kind)>0,kind+' reaches below ground');
+    const slab=model.faces.filter(f=>f.kind==='grandstand-slab').flatMap(f=>f.vertices.map(p=>p.z));
+    assert.equal(Math.min(...slab),4-depth);assert.equal(Math.max(...slab),4.3,'the 30 cm slab top is not moved');
+  }
+  assert.equal(JSON.stringify({track,data}),before);
+});
+
+test('legacy building and default timing-gantry output remains byte-for-byte unchanged without a roofed bridge',()=>{
+  const data=collection([
+    feature('pit-building','Polygon',[area(20,30,40,12)],{height:8,garageCount:8,garageEdge:0,windowBand:true}),
+    feature('timing-gantry','LineString',[[50,-20],[50,20]])
+  ]),model=Pits.build(track,data);
+  const hash=require('node:crypto').createHash('sha256').update(JSON.stringify({faces:model.faces,stats:model.stats,focus:model.focus})).digest('hex');
+  assert.equal(hash,'a6262a4e0794309c036943c72528b141c6909b79c195726aa720b65bbbe206a5');
+  assert.equal(model.stats.roofedBridges,undefined);
+});

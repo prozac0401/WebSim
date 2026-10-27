@@ -59,22 +59,76 @@
       "sha256": "cff34278d8c37d07881bdfbf906c01f67fd4c5665074642f927b43448011e3c4",
       "publicationDate": "2026-04-07",
       "rights": "© KIC; local reference only."
+    },
+    {
+      "id": "kic-osm-20261027",
+      "title": "OpenStreetMap KIC source footprint data",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=126.402,34.728,126.423,34.751",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kic-osm.xml",
+      "sha256": "f26ec4a91a3fc072b1473d4a499dffc30cf354d8de8f791368cce2463e8f572d",
+      "license": "ODbL-1.0",
+      "attribution": "OpenStreetMap contributors",
+      "retrievedAt": "2026-10-27"
+    },
+    {
+      "id": "fia-2013-media-kit",
+      "title": "2013 Korean Grand Prix Organizing Committee Media Kit, p9 circuit facilities and p11 grandstand locations",
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2013/2013-korean-grand-prix-event-information",
+      "imageUrl": "https://www.fia.com/sites/default/files/external_archive/node4128/2013%20KGP%20Media%20Kit.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/fia-2013-media-kit.pdf",
+      "sha256": "3f8fe7d56f64b9a483f643929b3e83109357f48754f9895aa6d26e79b1afff33",
+      "publicationDate": "2013-09-29",
+      "rights": "FIA / Korean Grand Prix Organizing Committee. Reference only; not redistributed."
+    },
+    {
+      "id": "kmg-2025-aerial",
+      "title": "KMG 2025 company introduction p33 whole KIC aerial",
+      "url": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kmg-2025-aerial.jpg",
+      "publicationYear": 2025,
+      "captureDate": null,
+      "rights": "Korea Mobility Group. Reference only; not redistributed."
+    },
+    {
+      "id": "kic-permanent-photo",
+      "title": "On-site photograph of KIC permanent pit garage facade, Bonta 2019",
+      "url": "https://bonta.tistory.com/546",
+      "imageUrl": "https://blog.kakaocdn.net/dna/dG0Giy/btqxoQkFy76/AAAAAAAAAAAAAAAAAAAAANGaayMcQKLnHmqZUK2L7XruUpEr5toYlyqsNLwMCwqM/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1793458799&allow_ip=&allow_referer=&signature=4OQI5dVmvn9nj1t7g8iEBf7wXn0%3D",
+      "localEvidenceFile": "output/pit-references/kic-permanent-visitor-0.jpg",
+      "reviewedDate": "2026-10-15",
+      "observation": "Original photograph explicitly captioned permanent pits; visible doors 19–21, brown lower masonry, pale metal upper facade, upper windows and a flat terrace railing. Image is the paddock-facing side; do not infer race-side painted box markings from it. Photograph capture date is not stated; 2019-08-09 is the article publication date.",
+      "sha256": "0d14a99d0bf29c98e3a2608200d6441b09058681aa172855fe6825c22f88b0c5",
+      "rights": "© BONTA; local reference only.",
+      "publicationDate": "2019-08-09"
+    },
+    {
+      "id": "kic-permanent-allocation",
+      "title": "KIC official 2026 AKRC Round 5 pit allocation",
+      "url": "https://www.koreacircuit.com/Notice/1/read/242",
+      "imageUrl": "https://www.koreacircuit.com/Notice/download/242/1017",
+      "localEvidenceFile": "output/pit-references/kic-akrc-pit.pdf",
+      "reviewedDate": "2026-10-15",
+      "observation": "AKRC operates on permanent track; official allocation lists garages 1–30. No spatial stall dimensions are supplied.",
+      "sha256": "f0d9c385d56fdc2d83108a908843786cd2bd801684a7a6a1e3f1877245e67487",
+      "publicationDate": "2026-10-14",
+      "rights": "© KIC; local reference only."
     }
   ],
   "metadata": {
     "coverage": "Distinct photo-confirmed southern GP pit facility; geographic footprints matched against operator whole-circuit aerial.",
-    "reviewedDate": "2026-10-15",
+    "reviewedDate": "2026-10-27",
     "limitations": [
       "Southern GP pit compound is separate from permanent circuit pits.",
       "Only photo-confirmed main lane included: current modified exit around turns 1–2 is omitted.",
       "Heights, uniform garage-count representation and one blue work-box footprint are visual estimates; no full painted box row invented.",
-      "Korean-style bridge crosses the live track and is omitted because this format describes grounded building footprints."
+      "Historical roofless stand footprints are matched to the2013official Media Kit and source video. Seat colors, row counts and heights are visual estimates; 2025operator aerial capture date is unknown. The two active pit cameras remain focused on their own garage compound."
     ],
     "geometryMethod": "OSM footprints and pit-lane centerlines transformed with TrackRace.buildTrack(circuit).projection; apron/wall offsets visually estimated from photographs.",
     "attribution": "© OpenStreetMap contributors",
     "license": "ODbL-1.0",
     "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
-    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled."
+    "referenceMediaDistribution": "Photographs/PDFs retained in gitignored output/pit-references for local verification only; no source image is bundled.",
+    "focusFeatureId": "kic-gp-garages"
   },
   "features": [
     {
@@ -347,6 +401,734 @@
         "sourceId": "kic-gp-front",
         "evidence": "Single blue garage-front box outline visible at the bridge end. Approximate footprint/placement; no extrapolated full row or bay numbering.",
         "color": "#4b90b8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234773345",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              652.736506,
+              37.948926
+            ],
+            [
+              653.847315,
+              54.806153
+            ],
+            [
+              900.57535,
+              38.48514
+            ],
+            [
+              901.061903,
+              20.756565
+            ],
+            [
+              652.736506,
+              37.948926
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234773345",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 3,
+        "canopy": false,
+        "height": 13,
+        "seatingHeight": 11,
+        "rows": 16,
+        "lowerSeatColor": "#b15a63",
+        "upperSeatColor": "#c2aa65",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234872100",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -162.798981,
+              393.492308
+            ],
+            [
+              -169.932024,
+              410.483588
+            ],
+            [
+              -232.091405,
+              383.527665
+            ],
+            [
+              -225.096065,
+              367.396561
+            ],
+            [
+              -162.798981,
+              393.492308
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234872100",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 3,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234953547",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -339.610335,
+              301.386386
+            ],
+            [
+              -323.361316,
+              303.363675
+            ],
+            [
+              -309.242113,
+              169.958105
+            ],
+            [
+              -326.069486,
+              168.181896
+            ],
+            [
+              -339.610335,
+              301.386386
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234953547",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 1,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234954838",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -310.554887,
+              168.673426
+            ],
+            [
+              -288.246912,
+              141.572277
+            ],
+            [
+              -301.695958,
+              130.501693
+            ],
+            [
+              -324.343602,
+              156.854376
+            ],
+            [
+              -310.554887,
+              168.673426
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234954838",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 0,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234954839",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -311.785038,
+              350.639874
+            ],
+            [
+              -305.294611,
+              334.687508
+            ],
+            [
+              -227.326863,
+              366.39116
+            ],
+            [
+              -234.22122,
+              382.399381
+            ],
+            [
+              -311.785038,
+              350.639874
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234954839",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 1,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234954840",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -322.865584,
+              306.067087
+            ],
+            [
+              -305.63428,
+              334.140123
+            ],
+            [
+              -319.955449,
+              342.797744
+            ],
+            [
+              -338.132317,
+              312.713906
+            ],
+            [
+              -322.865584,
+              306.067087
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234954840",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 0,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234954900",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              325.956809,
+              148.967562
+            ],
+            [
+              411.103502,
+              228.014439
+            ],
+            [
+              426.416137,
+              211.514688
+            ],
+            [
+              338.267506,
+              130.747458
+            ],
+            [
+              325.956809,
+              148.967562
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234954900",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 0,
+        "canopy": false,
+        "height": 16,
+        "seatingHeight": 14,
+        "rows": 20,
+        "lowerSeatColor": "#b64e59",
+        "upperSeatColor": "#b7a359",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234955088",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -60.907536,
+              92.620409
+            ],
+            [
+              -58.153465,
+              113.409872
+            ],
+            [
+              -238.636914,
+              137.371935
+            ],
+            [
+              -241.400165,
+              116.582472
+            ],
+            [
+              -60.907536,
+              92.620409
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234955088",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 1,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-historical-234955474",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -59.401977,
+              92.586896
+            ],
+            [
+              -42.234935,
+              88.118446
+            ],
+            [
+              -72.199227,
+              -27.07819
+            ],
+            [
+              -88.457426,
+              -23.883249
+            ],
+            [
+              -59.401977,
+              92.586896
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "fia-2013-media-kit",
+          "kmg-2025-aerial"
+        ],
+        "evidence": "OSM source footprint matched with 2013 official Media Kit p9 and p11 stand positions; 2013 spectator footage corroborates roofless terraces and pale exposed structure. Seat colors, height and exact facade subdivision are visual approximations; OSM building=roof does not establish a surviving roof. Northern permanent pit is separate from southern GP pit.",
+        "osmWayId": "234955474",
+        "appearanceEpoch": "2013 event appearance; OSM edits vary; KMG aerial published 2025 with capture date unknown.",
+        "frontEdge": 1,
+        "canopy": false,
+        "height": 11,
+        "seatingHeight": 9,
+        "rows": 16,
+        "lowerSeatColor": "#56896e",
+        "upperSeatColor": "#6b9b79",
+        "structureColor": "#b2b9b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-main-grandstand",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              966.204861,
+              889.467897
+            ],
+            [
+              952.838436,
+              924.980902
+            ],
+            [
+              628.491502,
+              802.824655
+            ],
+            [
+              643.207421,
+              763.748061
+            ],
+            [
+              966.204861,
+              889.467897
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "grandstand",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "kic-gp-aerial"
+        ],
+        "evidence": "OSM Main Grandstand footprint and KIC official aerial show the long roofed main stand opposite the GP garages. Single canopy, trusses and stepped seating are represented; dimensions, row counts and seat colors are display estimates.",
+        "frontEdge": 1,
+        "height": 25,
+        "seatingHeight": 16,
+        "seatingBaseHeight": 1,
+        "rows": 24,
+        "canopyDepth": 35,
+        "roofRise": 0.2,
+        "roofColor": "#c2c8ca",
+        "lowerSeatColor": "#c5cdc7",
+        "upperSeatColor": "#acbcc9",
+        "structureColor": "#a9b3b5",
+        "foundationDepth": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-korean-bridge",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            604.641247,
+            788.983631
+          ],
+          [
+            584.334564,
+            843.50989
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "roofed-bridge",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "kic-gp-front"
+        ],
+        "evidence": "OSM covered footway The Korean Bridge and official KIC pit-front photograph identify this crossing. Korean hip roofs, end pavilions, brown window frames and arches are display approximations. OSM endpoints are used as estimated pier centers; not surveyed structural drawings.",
+        "deckClearance": 7,
+        "deckWidth": 5,
+        "pierWidth": 1.6,
+        "wallHeight": 2.5,
+        "roofRise": 1.5,
+        "pavilionLength": 6,
+        "pavilionRise": 1.2,
+        "archDrop": 2,
+        "roofColor": "#596366",
+        "frameColor": "#83533b",
+        "pierColor": "#b2b7b4"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gp-background-kic-permanent-pit-lane",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            209.817,
+            29.359
+          ],
+          [
+            271.692,
+            39.222
+          ],
+          [
+            337.331,
+            35.815
+          ],
+          [
+            648.073,
+            15.283
+          ],
+          [
+            758.254,
+            5.24
+          ],
+          [
+            875.21,
+            -4.601
+          ],
+          [
+            883.445,
+            -7.853
+          ],
+          [
+            890.321,
+            -13.081
+          ],
+          [
+            895.407,
+            -20.856
+          ],
+          [
+            897.5,
+            -29.38
+          ],
+          [
+            897.39,
+            -39.601
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-lane",
+        "sourceId": "kic-osm",
+        "evidence": "Northern permanent pit lane visually matched to operator whole-circuit aerial, separate from GP southern lane. Narrow mapped lane; 4 m rendered width estimated.",
+        "width": 4,
+        "color": "#646b6d",
+        "edgeMarkings": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gp-background-kic-permanent-garages",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              342.49,
+              65.161
+            ],
+            [
+              341.132,
+              43.903
+            ],
+            [
+              357.877,
+              37.502
+            ],
+            [
+              642.032,
+              18.791
+            ],
+            [
+              643.501,
+              45.869
+            ],
+            [
+              342.49,
+              65.161
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-building",
+        "sourceId": "kic-osm",
+        "evidence": "Mapped northern permanent garage building. Two-storey pale upper facade and flat roof verified by visitor photo; 30 bays supported by 2026 official allocation. Race-facing doors are simplified and height 9 m is estimated.",
+        "height": 9,
+        "levels": 2,
+        "roofColor": "#c9cdcb",
+        "wallColor": "#b7b5aa",
+        "roofStyle": "flat",
+        "windowBand": true,
+        "canopyDepth": 0.7,
+        "garageEdge": 2,
+        "garageCount": 30
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gp-background-kic-permanent-work-apron",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              357.877,
+              37.502
+            ],
+            [
+              642.032,
+              18.791
+            ],
+            [
+              641.887,
+              16.589
+            ],
+            [
+              357.731,
+              35.3
+            ],
+            [
+              357.877,
+              37.502
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-apron",
+        "sourceId": "kic-official-aerial",
+        "evidence": "Only narrow visually supported pavement along the roof edge is reconstructed. OSM roof outline and lane are close; do not create a wider apron crossing the mapped travel lane. Depth approximate.",
+        "color": "#afb1aa"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gp-background-kic-permanent-pit-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            357.415,
+            30.495
+          ],
+          [
+            641.571,
+            11.784
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "pit-wall",
+        "sourceId": "kic-official-aerial",
+        "evidence": "Linear divider parallel to permanent pit lane in operator aerial. Approximate 0.8 m wall height and extent. Kept clear of main straight.",
+        "height": 0.8,
+        "color": "#c5c5bc"
       }
     }
   ]

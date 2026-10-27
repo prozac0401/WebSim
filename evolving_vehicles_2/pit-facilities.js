@@ -71,6 +71,7 @@
       const turns=ring.map((q,i)=>cross(q,ring[(i+1)%ring.length],ring[(i+2)%ring.length])).filter(v=>Math.abs(v)>EPS);
       if(depth<3||local.some(q=>q.v<-.01)||turns.some(v=>v*turns[0]<0))return false;
       const h=clamp(Number(p.height)||13,p.canopy===false?3:8,32),rows=clamp(Math.round(Number(p.rows)||14),4,24);
+      const foundationDepth=clamp(Number(p.foundationDepth)||0,0,5);
       const groundAt=u=>{const q=f.at(u,0);return heightAt(q.x,q.y);},umin=Math.min(...local.map(q=>q.u)),umax=Math.max(...local.map(q=>q.u));
       const sections=Math.max(1,Math.ceil((umax-umin)/48)),cuts=Array.from({length:sections+1},(_,i)=>umin+(umax-umin)*i/sections);
       const clipU=(polygon,lo,hi)=>clipBand(polygon.map(q=>({u:q.v,v:q.u})),lo,hi).map(q=>({u:q.v,v:q.u}));
@@ -80,7 +81,9 @@
         const band=clipBand(local,low,high);
         for(let section=0;section<sections;section++){
           const clipped=clipU(band,cuts[section],cuts[section+1]);if(clipped.length<3)continue;
-          const lo=clipped.map(q=>f.at(q.u,q.v,groundAt(q.u)+bottom)),hi=clipped.map(q=>f.at(q.u,q.v,groundAt(q.u)+top));
+          // Extend only the existing ground-level walls into the terrain.
+          // Seats, concourse tops, roof and the original front datum stay put.
+          const lo=clipped.map(q=>f.at(q.u,q.v,groundAt(q.u)+bottom-(bottom===0?foundationDepth:0))),hi=clipped.map(q=>f.at(q.u,q.v,groundAt(q.u)+top));
           face(hi,fill,kind,id);
           for(let i=0;i<clipped.length;i++){
             const a=clipped[i],b=clipped[(i+1)%clipped.length];
@@ -99,7 +102,7 @@
         if(row===middle-1)strip(high,high+gap,0,z,'#c8c9c1','grandstand-concourse');
       }
       if(p.canopy===false){occupied.push({ring});stats.grandstands++;return true;}
-      const canopyDepth=clamp(Number(p.canopyDepth)||16,3,depth+3),front=depth-canopyDepth,back=depth+.4,rise=clamp(Number(p.roofRise)||1.2,0,4),u0=Math.min(...local.map(q=>q.u))-.5,u1=Math.max(...local.map(q=>q.u))+.5;
+      const canopyDepth=clamp(Number(p.canopyDepth)||16,3,depth+3),front=depth-canopyDepth,back=depth+.4,rise=clamp(p.roofRise!=null&&Number(p.roofRise)===0?0:Number(p.roofRise)||1.2,0,4),u0=Math.min(...local.map(q=>q.u))-.5,u1=Math.max(...local.map(q=>q.u))+.5;
       const roofZ=(u,v)=>groundAt(u)+h+rise*Math.sin(clamp((v-front)/(back-front),0,1)*Math.PI),roofCuts=[u0,...cuts.slice(1,-1),u1];
       for(let i=0;i<12;i++){
         const a=front+(back-front)*i/12,b=front+(back-front)*(i+1)/12;
@@ -158,6 +161,87 @@
       }
       stats.gantries++;return true;
     }
+    function roofedBridge(line,p,id){
+      if(line.length!==2)return false;
+      const f=frame([line[0],line[1],point(line[1].x-(line[1].y-line[0].y),line[1].y+(line[1].x-line[0].x))],0);
+      if(!f||f.length<12||f.length>160)return false;
+      const width=clamp(Number(p.deckWidth)||5,3,8),pier=clamp(Number(p.pierWidth)||1.6,.8,3),clearance=clamp(Number(p.deckClearance)||7,7,16);
+      const wall=clamp(Number(p.wallHeight)||2.5,1.8,4),rise=clamp(Number(p.roofRise)||1.5,.6,3.5),pavilion=clamp(Number(p.pavilionLength)||6,4,Math.min(10,f.length*.25));
+      const pavilionRise=clamp(Number(p.pavilionRise)||1.2,.3,2.5),drop=clamp(Number(p.archDrop)||2,.5,3),thickness=.45;
+      const roofColor=color(p.roofColor,'#4d5b5e'),timber=color(p.frameColor,'#8b4030'),stone=color(p.pierColor,'#bcbdb3');
+      const rect=(u0,u1,v0,v1)=>[f.at(u0,v0),f.at(u1,v0),f.at(u1,v1),f.at(u0,v1)];
+      const feet=[0,f.length].map(u=>rect(u-pier/2,u+pier/2,-width/2-.2,width/2+.2));
+      function segmentGap(a,b,c,d){
+        if(cross(a,b,c)*cross(a,b,d)<=0&&cross(c,d,a)*cross(c,d,b)<=0&&Math.max(Math.min(a.x,b.x),Math.min(c.x,d.x))<=Math.min(Math.max(a.x,b.x),Math.max(c.x,d.x))+EPS&&Math.max(Math.min(a.y,b.y),Math.min(c.y,d.y))<=Math.min(Math.max(a.y,b.y),Math.max(c.y,d.y))+EPS)return 0;
+        return Math.min(closest(a,b,c).distance,closest(a,b,d).distance,closest(c,d,a).distance,closest(c,d,b).distance);
+      }
+      const paths=[{points:track.points,closed:true,margin:track.width*.5+Math.min(1.1,track.width*.065)+1}];
+      // Pit lanes are checked independently of feature order. A mapped footway
+      // endpoint is not automatically a safe pier location beside a live lane.
+      for(const item of data.features||[]){const props=item.properties||{};
+        if(props.kind==='pit-lane'&&item.geometry?.type==='LineString'&&sourceIds.has(props.sourceId)&&props.evidence)
+          try{paths.push({points:item.geometry.coordinates.map(project),closed:false,margin:clamp(Number(props.width)||6,2,24)/2+.5});}catch(_){/* Normal source validation rejects malformed lanes. */}
+      }
+      for(const ring of feet)for(const path of paths)for(let i=0;i<path.points.length-(path.closed?0:1);i++){
+        const a=path.points[i],b=path.points[(i+1)%path.points.length];
+        if(inside(a,ring)||inside(b,ring)||ring.some((q,j)=>segmentGap(q,ring[(j+1)%ring.length],a,b)<path.margin))return false;
+      }
+      let ground=Math.max(...feet.flatMap(ring=>ring.map(q=>heightAt(q.x,q.y))));
+      for(let i=0;i<track.points.length;i++){
+        const a=track.points[i],b=track.points[(i+1)%track.points.length],aa=f.local(a),bb=f.local(b),band=track.width*.5+width*.5;
+        if(Math.min(aa.u,bb.u)<=f.length+band&&Math.max(aa.u,bb.u)>=-band&&Math.min(aa.v,bb.v)<=band&&Math.max(aa.v,bb.v)>=-band)ground=Math.max(ground,a.z||0,b.z||0);
+      }
+      // Clearance includes the lowest arched rib, not only the deck. Every
+      // overhead part is separate convex geometry; no polygon fills the void.
+      const opening=ground+clearance,deckBottom=opening+drop,deckTop=deckBottom+thickness;
+      for(const ring of feet){prism(ring,q=>heightAt(q.x,q.y),deckTop,stone,'roofed-bridge-pier',id);occupied.push({ring});}
+      prism(rect(-pavilion/2,f.length+pavilion/2,-width/2,width/2),deckBottom,deckTop,timber,'roofed-bridge-deck',id);
+      const panel=(u0,u1,v,z0,z1,fill,kind)=>face([f.at(u0,v,z0),f.at(u1,v,z0),f.at(u1,v,z1),f.at(u0,v,z1)],fill,kind,id);
+      function facade(u0,u1,h,bays){
+        for(const side of [-1,1])for(let i=0;i<bays;i++){
+          const a=u0+(u1-u0)*i/bays,b=u0+(u1-u0)*(i+1)/bays,v=side*width/2,lo=deckTop+.4,hi=deckTop+h-.18,mid=(a+b)/2,zmid=(lo+hi)/2;
+          panel(a,b,v,deckTop,lo,timber,'roofed-bridge-frame');panel(a,b,v,hi,deckTop+h,timber,'roofed-bridge-frame');
+          for(const [left,right] of [[a,a+.14],[b-.14,b],[mid-.045,mid+.045]])panel(left,right,v,lo,hi,timber,'roofed-bridge-frame');
+          for(const [left,right] of [[a+.14,mid-.045],[mid+.045,b-.14]]){
+            panel(left,right,v,zmid-.035,zmid+.035,timber,'roofed-bridge-frame');
+            panel(left,right,v,lo,zmid-.035,'#a28d62','roofed-bridge-window');panel(left,right,v,zmid+.035,hi,'#a28d62','roofed-bridge-window');
+          }
+        }
+      }
+      facade(pavilion/2,f.length-pavilion/2,wall,clamp(Math.ceil((f.length-pavilion)/7),2,10));
+      for(const u of [0,f.length]){
+        facade(u-pavilion/2,u+pavilion/2,wall+pavilionRise,2);
+        for(const side of [-1,1])spar(f.at(u+side*pavilion/2,-width/2,deckTop),f.at(u+side*pavilion/2,-width/2,deckTop+wall+pavilionRise),.2,timber,'roofed-bridge-frame',id);
+        const end=u===0?-pavilion/2:f.length+pavilion/2;
+        face([f.at(end,-width/2,deckTop+.35),f.at(end,width/2,deckTop+.35),f.at(end,width/2,deckTop+wall+pavilionRise-.2),f.at(end,-width/2,deckTop+wall+pavilionRise-.2)],'#967e58','roofed-bridge-window',id);
+      }
+      function roof(u0,u1,h,segments){
+        const eave=.7,left=u0-eave,right=u1+eave,half=width/2+eave,base=deckTop+h;
+        const z=(u,v)=>{const hip=clamp(Math.min(1-Math.abs(v)/half,(u-left)/half,(right-u)/half),0,1);return base+rise*Math.pow(hip,.7)+.18*Math.pow(1-hip,6);};
+        for(let i=0;i<segments;i++)for(let j=0;j<6;j++){
+          const a=left+(right-left)*i/segments,b=left+(right-left)*(i+1)/segments,v=-half+2*half*j/6,w=-half+2*half*(j+1)/6;
+          const q=[f.at(a,v,z(a,v)),f.at(b,v,z(b,v)),f.at(b,w,z(b,w)),f.at(a,w,z(a,w))];
+          face(q,roofColor,'roofed-bridge-roof',id);face(q.map(p=>point(p.x,p.y,p.z-.14)).reverse(),'#343c3d','roofed-bridge-roof',id);
+        }
+        for(const v of [-half,half])for(let i=0;i<segments;i++){
+          const a=left+(right-left)*i/segments,b=left+(right-left)*(i+1)/segments;
+          panel(a,b,v,z(a,v)-.14,z(a,v),'#667273','roofed-bridge-eave');
+        }
+        for(const u of [left,right])for(let j=0;j<6;j++){
+          const v=-half+2*half*j/6,w=-half+2*half*(j+1)/6;
+          face([f.at(u,v,z(u,v)),f.at(u,w,z(u,w)),f.at(u,w,z(u,w)-.14),f.at(u,v,z(u,v)-.14)],'#667273','roofed-bridge-eave',id);
+        }
+      }
+      roof(pavilion/2,f.length-pavilion/2,wall,clamp(Math.ceil(f.length/12),4,8));
+      for(const u of [0,f.length])roof(u-pavilion/2,u+pavilion/2,wall+pavilionRise,4);
+      const reach=Math.min(10,f.length*.23);
+      for(const side of [-1,1])for(const end of [0,1]){
+        const at=t=>f.at(end?f.length-reach*t:reach*t,side*(width/2-.12),opening+.12+(drop-.12)*(1-(1-t)**2));
+        for(let i=0;i<6;i++)spar(at(i/6),at((i+1)/6),.16,timber,'roofed-bridge-arch',id);
+        for(const t of [.25,.5,.75]){const a=at(t);spar(a,point(a.x,a.y,deckBottom),.10,timber,'roofed-bridge-arch-web',id);}
+      }
+      stats.roofedBridges=(stats.roofedBridges||0)+1;return true;
+    }
     function building(ring,p,id){
       const h=clamp(Number(p.height)||7,2.5,36),base=buildingBases.get(p.baseGroup)??Math.max(...ring.map(q=>heightAt(q.x,q.y))),roof=base+h,wall=color(p.wallColor,'#d3d1c5'),roofColor=color(p.roofColor,'#8c969b');
       const edge=clamp(Math.round(Number(p.garageEdge)||0),0,ring.length-1),a=ring[edge],b=ring[(edge+1)%ring.length],length=distance(a,b)||1,ux=(b.x-a.x)/length,uy=(b.y-a.y)/length;
@@ -214,6 +298,7 @@
       if(p.kind==='pit-building'&&g.type==='Polygon')building(coords,p,id);
       else if(p.kind==='grandstand'&&g.type==='Polygon'){if(!grandstand(coords,p,id)){stats.features--;stats.rejected++;}}
       else if(p.kind==='timing-gantry'&&g.type==='LineString'){if(!gantry(coords,p,id)){stats.features--;stats.rejected++;}}
+      else if(p.kind==='roofed-bridge'&&g.type==='LineString'){if(!roofedBridge(coords,p,id)){stats.features--;stats.rejected++;}}
       else if(p.kind==='pit-apron'&&g.type==='Polygon'){surface(coords,color(p.color,'#6d746f'),p.kind,id);occupied.push({ring:coords});focusPoints.push(...coords);}
       else if(p.kind==='pit-lane'&&g.type==='LineString'){
         const width=clamp(Number(p.width)||6,2,24),pairs=ribbon(coords,width,color(p.color,'#68726f'),p.kind,id);if(p.edgeMarkings)for(const side of [0,1])ribbon(pairs.map(pair=>pair[side]),.13,color(p.markingColor,'#f1eee2'),'pit-marking',id,.065);
@@ -232,7 +317,8 @@
     // whole-circuit view. Start at the main photographed facade and its neighbours.
     const primary=buildings.find(b=>b.id===data.metadata?.focusFeatureId)||[...buildings].sort((a,b)=>b.area-a.area)[0],cluster=primary?[primary]:[];
     if(primary){let changed=true;while(changed){changed=false;for(const b of buildings){if(cluster.includes(b))continue;if(cluster.some(other=>b.ring.some(p=>other.ring.some((q,i)=>closest(q,other.ring[(i+1)%other.ring.length],p).distance<45)))){cluster.push(b);changed=true;}}}}
-    const focusBounds=cluster.length?bounds(cluster.flatMap(b=>b.ring)):focusPoints.length?bounds(focusPoints):worldBounds;let focus=null;
+    const focusFallback=stats.roofedBridges?faces.filter(f=>!f.kind.startsWith('roofed-bridge-')).flatMap(f=>f.vertices):null;
+    const focusBounds=cluster.length?bounds(cluster.flatMap(b=>b.ring)):focusPoints.length?bounds(focusPoints):focusFallback?(focusFallback.length?bounds(focusFallback):null):worldBounds;let focus=null;
     if(focusBounds){const x=(focusBounds.minX+focusBounds.maxX)/2,y=(focusBounds.minY+focusBounds.maxY)/2;const line=laneLines[0],heading=line?Math.atan2(line.at(-1).y-line[0].y,line.at(-1).x-line[0].x):0;focus={target:point(x,y,heightAt(x,y)+3),distance:Math.max(80,Math.hypot(focusBounds.maxX-focusBounds.minX,focusBounds.maxY-focusBounds.minY)*1.05),heading,yaw:primary?Math.atan2(-primary.normal.x,primary.normal.y)+.25:heading+Math.PI/2,bounds:focusBounds};}
     function contains(x,y,margin=0){const p=point(x,y);return occupied.some(area=>area.ring?(inside(p,area.ring)||area.ring.some((a,i)=>closest(a,area.ring[(i+1)%area.ring.length],p).distance<margin)):area.line.some((b,i)=>i>0&&closest(area.line[i-1],b,p).distance<area.radius+margin));}
     stats.faces=faces.length;return{data,stats,faces,groups:allGroups,bounds:worldBounds,focus,contains,groundHeight:heightAt,query:(x,y,radius=440)=>allGroups.filter(g=>Math.hypot(Math.max(g.bounds.minX-x,0,x-g.bounds.maxX),Math.max(g.bounds.minY-y,0,y-g.bounds.maxY))<=radius)};

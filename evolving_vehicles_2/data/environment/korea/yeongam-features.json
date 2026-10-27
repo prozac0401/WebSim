@@ -40,22 +40,6392 @@
         "redistributed": false
       },
       "inspection": "Downloaded image visually inspected; PDF page renders inspected where specified."
+    },
+    {
+      "id": "kic-osm-20261027",
+      "title": "OpenStreetMap KIC source footprint data",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=126.402,34.728,126.423,34.751",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kic-osm.xml",
+      "sha256": "f26ec4a91a3fc072b1473d4a499dffc30cf354d8de8f791368cce2463e8f572d",
+      "license": "ODbL-1.0",
+      "attribution": "OpenStreetMap contributors",
+      "retrievedAt": "2026-10-27"
+    },
+    {
+      "id": "fia-2013-media-kit",
+      "title": "2013 Korean Grand Prix Organizing Committee Media Kit, p9 circuit facilities and p11 grandstand locations",
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2013/2013-korean-grand-prix-event-information",
+      "imageUrl": "https://www.fia.com/sites/default/files/external_archive/node4128/2013%20KGP%20Media%20Kit.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/fia-2013-media-kit.pdf",
+      "sha256": "3f8fe7d56f64b9a483f643929b3e83109357f48754f9895aa6d26e79b1afff33",
+      "publicationDate": "2013-09-29",
+      "rights": "FIA / Korean Grand Prix Organizing Committee. Reference only; not redistributed."
+    },
+    {
+      "id": "kmg-2025-aerial",
+      "title": "KMG 2025 company introduction p33 whole KIC aerial",
+      "url": "https://www.minigpnea.com/page/KMG_Belle%20foret%20Intro.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kmg-2025-aerial.jpg",
+      "publicationYear": 2025,
+      "captureDate": null,
+      "rights": "Korea Mobility Group. Reference only; not redistributed.",
+      "sha256": "060c7e0874929f5af10c37979fbf607deffa832591bb91e9a9ef033a287f5ccc",
+      "originalPdfSha256": "0825a3e76bb22696727eedb314159d2607493b0434a6b3117acde79b91667499"
+    },
+    {
+      "id": "kic-gp-aerial",
+      "url": "https://koreacircuit.com/main/images/contents/kic_bg_2.png",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kic-grandstand.png",
+      "sha256": "fd4f6c596341553ba4f0c89d0a68ac38734d335786af00998bf4d10991829db6",
+      "captureDate": null,
+      "publicationDate": null,
+      "rights": "Official reference image. Local review only, not bundled or redistributed."
+    },
+    {
+      "id": "kic-gp-front",
+      "url": "https://koreacircuit.com/main/images/contents/kic_bg_3.jpg",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kic-bridge.jpg",
+      "sha256": "50d51c419d6b76558f35fc36190cf3a8e1ad8da0880dbe64d55bfdb8625868bf",
+      "captureDate": null,
+      "publicationDate": null,
+      "rights": "Official reference image. Local review only, not bundled or redistributed."
+    },
+    {
+      "id": "kic-current-course",
+      "url": "https://koreacircuit.com/main/images/contents/track_1.png",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/kic-current-course.png",
+      "sha256": "fa861b60b88d6fde9f3dd8d867cffdf7ee5b539f0b219173adbf648449c9a51c",
+      "captureDate": null,
+      "publicationDate": null,
+      "rights": "Official reference image. Local review only, not bundled or redistributed."
+    },
+    {
+      "id": "korea-2011-course",
+      "url": "https://www.korea.kr/newsWeb/resources/attaches/namo/2011.09/21/72149/afvbbb.jpg",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/korea-2011-course.jpg",
+      "sha256": "0465b1cf44ce4cf1309c31fa75f677ccd10968f05cba7a53cfc5e8af8c899311",
+      "captureDate": null,
+      "publicationDate": "2011-09-27",
+      "rights": "Official reference image. Local review only, not bundled or redistributed."
+    },
+    {
+      "id": "korea-2011-race-photo",
+      "url": "https://www.korea.kr/newsWeb/resources/attaches/namo/2011.09/27/76101/d10kor1780.jpg",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/korea-2011-aerial.jpg",
+      "sha256": "a9e4d6e6be28d6ff58e8ce326279ab6e6e421eea4c974e7cebbdc6d68976c0ed",
+      "captureDate": null,
+      "publicationDate": "2011-09-27",
+      "rights": "Official reference image. Local review only, not bundled or redistributed."
+    },
+    {
+      "id": "fia-2013-diagram",
+      "url": "https://www.fia.com/sites/default/files/external_archive/node4128/Doc%201%20KOREA_CIRCUIT_13%20FIA.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/fia-2013-diagram.pdf",
+      "sha256": "6243b9fe70e1375278658a39896a8de60a3e2efe8c22260ecbe91a3771365267",
+      "publicationDate": "2013-10-02",
+      "rights": "FIA/FOM. Local reference only; do not redistribute diagrams."
+    },
+    {
+      "id": "fia-2013-map",
+      "url": "https://www.fia.com/sites/default/files/external_archive/node4128/14-korea-circuit-print.pdf",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/references/fia-2013-map.pdf",
+      "sha256": "19ac4ca6bfc88e60389e79a85d09aa3eab2ee0f4c856c9aa05e5bbf199bdf8b5",
+      "publicationDate": "2013-10-02",
+      "rights": "FIA/FOM. Local reference only; do not redistribute diagrams."
+    },
+    {
+      "id": "user-video-caVSBA3tmrw",
+      "title": "마지막 F1 코리아 그랑프리의 추억 2013, 머신들의 실제 속도ㅎㄷㄷ (영암 서킷) 에프원",
+      "url": "https://www.youtube.com/watch?v=caVSBA3tmrw",
+      "author": "임도전TV - 여행노래",
+      "uploadDate": "2022-01-05",
+      "authorStatedYear": 2013,
+      "captureDateStatus": "2013 identified by title; exact individual frame date is not established.",
+      "retrievedDate": "2026-10-27",
+      "localEvidenceFile": "output/yeongam-gp-trackside-qa/reference-video.mp4",
+      "rights": {
+        "redistributed": false,
+        "license": "No redistribution licence identified. Reference video and frames are not included in the application."
+      }
     }
   ],
   "metadata": {
     "name": "영암 코리아 인터내셔널 서킷",
-    "method": "photo-traced; approximate footprint",
-    "reviewedDate": "2026-10-15",
+    "method": "2013 spectator footage, registered FIA2013 runoff/gravel envelopes, operator aerial and OSM physical features; source-backed display approximations.",
+    "reviewedDate": "2026-10-27",
     "sourceIndex": "../korea-references.json",
     "captureYear": "See individual sources; otherwise unknown.",
     "approximation": "Manual plan-view placement; boundaries, off-road elevation and individual tree positions/heights are not surveyed.",
     "localAxes": "x east, y south, metres in TrackMath built-track coordinates.",
-    "geometryStatus": "observed-materials-not-geolocated",
+    "geometryStatus": "registered-reference-footprints",
     "limitations": [
-      "These crops do not locate the observed areas against both simulator layouts reliably; geometry intentionally omitted.",
-      "The KIC website main bg_track.png appears to show Inje Speedium and is excluded as geographically inconsistent evidence.",
-      "A pit safety wall is not identified as a terrain-retaining wall."
+      "Reference footage depicts the2013KoreanGP and was uploaded2022-01-05. It is a fixed western T9–T10 spectator view with pans, not a complete lap. Exact camera seat is unconfirmed.",
+      "FIA2013 map runoff polygons are registered to the existing GP centreline with1.30m RMS fit. This fit error is not a survey accuracy claim for runoff edges; widths, barrier heights and paint placement remain estimates.",
+      "Stripe direction,7m pitch/4.5m painted width/2.5m gap and phase are visual approximations, approximately30percent dimensional uncertainty. T11 is a separate aerial-confirmed striped area, not the video camera location.",
+      "Only cited curb intervals are reconstructed; unreviewed edges use neutral white lines rather than a full perimeter curb inference. Sector colors on the FIA map are not interpreted as curbs.",
+      "Open dry-grass appearance uses a default terrain color; unfilled white map regions are not asserted to be surveyed grass. Random infield forest clusters are disabled. One explicitly mapped gravel trap is distinguished from paved runoffs.",
+      "GP and permanent share physical source geometry reprojected through WGS84; their canonical distances and active pit compounds differ. Existing road/elevation/physics and timing origin are unchanged.",
+      "Historical footprints/2013 appearance are combined with operator images of unknown capture date. Source media is local reference only and is not redistributed."
+    ],
+    "defaultRoadEdge": "white-line",
+    "roadCurbColors": [
+      "#ba4c55",
+      "#e9ede7"
+    ],
+    "roadCurbBlockLengthM": 1.8,
+    "roadSurfaceColor": "#596267",
+    "defaultGroundColor": "#8c9669",
+    "backgroundTreeLimit": 0,
+    "conservativeSceneryVisibility": true,
+    "staticWorldGeometry": true,
+    "roadEdges": [
+      {
+        "startM": 5510,
+        "endM": 200,
+        "side": "both",
+        "style": "curb",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "T9–T10: red-white local curb strips are visible at00:00/01:30/02:50; ends interpolated around the source complex, not a full-lap kerb survey."
+      },
+      {
+        "startM": 350,
+        "endM": 635,
+        "side": "left",
+        "style": "curb",
+        "sourceId": "kmg-2025-aerial",
+        "evidence": "The separate T11 U-shaped corner has an inner curb in the operator aerial; approximate endpoints."
+      },
+      {
+        "startM": 370,
+        "endM": 620,
+        "side": "right",
+        "style": "curb",
+        "sourceId": "kmg-2025-aerial",
+        "evidence": "T11 outer paved striped area meets short red-white edge segments in the operator aerial; approximate interval."
+      },
+      {
+        "startM": 650,
+        "endM": 750,
+        "side": "right",
+        "style": "curb",
+        "sourceId": "kmg-2025-aerial",
+        "evidence": "T12 has a short curb on the inside of the right bend in the aerial; approximate endpoints."
+      },
+      {
+        "startM": 1670,
+        "endM": 1785,
+        "side": "left",
+        "style": "curb",
+        "sourceId": "kic-gp-aerial",
+        "evidence": "GP last turn into main straight: red-white edge and green margin visible in the official pit/grandstand aerial."
+      },
+      {
+        "startM": 2380,
+        "endM": 2460,
+        "side": "left",
+        "style": "curb",
+        "sourceId": "kic-gp-aerial",
+        "evidence": "GP first left corner: red-white inside curb visible beyond the main stand in the official aerial."
+      }
+    ],
+    "replaceSimulationStartPaint": true,
+    "paintReferenceLineM": 1955.3,
+    "roadMarkings": [
+      {
+        "type": "checker",
+        "atM": 1955.3,
+        "depth": 1,
+        "cellSize": 0.5,
+        "colors": [
+          "#e8ece4",
+          "#344145"
+        ],
+        "sourceId": "fia-2013-map",
+        "evidence": "FIA2013 road-marker centre linked to the checker flag registers at canonical1955.3m. Position uncertainty5–10m; 1m stripe depth is a symbolic display estimate. Separate start arrow approximately2025m; simulation timing origin is unchanged."
+      }
     ]
   },
-  "features": []
+  "features": [
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-56",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              836.85395114389,
+              -145.24024993434944
+            ],
+            [
+              882.693258872826,
+              -84.90336416805292
+            ],
+            [
+              930.3677648634567,
+              -65.1651575105659
+            ],
+            [
+              902.825356416353,
+              -96.73837027585489
+            ],
+            [
+              847.7875672690653,
+              -153.47343531327715
+            ],
+            [
+              836.85395114389,
+              -145.24024993434944
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "gravel",
+        "sourceId": "fia-2013-map",
+        "evidence": "T4-T5 gravel trap: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#b8b095",
+        "parentId": "fia-2013-vector-56",
+        "materialStatus": "Explicit gravel legend."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-60",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -251.67646841419895,
+              173.5461758972035
+            ],
+            [
+              -260.0307652071843,
+              182.96972290023155
+            ],
+            [
+              -264.78225501276177,
+              189.39708081321533
+            ],
+            [
+              -268.89212532298444,
+              195.94488668213125
+            ],
+            [
+              -272.3713592376589,
+              202.6169576731188
+            ],
+            [
+              -275.23093985659267,
+              209.41711095231517
+            ],
+            [
+              -277.4818502795928,
+              216.3491636858589
+            ],
+            [
+              -279.13507360646616,
+              223.41693303988882
+            ],
+            [
+              -280.5182708223671,
+              234.28140578527086
+            ],
+            [
+              -280.72532747058017,
+              241.70516679236925
+            ],
+            [
+              -280.3731378719916,
+              249.27800450143695
+            ],
+            [
+              -279.99075794883646,
+              253.1215199836272
+            ],
+            [
+              -275.3574105177882,
+              285.26092102295956
+            ],
+            [
+              -273.81713858566786,
+              292.17750946574665
+            ],
+            [
+              -271.4930353594581,
+              299.2434804868258
+            ],
+            [
+              -270.0201691185263,
+              302.7851087404863
+            ],
+            [
+              -266.4190515959228,
+              309.790899286573
+            ],
+            [
+              -264.27729800021655,
+              313.217161000008
+            ],
+            [
+              -259.27764535490917,
+              319.82166586018434
+            ],
+            [
+              -256.40624399127336,
+              322.96200842793473
+            ],
+            [
+              -249.88653539695144,
+              328.82412239128325
+            ],
+            [
+              -246.22472585223073,
+              331.50799320789065
+            ],
+            [
+              -242.3678445022647,
+              333.9913208065675
+            ],
+            [
+              -234.6921045095387,
+              338.069638107263
+            ],
+            [
+              -230.8648869259879,
+              339.68639639190883
+            ],
+            [
+              -223.21085923253383,
+              342.1295336863627
+            ],
+            [
+              -219.3756901818398,
+              342.9776812787991
+            ],
+            [
+              -211.66814432054105,
+              343.9815558106561
+            ],
+            [
+              -207.78740856914533,
+              344.1590513327044
+            ],
+            [
+              -199.95111407288493,
+              343.91958034560776
+            ],
+            [
+              -197.71699570396845,
+              364.5670903694454
+            ],
+            [
+              -264.7630116730946,
+              338.44410724206705
+            ],
+            [
+              -273.56043463567784,
+              334.4475229326556
+            ],
+            [
+              -281.6370102887809,
+              328.97908813938466
+            ],
+            [
+              -288.6234483518335,
+              322.7755558085603
+            ],
+            [
+              -294.88635994891473,
+              315.4654262583347
+            ],
+            [
+              -300.06300496620344,
+              307.42021539320103
+            ],
+            [
+              -304.14566988484853,
+              298.6360050948417
+            ],
+            [
+              -307.1462916862464,
+              288.0131661195012
+            ],
+            [
+              -309.04751807268843,
+              277.38960558590475
+            ],
+            [
+              -309.85714806802054,
+              266.75758459329086
+            ],
+            [
+              -309.2062153422947,
+              255.75417817627272
+            ],
+            [
+              -303.09590744879546,
+              192.65050189087697
+            ],
+            [
+              -301.68912736921504,
+              184.946851466118
+            ],
+            [
+              -299.18807174203346,
+              177.59999384680032
+            ],
+            [
+              -295.2183874226555,
+              170.98139626948046
+            ],
+            [
+              -290.5143745063468,
+              164.72887154967225
+            ],
+            [
+              -284.706799715867,
+              159.5714012876299
+            ],
+            [
+              -278.15953801547425,
+              155.51051041201617
+            ],
+            [
+              -270.8764604154265,
+              152.54621514547716
+            ],
+            [
+              -263.21489171323293,
+              151.0452774584894
+            ],
+            [
+              -197.89034270474372,
+              141.97019512884776
+            ],
+            [
+              -197.35500042727483,
+              145.29030417702324
+            ],
+            [
+              -210.00501503886755,
+              147.66074249520898
+            ],
+            [
+              -217.34420897696725,
+              149.80117945556503
+            ],
+            [
+              -224.04336744514615,
+              152.48671704954063
+            ],
+            [
+              -230.30416230550247,
+              155.80048513573684
+            ],
+            [
+              -233.33319583965306,
+              157.71893369422992
+            ],
+            [
+              -239.314580029711,
+              162.1309160036326
+            ],
+            [
+              -245.3617802671933,
+              167.37895345175684
+            ],
+            [
+              -251.67646841419895,
+              173.5461758972035
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T11 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-60",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-61",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              330.1665068454612,
+              5.806174297982011
+            ],
+            [
+              329.6848685927765,
+              -3.9140600130504026
+            ],
+            [
+              129.34499525771514,
+              -38.380785258037804
+            ],
+            [
+              101.45643878380065,
+              -4.204938774674815
+            ],
+            [
+              169.90819611908978,
+              58.932098037793594
+            ],
+            [
+              172.1456685499171,
+              58.92660702180228
+            ],
+            [
+              171.70844277667277,
+              49.06908920102205
+            ],
+            [
+              171.76908698930288,
+              41.043662501239055
+            ],
+            [
+              172.40001899444758,
+              32.84458774733014
+            ],
+            [
+              173.84859765783267,
+              25.31987962610981
+            ],
+            [
+              174.95680413190473,
+              22.075417642387492
+            ],
+            [
+              176.36218184518395,
+              19.317552824392806
+            ],
+            [
+              178.09565065588606,
+              17.152287007977634
+            ],
+            [
+              180.188130422227,
+              15.68562202899409
+            ],
+            [
+              182.6705410024224,
+              15.023559723293829
+            ],
+            [
+              330.1665068454612,
+              5.806174297982011
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T3 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-61",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-62",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              968.6751737864951,
+              -21.5367009977291
+            ],
+            [
+              930.3677648634567,
+              -65.1651575105659
+            ],
+            [
+              882.693258872826,
+              -84.90336416805292
+            ],
+            [
+              904.9011948080416,
+              -55.44886732545217
+            ],
+            [
+              907.7856730741242,
+              -49.04939803134425
+            ],
+            [
+              909.2520842269934,
+              -42.29037878100951
+            ],
+            [
+              909.6578100674875,
+              -35.5308001988725
+            ],
+            [
+              908.6429036449362,
+              -28.761382232862843
+            ],
+            [
+              906.2086138164351,
+              -22.339623024031994
+            ],
+            [
+              902.7006808503849,
+              -16.628350201894477
+            ],
+            [
+              898.1294689204627,
+              -11.270114293334927
+            ],
+            [
+              892.8394305039975,
+              -7.331065968247458
+            ],
+            [
+              893.9587955280409,
+              0.14050770660128364
+            ],
+            [
+              964.5075737320898,
+              -4.429520114995739
+            ],
+            [
+              964.904241259332,
+              1.6228821990263214
+            ],
+            [
+              972.3468491911939,
+              0.8805916655696819
+            ],
+            [
+              971.1477882962148,
+              -17.98379154461145
+            ],
+            [
+              968.6751737864951,
+              -21.5367009977291
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T4 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-62",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-63",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              189.54302142324548,
+              82.74355023740316
+            ],
+            [
+              189.59706095407876,
+              95.91616024516793
+            ],
+            [
+              188.26905388547834,
+              108.02596920984251
+            ],
+            [
+              187.5919823378672,
+              112.29929260968743
+            ],
+            [
+              185.50233608207077,
+              121.10159826959944
+            ],
+            [
+              183.0841565935923,
+              129.56333101045198
+            ],
+            [
+              181.52884980408953,
+              133.75484748771805
+            ],
+            [
+              178.22664231555586,
+              141.17889263442862
+            ],
+            [
+              177.5339233539696,
+              143.31898154291434
+            ],
+            [
+              174.7304183175836,
+              147.9587093161133
+            ],
+            [
+              172.63268600526203,
+              152.23798642680526
+            ],
+            [
+              168.95578978279912,
+              157.58580022513638
+            ],
+            [
+              163.7291627409661,
+              164.84826661204124
+            ],
+            [
+              157.98466065778643,
+              171.69971404566513
+            ],
+            [
+              152.95334204914923,
+              177.24393160990007
+            ],
+            [
+              149.7818991636393,
+              179.74801547944116
+            ],
+            [
+              143.08687589810359,
+              185.83013767976036
+            ],
+            [
+              133.556995764902,
+              192.2777473245078
+            ],
+            [
+              135.36251915147295,
+              196.18705954065263
+            ],
+            [
+              256.6016422162303,
+              140.13933834741806
+            ],
+            [
+              214.45966623209472,
+              100.43994477198726
+            ],
+            [
+              212.6762834229187,
+              99.02133274296284
+            ],
+            [
+              199.81828675280155,
+              86.61348163247646
+            ],
+            [
+              192.32087011952945,
+              79.88362293663681
+            ],
+            [
+              189.54302142324548,
+              82.74355023740316
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T3 approach opposite runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-63",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-64",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              769.2825466919547,
+              -149.57727866887353
+            ],
+            [
+              771.7329921226145,
+              -148.51895507590234
+            ],
+            [
+              756.0731388706032,
+              -107.50873243249123
+            ],
+            [
+              755.0320964214303,
+              -104.30247663146588
+            ],
+            [
+              754.3576755286455,
+              -99.6677856401883
+            ],
+            [
+              754.3994589692423,
+              -93.9713889838448
+            ],
+            [
+              755.1417993292454,
+              -89.34652115379458
+            ],
+            [
+              757.3073941054555,
+              -84.3740107892113
+            ],
+            [
+              761.2499070290868,
+              -78.33646841833786
+            ],
+            [
+              763.7533936835672,
+              -75.85228127386642
+            ],
+            [
+              766.2477650214661,
+              -74.08304174356238
+            ],
+            [
+              767.6788573954935,
+              -72.66683912683641
+            ],
+            [
+              769.8118799849921,
+              -71.6071852769453
+            ],
+            [
+              774.7940620617313,
+              -69.4908787665554
+            ],
+            [
+              780.4768010578772,
+              -68.44610108245877
+            ],
+            [
+              779.4566503290024,
+              -62.39164695326156
+            ],
+            [
+              731.1638095057589,
+              -70.3766258582001
+            ],
+            [
+              751.3400374846173,
+              -124.22111931249322
+            ],
+            [
+              769.2825466919547,
+              -149.57727866887353
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T5 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-64",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-65",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -113.42673333740936,
+              382.5509010697722
+            ],
+            [
+              -114.60048437967339,
+              372.9423694569916
+            ],
+            [
+              -116.79618213006711,
+              363.3381206225856
+            ],
+            [
+              -120.40991849200975,
+              354.09730741743283
+            ],
+            [
+              -125.43909981400418,
+              345.57352608691303
+            ],
+            [
+              -131.52497099914729,
+              338.1227660660593
+            ],
+            [
+              -138.66628319034191,
+              331.38752921382047
+            ],
+            [
+              -138.4198246527501,
+              316.43396692580245
+            ],
+            [
+              -81.15953168986925,
+              289.84832730605604
+            ],
+            [
+              -71.11287801395815,
+              305.82734610754846
+            ],
+            [
+              -115.3487390845778,
+              464.09065344668807
+            ],
+            [
+              -123.52063361396404,
+              461.98771439607344
+            ],
+            [
+              -114.10070304533951,
+              392.5246690254405
+            ],
+            [
+              -113.42673333740936,
+              382.5509010697722
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T12 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-65",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-66",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -137.432958751686,
+              586.0805139000245
+            ],
+            [
+              -70.14662867476557,
+              620.6890606748393
+            ],
+            [
+              -70.84456344101034,
+              622.1180714195389
+            ],
+            [
+              -123.76210860285073,
+              612.7263879072689
+            ],
+            [
+              -170.700834832537,
+              596.1908765296134
+            ],
+            [
+              -160.49913883881766,
+              528.8112254902449
+            ],
+            [
+              -137.432958751686,
+              586.0805139000245
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T13 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-66",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-67",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              93.73251647625989,
+              675.9343721224614
+            ],
+            [
+              62.75804839172474,
+              770.1897310740521
+            ],
+            [
+              55.54464096490392,
+              769.4583457265835
+            ],
+            [
+              59.17896371490701,
+              747.7293066639772
+            ],
+            [
+              64.33735815781574,
+              726.3708023852819
+            ],
+            [
+              71.0149324395943,
+              705.7714326384034
+            ],
+            [
+              73.23243004517917,
+              697.7651786351053
+            ],
+            [
+              73.9363341381951,
+              689.7613820131162
+            ],
+            [
+              73.11506018953287,
+              681.7639771133984
+            ],
+            [
+              70.7830143931169,
+              674.153711224579
+            ],
+            [
+              34.50760997345105,
+              651.5893915495826
+            ],
+            [
+              36.987517739723444,
+              647.1647384950327
+            ],
+            [
+              93.73251647625989,
+              675.9343721224614
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T14 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-67",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-68",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              30.667083319265657,
+              813.0329630688213
+            ],
+            [
+              28.63671386815531,
+              873.9940126501208
+            ],
+            [
+              205.72413830430776,
+              824.7416407509995
+            ],
+            [
+              207.2601493995012,
+              823.5733516806811
+            ],
+            [
+              208.406209302408,
+              822.018117572283
+            ],
+            [
+              208.00485744420132,
+              820.0769033237414
+            ],
+            [
+              203.7065195046133,
+              807.7497541351513
+            ],
+            [
+              202.9822102661193,
+              804.5275818222526
+            ],
+            [
+              201.7667849481354,
+              794.5151024412053
+            ],
+            [
+              201.68884891774417,
+              791.2785639274532
+            ],
+            [
+              202.17160804454807,
+              784.791153144386
+            ],
+            [
+              203.06851869794502,
+              779.3511707006182
+            ],
+            [
+              201.51828527201644,
+              778.5805089308851
+            ],
+            [
+              183.64666007940912,
+              819.4057110534884
+            ],
+            [
+              182.85205375649957,
+              820.274627563733
+            ],
+            [
+              181.42417934506943,
+              821.1069223007069
+            ],
+            [
+              179.410433432663,
+              821.9033567538766
+            ],
+            [
+              173.8149134551012,
+              823.3916907666726
+            ],
+            [
+              162.2125119200581,
+              825.3742768940144
+            ],
+            [
+              142.74293962197157,
+              827.5831998232934
+            ],
+            [
+              121.48287731543144,
+              829.3401965264361
+            ],
+            [
+              77.29356637373803,
+              832.38698253794
+            ],
+            [
+              30.667083319265657,
+              813.0329630688213
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T15-T16 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-68",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-69",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              421.2793933586239,
+              781.8795038187905
+            ],
+            [
+              578.1303114154733,
+              818.8910445748672
+            ],
+            [
+              578.9350668773799,
+              817.247867579659
+            ],
+            [
+              406.7412916083946,
+              752.0509144667872
+            ],
+            [
+              401.8333142648486,
+              750.0236702057368
+            ],
+            [
+              401.02855880294203,
+              751.6668472009451
+            ],
+            [
+              421.2793933586239,
+              781.8795038187905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T18 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-69",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-70",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              360.99134698003957,
+              -59.23905558733679
+            ],
+            [
+              424.8400621403217,
+              -101.16232832925084
+            ],
+            [
+              422.8463750554946,
+              -104.33643721118415
+            ],
+            [
+              408.8636812053586,
+              -102.5348823862962
+            ],
+            [
+              397.0579640092541,
+              -101.29392858456106
+            ],
+            [
+              382.7979732131565,
+              -100.45765283555488
+            ],
+            [
+              371.8078324445586,
+              -100.81594433626219
+            ],
+            [
+              365.8151819640092,
+              -101.69866564512859
+            ],
+            [
+              360.55208818720564,
+              -103.08262348614346
+            ],
+            [
+              355.7290671240909,
+              -104.95594496110573
+            ],
+            [
+              351.0566347846078,
+              -107.30675717181464
+            ],
+            [
+              273.17995293067736,
+              -151.41897452689363
+            ],
+            [
+              265.3056211665988,
+              -155.38540865671087
+            ],
+            [
+              257.9951108385044,
+              -158.51152837885127
+            ],
+            [
+              254.43537969832653,
+              -159.79295153836244
+            ],
+            [
+              247.2751474364627,
+              -161.85948685690505
+            ],
+            [
+              239.7514644935883,
+              -163.35355737832754
+            ],
+            [
+              226.97310695001238,
+              -164.75566007509758
+            ],
+            [
+              360.99134698003957,
+              -59.23905558733679
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T7-T8 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-70",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-71",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1078.919979369064,
+              877.6127569770465
+            ],
+            [
+              1070.1827094445557,
+              865.9842241649055
+            ],
+            [
+              1058.6380474505663,
+              851.6046581358266
+            ],
+            [
+              1047.2521903935708,
+              840.9314726037576
+            ],
+            [
+              1057.7659315733995,
+              874.6743771106851
+            ],
+            [
+              1056.3665693890557,
+              918.7490139774952
+            ],
+            [
+              1056.0985201914914,
+              940.7864664224558
+            ],
+            [
+              1055.400053028151,
+              963.2531598365738
+            ],
+            [
+              1054.9798904455488,
+              964.5527753409444
+            ],
+            [
+              1054.9957088695128,
+              966.7093238704606
+            ],
+            [
+              1053.7383563048343,
+              971.0355944164494
+            ],
+            [
+              1052.4676416755192,
+              974.0679520673741
+            ],
+            [
+              1051.6209321373994,
+              975.7967923182566
+            ],
+            [
+              1049.4908532307936,
+              978.8327513964509
+            ],
+            [
+              1047.3575821377303,
+              981.4335150957161
+            ],
+            [
+              1042.6486745721218,
+              984.9077187112418
+            ],
+            [
+              1038.793511239684,
+              987.0843755591427
+            ],
+            [
+              1036.6475854074497,
+              987.9599004347949
+            ],
+            [
+              1032.7790315087104,
+              988.8387587146053
+            ],
+            [
+              1014.3843428402923,
+              984.2140383598944
+            ],
+            [
+              1113.5590891618258,
+              1021.7237509515428
+            ],
+            [
+              1128.3233191771387,
+              981.0514598421044
+            ],
+            [
+              1085.84878017759,
+              889.6801916931186
+            ],
+            [
+              1078.919979369064,
+              877.6127569770465
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T1-T2 runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-71",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-72",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              13.434302402027015,
+              180.45542427282794
+            ],
+            [
+              -86.36021593981525,
+              167.6969212723509
+            ],
+            [
+              -86.78161769594942,
+              158.80022252582876
+            ],
+            [
+              -75.78794856304023,
+              158.75415021300978
+            ],
+            [
+              22.117834758588288,
+              160.48103212156275
+            ],
+            [
+              27.07522560310656,
+              159.74527085340037
+            ],
+            [
+              32.031300154889095,
+              158.30230087183236
+            ],
+            [
+              36.620781651948164,
+              155.43478137303805
+            ],
+            [
+              40.14439053363844,
+              151.86062871528634
+            ],
+            [
+              42.944024559766376,
+              147.22091716473278
+            ],
+            [
+              44.68037962202254,
+              142.22816870060137
+            ],
+            [
+              44.99994492982637,
+              137.24135772467116
+            ],
+            [
+              44.25238876516494,
+              131.905411730835
+            ],
+            [
+              47.08459497800459,
+              131.1785566949742
+            ],
+            [
+              53.29194547467978,
+              155.71852290750348
+            ],
+            [
+              61.08284839246369,
+              153.90617980848128
+            ],
+            [
+              62.222653951950974,
+              158.88687484711113
+            ],
+            [
+              53.55835947038486,
+              169.8733483906817
+            ],
+            [
+              13.434302402027015,
+              180.45542427282794
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T10 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-72",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fia-2013-vector-73",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              199.9141735156253,
+              -231.21754379447123
+            ],
+            [
+              41.07468958919583,
+              -130.32174764820138
+            ],
+            [
+              -61.245336536932655,
+              -23.488289236509672
+            ],
+            [
+              -41.09162389974642,
+              55.23112181633735
+            ],
+            [
+              11.734701609103013,
+              111.29544098203712
+            ],
+            [
+              16.07869008116495,
+              108.73592790161229
+            ],
+            [
+              -15.501731258838504,
+              -1.530974636525002
+            ],
+            [
+              -17.381402749645986,
+              -11.326951706131467
+            ],
+            [
+              -17.81331640393637,
+              -21.128996045102667
+            ],
+            [
+              -16.80137173363289,
+              -30.940977103818682
+            ],
+            [
+              -14.698965522656636,
+              -40.3883777883957
+            ],
+            [
+              -11.152700987086405,
+              -49.8457151927181
+            ],
+            [
+              -6.513352757681787,
+              -58.58099030449466
+            ],
+            [
+              -0.782141189874551,
+              -66.2328193096489
+            ],
+            [
+              6.039503416940647,
+              -73.52395361368974
+            ],
+            [
+              13.95569051864959,
+              -79.36638854664932
+            ],
+            [
+              147.5003539242589,
+              -170.35232465289414
+            ],
+            [
+              158.67060185194225,
+              -176.9350399091369
+            ],
+            [
+              170.204963189512,
+              -182.43125920142882
+            ],
+            [
+              182.10852930265742,
+              -187.20238256649384
+            ],
+            [
+              194.3827589924382,
+              -190.52177292579518
+            ],
+            [
+              207.0288441126213,
+              -192.75469976643637
+            ],
+            [
+              219.68561735710443,
+              -193.5304992222699
+            ],
+            [
+              232.70769586524057,
+              -193.5850722012567
+            ],
+            [
+              245.38308069683796,
+              -191.82352717101082
+            ],
+            [
+              257.6999203754947,
+              -189.3338363562102
+            ],
+            [
+              261.66741006668315,
+              -196.25163075654393
+            ],
+            [
+              199.9141735156253,
+              -231.21754379447123
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "asphalt",
+        "sourceId": "fia-2013-map",
+        "evidence": "T8-T9 outer runoff: FIA2013 explicit runoff/gravel envelope registered to the original centreline; KMG aerial corroborates paved areas. Boundary is schematic, not a surveyed surface edge.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#687276",
+        "parentId": "fia-2013-vector-73",
+        "materialStatus": "Paved interpretation supported by separate gravel legend; specific surface/paint must also be matched to photographs."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n26",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -12.05233088561022,
+              177.32176136839576
+            ],
+            [
+              13.434302402027015,
+              180.45542427282794
+            ],
+            [
+              23.067226401089798,
+              177.9148952193635
+            ],
+            [
+              -12.05233088561022,
+              177.32176136839576
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -26
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n25",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.20745495199493,
+              169.27102583942204
+            ],
+            [
+              -34.250589480747905,
+              174.44649867947658
+            ],
+            [
+              31.97724837536123,
+              175.5650199691438
+            ],
+            [
+              48.01528792905126,
+              171.33524451874834
+            ],
+            [
+              -74.20745495199493,
+              169.27102583942204
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -25
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n24",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -86.62720199408737,
+              162.0602705944516
+            ],
+            [
+              -86.41385356020459,
+              166.56451557366114
+            ],
+            [
+              54.2936999930926,
+              168.94092403513469
+            ],
+            [
+              57.79640091593479,
+              164.49943937626026
+            ],
+            [
+              -86.62720199408737,
+              162.0602705944516
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -24
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n23",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              32.031300154889095,
+              158.30230087183236
+            ],
+            [
+              27.07522560310656,
+              159.74527085340037
+            ],
+            [
+              22.117834758588288,
+              160.48103212156275
+            ],
+            [
+              -75.78794856304023,
+              158.75415021300978
+            ],
+            [
+              -86.78161769594942,
+              158.80022252582876
+            ],
+            [
+              -86.74572890180002,
+              159.55791227266852
+            ],
+            [
+              59.74234587306929,
+              162.0319478991078
+            ],
+            [
+              62.222653951950974,
+              158.88687484711113
+            ],
+            [
+              61.92085912694676,
+              157.5680990479662
+            ],
+            [
+              33.96214435507619,
+              157.0959045944493
+            ],
+            [
+              32.031300154889095,
+              158.30230087183236
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -23
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n22",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              40.14439053363844,
+              151.86062871528634
+            ],
+            [
+              37.391055065038714,
+              154.65345891103075
+            ],
+            [
+              53.08960394359734,
+              154.9185915456745
+            ],
+            [
+              51.946288546538476,
+              150.3986403637461
+            ],
+            [
+              41.13672396417681,
+              150.2160777358724
+            ],
+            [
+              40.14439053363844,
+              151.86062871528634
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -22
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n22-part-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              61.08284839246369,
+              153.90617980848128
+            ],
+            [
+              57.18739693357179,
+              154.81235135799238
+            ],
+            [
+              56.48423320025557,
+              154.97592340516158
+            ],
+            [
+              61.34644575807845,
+              155.0580412643106
+            ],
+            [
+              61.08284839246369,
+              153.90617980848128
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -22
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n21",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              44.31846812588942,
+              143.26881591944974
+            ],
+            [
+              42.630236093207905,
+              147.7409451252214
+            ],
+            [
+              51.311113325950096,
+              147.88755637378588
+            ],
+            [
+              50.16779792889112,
+              143.36760519185748
+            ],
+            [
+              44.31846812588942,
+              143.26881591944974
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -21
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n20",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              44.99994492982637,
+              137.24135772467116
+            ],
+            [
+              44.77342846075729,
+              140.7761432179578
+            ],
+            [
+              49.53262270830284,
+              140.85652120189724
+            ],
+            [
+              48.38930731124399,
+              136.3365700199689
+            ],
+            [
+              44.86484656196179,
+              136.27704543770434
+            ],
+            [
+              44.99994492982637,
+              137.24135772467116
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -20
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-72-n19",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              47.08459497800459,
+              131.1785566949742
+            ],
+            [
+              44.25238876516494,
+              131.905411730835
+            ],
+            [
+              44.51372043250529,
+              133.77075874999687
+            ],
+            [
+              47.75413209065567,
+              133.82548603000865
+            ],
+            [
+              47.08459497800459,
+              131.1785566949742
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-72",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -19
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n16",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              8.305074643431853,
+              107.6555947695558
+            ],
+            [
+              11.734701609103013,
+              111.29544098203712
+            ],
+            [
+              16.07869008116495,
+              108.73592790161229
+            ],
+            [
+              15.805562752653522,
+              107.78227043804567
+            ],
+            [
+              8.305074643431853,
+              107.6555947695558
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -16
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n15",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.6017450163611135,
+              100.54138404100487
+            ],
+            [
+              5.911028348049279,
+              105.11480522364477
+            ],
+            [
+              15.085980465771714,
+              105.26976089798893
+            ],
+            [
+              13.79073234938431,
+              100.7472437258868
+            ],
+            [
+              1.6017450163611135,
+              100.54138404100487
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -15
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n14",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -5.101584610709546,
+              93.42717331245395
+            ],
+            [
+              -0.7923012790213126,
+              98.00059449509382
+            ],
+            [
+              13.071150062502479,
+              98.23473418583006
+            ],
+            [
+              11.775901946115301,
+              93.71221701372797
+            ],
+            [
+              -5.101584610709546,
+              93.42717331245395
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -14
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n13",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -11.804914237780288,
+              86.312962583903
+            ],
+            [
+              -7.495630906091972,
+              90.88638376654289
+            ],
+            [
+              11.056319659233425,
+              91.19970747367124
+            ],
+            [
+              9.761071542846034,
+              86.67719030156911
+            ],
+            [
+              -11.804914237780288,
+              86.312962583903
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -13
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n12",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -18.50824386485094,
+              79.19875185535206
+            ],
+            [
+              -14.198960533162692,
+              83.77217303799195
+            ],
+            [
+              9.041489255964187,
+              84.16468076151237
+            ],
+            [
+              7.7462411395768935,
+              79.64216358941025
+            ],
+            [
+              -18.50824386485094,
+              79.19875185535206
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -12
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n11",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -25.211573491921673,
+              72.08454112680111
+            ],
+            [
+              -20.90229016023333,
+              76.65796230944102
+            ],
+            [
+              7.0266588526950295,
+              77.12965404935352
+            ],
+            [
+              5.731410736307672,
+              72.60713687725138
+            ],
+            [
+              -25.211573491921673,
+              72.08454112680111
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -11
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n10",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -31.914903118992257,
+              64.97033039825018
+            ],
+            [
+              -27.60561978730403,
+              69.54375158089007
+            ],
+            [
+              5.011828449425884,
+              70.09462733719465
+            ],
+            [
+              3.716580333038672,
+              65.57211016509252
+            ],
+            [
+              -31.914903118992257,
+              64.97033039825018
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -10
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n9",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -38.61823274606285,
+              57.85611966969924
+            ],
+            [
+              -34.308949414374645,
+              62.42954085233913
+            ],
+            [
+              2.9969980461567673,
+              63.0596006250358
+            ],
+            [
+              1.7017499297693663,
+              58.537083452933665
+            ],
+            [
+              -38.61823274606285,
+              57.85611966969924
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -9
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n8",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -42.22757227060581,
+              50.79416330897495
+            ],
+            [
+              -41.01227904144537,
+              55.31533012378819
+            ],
+            [
+              0.9821676428875595,
+              56.02457391287694
+            ],
+            [
+              -0.31308047349973395,
+              51.50205674077481
+            ],
+            [
+              -42.22757227060581,
+              50.79416330897495
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -8
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -44.02774889660481,
+              43.76276188230867
+            ],
+            [
+              -42.87049249417693,
+              48.28294851373699
+            ],
+            [
+              -1.0326627603816185,
+              48.98954720071808
+            ],
+            [
+              -2.327910876768962,
+              44.46703002861596
+            ],
+            [
+              -44.02774889660481,
+              43.76276188230867
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -7
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -45.827925522603714,
+              36.731360455642395
+            ],
+            [
+              -44.67066912017585,
+              41.25154708707071
+            ],
+            [
+              -3.0474931636507776,
+              41.954520488559226
+            ],
+            [
+              -4.342741280037943,
+              37.43200331645711
+            ],
+            [
+              -45.827925522603714,
+              36.731360455642395
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -6
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -47.628102148602544,
+              29.69995902897611
+            ],
+            [
+              -46.47084574617474,
+              34.22014566040443
+            ],
+            [
+              -5.062323566919835,
+              34.919493776400365
+            ],
+            [
+              -6.35757168330724,
+              30.39697660429825
+            ],
+            [
+              -47.628102148602544,
+              29.69995902897611
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -5
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -49.42827877460152,
+              22.66855760230982
+            ],
+            [
+              -48.27102237217355,
+              27.18874423373815
+            ],
+            [
+              -7.077153970189058,
+              27.884467064241512
+            ],
+            [
+              -8.37240208657635,
+              23.361949892139393
+            ],
+            [
+              -49.42827877460152,
+              22.66855760230982
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -51.22845540060041,
+              15.637156175643536
+            ],
+            [
+              -50.07119899817257,
+              20.157342807071867
+            ],
+            [
+              -9.091984373458189,
+              20.84944035208266
+            ],
+            [
+              -10.387232489845557,
+              16.32692317998053
+            ],
+            [
+              -51.22845540060041,
+              15.637156175643536
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -3
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -53.028632026599205,
+              8.605754748977251
+            ],
+            [
+              -51.871375624171364,
+              13.125941380405584
+            ],
+            [
+              -11.106814776727385,
+              13.8144136399238
+            ],
+            [
+              -12.402062893114568,
+              9.29189646782167
+            ],
+            [
+              -53.028632026599205,
+              8.605754748977251
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-n1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -54.82880865259814,
+              1.5743533223109687
+            ],
+            [
+              -53.671552250170286,
+              6.094539953739295
+            ],
+            [
+              -13.121645179996548,
+              6.779386927764938
+            ],
+            [
+              -14.416893296383885,
+              2.256869755662814
+            ],
+            [
+              -54.82880865259814,
+              1.5743533223109687
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -1
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-0",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -56.62898527859705,
+              -5.457048104355304
+            ],
+            [
+              -55.471728876169166,
+              -0.9368614729269853
+            ],
+            [
+              -15.13647558326569,
+              -0.2556397843939159
+            ],
+            [
+              -16.12380918028901,
+              -4.772956591265107
+            ],
+            [
+              -56.62898527859705,
+              -5.457048104355304
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -58.42916190459588,
+              -12.488449531021592
+            ],
+            [
+              -57.27190550216801,
+              -7.968262899593265
+            ],
+            [
+              -16.60514239730312,
+              -7.2814423451691175
+            ],
+            [
+              -17.40205058561601,
+              -11.795543059221478
+            ],
+            [
+              -58.42916190459588,
+              -12.488449531021592
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -60.2293385305949,
+              -19.51985095768788
+            ],
+            [
+              -59.07208212816691,
+              -14.999664326259554
+            ],
+            [
+              -17.51230742214838,
+              -14.297761707855296
+            ],
+            [
+              -17.71076972790664,
+              -18.80175527539616
+            ],
+            [
+              -60.2293385305949,
+              -19.51985095768788
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -58.3709544716807,
+              -26.489462989621007
+            ],
+            [
+              -61.245336536932655,
+              -23.488289236509672
+            ],
+            [
+              -60.872258754165856,
+              -22.03106575292584
+            ],
+            [
+              -17.795315094789036,
+              -21.3035396832768
+            ],
+            [
+              -17.3319549197547,
+              -25.796355737573837
+            ],
+            [
+              -58.3709544716807,
+              -26.489462989621007
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 3
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -51.77246367083014,
+              -33.37901940630559
+            ],
+            [
+              -56.01435061423411,
+              -28.950018852722643
+            ],
+            [
+              -17.074532600291228,
+              -28.29236465662774
+            ],
+            [
+              -16.391790775934552,
+              -32.78147557644851
+            ],
+            [
+              -51.77246367083014,
+              -33.37901940630559
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -45.17397286997957,
+              -40.26857582299018
+            ],
+            [
+              -49.41585981338351,
+              -35.83957526940722
+            ],
+            [
+              -15.837449747888355,
+              -35.27246983840955
+            ],
+            [
+              -14.83963589740508,
+              -39.75625950993943
+            ],
+            [
+              -45.17397286997957,
+              -40.26857582299018
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 5
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-6",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -38.57548206912903,
+              -47.158132239674764
+            ],
+            [
+              -42.81736901253289,
+              -42.72913168609182
+            ],
+            [
+              -14.00371682943392,
+              -42.24249820320679
+            ],
+            [
+              -12.32670935960848,
+              -46.714816980508004
+            ],
+            [
+              -38.57548206912903,
+              -47.158132239674764
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 6
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-7",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -31.976991268278343,
+              -54.04768865635935
+            ],
+            [
+              -36.21887821168229,
+              -49.618688102776396
+            ],
+            [
+              -11.395038543038815,
+              -49.199438523453125
+            ],
+            [
+              -9.125981501248749,
+              -53.66175818146829
+            ],
+            [
+              -31.976991268278343,
+              -54.04768865635935
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 7
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-8",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -25.37850046742774,
+              -60.93724507304394
+            ],
+            [
+              -29.620387410831587,
+              -56.50824451946099
+            ],
+            [
+              -7.809835271325676,
+              -56.13988632301136
+            ],
+            [
+              -6.513352757681787,
+              -58.58099030449466
+            ],
+            [
+              -5.006226415727059,
+              -60.59317794080159
+            ],
+            [
+              -25.37850046742774,
+              -60.93724507304394
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 8
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-9",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -18.78000966657721,
+              -67.82680148972852
+            ],
+            [
+              -23.02189660998107,
+              -63.39780093614558
+            ],
+            [
+              -3.1568563379520547,
+              -63.06230047012347
+            ],
+            [
+              0.40603369985412474,
+              -67.50276859563861
+            ],
+            [
+              -18.78000966657721,
+              -67.82680148972852
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 9
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-10",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -12.181518865726511,
+              -74.71635790641312
+            ],
+            [
+              -16.423405809130546,
+              -70.28735735283017
+            ],
+            [
+              2.7089973888736747,
+              -69.96423038700712
+            ],
+            [
+              6.039503416940647,
+              -73.52395361368974
+            ],
+            [
+              7.211366938513785,
+              -74.38883165246449
+            ],
+            [
+              -12.181518865726511,
+              -74.71635790641312
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 10
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-11",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -5.583028064875784,
+              -81.6059143230977
+            ],
+            [
+              -9.824915008279818,
+              -77.17691376951475
+            ],
+            [
+              10.523424343430639,
+              -76.83325087018062
+            ],
+            [
+              16.69061831708644,
+              -81.22973493262941
+            ],
+            [
+              -5.583028064875784,
+              -81.6059143230977
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 11
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-12",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.015462735974708,
+              -88.4954707397823
+            ],
+            [
+              -3.2264242074292224,
+              -84.06647018619934
+            ],
+            [
+              20.27174617935452,
+              -83.66960982208856
+            ],
+            [
+              26.717776331437257,
+              -88.06138462311503
+            ],
+            [
+              1.015462735974708,
+              -88.4954707397823
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 12
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-13",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              7.613953536825258,
+              -95.38502715646688
+            ],
+            [
+              3.372066593421296,
+              -90.95602660288394
+            ],
+            [
+              30.298904193705436,
+              -90.50125951257417
+            ],
+            [
+              36.744934345787975,
+              -94.89303431360062
+            ],
+            [
+              7.613953536825258,
+              -95.38502715646688
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 13
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-73-14",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.970557394271895,
+              -97.84558301956851
+            ],
+            [
+              40.326062208056044,
+              -97.33290920305977
+            ],
+            [
+              44.24068635759128,
+              -100
+            ],
+            [
+              12.03395593066344,
+              -100
+            ],
+            [
+              9.970557394271895,
+              -97.84558301956851
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-73",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": 14
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n53",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -197.71699570396845,
+              364.5670903694454
+            ],
+            [
+              -197.86377751742376,
+              363.21054677408273
+            ],
+            [
+              -201.3497407439385,
+              363.15167237609427
+            ],
+            [
+              -197.71699570396845,
+              364.5670903694454
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -53
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n52",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -198.13481840049295,
+              360.70561264529874
+            ],
+            [
+              -198.62269199001764,
+              356.19673121348745
+            ],
+            [
+              -220.13233186457683,
+              355.8334551212641
+            ],
+            [
+              -208.05780900130964,
+              360.5380233565121
+            ],
+            [
+              -198.13481840049295,
+              360.70561264529874
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -52
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n51",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -198.89373287308695,
+              353.69179708470335
+            ],
+            [
+              -199.38160646261156,
+              349.1829156528921
+            ],
+            [
+              -238.91492298521544,
+              348.51523786643384
+            ],
+            [
+              -226.84040012194814,
+              353.2198061016818
+            ],
+            [
+              -198.89373287308695,
+              353.69179708470335
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -51
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n50",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -199.95111407288493,
+              343.91958034560776
+            ],
+            [
+              -207.78740856914533,
+              344.1590513327044
+            ],
+            [
+              -211.66814432054105,
+              343.9815558106561
+            ],
+            [
+              -219.3756901818398,
+              342.9776812787991
+            ],
+            [
+              -224.51350993709897,
+              341.75746492536484
+            ],
+            [
+              -257.69751410585377,
+              341.1970206116036
+            ],
+            [
+              -245.62299124258598,
+              345.9015888468516
+            ],
+            [
+              -199.6526473456808,
+              346.6779815241081
+            ],
+            [
+              -199.95111407288493,
+              343.91958034560776
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -50
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n49",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -234.6921045095387,
+              338.069638107263
+            ],
+            [
+              -241.52697193820882,
+              334.4691264745001
+            ],
+            [
+              -274.3471985394735,
+              333.9148259964296
+            ],
+            [
+              -264.4055823632245,
+              338.58337159202136
+            ],
+            [
+              -232.18792717738057,
+              339.12749524749717
+            ],
+            [
+              -234.6921045095387,
+              338.069638107263
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -49
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n48",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -245.61635521703556,
+              331.8997043992702
+            ],
+            [
+              -251.70153304651248,
+              327.29629015225913
+            ],
+            [
+              -284.1493544668671,
+              326.74827922155595
+            ],
+            [
+              -281.6370102887809,
+              328.97908813938466
+            ],
+            [
+              -278.134559107619,
+              331.35050477973283
+            ],
+            [
+              -245.61635521703556,
+              331.8997043992702
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -48
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n47",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -254.5485535558137,
+              324.74785032938996
+            ],
+            [
+              -258.9566184148974,
+              320.1727608265241
+            ],
+            [
+              -291.32168584741146,
+              319.62614752709203
+            ],
+            [
+              -288.6234483518335,
+              322.7755558085603
+            ],
+            [
+              -287.01986233149995,
+              324.19944272097797
+            ],
+            [
+              -254.5485535558137,
+              324.74785032938996
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -47
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n46",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -261.0370807260587,
+              317.6372673973791
+            ],
+            [
+              -264.36275065945927,
+              313.0804584515629
+            ],
+            [
+              -296.7731618373312,
+              312.53307934207
+            ],
+            [
+              -294.88635994891473,
+              315.4654262583347
+            ],
+            [
+              -293.49530322310073,
+              317.089080802996
+            ],
+            [
+              -261.0370807260587,
+              317.6372673973791
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -46
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n45",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -265.9423984302158,
+              310.55342327417054
+            ],
+            [
+              -268.4736174934199,
+              306.01003180113736
+            ],
+            [
+              -300.9735300564868,
+              305.46114110364704
+            ],
+            [
+              -300.06300496620344,
+              307.42021539320103
+            ],
+            [
+              -298.39967751989684,
+              310.0052526129849
+            ],
+            [
+              -265.9423984302158,
+              310.55342327417054
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -45
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n44",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -269.682485310642,
+              303.48925872266335
+            ],
+            [
+              -271.5954621746531,
+              298.9563087359349
+            ],
+            [
+              -304.2107892207176,
+              298.4054688043982
+            ],
+            [
+              -302.14482270311726,
+              302.94100263185254
+            ],
+            [
+              -269.682485310642,
+              303.48925872266335
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -44
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n43",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -272.4926800898051,
+              296.440799109533
+            ],
+            [
+              -273.8818279119639,
+              291.9166960662414
+            ],
+            [
+              -306.197833025142,
+              291.3709113798287
+            ],
+            [
+              -304.92044772229775,
+              295.893126867052
+            ],
+            [
+              -272.4926800898051,
+              296.440799109533
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -43
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n42",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -274.504597979753,
+              289.4058215867824
+            ],
+            [
+              -275.41090227673163,
+              284.8898732829474
+            ],
+            [
+              -307.8031519899884,
+              284.3428009022483
+            ],
+            [
+              -306.90749152672214,
+              288.8585694424824
+            ],
+            [
+              -274.504597979753,
+              289.4058215867824
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -42
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n41",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -275.7722436826671,
+              282.3834140695379
+            ],
+            [
+              -276.4226582133511,
+              277.8717874854007
+            ],
+            [
+              -309.0527654008665,
+              277.32069793220325
+            ],
+            [
+              -308.25198038109266,
+              281.8348641220233
+            ],
+            [
+              -275.7722436826671,
+              282.3834140695379
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -41
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n40",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -276.78399961928665,
+              275.3653282719912
+            ],
+            [
+              -277.43441414997056,
+              270.853701687854
+            ],
+            [
+              -309.5865790071322,
+              270.31068409788287
+            ],
+            [
+              -309.24341311739,
+              274.8171215628031
+            ],
+            [
+              -276.78399961928665,
+              275.3653282719912
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -40
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n39",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -277.79575555590606,
+              268.3472424744445
+            ],
+            [
+              -278.4461700865901,
+              263.83561589030734
+            ],
+            [
+              -309.65311292672527,
+              263.3085621455066
+            ],
+            [
+              -309.85714806802054,
+              266.75758459329086
+            ],
+            [
+              -309.7772267236556,
+              267.8071077284828
+            ],
+            [
+              -277.79575555590606,
+              268.3472424744445
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -39
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n38",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -278.80751149252563,
+              261.32915667689787
+            ],
+            [
+              -279.45792602320955,
+              256.8175300927607
+            ],
+            [
+              -309.2393655709208,
+              256.3145516587761
+            ],
+            [
+              -309.505346013938,
+              260.8107012573886
+            ],
+            [
+              -278.80751149252563,
+              261.32915667689787
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -38
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n37",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -279.8192674291451,
+              254.31107087935115
+            ],
+            [
+              -280.32101157664385,
+              249.8019551878253
+            ],
+            [
+              -308.5836441340635,
+              249.3246278698748
+            ],
+            [
+              -309.0187282530707,
+              253.81792147819866
+            ],
+            [
+              -279.8192674291451,
+              254.31107087935115
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -37
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n36",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -280.5007456735997,
+              247.29856313843666
+            ],
+            [
+              -280.69442165700326,
+              242.79465040704608
+            ],
+            [
+              -307.9068466156077,
+              242.33506003470444
+            ],
+            [
+              -308.341930734615,
+              246.82835364302827
+            ],
+            [
+              -280.5007456735997,
+              247.29856313843666
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -36
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n35",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -280.71286756018856,
+              240.29398235234518
+            ],
+            [
+              -280.58964550503777,
+              235.79542170875112
+            ],
+            [
+              -307.23004909715195,
+              235.34549219953405
+            ],
+            [
+              -307.6651332161593,
+              239.83878580785782
+            ],
+            [
+              -280.71286756018856,
+              240.29398235234518
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -35
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n34",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -280.43309157711064,
+              233.29770922444368
+            ],
+            [
+              -279.97018424592136,
+              228.80488552207146
+            ],
+            [
+              -306.5532515786963,
+              228.35592436436363
+            ],
+            [
+              -306.98833569770346,
+              232.84921797268746
+            ],
+            [
+              -280.43309157711064,
+              233.29770922444368
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -34
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n33",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -279.6239703505007,
+              226.31037620305383
+            ],
+            [
+              -278.79741616137056,
+              221.8236941288201
+            ],
+            [
+              -305.87645406024046,
+              221.3663565291932
+            ],
+            [
+              -306.31153817924775,
+              225.85965013751706
+            ],
+            [
+              -279.6239703505007,
+              226.31037620305383
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -33
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n32",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -278.2459333828356,
+              219.33265159391172
+            ],
+            [
+              -277.03061339048884,
+              214.85253538143144
+            ],
+            [
+              -305.19965654178475,
+              214.3767886940228
+            ],
+            [
+              -305.634740660792,
+              218.87008230234665
+            ],
+            [
+              -278.2459333828356,
+              219.33265159391172
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -32
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n31",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -276.257312409783,
+              212.36523913191596
+            ],
+            [
+              -274.6269789468784,
+              207.8921320777797
+            ],
+            [
+              -304.522859023329,
+              207.3872208588524
+            ],
+            [
+              -304.9579431423362,
+              211.88051446717625
+            ],
+            [
+              -276.257312409783,
+              212.36523913191596
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -31
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n30",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -273.6143881433202,
+              205.40887719168367
+            ],
+            [
+              -271.54170633987405,
+              200.94324095423664
+            ],
+            [
+              -303.84606150487326,
+              200.39765302368198
+            ],
+            [
+              -304.28114562388055,
+              204.89094663200584
+            ],
+            [
+              -273.6143881433202,
+              205.40887719168367
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -30
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n29",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -270.27146068800437,
+              198.46433759829094
+            ],
+            [
+              -267.7280640607838,
+              194.00665125878407
+            ],
+            [
+              -303.1692639864175,
+              193.4080851885116
+            ],
+            [
+              -303.6043481054248,
+              197.90137879683542
+            ],
+            [
+              -270.27146068800437,
+              198.46433759829094
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -29
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n28",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -266.1809458661965,
+              191.5324240004369
+            ],
+            [
+              -263.13750711351355,
+              187.0831828673744
+            ],
+            [
+              -301.9595151179665,
+              186.42751836334884
+            ],
+            [
+              -302.7788599616366,
+              190.91432219614572
+            ],
+            [
+              -266.1809458661965,
+              191.5324240004369
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -28
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n27",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -261.29349957841356,
+              184.61396977012305
+            ],
+            [
+              -257.71981762457375,
+              180.17368390916963
+            ],
+            [
+              -299.82215595989595,
+              179.46261793906885
+            ],
+            [
+              -301.3455293765946,
+              183.93753144035324
+            ],
+            [
+              -261.29349957841356,
+              184.61396977012305
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -27
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n26",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -255.55817214862392,
+              177.7098353959172
+            ],
+            [
+              -251.40957842601645,
+              173.2792592140634
+            ],
+            [
+              -296.1434556432351,
+              172.52374921016548
+            ],
+            [
+              -298.8157686658262,
+              176.97925828196324
+            ],
+            [
+              -255.55817214862392,
+              177.7098353959172
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -26
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n25",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -291.17477349509335,
+              165.6066669714829
+            ],
+            [
+              -294.51829444955945,
+              170.0508400192476
+            ],
+            [
+              -248.95099087808822,
+              170.820425752488
+            ],
+            [
+              -244.27026506210083,
+              166.39883674422506
+            ],
+            [
+              -291.17477349509335,
+              165.6066669714829
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -25
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n24",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -284.706799715867,
+              159.5714012876299
+            ],
+            [
+              -288.733711663985,
+              163.14753751825182
+            ],
+            [
+              -241.4817701835014,
+              163.9455750842503
+            ],
+            [
+              -235.92058207517465,
+              159.5388561948167
+            ],
+            [
+              -283.36250130957245,
+              158.73761009643675
+            ],
+            [
+              -284.706799715867,
+              159.5714012876299
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#168ebd",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -24
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n23",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -270.8764604154265,
+              152.54621514547716
+            ],
+            [
+              -278.15953801547425,
+              155.51051041201617
+            ],
+            [
+              -279.4381057716464,
+              156.3035326513108
+            ],
+            [
+              -232.35396758140888,
+              157.09873618922242
+            ],
+            [
+              -224.53431926988344,
+              152.7301604115213
+            ],
+            [
+              -268.0628123423715,
+              151.99500812836067
+            ],
+            [
+              -270.8764604154265,
+              152.54621514547716
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -23
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n22",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -224.90339138974855,
+              145.72292889451333
+            ],
+            [
+              -253.78847100992684,
+              149.73573081400784
+            ],
+            [
+              -218.76043500557535,
+              150.32731896295545
+            ],
+            [
+              -210.00501503886755,
+              147.66074249520898
+            ],
+            [
+              -202.4640619943196,
+              146.10190650373522
+            ],
+            [
+              -224.90339138974855,
+              145.72292889451333
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#c4424c",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -22
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-stripe-60-n21",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -197.89034270474372,
+              141.97019512884776
+            ],
+            [
+              -201.7329632346549,
+              142.50402350117952
+            ],
+            [
+              -208.85612493409369,
+              143.49359449479417
+            ],
+            [
+              -197.61409162856455,
+              143.68346108259826
+            ],
+            [
+              -197.89034270474372,
+              141.97019512884776
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "2013 fixed spectator footage00:00/01:30/02:50 and official operator aerial show blue-white-red-white paint bars with asphalt gaps. T9–10 is the filmed complex; T11 is a separate aerial-confirmed area.7m pitch/4.5m paint width/phase are visual estimates, approximately30percent uncertainty.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#edf0e8",
+        "parentId": "fia-2013-vector-60",
+        "paintPitchM": 7,
+        "paintWidthM": 4.5,
+        "paintIndex": -21
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-green-margin-72",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              44.14545735047571,
+              127.80322759092901
+            ],
+            [
+              42.18565856744283,
+              128.48070352577233
+            ],
+            [
+              41.27023846629025,
+              129.2414464226912
+            ],
+            [
+              41.415301842298106,
+              132.14117820745025
+            ],
+            [
+              40.723403073552774,
+              141.42875561278663
+            ],
+            [
+              39.303271779003076,
+              145.51222822380603
+            ],
+            [
+              36.96389462176356,
+              149.3891761092256
+            ],
+            [
+              34.10244189094082,
+              152.29167443588295
+            ],
+            [
+              30.38142673034424,
+              154.6165739991903
+            ],
+            [
+              26.218565186249926,
+              155.8285985930075
+            ],
+            [
+              21.857721927031275,
+              156.47582203519545
+            ],
+            [
+              -75.71740673023523,
+              154.75477228015265
+            ],
+            [
+              -86.79838076483462,
+              154.80025765104278
+            ],
+            [
+              -87.9896707385356,
+              154.98700762940626
+            ],
+            [
+              -89.07117531646718,
+              155.5202947976114
+            ],
+            [
+              -89.94460956913619,
+              156.3516551058555
+            ],
+            [
+              -90.55085791834146,
+              157.46972997856372
+            ],
+            [
+              -76.36632113795508,
+              157.16157173541902
+            ],
+            [
+              -61.63555279485816,
+              157.26628925802117
+            ],
+            [
+              -21.739670694852393,
+              158.21706248210438
+            ],
+            [
+              8.678245202633345,
+              159.25101810587876
+            ],
+            [
+              15.292821190472594,
+              159.01717725629769
+            ],
+            [
+              21.950996132578744,
+              158.14335790591403
+            ],
+            [
+              28.01291407607262,
+              156.4980714814514
+            ],
+            [
+              33.31790509312815,
+              153.8028939205577
+            ],
+            [
+              35.484729084734035,
+              152.33009562985308
+            ],
+            [
+              40.086401998972676,
+              147.3810383490512
+            ],
+            [
+              41.66726647666019,
+              144.55553383421704
+            ],
+            [
+              43.87089653228949,
+              138.2719546569958
+            ],
+            [
+              44.3905003424558,
+              130.34415853259432
+            ],
+            [
+              44.14545735047571,
+              127.80322759092901
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "Video01:30 shows green painted margins between the S-complex road and striped runoff. The strip follows the road just beyond the curb, within4m of the schematic FIA envelope to allow its boundary offset; road-relative width and endpoints are visual estimates.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#5c9b84",
+        "parentId": "fia-2013-vector-72",
+        "boundaryAllowanceM": 4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-green-margin-73",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              17.2760195039711,
+              112.67315121939093
+            ],
+            [
+              19.047725362816617,
+              111.41638112752533
+            ],
+            [
+              19.739410697233257,
+              110.34091983980649
+            ],
+            [
+              8.4541607492999,
+              67.58595031163837
+            ],
+            [
+              -11.607095189866783,
+              -2.4603777477855475
+            ],
+            [
+              -13.398116813541952,
+              -11.794352776131738
+            ],
+            [
+              -13.785323611649213,
+              -20.581799446772813
+            ],
+            [
+              -13.71478859803137,
+              -14.674445940865818
+            ],
+            [
+              -13.156454410087846,
+              -8.258862111702893
+            ],
+            [
+              -12.346241797053676,
+              -2.8152916249322417
+            ],
+            [
+              -10.167423059354977,
+              7.589275498394847
+            ],
+            [
+              13.764952544835817,
+              99.94884362205345
+            ],
+            [
+              17.2760195039711,
+              112.67315121939093
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "Video01:30 shows green painted margins between the S-complex road and striped runoff. The strip follows the road just beyond the curb, within4m of the schematic FIA envelope to allow its boundary offset; road-relative width and endpoints are visual estimates.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#5c9b84",
+        "parentId": "fia-2013-vector-73",
+        "boundaryAllowanceM": 4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-green-margin-73-part-4",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2.6227301046887392,
+              -64.01727226020049
+            ],
+            [
+              8.709857818427293,
+              -70.52333762197216
+            ],
+            [
+              16.270262783611503,
+              -76.10319235612538
+            ],
+            [
+              51.34481682835252,
+              -100
+            ],
+            [
+              48.323740870898426,
+              -100
+            ],
+            [
+              31.30911483750532,
+              -88.68426340104469
+            ],
+            [
+              22.807659445205257,
+              -82.70171257647138
+            ],
+            [
+              14.353800531193968,
+              -75.99642103327051
+            ],
+            [
+              10.242494772354522,
+              -72.26594421493968
+            ],
+            [
+              6.281518610244657,
+              -68.2426497059209
+            ],
+            [
+              2.6227301046887392,
+              -64.01727226020049
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "colored-surface",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "Video01:30 shows green painted margins between the S-complex road and striped runoff. The strip follows the road just beyond the curb, within4m of the schematic FIA envelope to allow its boundary offset; road-relative width and endpoints are visual estimates.",
+        "drapeOnTerrain": true,
+        "edgeContact": true,
+        "color": "#5c9b84",
+        "parentId": "fia-2013-vector-73",
+        "boundaryAllowanceM": 4
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234952874",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -52.04860784656684,
+            127.85413639250736
+          ],
+          [
+            -42.657225942065836,
+            120.41416742218749
+          ],
+          [
+            -36.99302004206896,
+            111.05276502377312
+          ],
+          [
+            -33.82583846137597,
+            100.77533040936243
+          ],
+          [
+            -33.82583846137597,
+            86.7332268117409
+          ],
+          [
+            -63.34029870026637,
+            -27.815484638228458
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "guardrail",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "user-video-caVSBA3tmrw"
+        ],
+        "evidence": "western outer boundary along T9 exit/T10 approach; near spectator H-a. Source geometry is OSM barrier=wall without material. Visible 2013 foreground/inner barriers are silver corrugated multi-rail metal; precise continuous extent/fence separation still continuous extent and material transitions remain approximate.",
+        "osmWayId": "234952874",
+        "profile": "armco",
+        "rails": 3,
+        "height": 1,
+        "postSpacing": 3,
+        "color": "#acb9b8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234952874-catch-fence",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -52.04860784656684,
+            127.85413639250736
+          ],
+          [
+            -42.657225942065836,
+            120.41416742218749
+          ],
+          [
+            -36.99302004206896,
+            111.05276502377312
+          ],
+          [
+            -33.82583846137597,
+            100.77533040936243
+          ],
+          [
+            -33.82583846137597,
+            86.7332268117409
+          ],
+          [
+            -63.34029870026637,
+            -27.815484638228458
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "catch-fence",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "Source00:00/01:30 foreground shows high open mesh between spectators and the outer road protection. Alignment follows the mapped outer barrier, while height and pole spacing are image estimates.",
+        "height": 3,
+        "postSpacing": 7,
+        "lean": 0,
+        "color": "#8c9d9d"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234952875",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -265.0392741009316,
+            148.2972943750109
+          ],
+          [
+            -210.38014617997567,
+            142.38776947186366
+          ],
+          [
+            -148.53289310738288,
+            133.70780567289253
+          ],
+          [
+            -56.96921459258621,
+            120.7157877862138
+          ],
+          [
+            -51.80074146234253,
+            118.25814037833365
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "guardrail",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "user-video-caVSBA3tmrw"
+        ],
+        "evidence": "northern outer boundary after T10, toward T11; near H-b. Source geometry is OSM barrier=wall without material. Visible 2013 foreground/inner barriers are silver corrugated multi-rail metal; precise continuous extent/fence separation still continuous extent and material transitions remain approximate.",
+        "osmWayId": "234952875",
+        "profile": "armco",
+        "rails": 3,
+        "height": 1,
+        "postSpacing": 3,
+        "color": "#acb9b8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234952875-catch-fence",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -265.0392741009316,
+            148.2972943750109
+          ],
+          [
+            -210.38014617997567,
+            142.38776947186366
+          ],
+          [
+            -148.53289310738288,
+            133.70780567289253
+          ],
+          [
+            -56.96921459258621,
+            120.7157877862138
+          ],
+          [
+            -51.80074146234253,
+            118.25814037833365
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "catch-fence",
+        "sourceId": "user-video-caVSBA3tmrw",
+        "evidence": "Source00:00/01:30 foreground shows high open mesh between spectators and the outer road protection. Alignment follows the mapped outer barrier, while height and pole spacing are image estimates.",
+        "height": 3,
+        "postSpacing": 7,
+        "lean": 0,
+        "color": "#8c9d9d"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234871600",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            56.01195559716264,
+            156.72032230880035
+          ],
+          [
+            53.505751041937515,
+            131.20547376696152
+          ],
+          [
+            47.24482977183531,
+            104.17135228186748
+          ],
+          [
+            25.028657523464332,
+            19.89638844592224
+          ],
+          [
+            21.86147594277134,
+            4.9605948817266885
+          ],
+          [
+            20.85164993142245,
+            -4.020989281270736
+          ],
+          [
+            21.356562937096893,
+            -13.516445174631503
+          ],
+          [
+            23.12834857557037,
+            -22.877847573045855
+          ],
+          [
+            25.533570529138775,
+            -31.993485230989695
+          ],
+          [
+            29.582054811760173,
+            -41.73470586561473
+          ],
+          [
+            34.39249872020158,
+            -49.967824681695696
+          ],
+          [
+            41.85603096643568,
+            -59.32922708011005
+          ],
+          [
+            47.42843450200167,
+            -64.64668237991583
+          ],
+          [
+            52.74379141611751,
+            -69.08161883865249
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "guardrail",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "user-video-caVSBA3tmrw"
+        ],
+        "evidence": "eastern inner boundary along T9 exit/T10 approach. Source geometry is OSM barrier=wall without material. Visible 2013 foreground/inner barriers are silver corrugated multi-rail metal; precise continuous extent/fence separation still continuous extent and material transitions remain approximate.",
+        "osmWayId": "234871600",
+        "profile": "armco",
+        "rails": 3,
+        "height": 1,
+        "postSpacing": 3,
+        "color": "#acb9b8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-common-t9t10-barrier-234871598",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -164.02913226219266,
+            173.11953319348908
+          ],
+          [
+            -74.15461725735983,
+            165.4784839807496
+          ],
+          [
+            -67.49894581916116,
+            165.72424872122008
+          ],
+          [
+            2.9960900052597097,
+            175.46546935505134
+          ],
+          [
+            13.984833055293674,
+            176.91771555083338
+          ],
+          [
+            24.771610903318777,
+            176.22510582667897
+          ],
+          [
+            31.98727676532858,
+            174.5717793892711
+          ],
+          [
+            52.14707604601218,
+            168.98621709877872
+          ],
+          [
+            61.097806600201274,
+            156.765006807645
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "guardrail",
+        "sourceId": "kic-osm-20261027",
+        "sourceIds": [
+          "kic-osm-20261027",
+          "user-video-caVSBA3tmrw"
+        ],
+        "evidence": "southern inner boundary after T10 toward T11. Source geometry is OSM barrier=wall without material. Visible 2013 foreground/inner barriers are silver corrugated multi-rail metal; precise continuous extent/fence separation still continuous extent and material transitions remain approximate.",
+        "osmWayId": "234871598",
+        "profile": "armco",
+        "rails": 3,
+        "height": 1,
+        "postSpacing": 3,
+        "color": "#acb9b8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-main-grandstand-concrete-wall",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440.422,
+            739.161
+          ],
+          [
+            446.073,
+            741.214
+          ],
+          [
+            451.748,
+            743.287
+          ],
+          [
+            457.416,
+            745.378
+          ],
+          [
+            463.066,
+            747.481
+          ],
+          [
+            468.699,
+            749.589
+          ],
+          [
+            474.32,
+            751.698
+          ],
+          [
+            479.937,
+            753.806
+          ],
+          [
+            485.554,
+            755.913
+          ],
+          [
+            491.171,
+            758.02
+          ],
+          [
+            496.789,
+            760.127
+          ],
+          [
+            502.407,
+            762.233
+          ],
+          [
+            508.025,
+            764.34
+          ],
+          [
+            513.643,
+            766.448
+          ],
+          [
+            519.261,
+            768.555
+          ],
+          [
+            524.879,
+            770.662
+          ],
+          [
+            530.497,
+            772.769
+          ],
+          [
+            536.114,
+            774.876
+          ],
+          [
+            541.732,
+            776.983
+          ],
+          [
+            547.35,
+            779.09
+          ],
+          [
+            552.968,
+            781.197
+          ],
+          [
+            558.586,
+            783.304
+          ],
+          [
+            564.204,
+            785.411
+          ],
+          [
+            569.822,
+            787.519
+          ],
+          [
+            575.439,
+            789.626
+          ],
+          [
+            581.057,
+            791.733
+          ],
+          [
+            586.674,
+            793.839
+          ],
+          [
+            592.291,
+            795.945
+          ],
+          [
+            597.909,
+            798.051
+          ],
+          [
+            603.527,
+            800.157
+          ],
+          [
+            609.147,
+            802.264
+          ],
+          [
+            614.77,
+            804.374
+          ],
+          [
+            620.395,
+            806.488
+          ],
+          [
+            626.02,
+            808.609
+          ],
+          [
+            631.645,
+            810.736
+          ],
+          [
+            637.268,
+            812.87
+          ],
+          [
+            642.887,
+            815.01
+          ],
+          [
+            648.501,
+            817.153
+          ],
+          [
+            654.11,
+            819.299
+          ],
+          [
+            659.715,
+            821.445
+          ],
+          [
+            665.318,
+            823.591
+          ],
+          [
+            670.92,
+            825.736
+          ],
+          [
+            676.522,
+            827.881
+          ],
+          [
+            682.125,
+            830.025
+          ],
+          [
+            687.729,
+            832.169
+          ],
+          [
+            693.332,
+            834.313
+          ],
+          [
+            698.936,
+            836.458
+          ],
+          [
+            704.54,
+            838.602
+          ],
+          [
+            710.144,
+            840.746
+          ],
+          [
+            715.748,
+            842.89
+          ],
+          [
+            721.352,
+            845.034
+          ],
+          [
+            726.955,
+            847.178
+          ],
+          [
+            732.559,
+            849.323
+          ],
+          [
+            738.163,
+            851.467
+          ],
+          [
+            743.767,
+            853.611
+          ],
+          [
+            749.371,
+            855.755
+          ],
+          [
+            754.975,
+            857.9
+          ],
+          [
+            760.579,
+            860.045
+          ],
+          [
+            766.183,
+            862.19
+          ],
+          [
+            771.787,
+            864.335
+          ],
+          [
+            777.392,
+            866.481
+          ],
+          [
+            782.995,
+            868.628
+          ],
+          [
+            788.598,
+            870.774
+          ],
+          [
+            794.199,
+            872.919
+          ],
+          [
+            799.797,
+            875.06
+          ],
+          [
+            805.394,
+            877.198
+          ],
+          [
+            810.991,
+            879.329
+          ],
+          [
+            816.588,
+            881.454
+          ],
+          [
+            822.188,
+            883.574
+          ],
+          [
+            827.792,
+            885.689
+          ],
+          [
+            833.4,
+            887.801
+          ],
+          [
+            839.012,
+            889.911
+          ],
+          [
+            844.627,
+            892.021
+          ],
+          [
+            850.244,
+            894.131
+          ],
+          [
+            855.861,
+            896.241
+          ],
+          [
+            861.478,
+            898.352
+          ],
+          [
+            867.095,
+            900.462
+          ],
+          [
+            872.713,
+            902.574
+          ],
+          [
+            878.328,
+            904.685
+          ],
+          [
+            883.944,
+            906.795
+          ],
+          [
+            889.563,
+            908.907
+          ],
+          [
+            895.177,
+            911.018
+          ],
+          [
+            900.794,
+            913.128
+          ],
+          [
+            906.411,
+            915.24
+          ],
+          [
+            912.026,
+            917.35
+          ],
+          [
+            917.645,
+            919.463
+          ],
+          [
+            923.259,
+            921.574
+          ],
+          [
+            928.874,
+            923.683
+          ],
+          [
+            934.499,
+            925.8
+          ],
+          [
+            940.107,
+            927.911
+          ],
+          [
+            945.719,
+            930.017
+          ],
+          [
+            951.349,
+            932.133
+          ],
+          [
+            956.963,
+            934.251
+          ],
+          [
+            962.567,
+            936.359
+          ],
+          [
+            968.182,
+            938.465
+          ],
+          [
+            973.804,
+            940.573
+          ],
+          [
+            979.427,
+            942.687
+          ],
+          [
+            985.046,
+            944.809
+          ],
+          [
+            990.67,
+            946.939
+          ],
+          [
+            996.315,
+            949.082
+          ],
+          [
+            1001.99,
+            951.248
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "safety-wall",
+        "sourceId": "korea-2011-race-photo",
+        "evidence": "Official2011 start-straight photograph shows pale concrete spectator-side protection under open mesh. Track-relative offset and endpoints are display estimates; separate existing pit wall retained.",
+        "height": 1.1,
+        "width": 0.5,
+        "color": "#b2bab7",
+        "material": "photo-observed-concrete"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "kic-gp-main-grandstand-fence",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440.422,
+            739.161
+          ],
+          [
+            446.073,
+            741.214
+          ],
+          [
+            451.748,
+            743.287
+          ],
+          [
+            457.416,
+            745.378
+          ],
+          [
+            463.066,
+            747.481
+          ],
+          [
+            468.699,
+            749.589
+          ],
+          [
+            474.32,
+            751.698
+          ],
+          [
+            479.937,
+            753.806
+          ],
+          [
+            485.554,
+            755.913
+          ],
+          [
+            491.171,
+            758.02
+          ],
+          [
+            496.789,
+            760.127
+          ],
+          [
+            502.407,
+            762.233
+          ],
+          [
+            508.025,
+            764.34
+          ],
+          [
+            513.643,
+            766.448
+          ],
+          [
+            519.261,
+            768.555
+          ],
+          [
+            524.879,
+            770.662
+          ],
+          [
+            530.497,
+            772.769
+          ],
+          [
+            536.114,
+            774.876
+          ],
+          [
+            541.732,
+            776.983
+          ],
+          [
+            547.35,
+            779.09
+          ],
+          [
+            552.968,
+            781.197
+          ],
+          [
+            558.586,
+            783.304
+          ],
+          [
+            564.204,
+            785.411
+          ],
+          [
+            569.822,
+            787.519
+          ],
+          [
+            575.439,
+            789.626
+          ],
+          [
+            581.057,
+            791.733
+          ],
+          [
+            586.674,
+            793.839
+          ],
+          [
+            592.291,
+            795.945
+          ],
+          [
+            597.909,
+            798.051
+          ],
+          [
+            603.527,
+            800.157
+          ],
+          [
+            609.147,
+            802.264
+          ],
+          [
+            614.77,
+            804.374
+          ],
+          [
+            620.395,
+            806.488
+          ],
+          [
+            626.02,
+            808.609
+          ],
+          [
+            631.645,
+            810.736
+          ],
+          [
+            637.268,
+            812.87
+          ],
+          [
+            642.887,
+            815.01
+          ],
+          [
+            648.501,
+            817.153
+          ],
+          [
+            654.11,
+            819.299
+          ],
+          [
+            659.715,
+            821.445
+          ],
+          [
+            665.318,
+            823.591
+          ],
+          [
+            670.92,
+            825.736
+          ],
+          [
+            676.522,
+            827.881
+          ],
+          [
+            682.125,
+            830.025
+          ],
+          [
+            687.729,
+            832.169
+          ],
+          [
+            693.332,
+            834.313
+          ],
+          [
+            698.936,
+            836.458
+          ],
+          [
+            704.54,
+            838.602
+          ],
+          [
+            710.144,
+            840.746
+          ],
+          [
+            715.748,
+            842.89
+          ],
+          [
+            721.352,
+            845.034
+          ],
+          [
+            726.955,
+            847.178
+          ],
+          [
+            732.559,
+            849.323
+          ],
+          [
+            738.163,
+            851.467
+          ],
+          [
+            743.767,
+            853.611
+          ],
+          [
+            749.371,
+            855.755
+          ],
+          [
+            754.975,
+            857.9
+          ],
+          [
+            760.579,
+            860.045
+          ],
+          [
+            766.183,
+            862.19
+          ],
+          [
+            771.787,
+            864.335
+          ],
+          [
+            777.392,
+            866.481
+          ],
+          [
+            782.995,
+            868.628
+          ],
+          [
+            788.598,
+            870.774
+          ],
+          [
+            794.199,
+            872.919
+          ],
+          [
+            799.797,
+            875.06
+          ],
+          [
+            805.394,
+            877.198
+          ],
+          [
+            810.991,
+            879.329
+          ],
+          [
+            816.588,
+            881.454
+          ],
+          [
+            822.188,
+            883.574
+          ],
+          [
+            827.792,
+            885.689
+          ],
+          [
+            833.4,
+            887.801
+          ],
+          [
+            839.012,
+            889.911
+          ],
+          [
+            844.627,
+            892.021
+          ],
+          [
+            850.244,
+            894.131
+          ],
+          [
+            855.861,
+            896.241
+          ],
+          [
+            861.478,
+            898.352
+          ],
+          [
+            867.095,
+            900.462
+          ],
+          [
+            872.713,
+            902.574
+          ],
+          [
+            878.328,
+            904.685
+          ],
+          [
+            883.944,
+            906.795
+          ],
+          [
+            889.563,
+            908.907
+          ],
+          [
+            895.177,
+            911.018
+          ],
+          [
+            900.794,
+            913.128
+          ],
+          [
+            906.411,
+            915.24
+          ],
+          [
+            912.026,
+            917.35
+          ],
+          [
+            917.645,
+            919.463
+          ],
+          [
+            923.259,
+            921.574
+          ],
+          [
+            928.874,
+            923.683
+          ],
+          [
+            934.499,
+            925.8
+          ],
+          [
+            940.107,
+            927.911
+          ],
+          [
+            945.719,
+            930.017
+          ],
+          [
+            951.349,
+            932.133
+          ],
+          [
+            956.963,
+            934.251
+          ],
+          [
+            962.567,
+            936.359
+          ],
+          [
+            968.182,
+            938.465
+          ],
+          [
+            973.804,
+            940.573
+          ],
+          [
+            979.427,
+            942.687
+          ],
+          [
+            985.046,
+            944.809
+          ],
+          [
+            990.67,
+            946.939
+          ],
+          [
+            996.315,
+            949.082
+          ],
+          [
+            1001.99,
+            951.248
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "catch-fence",
+        "sourceId": "korea-2011-race-photo",
+        "evidence": "Official2011 start photograph shows open metal catch fencing above spectator-side concrete. Position/height/pole spacing are photographic estimates.",
+        "height": 3.4,
+        "postSpacing": 7,
+        "lean": 0,
+        "color": "#8c9d9d"
+      }
+    }
+  ]
 }
