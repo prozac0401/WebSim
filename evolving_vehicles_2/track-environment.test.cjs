@@ -328,7 +328,8 @@ test('all eleven real courses keep background crowns off every road leg and real
   const before=JSON.stringify(t.points),env=Environment.build(t,circuit,data,{excludeTree:(x,y,r)=>pits.contains(x,y,r)});
   assert.equal(JSON.stringify(t.points),before,'vegetation never alters race geometry');
   assert.equal(env.stats.sourceTrees+env.stats.backgroundTrees,env.stats.trees);
-  assert.ok(env.stats.backgroundTrees>=100,circuit.id+' visible background, even without mapped environmental features');
+  const requestedBackground=Number.isFinite(data.metadata?.backgroundTreeLimit)?Math.max(0,Math.floor(data.metadata.backgroundTreeLimit)):400;
+  assert.ok(env.stats.backgroundTrees>=Math.min(100,requestedBackground),circuit.id+' visible background within the explicitly authored budget');
   assert.ok(env.stats.backgroundTrees<=400,circuit.id+' object budget');
   assert.ok(env.stats.backgroundPlacementCandidates<=400*3*12,circuit.id+' placement work budget');
   const background=env.objects.filter(o=>o.illustrativeVegetation),backgroundFaces=env.faces.filter(f=>f.featureId.startsWith('illustrative-background-'));
@@ -350,4 +351,132 @@ test('all eleven real courses keep background crowns off every road leg and real
   rows.push({id:circuit.id,backgroundTrees:env.stats.backgroundTrees,candidates:env.stats.backgroundPlacementCandidates,addedFaces:backgroundFaces.length});
  }
  assert.equal(rows.length,11);
+});
+
+test('supplied terrain grounds source and background trees, roots and shadows without changing placement',()=>{
+ const Terrain=require('./circuit-terrain.js');
+ const sourceHeight=(x,y)=>70+.002*x*x+.001*y*y;
+ const terrain=Terrain.build(flatTrack,[],{groundHeight:sourceHeight});
+ const height=(x,y)=>terrain.sampleHeight(x,y)??sourceHeight(x,y);
+ const data={coordinateSystem:'local-metres',features:[polygon('shared-forest','forest',[[35,-75],[130,-75],[130,75],[35,75],[35,-75]])]};
+ data.features[0].properties.drapeOnTerrain=true;
+ const before=JSON.stringify({flatTrack,data,terrain:terrain.faces});
+ const options={backgroundTreeLimit:16};
+ const base=Environment.build(flatTrack,'shared-ground',data,options);
+ const env=Environment.build(flatTrack,'shared-ground',data,{...options,groundHeight:height});
+ assert.ok(env.stats.sourceTrees>0&&env.stats.backgroundTrees>0);
+ const placement=e=>e.objects.map(({z,...tree})=>tree);
+ assert.deepEqual(placement(env),placement(base),'terrain changes cannot consume placement RNG or alter XY clearances');
+ assert.match(env.verticalGeometry,/supplied display terrain/);
+ for(const tree of env.objects)assert.equal(tree.z,height(tree.x,tree.y));
+ for(const f of env.faces.filter(f=>f.kind==='tree-trunk'&&f.detail===1))
+  for(const p of f.vertices.slice(0,2))assert.equal(p.z,height(p.x,p.y),'each root corner uses the same actual triangle sampler');
+ for(const f of env.faces.filter(f=>f.kind==='tree-shadow')){
+  assert.equal(f.vertices.length,3);
+  for(const p of f.vertices)assert.ok(Math.abs(p.z-height(p.x,p.y)-.025)<1e-10,'shadow samples follow ground instead of the root datum');
+ }
+ assert.ok(env.faces.length-base.faces.length<=env.stats.trees*5,'slope shadows add at most five faces per tree');
+ const shared=new Map();
+ assert.ok(env.terrainOverlays.length>0);
+ for(const f of env.terrainOverlays)for(const p of f.vertices){
+  assert.equal(p.z,height(p.x,p.y),'no second height gain or legacy vertical offset');
+  const key=p.x.toFixed(6)+','+p.y.toFixed(6);
+  if(shared.has(key))assert.equal(p.z,shared.get(key),'shared overlay vertices preserve identical heights');
+  shared.set(key,p.z);
+ }
+ assert.notEqual(height(40,3),sourceHeight(40,3),'fixture distinguishes actual mesh height from its analytic source');
+ assert.equal(env.groundHeight(40,3),height(40,3));
+ assert.equal(JSON.stringify({flatTrack,data,terrain:terrain.faces}),before);
+});
+
+test('all barrier support types use supplied terrain at their actual bottom corners',()=>{
+ const height=(x,y)=>50+.4*x+.15*y;
+ const legacy={id:'legacy-wall',properties:{kind:'retaining-wall',sourceId:'fixture-observation',height:2},geometry:{type:'LineString',coordinates:[[20,-30],[20,30]]}};
+ const cases=[
+  {data:rail([[20,-30],[20,30]]),selected:f=>f.barrierPart==='post',count:4},
+  {data:wall([[20,-30],[20,30]],{height:1}),selected:()=>true,count:4},
+  {data:fence([[20,-30],[20,30]],{lean:.45}),selected:f=>f.fencePart==='post',count:4},
+  {data:{coordinateSystem:'local-metres',features:[legacy]},selected:()=>true,count:4}
+ ];
+ for(const {data,selected,count} of cases){
+  const before=JSON.stringify(data),env=Environment.build(flatTrack,'grounded-supports',data,{backgroundVegetation:false,groundHeight:height});
+  assert.ok(env.faces.length);
+  const support=env.faces.filter(selected),bottoms=support.flatMap(f=>f.vertices).filter(p=>Math.abs(p.z-height(p.x,p.y))<1e-10);
+  assert.ok(bottoms.length>=count);
+  for(const f of support.filter(f=>f.vertices.length===4&&f.vertices.slice(0,2).every(p=>p.z-height(p.x,p.y)<.1)))
+   for(const p of f.vertices.slice(0,2))assert.ok(Math.abs(p.z-height(p.x,p.y))<1e-10,'no centerline-height approximation across support width');
+  assert.equal(JSON.stringify(data),before);
+ }
+});
+
+test('terrain sampler failures are explicit and never silently fall back or publish nonfinite geometry',()=>{
+ for(const value of [NaN,Infinity,-Infinity,null,undefined,'70'])
+  assert.throws(()=>Environment.build(flatTrack,'bad-ground',growthData(),{backgroundVegetation:false,groundHeight:()=>value}),/groundHeight.*finite/);
+ assert.throws(()=>Environment.build(flatTrack,'bad-ground',growthData(),{groundHeight:70}),/groundHeight.*function/);
+ const empty=Environment.build(flatTrack,'empty-ground',{coordinateSystem:'local-metres',features:[]},{backgroundVegetation:false,groundHeight:()=>null});
+ assert.throws(()=>empty.groundHeight(10,10),/groundHeight.*finite/,'public sampler has the same contract');
+ const plain=observed(flatTrack,'no-ground-hook',features);
+ const absent=Environment.build(flatTrack,'no-ground-hook',features,{backgroundVegetation:false,groundHeight:undefined});
+ assert.deepEqual(absent.faces,plain.faces);assert.deepEqual(absent.objects,plain.objects);assert.deepEqual(absent.stats,plain.stats);
+});
+
+test('cited rock is a terrain material with the same road, hole, draping and reservation contracts',()=>{
+ const rock=polygon('rock-cut','rock',[[15,-50],[90,-50],[90,50],[15,50],[15,-50]]);
+ rock.geometry.coordinates.push([[35,-15],[55,-15],[55,15],[35,15],[35,-15]]);
+ rock.properties.drapeOnTerrain=true;
+ const data={coordinateSystem:'local-metres',features:[rock]},before=JSON.stringify(data),height=(x,y)=>30+.3*x-.1*y;
+ const env=Environment.build(track,'rock-cut',data,{backgroundTreeLimit:16,groundHeight:height});
+ const surface=env.faces.filter(f=>f.kind==='rock');assert.ok(surface.length);
+ assert.deepEqual(env.terrainOverlays,surface);
+ for(const f of surface){
+  assert.equal(f.fill,'#858a7c');
+  for(const p of f.vertices){assert.equal(p.z,height(p.x,p.y));assert.ok(env.roadDistance(p.x,p.y)>=env.clearanceM-1e-8);}
+  const x=f.vertices.reduce((s,p)=>s+p.x/3,0),y=f.vertices.reduce((s,p)=>s+p.y/3,0);
+  assert.ok(!(x>35&&x<55&&y>-15&&y<15),'explicit rock holes remain unpainted');
+ }
+ for(const t of env.objects)assert.ok(t.x<15-t.radius||t.x>90+t.radius||t.y<-50-t.radius||t.y>50+t.radius||(t.x>35+t.radius&&t.x<55-t.radius&&t.y>-15+t.radius&&t.y<15-t.radius));
+ assert.equal(JSON.stringify(data),before);
+ const uncited=structuredClone(data);delete uncited.features[0].properties.sourceId;
+ assert.equal(observed(track,'rock-cut',uncited).faces.length,0);
+});
+
+test('forest paint-only and base-material flags separate mapped ground from bounded nearby trees',()=>{
+ const data={coordinateSystem:'local-metres',features:[polygon('mapped-woodland','forest',[[35,-80],[220,-80],[220,80],[35,80],[35,-80]])]};
+ data.features[0].properties.drapeOnTerrain=true;
+ const options={backgroundVegetation:false,groundHeight:(x,y)=>90+.2*x+.1*y};
+ const base=Environment.build(track,'woodland-flags',data,options);assert.ok(base.stats.sourceTrees>0&&base.terrainOverlays.length>0);
+ const paintOnly=structuredClone(data);paintOnly.features[0].properties.trees=false;
+ const painted=Environment.build(track,'woodland-flags',paintOnly,options);
+ assert.equal(painted.stats.trees,0);assert.deepEqual(painted.terrainOverlays,base.terrainOverlays,'paint-only keeps the mapped footprint and height samples');
+ const treesOnly=structuredClone(data);treesOnly.features[0].properties.baseMaterial=true;
+ const planted=Environment.build(track,'woodland-flags',treesOnly,options);
+ assert.equal(planted.terrainOverlays.length,0);assert.equal(planted.faces.some(f=>f.kind==='forest'),false,'base material cannot leave a floating duplicate ground sheet');
+ // Tree placement is seeded independently of any new terrain sampling. The
+ // base-material opt-in may skip historical triangulation RNG consumption,
+ // but it keeps the cited footprint and bounded deterministic tree count.
+ assert.ok(planted.stats.sourceTrees>0&&planted.stats.sourceTrees<=650);
+ assert.deepEqual(planted.objects,Environment.build(track,'woodland-flags',treesOnly,options).objects);
+ for(const t of planted.objects){assert.ok(t.x>=35&&t.x<=220&&t.y>=-80&&t.y<=80);assert.equal(t.z,options.groundHeight(t.x,t.y));}
+ const reserve=structuredClone(treesOnly);reserve.features[0].properties.trees=false;
+ const reserved=Environment.build(track,'woodland-flags',reserve,{...options,backgroundVegetation:true,backgroundTreeLimit:16});
+ assert.equal(reserved.stats.sourceTrees,0);assert.ok(reserved.stats.backgroundTrees>0);
+ for(const t of reserved.objects)assert.ok(t.x<35-t.radius-1||t.x>220+t.radius+1||t.y<-80-t.radius-1||t.y>80+t.radius+1,'both flags still reserve the mapped woodland from illustrative background');
+ assert.equal(reserved.faces.some(f=>f.kind==='forest'),false);
+});
+
+test('a source forest can omit individual shadows without changing trees, trunks or other feature shadows',()=>{
+ const data={coordinateSystem:'local-metres',features:[polygon('dense-woodland','forest',[[35,-80],[180,-80],[180,80],[35,80],[35,-80]])]};
+ Object.assign(data.features[0].properties,{baseMaterial:true,treeSpacing:18,height:16,crownRadius:6});
+ const changed=structuredClone(data);changed.features[0].properties.castShadow=false;
+ for(const groundHeight of [undefined,(x,y)=>100+.12*x-.2*y]){
+  const options={backgroundTreeLimit:16,groundHeight};
+  const original=Environment.build(track,'forest-shadow',data,options),without=Environment.build(track,'forest-shadow',changed,options);
+  assert.ok(original.faces.some(f=>f.featureId==='dense-woodland'&&f.kind==='tree-shadow'),'fixture includes actual source shadows');
+  assert.equal(without.faces.some(f=>f.featureId==='dense-woodland'&&f.kind==='tree-shadow'),false);
+  assert.deepEqual(without.objects,original.objects,'height, shape metadata and subsequent placement are unchanged');
+  assert.deepEqual(without.faces,original.faces.filter(f=>f.featureId!=='dense-woodland'||f.kind!=='tree-shadow'),'only this feature\'s shadow faces are removed');
+  assert.ok(without.faces.some(f=>f.featureId.startsWith('illustrative-background-')&&f.kind==='tree-shadow'),'background trees retain the default shadow policy');
+  const explicit=structuredClone(data);explicit.features[0].properties.castShadow=true;
+  assert.deepEqual(Environment.build(track,'forest-shadow',explicit,options).faces,original.faces,'explicit true and omitted flag are identical');
+ }
 });

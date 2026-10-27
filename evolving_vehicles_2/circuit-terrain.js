@@ -163,16 +163,73 @@
     if (typeof options.groundHeight !== 'function') throw new TypeError('CircuitTerrain requires groundHeight.');
     const requested = options.bounds || track.bounds, margin = 180;
     const cell = Math.max(24, Math.min(55, Math.max(requested.maxX - requested.minX, requested.maxY - requested.minY) / 64));
-    const nx = Math.ceil((requested.maxX - requested.minX + 2 * margin) / cell), ny = Math.ceil((requested.maxY - requested.minY + 2 * margin) / cell);
+    const anchor = options.gridAnchor;
+    if (anchor != null && (!Number.isFinite(anchor.x) || !Number.isFinite(anchor.y))) throw new TypeError('Terrain grid anchor must have finite x and y.');
+    // Extending the render envelope must not move an existing lattice across
+    // a steep site. The caller can retain its old origin without constraining
+    // the new bounds. Cell size remains unchanged by this optional anchor.
+    const aligned = (minimum, origin) => origin + Math.floor((minimum - origin) / cell + 1e-9) * cell;
+    const bounds = { minX: anchor ? aligned(requested.minX - margin, anchor.x) : requested.minX - margin,
+      minY: anchor ? aligned(requested.minY - margin, anchor.y) : requested.minY - margin };
+    const nx = anchor ? Math.ceil((requested.maxX + margin - bounds.minX) / cell - 1e-9) : Math.ceil((requested.maxX - requested.minX + 2 * margin) / cell),
+      ny = anchor ? Math.ceil((requested.maxY + margin - bounds.minY) / cell - 1e-9) : Math.ceil((requested.maxY - requested.minY + 2 * margin) / cell);
     if (!Number.isFinite(nx + ny) || nx < 1 || ny < 1 || nx * ny > 100000) throw new RangeError('Terrain extent exceeds the bounded grid budget.');
-    const bounds = { minX: requested.minX - margin, minY: requested.minY - margin };
     bounds.maxX = bounds.minX + nx * cell; bounds.maxY = bounds.minY + ny * cell;
     bounds.width = nx * cell; bounds.height = ny * cell;
+    // Optional authored relief is an additive display-space height, not a DEM
+    // rescale. Distance is measured against every road/curb triangle so a high
+    // return leg cannot make the relief cross a nearby lower road corridor.
+    const relief = typeof options.relief === 'function' ? options.relief : null;
+    const blendM = relief ? options.reliefRoadBlendM ?? 40 : 0;
+    if (relief && (!Number.isFinite(blendM) || blendM <= 0 || blendM > 1000))
+      throw new RangeError('Terrain relief road blend must be between 0 and 1000 metres.');
+    const reliefIndex = relief ? spatial(cell) : null;
+    if (relief) for (let i = 0; i < roadEdges.length; i++) {
+      const a = roadEdges[i], b = roadEdges[(i + 1) % roadEdges.length];
+      for (const vertices of [[a.outerLeft, b.outerLeft, b.outerRight], [a.outerLeft, b.outerRight, a.outerRight]]) {
+        if (!vertices.every(p => p && Number.isFinite(p.x + p.y + p.z))) throw new TypeError('Road edge coordinates must be finite.');
+        if (Math.abs(cross(...vertices)) > 1e-9) reliefIndex.add(vertices, boundsOf(vertices));
+      }
+    }
+    const shoulderM = 8, shoulderCellM = 6;
+    function roadProximity(x, y, radius) {
+      const p = { x, y }; let distance2 = radius * radius, z = null;
+      for (const v of reliefIndex.query({ minX: x - radius, maxX: x + radius, minY: y - radius, maxY: y + radius })) {
+        const inside = triangleHeight(v, x, y);
+        if (inside !== null) { if (distance2 > 0 || z === null || inside < z) z = inside; distance2 = 0; continue; }
+        for (let i = 0; i < 3; i++) {
+          const a = v[i], b = v[(i + 1) % 3], dx = b.x - a.x, dy = b.y - a.y, length2 = dx * dx + dy * dy;
+          const t = length2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / length2)) : 0;
+          const d2 = (p.x - a.x - t * dx) ** 2 + (p.y - a.y - t * dy) ** 2;
+          if (d2 < distance2) { distance2 = d2; z = a.z + t * (b.z - a.z); }
+        }
+      }
+      return { distance: Math.sqrt(distance2), z };
+    }
+    const reliefStats = relief ? { blendM, shoulderM, shoulderCellM, refinedCells: 0, sampleCount: 0, minDeltaM: Infinity, maxDeltaM: -Infinity, minAppliedM: Infinity, maxAppliedM: -Infinity } : null;
+    const heightCache = new Map();
+    function fieldHeight(x, y) {
+      const key = x + ',' + y;
+      if (heightCache.has(key)) return heightCache.get(key);
+      const baseZ = options.groundHeight(x, y), delta = relief(x, y, baseZ);
+      if (!Number.isFinite(baseZ) || !Number.isFinite(delta)) throw new TypeError('Terrain relief height must be finite.');
+      const near = roadProximity(x, y, shoulderM + blendM), u = Math.max(0, Math.min(1, (near.distance - shoulderM) / blendM));
+      const weight = near.z === null ? 1 : u * u * (3 - 2 * u);
+      // A graded shoulder follows the actual road edge. Beyond it, blend into
+      // the authored relief. This is geometry, not a separate scenery offset.
+      const z = near.z === null ? baseZ - .22 + delta : (near.z - CLEARANCE) * (1 - weight) + (baseZ - .22 + delta) * weight;
+      if (!Number.isFinite(z)) throw new TypeError('Terrain relief height must be finite.');
+      reliefStats.sampleCount++;
+      reliefStats.minDeltaM = Math.min(reliefStats.minDeltaM, delta); reliefStats.maxDeltaM = Math.max(reliefStats.maxDeltaM, delta);
+      const applied = delta * weight;
+      reliefStats.minAppliedM = Math.min(reliefStats.minAppliedM, applied); reliefStats.maxAppliedM = Math.max(reliefStats.maxAppliedM, applied);
+      heightCache.set(key, z); return z;
+    }
     const grid = [];
     for (let y = 0; y <= ny; y++) {
       const row = [];
       for (let x = 0; x <= nx; x++) {
-        const px = bounds.minX + x * cell, py = bounds.minY + y * cell, z = options.groundHeight(px, py) - .22;
+        const px = bounds.minX + x * cell, py = bounds.minY + y * cell, z = relief ? fieldHeight(px, py) : options.groundHeight(px, py) - .22;
         if (!Number.isFinite(z)) throw new TypeError('Terrain height must be finite.');
         row.push(point(px, py, z));
       }
@@ -211,9 +268,34 @@
       }
       return z;
     }
+    function constrainedRoadHeight(x, y) {
+      const road = roadHeight(x, y);
+      if (road !== null || !relief) return road;
+      // Clipping roundoff can leave a point a few micrometres outside the
+      // footprint, yet within the later T-junction stitch tolerance. Such a
+      // point must use road height before it is shared with an underlay edge;
+      // otherwise a high ridge would create a near-vertical needle there.
+      const tolerance = .0001; let z = null; // 0.1 mm also covers barycentric edge roundoff on long triangles.
+      for (const t of roadIndex.query({ minX: x - tolerance, maxX: x + tolerance, minY: y - tolerance, maxY: y + tolerance }))
+        for (let i = 0; i < 3; i++) {
+          const a = t.vertices[i], b = t.vertices[(i + 1) % 3], dx = b.x - a.x, dy = b.y - a.y, length2 = dx * dx + dy * dy;
+          const u = length2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length2)) : 0;
+          if (Math.hypot(x - a.x - u * dx, y - a.y - u * dy) <= tolerance) {
+            const value = a.z + u * (b.z - a.z); z = z === null ? value : Math.min(z, value);
+          }
+        }
+      return z;
+    }
     const polygons = [], stats = { gridCells: nx * ny, roadTriangles: roadTriangles.length, clippedGridTriangles: 0, bankFaces: 0, underlayFaces: 0, stitchedVertices: 0 };
-    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-      const a = grid[j][i], b = grid[j][i + 1], c = grid[j + 1][i + 1], d = grid[j + 1][i];
+    function tile(a, b, c, d) {
+      if (relief && b.x - a.x > shoulderCellM) {
+        const x = (a.x + c.x) / 2, y = (a.y + c.y) / 2, radius = shoulderM + Math.hypot(b.x - a.x, d.y - a.y) / 2;
+        if (roadProximity(x, y, radius).z !== null) {
+          if (++reliefStats.refinedCells > 100000) throw new RangeError('Terrain shoulder exceeds the bounded refinement budget.');
+          const P = (x, y) => point(x, y, fieldHeight(x, y)), ab = P(x, a.y), bc = P(b.x, y), cd = P(x, c.y), da = P(a.x, y), center = P(x, y);
+          tile(a, ab, center, da); tile(ab, b, bc, center); tile(center, bc, c, cd); tile(da, center, cd, d); return;
+        }
+      }
       for (const triangle of [[a, b, c], [a, c, d]]) {
         let fragments = [triangle];
         for (const cutter of cutterIndex.query(boundsOf(triangle))) {
@@ -224,6 +306,7 @@
         for (const vertices of fragments) polygons.push({ vertices, underlay: false });
       }
     }
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) tile(grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]);
     for (const t of roadTriangles) polygons.push({ vertices: t.vertices, underlay: true });
     // One global vertex table makes cut edges and neighbouring grid tiles agree.
     // Stitch T-junctions before triangulation; interpolating a lifted road edge
@@ -232,7 +315,10 @@
     function register(p) {
       const key = Math.round(p.x * 1e6) + ',' + Math.round(p.y * 1e6);
       if (vertexMap.has(key)) return vertexMap.get(key);
-      const road = roadHeight(p.x, p.y), z = road === null ? sampleBaseHeight(p.x, p.y) : road - CLEARANCE;
+      const road = constrainedRoadHeight(p.x, p.y);
+      // Apply the corridor blend at clipping vertices too. Interpolating only
+      // the lifted coarse grid can otherwise carry a ridge right to the edge.
+      const z = road !== null ? road - CLEARANCE : relief ? fieldHeight(p.x, p.y) : sampleBaseHeight(p.x, p.y);
       const v = { x: p.x, y: p.y, z, road: road !== null, id: vertices.length };
       if (!Number.isFinite(z)) throw new TypeError('Clipped terrain escaped its bounds.');
       vertices.push(v); vertexMap.set(key, v); vertexIndex.add(v, boundsOf([v])); return v;
@@ -285,7 +371,8 @@
       return height;
     }
     stats.faces = faces.length;
-    return { faces, bounds, grid: { cell, columns: nx, rows: ny }, sampleHeight, sampleBaseHeight, roadHeight, stats,
+    if (reliefStats) stats.relief = reliefStats;
+    return { faces, bounds, grid: { cell, columns: nx, rows: ny }, sampleHeight, heightAt: sampleHeight, sampleBaseHeight, roadHeight, stats,
       classification: 'illustrative road-constrained terrain envelope; not surveyed terrain or mapped retaining walls', clearanceM: CLEARANCE };
   }
   const api = { build, paintSurface };

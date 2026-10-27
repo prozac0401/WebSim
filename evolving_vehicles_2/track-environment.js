@@ -4,7 +4,7 @@
 (function (root) {
   'use strict';
   const CELL = 96, ROAD_CELL = 64, EPS = 1e-7;
-  const COLORS = { grass: '#6c8050', forest: '#526749', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960', 'colored-surface': '#4f785b' };
+  const COLORS = { grass: '#6c8050', forest: '#526749', rock: '#858a7c', gravel: '#b5a98b', sand: '#c8b384', asphalt: '#686c68', 'painted-runoff': '#327960', 'colored-surface': '#4f785b' };
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const cross = (a,b,c) => (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
   const point = (x,y,z=0) => ({x,y,z});
@@ -111,7 +111,16 @@
     segments.forEach((s,i)=>{const b=bounds([s.a,s.b]);for(let x=Math.floor(b.minX/ROAD_CELL);x<=Math.floor(b.maxX/ROAD_CELL);x++)for(let y=Math.floor(b.minY/ROAD_CELL);y<=Math.floor(b.maxY/ROAD_CELL);y++){const k=key(x,y);if(!roadGrid.has(k))roadGrid.set(k,[]);roadGrid.get(k).push(i);}});
     function candidates(b,margin=0) {const out=new Set();for(let x=Math.floor((b.minX-margin)/ROAD_CELL);x<=Math.floor((b.maxX+margin)/ROAD_CELL);x++)for(let y=Math.floor((b.minY-margin)/ROAD_CELL);y<=Math.floor((b.maxY+margin)/ROAD_CELL);y++)for(const i of roadGrid.get(key(x,y))||[])out.add(i);return [...out].map(i=>segments[i]);}
     function nearest(x,y) {const p=point(x,y),b={minX:x,maxX:x,minY:y,maxY:y};let best=null; for(let r=64;r<=4096;r*=2) {for(const s of candidates(b,r)){const q=nearestOn(s.a,s.b,p);if(!best||q.distance<best.distance)best=q;}if(best&&best.distance<=r)return best;}for(const s of segments){const q=nearestOn(s.a,s.b,p);if(!best||q.distance<best.distance)best=q;}return best;}
-    const groundHeight=(x,y)=>nearest(x,y).z-.07;
+    if(options.groundHeight!=null&&typeof options.groundHeight!=='function')throw new TypeError('TrackEnvironment groundHeight must be a function.');
+    const suppliedGround=typeof options.groundHeight==='function';
+    // The optional sampler is the rendered terrain surface in display metres,
+    // already road-constrained. Do not apply the legacy offset or height gain
+    // again. The caller owns any finite fallback outside the terrain extent.
+    const groundHeight=suppliedGround?(x,y)=>{
+      const z=options.groundHeight(x,y);
+      if(!Number.isFinite(z))throw new TypeError('TrackEnvironment groundHeight must return a finite height.');
+      return z;
+    }:(x,y)=>nearest(x,y).z-.07;
     const clearance=track.width*.5+Math.min(1.1,track.width*.065)+.35;
     function clearTriangle(t,margin=clearance) { for(const s of candidates(bounds(t),margin)){if(inTriangle(s.a,...t)||inTriangle(s.b,...t))return false;for(let i=0;i<3;i++)if(segmentDistance(t[i],t[(i+1)%3],s.a,s.b)<margin)return false;}return true; }
     // Reserve every cited polygon before placing trees, including polygons that
@@ -153,8 +162,18 @@
       if(form){o.growthForm=form;o.growthFormEstimated=true;}
       if(illustrative){stats.backgroundTrees++;stats.illustrativeVegetation=true;}else stats.sourceTrees++;
       const n=6,ring=Array.from({length:n},(_,i)=>{const a=i*Math.PI*2/n;return point(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,z+h*.61);}),tip=point(p.x+.12*r,p.y-.08*r,z+h),bottom=point(p.x,p.y,z+h*.35);
-      const shadow=ring.map(q=>point(q.x+h*.20,q.y+h*.13,z+.025));
-      if(shadow.slice(1,-1).every((q,i)=>clearTriangle([shadow[0],q,shadow[i+2]])))addFace(shadow,'rgba(26,42,22,.20)','tree-shadow',featureId,{detail:1});
+      if(properties.castShadow!==false){
+        const shadow=ring.map(q=>{const x=q.x+h*.20,y=q.y+h*.13;return point(x,y,(suppliedGround?groundHeight(x,y):z)+.025);});
+        if(shadow.slice(1,-1).every((q,i)=>clearTriangle([shadow[0],q,shadow[i+2]]))){
+          if(suppliedGround){
+            // A centre-sampled fan follows slope changes better than a flat
+            // polygon while adding only five faces per tree, independently of
+            // terrain density. Every sampled vertex touches the actual surface.
+            const x=p.x+h*.20,y=p.y+h*.13,center=point(x,y,groundHeight(x,y)+.025);
+            for(let i=0;i<n;i++)addFace([center,shadow[i],shadow[(i+1)%n]],'rgba(26,42,22,.20)','tree-shadow',featureId,{detail:1});
+          }else addFace(shadow,'rgba(26,42,22,.20)','tree-shadow',featureId,{detail:1});
+        }
+      }
       if(form==='tufted'||form==='columnar'){
         const color=/^#[0-9a-f]{6}$/i.test(properties.crownColor||'')?properties.crownColor:'#526d45';
         const extra={growthForm:form,...(illustrative?{illustrativeVegetation:true}:{})};
@@ -193,7 +212,7 @@
         const extra=illustrative?{illustrativeVegetation:true}:{growthForm:form};
         for(let i=0;i<n;i++){const j=(i+1)%n;addFace([lower[i],lower[j],upper[j],upper[i]],tint(color,.82+i*.035),'tree',featureId,extra);addFace([upper[i],upper[j],tip],tint(color,.94+i*.025),'tree',featureId,extra);addFace([lower[j],lower[i],bottom],tint(color,.72+i*.025),'tree',featureId,{detail:1,...extra});}
       }else for(let i=0;i<n;i++){addFace([ring[i],ring[(i+1)%n],tip],tint('#496642',.81+i*.055),'tree',featureId);addFace([ring[(i+1)%n],ring[i],bottom],tint('#3f5738',.82+i*.035),'tree',featureId,{detail:1});}
-      const tr=h*(form==='tufted'?.012:.019),trunkHeight=form==='tufted'?.89:form==='columnar'?.64:.58;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2;addFace([point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z),point(p.x+Math.cos(b)*tr,p.y+Math.sin(b)*tr,z+h*trunkHeight),point(p.x+Math.cos(a)*tr,p.y+Math.sin(a)*tr,z+h*trunkHeight)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
+      const tr=h*(form==='tufted'?.012:.019),trunkHeight=form==='tufted'?.89:form==='columnar'?.64:.58;for(let i=0;i<4;i++){const a=i*Math.PI/2,b=(i+1)*Math.PI/2,ax=p.x+Math.cos(a)*tr,ay=p.y+Math.sin(a)*tr,bx=p.x+Math.cos(b)*tr,by=p.y+Math.sin(b)*tr;addFace([point(ax,ay,suppliedGround?groundHeight(ax,ay):z),point(bx,by,suppliedGround?groundHeight(bx,by):z),point(bx,by,z+h*trunkHeight),point(ax,ay,z+h*trunkHeight)],tint('#665947',.8+i*.08),'tree-trunk',featureId,{detail:1});}
       const group=groupsMap.get(key(Math.floor(p.x/CELL),Math.floor(p.y/CELL)));if(group)group.objects.push(o);
       return true;
     }
@@ -333,6 +352,7 @@
         const add=vertices=>addFace(vertices,fill,'catch-fence',featureId,{fencePart:part});
         if(solid){
           const corners=[[1,1],[-1,1],[-1,-1],[1,-1]],low=corners.map(([s,t])=>shift(a,s,t)),high=corners.map(([s,t])=>shift(b,s,t));
+          if(suppliedGround&&part==='post')for(const q of low)q.z=groundHeight(q.x,q.y);
           for(let i=0;i<4;i++)add([low[i],low[(i+1)%4],high[(i+1)%4],high[i]]);
           add(low);add(high);
         }else{
@@ -375,8 +395,8 @@
           const grain=kind==='painted-runoff'?1:.965+rng()*.07;
           terrain.push({vertices:t,fill:tint(color,kind==='gravel'?grain:1),kind,featureId,priority:-2});
         }
-        for(const t of triangulate(outer))renderTriangle(t);
-        if(kind==='forest') {
+        if(!(kind==='forest'&&p.baseMaterial===true))for(const t of triangulate(outer))renderTriangle(t);
+        if(kind==='forest'&&p.trees!==false) {
           const spacing=clamp(p.treeSpacing||19,12,35);let count=0;
           for(let x=b.minX+spacing*.5;x<b.maxX&&count<650;x+=spacing)for(let y=b.minY+spacing*.5;y<b.maxY&&count<650;y+=spacing){const q=point(x+(rng()-.5)*spacing*.65,y+(rng()-.5)*spacing*.65);if(inside(q,outer)&&!holes.some(r=>inside(q,r))){tree(q,p,featureId,rng);count++;}}
         }
@@ -388,7 +408,9 @@
         safetyWall(g.coordinates.map(project),p,featureId);
       } else if(g.type==='LineString'&&['retaining-wall','guardrail'].includes(kind)) {
         const line=g.coordinates.map(project),height=clamp(p.height||(kind==='guardrail'?.8:2.1),.3,8),width=kind==='guardrail'?.18:.55;
-        for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],length=distance(a,b),n=Math.ceil(length/9);if(length<EPS)continue;for(let j=0;j<n;j++){const u=point(a.x+(b.x-a.x)*j/n,a.y+(b.y-a.y)*j/n),v=point(a.x+(b.x-a.x)*(j+1)/n,a.y+(b.y-a.y)*(j+1)/n);if(candidates(bounds([u,v]),clearance+width).some(s=>segmentDistance(u,v,s.a,s.b)<clearance+width))continue;const nx=-(b.y-a.y)/length*width*.5,ny=(b.x-a.x)/length*width*.5;const verts=[point(u.x+nx,u.y+ny,groundHeight(u.x,u.y)),point(v.x+nx,v.y+ny,groundHeight(v.x,v.y)),point(v.x-nx,v.y-ny,groundHeight(v.x,v.y)),point(u.x-nx,u.y-ny,groundHeight(u.x,u.y))],top=verts.map(q=>point(q.x,q.y,q.z+height));for(let k=0;k<4;k++)addFace([verts[k],verts[(k+1)%4],top[(k+1)%4],top[k]],kind==='guardrail'?'#9caaa9':k%2?'#77796c':'#939285',kind,featureId);addFace(top,kind==='guardrail'?'#b4c0bd':'#aba99b',kind,featureId);}}
+        for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],length=distance(a,b),n=Math.ceil(length/9);if(length<EPS)continue;for(let j=0;j<n;j++){const u=point(a.x+(b.x-a.x)*j/n,a.y+(b.y-a.y)*j/n),v=point(a.x+(b.x-a.x)*(j+1)/n,a.y+(b.y-a.y)*(j+1)/n);if(candidates(bounds([u,v]),clearance+width).some(s=>segmentDistance(u,v,s.a,s.b)<clearance+width))continue;const nx=-(b.y-a.y)/length*width*.5,ny=(b.x-a.x)/length*width*.5;
+          const base=(q,side)=>{const x=q.x+nx*side,y=q.y+ny*side;return point(x,y,suppliedGround?groundHeight(x,y):groundHeight(q.x,q.y));};
+          const verts=[base(u,1),base(v,1),base(v,-1),base(u,-1)],top=verts.map(q=>point(q.x,q.y,q.z+height));for(let k=0;k<4;k++)addFace([verts[k],verts[(k+1)%4],top[(k+1)%4],top[k]],kind==='guardrail'?'#9caaa9':k%2?'#77796c':'#939285',kind,featureId);addFace(top,kind==='guardrail'?'#b4c0bd':'#aba99b',kind,featureId);}}
       }
     }
     if(options.backgroundVegetation!==false){
@@ -424,7 +446,7 @@
     stats.faces=faces.length;
     const worldBounds=faces.length?bounds(faces.flatMap(f=>f.vertices)):{...track.bounds};
     function query(x,y,radius=320) { if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(radius)||radius<0)return [];return groups.filter(g=>Math.hypot(Math.max(g.bounds.minX-x,0,x-g.bounds.maxX),Math.max(g.bounds.minY-y,0,y-g.bounds.maxY))<=radius); }
-    return {id,groups,faces,terrainOverlays:faces.filter(f=>f.terrainDrape),objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
+    return {id,groups,faces,terrainOverlays:faces.filter(f=>f.terrainDrape),objects,bounds:worldBounds,stats,sources:data.sources||[],source:data.metadata||null,query,groundHeight,roadDistance:(x,y)=>nearest(x,y).distance,clearanceM:clearance,illustrativeVegetation:{enabled:options.backgroundVegetation!==false,trees:stats.backgroundTrees,classification:'illustrative vegetation in unclassified areas; not photo-confirmed trees',roadDistanceRangeM:[45,180],maximumTrees:400},verticalGeometry:suppliedGround?'sampled from supplied display terrain; individual trees and unclassified background vegetation are illustrative':'estimated from adjacent track elevations; individual trees and unclassified background vegetation are illustrative'};
   }
   const api={build,conformTerrain};root.TrackEnvironment=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

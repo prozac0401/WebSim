@@ -276,10 +276,16 @@
       this.displayTrack={...race.track,points:race.track.points.map(p=>({...p,z:this._displayHeight(p.z||0)})),
         elevationMin:this._displayHeight(race.track.elevationMin||0),elevationMax:this._displayHeight(race.track.elevationMax||0)};
       this._makeRoad();
+      const metadata=root.TrackEnvironmentData?.[race.track.id]?.metadata;
+      const relief=root.TrackRelief||(typeof require==='function'?require('./track-relief.js'):null);
+      this.reliefField=relief?.compile(root.TrackEnvironmentData?.[race.track.id],z=>this._displayHeight(z),this.displayTrack)||null;
       this.pits=root.PitFacilities?.build(this.displayTrack,root.PitFacilityData?.[race.track.id])||null;
       this.environment=root.TrackEnvironment?.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r)})||null;
       this._makeContextGround();this.markerPositions=[];this._lastCamera=null;this._followState=null;this._classicFollowState=null;this.landmark=null;
-      const metadata=root.TrackEnvironmentData?.[race.track.id]?.metadata;
+      if(this.reliefField&&this.terrainGeometry&&this.environment){
+        const fallback=this.environment.groundHeight,terrain=this.terrainGeometry;
+        this.environment=root.TrackEnvironment.build(this.displayTrack,race.track.id,undefined,{excludeTree:(x,y,r)=>this.pits?.contains(x,y,r),groundHeight:(x,y)=>terrain.sampleHeight(x,y)??fallback(x,y)});
+      }
       this._sceneryFollowFaces=metadata?.conservativeSceneryVisibility?this.environment?.faces.filter(f=>!f.terrainDrape).map(f=>({...f,stroke:f.fill,width:1})):null;
       this._sceneryOverviewFaces=this._sceneryFollowFaces?.filter(f=>f.kind!=='tree-shadow');
       const boards=root.TracksideBoards||(typeof require==='function'?require('./trackside-boards.js'):null);
@@ -616,9 +622,12 @@
       this.contextGround=[];this.terrainGeometry=null;this._drapedFeatures=new Set();if(!this.race||!this.environment&&!this.pits)return;
       // User-requested default grass fills unclassified ground. Its height and
       // material are illustrative; photographed land cover is drawn above it.
-      const road=this.race.track.bounds,pit=this.pits?.bounds,b={minX:Math.min(road.minX,pit?.minX??road.minX),maxX:Math.max(road.maxX,pit?.maxX??road.maxX),minY:Math.min(road.minY,pit?.minY??road.minY),maxY:Math.max(road.maxY,pit?.maxY??road.maxY)};b.width=b.maxX-b.minX;b.height=b.maxY-b.minY;
+      const road=this.race.track.bounds,pit=this.pits?.bounds,b={minX:Math.min(road.minX,pit?.minX??road.minX),maxX:Math.max(road.maxX,pit?.maxX??road.maxX),minY:Math.min(road.minY,pit?.minY??road.minY),maxY:Math.max(road.maxY,pit?.maxY??road.maxY)};
+      const gridAnchor=this.reliefField?{x:b.minX-180,y:b.minY-180}:null;
+      if(this.reliefField){const g=this.reliefField.bounds;b.minX=Math.min(b.minX,g.minX+180);b.maxX=Math.max(b.maxX,g.maxX-180);b.minY=Math.min(b.minY,g.minY+180);b.maxY=Math.max(b.maxY,g.maxY-180);}
+      b.width=b.maxX-b.minX;b.height=b.maxY-b.minY;
       if(root.CircuitTerrain){
-        this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight});
+        this.terrainGeometry=root.CircuitTerrain.build(this.displayTrack,this.roadEdges,{bounds:b,groundHeight:this.environment?.groundHeight||this.pits.groundHeight,...(this.reliefField?{gridAnchor,relief:(x,y,z)=>this.pits?.contains(x,y,100)?0:this.reliefField.delta(x,y,z),reliefRoadBlendM:40}:{})});
         this.contextGround=this.terrainGeometry.faces;
         const groundColor=this.roadEdgeStyle?.defaultGroundColor;
         if(groundColor)this.contextGround=this.contextGround.map(f=>['context-ground','terrain-bank'].includes(f.kind)?{...f,fill:groundColor,...(f.stroke?{stroke:groundColor}:{})}:f);

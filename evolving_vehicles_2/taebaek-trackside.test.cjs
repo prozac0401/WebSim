@@ -43,7 +43,7 @@ test('Taebaek bundle retains the exact authored data and every new observation r
  const sources=new Set(data.sources.map(s=>s.id));assert.equal(sources.size,data.sources.length);
  assert.ok(data.sources.some(s=>String(s.url||'').includes('Ji6CW56nQz0')),'public onboard evidence is recorded explicitly');
  assert.equal(data.metadata.defaultRoadEdge,'white-line');assert.equal(data.metadata.roadEdges.length,7);
- assert.equal(data.features.length,26);
+ assert.equal(data.features.length,37);
  for(const rule of [...data.metadata.roadEdges,...(data.metadata.roadMarkings||[]),...(data.metadata.distanceBoards||[])]){
   assert.ok(sources.has(rule.sourceId),'road rule resolves source '+rule.sourceId);assert.ok(rule.evidence);
  }
@@ -142,5 +142,29 @@ test('authored narrow safety shoulders reserve space instead of acquiring illust
    const a={x:ring[i][0],y:ring[i][1]},b={x:ring[(i+1)%ring.length][0],y:ring[(i+1)%ring.length][1]};
    assert.ok(pointSegmentDistance2(tree,a,b)>(tree.radius+1-1e-6)**2,reserve.id+' reserves the entire crown radius');
   }
+ }
+});
+
+test('surrounding DEM grid raises wooded slopes while the shared rendered ground keeps shoulders and scenery attached',()=>{
+ const {renderer:r}=scene(),g=data.metadata.terrainReliefGrid;
+ assert.equal(g.columns,23);assert.equal(g.rows,17);assert.equal(g.spacingM,75);assert.equal(g.heightsAMSL.length,391);
+ assert.equal(Math.min(...g.heightsAMSL),575);assert.equal(Math.max(...g.heightsAMSL),896);
+ assert.equal(r.reliefField.sourceId,'taebaek-surrounding-dem-2026');
+ assert.ok(r.terrainGeometry.sampleHeight(-700,-350)>950,'the mapped northwest mountain is substantially higher than the old nearest-road plain');
+ assert.equal(r.environment.groundHeight(-700,-350),r.terrainGeometry.sampleHeight(-700,-350));
+ // Expanding the mountain envelope must not shift the former grid underneath
+ // this existing control-tower footing and bury its lower storey by 3.3 m.
+ assert.ok(r.terrainGeometry.sampleHeight(-11.77,-45.68)<652.7628664200968+.2,'the control-tower footing stays clear after terrain expansion');
+ assert.ok(r.contextGround.some(f=>f.kind==='forest'&&f.fill==='#466449'),'distant woodland paints the actual mountain surface');
+ assert.ok(r.contextGround.some(f=>f.kind==='rock'),'exposed rock is a distinct slope material');
+ assert.equal(r.environment.stats.backgroundTrees,0);assert.ok(r.environment.stats.sourceTrees>800,'mapped wooded slopes carry a dense, bounded local canopy');
+ assert.ok(r.environment.faces.filter(f=>!['forest','rock'].includes(f.kind)).length<50000,'geometry budget cannot truncate late tree crowns or trunks');
+ for(const tree of r.environment.objects)assert.ok(Math.abs(tree.z-r.terrainGeometry.sampleHeight(tree.x,tree.y))<1e-8,'each tree root uses the actual rendered triangle');
+ let previous=null;
+ for(let s=620;s<=1010;s+=3){
+  const p=r.roadGeometry.sample(s),x=p.x+Math.sin(p.angle)*11,y=p.y-Math.cos(p.angle)*11;
+  const relative=r.terrainGeometry.sampleHeight(x,y)-p.z;
+  if(previous!==null)assert.ok(Math.abs(relative-previous)<.5,'a near-road barrier must not bounce several metres between adjacent posts');
+  previous=relative;
  }
 });
