@@ -123,15 +123,25 @@ test('stock repeats preserve entrant objects and UIDs and restart every entrant 
 
 test('a multi-lap measurement keeps intermediate laps moving and restarts only at its final finish', () => {
   const controller = make({ laps: 3 }), original = controller.race, watched = original.cars[0];
+  const expected = finish(new TrackRace({ circuit: circle, entrants: controller.population, laps: 3, surface: 'dry' }));
+  const firstBoundary = original.lapEndDistanceForCar(watched, 1);
+  assert.equal(firstBoundary, watched.firstLapLength);
+  assert.equal(original.lapEndDistanceForCar(watched, 3), watched.firstLapLength + 2 * watched.trackLength);
   for (let i = 0; i < 120 / DT && watched.lap === 0; i++) {
     assert.deepEqual(controller.step(DT, { watchId: 0, auto: true }), []);
   }
   assert.equal(watched.lap, 1); assert.equal(watched.finished, false); assert.ok(watched.speed > 10);
+  assert.ok(watched.distance >= firstBoundary && watched.distance < firstBoundary + watched.speed * DT + 1);
+  assert.equal(original.pathStateForCar(watched).pathKind, 'flying');
   assert.equal(controller.race, original); assert.equal(controller.generation, 1);
   const transition = untilTransition(controller, 0);
   assert.equal(transition.previousRace, original); assert.equal(watched.lap, 3);
+  assert.deepEqual(resultSnapshot(transition.results), resultSnapshot(expected), 'multi-lap display and independent fitness use the same first/flying distances');
+  assert.equal(watched.distance, watched.firstLapLength + 2 * watched.trackLength);
+  assert.ok(Math.abs(watched.lapTimes.reduce((sum, time) => sum + time, 0) - watched.finishTime) < 1e-9);
   assert.equal(controller.race.laps, 3); assert.equal(controller.race.cars[0].speed, 0);
   assert.equal(controller.race.cars[0].standingStartDistance, 0); assert.equal(controller.generation, 2);
+  assert.equal(controller.race.pathStateForCar(controller.race.cars[0]).pathKind, 'launch', 'every new measurement intentionally starts from its own standing grid');
 });
 
 test('zero time pauses both races and auto off retains the completed generation', () => {

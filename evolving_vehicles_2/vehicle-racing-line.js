@@ -8,7 +8,6 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const mod = (v, n) => ((v % n) + n) % n;
   const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
-  const smooth = t => (t = clamp(t, 0, 1), t * t * t * (10 + t * (-15 + 6 * t)));
   const PHYSICAL_KEYS = ['powerPs', 'massKg', 'torqueNm', 'driveReduction', 'efficiency', 'grip', 'braking', 'brakingHardware',
     'longitudinalGrip', 'traction', 'dragArea', 'rollingCoefficient', 'downforceArea', 'topSpeedMps', 'trackWidthM',
     'cgHeightM', 'wheelbaseM', 'frontWeightFraction', 'advancedDynamics'];
@@ -53,10 +52,10 @@
         // Smooth saturation respects the same road ribbon without introducing
         // flat clipped peaks or sharp derivative changes at its edge.
         const shifted = baseline.maxOffsetM * Math.tanh(Math.atanh(clamp(raw / baseline.maxOffsetM, -.999999, .999999)) * scale);
-        // Every candidate has the same geometric timing-line neighbourhood.
-        // This allows a flying generation to inherit the preceding car pose.
-        const seamDistance = Math.min(p.s, track.centerlineLength - p.s), gain = smooth((seamDistance - 50) / 50);
-        const offset = offsets[i] + (shifted - offsets[i]) * gain;
+        // The periodic flying path is free to cross the timing line with its
+        // own lateral position and tangent. A separate one-off standing-start
+        // trajectory joins it; a new lap must never repeat that launch blend.
+        const offset = shifted;
         return { x: p.x + normals[i].x * offset, y: p.y + normals[i].y * offset,
           z: p.z, centerS: p.s, lateralOffsetM: offset };
       });
@@ -117,7 +116,7 @@
     for (const candidate of scores.slice(1)) if (candidate.time < selected.time - 1e-9) selected = candidate;
     const result = { ...selected.line, method: 'vehicle-force-envelope-candidate-search', measuredRecord: false,
       maxOffsetM: track.racingLine.maxOffsetM, edgeAllowanceM: track.racingLine.edgeAllowanceM,
-      seamPreservationM: 50, seamTransitionM: 50, candidateCount: scores.length,
+      seamPreservationM: 0, seamTransitionM: 0, seamMode: 'free-periodic-flying', candidateCount: scores.length,
       performance: Object.freeze({ powerToWeightPsPerTonne: car.powerPs * 1000 / car.massKg, grip: car.grip,
         braking: car.braking, traction: car.traction, estimatedFlyingLapSeconds: selected.time,
         baselineFlyingLapSeconds: scores[0].time, selectedCandidate: selected.line.id }),

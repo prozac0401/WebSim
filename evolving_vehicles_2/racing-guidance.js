@@ -175,7 +175,8 @@
       color, yellowWeight: colorWeights[2] * gate, alpha: .52, fill: fillFor(color) };
   }
 
-  function sample(race, car, distance) { return sampleProfile(profile(race, car), distance); }
+  const flyingDistance = (race, car, distance) => race.pathStateForCar?.(car, distance).flyingDistance ?? distance;
+  function sample(race, car, distance) { return sampleProfile(profile(race, car), flyingDistance(race, car, distance)); }
 
   // Short live forecast from the watched car's actual state, using the engine's
   // own target rather than the advisory coast envelope. Nothing is written back
@@ -189,6 +190,10 @@
     const data = profile(race, car); if (!data) return distances.map(() => null);
     const points = car.pathPoints || race.pathPoints, length = car.trackLength || race.track.length, spacing = length / car.speedProfile.length;
     const physical = distance => {
+      if (race.sampleForCar) {
+        const p = race.sampleForCar(car, distance);
+        return { grade: p.grade || 0, target: race._target(car, distance) };
+      }
       const u = mod(distance, length) / spacing, i = Math.floor(u) % points.length, t = u - Math.floor(u), j = (i + 1) % points.length;
       return { grade: (points[i].grade || 0) + ((points[j].grade || 0) - (points[i].grade || 0)) * t,
         target: Math.sqrt(car.speedProfile[i] ** 2 + (car.speedProfile[j] ** 2 - car.speedProfile[i] ** 2) * t) };
@@ -218,7 +223,7 @@
         acceleration = clamp((target - speed) / dt, -state.brake - state.resistance, state.acceleration);
         wheel = acceleration + state.resistance;
       }
-      const base = sampleProfile(data, request.distance), brake = clamp(-wheel / Math.max(.01, state.brake), 0, 1), throttle = clamp(wheel / Math.max(.01, state.drive), 0, 1);
+      const base = sampleProfile(data, flyingDistance(race, car, request.distance)), brake = clamp(-wheel / Math.max(.01, state.brake), 0, 1), throttle = clamp(wheel / Math.max(.01, state.drive), 0, 1);
       const gate = yellowGate(acceleration), coastDemand = throttle < .4 && brake < .4 ? base.coastDemand : 0;
       const anticipationDemand = brake < .65 ? base.anticipationDemand : 0, coast = coastDemand * gate, anticipation = anticipationDemand * gate;
       const red = smooth(.06, .9, brake), green = (1-red) * smooth(.15,.9,throttle) * (1-coastDemand) * (1-anticipationDemand);

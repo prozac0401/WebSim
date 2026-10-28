@@ -18,11 +18,27 @@ test('real DCT laps apply NGS only in canonical DRS zones and never to the manua
   for (const id of ['monza', 'spa', 'silverstone']) {
     const race = new Race(options(id, ['avante-n-2.0t-dct', 'avante-n-2.0t-mt'], 2));
     const [car, manual] = race.cars, zones = NGS.getZones(race.track);
+    assert.ok(car.motionTrajectory, id + ': actual physical motion owns both routes');
+    // Silverstone's almost straight launch has a sub-micrometre difference;
+    // the first route still owns its boundary rather than requiring an offset.
+    assert.equal(car.firstLapLength, car.motionTrajectory.firstLapLength);
+    assert.equal(race.pathStateForCar(car, car.firstLapLength).lapIndex, 1);
+    assert.equal(car.totalDistance, car.firstLapLength + car.trackLength);
     const stockPower = car.powerPs, stockTorque = car.torqueNm;
+    const usedPasses = new Set();
     let appliedTicks = 0, lastEnd = -Infinity, wasActive = false, started = 0;
     while (!race.finished && race.time < 650) {
       const before = race.sampleForCar(car, car.distance), previousTime = race.time;
+      const path = race.pathStateForCar(car, car.distance), previousActivations = car.ngs.activationCount;
       race.step(DT);
+      if (car.ngs.activationCount > previousActivations) {
+        const zone = zones.find(z => wrap(before.centerS - z.startS, race.track.centerlineLength) < z.lengthM);
+        assert.ok(zone, id + ': activation uses the actual canonical position');
+        const pass = path.lapIndex - (zone.startS > zone.endS && before.centerS < zone.startS ? 1 : 0);
+        const key = zone.id + ':' + pass;
+        assert.equal(usedPasses.has(key), false, id + ': no repeated activation in ' + key);
+        usedPasses.add(key);
+      }
       if (car.activePowerPs > stockPower + 1e-10) {
         appliedTicks++;
         assert.ok(inZone(zones, before.centerS, race.track.centerlineLength), id + ': boost stayed within mapped zone');
@@ -43,6 +59,8 @@ test('real DCT laps apply NGS only in canonical DRS zones and never to the manua
     assert.ok(started >= 3 && appliedTicks > 1000, id + ': natural driving exercised repeated boosts');
     assert.equal(car.ngs.active, false); assert.equal(car.ngs.appliedPowerMultiplier, 1);
     assert.equal(car.activePowerPs, stockPower);
+    assert.equal(car.distance, car.firstLapLength + car.trackLength);
+    assert.equal(car.lapTimes.length, 2);
   }
 });
 

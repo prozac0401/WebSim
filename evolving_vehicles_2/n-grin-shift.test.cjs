@@ -50,7 +50,7 @@ test('geographic zone anchors survive a changed canonical origin instead of assu
 test('only exact CN7 N DCT entrant and physical DCT8 profile can activate; all other production variants remain inert', () => {
   for (const [vehicleId, variants] of Object.entries(Evolution.VARIANTS)) for (const variant of variants) {
     const car = carFor(vehicleId, variant.id), state = NGS.create(car, tracks.monza), before = JSON.stringify(car);
-    NGS.update(car, state, 1 / 120, input(inside(tracks.monza)));
+    NGS.update(car, state, 1 / 120, { ...input(inside(tracks.monza)), lapIndex: 0 });
     const expected = variant.id === 'avante-n-2.0t-dct';
     assert.equal(state.eligible, expected, variant.id); assert.equal(state.active, expected, variant.id);
     assert.equal(JSON.stringify(car), before, 'state module must not mutate physical car/entrant: ' + variant.id);
@@ -115,6 +115,65 @@ test('Spa wrapped pit zone is one pass across the canonical seam and becomes reu
   NGS.update(car, state, 1, input(6900)); assert.equal(state.activationCount, 2);
   car.distance = car.trackLength * 2 + 50;
   NGS.update(car, state, 1, input(50)); assert.equal(state.activationCount, 2);
+});
+
+test('resolved lap indices own zone passes even when the first path has a different length', () => {
+  for (const [id, track] of Object.entries(tracks)) {
+    const car = carFor('avante_n', 'avante-n-2.0t-dct', track), state = NGS.create(car, track);
+    // Deliberately cross the legacy quotient without crossing the actual
+    // first-lap boundary. Route geometry belongs to the engine, not NGS.
+    car.firstLapLength = car.trackLength + 120;
+    car.distance = car.trackLength - 10;
+    const request = { ...input(inside(track)), lapIndex: 0 };
+    NGS.update(car, state, 10, request);
+    assert.equal(state.activationCount, 1, id);
+    NGS.update(car, state, 40, { ...request, throttle: 0 });
+    car.distance = car.trackLength + 10;
+    const before = JSON.stringify(car);
+    NGS.update(car, state, 1, request);
+    assert.equal(state.activationCount, 1, id + ': one first-lap zone pass');
+    assert.equal(state.active, false);
+    assert.equal(JSON.stringify(car), before, 'NGS does not update route progress');
+    car.distance = car.firstLapLength + car.trackLength * .5;
+    NGS.update(car, state, 1, { ...request, lapIndex: 1 });
+    assert.equal(state.activationCount, 2, id + ': following flying lap can reuse the zone');
+    assert.equal(state.active, true);
+
+    const manual = carFor('avante_n', 'avante-n-2.0t-mt', track), manualState = NGS.create(manual, track);
+    NGS.update(manual, manualState, 1, { ...request, lapIndex: 1 });
+    assert.equal(manualState.activationCount, 0); assert.equal(manualState.appliedPowerMultiplier, 1);
+  }
+});
+
+test('Spa keeps one wrapped pass across unequal first and flying lap boundaries', () => {
+  const track = tracks.spa, car = carFor('avante_n', 'avante-n-2.0t-dct', track), state = NGS.create(car, track);
+  car.firstLapLength = car.trackLength + 120;
+  car.distance = car.firstLapLength - 80;
+  NGS.update(car, state, 1, { ...input(6900), lapIndex: 0 });
+  car.distance = car.firstLapLength + 50;
+  NGS.update(car, state, 1, { ...input(50), lapIndex: 1 });
+  assert.equal(state.activationCount, 1); assert.equal(state.active, true);
+  NGS.update(car, state, 1, { ...input(50), lapIndex: 1, throttle: 0 });
+  NGS.update(car, state, 40, { ...input(50), lapIndex: 1, throttle: 0 });
+  NGS.update(car, state, 1, { ...input(50), lapIndex: 1 });
+  assert.equal(state.activationCount, 1, 'reacceleration after cooldown cannot restart the same wrapped pass');
+  car.distance = car.firstLapLength + car.trackLength - 80;
+  NGS.update(car, state, 1, { ...input(6900), lapIndex: 1 });
+  assert.equal(state.activationCount, 2);
+  car.distance = car.firstLapLength + car.trackLength + 50;
+  NGS.update(car, state, 1, { ...input(50), lapIndex: 2 });
+  assert.equal(state.activationCount, 2); assert.equal(state.active, true);
+});
+
+test('invalid resolved lap indices retain the standalone legacy fallback', () => {
+  for (const lapIndex of [-1, .5, NaN, Infinity, '0', Number.MAX_SAFE_INTEGER + 1]) {
+    const car = carFor(), state = NGS.create(car, tracks.monza), request = input(inside(tracks.monza));
+    NGS.update(car, state, 10, { ...request, lapIndex });
+    NGS.update(car, state, 40, { ...request, throttle: 0, lapIndex });
+    car.distance = car.trackLength + 100;
+    NGS.update(car, state, 1, { ...request, lapIndex });
+    assert.equal(state.activationCount, 2, String(lapIndex));
+  }
 });
 
 test('pause is unchanged, finish/DNF clear immediately, and new races/cars start with independent availability', () => {

@@ -280,7 +280,13 @@ test('actual hairpin car and guide remain within the scoring bound and the share
     const info = DrivingPose.info(race, car);
     assert.ok(info.deviationBoundM <= .7); assert.ok(info.elevationDeviationBoundM <= .025);
     for (let s = from; s <= to; s += .5) {
-      const p = DrivingPose.sampleCar(race, car, s), raw = race.sampleForCar(car, s);
+      const p = DrivingPose.sampleCar(race, car, s), source = car.motionTrajectory.source;
+      // Compare against the independent pre-fairing polygon at the matching
+      // source parameter. sampleForCar now intentionally returns the same C2
+      // motion as the display and would make a deviation test vacuous.
+      const parameter = source.parameterAtFlyingDistance(p.s), u = parameter / source.spacing;
+      const index = Math.floor(u), t = u - index, a0 = source.points[index % source.points.length], b0 = source.points[(index + 1) % source.points.length];
+      const raw = { x: a0.x + (b0.x - a0.x) * t, y: a0.y + (b0.y - a0.y) * t, elevation: a0.z + (b0.z - a0.z) * t };
       maximumDeviation = Math.max(maximumDeviation, Math.hypot(p.x - raw.x, p.y - raw.y));
       assert.ok(maximumDeviation <= info.deviationBoundM + 1e-8, id + ': source-path bound');
       assert.ok(Math.abs(p.z - raw.elevation) <= info.elevationDeviationBoundM + 1e-8, id + ': road contact');
@@ -293,7 +299,8 @@ test('actual hairpin car and guide remain within the scoring bound and the share
     // a positive 5 cm regression guard; do not mislabel curb overlap as road.
     assert.ok(clearance > .05, id + ': actual body width remains inside the displayed asphalt');
     const guide = DrivingPose.pathCar(race, car);
-    for (const p of guide.filter(p => p.s >= from && p.s <= to)) assert.deepEqual(p, DrivingPose.sampleCar(race, car, p.s));
+    assert.ok(maximumDeviation > .01, id + ': compare an independent raw polygon, not the identical physical sample');
+    for (const p of guide.filter(p => p.s >= from && p.s <= to)) assert.deepEqual(p, DrivingPose.sampleCar(race, car, p.absoluteDistance));
     reports.push({ id, maximumDeviationM: maximumDeviation, minimumBodyClearanceM: clearance });
   }
   t.diagnostic(JSON.stringify(reports));

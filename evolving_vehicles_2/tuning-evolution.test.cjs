@@ -237,6 +237,33 @@ test('fitness is finishing time, with uid mapping independent of standing order'
   assert.equal(evaluated[2].fitness, Infinity);
 });
 
+test('different actual racing-line lengths rank unfinished and retired entrants by lap progress, never raw metres', () => {
+  const Race = require('./race-engine.js'), circuits = require('./circuits.js');
+  const population = T.createPopulation({ vehicleId: 'g70', seed: 31415, budget: 0 });
+  const race = new Race({ circuit: circuits.find(c => c.id === 'everland'), entrants: population, laps: 3 });
+  const sorted = race.cars.slice().sort((a, b) => a.firstLapLength + .5 * a.trackLength - b.firstLapLength - .5 * b.trackLength);
+  const short = sorted[0], long = sorted.at(-1);
+  const sameProgressShort = short.firstLapLength + .5 * short.trackLength;
+  const sameProgressLong = long.firstLapLength + .5 * long.trackLength;
+  assert.ok(sameProgressLong - sameProgressShort > .001, 'the fixture uses genuinely different selected path lengths');
+  short.distance = sameProgressShort;
+  long.distance = sameProgressLong - (sameProgressLong - sameProgressShort) / 2;
+  short.lapProgress = race.progressForCar(short); long.lapProgress = race.progressForCar(long);
+  assert.ok(long.distance > short.distance && long.lapProgress < short.lapProgress, 'raw distance would incorrectly reverse this order');
+  const pair = [long.entrant, short.entrant];
+  for (const retired of [true, false]) {
+    for (const car of race.cars) car.dnf = true;
+    short.dnf = long.dnf = retired;
+    const evaluated = T.evaluate(pair, [long, short]);
+    assert.equal(evaluated[0].uid, short.uid);
+    assert.equal(race.standings()[0].uid, short.uid, 'visible and evaluation standings agree');
+    assert.equal(evaluated[0].fitness, Infinity, 'progress never invents a finish-time fitness');
+  }
+  short.finished = long.finished = true;
+  short.finishTime = 101; long.finishTime = 100;
+  assert.equal(T.evaluate(pair, [short, long])[0].uid, long.uid, 'a completed result is still ranked solely by finish time');
+});
+
 test('breeding preserves the elite genome and factory spec, mutates feasible offspring deterministically', () => {
   for (const vehicleId of Object.keys(T.VARIANTS)) {
     let population = T.createPopulation({ vehicleId, count: 8, seed: 101 });

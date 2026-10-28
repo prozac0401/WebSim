@@ -34,9 +34,11 @@ test('every course reduces full-lap steering derivative peaks, RMS and knot jump
       const derivative = (sample(s + h).curvature - sample(s - h).curvature) / (2 * h);
       peak = Math.max(peak, Math.abs(derivative)); sum += derivative * derivative; count++;
     }
-    const info = Pose.info(race, car), knots = car.pathPoints.length * info.subdivisions, epsilon = .0001;
+    const source = car.motionTrajectory.source, knots = source.knotCount, epsilon = .0001;
     for (let i = 0; i < knots; i++) {
-      const s = i * car.trackLength / knots;
+      // Actual C2 control knots are uniform in the raw parameter, not in the
+      // newly sampled arc-length points. Probe their independently mapped arcs.
+      const s = source.flyingDistanceAtParameter(i * source.knotSpacing);
       const left = (sample(s - epsilon).curvature - sample(s - 2 * epsilon).curvature) / epsilon;
       const right = (sample(s + 2 * epsilon).curvature - sample(s + epsilon).curvature) / epsilon;
       jump = Math.max(jump, Math.abs(right - left));
@@ -68,16 +70,26 @@ test('the sharpest remaining Pocheon bend keeps finite forward motion and a boun
   assert.ok(peak < .34 && peak > .15, 'round the cusp without removing the hairpin');
 });
 
-test('cars sharing an immutable path reuse its solve while timing-line and length changes invalidate it', () => {
+test('shared motion reuses its solve, open first-lap drawing differs, and legacy source changes invalidate fitting', () => {
   const race = races.find(r => r.circuit.id === 'taebaek'), car = race.cars[0];
   const twin = { ...car, standingStartDistance: null }, info = Pose.info(race, car);
   assert.strictEqual(Pose.info(race, twin), info, 'one solve per shared source geometry');
-  assert.strictEqual(Pose.pathCar(race, twin), Pose.pathCar(race, car), 'same immutable drawn path');
-  const slowerChainage = { ...twin, trackLength: car.trackLength * 1.01 };
-  assert.notStrictEqual(Pose.info(race, slowerChainage), info, 'length controls derivatives and cache identity');
+  assert.strictEqual(Pose.createMotion(race, twin), car.motionTrajectory, 'an installed motion is not fitted twice');
+  assert.strictEqual(Pose.pathCar(race, twin), car.motionTrajectory.flying.points, 'closed flying path is shared');
+  const first = { ...car, distance: 0, standingStartDistance: 0 }, open = Pose.pathCar(race, first);
+  assert.notStrictEqual(open, Pose.pathCar(race, twin), 'first lap is its own open path');
+  assert.deepEqual(open[0], Pose.sampleCar(race, first, 0));
+  assert.deepEqual(open.at(-1), Pose.sampleCar(race, first, car.firstLapLength));
+  assert.notEqual(open[0].x, open.at(-1).x, 'central start does not close onto the free flying crossing');
+  assert.strictEqual(Pose.pathCar(race, { ...first, distance: car.firstLapLength }), Pose.pathCar(race, twin));
+  const source = car.motionTrajectory.source;
+  assert.ok(Object.isFrozen(source) && Object.isFrozen(source.points) && Object.isFrozen(source.points[0]));
+  const legacy = { ...twin, motionTrajectory: null, pathPoints: source.points, trackLength: source.length };
+  const legacyInfo = Pose.info(race, legacy), slowerChainage = { ...legacy, trackLength: source.length * 1.01 };
+  assert.notStrictEqual(Pose.info(race, slowerChainage), legacyInfo, 'raw length controls derivatives and legacy cache identity');
   const shiftedTiming = { ...race, track: { ...race.track, points: race.track.points.map(p => ({ ...p, x: p.x + 2 })) } };
-  const standing = { ...twin, distance: 0, standingStartDistance: 0 };
-  assert.notStrictEqual(Pose.info(shiftedTiming, standing), info, 'timing geometry participates in the shared cache key');
+  const standing = { ...legacy, distance: 0, standingStartDistance: 0 };
+  assert.notStrictEqual(Pose.info(shiftedTiming, standing), legacyInfo, 'timing geometry participates in the shared cache key');
   assert.equal(Pose.sampleCar(shiftedTiming, standing, 0).x, shiftedTiming.track.points[0].x, 'fresh launch uses its own start line');
   assert.equal(Pose.sampleCar(race, standing, 0).x, race.track.points[0].x, 'reusing a car with another race cannot retain the previous launch');
 });

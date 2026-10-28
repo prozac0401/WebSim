@@ -374,8 +374,9 @@
       const finished = result.finished === true && Number.isFinite(result.finishTime);
       return { entrant, uid: entrant.uid, index, finished, dnf: result.dnf === true,
         finishTime: finished ? result.finishTime : null, bestLap: Number.isFinite(result.bestLap) ? result.bestLap : null,
-        distance: Number.isFinite(result.distance) ? result.distance : 0, result };
-    }).sort((a, b) => Number(b.finished) - Number(a.finished) || (a.finished ? a.finishTime - b.finishTime : Number(a.dnf) - Number(b.dnf) || b.distance - a.distance) || a.index - b.index)
+        distance: Number.isFinite(result.distance) ? result.distance : 0,
+        progress: Number.isFinite(result.lapProgress) ? result.lapProgress : Number.isFinite(result.distance) ? result.distance : 0, result };
+    }).sort((a, b) => Number(b.finished) - Number(a.finished) || (a.finished ? a.finishTime - b.finishTime : Number(a.dnf) - Number(b.dnf) || b.progress - a.progress) || a.index - b.index)
       .map((entry, index) => ({ ...entry, rank: index + 1, fitness: entry.finished ? entry.finishTime : Infinity }));
   }
   function breed(population, results, { seed = 1234, generation } = {}) {

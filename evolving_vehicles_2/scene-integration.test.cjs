@@ -67,6 +67,7 @@ test('browser HTML order installs the official profile before TrackRace and shar
   assert.ok(index('powertrain-telemetry.js')<index('race-engine.js'));
   assert.ok(index('../evolving_vehicles/vehicle-specs.js')<index('circuit-vehicle-specs.js')&&index('circuit-vehicle-specs.js')<index('race-engine.js'));
   assert.ok(index('driving-pose.js')<index('circuit-renderer.js'));
+  assert.ok(index('driving-pose.js')<index('race-engine.js'),'the physics engine shares the C2 trajectory builder');
   assert.ok(index('vehicle-racing-line.js')>=0&&index('vehicle-racing-line.js')<index('race-engine.js'));
   assert.ok(index('racing-guidance.js')>index('driving-pose.js')&&index('racing-guidance.js')<index('circuit-renderer.js'));
   assert.ok(index('track-environment-data.js')<index('track-environment.js'));
@@ -168,7 +169,7 @@ test('all real circuits share watched-car, camera and arrow coordinates with phy
     close(launch.x,start.x,id+' standing launch x');close(launch.y,start.y,id+' standing launch y');close(launch.z,start.z,id+' standing launch height');
     const flying={...car,standingStartDistance:null};
     for(let s=0;s<(car.trackLength||race.track.length);s+=2) {
-      const p=Pose.sampleCar(race,flying,s),road=displayHeight(race.track,race.sampleForCar(car,s).elevation),height=displayHeight(race.track,p.z);
+      const p=Pose.sampleCar(race,flying,s),road=displayHeight(race.track,race.sampleForCar(flying,s).elevation),height=displayHeight(race.track,p.z);
       assert.ok(height+.055>=road-1e-6,id+' centre floor below displayed road at '+s);
       assert.ok(height+.055-road<.10,id+' excessive floor gap at '+s);
     }

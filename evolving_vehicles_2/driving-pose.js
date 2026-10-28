@@ -1,5 +1,6 @@
-/* Shared display-only trajectory. Physics, distance, speed and lap timing remain
- * in TrackRace. A periodic cubic B-spline supplies one position and its analytic
+/* Shared trajectory. TrackRace can opt into createMotion's actual arc distance
+ * for physics and rendering; legacy callers retain their display-only path.
+ * A periodic cubic B-spline supplies one position and its analytic
  * tangent for the car, follow camera and drawn racing line. It is C2 at every
  * knot, including the timing line; no frame-history or heading lag is involved.
  * A fresh standing start uses a separate C2 50 m centerline-to-racing-line
@@ -9,6 +10,7 @@
   'use strict';
   const cache = new WeakMap();
   const geometryCache = new WeakMap();
+  const motionCache = new WeakMap();
   const surfaceCache = new WeakMap();
   // C2 continuity alone does not remove repeated steering pulses. Keep the
   // source-path displacement bounded while minimizing third differences of
@@ -75,9 +77,9 @@
     const count = original.length, radius = Math.min(Math.ceil(LIMIT_TRANSITION_M / spacing), Math.floor((count - 1) / 2));
     const weights = Array.from({ length: radius * 2 + 1 }, (_, j) => Math.exp(-.5 * ((j - radius) / Math.max(radius / 2, 1)) ** 2));
     const total = weights.reduce((a, b) => a + b, 0);
-    // Vehicle-specific paths share their first/last 50 m anchors. Keep the
-    // established fit budget there to avoid amplifying their resampling
-    // differences at the flying-start pose; use the wider budget by 100 m.
+    // Retain the established local fit budget around the timing source. This
+    // bounds smoothing relative to each candidate, without forcing different
+    // flying candidates to share a lateral position or heading there.
     const shiftLimits = original.map((_p, i) => {
       const distance = Math.min(i, count - i) * spacing;
       const t = Math.max(0, Math.min(1, (distance - START_TRANSITION_M) / START_TRANSITION_M));
@@ -236,6 +238,169 @@
     return pose;
   }
 
+  // Five-point Gauss integration inside each spline knot interval. Distance
+  // remains horizontal metres, as in TrackRace; grade carries the vertical
+  // component separately. No new fitting or source-point mutation is involved.
+  const GAUSS_X = [0, -.5384693101056831, .5384693101056831, -.906179845938664, .906179845938664];
+  const GAUSS_W = [.5688888888888889, .4786286704993665, .4786286704993665, .2369268850561891, .2369268850561891];
+  function arcTable(speed, parameterLength, count) {
+    const step = parameterLength / count, cumulative = new Float64Array(count + 1);
+    const integrate = (a, b) => {
+      const middle = (a + b) / 2, half = (b - a) / 2;
+      let sum = 0;
+      for (let i = 0; i < GAUSS_X.length; i++) sum += GAUSS_W[i] * speed(middle + half * GAUSS_X[i]);
+      return sum * half;
+    };
+    for (let i = 0; i < count; i++) cumulative[i + 1] = cumulative[i] + integrate(i * step, (i + 1) * step);
+    const length = cumulative[count];
+    const parameterAt = distance => {
+      if (distance <= 0) return 0;
+      if (distance >= length) return parameterLength;
+      let low = 0, high = count;
+      while (high - low > 1) { const mid = (low + high) >> 1; if (cumulative[mid] <= distance) low = mid; else high = mid; }
+      const a = low * step, b = high * step, target = distance - cumulative[low];
+      let parameter = a + step * target / (cumulative[high] - cumulative[low]);
+      // The LUT is a bracket, not piecewise-linear motion. Refinement keeps
+      // speed/curvature continuous across its artificial station boundaries.
+      for (let i = 0; i < 3; i++) {
+        const error = integrate(a, parameter) - target;
+        if (Math.abs(error) < 1e-10) break;
+        const v = speed(parameter);
+        if (!(v > 1e-10)) break;
+        parameter = Math.max(a, Math.min(b, parameter - error / v));
+      }
+      return parameter;
+    };
+    const distanceAt = parameter => {
+      if (parameter <= 0) return 0;
+      if (parameter >= parameterLength) return length;
+      const index = Math.floor(parameter / step);
+      return cumulative[index] + integrate(index * step, parameter);
+    };
+    return { length, parameterAt, distanceAt, count };
+  }
+  function periodicDistance(distance, length) {
+    const nearest = Math.round(distance / length) * length;
+    return Math.abs(distance - nearest) < 1e-9 ? 0 : mod(distance, length);
+  }
+  function createMotion(race, car) {
+    if (car?.motionTrajectory && car.motionTrajectory.flying.points === car.pathPoints) return car.motionTrajectory;
+    const curve = create(race, car);
+    if (!curve) return null;
+    if (motionCache.has(curve)) return motionCache.get(curve);
+    const a = race.track.points?.[0], b = race.track.points?.[1];
+    const startRun = a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
+    if (!(startRun > 1e-9)) return null;
+    const position = { x: a.x, y: a.y, z: Number.isFinite(a.z) ? a.z : 0 };
+    const first = { x: (b.x - a.x) / startRun, y: (b.y - a.y) / startRun,
+      z: curve.hasElevation && Number.isFinite(b.z) ? (b.z - position.z) / startRun : 0 };
+    // Fairing can move its parameter-zero point a few centimetres along the
+    // road. Rotate the parameter origin to the actual timing plane instead of
+    // translating/re-fitting the curve or forcing its lateral position.
+    let originParameter = 0, timingError = Infinity;
+    for (let i = 0; i < 12; i++) {
+      const p = evaluate(curve, originParameter, true);
+      timingError = (p.x - a.x) * first.x + (p.y - a.y) * first.y;
+      const derivative = p.first.x * first.x + p.first.y * first.y;
+      if (!(derivative > .1)) return null;
+      if (Math.abs(timingError) < 1e-9) break;
+      originParameter = Math.max(-8, Math.min(8, originParameter - timingError / derivative));
+    }
+    if (Math.abs(timingError) > 1e-7) return null;
+    const speed = parameter => { const p = evaluate(curve, parameter, true); return Math.hypot(p.first.x, p.first.y); };
+    const flyingArc = arcTable(speed, curve.length, curve.controls.length * Math.max(1, Math.ceil(curve.spacing)));
+    if (!(flyingArc.length > START_TRANSITION_M)) return null;
+    const originArc = flyingArc.distanceAt(mod(originParameter, curve.length));
+    const flyingParameterAt = distance => flyingArc.parameterAt(periodicDistance(distance + originArc, flyingArc.length));
+    const centerLength = race.track.centerlineLength || race.track.length;
+    const rawCanonicalAt = parameter => {
+      const u = mod(parameter, curve.length) / (curve.length / curve.source.length), index = Math.floor(u), t = u - index;
+      const a = curve.source[index % curve.source.length], b = curve.source[(index + 1) % curve.source.length];
+      const from = a.centerS ?? a.s ?? index * centerLength / curve.source.length;
+      const to = b.centerS ?? b.s ?? (index + 1) * centerLength / curve.source.length;
+      return mod(from + mod(to - from, centerLength) * t, centerLength);
+    };
+    const centerOrigin = rawCanonicalAt(originParameter);
+    const canonicalAt = parameter => periodicDistance(rawCanonicalAt(parameter) - centerOrigin, centerLength);
+    const sampleFlying = distance => {
+      const s = periodicDistance(distance, flyingArc.length), parameter = flyingParameterAt(s);
+      return { ...evaluate(curve, parameter), s, centerS: canonicalAt(parameter) };
+    };
+    const joinDistance = START_TRANSITION_M, endParameter = flyingParameterAt(joinDistance);
+    const end = evaluate(curve, endParameter, true), v = Math.hypot(end.first.x, end.first.y);
+    if (!(v > 1e-9)) return null;
+    const tangential = (end.first.x * end.second.x + end.first.y * end.second.y) / (v * v), coefficients = {};
+    for (const key of ['x', 'y', 'z']) {
+      const delta = end[key] - position[key], v0 = first[key] * joinDistance;
+      // Convert the original spline derivatives to horizontal arc distance
+      // before constructing the C2 launch-to-flying Hermite join.
+      const v1 = end.first[key] / v * joinDistance;
+      const a1 = (end.second[key] - end.first[key] * tangential) / (v * v) * joinDistance ** 2;
+      coefficients[key] = [position[key], v0, 0, 10 * delta - 6 * v0 - 4 * v1 + .5 * a1,
+        -15 * delta + 8 * v0 + 7 * v1 - a1, 6 * delta - 3 * v0 - 3 * v1 + .5 * a1];
+    }
+    const evaluateLaunch = parameter => {
+      const t = parameter / joinDistance, p = {}, derivative = {}, second = {};
+      for (const key of ['x', 'y', 'z']) {
+        const c = coefficients[key];
+        p[key] = c[0] + t * (c[1] + t * (c[2] + t * (c[3] + t * (c[4] + t * c[5]))));
+        derivative[key] = (c[1] + t * (2 * c[2] + t * (3 * c[3] + t * (4 * c[4] + t * 5 * c[5])))) / joinDistance;
+        second[key] = (2 * c[2] + t * (6 * c[3] + t * (12 * c[4] + t * 20 * c[5]))) / joinDistance ** 2;
+      }
+      const run = Math.hypot(derivative.x, derivative.y);
+      return { ...p, first: derivative, angle: Math.atan2(derivative.y, derivative.x),
+        elevation: curve.hasElevation ? p.z : null, grade: curve.hasElevation && run > 1e-9 ? derivative.z / run : 0,
+        curvature: run > 1e-9 ? (derivative.x * second.y - derivative.y * second.x) / run ** 3 : 0 };
+    };
+    const launchArc = arcTable(parameter => { const p = evaluateLaunch(parameter); return Math.hypot(p.first.x, p.first.y); },
+      joinDistance, Math.ceil(joinDistance));
+    const offset = launchArc.length - joinDistance, firstLapLength = flyingArc.length + offset;
+    const locate = (absoluteDistance, standing = true) => {
+      if (!Number.isFinite(absoluteDistance)) throw new TypeError('distance must be finite.');
+      const prefix = standing && absoluteDistance < launchArc.length;
+      const flyingDistance = prefix ? absoluteDistance < 0 ? absoluteDistance : launchArc.parameterAt(absoluteDistance) :
+        absoluteDistance - (standing ? offset : 0);
+      const firstLength = standing ? firstLapLength : flyingArc.length;
+      const lapIndex = absoluteDistance < firstLength - 1e-9 ? 0 : 1 + Math.floor((absoluteDistance - firstLength + 1e-9) / flyingArc.length);
+      const lapStartDistance = lapIndex === 0 ? 0 : firstLength + (lapIndex - 1) * flyingArc.length;
+      const lapEndDistance = firstLength + lapIndex * flyingArc.length;
+      return { pathKind: prefix ? 'launch' : 'flying', localDistance: prefix ? absoluteDistance : periodicDistance(flyingDistance, flyingArc.length),
+        flyingDistance, lapIndex, lapStartDistance, lapEndDistance,
+        progress: absoluteDistance < firstLength ? absoluteDistance / firstLength : 1 + (absoluteDistance - firstLength) / flyingArc.length };
+    };
+    const sample = (absoluteDistance, standing = true) => {
+      const location = locate(absoluteDistance, standing);
+      let p;
+      if (location.pathKind === 'launch') {
+        if (absoluteDistance < 0) p = { x: position.x + first.x * absoluteDistance, y: position.y + first.y * absoluteDistance,
+          z: position.z + first.z * absoluteDistance, angle: Math.atan2(first.y, first.x), grade: first.z, curvature: 0 };
+        else { p = evaluateLaunch(location.flyingDistance); delete p.first; }
+        p.elevation = curve.hasElevation ? p.z : null;
+        p.s = location.flyingDistance;
+        p.centerS = absoluteDistance < 0 ? mod(absoluteDistance, centerLength) : canonicalAt(flyingParameterAt(location.flyingDistance));
+      } else p = sampleFlying(location.flyingDistance);
+      return { ...p, absoluteDistance, pathKind: location.pathKind };
+    };
+    const count = Math.max(curve.source.length, Math.ceil(flyingArc.length / 4)), spacing = flyingArc.length / count;
+    const flying = { points: Array.from({ length: count }, (_, i) => sampleFlying(i * spacing)), length: flyingArc.length, spacing };
+    const launchCount = Math.max(1, Math.ceil(launchArc.length / 2)), launchSpacing = launchArc.length / launchCount;
+    const launch = { points: Array.from({ length: launchCount + 1 }, (_, i) => sample(i * launchSpacing)),
+      length: launchArc.length, spacing: launchSpacing, joinDistance };
+    const source = Object.freeze({ points: Object.freeze(curve.source.map(p => Object.freeze({ ...p }))),
+      length: curve.length, spacing: curve.length / curve.source.length,
+      knotCount: curve.controls.length, knotSpacing: curve.spacing,
+      parameterAtFlyingDistance: distance => flyingParameterAt(periodicDistance(distance, flying.length)),
+      flyingDistanceAtParameter: parameter => periodicDistance(flyingArc.distanceAt(mod(parameter, curve.length)) - originArc, flying.length) });
+    const motion = { flying, launch, firstLapLength, sample, locate, source,
+      info: Object.freeze({ ...curve.info, motionMethod: 'shared-c2-horizontal-arc-length', sourceParameterLengthM: curve.length,
+        flyingLengthM: flying.length, launchLengthM: launch.length, firstLapLengthM: firstLapLength,
+        launchJoinDistanceM: joinDistance, timingOriginParameterM: originParameter,
+        arcIntegration: 'five-point-gauss-per-knot', arcLookupIntervals: flyingArc.count }),
+      firstLapPath: null };
+    motionCache.set(curve, motion);
+    return motion;
+  }
+
   function createStart(race, curve) {
     if (curve.start) return curve.start;
     const a = race.track.points?.[0], b = race.track.points?.[1];
@@ -261,12 +426,14 @@
 
   function startBlend(car) {
     if (!Number.isFinite(car?.standingStartDistance) || !Number.isFinite(car?.distance)) return 1;
-    const t = Math.max(0, Math.min(1, (car.distance - car.standingStartDistance) / START_TRANSITION_M));
+    const transition = car.motionTrajectory?.launch.length || START_TRANSITION_M;
+    const t = Math.max(0, Math.min(1, (car.distance - car.standingStartDistance) / transition));
     return t * t * t * (10 + t * (-15 + 6 * t));
   }
 
   function sampleCar(race, car, distance = car?.distance) {
     if (!Number.isFinite(distance)) throw new TypeError('distance must be finite.');
+    if (car?.motionTrajectory) return car.motionTrajectory.sample(distance, Number.isFinite(car.standingStartDistance));
     // TrackRace explicitly uses 0 for a fresh starting grid and null for a
     // rolling generation. Unwrapped distance prevents a new launch each lap.
     const origin = car?.standingStartDistance;
@@ -319,6 +486,16 @@
     return curve.drawnPath;
   }
   function pathCar(race, car) {
+    const motion = car?.motionTrajectory;
+    if (motion) {
+      if (!Number.isFinite(car.standingStartDistance) || car.distance >= motion.firstLapLength) return motion.flying.points;
+      if (!motion.firstLapPath) {
+        const count = Math.max(motion.flying.points.length, Math.ceil(motion.firstLapLength / 2));
+        motion.firstLapPath = Object.freeze(Array.from({ length: count + 1 }, (_, i) =>
+          Object.freeze(motion.sample(i * motion.firstLapLength / count, true))));
+      }
+      return motion.firstLapPath;
+    }
     const curve = create(race, car);
     if (!curve) return car?.pathPoints || path(race);
     if (startBlend(car) >= 1) return curvePath(curve);
@@ -339,13 +516,15 @@
   // wheelbase chord, not a time filter or exact contact with the polygon mesh.
   function curveBodySupport(race, car, position, elevationScale = 1) {
     const wheelbase = car?.wheelbaseM || car?.spec?.wheelbaseMm / 1000;
-    if (!(wheelbase > 0 && wheelbase < 8) || !Number.isFinite(position?.s) ||
+    if (!(wheelbase > 0 && wheelbase < 8) || !(Number.isFinite(position?.absoluteDistance) || Number.isFinite(position?.s)) ||
         !Number.isFinite(position.angle) || !Number.isFinite(position.z) || !(elevationScale > 0 && elevationScale <= 3)) return null;
-    const curve = create(race, car);
-    if (!curve) return null;
-    let distance = position.s;
-    if (Number.isFinite(car?.distance)) {
-      const nearest = distance + Math.round((car.distance - distance) / curve.length) * curve.length;
+    const motion = car?.motionTrajectory, curve = motion ? null : create(race, car);
+    if (!motion && !curve) return null;
+    let distance = Number.isFinite(position.absoluteDistance) ? position.absoluteDistance : position.s;
+    if (!Number.isFinite(position.absoluteDistance) && Number.isFinite(car?.distance)) {
+      const length = motion?.flying.length || curve.length;
+      const offset = motion && Number.isFinite(car.standingStartDistance) ? motion.launch.length - motion.launch.joinDistance : 0;
+      const nearest = distance + offset + Math.round((car.distance - distance - offset) / length) * length;
       const p = sampleCar(race, car, nearest);
       // Recover an unwrapped camera/launch sample only if it is this same pose.
       // Offline probes may inspect a distant first-lap point without moving car.
@@ -424,7 +603,8 @@
     const grade = p.grade * Math.cos((position.angle ?? p.angle) - p.angle) / (1 - p.curvature * lateral);
     return { z: p.z, grade, s: p.s, lateral };
   }
-  const api = { sample, sampleCar, startBlend, path, pathCar, surfaceAt, curveBodySupport, info: (race, car) => create(race, car)?.info || null };
+  const api = { createMotion, sample, sampleCar, startBlend, path, pathCar, surfaceAt, curveBodySupport,
+    info: (race, car) => car?.motionTrajectory?.info || create(race, car)?.info || null };
   root.DrivingPose = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

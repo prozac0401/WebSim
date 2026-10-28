@@ -118,7 +118,11 @@
     const speed = input.speedMps ?? car.speed;
     const accelerating = input.accelerating !== false && Number.isFinite(input.throttle) && input.throttle > MODEL.throttleThreshold &&
       Number.isFinite(speed) && speed >= MODEL.minimumSpeedMps && !(car.serviceBrakeForceN > 0);
-    const lap = Number.isFinite(car.distance) && car.trackLength > 0 ? Math.floor(Math.max(0, car.distance) / car.trackLength) :
+    // A standing launch and a flying lap need not have the same arc length.
+    // The engine's absolute-distance resolver owns that boundary; keep the
+    // quotient only for standalone/legacy callers without a resolved lap.
+    const lap = Number.isSafeInteger(input.lapIndex) && input.lapIndex >= 0 ? input.lapIndex :
+      Number.isFinite(car.distance) && car.trackLength > 0 ? Math.floor(Math.max(0, car.distance) / car.trackLength) :
       Number.isFinite(input.centerS) ? Math.floor(Math.max(0, input.centerS) / length) : 0;
     const pass = zone ? lap - (zone.startS > zone.endS && s < zone.startS ? 1 : 0) : null;
     if (state.active && (!zone || state.zoneId !== zone.id || !accelerating)) stop(state, true);

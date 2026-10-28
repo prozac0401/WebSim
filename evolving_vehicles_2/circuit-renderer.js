@@ -894,7 +894,7 @@
       }
     }
     _isAheadCar(candidate,selected){
-      const progress=car=>car.distance/(car.trackLength||this.race.track.length);
+      const progress=car=>this.race.progressForCar?.(car)??car.distance/(car.trackLength||this.race.track.length);
       return progress(candidate)>progress(selected)+1e-9||
         candidate.finished&&(!selected.finished||candidate.finishTime<selected.finishTime);
     }

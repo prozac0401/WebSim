@@ -20,6 +20,7 @@
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   const TRANSMISSION = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
   const NGS = root.NGrinShift || (typeof require === 'function' ? require('./n-grin-shift.js') : null);
+  const DRIVING = root.DrivingPose || (typeof require === 'function' ? require('./driving-pose.js') : null);
   const BRAKE_LIGHTS = root.BrakeLightState || (typeof require === 'function' ? require('./brake-light-state.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
@@ -292,7 +293,7 @@
         const car = { id, index: id, uid: entrant ? entrant.uid || 'entrant-' + id : vehicleId, entrant,
           advancedDynamics: !!entrant, vehicleId, name: entrant && entrant.name || spec.name, color: entrant && entrant.color || spec.color, spec,
           powerPs: spec.powerPs * (entrant ? 1 : this.tuning), massKg: spec.massKg, torqueNm: spec.torqueNm * (entrant ? 1 : this.tuning),
-          speed: initialSpeed, distance: 0, lap: 0, currentLap: 1, lapTimes: [], bestLap: null,
+          speed: initialSpeed, distance: 0, lapProgress: 0, lap: 0, currentLap: 1, lapTimes: [], bestLap: null,
           standingStartDistance: initialSpeed > 0 ? null : 0, finishSpeed: null, finishRemainderSeconds: 0,
           finished: false, finishTime: null, dnf: false, retiredAt: null, dnfReason: null, stalledFor: 0,
           targetSpeed: 0, phase: 'accelerating', acceleration: 0, serviceBrakeForceN: 0, brakeDemand: 0,
@@ -332,14 +333,28 @@
         car.pathPoints = line?.points || this.pathPoints;
         car.trackLength = line?.length || this.track.length;
         car.pathSpacing = line?.spacing || this.track.spacing;
-        car.totalDistance = car.trackLength * this.laps;
+        // One C2 trajectory supplies both physical and displayed motion. The
+        // centered launch is a one-off open prefix, never repeated each lap.
+        const motion = line && DRIVING?.createMotion?.(this, car);
+        if (motion) {
+          car.motionTrajectory = motion;
+          car.pathPoints = motion.flying.points;
+          car.trackLength = motion.flying.length;
+          car.pathSpacing = motion.flying.spacing;
+        }
+        car.firstLapLength = motion && car.standingStartDistance !== null ? motion.firstLapLength : car.trackLength;
+        car.totalDistance = car.firstLapLength + (this.laps - 1) * car.trackLength;
         if (NGS) car.ngs = NGS.create(car, this.track);
         // The controller permits the boosted terminal envelope so it does not
         // brake merely because NGS ends. Actual propulsion is still bounded by
         // stock power whenever the per-car boost state is inactive.
         car.speedProfile = this._makeSpeedProfile(car, car.ngs?.supported ? NGS.MODEL.powerMultiplier : 1);
+        if (motion && car.standingStartDistance !== null) car.launchSpeedProfile = this._makeSpeedProfile(car,
+          car.ngs?.supported ? NGS.MODEL.powerMultiplier : 1, motion.launch);
         car.activePowerPs = car.powerPs;
-        car.targetSpeed = car.speedProfile[0];
+        car.targetSpeed = this._target(car, 0);
+        const initialPosition = this.sampleForCar(car, 0);
+        car.grade = initialPosition.grade; car.elevation = initialPosition.elevation;
         if (TELEMETRY) car.telemetry = TELEMETRY.create(car);
         return car;
       });
@@ -350,6 +365,7 @@
     }
 
     sampleForCar(car, distance) {
+      if (car?.motionTrajectory) return car.motionTrajectory.sample(distance, car.standingStartDistance !== null);
       if (!Number.isFinite(distance)) throw new TypeError('distance must be finite.');
       const length = car?.trackLength || this.track.length, spacing = car?.pathSpacing || this.track.spacing;
       const points = car?.pathPoints || this.pathPoints, position = mod(distance, length) / spacing;
@@ -361,6 +377,19 @@
         elevation: this.track.hasElevation ? a.z + (b.z - a.z) * t : null,
         grade: a.grade + (b.grade - a.grade) * t, s: mod(distance, length),
         centerS: mod(centerA + mod(centerB - centerA, centerLength) * t, centerLength) };
+    }
+
+    pathStateForCar(car, distance = car?.distance || 0) {
+      if (car?.motionTrajectory) return car.motionTrajectory.locate(distance, car.standingStartDistance !== null);
+      const length = car?.trackLength || this.track.length, lapIndex = Math.max(0, Math.floor(distance / length));
+      return { pathKind: 'flying', localDistance: mod(distance, length), flyingDistance: distance,
+        lapIndex, lapStartDistance: lapIndex * length, lapEndDistance: (lapIndex + 1) * length, progress: distance / length };
+    }
+
+    progressForCar(car, distance = car.distance) { return this.pathStateForCar(car, distance).progress; }
+
+    lapEndDistanceForCar(car, completedLapNumber) {
+      return completedLapNumber <= 0 ? 0 : (car.firstLapLength ?? car.trackLength) + (completedLapNumber - 1) * car.trackLength;
     }
 
     _equilibriumSpeed(car, grade, powerMultiplier = 1) {
@@ -433,10 +462,11 @@
       return Math.min(car.brakingHardware, car.longitudinalGrip * (normal + this._aeroLoadAcceleration(car, speed) / G));
     }
 
-    _makeSpeedProfile(car, powerMultiplier = 1) {
+    _makeSpeedProfile(car, powerMultiplier = 1, launch = null) {
       car.theoreticalTopSpeed = this._equilibriumSpeed(car, 0);
       const permittedTerminal = powerMultiplier > 1 ? this._equilibriumSpeed(car, 0, powerMultiplier) : car.theoreticalTopSpeed;
-      const points = car.pathPoints || this.pathPoints;
+      const points = launch?.points || car.pathPoints || this.pathPoints;
+      const spacing = launch?.spacing || car.pathSpacing || this.track.spacing;
       const limits = points.map(p => {
         const normal = 1 / Math.hypot(1, p.grade);
         const terminal = p.grade === 0 ? permittedTerminal : this._equilibriumSpeed(car, p.grade, powerMultiplier);
@@ -452,21 +482,37 @@
         }
         return (low + high) / 2;
       });
-      car.brakingProfile = points.map((p, i) => Math.min(this._brakingDeceleration(car, p.grade), this._brakingDeceleration(car, points[(i + 1) % points.length].grade)));
+      const brakingProfile = points.map((p, i) => Math.min(this._brakingDeceleration(car, p.grade), this._brakingDeceleration(car,
+        points[launch ? Math.min(i + 1, points.length - 1) : (i + 1) % points.length].grade)));
+      if (launch) {
+        limits[limits.length - 1] = Math.min(limits.at(-1), this._targetProfile(car.speedProfile, car.pathSpacing, launch.joinDistance));
+        for (let i = limits.length - 2; i >= 0; i--)
+          limits[i] = Math.min(limits[i], Math.sqrt(Math.max(0, limits[i + 1] ** 2 + 2 * brakingProfile[i] * spacing)));
+        return limits;
+      }
+      car.brakingProfile = brakingProfile;
       // Two complete reverse passes carry corner braking constraints across s=0.
       for (let pass = 0; pass < 2; pass++) {
         for (let i = limits.length - 1; i >= 0; i--) {
           const next = limits[(i + 1) % limits.length];
-          limits[i] = Math.min(limits[i], Math.sqrt(Math.max(0, next * next + 2 * car.brakingProfile[i] * (car.pathSpacing || this.track.spacing))));
+          limits[i] = Math.min(limits[i], Math.sqrt(Math.max(0, next * next + 2 * car.brakingProfile[i] * spacing)));
         }
       }
       return limits;
     }
 
     _target(car, distance) {
-      const pos = mod(distance, car.trackLength || this.track.length) / (car.pathSpacing || this.track.spacing);
-      const i = Math.floor(pos) % car.speedProfile.length, t = pos - Math.floor(pos);
-      const a = car.speedProfile[i], b = car.speedProfile[(i + 1) % car.speedProfile.length];
+      const launch = car.motionTrajectory?.launch;
+      if (launch && car.standingStartDistance !== null && distance < launch.length)
+        return this._targetProfile(car.launchSpeedProfile, launch.spacing, Math.max(0, distance), false);
+      const flyingDistance = this.pathStateForCar(car, distance).flyingDistance;
+      return this._targetProfile(car.speedProfile, car.pathSpacing || this.track.spacing, flyingDistance);
+    }
+
+    _targetProfile(profile, spacing, distance, closed = true) {
+      const pos = closed ? mod(distance, profile.length * spacing) / spacing : clamp(distance / spacing, 0, profile.length - 1);
+      const i = Math.floor(pos), t = pos - i;
+      const a = profile[i], b = profile[closed ? (i + 1) % profile.length : Math.min(i + 1, profile.length - 1)];
       // Interpolating v² preserves the constant-braking relation v²=u²+2as.
       return Math.sqrt(a * a + (b * b - a * a) * t);
     }
@@ -483,6 +529,7 @@
       const requestedForce = car.massKg * (target - oldSpeed) / dt + resistance;
       if (NGS && car.ngs) NGS.update(car, car.ngs, dt, {
         centerS: oldPosition.centerS,
+        lapIndex: this.pathStateForCar(car, oldDistance).lapIndex,
         throttle: clamp(requestedForce * Math.max(4, oldSpeed) / (car.powerPs * PS_WATTS * car.efficiency), 0, 1),
         accelerating: requestedForce > 100 && target >= oldSpeed - .02
       });
@@ -514,6 +561,7 @@
       car.speed = Math.max(0, oldSpeed + acceleration * dt);
       const travel = (oldSpeed + car.speed) * .5 * dt;
       car.distance = Math.min(car.totalDistance, oldDistance + travel);
+      car.lapProgress = this.progressForCar(car);
       car.acceleration = acceleration; car.targetSpeed = target; car.maxSpeed = Math.max(car.maxSpeed, car.speed);
       if (TRANSMISSION && car.transmission) TRANSMISSION.updateRPM(car, car.transmission);
       const position = this.sampleForCar(car, car.distance);
@@ -549,8 +597,8 @@
         if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         return;
       }
-      while (car.lap < this.laps && car.distance + 1e-9 >= (car.lap + 1) * car.trackLength) {
-        const remaining = (car.lap + 1) * car.trackLength - oldDistance;
+      while (car.lap < this.laps && car.distance + 1e-9 >= this.lapEndDistanceForCar(car, car.lap + 1)) {
+        const remaining = this.lapEndDistanceForCar(car, car.lap + 1) - oldDistance;
         // Stable constant-acceleration root, including deceleration and launch.
         const endSpeedAtLine = Math.sqrt(Math.max(0, oldSpeed * oldSpeed + 2 * acceleration * remaining));
         const crossingDt = clamp(2 * remaining / Math.max(1e-12, oldSpeed + endSpeedAtLine), 0, dt);
@@ -585,7 +633,7 @@
 
     standings() {
       return this.cars.slice().sort((a, b) => a.finished && b.finished ? a.finishTime - b.finishTime || a.id - b.id
-        : a.finished ? -1 : b.finished ? 1 : a.dnf !== b.dnf ? a.dnf ? 1 : -1 : b.distance / b.trackLength - a.distance / a.trackLength || a.id - b.id);
+        : a.finished ? -1 : b.finished ? 1 : a.dnf !== b.dnf ? a.dnf ? 1 : -1 : this.progressForCar(b) - this.progressForCar(a) || a.id - b.id);
     }
   }
   TrackRace.VEHICLES = VEHICLES;
