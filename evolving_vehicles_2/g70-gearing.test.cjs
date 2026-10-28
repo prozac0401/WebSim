@@ -10,7 +10,7 @@ const Race = require('./race-engine.js'), circuits = require('./circuits.js');
 const RATIOS = [3.665, 2.396, 1.610, 1.190, 1, .826, .643, .556], FINAL_DRIVE = 3.538;
 const NOMINAL_RADIUS = 19 * 25.4 / 2000 + 255 * .35 / 1000;
 // Loaded radius, idle and WOT shift point are documented simulation assumptions.
-const RADIUS = NOMINAL_RADIUS * .985, IDLE_RPM = 750, SHIFT_RPM = 6500, DT = Race.FIXED_DT;
+const RADIUS = NOMINAL_RADIUS * .985, IDLE_RPM = 600, SHIFT_RPM = 6500, DT = Race.FIXED_DT;
 const VARIANTS = ['g70-3.3t-rwd', 'g70-3.3t-awd'];
 const straight = { id: 'g70-gearing-validation', lengthM: 4800,
   coordinates: [[1000, 0], [2000, 0], [2000, 400], [0, 400], [0, 0], [1000, 0]]

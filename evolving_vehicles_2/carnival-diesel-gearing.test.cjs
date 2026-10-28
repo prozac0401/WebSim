@@ -9,7 +9,7 @@ const Race = require('./race-engine.js'), circuits = require('./circuits.js');
 const RATIOS = [4.808, 2.901, 1.864, 1.424, 1.219, 1, .799, .648], FINAL_DRIVE = 3.510;
 const NOMINAL_RADIUS = (235 * .60 + 18 * 12.7) / 1000;
 const RADIUS = NOMINAL_RADIUS * .985; // Estimated loaded-radius correction.
-const IDLE = 800, SHIFT = 4200, DT = Race.FIXED_DT;
+const IDLE = 700, SHIFT = 4200, DT = Race.FIXED_DT;
 const stock = Evolution.createEntrant({ vehicleId: 'carnival', variantId: 'carnival-2.2d', budget: 0, uid: 'carnival-diesel-stock' });
 const defaults = Evolution.createPopulation({ vehicleId: 'carnival', count: 8, seed: 31415, budget: 30 })
   .filter(e => e.variantId === 'carnival-2.2d');
@@ -48,9 +48,10 @@ test('Carnival diesel keeps its Korean 2151 cc identity while distinguishing ove
   assert.ok(!p.sourceIds.includes('kia-carnival-us-2025-ratios'), 'diesel reference is sourced separately from the petrol table');
   assert.ok(p.referenceFields.includes('gearRatios') && p.referenceFields.includes('finalDriveRatio'));
   assert.ok(!p.verifiedFields.includes('gearRatios') && !p.verifiedFields.includes('finalDriveRatio'));
-  assert.deepEqual([p.idleRPM, p.shiftRPM, p.maxRPM, p.ratedPowerRPM], [800, 4200, 4800, 3800]);
+  assert.deepEqual([p.idleRPM, p.shiftRPM, p.maxRPM, p.ratedPowerRPM], [700, 4200, 4800, 3800]);
   for (const field of ['idleRPM', 'shiftRPM', 'maxRPM', 'shiftModel']) assert.ok(p.estimatedFields.includes(field));
-  assert.equal(p.idleModel.status, 'estimated'); assert.equal(p.drivenAxle, 'front');
+  assert.equal(p.idleModel.status, 'observed'); assert.equal(p.idleModel.simulationCalibration, true);
+  assert.equal(p.drivenAxle, 'front');
   close(gearing.nominalRadiusM, NOMINAL_RADIUS); close(gearing.effectiveRadiusM, RADIUS);
 });
 

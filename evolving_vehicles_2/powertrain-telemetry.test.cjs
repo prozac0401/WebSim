@@ -54,7 +54,11 @@ test('actual entrant powertrains distinguish petrol/EV Ray and petrol/hybrid Car
       tick(car, state, 1, { speed: 50, acceleration: 2 }, { drivePowerW: 200000, curvature: 0 });
       assert.ok(state.rpmNormalized > .94); assert.equal(state.shiftCue, false, 'IVT has no stepped upshift cue');
     }
-    if (state.battery) assert.deepEqual(Object.keys(state.battery).sort(), ['cornerPhase', 'flow', 'mode'], 'corner phase is not invented SOC');
+    if (state.battery) {
+      assert.deepEqual(Object.keys(state.battery).sort(), ['cornerPhase', 'flow', 'flowSource', 'mode', 'reserveNormalized']);
+      assert.equal('soc' in state.battery, false, 'normalized display reserve is not measured SOC');
+      assert.ok(state.battery.reserveNormalized >= 0 && state.battery.reserveNormalized <= 1);
+    }
   }
   const convertedRay = carFor('ray', 'ray-1.0-14');
   convertedRay.spec = { ...convertedRay.spec, electric: true, powertrainType: 'electric' };
@@ -282,7 +286,7 @@ test('rolling telemetry starts in the speed-appropriate gear without replaying l
   const hybrid = carFor('carnival', 'carnival-1.6heV'); hybrid.speed = 30;
   const hybridState = Telemetry.create(hybrid);
   assert.ok(hybridState.gear > 1);
-  assert.deepEqual(hybridState.battery, { flow: 0, mode: 'idle', cornerPhase: 'straight' });
+  assert.deepEqual(hybridState.battery, { flow: 0, mode: 'idle', cornerPhase: 'straight', reserveNormalized: Telemetry.MODEL.reserveInitial, flowSource: 'none' });
   const electric = carFor('ioniq5', 'ioniq5-long-awd'); electric.speed = 30;
   const electricState = Telemetry.create(electric);
   assert.equal(electricState.gear, null); assert.equal(electricState.rpmNormalized, 0);
@@ -435,14 +439,14 @@ test('Santa Fe HEV uses six hybrid automatic gears and one final drive without i
   }
 });
 
-test('an actual Spa racing-line lap charges on every braking onset and transitions from apex ramp to exit assist', t => {
+test('an actual Spa lap immediately recuperates substantial braking and suppresses micro-correction charge flicker', t => {
   const events = [], samples = [], ObservedRace = loadEngine({
     create: Telemetry.create, stop: Telemetry.stop,
     update(car, state, delta, input) {
       const previous = state.battery.mode + '/' + state.battery.cornerPhase;
       const updated = Telemetry.update(car, state, delta, input);
       const next = state.battery.mode + '/' + state.battery.cornerPhase;
-      const sample = { distance: car.distance, speed: car.speed, acceleration: car.acceleration, ...input, ...state.battery };
+      const sample = { distance: car.distance, speed: car.speed, massKg: car.massKg, acceleration: car.acceleration, ...input, ...state.battery };
       samples.push(sample); if (next !== previous) events.push(sample);
       return updated;
     }
@@ -450,17 +454,35 @@ test('an actual Spa racing-line lap charges on every braking onset and transitio
   const race = new ObservedRace({ circuit: circuits.find(c => c.id === 'spa'), laps: 1, entrants: [entrant('carnival', 'carnival-1.6heV')] });
   while (!race.finished && race.time < 600) race.step(30);
   assert.equal(race.finished, true); assert.equal(race.cars[0].dnf, false);
-  const braking = samples.filter(s => s.speed > .5 && s.brakePowerW > 100);
-  assert.ok(braking.length > 100); assert.ok(braking.every(s => s.mode === 'charging' && s.flow < 0), 'not one actual braking tick may wait for corner entry');
+  const braking = samples.filter(s => s.speed > .5 && s.brakePowerW / (s.massKg * s.speed) >= Telemetry.MODEL.regenerationImmediateDeceleration);
+  assert.ok(braking.length > 100); assert.ok(braking.every(s => s.mode === 'charging' && s.flow < 0), 'substantial braking must not wait for corner entry');
   assert.ok(braking.some(s => s.cornerPhase === 'straight' || s.cornerPhase === 'exit'), 'Spa includes real braking before corner classification');
   const apex = samples.filter(s => s.mode === 'using' && s.cornerPhase === 'apex-exit');
   assert.ok(apex.length > 50, 'assist must begin while the real racing line is still opening out of a bend');
   assert.ok(apex.some(s => s.flow > .05 && s.flow < .65), 'apex phase must contain a gradual flow ramp');
   const exits = samples.filter(s => s.mode === 'using' && s.cornerPhase === 'exit');
   assert.ok(exits.some(s => s.flow > .95), 'confirmed exits reach full assistance request');
-  assert.ok(samples.filter(s => s.mode === 'using').every(s => s.drivePowerW > 100 && s.brakePowerW <= 100 && s.acceleration > .18));
+  assert.ok(samples.filter(s => s.mode === 'using').every(s => s.drivePowerW > 100 && s.brakePowerW <= 100 && s.acceleration > Telemetry.MODEL.assistExitAcceleration));
+  assert.ok(samples.some(s => s.speed > .5 && s.brakePowerW > 100 && s.mode === 'idle'), 'tiny physical brake corrections are neutral rather than charge events');
+  assert.ok(samples.every(s => s.reserveNormalized >= 0 && s.reserveNormalized <= 1));
+  const episodes = [];
+  for (let i = 0; i < samples.length; i++) {
+    const sample = samples[i];
+    if (!episodes.length || episodes.at(-1).mode !== sample.mode) episodes.push({ mode: sample.mode, start: i, ticks: 0 });
+    episodes.at(-1).ticks++;
+  }
+  let shortCharges = 0, immediateShortReversals = 0;
+  for (let i = 0; i < episodes.length; i++) {
+    const episode = episodes[i];
+    if (episode.mode !== 'charging' || episode.ticks * dt > Telemetry.MODEL.shortRegenerationSeconds + 1e-9) continue;
+    shortCharges++;
+    const nextUse = episodes.slice(i + 1).find(e => e.mode === 'using');
+    if (nextUse && (nextUse.start - episode.start - episode.ticks) * dt <= .5) immediateShortReversals++;
+  }
+  assert.ok(shortCharges > 0, 'the real lap exercises brief genuine braking episodes');
+  assert.equal(immediateShortReversals, 0, 'short charge must not flip straight back to use in the real lap');
   const phaseChanges = events.filter((event, i) => !i || event.cornerPhase !== events[i - 1].cornerPhase);
-  t.diagnostic(`Spa: ${braking.length} charging ticks, ${apex.length} apex-assist ticks, ${exits.length} exit-assist ticks; ${phaseChanges.length} corner-phase changes / ${events.length} actual-work mode changes.`);
+  t.diagnostic(`Spa: ${braking.length} substantial-braking ticks, ${apex.length} apex-assist ticks, ${exits.length} exit-assist ticks; ${phaseChanges.length} corner-phase changes / ${events.length} actual-work mode changes; ${shortCharges} short charges, ${immediateShortReversals} immediate short-charge reversals.`);
   assert.ok(phaseChanges.length < 80, 'apex/exit hysteresis prevents frame-frequency phase toggling');
 });
 
@@ -475,6 +497,125 @@ test('hybrid regeneration starts on the very first braking tick before any corne
   assert.equal(state.battery.mode, 'charging', 'braking downhill still recuperates even if gravity accelerates the car');
   Telemetry.update(car, state, dt, { brakePowerW: 0, drivePowerW: 0, curvature: 0 });
   assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' });
+});
+
+test('a long straight, gentle bend and second straight keep assistance without charge reversals', () => {
+  const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
+  for (const [seconds, curvature] of [[12, 0], [4, .0018], [12, 0]]) {
+    for (let i = 0; i < Math.round(seconds / dt); i++) {
+      Object.assign(car, { speed: 30, acceleration: .8 });
+      Telemetry.update(car, state, dt, { drivePowerW: 90000, curvature });
+      if (i * dt > .3) assert.equal(state.battery.mode, 'using');
+      assert.notEqual(state.battery.mode, 'charging');
+    }
+  }
+  assert.ok(state.battery.reserveNormalized < Telemetry.MODEL.reserveInitial);
+  assert.ok(state.battery.reserveNormalized > Telemetry.MODEL.reserveAssistStop);
+  assert.equal(state.battery.cornerPhase, 'straight');
+});
+
+test('tiny brake corrections settle neutral instead of repeatedly charging and immediately using', () => {
+  const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
+  car.massKg = 2000;
+  tick(car, state, 2, { speed: 30, acceleration: 1 }, { drivePowerW: 90000 });
+  const reserve = state.battery.reserveNormalized;
+  // .1 m/s² applied wheel braking, briefly every .3 seconds: no false
+  // charge credits, and no alternating assist flashes in the short gaps.
+  for (let cycle = 0; cycle < 8; cycle++) {
+    tick(car, state, .1, { acceleration: -.1 }, { brakePowerW: 6000, curvature: .002 });
+    assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' });
+    tick(car, state, .2, { acceleration: .6 }, { drivePowerW: 90000, curvature: .002 });
+    assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' });
+  }
+  assert.equal(state.battery.reserveNormalized, reserve);
+  tick(car, state, .9, { acceleration: .6 }, { drivePowerW: 90000, curvature: 0 });
+  assert.equal(state.battery.mode, 'using');
+  // A moderate but sustained brake request is still meaningful recuperation.
+  tick(car, state, .2, { acceleration: -.2 }, { brakePowerW: 12000 });
+  assert.equal(state.battery.mode, 'idle');
+  tick(car, state, .2, {}, { brakePowerW: 12000 });
+  assert.equal(state.battery.mode, 'charging');
+  tick(car, state, 1.2, {}, { brakePowerW: 12000 });
+  const afterRegen = state.battery.reserveNormalized;
+  tick(car, state, .3, { acceleration: 1 }, { drivePowerW: 90000 });
+  assert.equal(state.battery.mode, 'using', 'sustained braking does not impose the short-correction neutral hold');
+  assert.ok(state.battery.reserveNormalized < afterRegen);
+});
+
+test('every short regeneration episode has one neutral second before assistance can restart', () => {
+  for (const duration of [.05, .3, .9, 1]) {
+    const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
+    tick(car, state, 2, { speed: 30, acceleration: 1 }, { drivePowerW: 90000 });
+    tick(car, state, duration, { acceleration: -3 }, { brakePowerW: 150000 });
+    assert.equal(state.battery.mode, 'charging', duration + 's strong braking remains real regeneration');
+    const reserve = state.battery.reserveNormalized;
+    for (let i = 0; i < 120; i++) {
+      car.acceleration = 1;
+      Telemetry.update(car, state, dt, { drivePowerW: 90000 });
+      assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' }, duration + 's charge ends in neutral');
+      assert.equal(state.battery.reserveNormalized, reserve, 'neutral settling does not invent charge or consume reserve');
+    }
+    tick(car, state, .4, {}, { drivePowerW: 90000 });
+    assert.equal(state.battery.mode, 'using');
+  }
+});
+
+test('hybrid holds and reserve agree between whole intervals and 120 Hz ticks', () => {
+  const cars = [carFor('carnival', 'carnival-1.6heV'), carFor('carnival', 'carnival-1.6heV')];
+  const states = cars.map(Telemetry.create);
+  for (const [seconds, acceleration, input] of [
+    [2, 1, { drivePowerW: 90000 }], [.5, -3, { brakePowerW: 120000 }],
+    [1, 1, { drivePowerW: 90000 }], [2, 1, { drivePowerW: 90000 }],
+    [2, -2, { brakePowerW: 90000 }], [1, 1, { drivePowerW: 90000 }],
+    [3, 0, { drivePowerW: 0 }]
+  ]) {
+    for (const car of cars) Object.assign(car, { speed: 30, acceleration });
+    Telemetry.update(cars[0], states[0], seconds, input);
+    tick(cars[1], states[1], seconds, {}, input);
+    assert.deepEqual(states[0].battery, states[1].battery);
+  }
+});
+
+test('normalized reserve needs meaningful recovery, has no idle decay, and resets only with new telemetry', () => {
+  const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
+  tick(car, state, 180, { speed: 30, acceleration: 2 }, { drivePowerW: 100000 });
+  assert.equal(state.battery.mode, 'idle');
+  assert.ok(state.battery.reserveNormalized <= Telemetry.MODEL.reserveAssistStop);
+  tick(car, state, 1, { acceleration: -2 }, { brakePowerW: 90000 });
+  const recovered = state.battery.reserveNormalized;
+  assert.ok(recovered < Telemetry.MODEL.reserveAssistResume);
+  tick(car, state, 5, { acceleration: 2 }, { drivePowerW: 100000 });
+  assert.equal(state.battery.mode, 'idle', 'a short charge cannot restart depleted assist');
+  assert.equal(state.battery.reserveNormalized, recovered);
+  tick(car, state, 6, { acceleration: -2 }, { brakePowerW: 90000 });
+  assert.ok(state.battery.reserveNormalized >= Telemetry.MODEL.reserveAssistResume);
+  tick(car, state, .5, { acceleration: 2 }, { drivePowerW: 100000 });
+  assert.equal(state.battery.mode, 'using');
+  const reserve = state.battery.reserveNormalized;
+  tick(car, state, 20, { speed: 0, acceleration: 0 }, { drivePowerW: 0, brakePowerW: 0 });
+  assert.equal(state.battery.reserveNormalized, reserve, 'stopped engine-on idle is not hidden energy generation');
+  for (let i = 0; i < 100; i++) Telemetry.update(car, state, 0, { brakePowerW: 100000 });
+  assert.equal(state.battery.reserveNormalized, reserve);
+  Telemetry.stop(state);
+  assert.equal(state.battery.reserveNormalized, reserve, 'terminal stop preserves the display budget without elapsed work');
+  assert.equal(Telemetry.create(car).battery.reserveNormalized, Telemetry.MODEL.reserveInitial);
+});
+
+test('low-load cruising stays neutral and hysteresis does not invent wheel work', () => {
+  const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
+  const reserve = state.battery.reserveNormalized;
+  for (let i = 0; i < 20 / dt; i++) {
+    car.speed = 30; car.acceleration = .12 + .05 * Math.sin(i * dt * 20);
+    Telemetry.update(car, state, dt, { drivePowerW: 15000, curvature: .001 });
+    assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' });
+  }
+  assert.equal(state.battery.reserveNormalized, reserve);
+  tick(car, state, 1, { acceleration: 1 }, { drivePowerW: 90000 });
+  assert.equal(state.battery.mode, 'using');
+  tick(car, state, 1, { acceleration: .12 }, { drivePowerW: 50000 });
+  assert.equal(state.battery.mode, 'using', 'already-active propulsion uses the lower hysteresis threshold');
+  Telemetry.update(car, state, dt, { drivePowerW: 0 });
+  assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' }, 'no minimum duration fabricates assistance after wheel work stops');
 });
 
 test('hybrid assist ramps after a confirmed apex, then reaches full request on exit without losing braking priority', () => {
@@ -497,13 +638,13 @@ test('hybrid assist ramps after a confirmed apex, then reaches full request on e
   Telemetry.update(car, state, dt, { brakePowerW: 60000, drivePowerW: 85000, curvature: 0 });
   assert.equal(state.battery.mode, 'charging'); assert.ok(state.battery.flow < 0, 'wheel braking immediately overrides assistance');
   tick(car, state, 5, { acceleration: 2 }, { drivePowerW: 85000, curvature: 0 });
-  assert.equal(state.battery.cornerPhase, 'straight'); assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' });
+  assert.equal(state.battery.cornerPhase, 'straight'); assert.equal(state.battery.mode, 'using');
 });
 
-test('hybrid gauge charges on applied braking and assists only the first seconds after leaving a corner', () => {
+test('hybrid assistance continues on a long straight while coast and uphill slowing remain neutral', () => {
   const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
   tick(car, state, 5, { speed: 20, acceleration: 2 }, { drivePowerW: 80000, curvature: 0 });
-  assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' }, 'launch/long straight acceleration is not corner-exit assist');
+  assert.equal(state.battery.mode, 'using', 'long straight acceleration remains eligible for assistance');
   tick(car, state, 1.5, { speed: 20, acceleration: .4 }, { drivePowerW: 35000, curvature: .012 });
   assert.equal(state.battery.mode, 'idle', 'mid-corner propulsion does not trigger exit assist');
   tick(car, state, 1, { speed: 25, acceleration: 2 }, { drivePowerW: 80000, curvature: 0 });
@@ -515,7 +656,7 @@ test('hybrid gauge charges on applied braking and assists only the first seconds
   tick(car, state, .3, { acceleration: 1.5 }, { drivePowerW: 0, brakePowerW: 0, curvature: 0 });
   assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' }, 'downhill coasting acceleration is not electric assist');
   tick(car, state, 5, { acceleration: 2 }, { drivePowerW: 80000, curvature: 0 });
-  assert.deepEqual(batteryReading(state), { flow: 0, mode: 'idle' }, 'the finite exit window expires on a long straight');
+  assert.equal(state.battery.mode, 'using', 'assistance no longer expires merely because the exit window ended');
 });
 
 test('brief curvature noise and short gaps inside a corner do not start the hybrid exit window', () => {
@@ -523,7 +664,7 @@ test('brief curvature noise and short gaps inside a corner do not start the hybr
   for (let n = 0; n < 5; n++) {
     tick(car, state, 5 * dt, { speed: 20, acceleration: 1 }, { drivePowerW: 60000, curvature: .03 });
     tick(car, state, .8, {}, { drivePowerW: 60000, curvature: 0 });
-    assert.equal(state.battery.mode, 'idle', 'isolated curvature spikes are not completed corners');
+    assert.equal(state.battery.cornerPhase, 'straight', 'isolated curvature spikes are not completed corners');
   }
   tick(car, state, 1.5, {}, { drivePowerW: 60000, curvature: .012 });
   for (let n = 0; n < 5; n++) {
@@ -554,9 +695,10 @@ test('finished and retired cars clear active flow, RPM lamps and the selected ge
     const car = carFor('carnival', 'carnival-1.6heV'), state = Telemetry.create(car);
     tick(car, state, 1, { speed: 35, acceleration: -2 }, { brakePowerW: 60000, curvature: .01 });
     assert.equal(state.battery.mode, 'charging');
+    const reserve = state.battery.reserveNormalized;
     car[terminal] = true;
     Telemetry.update(car, state, 0);
-    assert.deepEqual(state, { kind: 'hybrid', gear: null, gearLabel: '—', gearSource: 'display-estimate', shifting: false, neutral: false, rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: { flow: 0, mode: 'idle', cornerPhase: 'straight' } });
+    assert.deepEqual(state, { kind: 'hybrid', gear: null, gearLabel: '—', gearSource: 'display-estimate', shifting: false, neutral: false, rpmNormalized: 0, shiftLights: 0, shiftCue: false, battery: { flow: 0, mode: 'idle', cornerPhase: 'straight', reserveNormalized: reserve, flowSource: 'none' } });
   }
 });
 

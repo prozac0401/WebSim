@@ -19,6 +19,7 @@
   const TELEMETRY = root.PowertrainTelemetry || (typeof require === 'function' ? require('./powertrain-telemetry.js') : null);
   const POWERTRAIN = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
   const TRANSMISSION = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
+  const NGS = root.NGrinShift || (typeof require === 'function' ? require('./n-grin-shift.js') : null);
   const BRAKE_LIGHTS = root.BrakeLightState || (typeof require === 'function' ? require('./brake-light-state.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
@@ -332,7 +333,12 @@
         car.trackLength = line?.length || this.track.length;
         car.pathSpacing = line?.spacing || this.track.spacing;
         car.totalDistance = car.trackLength * this.laps;
-        car.speedProfile = this._makeSpeedProfile(car);
+        if (NGS) car.ngs = NGS.create(car, this.track);
+        // The controller permits the boosted terminal envelope so it does not
+        // brake merely because NGS ends. Actual propulsion is still bounded by
+        // stock power whenever the per-car boost state is inactive.
+        car.speedProfile = this._makeSpeedProfile(car, car.ngs?.supported ? NGS.MODEL.powerMultiplier : 1);
+        car.activePowerPs = car.powerPs;
         car.targetSpeed = car.speedProfile[0];
         if (TELEMETRY) car.telemetry = TELEMETRY.create(car);
         return car;
@@ -348,15 +354,18 @@
       const length = car?.trackLength || this.track.length, spacing = car?.pathSpacing || this.track.spacing;
       const points = car?.pathPoints || this.pathPoints, position = mod(distance, length) / spacing;
       const i = Math.floor(position) % points.length, t = position - Math.floor(position), a = points[i], b = points[(i + 1) % points.length];
+      const centerLength = this.track.centerlineLength, centerA = a.centerS ?? a.s ?? i * this.track.centerlineSpacing;
+      const centerB = b.centerS ?? b.s ?? ((i + 1) % points.length) * this.track.centerlineSpacing;
       return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t,
         angle: Math.atan2(b.y - a.y, b.x - a.x), curvature: a.curvature + (b.curvature - a.curvature) * t,
         elevation: this.track.hasElevation ? a.z + (b.z - a.z) * t : null,
-        grade: a.grade + (b.grade - a.grade) * t, s: mod(distance, length) };
+        grade: a.grade + (b.grade - a.grade) * t, s: mod(distance, length),
+        centerS: mod(centerA + mod(centerB - centerA, centerLength) * t, centerLength) };
     }
 
-    _equilibriumSpeed(car, grade) {
+    _equilibriumSpeed(car, grade, powerMultiplier = 1) {
       // Grade-dependent power equilibrium: gravity can assist downhill motion.
-      const power = car.powerPs * PS_WATTS * car.efficiency;
+      const power = car.powerPs * powerMultiplier * PS_WATTS * car.efficiency;
       const normal = 1 / Math.hypot(1, grade), sine = grade * normal;
       const constantResistance = car.massKg * G * (car.rollingCoefficient * normal + sine);
       let low = 0, high = 120;
@@ -424,12 +433,13 @@
       return Math.min(car.brakingHardware, car.longitudinalGrip * (normal + this._aeroLoadAcceleration(car, speed) / G));
     }
 
-    _makeSpeedProfile(car) {
+    _makeSpeedProfile(car, powerMultiplier = 1) {
       car.theoreticalTopSpeed = this._equilibriumSpeed(car, 0);
+      const permittedTerminal = powerMultiplier > 1 ? this._equilibriumSpeed(car, 0, powerMultiplier) : car.theoreticalTopSpeed;
       const points = car.pathPoints || this.pathPoints;
       const limits = points.map(p => {
         const normal = 1 / Math.hypot(1, p.grade);
-        const terminal = p.grade === 0 ? car.theoreticalTopSpeed : this._equilibriumSpeed(car, p.grade);
+        const terminal = p.grade === 0 ? permittedTerminal : this._equilibriumSpeed(car, p.grade, powerMultiplier);
         const curvature = Math.max(Math.abs(p.curvature), .000001);
         if (!car.advancedDynamics || car.downforceArea === 0) return Math.min(terminal, Math.sqrt(this._lateralCapacity(car, 0, p.grade) / curvature));
         // Solve v²*k <= lateral capacity(v), including speed-dependent
@@ -471,17 +481,24 @@
       const gravity = car.massKg * G * sine;
       const resistance = drag + rolling + gravity;
       const requestedForce = car.massKg * (target - oldSpeed) / dt + resistance;
+      if (NGS && car.ngs) NGS.update(car, car.ngs, dt, {
+        centerS: oldPosition.centerS,
+        throttle: clamp(requestedForce * Math.max(4, oldSpeed) / (car.powerPs * PS_WATTS * car.efficiency), 0, 1),
+        accelerating: requestedForce > 100 && target >= oldSpeed - .02
+      });
+      const availablePowerPs = car.powerPs * (car.ngs?.appliedPowerMultiplier || 1);
+      car.activePowerPs = availablePowerPs;
       const transmission = TRANSMISSION && car.transmission ? TRANSMISSION.advance(car, car.transmission, dt, {
         braking: requestedForce < -100,
         accelerating: target > oldSpeed + .18 * dt && requestedForce * oldSpeed > car.powerPs * PS_WATTS * .35
       }) : null;
       const wheelRadius = transmission?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
       const torqueForce = car.torqueNm * (transmission?.forceRatio ?? car.driveReduction) * car.efficiency / wheelRadius;
-      const powerForce = car.powerPs * PS_WATTS * car.efficiency * (transmission?.torqueFactor ?? 1) / Math.max(4, oldSpeed);
+      const powerForce = availablePowerPs * PS_WATTS * car.efficiency * (transmission?.torqueFactor ?? 1) / Math.max(4, oldSpeed);
       const tractionForce = this._tractionAcceleration(car, oldSpeed, grade, resistance / car.massKg) * car.massKg;
       const driveForce = transmission?.phases ? transmission.phases.reduce((sum, part) => sum + part.fraction * Math.min(
         car.torqueNm * part.forceRatio * car.efficiency / wheelRadius,
-        car.powerPs * PS_WATTS * car.efficiency * part.torqueFactor / Math.max(4, oldSpeed), tractionForce), 0)
+        availablePowerPs * PS_WATTS * car.efficiency * part.torqueFactor / Math.max(4, oldSpeed), tractionForce), 0)
         : Math.min(torqueForce, powerForce, tractionForce);
       const availableAcceleration = (driveForce - resistance) / car.massKg;
       const brakingCapacity = this._brakingCapacity(car, oldSpeed, grade);
@@ -526,6 +543,8 @@
         car.dnf = true; car.retiredAt = now + dt; car.phase = 'dnf';
         car.dnfReason = grade > .01 && availableAcceleration < .1 ? '오르막 구동력 부족' : '30초간 주행 지속 불가';
         car.serviceBrakeForceN = car.brakeDemand = 0;
+        if (NGS && car.ngs) NGS.update(car, car.ngs, 0, { dnf: true });
+        car.activePowerPs = car.powerPs;
         if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, dnf: true });
         if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         return;
@@ -541,6 +560,8 @@
         if (car.lap === this.laps) {
           car.finished = true; car.finishTime = crossingTime; car.finishSpeed = endSpeedAtLine; car.finishRemainderSeconds = dt - crossingDt; car.distance = car.totalDistance;
           car.serviceBrakeForceN = car.brakeDemand = 0;
+          if (NGS && car.ngs) NGS.update(car, car.ngs, 0, { finished: true });
+          car.activePowerPs = car.powerPs;
           if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, finished: true });
           if (TELEMETRY) TELEMETRY.stop(car.telemetry);
         }

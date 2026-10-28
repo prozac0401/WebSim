@@ -244,7 +244,9 @@ function updatePowertrainHUD(car){
  const variant='#'+String(car.index+1).padStart(2,'0')+' '+engine+' '+({fwd:'전륜',rwd:'후륜',awd:'사륜'}[spec.factoryDrive]||'');
  const engineRPM=!stopped&&t.gearSource==='physics'&&Number.isFinite(car.transmission?.rpm)?Math.round(car.transmission.rpm/10)*10:null;
  const rpmText=engineRPM===null?'— rpm':'≈ '+engineRPM.toLocaleString('en-US')+' rpm';
- const key=JSON.stringify([name,car.uid,car.entrant.variantId,variant,engineRPM,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue]);
+ const ngs=car.ngs,ngsVisible=!stopped&&!!ngs?.supported,ngsActive=ngsVisible&&ngs.active;
+ const ngsText=ngsActive?'+'+Math.round(ngs.boostPs)+' PS · '+ngs.remainingSeconds.toFixed(1)+' s':ngsVisible&&ngs.cooldownSeconds>0?'재사용 '+Math.ceil(ngs.cooldownSeconds)+' s':'DRS 구간 대기';
+ const key=JSON.stringify([name,car.uid,car.entrant.variantId,variant,engineRPM,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue,ngsVisible,ngsActive,ngsText]);
  if(key===powertrainHUDKey)return;powertrainHUDKey=key;hud.hidden=false;
  $('powertrain-car').textContent=name;hud.dataset.kind=t.kind;
  $('powertrain-variant').textContent=variant;$('powertrain-variant').title=car.entrant.variantLabel;
@@ -255,6 +257,7 @@ function updatePowertrainHUD(car){
  [...$('shift-lights').children].forEach((lamp,i)=>lamp.classList.toggle('lit',i<lamps));
  $('shift-lights').setAttribute('aria-valuenow',rpm);$('shift-lights').setAttribute('aria-valuetext',stopped?'주행 종료':shiftDescription|| (cue?'변속 시점':lamps+'개 신호등 점등'));
  $('shift-cue').textContent=cue?'변속':t.gear===null?'회전 신호':'변속 신호';$('shift-cue').classList.toggle('shift-ready',cue);
+ $('ngs-status').hidden=!ngsVisible;$('ngs-status').dataset.active=String(!!ngsActive);$('ngs-value').textContent=ngsText;
  $('hybrid-flow').hidden=t.kind!=='hybrid';
  $('hybrid-flow').dataset.mode=mode;$('battery-mode').textContent=label;
  $('charge-fill').style.width=chargeWidth;$('use-fill').style.width=useWidth;
@@ -329,6 +332,7 @@ window.render_game_to_text=()=>JSON.stringify({
  mode:race.finished?'finished':fast?'evaluating':running?'racing':race.time>0?'paused':'ready',
  watchTelemetry:watching().telemetry,
  watchTransmission:watching().transmission||null,
+ watchNGS:watching().ngs||null,
  watchIdentity:{uid:watching().uid,variantId:watching().entrant.variantId,variantLabel:watching().entrant.variantLabel,speedKmh:watching().speed*3.6},
  patrolLights:renderer.getPatrolInfo?.()||[],
  brakeLights:renderer.getBrakeInfo?.()||[],

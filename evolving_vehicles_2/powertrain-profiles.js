@@ -11,7 +11,7 @@
   const SOURCES=freeze({
     'toyota-gr86-jp-2022':{title:'Toyota Japan GR86 May 2022 RZ specifications',url:'https://toyota.jp/pages/contents/carlineup/archive/gr86/2022-05/pdf/gr86_main_s_202205.pdf',observation:'PDF 5쪽 RZ 215/40R18·Torsen LSD, 10쪽 FA24 235 PS/7000 rpm·250 Nm/3700 rpm·6MT 1270 kg/6AT 1290 kg, 11쪽 각 변속기의 기어비와 종감속비. 일본 RZ 조합으로 통일하며 국내 231 PS 모델과 구분한다.'},
     'toyota-gr86-eu-2022-engine':{title:'Toyota Europe: All-New Toyota GR86, June 2022',url:'https://newsroom.toyota.eu/all-new-toyota-gr86/',observation:'같은 2.4L FA24 세대 엔진의 최대 회전수 7500 rpm을 명시한다. 일본 사양의 변속 맵이나 7000 rpm WOT 변속 시점을 검증한 자료는 아니다.'},
-    'hyundai-avante-n-2021':{title:'현대 2021 아반떼 N 국내 가격·제원',url:'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf',observation:'2021년 7월 14일 출시 CN7 N. 2.0 터보 280 PS, FWD eLSD, 6MT 1450 kg 또는 습식 8DCT 1485 kg. NGS 일시 출력 증대는 모형에 적용하지 않는다.'},
+    'hyundai-avante-n-2021':{title:'현대 2021 아반떼 N 국내 가격·제원',url:'https://www.hyundai.com/contents/repn-car/catalog/avante-n-price.pdf',observation:'2021년 7월 14일 출시 CN7 N. 2.0 터보 280 PS, FWD eLSD, 6MT 1450 kg 또는 습식 8DCT 1485 kg. 기본 출력은280 PS이며 8DCT의 조건부 NGS 일시 출력 증대는 별도 모형으로 적용한다.'},
     'hyundai-avante-n-au-2021-ratios':{title:'Hyundai Australia i30 Sedan N November 2021 specifications',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/i30-sedan-n/spec-sheet/i30-Sedan-N_Spec-Table_Nov_2021.pdf',observation:'PDF 1쪽: 6MT 및 8DCT의 단별 기어비와 종감속 배정, 최고출력 5500–6000 rpm. ratedPowerRPM은 이 범위 상단 6000을 사용한다. 국내 동일성은 미확인인 해외 참고값이며, 6500 rpm 변속 및 7000 rpm 표시 상한은 추정이다.'},
     'bmw-m2-2016-de':{title:'BMW M2 10/2015 ACEA technical specifications',url:'https://www.press.bmwgroup.com/bulgaria/article/attachment/T0238670BG/332713',observation:'2016 전기형 F87 일반 M2. 1쪽 DIN 질량 MT 1495/DCT 1520 kg, 370 PS·465 Nm·최고출력 6500rpm. 2쪽 6MT/7DCT 단별 기어비와 공통 종감속 3.462. 독일·ACEA 기준을 그대로 수록하며 Competition 및 미국 bhp 사양을 혼합하지 않는다.'},
     'bmw-m2-2016-uk-engine':{title:'BMW UK: The new BMW M2, April 2016',url:'https://www.press.bmwgroup.com/united-kingdom/article/detail/T0238509EN_GB/the-new-bmw-m2',observation:'같은 전기형 370 hp 엔진의 최대 7000rpm을 명시. 일반 465 Nm와 일시 오버부스트 500 Nm를 구분하며 고정 토크에는 일반값만 적용. 이 본문은 WOT 변속 시점을 제공하지 않는다.'},
@@ -58,20 +58,35 @@
     'kia-carnival-us-2025-ratios':{title:'Kia America 2025 Carnival specifications',url:'https://www.kiamedia.com/us/en/models/carnival/2025/specifications',observation:'3.5 가솔린 FWD 8AT의 단별 기어비와 종감속 3.510. 국내 일치는 미확인.'},
     'kia-carnival-hev-us-2025-ratios':{title:'Kia America 2025 Carnival HEV specifications',url:'https://www.kiamedia.com/us/en/models/carnival-hev/2025/specifications',observation:'1.6T HEV FWD 6AT의 단별 기어비와 종감속 3.648. 국내 일치는 미확인.'},
     'hyundai-santafe-au-mx5-ratios':{title:'Hyundai Australia Santa Fe MX5 specifications',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe-ice/docs/Santa-Fe-MX5-Specification-Sheet.pdf',observation:'PDF 1–2쪽: G4KP 2.5T FWD/AWD 8DCT 단별 기어비, 두 종감속비 4.846/3.316. 국내 일치 및 이 표에 없는 단별 종감속 배정은 미확인.'},
-    'hyundai-santafe-au-my21-final-drives':{title:'Hyundai Australia MY21 Santa Fe 8DCT final-drive assignments',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf',observation:'2.2 디젤 8DCT 표: 동일 단별 비율에서 1/2/5/6단은 4.846, 3/4/7/8단은 3.316. MX5 2.5T의 배정에 참고 적용하며 동일 변속기 제어/국내 사양 검증을 뜻하지 않는다.'}
+    'hyundai-santafe-au-my21-final-drives':{title:'Hyundai Australia MY21 Santa Fe 8DCT final-drive assignments',url:'https://www.hyundai.com/content/dam/hyundai/au/en/models/santa-fe/docs/Hyundai_Santa-Fe_MY21_Specifications_Sheet_2021.pdf',observation:'2.2 디젤 8DCT 표: 동일 단별 비율에서 1/2/5/6단은 4.846, 3/4/7/8단은 3.316. MX5 2.5T의 배정에 참고 적용하며 동일 변속기 제어/국내 사양 검증을 뜻하지 않는다.'},
+    // Idle evidence is separate from ratio verification. Rounded photographs,
+    // other markets/years and user-selected values are not factory idle maps.
+    'idle-carnival-35-photo':{title:'2026 국내 카니발 3.5 정차 계기판 사진',url:'https://avadge.com/media/catalog/car_photos/kia/carnival/2026-3.5-petrol/Kia_Carnival_X-Line_14.webp',observation:'P·0 km/h·0.6×1000 rpm을 직접 판독. 예열 완료와 에어컨 상태는 미확인인 순간 관측값이다.'},
+    'idle-carnival-diesel-photo':{title:'2024 뉴질랜드 카니발 디젤 정차 계기판 사진',url:'https://autoplay.b-cdn.net/image.ashx?id=92854065&optimizer=image',observation:'P·0 km/h·0.7×1000 rpm을 직접 판독. 해외 차량의 관측값이며 국내 해당 연식의 ECU 목표값·예열·공조 조건은 미확인.'},
+    'idle-carnival-hev-photo':{title:'2025 국내 카니발 HEV 정차 계기판 사진',url:'https://avadge.com/media/catalog/car_photos/kia/carnival-4th-generation-hev-9-seater-x-line/2025-1.6-hybrid/imgi_37_41673438_008.webp',observation:'P·READY·0 km/h·1.3×1000 rpm. 엔진 가동 중 관측이며 충전·공조 부하 미확인. 모든 HEV의 1300 rpm 적용은 별도 사용자 설정이다.'},
+    'idle-k5-lpg-owner-photo':{title:'2023 K5 DL3 2.0 LPI 소유자 정차 사진',url:'https://m.kbchachacha.com/public/web/community/commtalk/detail.kbc?postNo=93566',observation:'2023.01 출고 차량, 주행 후 시동 끄기 전 P·0 km/h·0.6×1000 rpm. K5멤버스 소유자 글의 재게시이며 사진 공조 상태와 정밀 ECU 회전수는 미확인.'},
+    'idle-morning-promotional-photo':{title:'기아 모닝 공식 계기판 홍보 이미지',url:'https://www.kia.com/content/dam/kwp/kr/ko/vehicles/morning/my/content/morning_interior_fun_driving_pc.jpg',observation:'P·0 km/h·0.8×1000 rpm 예시. 공식 홍보 이미지로 실제 측정·완전 예열·AC OFF 정비 기준을 증명하지 않는다.'},
+    'idle-santafe-25-photo':{title:'싼타페 MX5 2.5T FWD 시승 계기판 사진',url:'https://img.encarmagazine.com/2023/09/31.png',observation:'정차 D1·SPORT·AutoHold·0.8×1000 rpm 관측. P/N 무부하 기준이 아니며 예열 완료·공조 상태도 미확인. AWD 적용은 같은 엔진의 시뮬레이션 대표값이다.'},
+    'idle-g70-33-owner':{title:'2019 G70 3.3 소유자의 공회전 관측',url:'https://genesisowners.com/genesis-forum/threads/car-vibration-at-idle.50387/',observation:'2024-01-08 답글의 2019 G70 소유자가 약600 rpm이라고 보고. 국내 RWD/AWD 각각의 예열·P/N·AC OFF 기준은 미확인. 사용자가 이 대표값을 채택했다.'},
+    'idle-gr86-warm-test':{title:'TRUST GReddy ZN8/ZD8 FA24 배기 소음 측정',url:'https://www.trust-power.com/products/exhausts/zn8-zd8_gts-ver-3',observation:'부품 제조사의 예열 후 공회전 소음 시험650 rpm. 해당 행은 MT/AT를 나누지 않으며 ECU 목표값을 보증하지 않는다.'},
+    'idle-gr86-2024-service-reference':{title:'2024 GR86 정비 데이터 목록 보관본',url:'https://lemon-manuals.la/Toyota/2024/GR86%20Trueno%20Edition%2C%20Automatic%20Trans/Repair%20and%20Diagnosis%20%28Single%20Page%29/Engine%20Performance/Testing%20%26%20Diagnosis/Engine%20Control%20System%20-%20Diagnostics%20-%20Introduction%20%283%20Of%203%29/SFI%20System/Data%20List%20%2F%20Active%20Test%20%5B10%2F2024%20-%20%5D/Data%20List%20%2F%20Active%20Test%20%5B10%2F2024%20-%20%5D/',observation:'2024.10 이후 참고표 MT650/AT700 rpm. 제조사 호스팅 원본이 아닌 정비문서 미러이며 2022 일본 RZ 일치는 미확인.'},
+    'idle-supra-2020-photo':{title:'AutoDeal 2020 초기형 GR Supra 3.0 8AT 시승',url:'https://www.autodeal.com.ph/articles/car-reviews/2020-toyota-gr-supra-review',observation:'필리핀 초기335 hp B58·ZF8AT 원래 시승사진 P·0 km/h·SPORT 약600–700 rpm. 대표650을 사용하며 일본2019 완전예열·공조OFF 정비값으로 확정하지 않는다.'},
+    'idle-m2-2016-dct-photo':{title:'Motor1 2016 BMW M2 N55 7DCT 시승 사진',url:'https://www.motor1.com/reviews/62063/first-drive-2016-bmw-m2/',observation:'초기형 F87 N55·7DCT 시승사진 P·0 mph·약700–800 rpm 직접 판독. 대표750을 사용하며 예열·공조 상태는 미확인. 6MT 적용은 별도의 시뮬레이션 추정이다.'},
+    'idle-g80-35-us-2023-brochure':{title:'Genesis USA 2023 G80 공식 브로슈어',url:'https://www.genesis.com/content/dam/genesis/us/pdf/2023/2023_Genesis_G80_Brochure-vfin.pdf',observation:'PDF7쪽 미국3.5T AWD Sport Prestige에서 Sport+ 공회전750→1000 rpm 명시. 국내 RWD/AWD 일반사양은 참고 적용이며 2.5T·정비 시험 조건으로 확대하지 않는다. 이 모형에는 별도 Sport+ 선택이 없다.'},
+    'idle-cn7-n-owner-mode':{title:'Elantra N 소유자의 Normal/N 모드 공회전 비교',url:'https://www.reddit.com/r/ElantraN/comments/14tvydx/whats_your_rpm_during_idle_in_normal_vs_n_mode/',observation:'예열 후 Normal 약600–700/N 약900–1000 rpm 소유자 보고와 공조 부하 정정. 국내2021 MT/DCT 공식 기준은 미확인. 레이싱 모형이 N 모드 관측범위900–1000의 대표1000을 선택했다.'},
+    'idle-torres-2023-reference':{title:'2023 해외 토레스 G15DTF 공식 취급설명서',url:'https://www.kgm-auto.lt/wp-content/uploads/sites/3/2023/10/TORRES_OM_eng_2023_web_smaller.pdf',observation:'1-11쪽 구형6AT 세대 G15DTF 공회전700±50 rpm. 국내2026 뉴 토레스8AT 일치는 미확인으로, 사용자 채택 참고 추정700만 적용한다.'}
   });
   const ESTIMATED=freeze(['idleRPM','shiftRPM','maxRPM','total1stReduction','ratioStep']);
-  // Warm, running-engine reference floors, not cold-start/accessory-load maps.
-  // The user's R2.2 830 rpm observation applies to a six-speed application.
-  // Registered G70/Staria R2.2 variants are eight-speed: retain the estimated
-  // diesel floor until their own idle specifications are verified. The HEV
-  // value applies while its engine is on, not to an EV-only stop.
-  const idleModel=(rpm,status,condition)=>({rpm,status,condition,reviewedAt:'2026-10-21'});
+  // Running-engine simulation floors, not cold-start/accessory-load maps or
+  // certified warm P/N targets. Evidence and its limitations stay per variant.
+  // The R2.2 six-speed 830 rpm report is not used for any eight-speed model.
+  const idleModel=(rpm,status,condition,extra={})=>({rpm,status,condition,reviewedAt:'2026-10-28',
+    simulationCalibration:status!=='not-applicable',sourceIds:[],...extra});
   const IDLE_MODELS=freeze({
     gasoline:idleModel(750,'estimated','warm-engine-on'),
-    lpg:idleModel(750,'estimated','warm-engine-on'),
+    lpg:idleModel(600,'user-configured','engine-on-reference',{note:'사용자 지정 LPG 대표값. 차종별 제조사 정비 기준을 뜻하지 않는다.'}),
     diesel:idleModel(800,'estimated','warm-engine-on'),
-    hybrid:idleModel(1000,'estimated','engine-on-reference'),
+    hybrid:idleModel(1300,'user-configured','engine-on-reference',{sourceIds:['idle-carnival-hev-photo'],note:'사용자가 모든 HEV에 선택한 엔진 가동 대표값. 엔진 정지 상태는0이며 다른 HEV의 실측값을 주장하지 않는다.'}),
     electric:idleModel(0,'not-applicable','no-combustion-engine')
   });
   const idleFor=type=>IDLE_MODELS[type]||IDLE_MODELS.gasoline;
@@ -238,6 +253,25 @@
     p.shiftModel=SHIFT_MODELS[key];
     if(p.shiftModel.assumed)p.estimatedFields=[...p.estimatedFields,'shiftModel'];
   }
+  function applyIdle(ids,rpm,status,condition,sourceIds,note){
+    const model=idleModel(rpm,status,condition,{sourceIds,note});
+    for(const id of ids)Object.assign(profiles[id],{idleRPM:rpm,idleModel:model});
+  }
+  applyIdle(['carnival-3.5'],600,'observed','stopped-P-observation',['idle-carnival-35-photo'],'사진의 반올림 표시를 채택한 대표값. 예열·공조 조건 미확인.');
+  applyIdle(['carnival-2.2d'],700,'observed','stopped-P-observation',['idle-carnival-diesel-photo'],'해외 디젤 정차 사진 대표값, 국내 연식 일치 미확인.');
+  applyIdle(['staria-2.2d-fwd','staria-2.2d-awd'],700,'user-configured','engine-on-reference',['idle-carnival-diesel-photo'],'사용자가 카니발 디젤과 같은700을 선택. R2.2와 스마트스트림 D2.2의 실측 동일성을 뜻하지 않는다.');
+  applyIdle(['k5-2.0lpg'],600,'observed','after-drive-P-observation',['idle-k5-lpg-owner-photo'],'주행 후 소유자 사진의 반올림 표시를 채택. 공조 상태 미확인.');
+  applyIdle(['morning-1.0-14','morning-1.0-16'],800,'reference-estimate','promotional-P-reference',['idle-morning-promotional-photo'],'공식 홍보사진을 참고한 시뮬레이션 값이며 실측 기준이 아니다.');
+  applyIdle(['santafe-2.5t-fwd','santafe-2.5t-awd'],800,'observed','stopped-D1-Sport-observation',['idle-santafe-25-photo'],'FWD 정차 D1·Sport 사진을 두 구동방식의 대표값으로 사용. P/N 기준 미확인.');
+  applyIdle(['g70-3.3t-rwd','g70-3.3t-awd'],600,'user-configured','owner-report-reference',['idle-g70-33-owner'],'조건 미확인 소유자 보고를 사용자가 두 구동방식의 대표값으로 채택.');
+  applyIdle(['gr86-2.4-rz-mt'],650,'reference-estimate','warm-engine-on-reference',['idle-gr86-warm-test','idle-gr86-2024-service-reference'],'관련 세대 시험·정비 참고값. 일본2022 RZ 6MT 공식 목표값은 미확인.');
+  applyIdle(['gr86-2.4-rz-at'],700,'reference-estimate','engine-on-reference',['idle-gr86-2024-service-reference'],'다른 연식 정비문서 미러 참고값. 일본2022 RZ 6AT 공식 목표값은 미확인.');
+  applyIdle(['supra-3.0t-rz'],650,'observed','stopped-P-Sport-observation',['idle-supra-2020-photo'],'초기형 해외8AT 사진의 약600–700 중 대표650. 일본2019 및 예열·공조 조건 미확인.');
+  applyIdle(['bmw-m2-3.0t-dct'],750,'observed','stopped-P-observation',['idle-m2-2016-dct-photo'],'2016 N55 7DCT 사진의 약700–800 중 대표750. 예열·공조 상태 미확인.');
+  applyIdle(['bmw-m2-3.0t-mt'],750,'reference-estimate','related-transmission-reference',['idle-m2-2016-dct-photo'],'같은 N55의7DCT 관측을 참고하여 기존750을 유지. 6MT의 실제 공회전 검증값이 아니다.');
+  applyIdle(['g80-3.5t-rwd','g80-3.5t-awd'],750,'reference-estimate','US-3.5T-AWD-base-reference',['idle-g80-35-us-2023-brochure'],'미국3.5T AWD Sport Prestige의 기본750을 국내 두 구동방식에 참고 적용. Sport+1000은 자료 설명이며 이 모형에 모드 전환은 없다.');
+  applyIdle(['avante-n-2.0t-dct','avante-n-2.0t-mt'],1000,'reference-estimate','N-performance-engine-on-reference',['idle-cn7-n-owner-mode'],'레이싱 모형이 N 모드 관측범위900–1000의 대표1000을 선택. Normal 모드와 국내 공식 정비값은 별개다.');
+  applyIdle(['torres-1.5t-fwd','torres-1.5t-awd'],700,'reference-estimate','user-adopted-earlier-powertrain-reference',['idle-torres-2023-reference'],'구형700±50 참고값을 사용자가 채택. 2026 국내8AT 기준을 검증한 값은 아니다.');
   const PROFILES=freeze(profiles);
   // These are the exact baseline configurations in vehicle-specs.js, not the
   // first randomized variant. In particular its Carnival baseline is hybrid.

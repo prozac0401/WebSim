@@ -4,7 +4,7 @@
  * Racing gear/RPM/shift state comes from PowertrainDynamics. A standalone
  * fixture without physical transmission state retains the estimated scheduler.
  * Rolling radius and hybrid energy sharing remain estimates, not OBD data.
- * There is deliberately no battery state of charge or energy accounting. */
+ * Hybrid reserve is a normalized display budget, not measured SOC or kWh. */
 (function (root) {
   'use strict';
   const PROFILES = root.PowertrainProfiles || (typeof require === 'function' ? require('./powertrain-profiles.js') : null);
@@ -39,8 +39,27 @@
     cornerExitAssistSeconds: 4,
     regenerationShare: .55,
     regenerationGaugeFullScaleW: 35000,
+    regenerationImmediateDeceleration: .45,
+    regenerationEnterDeceleration: .15,
+    regenerationExitDeceleration: .08,
+    regenerationEnterHoldSeconds: .3,
+    correctionNeutralSeconds: .45,
+    shortRegenerationSeconds: 1,
+    shortRegenerationNeutralSeconds: 1,
+    assistEnterHoldSeconds: .25,
+    assistEnterAcceleration: .18,
+    assistExitAcceleration: .05,
+    assistEnterPowerFraction: .12,
+    assistExitPowerFraction: .08,
+    gentleCornerLateralAcceleration: 3,
+    reserveInitial: .65,
+    reserveAssistStop: .15,
+    reserveAssistResume: .4,
+    reserveDischargePerSecond: .012,
+    reserveRecoveryPerSecond: .06,
+    batteryStepSeconds: 1 / 120,
     flowFilterSeconds: .16,
-    limitations: 'Estimated power-flow direction and relative intensity only; no SOC, battery capacity, measured motor power or real gearbox control.'
+    limitations: 'Estimated flow and normalized display reserve only; reserve is not SOC, kWh or battery capacity. No measured motor power, engine-generation model or feedback into race physics.'
   });
 
   function describeGearing(car) {
@@ -84,14 +103,17 @@
       gearSource: kind === 'electric' ? 'not-applicable' : gearCount ? 'display-estimate' : 'continuous-estimate',
       shifting: false, neutral: false,
       rpmNormalized: 0, shiftLights: 0, shiftCue: false,
-      battery: kind === 'hybrid' ? { flow: 0, mode: 'idle', cornerPhase: 'straight' } : null };
+      battery: kind === 'hybrid' ? { flow: 0, mode: 'idle', cornerPhase: 'straight',
+        reserveNormalized: MODEL.reserveInitial, flowSource: 'none' } : null };
     const idle = Math.max(500, finite(profile.idleRPM, 900)), shift = Math.max(idle + 1000, finite(profile.shiftRPM, 6000));
     const data = { profile, gearCount, idle, shift, max: Math.max(shift, finite(profile.maxRPM, 7000)),
       gearing: describeGearing(car),
       rpm: idle, sinceShift: MODEL.minimumShiftIntervalSeconds, lampBlank: 0,
       curvature: 0, signedCurvature: 0, lateral: 0, inCorner: false, enterTime: 0, exitTime: 0, assistTime: 0,
       cornerAge: 0, peakCurvature: 0, minSpeed: Infinity, turnSign: 0, reversalTime: 0,
-      apexConfirmTime: 0, postApex: false, apexAssistTime: 0 };
+      apexConfirmTime: 0, postApex: false, apexAssistTime: 0,
+      regenerationTime: 0, regenerationEpisodeTime: 0, regenerating: false, correctionNeutralTime: 0,
+      assistDemandTime: 0, assistActive: false, reserve: MODEL.reserveInitial, reserveLimited: false };
     internal.set(state, data);
     const speed = Math.max(0, finite(car.speed));
     if (kind !== 'electric' && speed >= .1) {
@@ -117,9 +139,12 @@
   function stop(state) {
     state.gear = null; state.gearLabel = '—'; state.rpmNormalized = 0;
     state.shiftLights = 0; state.shiftCue = false; state.shifting = false; state.neutral = false;
-    if (state.battery) { state.battery.flow = 0; state.battery.mode = 'idle'; state.battery.cornerPhase = 'straight'; }
+    if (state.battery) { state.battery.flow = 0; state.battery.mode = 'idle'; state.battery.cornerPhase = 'straight'; state.battery.flowSource = 'none'; }
     const data = internal.get(state);
-    if (data) { data.assistTime = 0; data.lampBlank = 0; }
+    if (data) {
+      data.assistTime = 0; data.lampBlank = 0; data.regenerationTime = 0; data.regenerationEpisodeTime = 0; data.regenerating = false;
+      data.correctionNeutralTime = 0; data.assistDemandTime = 0; data.assistActive = false;
+    }
     return state;
   }
 
@@ -172,22 +197,62 @@
     let target = 0;
     const battery = state.battery;
     battery.cornerPhase = data.inCorner ? data.postApex ? 'apex-exit' : 'corner' : data.assistTime > 0 ? 'exit' : 'straight';
-    if (car.speed > .5 && brakePower > 100) {
-      // Wheel braking takes precedence from its first physics tick, even
-      // before a corner or while gravity still gives positive net acceleration.
+    const speed = Math.max(0, finite(car.speed)), spec = car.spec || {};
+    const mass = Math.max(1, finite(car.massKg, finite(spec.massKg, finite(spec.curbMassKg, 1800))));
+    const ratedPower = Math.max(10000, finite(car.powerPs, spec.powerPs || 100) * 735.49875);
+    const wheelBraking = speed > .5 && brakePower > 100;
+    // Use applied wheel work, not net deceleration: gravity can accelerate a
+    // braking car. Tiny speed-profile corrections are not a charge event.
+    const brakeDeceleration = wheelBraking ? brakePower / (mass * speed) : 0;
+    const strongBraking = brakeDeceleration >= MODEL.regenerationImmediateDeceleration;
+    const wasRegenerating = data.regenerating;
+    data.regenerationTime = brakeDeceleration >= MODEL.regenerationEnterDeceleration ? data.regenerationTime + dt : 0;
+    data.regenerating = wheelBraking && (strongBraking ||
+      (data.regenerating && brakeDeceleration >= MODEL.regenerationExitDeceleration) ||
+      data.regenerationTime >= MODEL.regenerationEnterHoldSeconds);
+    data.correctionNeutralTime = Math.max(0, data.correctionNeutralTime - dt);
+    if (data.regenerating) {
+      // Substantial braking is immediate. Only confirmed regeneration fills
+      // reserve, and no charging claim is carried after actual braking ends.
+      data.regenerationEpisodeTime += dt;
+      data.correctionNeutralTime = 0;
       target = -clamp(brakePower * MODEL.regenerationShare / MODEL.regenerationGaugeFullScaleW, 0, 1);
-    } else if (car.speed > .5 && car.acceleration > .18 && drivePower > 100) {
-      if (!data.inCorner && data.assistTime > 0) target = 1;
-      else if (data.inCorner && data.postApex) {
+    } else {
+      if (wasRegenerating && data.regenerationEpisodeTime <= MODEL.shortRegenerationSeconds + 1e-9)
+        data.correctionNeutralTime = Math.max(data.correctionNeutralTime, MODEL.shortRegenerationNeutralSeconds);
+      data.regenerationEpisodeTime = 0;
+      if (wheelBraking) data.correctionNeutralTime = Math.max(data.correctionNeutralTime, MODEL.correctionNeutralSeconds);
+    }
+
+    if (data.reserve <= MODEL.reserveAssistStop) data.reserveLimited = true;
+    else if (data.reserve >= MODEL.reserveAssistResume) data.reserveLimited = false;
+    const accelerating = finite(car.acceleration) > (data.assistActive ? MODEL.assistExitAcceleration : MODEL.assistEnterAcceleration);
+    const loaded = drivePower > ratedPower * (data.assistActive ? MODEL.assistExitPowerFraction : MODEL.assistEnterPowerFraction);
+    let assistance = 0;
+    if (speed > .5 && !wheelBraking && accelerating && loaded && !data.reserveLimited && data.correctionNeutralTime <= 0) {
+      // Keep assistance through a straight and a gentle bend; the old four-
+      // second corner-exit window must not turn it off on a long straight.
+      if (!data.inCorner || data.lateral < MODEL.gentleCornerLateralAcceleration) assistance = clamp(drivePower / (ratedPower * .45), 0, 1);
+      else if (data.postApex) {
         const progress = clamp(data.apexAssistTime / MODEL.apexAssistRampSeconds, 0, 1);
-        target = MODEL.apexAssistMaximum * progress * progress * (3 - 2 * progress);
+        assistance = MODEL.apexAssistMaximum * progress * progress * (3 - 2 * progress);
       }
     }
+    data.assistDemandTime = assistance > 0 ? data.assistDemandTime + dt : 0;
+    data.assistActive = assistance > 0 && (data.assistActive || data.assistDemandTime >= MODEL.assistEnterHoldSeconds);
+    if (data.assistActive) target = assistance * clamp((data.reserve - MODEL.reserveAssistStop) / .2, .25, 1);
+
     // Do not leave a charging/using claim after the eligible wheel work ends.
     // The gauge eases into real eligible work; idle is immediately neutral.
     if (!target || battery.flow * target < 0) battery.flow = 0;
     battery.flow += (target - battery.flow) * (1 - Math.exp(-dt / MODEL.flowFilterSeconds));
     battery.mode = target < 0 ? 'charging' : target > 0 ? 'using' : 'idle';
+    battery.flowSource = target < 0 ? 'regeneration' : target > 0 ? 'assist' : 'none';
+    // A time-integrated display budget, deliberately without a battery-kWh
+    // claim. Idle, pause and suppressed micro-braking neither drain nor fill it.
+    data.reserve = clamp(data.reserve + dt * (Math.max(0, -battery.flow) * MODEL.reserveRecoveryPerSecond -
+      Math.max(0, battery.flow) * MODEL.reserveDischargePerSecond), 0, 1);
+    battery.reserveNormalized = data.reserve;
   }
 
   function update(car, state, dt, input = {}) {
@@ -235,8 +300,14 @@
     state.shiftCue = !!data.gearCount && state.gear < data.gearCount && data.lampBlank <= 0 && state.rpmNormalized >= .94;
     }
     if (state.battery) {
-      updateCorner(data, speed, dt, input.curvature, car.acceleration > .18 && drivePower > 100, brakePower > 100);
-      updateBattery(car, state, data, dt, drivePower, brakePower);
+      // Race physics already uses 120 Hz. Apply the same bound to standalone
+      // telemetry calls so a one-second input interval has the same holds and
+      // reserve integration as 120 identical fixed ticks; no wall clock used.
+      const steps = Math.max(1, Math.ceil(dt / MODEL.batteryStepSeconds - 1e-9)), delta = dt / steps;
+      for (let step = 0; step < steps; step++) {
+        updateCorner(data, speed, delta, input.curvature, car.acceleration > .18 && drivePower > 100, brakePower > 100);
+        updateBattery(car, state, data, delta, drivePower, brakePower);
+      }
     }
     return state;
   }
