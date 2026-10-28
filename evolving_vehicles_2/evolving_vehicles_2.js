@@ -245,7 +245,7 @@ function updatePowertrainHUD(car){
  const engineRPM=!stopped&&t.gearSource==='physics'&&Number.isFinite(car.transmission?.rpm)?Math.round(car.transmission.rpm/10)*10:null;
  const rpmText=engineRPM===null?'— rpm':'≈ '+engineRPM.toLocaleString('en-US')+' rpm';
  const ngs=car.ngs,ngsVisible=!stopped&&!!ngs?.supported,ngsActive=ngsVisible&&ngs.active;
- const ngsText=ngsActive?'+'+Math.round(ngs.boostPs)+' PS · '+ngs.remainingSeconds.toFixed(1)+' s':ngsVisible&&ngs.cooldownSeconds>0?'재사용 '+Math.ceil(ngs.cooldownSeconds)+' s':'DRS 구간 대기';
+ const ngsText=ngsActive?'+'+Math.round(ngs.boostPs)+' PS · '+ngs.remainingSeconds.toFixed(1)+' s':ngsVisible&&ngs.cooldownSeconds>0?'재사용 '+Math.ceil(ngs.cooldownSeconds)+' s':'대기';
  const key=JSON.stringify([name,car.uid,car.entrant.variantId,variant,engineRPM,t.kind,!!stopped,gear,t.gear,!!shifting,!!t.neutral,lamps,cue,rpm,mode,chargeWidth,useWidth,flowValue,ngsVisible,ngsActive,ngsText]);
  if(key===powertrainHUDKey)return;powertrainHUDKey=key;hud.hidden=false;
  $('powertrain-car').textContent=name;hud.dataset.kind=t.kind;
