@@ -493,10 +493,91 @@ function repair(vehicle,track,parent,rng,options={}){
  }
  return {gene:normalized,change};
 }
+function connect(vehicle,track,parent,rng,options={}){
+ if(parent.accepted!==true||parent.result?.valid!==true||parent.result?.status!=='finished')throw new TypeError('Connection mutations require a completed valid parent.');
+ const target=options.connectionTarget,record=parent.record||parent.result.frames;
+ if(!target||!record?.length||target.complete)throw new TypeError('An incomplete measured connection is required.');
+ const p=vehicle.physics||vehicle,ds=track.length/(G.KNOTS-1),all=options.zones||zones(track);
+ const zone=all.find(z=>z.id===(target.zoneId||target.fromZoneId)),to=all.find(z=>z.id===target.toZoneId)||zone;
+ if(!zone)throw new TypeError('Connection region is unavailable.');
+ const bounds=options.lineBounds||G.corridorBounds(vehicle,track),limits={maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds};
+ const nearest=s=>record.reduce((a,b)=>Math.abs(a.s-s)<=Math.abs(b.s-s)?a:b),rnd=(a,b)=>a+(b-a)*rng();
+ const before=target.preferredBoundary?target.preferredBoundary==='entry':target.reason==='entry'||target.reason==='gap'&&(target.missingBefore||0)>(target.missingAfter||0);
+ const boundary=Number.isFinite(target.breakS)?target.breakS:before?target.start:target.end;
+ const startRun=Number.isFinite(target.actualStart)?target.actualStart:target.start,endRun=Number.isFinite(target.actualEnd)?target.actualEnd:target.end;
+ const sourceS=clamp(before?startRun+Math.min(8,(endRun-startRun)*.3):endRun-Math.min(8,(endRun-startRun)*.3),0,track.length);
+ const source=G.sample(parent.gene,sourceS,track.length),frame=nearest(boundary),v=Math.max(8,frame.speed),strength=clamp(options.scale??1,.15,1);
+ // A large target/actual path mismatch can shut the unchanged driver's
+ // throttle. Alter that requested line instead of asking for yet more power.
+ const pathError=Math.abs(frame.pathError||0),powerCut=(frame.driverThrottleCorrection||0)<-.2;
+ const mode=options.connectionMode||(target.reason==='speed'?'speed':pathError>1.2&&powerCut&&rng()<.75?'line':target.reason==='turn'?'line':'angle');
+ const lower=approachStart(track,zone,all),upper=Math.min(track.length-ds,Math.max(to.end,target.end+3*ds));
+ const length=clamp(v*rnd(.9,1.8),4*ds,45),start=Math.floor(Math.max(lower,boundary-(before?length:Math.max(2*ds,v*.65)))/ds)*ds;
+ const end=Math.ceil(Math.min(upper,boundary+(before?Math.max(3*ds,v*.65):length))/ds)*ds;
+ const span=Math.max(ds,end-start),fade=Math.min(span*.3,2*ds),gene=G.clone(parent.gene),sign=-zone.sign;
+ const change={family:'connection-'+mode,connectionId:target.id,condition:target.reason,kind:target.kind,start,end,sourceS,breakS:boundary,pathError,powerCut,before};
+ const weight=s=>smoother((s-start)/fade)*smoother((end-s)/fade);
+ if(mode==='line'){
+  // Interpolated displacement anchors follow the parent's measured on-road
+  // path locally, with zero endpoints. The entire new run still needs proof.
+  const values=Array.from({length:7},(_,i)=>{
+   if(i===0||i===6)return 0;
+   const s=start+span*i/6,f=nearest(s),road=track.sample(f.s),actual=(f.x-road.x)*-Math.sin(road.heading)+(f.y-road.y)*Math.cos(road.heading);
+   return clamp(actual-G.sample(parent.gene,s,track.length).lineOffset,-3,3)*rnd(.35,.8);
+  });
+  change.lineAnchors=values;
+  Shape.add(gene,C.lineOffset,{start:start/ds,end:end/ds,values,amount:strength},limits);
+ }else if(mode==='angle'){
+  const measured=Math.abs(nearest(sourceS).beta||0),desired=clamp(Math.max(Math.abs(source.targetSlip),measured+8*DEG)+rnd(-1,4)*DEG,14*DEG,42*DEG);
+  change.targetSlip=sign*desired;const lead=clamp(source.counterLead+rnd(-.02,.04),.05,.8);
+  const opposite=target.kind==='link'&&zone.sign!==to.sign,gap=to.cornerStart-zone.exit;
+  const crossing=opposite?record.find((f,i)=>i>0&&f.s>=zone.exit&&f.s<=to.cornerStart&&f.beta*to.sign<0&&record[i-1].beta*zone.sign<0):null;
+  const transitionWidth=opposite?Math.max(3*ds,v*1.875*2*desired/2.4):0;
+  const transitionCenter=opposite?clamp(crossing?.s??(zone.exit+to.cornerStart)/2,zone.exit+Math.min(gap,transitionWidth)/2,to.cornerStart-Math.min(gap,transitionWidth)/2):0;
+  if(opposite)Object.assign(change,{transitionCenter,transitionWidth});
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds,w=weight(s)*strength;if(!(s>start&&s<end&&w>0))continue;const j=i*G.STRIDE;
+   // Never replace an opposite-direction transition with a one-knot flip.
+   // If there is insufficient straight for a rate-limited bridge, retain
+   // that part of the parent's transition and explore its endpoints only.
+   if(opposite&&transitionWidth>gap&&s>=zone.exit&&s<=to.cornerStart)continue;
+   const phase=opposite?smoother((s-transitionCenter+transitionWidth/2)/transitionWidth):0,localSign=sign*(1-phase)-to.sign*phase;
+   gene[j+C.targetSlip]+=(localSign*desired-gene[j+C.targetSlip])*w;
+   gene[j+C.counterLead]+=(lead-gene[j+C.counterLead])*w;
+   if(!before||s>=zone.cornerStart){
+    gene[j+C.driveSlip]+=(clamp(source.driveSlip,.08,.8)-gene[j+C.driveSlip])*w;
+    gene[j+C.throttle]+=(Math.max(source.throttle,.45)-gene[j+C.throttle])*w;
+    gene[j+C.brake]*=1-.9*w;
+   }
+  }
+ }else if(mode==='speed'){
+  const speedWindow=record.filter(f=>f.s>=target.start&&f.s<=target.end),slow=speedWindow.reduce((a,b)=>a.speed<b.speed?a:b,frame);
+  // Correct the inherited braking/release episode before its speed trough,
+  // not a torque impulse at the trough itself. Angles/line remain inherited.
+  let brakeStart=slow.s,foundBrake=false;
+  for(let i=record.length-1;i>=0;i--){
+   const f=record[i];if(f.s>slow.s)continue;if(f.s<lower||foundBrake&&brakeStart-f.s>2*ds)break;
+   if((f.brake||0)>.03){brakeStart=f.s;foundBrake=true;}
+  }
+  const a=Math.max(lower,brakeStart-2*ds),b=Math.min(upper,slow.s+3*ds),ramp=Math.min((b-a)*.3,2*ds);
+  Object.assign(change,{start:a,end:b,slowS:slow.s});const release=rnd(.35,.8);
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds,w=smoother((s-a)/ramp)*smoother((b-s)/ramp)*strength;if(!(s>a&&s<b&&w>0))continue;const j=i*G.STRIDE;
+   gene[j+C.brake]*=1-release*w;gene[j+C.throttle]+=(Math.max(gene[j+C.throttle],.6)-gene[j+C.throttle])*w;
+  }
+ }
+ const normalized=G.normalize(gene,limits),coupled=G.normalize(couple(vehicle,track,parent.gene,normalized,record),limits);
+ if(!coupled.some((value,i)=>value!==parent.gene[i])){
+  const window=Shape.window((change.start+change.end)/(2*ds),3,{lower:Math.ceil(change.start/ds),upper:Math.floor(change.end/ds)});
+  const index=Math.round((window.start+window.end)/2),direction=parent.gene[index*G.STRIDE+C.counterLead]>.425?-1:1;
+  Shape.add(coupled,C.counterLead,{...window,amount:direction*.005*strength},limits);change.family='connection-fine';
+ }
+ return {gene:coupled,change};
+}
 function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
-function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:6,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,connect,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
+const api=Object.freeze({VERSION:7,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

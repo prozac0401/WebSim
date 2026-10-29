@@ -96,6 +96,17 @@ async function main(config){
   const reproductionHash=sha(JSON.stringify({seed:config.seed,vehicle:vehicle.id,track:track.id,genesisGeneHash,rows:deterministicRows,history:state.history,bestGeneHash}));
   const report={schema:1,method:'Production DriftEvolution.Engine; Prepared.load is the only genesis; reserve each generation of 20 before evaluation; accept in reservation order; workers only evaluate Physics.evaluateGene.',config,startedAt:new Date(started).toISOString(),elapsedMs:Date.now()-started,stopped,error,sourceHashes:hashes,signatures,geneHashEncoding:'SHA-256 of little-endian Float64 values',genesisGeneHash,preparedFingerprint:baseline.fingerprint,startupCalls,startupEvaluations:0,evaluated:rows.length,valid,failed,objective:'continuous-apex-drift',legacyPoweredExitSuccess:!error&&best.result.valid===true&&best.result.status==='finished'&&best.result.power?.success===true,best:{id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,score:best.result.score,status:best.result.status,drift:best.result.drift,power:best.result.power},history:state.history,finalGeneration:state.generation,remainingReservations:state.reserved,reservations,completionOrder:pool.completionOrder,rows,reproductionHash,files:Object.fromEntries(Object.entries(files).map(([key,file])=>[key,path.relative(repo,file).replaceAll(path.sep,'/')]))};
   report.method='Production Engine; Prepared.load genesis; ordered generation reservations; exact 120Hz evaluation with optional verified-prefix reuse.';
+  report.objective='whole-course-continuous-drift';
+  const accepted=rows.filter(row=>row.accepted&&row.valid&&row.status==='finished');
+  report.connections={
+   completedCornerRuns:accepted.filter(row=>row.drift?.fullConnectionCount>0).length,
+   completedLinkRuns:accepted.filter(row=>row.drift?.straightLinkCount>0).length,
+   fullyConnectedRuns:accepted.filter(row=>row.drift?.totalArcCount>0&&row.drift.fullConnectionCount===row.drift.totalArcCount&&row.drift.straightLinkCount===row.drift.totalLinkCount).length,
+   maximumCornerCoverage:Math.max(0,...accepted.flatMap(row=>(row.drift?.arcs||[]).map(arc=>arc.connectionCoverage||0))),
+   maximumLinkCoverage:Math.max(0,...accepted.flatMap(row=>(row.drift?.links||[]).map(link=>link.coverage||0))),
+   representative:{corners:best.result.drift?.fullConnectionCount||0,links:best.result.drift?.straightLinkCount||0},
+   guided:rows.filter(row=>row.mutation?.connectionId).length,guidedValid:accepted.filter(row=>row.mutation?.connectionId).length
+  };
   report.learningStats=state.learningStats;
   report.selectionStats=state.selectionStats;
   report.evaluationStats=rows.reduce((sum,row)=>{for(const key of ['simulatedTicks','reusedTicks','totalTicks'])sum[key]+=row.evaluation?.[key]||0;if(row.evaluation?.cacheHit)sum.cacheHits++;return sum;},{simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:rows.length});

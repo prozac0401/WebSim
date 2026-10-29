@@ -1,0 +1,1111 @@
+{
+  "schema": 1,
+  "release": "connection-search-20261030-1",
+  "date": "2026-10-30",
+  "method": "Same stock vehicle, course, seed, prepared grip genome and physical evaluation budget; candidates accepted in generation reservation order. Baseline and selected search each evaluated 440 candidates. Runtime timings were recorded under different CPU contention and are not a speed benchmark.",
+  "limitations": [
+    "No physically completed corner or straight connection was found in these budgets. Maxima are across accepted complete runs; they may belong to different candidates and are not necessarily the displayed representative.",
+    "Four vehicle/seed cases on one course are not a general convergence or safety guarantee.",
+    "The 90% retention completion diagnostic is unchanged; higher partial scores do not mean a connection is complete."
+  ],
+  "completionAudit": {
+    "date": "2026-10-29T17:56:03.980Z",
+    "scope": "Read-only audit; no scoring thresholds or source changed",
+    "sourceHashes": {
+      "fitness.js": "b9cb8a75a1fd52b0abc800129b2a3c40be7b98cb2e434947e37761bb5d561fb1",
+      "course-scoring.js": "ac933860213728e784d8ef88f8622c0f34ad8e16ab2759fb94e845e42f8eded1",
+      "evolution.js": "4615300c00158663a888081837d5bb56372f189a627a5401e1104f51a4f6fb06",
+      "evolution-strategies.js": "dfb63d971f6dbbacc9df5817a387c20bfff43d246daef65d35e502005ee55898"
+    },
+    "tests": {
+      "command": "node --test evolving_drift/fitness.test.cjs",
+      "passed": 53,
+      "failed": 0,
+      "log": "output/drift-qa/connection-conditions-fitness-tests.log",
+      "limitation": "Completion regression tests use synthetic replay telemetry; they prove detector rules, not that an evolved stock-vehicle genome can physically achieve the complete sequence."
+    },
+    "kic": {
+      "zones": [
+        {
+          "id": "apex-0",
+          "start": 193.4200706978456,
+          "cornerStart": 228,
+          "apex": 247.63798631910353,
+          "exit": 270,
+          "end": 302.5,
+          "referenceStart": 173.4200706978456,
+          "sign": -1,
+          "turn": -0.8231562907441331,
+          "fitRadius": 14.7,
+          "requiredCoreHeadingTurnRad": 0.20578907268603328
+        },
+        {
+          "id": "apex-1",
+          "start": 302.5,
+          "cornerStart": 335,
+          "apex": 353.19012438817913,
+          "exit": 371,
+          "end": 431,
+          "referenceStart": 282.5,
+          "sign": -1,
+          "turn": -1.8887572187058745,
+          "fitRadius": 12.6,
+          "requiredCoreHeadingTurnRad": 0.25
+        }
+      ],
+      "links": [
+        {
+          "id": "link-0",
+          "fromZoneId": "apex-0",
+          "toZoneId": "apex-1",
+          "start": 247.63798631910353,
+          "end": 353.19012438817913,
+          "straightStart": 270,
+          "straightEnd": 335,
+          "fromSign": -1,
+          "toSign": -1,
+          "fromTurn": 0.08,
+          "toTurn": 0.08
+        }
+      ]
+    },
+    "conditions": {
+      "common": {
+        "telemetry": "Positive dt <0.1s, positive centreline progress and positive world distance; displacement <= max endpoint speed * dt *1.2 +0.02m; no spin (>=75deg beta at >=3m/s). A run must finish valid; offtrack/collision invalidate score and inheritance."
+      },
+      "corner": {
+        "source": "fitness.js264-276,327-372",
+        "angleDeg": "10..70 continuously, beta sign opposite to physical corner sign",
+        "minimumSpeedMps": 8,
+        "runRetention": ".7 threshold keeps run alive; completion requires >=.9",
+        "coverage": "One uninterrupted run covers cornerStart through apex to exit; both halves must be 100%. Fragments cannot be assembled.",
+        "headingTurn": "Actual XY movement direction must turn with the corner by min(0.25rad, abs(road turn)*0.25) inside the core.",
+        "reference": "Maximum of 80% prepared core lower-quintile pace, sustained early drift peak, actual core-entry speed. Sustained means >=0.25s and >=3m; only rises through entry.",
+        "minimum": "Min of run min speed and zone min speed. Zone min records speed while angle>=10 or a run was active, including later slides inside expanded apex window.",
+        "smoothness": "Curve fit influences quality/score; no independent curve>=0.7 requirement in complete boolean."
+      },
+      "straight": {
+        "source": "fitness.js138-195",
+        "coverage": "One uninterrupted run from preceding apex to following apex, not just geometric straight.",
+        "angleDeg": "10..70 and speed>=8m/s, correct source and destination beta signs",
+        "turn": "Both actual movement-direction turns reach min(0.08rad, abs(corner turn)*0.1).",
+        "reference": "Max(80% prepared straight lower-quintile pace, actual speed at preceding corner exit). Minimum speed is measured over whole straight even after drift ends.",
+        "minimumRetention": 0.9,
+        "sameSign": "No low-angle recovery or sign reversal allowed.",
+        "oppositeSign": "Exactly one smooth sign transition within straight; low-angle bridge <=0.35s AND <=min(8m,25% straight length), beta rate<=4rad/s."
+      }
+    },
+    "findings": [
+      {
+        "priority": "high",
+        "source": "evolution.js272-275",
+        "finding": "missingConnection ignores speed-retention and actual-turn failures when geometric coverage reaches100%; missingLink lumps all failure causes into one link family.",
+        "recommendation": "Diagnose incomplete condition and choose bridge timing for missing coverage, speed planning/hold for retention, coordinated steering/line for actual turn, and direct link hold only after upstream anchor is measured."
+      },
+      {
+        "priority": "high",
+        "source": "evolution-strategies.js165-185",
+        "finding": "Link macro alters both apex neighborhoods and connects the old line endpoints broadly. It can perturb a good preceding anchor while trying to repair a late gap.",
+        "recommendation": "Preserve already-connected prefix; extend from measured break with overlapping smooth support, coupled line/steer/pedal controls and full physical re-evaluation."
+      },
+      {
+        "priority": "medium",
+        "source": "course-scoring.js90-100; fitness.js276,189",
+        "finding": "Whole-course earned score permits >70% retention and has no completion bonus/veto, whereas diagnostic complete requires90%. Increasing total does not imply complete corners or links.",
+        "recommendation": "Keep user-requested representative score semantics; use explicit incomplete-condition progress in mutation/parent guidance, report complete counts separately in benchmarks."
+      },
+      {
+        "priority": "medium",
+        "source": "fitness.js287-294; evolution.js271-272",
+        "finding": "Region complete is any completed run, whereas bestArc is highest regional-score episode. They need not be the same episode.",
+        "recommendation": "Check arc.complete before guiding a bridge from bestArc; avoid trying to repair an already-complete region solely because highest-scoring fragment differs."
+      }
+    ],
+    "historicalEvidence": {
+      "limitation": "Old recorded benchmark snapshots, not current-run proof; root fresh baseline experiments take precedence.",
+      "examples": [
+        {
+          "file": "output/drift-qa/linked-front-final-37-best.json",
+          "vehicle": "supra-3.0t-rz",
+          "arc0Coverage": 1,
+          "arc0Retention": 0.8556294106708536,
+          "arc0Complete": false,
+          "linkCoverage": 0.5986599502620353,
+          "linkRetention": 0.6747316934793017
+        },
+        {
+          "file": "output/drift-qa/g80-stop-final-37-best.json",
+          "vehicle": "g80-3.5t-rwd",
+          "arc0Coverage": 0.6527715499345587,
+          "arc0Retention": 0.9254097043896654,
+          "arc0Complete": false,
+          "linkCoverage": 0.1426790553480487,
+          "linkRetention": 0.688930771404325
+        }
+      ]
+    }
+  },
+  "prefixParity": [
+    {
+      "vehicle": "porter-lpg-mt",
+      "seed": 37,
+      "checked": 200,
+      "exactPrefix": 141,
+      "firstMismatch": {
+        "ordinal": 142,
+        "id": "g8-2",
+        "kind": "immigrant"
+      },
+      "firstGuidedOrdinal": 145
+    },
+    {
+      "vehicle": "porter-lpg-mt",
+      "seed": 1,
+      "checked": 80,
+      "exactPrefix": 80,
+      "firstMismatch": null,
+      "firstGuidedOrdinal": null
+    },
+    {
+      "vehicle": "porter-lpg-mt",
+      "seed": 73,
+      "checked": 80,
+      "exactPrefix": 80,
+      "firstMismatch": null,
+      "firstGuidedOrdinal": null
+    },
+    {
+      "vehicle": "supra-3.0t-rz",
+      "seed": 37,
+      "checked": 80,
+      "exactPrefix": 20,
+      "firstMismatch": {
+        "ordinal": 21,
+        "id": "g2-1",
+        "kind": "connection-angle"
+      },
+      "firstGuidedOrdinal": 21
+    }
+  ],
+  "selectedComparison": {
+    "schema": 1,
+    "createdAt": "2026-10-29T18:27:24.386Z",
+    "variant": "candidate-v3",
+    "baselineSources": {
+      "createdAt": "2026-10-29T17:54:05.476Z",
+      "revision": "117831b63673756e4da7b3e7dd1aa5efb35c0d1b",
+      "files": {
+        "evolving_drift/catalog.js": "a1203a541b4fea37f4a57142578fa5b0a7267c6ba537438e87fbb8450d6a2ebb",
+        "evolving_vehicles_2/tuning-evolution.js": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686",
+        "evolving_vehicles_2/circuit-vehicle-specs.js": "544dd9fc1030ba161fbfaa1820540a58d301094042d23e2f7b3ce36dabadb3e7",
+        "evolving_vehicles/vehicle-specs.js": "2370fb5206b5fe53ecfa6c36eeaedc72d946c8bf138e271f98b6ddb98eef2c75",
+        "evolving_vehicles_2/powertrain-profiles.js": "22ed0f741b7ab8db2327b371b680f7579fedf2f2149f1046f119aff7dbc767a2",
+        "evolving_drift/track.js": "95be15fa538c432d31349a24039168653ca83e2574bef04dc69b69c716dbf1c9",
+        "evolving_drift/course-model.js": "5f6529cf5cbe89a9796c187afb7d1be8ef83a7a9e0746bf410ebb3cd7d499eac",
+        "evolving_drift/kic-t21.js": "abb15bc5b96ac2d48901c2202076603178a00d7b5a1b150857eb81d54d773a2d",
+        "evolving_drift/inje-sdc.js": "fbba3b380c3c309b594fc112f4faa95869bc0b2851978d57e5bfe8d5ef753eeb",
+        "evolving_drift/kic-sdc.js": "67282fa54bf85880511ebe9ae58c85aedeb4866e7a0db115b598290687149732",
+        "evolving_drift/ebisu-west.js": "139a23166573836e122a0862dad57a57628fdd64ff28bbd7beabde15456dcec3",
+        "evolving_drift/tsukuba-d1.js": "4de084cdb2bd83164543d2fccdc1e96a2024e7ebecd132051df14aa16bf2576d",
+        "evolving_drift/prepared-grips.js": "61f4c0a40581bf649cef6eb7018c5b759e6b8569f30986856da11cee21e790c9",
+        "evolving_drift/genome.js": "c512104b70c7d0eacefbaeabd0877c84a66fe68d33a287949a06e5249165a3c3",
+        "evolving_drift/runtime.js": "c7de9a61d7c4c892a70fe301fd88897ca61880c03dbe0096325b92cbf7a7c642",
+        "evolving_drift/evolution.js": "4615300c00158663a888081837d5bb56372f189a627a5401e1104f51a4f6fb06",
+        "evolving_drift/mutation-shape.js": "e370531162cc4bdafd93414577575d8cce12f6058a832a622b1d325a89dbc270",
+        "evolving_drift/fitness.js": "b9cb8a75a1fd52b0abc800129b2a3c40be7b98cb2e434947e37761bb5d561fb1",
+        "evolving_drift/course-scoring.js": "ac933860213728e784d8ef88f8622c0f34ad8e16ab2759fb94e845e42f8eded1",
+        "evolving_drift/evolution-strategies.js": "dfb63d971f6dbbacc9df5817a387c20bfff43d246daef65d35e502005ee55898",
+        "evolving_drift/entry-speed-planner.js": "b0fd4a2597090dc36cf88ccfcf2414a770af5ecb2885bac78a6ef1e151bc6123",
+        "evolving_drift/evolution-learning.js": "3a2a15c27dfdf5e067ec4c75804da50ee00962d2469618ce4564031f8ae5691c",
+        "evolving_drift/failure-analysis.js": "60ea26631d2918a297e209254f4791d9ad5a219df0174d2114f13d313f8c0aa9",
+        "evolving_drift/evaluation-cache.js": "faffc4c805380aad4ebe642b6ddf98df60566ae9c2186cf359ff0343811d8d47",
+        "evolving_drift/driver.js": "598621d63787108ba218761887c3a5f00f54bed32810e2fa04bf14e9b4cdd4e4",
+        "evolving_drift/physics.js": "fc9476a70494da44f055ca43784fbccb67b63c3f7351efd77117abf1568f2583",
+        "evolving_drift/prepared-grips-manifest.js": "d349979f1490414dbdb174ea012ba4efc361c7191e926c754022b430ef04875c",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-lpg-mt.js": "6c8242894ed81a06542410877b58caae24e020264b8bc8e869e149441a2dd8d6",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--supra-3.0t-rz.js": "b4b8cb8b4576768b137722ae6d164d6377e4533ea6dc88b82f3d771e4336dc80",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g80-3.5t-rwd.js": "e1fb6a264d4ae6c4a9b1cdc4c6719f128777e2bb0174d45cdf039d2e761e8fd3",
+        "evolving_drift/tools/benchmark-evolution.cjs": "cfc04ac883d4b0e4226d46d8e15b0dabc520d8fbe78a828b72296759ac6cb2a0"
+      }
+    },
+    "candidateSources": {
+      "createdAt": "2026-10-29T18:19:28.235Z",
+      "revision": "117831b63673756e4da7b3e7dd1aa5efb35c0d1b",
+      "files": {
+        "evolving_drift/catalog.js": "a1203a541b4fea37f4a57142578fa5b0a7267c6ba537438e87fbb8450d6a2ebb",
+        "evolving_vehicles_2/tuning-evolution.js": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686",
+        "evolving_vehicles_2/circuit-vehicle-specs.js": "544dd9fc1030ba161fbfaa1820540a58d301094042d23e2f7b3ce36dabadb3e7",
+        "evolving_vehicles/vehicle-specs.js": "2370fb5206b5fe53ecfa6c36eeaedc72d946c8bf138e271f98b6ddb98eef2c75",
+        "evolving_vehicles_2/powertrain-profiles.js": "22ed0f741b7ab8db2327b371b680f7579fedf2f2149f1046f119aff7dbc767a2",
+        "evolving_drift/track.js": "95be15fa538c432d31349a24039168653ca83e2574bef04dc69b69c716dbf1c9",
+        "evolving_drift/course-model.js": "5f6529cf5cbe89a9796c187afb7d1be8ef83a7a9e0746bf410ebb3cd7d499eac",
+        "evolving_drift/kic-t21.js": "abb15bc5b96ac2d48901c2202076603178a00d7b5a1b150857eb81d54d773a2d",
+        "evolving_drift/inje-sdc.js": "fbba3b380c3c309b594fc112f4faa95869bc0b2851978d57e5bfe8d5ef753eeb",
+        "evolving_drift/kic-sdc.js": "67282fa54bf85880511ebe9ae58c85aedeb4866e7a0db115b598290687149732",
+        "evolving_drift/ebisu-west.js": "139a23166573836e122a0862dad57a57628fdd64ff28bbd7beabde15456dcec3",
+        "evolving_drift/tsukuba-d1.js": "4de084cdb2bd83164543d2fccdc1e96a2024e7ebecd132051df14aa16bf2576d",
+        "evolving_drift/prepared-grips.js": "61f4c0a40581bf649cef6eb7018c5b759e6b8569f30986856da11cee21e790c9",
+        "evolving_drift/genome.js": "c512104b70c7d0eacefbaeabd0877c84a66fe68d33a287949a06e5249165a3c3",
+        "evolving_drift/runtime.js": "c7de9a61d7c4c892a70fe301fd88897ca61880c03dbe0096325b92cbf7a7c642",
+        "evolving_drift/evolution.js": "832d8087fe3752fd06fe056023eb94c32cf35c12d8fa9068f4f3a9cf4cbfaf76",
+        "evolving_drift/mutation-shape.js": "e370531162cc4bdafd93414577575d8cce12f6058a832a622b1d325a89dbc270",
+        "evolving_drift/fitness.js": "b9cb8a75a1fd52b0abc800129b2a3c40be7b98cb2e434947e37761bb5d561fb1",
+        "evolving_drift/course-scoring.js": "ac933860213728e784d8ef88f8622c0f34ad8e16ab2759fb94e845e42f8eded1",
+        "evolving_drift/evolution-strategies.js": "ac8841fd2fdd4fc1ccdbef18d2cffd5f8de17cbe88aad9a346814d17aab2c7b8",
+        "evolving_drift/entry-speed-planner.js": "b0fd4a2597090dc36cf88ccfcf2414a770af5ecb2885bac78a6ef1e151bc6123",
+        "evolving_drift/connection-analysis.js": "e617a15168e1ac80a2dcb729e27e870ee5d52650dad755aab0ea56c56dc4de64",
+        "evolving_drift/evolution-learning.js": "3a2a15c27dfdf5e067ec4c75804da50ee00962d2469618ce4564031f8ae5691c",
+        "evolving_drift/failure-analysis.js": "60ea26631d2918a297e209254f4791d9ad5a219df0174d2114f13d313f8c0aa9",
+        "evolving_drift/evaluation-cache.js": "faffc4c805380aad4ebe642b6ddf98df60566ae9c2186cf359ff0343811d8d47",
+        "evolving_drift/driver.js": "598621d63787108ba218761887c3a5f00f54bed32810e2fa04bf14e9b4cdd4e4",
+        "evolving_drift/physics.js": "fc9476a70494da44f055ca43784fbccb67b63c3f7351efd77117abf1568f2583",
+        "evolving_drift/prepared-grips-manifest.js": "d349979f1490414dbdb174ea012ba4efc361c7191e926c754022b430ef04875c",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-lpg-mt.js": "6c8242894ed81a06542410877b58caae24e020264b8bc8e869e149441a2dd8d6",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--supra-3.0t-rz.js": "b4b8cb8b4576768b137722ae6d164d6377e4533ea6dc88b82f3d771e4336dc80",
+        "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g80-3.5t-rwd.js": "e1fb6a264d4ae6c4a9b1cdc4c6719f128777e2bb0174d45cdf039d2e761e8fd3",
+        "evolving_drift/tools/benchmark-evolution.cjs": "4fdb59f857a69ee344793d79269406ca6dcb38f8fcc2c8dc982ea1bfd2876165"
+      }
+    },
+    "pairs": [
+      {
+        "samePhysics": true,
+        "sameScoring": true,
+        "sameGenome": true,
+        "samePreparedGene": true,
+        "vehicle": "porter-lpg-mt",
+        "track": "kr-kic-t21-kdl-2016-r2",
+        "seed": 37,
+        "plannedBudget": 200,
+        "complete": true,
+        "baseline": {
+          "budget": 200,
+          "valid": 136,
+          "failed": 64,
+          "bestId": "g10-16",
+          "score": 9.351300962387556,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.5882781256697486,
+          "maxLinkCoverage": 0.239378445961116,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 11,
+            "paretoParents": 6,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 372.792
+        },
+        "candidate": {
+          "budget": 200,
+          "valid": 137,
+          "failed": 63,
+          "bestId": "g9-1",
+          "score": 9.663908916569167,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.6017453243684154,
+          "maxLinkCoverage": 0.25242106076021736,
+          "guided": 14,
+          "guidedValid": 3,
+          "guidedFamilies": {
+            "connection-angle": {
+              "proposals": 13,
+              "valid": 2,
+              "coverageImprovements": 1,
+              "bestCoverageGain": 0.044029002730836764
+            },
+            "connection-line": {
+              "proposals": 1,
+              "valid": 1,
+              "coverageImprovements": 1,
+              "bestCoverageGain": 0.013042614799101376
+            }
+          },
+          "finalSelectionStats": {
+            "promotions": 9,
+            "paretoParents": 7,
+            "connectionProposals": 14,
+            "connectionImprovements": 1,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 425.759
+        }
+      },
+      {
+        "samePhysics": true,
+        "sameScoring": true,
+        "sameGenome": true,
+        "samePreparedGene": true,
+        "vehicle": "porter-lpg-mt",
+        "track": "kr-kic-t21-kdl-2016-r2",
+        "seed": 1,
+        "plannedBudget": 80,
+        "complete": true,
+        "baseline": {
+          "budget": 80,
+          "valid": 56,
+          "failed": 24,
+          "bestId": "g3-14",
+          "score": 1.931212864941362,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0,
+          "maxLinkCoverage": 0.08686172690724057,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 3,
+            "paretoParents": 4,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 155.706
+        },
+        "candidate": {
+          "budget": 80,
+          "valid": 56,
+          "failed": 24,
+          "bestId": "g3-14",
+          "score": 1.931212864941362,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0,
+          "maxLinkCoverage": 0.08686172690724057,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 3,
+            "paretoParents": 4,
+            "connectionProposals": 0,
+            "connectionImprovements": 0,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 153.262
+        }
+      },
+      {
+        "samePhysics": true,
+        "sameScoring": true,
+        "sameGenome": true,
+        "samePreparedGene": true,
+        "vehicle": "porter-lpg-mt",
+        "track": "kr-kic-t21-kdl-2016-r2",
+        "seed": 73,
+        "plannedBudget": 80,
+        "complete": true,
+        "baseline": {
+          "budget": 80,
+          "valid": 59,
+          "failed": 21,
+          "bestId": "g4-7",
+          "score": 10.211324977469822,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.3890539391981358,
+          "maxLinkCoverage": 0.08242400078397169,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 3,
+            "paretoParents": 1,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 170.511
+        },
+        "candidate": {
+          "budget": 80,
+          "valid": 59,
+          "failed": 21,
+          "bestId": "g4-7",
+          "score": 10.211324977469822,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.3890539391981358,
+          "maxLinkCoverage": 0.08242400078397169,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 3,
+            "paretoParents": 1,
+            "connectionProposals": 0,
+            "connectionImprovements": 0,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 214.346
+        }
+      },
+      {
+        "samePhysics": true,
+        "sameScoring": true,
+        "sameGenome": true,
+        "samePreparedGene": true,
+        "vehicle": "supra-3.0t-rz",
+        "track": "kr-kic-t21-kdl-2016-r2",
+        "seed": 37,
+        "plannedBudget": 80,
+        "complete": true,
+        "baseline": {
+          "budget": 80,
+          "valid": 40,
+          "failed": 40,
+          "bestId": "g2-8",
+          "score": 11.983407850210536,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.6245912945398715,
+          "maxLinkCoverage": 0.2383228051150769,
+          "guided": 0,
+          "guidedValid": 0,
+          "guidedFamilies": {},
+          "finalSelectionStats": {
+            "promotions": 3,
+            "paretoParents": 7,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 99.204
+        },
+        "candidate": {
+          "budget": 80,
+          "valid": 42,
+          "failed": 38,
+          "bestId": "g3-18",
+          "score": 12.0852497415297,
+          "representativeCorners": 0,
+          "representativeLinks": 0,
+          "anyCornerComplete": 0,
+          "anyLinkComplete": 0,
+          "maxCornerCoverage": 0.6627499265218106,
+          "maxLinkCoverage": 0.27875481998742196,
+          "guided": 17,
+          "guidedValid": 7,
+          "guidedFamilies": {
+            "connection-angle": {
+              "proposals": 12,
+              "valid": 7,
+              "coverageImprovements": 3,
+              "bestCoverageGain": 0.01264634973124154
+            },
+            "connection-line": {
+              "proposals": 5,
+              "valid": 0,
+              "coverageImprovements": 0,
+              "bestCoverageGain": 0
+            }
+          },
+          "finalSelectionStats": {
+            "promotions": 5,
+            "paretoParents": 9,
+            "connectionProposals": 17,
+            "connectionImprovements": 1,
+            "weakestArcs": [
+              1
+            ]
+          },
+          "elapsedSeconds": 110.023
+        }
+      }
+    ]
+  },
+  "discardedTrials": [
+    {
+      "name": "candidate-v1",
+      "reason": "Wider guidance increased failure rate; speed repair could alter unrelated earlier braking.",
+      "pairs": [
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 37,
+          "plannedBudget": 200,
+          "complete": true,
+          "baseline": {
+            "budget": 200,
+            "valid": 136,
+            "failed": 64,
+            "bestId": "g10-16",
+            "score": 9.351300962387556,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.5882781256697486,
+            "maxLinkCoverage": 0.239378445961116,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 11,
+              "paretoParents": 6,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 372.792
+          },
+          "candidate": {
+            "budget": 200,
+            "valid": 115,
+            "failed": 85,
+            "bestId": "g8-14",
+            "score": 12.313480776405834,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.6926876643473714,
+            "maxLinkCoverage": 0.3283341542570142,
+            "guided": 77,
+            "guidedValid": 30,
+            "guidedFamilies": {
+              "connection-angle": {
+                "proposals": 58,
+                "valid": 30,
+                "coverageImprovements": 1,
+                "bestCoverageGain": 0.2673061879348181
+              },
+              "connection-speed": {
+                "proposals": 19,
+                "valid": 0,
+                "coverageImprovements": 0,
+                "bestCoverageGain": 0
+              }
+            },
+            "finalSelectionStats": {
+              "promotions": 6,
+              "paretoParents": 5,
+              "connectionProposals": 77,
+              "connectionImprovements": 1,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 349.043
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 1,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 56,
+            "failed": 24,
+            "bestId": "g3-14",
+            "score": 1.931212864941362,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0,
+            "maxLinkCoverage": 0.08686172690724057,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 4,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 155.706
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 55,
+            "failed": 25,
+            "bestId": "g4-16",
+            "score": 4.4221500440762505,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.14498546980359975,
+            "maxLinkCoverage": 0.1558718855807923,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 4,
+              "paretoParents": 4,
+              "connectionProposals": 0,
+              "connectionImprovements": 0,
+              "weakestArcs": [
+                0
+              ]
+            },
+            "elapsedSeconds": 162.782
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 73,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 59,
+            "failed": 21,
+            "bestId": "g4-7",
+            "score": 10.211324977469822,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.3890539391981358,
+            "maxLinkCoverage": 0.08242400078397169,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 1,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 170.511
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 47,
+            "failed": 33,
+            "bestId": "g4-2",
+            "score": 8.641598102368413,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.11511230413247873,
+            "maxLinkCoverage": 0.09789471211324291,
+            "guided": 28,
+            "guidedValid": 9,
+            "guidedFamilies": {
+              "connection-angle": {
+                "proposals": 24,
+                "valid": 9,
+                "coverageImprovements": 3,
+                "bestCoverageGain": 0.010808123622529406
+              },
+              "connection-speed": {
+                "proposals": 4,
+                "valid": 0,
+                "coverageImprovements": 0,
+                "bestCoverageGain": 0
+              }
+            },
+            "finalSelectionStats": {
+              "promotions": 4,
+              "paretoParents": 3,
+              "connectionProposals": 28,
+              "connectionImprovements": 2,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 145.542
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "supra-3.0t-rz",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 37,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 40,
+            "failed": 40,
+            "bestId": "g2-8",
+            "score": 11.983407850210536,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.6245912945398715,
+            "maxLinkCoverage": 0.2383228051150769,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 7,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 99.204
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 32,
+            "failed": 48,
+            "bestId": "g2-20",
+            "score": 11.927196859734641,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.6492122544001174,
+            "maxLinkCoverage": 0.23912127982471876,
+            "guided": 25,
+            "guidedValid": 5,
+            "guidedFamilies": {
+              "connection-angle": {
+                "proposals": 16,
+                "valid": 5,
+                "coverageImprovements": 1,
+                "bestCoverageGain": 0.006005264478815803
+              },
+              "connection-line": {
+                "proposals": 7,
+                "valid": 0,
+                "coverageImprovements": 0,
+                "bestCoverageGain": 0
+              },
+              "connection-speed": {
+                "proposals": 2,
+                "valid": 0,
+                "coverageImprovements": 0,
+                "bestCoverageGain": 0
+              }
+            },
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 5,
+              "connectionProposals": 25,
+              "connectionImprovements": 0,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 77.526
+          }
+        }
+      ]
+    },
+    {
+      "name": "candidate-v2",
+      "reason": "Specialist retention changed early exploration even when no guided proposal qualified.",
+      "pairs": [
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 37,
+          "plannedBudget": 200,
+          "complete": true,
+          "baseline": {
+            "budget": 200,
+            "valid": 136,
+            "failed": 64,
+            "bestId": "g10-16",
+            "score": 9.351300962387556,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.5882781256697486,
+            "maxLinkCoverage": 0.239378445961116,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 11,
+              "paretoParents": 6,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 372.792
+          },
+          "candidate": {
+            "budget": 200,
+            "valid": 140,
+            "failed": 60,
+            "bestId": "g10-15",
+            "score": 6.424614500046897,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.0936492137144563,
+            "maxLinkCoverage": 0.11733133088557063,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 6,
+              "paretoParents": 5,
+              "connectionProposals": 0,
+              "connectionImprovements": 0,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 420.276
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 1,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 56,
+            "failed": 24,
+            "bestId": "g3-14",
+            "score": 1.931212864941362,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0,
+            "maxLinkCoverage": 0.08686172690724057,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 4,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 155.706
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 55,
+            "failed": 25,
+            "bestId": "g4-16",
+            "score": 4.4221500440762505,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.14498546980359975,
+            "maxLinkCoverage": 0.1558718855807923,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 4,
+              "paretoParents": 4,
+              "connectionProposals": 0,
+              "connectionImprovements": 0,
+              "weakestArcs": [
+                0
+              ]
+            },
+            "elapsedSeconds": 207.566
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "porter-lpg-mt",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 73,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 59,
+            "failed": 21,
+            "bestId": "g4-7",
+            "score": 10.211324977469822,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.3890539391981358,
+            "maxLinkCoverage": 0.08242400078397169,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 1,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 170.511
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 56,
+            "failed": 24,
+            "bestId": "g4-7",
+            "score": 10.211324977469822,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.3890539391981358,
+            "maxLinkCoverage": 0.08242400078397169,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 2,
+              "connectionProposals": 0,
+              "connectionImprovements": 0,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 197.791
+          }
+        },
+        {
+          "samePhysics": true,
+          "sameScoring": true,
+          "sameGenome": true,
+          "samePreparedGene": true,
+          "vehicle": "supra-3.0t-rz",
+          "track": "kr-kic-t21-kdl-2016-r2",
+          "seed": 37,
+          "plannedBudget": 80,
+          "complete": true,
+          "baseline": {
+            "budget": 80,
+            "valid": 40,
+            "failed": 40,
+            "bestId": "g2-8",
+            "score": 11.983407850210536,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.6245912945398715,
+            "maxLinkCoverage": 0.2383228051150769,
+            "guided": 0,
+            "guidedValid": 0,
+            "guidedFamilies": {},
+            "finalSelectionStats": {
+              "promotions": 3,
+              "paretoParents": 7,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 99.204
+          },
+          "candidate": {
+            "budget": 80,
+            "valid": 42,
+            "failed": 38,
+            "bestId": "g3-18",
+            "score": 12.0852497415297,
+            "representativeCorners": 0,
+            "representativeLinks": 0,
+            "anyCornerComplete": 0,
+            "anyLinkComplete": 0,
+            "maxCornerCoverage": 0.6627499265218106,
+            "maxLinkCoverage": 0.27875481998742196,
+            "guided": 17,
+            "guidedValid": 7,
+            "guidedFamilies": {
+              "connection-angle": {
+                "proposals": 12,
+                "valid": 7,
+                "coverageImprovements": 3,
+                "bestCoverageGain": 0.01264634973124154
+              },
+              "connection-line": {
+                "proposals": 5,
+                "valid": 0,
+                "coverageImprovements": 0,
+                "bestCoverageGain": 0
+              }
+            },
+            "finalSelectionStats": {
+              "promotions": 5,
+              "paretoParents": 9,
+              "connectionProposals": 17,
+              "connectionImprovements": 1,
+              "weakestArcs": [
+                1
+              ]
+            },
+            "elapsedSeconds": 91.198
+          }
+        }
+      ]
+    }
+  ],
+  "sourceHashEncoding": "SHA-256 of frozen local file bytes. Physical/scoring/genome function signatures normalize line endings; Git may normalize local CRLF source files on publication.",
+  "physicalRegression": {
+    "fixture": "../test-fixtures/kic-t21-connection-progress.json",
+    "test": "../connection-replay.test.cjs",
+    "runs": 4,
+    "cached": false,
+    "passed": true,
+    "completedConnections": 0
+  }
+}
