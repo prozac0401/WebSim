@@ -98,6 +98,30 @@ test('speed repair changes pedals over observed prior braking rather than changi
  for(let k=0;k<G.KNOTS;k++)for(const channel of [C.targetSlip,C.lineOffset,C.counterLead,C.driveSlip,C.gearHold])assert.equal(child.gene[k*8+channel],f.parent.gene[k*8+channel]);
 });
 
+test('speed repair follows matching metric evidence and rejects an unrelated out-of-window trough as its fallback',()=>{
+ const f=fixture(),z=f.zones[1],actual=f.record.find(r=>r.s===z.exit+1),later=f.record.find(r=>r.s===z.exit+20);
+ assert.ok(actual&&later);actual.speed=12;later.speed=8;later.beta=0;
+ const target={...f.target,id:z.id,zoneId:z.id,start:z.cornerStart,end:z.exit,actualStart:z.cornerStart,actualEnd:z.exit,coverage:1,reason:'speed',breakS:actual.s,
+  minimumSpeed:12,evidenceSource:'metric-minimum',evidence:{s:actual.s,time:actual.time,speed:12}};
+ const child=propose(f,{mode:'speed',target});assert.equal(child.change.slowS,actual.s);assert.equal(child.change.speedEvidenceSource,'metric-minimum');
+ const fallback=propose(f,{mode:'speed',target:{...target,breakS:later.s,evidenceSource:null,evidence:null}});
+ assert.ok(fallback.change.slowS>=z.cornerStart&&fallback.change.slowS<=z.exit);
+ assert.notEqual(fallback.change.slowS,later.s);
+});
+
+test('an unobserved link minimum falls back inside the straight instead of the following corner',()=>{
+ const f=fixture(),link=f.links[0];
+ for(const frame of f.record)frame.speed=frame.s>=link.straightEnd+5?8:frame.s>link.straightStart+5?16:20;
+ const measured={id:link.id,coverage:1,complete:false,startTime:link.start/20,endTime:link.end/20,
+  distance:link.end-link.start,minSpeed:15.95,speedRetention:.7975,turnRatio:1};
+ const target=require('./connection-analysis.js').measure(f.track,{links:[measured]},f.record).links[0];
+ assert.equal(target.evidenceSource,'metric-minimum-unobserved');assert.equal(target.evidence,null);
+ const child=propose(f,{mode:'speed',target});
+ assert.ok(child.change.slowS>=link.straightStart&&child.change.slowS<=link.straightEnd);
+ assert.equal(f.record.find(frame=>frame.s===child.change.slowS).speed,16);
+ assert.equal(child.change.speedEvidenceSource,'required-window-minimum');
+});
+
 test('opposite-direction link changes sign through multiple interpolated knots rather than a step',()=>{
  const f=fixture({opposite:true}),link=f.links[0],mid=(f.zones[0].exit+f.zones[1].cornerStart)/2;
  for(let k=0;k<G.KNOTS;k++)f.parent.gene[k*8+C.targetSlip]=0;
