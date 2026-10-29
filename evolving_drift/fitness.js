@@ -128,7 +128,7 @@ function straightLinks(track){
  }
  const frozen=Object.freeze(links);linkCache.set(track,frozen);return frozen;
 }
-function newLinkState(zone,refs){return {zone,referenceSpeed:(refs[zone.fromZoneId]||0)*.8,referenceFloor:(refs[zone.fromZoneId]||0)*.8,referenceFixed:false,minimumSpeed:Infinity,exitSpeed:null,run:null,runs:[],lastS:-Infinity,previousHeading:null};}
+function newLinkState(zone,refs){return {zone,preparedPace:refs[zone.id]||0,referenceSpeed:(refs[zone.id]||0)*.8,referenceFloor:(refs[zone.id]||0)*.8,referenceFixed:false,minimumSpeed:Infinity,exitSpeed:null,run:null,runs:[],lastS:-Infinity,previousHeading:null};}
 function closeLink(state){if(state.run)state.runs.push(state.run);state.run=null;}
 function advanceLink(state,a,f,moving,spinDetected){
  const z=state.zone;if(!a||!moving||spinDetected){closeLink(state);state.previousHeading=null;return 0;}
@@ -184,16 +184,51 @@ function linkSnapshot(state){
   const complete=run.start<=z.start+1e-9&&run.end>=z.end-1e-9&&coverage>=1-1e-9&&turning>=1-1e-9&&direction&&retention>=.9;
   const quality=coverage*(.2+.8*turning)*speed;
   return {...z,startTime:run.startTime,endTime:run.endTime,distance:run.distance,duration:run.duration,coverage,complete,quality,
-   entrySpeed:state.referenceSpeed,minSpeed:Number.isFinite(state.minimumSpeed)?state.minimumSpeed:0,exitSpeed:state.exitSpeed??run.exitSpeed,speedRetention:Number.isFinite(retention)?retention:0,speedScope:'straight-window',
+   entrySpeed:state.referenceSpeed,minSpeed:Number.isFinite(state.minimumSpeed)?state.minimumSpeed:0,exitSpeed:state.exitSpeed??run.exitSpeed,speedRetention:Number.isFinite(retention)?retention:0,speedScope:'straight-window',referenceScope:'straight-entry',preparedPace:state.preparedPace,referenceFloor:state.referenceFloor,
    transitionDuration:run.transitionDuration,transitionDistance:run.transitionDistance,score:WEIGHTS.connection*quality*connectionFactor(coverage)};
  });
  return described.sort((a,b)=>b.score-a.score||b.coverage-a.coverage)[0]||{...z,startTime:null,endTime:null,distance:0,duration:0,coverage:0,complete:false,quality:0,entrySpeed:state.referenceSpeed,minSpeed:0,exitSpeed:0,speedRetention:0,transitionDuration:0,transitionDistance:0,score:0};
 }
+function preparedPace(record,start,end){
+ // A fixed distance-sampled lower quintile describes the verified corner or
+ // straight pace. It ignores an isolated slow sample without confusing the
+ // preceding acceleration/braking approach with feasible corner speed.
+ if(record.length<2||!(end>start))return 0;
+ const samples=[];let i=0;const step=Math.max(1,(end-start)/200);
+ for(let s=start;s<=end+1e-8;s+=step){
+  while(i<record.length-2&&record[i+1].s<s)i++;
+  const a=record[i],b=record[i+1];if(!a||!b||![a.s,b.s,a.speed,b.speed].every(Number.isFinite)||a.s>s||b.s<s||b.s<=a.s)continue;
+  samples.push(a.speed+(b.speed-a.speed)*(s-a.s)/(b.s-a.s));
+ }
+ if(!samples.length)return 0;samples.sort((a,b)=>a-b);return samples[Math.floor((samples.length-1)*.2)];
+}
 function referenceSpeeds(track,record=[]){
- const refs={};for(const z of apexZones(track)){
-  let peak=0;for(const f of record)if(f.s>=z.referenceStart&&f.s<=z.start&&Number.isFinite(f.speed))peak=Math.max(peak,f.speed);
-  refs[z.id]=peak;
- }return refs;
+ const refs={};for(const z of apexZones(track))refs[z.id]=preparedPace(record,z.cornerStart,z.exit);
+ for(const z of straightLinks(track))refs[z.id]=preparedPace(record,z.straightStart,z.straightEnd);
+ return refs;
+}
+function advanceReference(state,a,f,moving){
+ const z=state.zone;if(state.referenceFixed)return;
+ const floor=state.referenceFloor,eligible=q=>q&&q.s>=state.referenceAllowedStart&&q.beta*z.sign<0&&Math.abs(q.beta)/DEG>=10&&Math.abs(q.beta)/DEG<=70&&q.speed>=Math.max(8,floor*.9);
+ if(moving&&f.s<=z.cornerStart&&eligible(f)){
+  if(!state.referenceRun){const origin=eligible(a)?a:f;state.referenceRun={s:origin.s,time:origin.time,peak:origin.speed,distance:0};}
+  const run=state.referenceRun;run.peak=Math.max(run.peak,f.speed);run.distance+=Math.hypot(f.x-a.x,f.y-a.y);
+  if(f.time-run.time>=.25-1e-9&&run.distance>=3){
+   if(!state.earlyReference){state.referenceS=run.s;state.referenceTime=run.time;}
+   // Once sustained drift is observed, its speed reference can only rise
+   // until the core entry. Release/restart or later braking cannot lower it.
+   state.earlyReference=Math.max(state.earlyReference,run.peak);
+  }
+ }else state.referenceRun=null;
+ // The current short attempt has a provisional speed too, so its first few
+ // metres are not lost solely because a faster car travels farther in .25 s.
+ state.referenceSpeed=Math.max(floor,state.earlyReference,state.referenceRun?.peak||0);
+ const atEntry=Math.abs(f.s-z.cornerStart)<=1e-9;
+ if(atEntry||moving&&a.s<z.cornerStart&&f.s>=z.cornerStart){
+  const u=atEntry?1:clamp((z.cornerStart-a.s)/(f.s-a.s),0,1),entry=atEntry?f.speed:a.speed+(f.speed-a.speed)*u;
+  if(!state.earlyReference){state.referenceS=z.cornerStart;state.referenceTime=atEntry?f.time:a.time+(f.time-a.time)*u;}
+  state.referenceSpeed=Math.max(floor,state.earlyReference,entry);state.referenceFixed=true;
+ }
 }
 function newFit(){return {moments:[0,0,0,0,0],x:[0,0,0],y:[0,0,0],norm:0,origin:null,start:Infinity,end:-Infinity,count:0};}
 function addFit(fit,u,x,y,weight){
@@ -230,13 +265,13 @@ function connectionOf(run,state){
 }
 const connectionFactor=coverage=>.15+.85*coverage*coverage;
 function describeRun(run,state){
- const z=state.zone,angle=run.distance>0?run.angleIntegral/run.distance:0,minSpeed=Math.min(run.minSpeed,state.minimumSpeed),retention=run.entrySpeed>0?minSpeed/run.entrySpeed:0;
+ const z=state.zone,angle=run.distance>0?run.angleIntegral/run.distance:0,minSpeed=Math.min(run.minSpeed,state.minimumSpeed),retention=state.referenceSpeed>0?minSpeed/state.referenceSpeed:0;
  const link=connectionOf(run,state),bridge=link.coverage*link.turn;
  const curve=fitQuality(state)*turnQuality(state),coverage=run.creditedDistance/(z.end-z.start);
  const complete=link.coverage>=1-1e-9&&link.turn>=1-1e-9&&retention>=.9;
  return {zoneId:z.id,zoneExit:z.exit,start:run.start,end:run.end,startTime:run.startTime,endTime:run.endTime,distance:run.distance,duration:run.duration,
   initiationS:run.initiationS,initiationTime:run.initiationTime,startedBeforeStart:run.startedBeforeStart,
-  distanceWeightedAngle:angle,entrySpeed:run.entrySpeed,minSpeed,exitSpeed:run.exitSpeed,speedRetention:retention,speedScope:'apex-window',curveQuality:curve,
+  distanceWeightedAngle:angle,entrySpeed:state.referenceSpeed,minSpeed,exitSpeed:run.exitSpeed,speedRetention:retention,speedScope:'apex-window',referenceScope:'core-entry-or-earlier-drift',referenceSource:state.earlyReference?'sustained-drift':state.referenceFixed?'core-entry':state.referenceRun?'provisional-drift':'prepared-core',referenceS:state.referenceS,referenceTime:state.referenceTime,preparedPace:state.preparedPace,referenceFloor:state.referenceFloor,curveQuality:curve,
   continuity:clamp(run.progress/(z.end-z.start),0,1),anchored:link.before>0&&link.after>0&&run.turn>.08,sign:run.sign,
   connectionCoverage:link.coverage,complete,
   score:(WEIGHTS.sideways*coverage*turnQuality(state)+WEIGHTS.connection*bridge*turnQuality(state)+WEIGHTS.curve*coverage*curve+WEIGHTS.propulsion*run.propelledDistance/(z.end-z.start)*turnQuality(state))*retainedQuality(state)*connectionFactor(link.coverage),bridge};
@@ -276,7 +311,7 @@ function preparationOrigin(frames,reference){
 function measure(result,track,vehicle,options={}){
  const frames=options.record||result.frames||[],allZones=apexZones(track),zones=options.zoneId?allZones.filter(z=>z.id===options.zoneId):allZones;
  const refs={...(options.referenceSpeeds||result.drift?.referenceSpeeds||(options.reference?referenceSpeeds(track,options.reference):{}))};
- const states=zones.map(zone=>({zone,approachPeak:0,referenceSeen:false,referenceSpeed:0,minimumSpeed:Infinity,preparation:[],fit:newFit(),runs:[],run:null,credit:0,propulsion:0,sidewaysDistance:0,coveredDistance:0,angleDistance:0,angleIntegral:0,signedTurn:0,absoluteTurn:0,previousHeading:null,lastS:-Infinity}));
+ const states=zones.map(zone=>{const index=allZones.indexOf(zone),pace=refs[zone.id]||0;return {zone,preparedPace:pace,referenceFloor:pace*.8,referenceSpeed:pace*.8,referenceFixed:false,earlyReference:0,referenceRun:null,referenceS:null,referenceTime:null,referenceAllowedStart:index>0?allZones[index-1].exit:2.5,minimumSpeed:Infinity,preparation:[],fit:newFit(),runs:[],run:null,credit:0,propulsion:0,sidewaysDistance:0,coveredDistance:0,angleDistance:0,angleIntegral:0,signedTurn:0,absoluteTurn:0,previousHeading:null,lastS:-Infinity};});
  const linkStates=straightLinks(track).filter(z=>!options.zoneId||z.fromZoneId===options.zoneId||z.toZoneId===options.zoneId).map(z=>newLinkState(z,refs));
  const timeline=[],p=vehicle.physics||vehicle;let spinDetected=false,lastScore=0;
  const close=state=>{if(state.run)state.runs.push(state.run);state.run=null;};
@@ -289,12 +324,8 @@ function measure(result,track,vehicle,options={}){
   let active=null,retention=0,currentRun=null,currentContribution=0;
   for(const state of states){
    const z=state.zone;
-   // The reference belongs to a fixed approach section, not to a sliding
-   // episode. Releasing/restarting drift cannot lower it after a speed loss.
-   if(f.s>=z.referenceStart&&f.s<=z.start&&Number.isFinite(f.speed)){state.approachPeak=Math.max(state.approachPeak,f.speed);state.referenceSeen=true;}
-   if(a&&a.s<z.start&&f.s>z.start&&moving&&f.s-a.s<5){const u=(z.start-a.s)/(f.s-a.s);state.approachPeak=Math.max(state.approachPeak,a.speed+(f.speed-a.speed)*u);state.referenceSeen=true;}
-   const reference=Math.max(state.approachPeak,(refs[z.id]||0)*.8),ratio=reference>0?f.speed/reference:0;
-   state.referenceSpeed=reference;
+   advanceReference(state,a,f,moving&&!spinDetected);
+   const reference=state.referenceSpeed,ratio=reference>0?f.speed/reference:0;
    if(f.s>=z.start&&f.s<=z.end){active=state;retention=ratio;}
    if(!a||!moving||spinDetected){close(state);state.preparation=[];state.previousHeading=null;continue;}
    const rightSign=(f.beta||0)*z.sign<0;
@@ -372,6 +403,6 @@ function rank(vehicle,track,result,record=result.frames,options={}){
   styleScore:result.styleScore??result.score??0,score:drift.score,drift,power};
 }
 function replayTimeline(result,track,vehicle,record=result.frames){return measure({...result,frames:record},track,vehicle,{trace:true,diagnostics:false}).timeline;}
-function signature(){return JSON.stringify(WEIGHTS)+'\n'+[exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,referenceSpeeds,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
-const api=Object.freeze({VERSION:5,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+function signature(){return JSON.stringify(WEIGHTS)+'\n'+[exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,preparedPace,referenceSpeeds,advanceReference,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
+const api=Object.freeze({VERSION:6,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

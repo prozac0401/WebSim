@@ -152,6 +152,51 @@
     }
     return selected;
   }
+  // Keep the public fitness unchanged. Preserve completed connections, then
+  // compare the weakest contributions first. A strong partial corner may
+  // trade some points to improve a weaker one without locking in early luck.
+  function selectionProfile(result){
+    const drift=result?.drift;if(!Array.isArray(drift?.arcs)||!drift.arcs.length)return null;
+    const regions=[...drift.arcs.map(a=>({id:a.zoneId,value:clamp((a.score||0)/100,0,1),complete:!!a.complete})),
+      ...(drift.links||[]).map(l=>({id:l.id,value:clamp((l.score||0)/45,0,1),complete:!!l.complete}))];
+    return regions;
+  }
+  function preservesRegions(candidate,incumbent){
+    const a=selectionProfile(candidate.result),b=selectionProfile(incumbent.result);if(!a||!b)return true;
+    const values=new Map(a.map(r=>[r.id,r]));
+    if(!b.every(r=>{const next=values.get(r.id);return !!next&&(!r.complete||next.complete);}))return false;
+    const before=b.map(r=>r.value).sort((x,y)=>x-y),after=b.map(r=>values.get(r.id).value).sort((x,y)=>x-y);
+    for(let i=0;i<before.length;i++){
+      if(after[i]<before[i]-.001)return false;
+      if(after[i]>before[i]+.001)return true;
+    }
+    return true;
+  }
+  function paretoEntries(entries){
+    const profiles=new Map(entries.map(e=>[e,selectionProfile(e.result)]));
+    return entries.filter(entry=>!entries.some(other=>{
+      if(other===entry)return false;const a=profiles.get(other),b=profiles.get(entry);if(!a||!b)return false;
+      const values=new Map(a.map(r=>[r.id,r]));let better=false;
+      for(const r of b){const q=values.get(r.id);if(!q||r.complete&&!q.complete||q.value+1e-8<r.value)return false;if(q.complete&&!r.complete||q.value>r.value+1e-8)better=true;}
+      return better;
+    }));
+  }
+  function localGeneDistance(a,b,zone,trackLength,lineBounds=null){
+    const lo=Math.max(0,Math.floor((zone.referenceStart??zone.start)/trackLength*(G.KNOTS-1))-1),hi=Math.min(G.KNOTS-1,Math.ceil(zone.end/trackLength*(G.KNOTS-1))+1);
+    let sum=0,count=0;for(let knot=lo;knot<=hi;knot++)for(let channel=0;channel<G.STRIDE;channel++){
+      const d=G.DESCRIPTORS[channel],bound=lineBounds?.[knot],range=d.key==='lineOffset'?Math.max(1,bound?bound.max-bound.min:8):d.max-d.min;
+      sum+=((a[knot*G.STRIDE+channel]-b[knot*G.STRIDE+channel])/range)**2;count++;
+    }return Math.sqrt(sum/Math.max(1,count));
+  }
+  function weakestArcs(entry,zones){
+    const d=entry?.result?.drift;if(!d?.arcs?.length)return zones.map((_,i)=>i);
+    const scores=zones.map(z=>{
+      const a=d.arcs.find(a=>a.zoneId===z.id),links=(d.links||[]).filter(l=>l.fromZoneId===z.id||l.toZoneId===z.id);
+      const arc=clamp((a?.score||0)/100,0,1),linked=links.length?links.reduce((n,l)=>n+clamp((l.score||0)/45,0,1),0)/links.length:arc;
+      return .7*arc+.3*linked;
+    }),low=Math.min(...scores);
+    return scores.map((value,i)=>value<=low+1e-6?i:-1).filter(i=>i>=0);
+  }
   class Engine {
     constructor(vehicle,track,options={}){
       if(!vehicle||!track)throw new TypeError('A fixed vehicle and a track are required.');
@@ -173,6 +218,7 @@
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
       this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
       this._learningEnabled=options.learning!==false;this._learning=null;
+      this._weakestArcIndices=[];this._selectionStats={balancedPromotions:0,guardedRegressions:0,paretoParents:0};
       this._parents=[];this._best=null;this._lastCandidate=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
       this.initialized=false;this.ready=false;this.blockedReason=null;this.generation=0;this.totalEvaluated=0;this.history=[];this.plateauGenerations=0;
       this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
@@ -196,6 +242,7 @@
       this._baselineEntry=entry;
       if(this._strategyRequested&&Strategies?.supports(this.vehicle,this.track,entry.record)){
         this._strategyZones=Strategies.zones(this.track);this._nicheArchives=this._strategyZones.map(()=>[entry]);this._entryCounts=this._strategyZones.map(()=>0);
+        this._weakestArcIndices=weakestArcs(entry,this._strategyZones);
         this._learning=new Learning.Policy(this._strategyZones,{enabled:this._learningEnabled,scale:this.mutationScale});
       }
       this.history.push({generation:0,bestScore:entry.result.score,validCount:1,failureCount:0,evaluated:1,mutationScale:this.mutationScale,plateauGenerations:0});return this.snapshot();
@@ -206,10 +253,11 @@
       return cached[arc];
     }
     _intentCandidate(){
-      const learned=this._learning?.choose(this._rng,Strategies.FAMILIES);
+      const learned=this._learning?.choose(this._rng,Strategies.FAMILIES,{weakestArcs:this._weakestArcIndices});
       const arc=learned?.arc??Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
-      const parent=this._rng()<.6?pool[0]:pool[Math.floor(this._rng()*pool.length)],metric=this._regional(parent,arc);
-      const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)};
+      const exploit=this._rng()<.6&&this._regional(pool[0],arc).score>1e-8;
+      const parent=exploit?pool[0]:pool[Math.floor(this._rng()*pool.length)],metric=this._regional(parent,arc);
+      const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],referenceRecord:this._baselineEntry.record,referenceGene:this._baselineEntry.gene,scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)};
       this._entryCounts[arc]++;
       if(learned?.repair){
         const proposal=Strategies.repair(this.vehicle,this.track,parent,this._rng,{...options,family:learned.family,diagnosis:learned.repair});
@@ -221,9 +269,10 @@
         const gene=normalizeGene(Strategies.couple(this.vehicle,this.track,parent.gene,raw,parent.record),limits);
         return {parentId:parent.id,gene,kind:'global-'+strategy,arcIndex:arc};
       }
-      if(this._entryCounts[arc]>8&&metric.bestArc?.distance>5&&this._rng()<.8){
+      const warmParent=parent.id!=='baseline'&&metric.score<=1e-8&&this._entryCounts[arc]>8&&this._rng()<.5;
+      if(this._entryCounts[arc]>8&&(metric.bestArc?.distance>5||warmParent)&&this._rng()<.8){
         const run=metric.bestArc,zone=this._strategyZones[arc];
-        const missingConnection=(run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5;
+        const missingConnection=!!run&&((run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5);
         const missingLink=metric.links?.some(link=>!link.complete);
         const family=missingLink&&this._rng()<.4?'link':missingConnection&&this._rng()<.45?'bridge':learned?.family;
         const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,{...options,family});
@@ -233,17 +282,32 @@
       const proposal=Strategies.entry(this.vehicle,this.track,this._baselineEntry,this._rng,arc,previous,options);
       // Every entry macro starts with the prepared genome. Parameter ancestry
       // is separate from the actual input genome, including on a restart.
-      return {parentId:this._baselineEntry.id,parameterParentId:previous?parent.id:null,gene:proposal.gene,params:proposal.params,kind:'immigrant',arcIndex:arc};
+      return {parentId:this._baselineEntry.id,parameterParentId:previous?parent.id:null,gene:proposal.gene,params:proposal.params,kind:'immigrant',arcIndex:arc,mutation:proposal.change?Object.freeze({...proposal.change}):undefined};
     }
     _retainNiche(entries,arc){
       const unique=new Map(entries.filter(e=>e.accepted&&isValidResult(e.result)).map(e=>[e.id,e]));
       const ranked=[...unique.values()].sort((a,b)=>this._regional(b,arc).score-this._regional(a,arc).score||a.sequence-b.sequence);
-      const chosen=[],keys=new Set();
-      for(const entry of ranked){const run=this._regional(entry,arc).bestArc,s=run?.end??this._strategyZones[arc].exit;
-        const link=this._regional(entry,arc).bestLink;
-        const key=[Math.floor((run?.distance||0)/3),Math.floor((run?.distanceWeightedAngle||0)/5),Math.floor((run?.speedRetention||0)*10),Math.floor((link?.coverage||0)*10),Math.floor(G.sample(entry.gene,s,this.track.length).lineOffset/1.5),entry.params?'entry':'adaptive'].join('/');
-        if(keys.has(key))continue;keys.add(key);chosen.push(entry);if(chosen.length>=16)break;
-      }
+      const chosen=[],zone=this._strategyZones[arc],distance=(a,b)=>localGeneDistance(a.gene,b.gene,zone,this.track.length,this.lineBounds);
+      const add=entry=>{if(entry&&!chosen.some(p=>p.id===entry.id)&&(!chosen.length||Math.min(...chosen.map(p=>distance(p,entry)))>1e-7))chosen.push(entry);};
+      add(ranked[0]);add(this._baselineEntry);
+      const behavior=entry=>{const m=this._regional(entry,arc),r=m.bestArc,l=m.bestLink;return [clamp((r?.distance||0)/Math.max(1,zone.end-zone.start),0,1),clamp((r?.distanceWeightedAngle||0)/70,0,1),clamp(r?.speedRetention||0,0,1),r?.connectionCoverage||0,l?.coverage||0];};
+      const vectors=new Map(ranked.map(e=>[e,behavior(e)]));
+      const spread=(pool,limit)=>{
+        const rest=pool.filter(e=>!chosen.some(p=>p.id===e.id));
+        while(chosen.length<limit&&rest.length){let index=-1,merit=-1;
+          for(let i=0;i<rest.length;i++){
+            const entry=rest[i],local=Math.min(...chosen.map(p=>distance(p,entry)));if(local<=1e-7)continue;
+            const vector=vectors.get(entry),novelty=Math.min(...chosen.map(p=>{const v=vectors.get(p)||behavior(p);return Math.sqrt(vector.reduce((n,x,k)=>n+(x-v[k])**2,0)/vector.length);}));
+            const quality=clamp(this._regional(entry,arc).score/100,0,1),value=(local+novelty*.25)*(.8+.2*quality);
+            if(value>merit){merit=value;index=i;}
+          }
+          if(index<0)break;chosen.push(rest.splice(index,1)[0]);
+        }
+      };
+      // Pareto specialists are real proposal parents, including candidates
+      // whose global score is lower. Remaining slots preserve locally novel
+      // zero-score preparation so the grip baseline cannot win every tie.
+      spread(paretoEntries(ranked),6);spread(ranked,16);
       return chosen.length?chosen:[this._baselineEntry];
     }
     planCandidate(){
@@ -265,14 +329,17 @@
       this._planned.shift();const complete=isValidResult(result),record=result?.frames||[];
       if(!complete&&result&&FailureAnalysis)result={...result,failureAnalysis:FailureAnalysis.analyze(this.vehicle,this.track,result,{zones:this._strategyZones})};
       // Failed runs never enter ranking or parent selection, but replaying
-      // their valid prefix still needs the same fixed approach-speed floor.
+      // their valid prefix still needs the same prepared regional pace floor.
       const referenceSpeeds=this._baselineEntry.result.drift?.referenceSpeeds;
       const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
         result&&referenceSpeeds?{...result,drift:{...result.drift,referenceSpeeds:{...referenceSpeeds}}}:result;
       const accepted=complete&&isValidResult(ranked),entry={...planned,result:ranked,record,accepted};
       if(result?.evaluation){for(const key of ['simulatedTicks','reusedTicks','totalTicks'])this._evaluationStats[key]+=result.evaluation[key]||0;if(result.evaluation.cacheHit)this._evaluationStats.cacheHits++;this._evaluationStats.evaluations++;}
       this._candidates.push(entry);this._lastCandidate=entry;this.totalEvaluated++;this.stats.evaluated++;
-      if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;this._best=entry;}}else this.stats.failureCount++;
+      if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){
+        if(preservesRegions(entry,this._best)){if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;this._best=entry;this._selectionStats.balancedPromotions++;}
+        else this._selectionStats.guardedRegressions++;
+      }}else this.stats.failureCount++;
       if(this._candidates.length===this.populationSize)this._finishGeneration();return this.snapshot();
     }
     _evaluateCandidate(){
@@ -301,6 +368,8 @@
       // Reservations in a generation all see these same archives. New replay
       // results only become parents when the complete generation is accepted.
       for(let arc=0;arc<this._strategyZones.length;arc++)this._nicheArchives[arc]=this._retainNiche([...this._nicheArchives[arc],...valid],arc);
+      this._weakestArcIndices=weakestArcs(this._best,this._strategyZones);
+      this._selectionStats.paretoParents=paretoEntries([...new Map(this._nicheArchives.flat().map(e=>[e.id,e])).values()]).length;
       const rate=valid.length/this.populationSize,usedScale=this.mutationScale,multiplier=!valid.length?.5:rate<.2?.7:meaningful?.94:this.plateauGenerations>=3&&rate>.35?1.12:1;
       const localScales=this._learning?.enabled?this._learning.snapshot().zones.map(z=>z.scale):[];
       this.mutationScale=clamp(localScales.length?localScales.reduce((a,b)=>a+b,0)/localScales.length:usedScale*multiplier,this.minMutationScale,this.maxMutationScale);this.generation++;
@@ -310,7 +379,7 @@
     }
     step(count=1){if(!Number.isInteger(count)||count<1||count>10000)throw new RangeError('step count must be between 1 and 10000.');if(!this.initialized)this.initialize();if(this.ready)for(let i=0;i<count;i++)this._evaluateCandidate();return this.snapshot();}
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
-    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
+    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
-  const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,selectionProfile,preservesRegions,paretoEntries,localGeneDistance,weakestArcs,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

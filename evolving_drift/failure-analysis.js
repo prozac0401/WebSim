@@ -57,7 +57,7 @@
   }
   if(!episode||episode.adverseTime<.3||episode.distance<2.5||features.length<3)return unknown();
   const originFrame=features[episode.index],end=features.at(-1),span=features.slice(episode.index),hypotheses=[],recommended=new Set(['line','combined']);
-  let maxPath=0,maxHeading=0,maxSlip=0,maxDemand=0,saturation=0,counter=0,demandTime=0,oppositeTime=0,oppositeLongest=0,oppositeZone=null,oppositeRunZone=null,priorDriftTime=0,slipErrorMax=0;
+  let maxPath=0,maxHeading=0,maxSlip=0,maxDemand=0,saturation=0,counter=0,demandTime=0,oppositeTime=0,oppositeLongest=0,oppositeZone=null,oppositeRunZone=null,priorDriftTime=0,slipErrorMax=0,demandFrame=null;
   for(const f of span){
    maxPath=Math.max(maxPath,Math.abs(f.pathError));maxHeading=Math.max(maxHeading,Math.abs(f.headingError));maxSlip=Math.max(maxSlip,Math.abs(f.beta));
    const adverse=f.path||f.spin;
@@ -66,7 +66,7 @@
    if(adverse&&limited)saturation+=f.dt;
    if(f.slipError!==null)slipErrorMax=Math.max(slipErrorMax,Math.abs(f.slipError));
    if(adverse&&f.slipError!==null&&Math.abs(f.slipError)>10*DEG&&f.correction!==null&&f.correction*Math.sign(f.slipError)<1*DEG)counter+=f.dt;
-   if(adverse&&f.demand!==null&&f.demand>1.1){demandTime+=f.dt;maxDemand=Math.max(maxDemand,f.demand);}
+   if(adverse&&f.demand!==null&&f.demand>1.1){demandTime+=f.dt;if(f.demand>maxDemand){maxDemand=f.demand;demandFrame=f;}}
    const z=zones[f.zoneIndex];
    // A body can countersteer or keep rotating during a correct direction
    // change. Only the measured velocity trajectory, after the entry margin
@@ -102,18 +102,26 @@
    hypotheses.push({kind:'counter-response',confidence:'low',summary:'큰 슬립 목표 오차에 비해 기록된 조향 보정의 방향·크기가 충분하지 않았을 가능성이 있습니다. 목표선 보정과의 상쇄도 가능하므로 조향 부호만으로 원인을 단정하지 않습니다.'});
    evidence.push({label:'예측 슬립각과 목표 차이',value:round(slipErrorMax/DEG),unit:'°'});recommended.add('lead');recommended.add('steer');
   }
-  if(demandTime>=.4){
+  let speedPreparation=null;
+  if(demandTime>=.4&&demandFrame){
    hypotheses.push({kind:'speed-demand',confidence:'low',summary:'관측 속도와 코스 곡률로 계산한 횡가속 요구가 차량의 명목 접지 추정치를 넘었습니다. 실제 목표선과 노면의 근사가 있으므로 과속이 원인이라고 확정할 수 없습니다.'});
-   evidence.push({label:'명목 접지 대비 곡률·속도 요구',value:round(maxDemand),unit:'배'});recommended.add('power');recommended.add('angle');
+   evidence.push({label:'명목 접지 대비 곡률·속도 요구',value:round(maxDemand),unit:'배'});recommended.add('entry-speed');recommended.add('power');recommended.add('angle');
+   // Locate a possible braking window before the observed error. This is an
+   // estimate for selecting gene mutations, never an injected speed limit.
+   const targetSpeed=demandFrame.speed/Math.sqrt(maxDemand),deceleration=.55*Math.min(p.brakeAcceleration||9.8,9.81*(p.gripCoefficient||1));
+   const observedSpeed=Math.max(originFrame.speed,demandFrame.speed),distance=Math.max(0,(observedSpeed**2-targetSpeed**2)/(2*deceleration))+observedSpeed*.4;
+   speedPreparation={targetS:demandFrame.s,observedSpeed,targetSpeed,requiredDistanceM:distance,brakingStartS:Math.max(2.5,demandFrame.s-distance),deceleration};
+   evidence.push({label:'사전 감속 탐색에 필요한 추정 거리',value:round(distance),unit:'m'});
   }
   // Include preparation before the observed divergence, without labelling
   // that earlier, possibly normal, driving as a proven cause.
   let startS=Math.max(2.5,origin.s-clamp(originFrame.speed*.8,8,35));
+  if(speedPreparation)startS=Math.min(startS,speedPreparation.brakingStartS);
   if(precedingZoneIndex!==null){const prior=zones[precedingZoneIndex];if(prior)startS=Math.min(startS,Math.max(2.5,prior.exit-clamp(originFrame.speed*.8,10,35)));}
   let startTime=origin.time;for(const f of features){if(f.s>=startS){startTime=f.time;break;}}
   const kind=span.some(f=>f.path)?'trajectory-divergence':'spin-development';
   return {version:VERSION,kind,summary:'실패 '+Math.max(0,failure.time-origin.time).toFixed(1)+'초 전부터 '+(kind==='trajectory-divergence'?'목표선 오차와 진행 방향의 어긋남':'슬립각 증가와 차체 회전')+'이 지속된 기록이 확인됩니다. 원인 가설은 별도로 표시합니다.',
-   failure,origin,window:{startS,endS:failure.s,startTime,endTime:failure.time},evidence,hypotheses,recommendedFamilies:[...recommended],...(precedingZoneIndex!==null?{precedingZoneIndex}:{})};
+   failure,origin,window:{startS,endS:failure.s,startTime,endTime:failure.time},evidence,hypotheses,recommendedFamilies:[...recommended],...(speedPreparation?{speedPreparation}:{}),...(precedingZoneIndex!==null?{precedingZoneIndex}:{})};
  }
  const api=Object.freeze({VERSION,analyze});root.DriftFailureAnalysis=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

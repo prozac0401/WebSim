@@ -77,6 +77,82 @@ test('an intentionally slow approach is constrained by the prepared reference sp
   assert.ok(ranked.score<fast.score*.25);assert.ok(ranked.drift.speedRetention<fast.drift.speedRetention);
 });
 
+test('prepared floors use robust distance-based core pace and independent connecting-straight pace',()=>{
+ const course={id:'prepared-paces',length:300,judgedStart:20,judgedEnd:260,sample:s=>({curvature:s>=60&&s<=100?.014:s>=180&&s<=220?.014:0})};
+ const zones=Fitness.apexZones(course),link=Fitness.straightLinks(course)[0];
+ const speed=s=>s>=zones[0].cornerStart&&s<=zones[0].exit?12:s>=zones[1].cornerStart&&s<=zones[1].exit?9:s>=link.straightStart&&s<=link.straightEnd?16:30;
+ const record=replay({course,speed,angle:0}).frames,refs=Fitness.referenceSpeeds(course,record);
+ assert.equal(refs[zones[0].id],12);assert.equal(refs[zones[1].id],9);assert.equal(refs[link.id],16);
+ const noisy=record.map(f=>({...f,speed:Math.abs(f.s-zones[0].apex)<.3?.5:f.speed}));
+ assert.deepEqual(Fitness.referenceSpeeds(course,noisy),refs,'one anomalous slow sample cannot lower a fixed core reference');
+});
+
+test('planned braking before actual drift and core entry can maintain a feasible corner pace',()=>{
+ const z=Fitness.apexZones(track)[0],speed=s=>25-13*clamp((s-z.start)/(z.cornerStart-z.start-4),0,1);
+ const reference=replay({speed,angle:0}),raw=replay({speed,angleStart:z.cornerStart,angle:35});
+ const m=Fitness.rank(vehicle,track,raw,raw.frames,{reference:reference.frames}).drift;
+ assert.equal(m.fullConnectionCount,1);assert.ok(m.score>0);assert.ok(Math.abs(m.bestArc.entrySpeed-12)<1e-9);
+ assert.ok(Math.abs(m.bestArc.speedRetention-1)<1e-9);assert.equal(m.bestArc.referenceScope,'core-entry-or-earlier-drift');
+ assert.equal(m.bestArc.referenceSource,'core-entry');assert.equal(m.bestArc.preparedPace,12);assert.ok(Math.abs(m.bestArc.referenceFloor-9.6)<1e-9);
+});
+
+test('the same braking after sustained drift begins remains a real speed loss, including before START',()=>{
+ const z=Fitness.apexZones(preparationTrack)[0],speed=s=>s<80?25:12,reference=replay({course:preparationTrack,speed:12,angle:0});
+ const raw=replay({course:preparationTrack,angleStart:50,angle:s=>s>=80&&s<110?0:35,speed});
+ const m=Fitness.rank(vehicle,preparationTrack,raw,raw.frames,{reference:reference.frames}).drift;
+ assert.equal(m.bestArc,null,'the low-speed restart cannot even establish a credited episode');assert.equal(m.score,0);assert.equal(m.fullConnectionCount,0);
+ const resumed=replay({course:preparationTrack,angleStart:50,angle:s=>s>=80&&s<110?0:35,speed:s=>s<80?25:20});
+ const p=Fitness.rank(vehicle,preparationTrack,resumed,resumed.frames,{reference:reference.frames}).drift;
+ assert.equal(p.bestArc.entrySpeed,25);assert.equal(p.bestArc.referenceSource,'sustained-drift');assert.ok(p.bestArc.referenceS<z.start);
+ assert.ok(Math.abs(p.bestArc.speedRetention-.8)<1e-9);assert.equal(p.fullConnectionCount,0);
+});
+
+test('a brief pre-entry feint cannot anchor the unrelated earlier straight peak',()=>{
+ const z=Fitness.apexZones(track)[0],feint=z.start+2,speed=s=>25-13*clamp((s-feint-2)/(z.cornerStart-feint-6),0,1);
+ const raw=replay({speed,angleStart:0,angle:s=>s>=feint&&s<feint+1||s>=z.cornerStart?35:0});
+ const reference=replay({speed,angle:0}),m=Fitness.rank(vehicle,track,raw,raw.frames,{reference:reference.frames}).drift;
+ assert.equal(m.bestArc.entrySpeed,12);assert.equal(m.bestArc.referenceSource,'core-entry');assert.equal(m.fullConnectionCount,1);
+});
+
+test('an unconfirmed short feint at the exact core-entry sample cannot become a locked peak',()=>{
+ const z=Fitness.apexZones(track)[0],speed=s=>s<z.cornerStart?25:12,raw=replay({speed,angleStart:z.cornerStart-.5}),reference=replay({speed:12,angle:0});
+ const m=Fitness.rank(vehicle,track,raw,raw.frames,{reference:reference.frames}).drift;
+ assert.equal(m.bestArc.entrySpeed,12);assert.equal(m.bestArc.referenceSource,'core-entry');assert.equal(m.fullConnectionCount,1);
+});
+
+test('launch preparation cannot lock a low speed before an accelerating sustained pre-START drift',()=>{
+ const raw=preparationReplay({speed:s=>s<75?8:s<90?8+(s-75)*.8:20}),m=Fitness.measure(raw,preparationTrack,vehicle);
+ assert.equal(m.bestArc.entrySpeed,20);assert.ok(m.bestArc.initiationS>=80);assert.equal(m.fullConnectionCount,1);
+});
+
+test('a later corner reference excludes completed drifting before the preceding physical exit',()=>{
+ const course=linkedTracks[0],zones=Fitness.apexZones(course),first=zones[0],second=zones[1],speed=s=>s<=first.exit?25:25-13*clamp((s-first.exit)/30,0,1);
+ const angle=s=>s<first.exit-1||s>=second.cornerStart?35:0,raw=replay({course,speed,angle,angleStart:40,angleEnd:280}),reference=replay({course,speed,angle:0});
+ const m=Fitness.rank(vehicle,course,raw,raw.frames,{reference:reference.frames}).drift,arc=m.arcs.find(a=>a.zoneId===second.id);
+ assert.equal(arc.bestArc.entrySpeed,12);assert.equal(arc.complete,true);
+});
+
+test('missing observed core entry cannot manufacture a complete connection from prepared pace',()=>{
+ const z=Fitness.apexZones(track)[0],reference=replay({speed:12,angle:0}),raw=replay({speed:12}),truncated={...raw,frames:raw.frames.filter(f=>f.s>z.cornerStart+1)};
+ const m=Fitness.rank(vehicle,track,truncated,truncated.frames,{reference:reference.frames}).drift;
+ assert.equal(m.fullConnectionCount,0);assert.ok(m.bestArc.connectionCoverage<1);
+});
+
+test('a record beginning exactly at core entry locks its observed speed instead of only the prepared floor',()=>{
+ const z=Fitness.apexZones(track)[0],reference=replay({speed:12,angle:0}),raw=replay({speed:s=>s<=z.cornerStart+5?12:8.8,angleStart:z.cornerStart});
+ const cropped={...raw,frames:raw.frames.filter(f=>f.s>=z.cornerStart)};
+ const full=Fitness.rank(vehicle,track,raw,raw.frames,{reference:reference.frames}).drift,m=Fitness.rank(vehicle,track,cropped,cropped.frames,{reference:reference.frames}).drift;
+ assert.equal(m.bestArc.entrySpeed,12);assert.equal(m.bestArc.referenceSource,'core-entry');assert.equal(m.bestArc.referenceS,z.cornerStart);
+ assert.ok(Math.abs(m.bestArc.speedRetention-8.8/12)<1e-9);assert.equal(m.fullConnectionCount,0);
+ assert.equal(m.bestArc.speedRetention,full.bestArc.speedRetention);assert.equal(m.bestArc.complete,full.bestArc.complete);
+});
+
+test('planned approach speed changes after a prefix cannot rewrite earlier reference observations',()=>{
+ const raw=preparationReplay(),cut=raw.frames.findIndex(f=>f.s===90),original=Fitness.replayTimeline(raw,preparationTrack,vehicle);
+ const changed={...raw,frames:raw.frames.map((f,i)=>i<=cut?f:{...f,speed:f.speed*.6,vx:f.vx*.6,vy:f.vy*.6})};
+ const later=Fitness.replayTimeline(changed,preparationTrack,vehicle);assert.deepEqual(later.slice(0,cut+1),original.slice(0,cut+1));
+});
+
 test('propulsion is a bounded five-point supporting factor, not the objective gate',()=>{
   const powered=metric(),coasting=metric({force:0,torque:0,throttle:0}),braking=metric({force:0,torque:0,throttle:0,brake:.3});
   assert.ok(coasting.score>0);assert.ok(powered.score>=coasting.score);assert.ok(powered.score-coasting.score<=5+1e-9);
@@ -205,6 +281,13 @@ test('straight links include the entire inter-corner gap and single-corner evalu
   assert.equal(l.straightStart,zones[0].exit);assert.equal(l.straightEnd,zones[1].cornerStart);
   assert.equal(l.straightEnd-l.straightStart,76);
   const single=metric();assert.equal(single.totalLinkCount,0);assert.equal(single.straightLinkCount,0);assert.ok(single.score>0);
+});
+
+test('straight-link speed floors never inherit an unrelated corner approach or core pace',()=>{
+ const {course,raw}=linkedReplay(),zones=Fitness.apexZones(course),link=Fitness.straightLinks(course)[0];
+ const refs={[zones[0].id]:100,[zones[1].id]:100,[link.id]:20},m=Fitness.measure(raw,course,vehicle,{referenceSpeeds:refs});
+ assert.equal(m.bestLink.entrySpeed,20);assert.equal(m.bestLink.referenceFloor,16);assert.equal(m.bestLink.preparedPace,20);
+ assert.equal(m.bestLink.referenceScope,'straight-entry');assert.equal(m.bestLink.complete,true);assert.equal(m.straightLinkCount,1);
 });
 
 test('continuous drift through the straight outranks higher-angle corners separated by grip driving',()=>{

@@ -16,6 +16,14 @@ test('local failed generations reduce that zone amplitude only; successful famil
  const r=rng(10),chosen=Array.from({length:2000},()=>p._family(p.zones[0],['lead','power'],r));
  assert.ok(chosen.filter(f=>f==='lead').length>1200);assert.ok(chosen.filter(f=>f==='power').length>100);
 });
+test('weak-region focus preserves uniform exploration and cannot import another region repair',()=>{
+ const p=new Policy([{},{}]);p.observe({id:'old-failure',arcIndex:0,accepted:false,result:{failureAnalysis:diagnosis}});
+ const random=rng(902),choices=Array.from({length:5000},()=>p.choose(random,['line','lead'],{weakestArcs:[1,1,-1,999]}));
+ const focused=choices.filter(x=>x.focus),exploratory=choices.filter(x=>x.explore);
+ assert.ok(focused.length>1100&&focused.length<1500);assert.ok(focused.every(x=>x.arc===1&&!x.repair&&!x.explore));
+ assert.ok(exploratory.length>1100&&exploratory.length<1400);assert.ok(exploratory.some(x=>x.arc===0)&&exploratory.some(x=>x.arc===1));
+ assert.ok(choices.some(x=>x.repair&&x.arc===0));assert.equal(p.snapshot().focusProposals,focused.length);
+});
 test('a later visible precursor can direct tests back into the previous drift tail',()=>{
  const p=new Policy([{},{}]),d={...diagnosis,origin:{time:20,s:350,zoneIndex:1},precedingZoneIndex:0,window:{startS:225,endS:400}};
  p.observe({id:'late-failure',arcIndex:1,accepted:false,result:{failureAnalysis:d}});
