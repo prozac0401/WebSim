@@ -132,7 +132,7 @@
   function receive(m){
     if(m.type==='ready'||m.type==='candidate')try{DriftRuntime.assertIdentity(m.runtimeIdentity,runtimeIdentity);}catch(error){worker?.terminate();receive({type:'error',message:error.message,updateRequired:true});return;}
     if(m.type==='ready'){appMode='ready';baselineError=null;baseline={...m.baseline,result:m.best.result};best=m.best;state=m.state;$('loading').hidden=true;$('baseline-notice').hidden=true;setReady(true);running(false);$('evolution-status').textContent=(track.kind==='development'?'가상 개발 코스 · ':'')+'준비된 기준 기록을 불러왔습니다. 진화를 시작할 수 있습니다.';followBest();stats();}
-    if(m.type==='candidate'){state=m.state;archive.push(m.candidate);if(archive.length>12)archive.shift();if(m.best?.result.valid&&m.best.result.status==='finished'&&(!best||m.best.result.score>=best.result.score))best=m.best;stats();renderRecords();if(autoFollow&&selected?.id!==best?.id)followBest();$('evolution-status').textContent=state.totalEvaluated+'개 후보 평가 · 최근 후보 '+(m.candidate.result.valid?'유효 완주':'실패 · 선발 제외');}
+    if(m.type==='candidate'){state=m.state;archive.push(m.candidate);if(archive.length>12)archive.shift();if(m.best?.result.valid&&m.best.result.status==='finished'&&(!best||m.best.result.score>=best.result.score))best=m.best;stats();renderRecords();$('evolution-status').textContent=state.totalEvaluated+'개 후보 평가 · 최근 후보 '+(m.candidate.result.valid?'유효 완주':'실패 · 선발 제외');}
     if(m.type==='paused'){pauseRequested=false;running(false);}
     if(m.type==='error'){
       const loading=!baseline;appMode=loading?'baseline-unavailable':'error';baselineError=m.message||'기준 기록을 불러오지 못했습니다.';pauseRequested=false;stopFollowing();playing=false;$('play').textContent='▶ 재생';clearTimeout(evolutionTimer);evolutionTimer=null;running(false);setReady(false);
@@ -197,6 +197,7 @@
     if(playing&&selected){
       if(finishHoldMs>0){
         finishHoldMs=Math.max(0,finishHoldMs-ms);
+        // Pick the newest representative only after this run and its goal hold.
         if(finishHoldMs===0&&autoFollow)followBest();
       }else{
         time=Math.min(selected.result.time,time+ms/1000*Number($('playback').value));
