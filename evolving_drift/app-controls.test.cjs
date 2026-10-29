@@ -127,12 +127,18 @@ test('the highest valid record autoplays, holds its finish for one real second, 
   assert.equal(env.state().evaluationStats.evaluations,1);assert.equal(worker.messages.length,messages,'finishing the replay does not pause background evaluation');
 });
 
-test('a new highest record immediately replaces autoplay or its finish hold, while lower candidates do not',()=>{
+test('higher records wait for the current finish and hold, then only the newest representative plays',()=>{
   const env=environment();env.ready();assert.equal(env.state().playing,true);env.advance(1000);
-  env.publishBest();assert.equal(env.state().replay.id,'new-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
-  env.advance(31000);assert.equal(env.state().replay.finishHoldMs,1000);
-  env.publishBest('newer-best',3);assert.equal(env.state().replay.id,'newer-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().replay.finishHoldMs,0);
-  env.advance(1000);env.updateStats(null,null);assert.equal(env.state().replay.id,'newer-best');assert.equal(env.state().replay.time,1);assert.equal(env.state().score,3);
+  const currentRecord=env.render().record,currentScore=env.state().replayScoring.score;
+  env.publishBest();env.publishBest('newer-best',3);env.publishBest('lower-best',1);
+  assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,1);assert.equal(env.state().playing,true);
+  assert.equal(env.state().score,3);assert.equal(env.render().record,currentRecord);assert.equal(env.state().replayScoring.score,currentScore);
+  env.advance(29000);assert.equal(env.state().replay.time,30);assert.equal(env.state().replay.finishHoldMs,1000);
+  env.publishBest('goal-best',4);assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,30);assert.equal(env.state().replay.finishHoldMs,1000);
+  env.advance(999);env.publishBest('latest-best',5);assert.equal(env.state().replay.finishHoldMs,1);assert.equal(env.state().replay.id,'baseline');
+  env.advance(1);assert.equal(env.state().replay.id,'latest-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().replay.finishHoldMs,0);
+  assert.equal(env.state().playing,true);assert.equal(env.state().replay.autoFollow,true);
+  env.advance(1000);env.updateStats(null,null);assert.equal(env.state().replay.id,'latest-best');assert.equal(env.state().replay.time,1);assert.equal(env.state().score,5);
 });
 
 test('manual pause during the finish hold prevents looping and new-best interruption until representative selection',()=>{
