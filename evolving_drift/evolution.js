@@ -68,7 +68,7 @@
     if(!isValidResult(result)||!Array.isArray(record))return [];
     const regions=[];let run=null;
     for(const f of record){
-      const angle=Math.abs(f.beta||0),eligible=Number.isFinite(f.s)&&f.speed>=6&&angle>=10*DEG&&angle<=55*DEG;
+      const angle=Math.abs(f.beta||0),eligible=Number.isFinite(f.s)&&f.speed>=6&&angle>=10*DEG&&angle<=70*DEG;
       if(!eligible||run&&(Math.sign(f.beta)!==run.sign||f.s-run.end>3)){
         if(run&&run.end-run.start>=5)regions.push(run);run=null;
       }
@@ -184,7 +184,7 @@
         gene=cloneGene(baseline.gene);const normalized=normalizeGene(gene,{maxSteerRad:this.maxSteerRad,gearCount:this.gearCount,lineBounds:this.lineBounds});
         if(normalized.some((v,i)=>v!==gene[i]))throw new TypeError('Prepared genome values are outside v2 bounds.');
       }catch(error){this.blockedReason=required+' '+error.message;return this.snapshot();}
-      const ranked=this._rankResult(this.vehicle,this.track,baseline.result,baseline.record);
+      const ranked=this._rankResult(this.vehicle,this.track,baseline.result,baseline.record,{reference:baseline.record});
       if(!isValidResult(ranked)){this.blockedReason=required+' 사전 기록의 평가 결과가 유효하지 않습니다.';return this.snapshot();}
       const entry={id:'baseline',sequence:this._sequence++,generation:0,parentId:null,kind:'baseline',genomeVersion:G.VERSION,gene,result:ranked,record:baseline.record,accepted:true};
       this._best=entry;this._parents=[entry];this.ready=true;this._generationStartScore=entry.result.score;
@@ -202,7 +202,7 @@
     _intentCandidate(){
       const arc=Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
       const parent=this._rng()<.6?pool[0]:pool[Math.floor(this._rng()*pool.length)],metric=this._regional(parent,arc);
-      const options={lineBounds:this.lineBounds,zones:this._strategyZones,scale:this.mutationScale};
+      const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:this.mutationScale};
       this._entryCounts[arc]++;
       if(this._rng()<.12){
         const strategy=this._rng()<.7?'fine':'local',limits={maxSteerRad:this.maxSteerRad,gearCount:this.gearCount,lineBounds:this.lineBounds};
@@ -210,9 +210,9 @@
         const gene=normalizeGene(Strategies.couple(this.vehicle,this.track,parent.gene,raw,parent.record),limits);
         return {parentId:parent.id,gene,kind:'global-'+strategy,arcIndex:arc};
       }
-      if(this._entryCounts[arc]>21&&metric.bestExit?.distance>5&&this._rng()<.8){
+      if(this._entryCounts[arc]>8&&metric.bestArc?.distance>5&&this._rng()<.8){
         const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,options);
-        return {parentId:parent.id,gene:proposal.gene,kind:'exit-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
+        return {parentId:parent.id,gene:proposal.gene,kind:'arc-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
       }
       const previous=parent.params?.arc===arc&&this._rng()<.82?parent.params:null;
       const proposal=Strategies.entry(this.vehicle,this.track,this._baselineEntry,this._rng,arc,previous,options);
@@ -224,8 +224,8 @@
       const unique=new Map(entries.filter(e=>e.accepted&&isValidResult(e.result)).map(e=>[e.id,e]));
       const ranked=[...unique.values()].sort((a,b)=>this._regional(b,arc).score-this._regional(a,arc).score||a.sequence-b.sequence);
       const chosen=[],keys=new Set();
-      for(const entry of ranked){const run=this._regional(entry,arc).bestExit,s=run?.end??this._strategyZones[arc].exit;
-        const key=[Math.floor((run?.distance||0)/3),Math.floor(G.sample(entry.gene,s,this.track.length).lineOffset/1.5),entry.params?'entry':'adaptive'].join('/');
+      for(const entry of ranked){const run=this._regional(entry,arc).bestArc,s=run?.end??this._strategyZones[arc].exit;
+        const key=[Math.floor((run?.distance||0)/3),Math.floor((run?.distanceWeightedAngle||0)/5),Math.floor((run?.speedRetention||0)*10),Math.floor(G.sample(entry.gene,s,this.track.length).lineOffset/1.5),entry.params?'entry':'adaptive'].join('/');
         if(keys.has(key))continue;keys.add(key);chosen.push(entry);if(chosen.length>=16)break;
       }
       return chosen.length?chosen:[this._baselineEntry];
@@ -247,7 +247,11 @@
     acceptCandidate(job,result){
       const planned=this._planned[0];if(!planned||planned.id!==job?.id||planned.sequence!==job?.sequence||planned.generation!==job?.generation)throw new Error('Candidate results must be accepted in reservation order.');
       this._planned.shift();const complete=isValidResult(result),record=result?.frames||[];
-      const ranked=complete?this._rankResult(this.vehicle,this.track,result,record):result;
+      // Failed runs never enter ranking or parent selection, but replaying
+      // their valid prefix still needs the same fixed approach-speed floor.
+      const referenceSpeeds=this._baselineEntry.result.drift?.referenceSpeeds;
+      const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
+        result&&referenceSpeeds?{...result,drift:{...result.drift,referenceSpeeds:{...referenceSpeeds}}}:result;
       const accepted=complete&&isValidResult(ranked),entry={...planned,result:ranked,record,accepted};
       this._candidates.push(entry);this._lastCandidate=entry;this.totalEvaluated++;this.stats.evaluated++;
       if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;this._best=entry;}}else this.stats.failureCount++;
@@ -274,7 +278,7 @@
     }
     step(count=1){if(!Number.isInteger(count)||count<1||count>10000)throw new RangeError('step count must be between 1 and 10000.');if(!this.initialized)this.initialize();if(this.ready)for(let i=0;i<count;i++)this._evaluateCandidate();return this.snapshot();}
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
-    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,poweredExitRegions:this._strategyZones.length,stats:{...this.stats},history:this.history.map(e=>({...e}))};}
+    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
   const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

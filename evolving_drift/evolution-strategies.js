@@ -9,9 +9,9 @@ const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const smoother=t=>{t=clamp(t,0,1);return t*t*t*(10+t*(-15+6*t));};
 const pulse=(s,c,w)=>Math.abs(s-c)>=w?0:.5+.5*Math.cos(Math.PI*(s-c)/w);
-const FAMILIES=Object.freeze(['trajectory','trajectory','trajectory','recovery','recovery','steer','angle','sustained-angle','sustained-angle','combined','line','lead','power','gear','gear','gearPower','gearPower','approach','approach']);
+const FAMILIES=Object.freeze(['apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach']);
 const straightCache=new WeakMap();
-function zones(track){return F.exitZones(track).filter(z=>z.end-z.exit>=30);}
+function zones(track){return F.apexZones(track);}
 function trailingStraightStart(track){
  if(straightCache.has(track))return straightCache.get(track);
  let start=track.length;
@@ -49,29 +49,40 @@ function entry(vehicle,track,prepared,rng,arcIndex,previousParams=null,options={
  const bounds=options.lineBounds||G.corridorBounds(vehicle,track),corners=(options.zones||zones(track)).map(z=>({...z,kStart:z.start/ds,kEnd:z.exit/ds}));
  const rnd=(a,b)=>a+(b-a)*rng(),pick=a=>a[Math.floor(rng()*a.length)],FF={couple};
  if(!corners[arcIndex])throw new RangeError('A detected exit region is required.');
-function random(){const arc=pick(corners),last=arc===corners.at(-1),maximumLength=Math.min(60,arc.end-arc.exit-8),length=rnd(Math.min(35,maximumLength),maximumLength),onset=arc.start+rnd(0,last?30:18);return bounded({arc:corners.indexOf(arc),onset,ramp:rnd(5,14),delay:rnd(4,15),entryBrake:rnd(.05,.3),prepLead:rnd(8,Math.max(8,onset-2.5)),feint:rnd(.3,2.2),angle:rnd(8,30),exitAngle:rnd(12,32),pedal:rnd(.5,1),slip:rng()<.15?0:rnd(.25,1.3),lead:rnd(.05,.5),gear:pick(last?[0,2,3]:[0,3,4]),line:rnd(0,last?7:3.5),bow:rnd(1.5,last?6:3.5),length,recovery:rnd(14,30),steer:rnd(-.04,.04),exitSteer:rnd(-.035,.035),compensation:1,tailPedal:rnd(.25,.6)});}
-const scales={onset:5,ramp:3,delay:3,entryBrake:.06,prepLead:18,feint:.5,angle:5,exitAngle:5,pedal:.1,slip:.2,lead:.08,line:1,bow:1,length:7,recovery:5,steer:.015,exitSteer:.02,compensation:.2,tailPedal:.1};
-function bounded(q){const z=corners[q.arc];q.onset=clamp(q.onset,z.start-15,z.exit-8);q.ramp=clamp(q.ramp,3,20);q.delay=clamp(q.delay,0,20);q.entryBrake=clamp(q.entryBrake,0,.5);const available=Math.max(0,q.onset-2.5);q.prepLead=clamp(q.prepLead??28,Math.min(8,available),available);q.feint=clamp(q.feint??0,0,4);q.angle=clamp(q.angle,3,40);q.exitAngle=clamp(q.exitAngle,5,40);q.pedal=clamp(q.pedal,.15,1);q.slip=clamp(q.slip,0,1.5);q.lead=clamp(q.lead,.05,.8);q.line=clamp(q.line,-8,12);q.bow=clamp(q.bow,.1,8);q.length=clamp(q.length,25,Math.min(70,z.end-z.exit-5));q.recovery=clamp(q.recovery,8,40);q.steer=clamp(q.steer,-.1,.1);q.exitSteer=clamp(q.exitSteer,-.15,.15);q.compensation=clamp(q.compensation,0,1.3);q.tailPedal=clamp(q.tailPedal,.1,.8);return q;}
+function random(){
+ const arc=pick(corners),last=arc===corners.at(-1),maximumLength=Math.max(0,Math.min(60,arc.end-arc.exit-8)),length=rnd(Math.min(25,maximumLength),maximumLength),onset=(arc.cornerStart??arc.start)+rnd(-8,8);
+ return bounded({arc:corners.indexOf(arc),onset,ramp:rnd(5,14),delay:rnd(0,8),entryBrake:rnd(0,.12),prepLead:rnd(8,Math.max(8,onset-2.5)),feint:rnd(.3,2.2),angle:rnd(12,32),exitAngle:rnd(14,35),pedal:rnd(.5,1),slip:rng()<.15?0:rnd(.2,1.1),lead:rnd(.05,.5),gear:pick(last?[0,2,3]:[0,3,4]),line:rnd(0,last?7:3.5),apexLine:rnd(.2,2.2),bow:rnd(.5,last?4:2.5),length,recovery:rnd(14,30),steer:rnd(-.04,.04),exitSteer:rnd(-.035,.035),compensation:1,tailPedal:rnd(.25,.6)});
+}
+const scales={onset:5,ramp:3,delay:3,entryBrake:.04,prepLead:18,feint:.5,angle:5,exitAngle:5,pedal:.1,slip:.2,lead:.08,line:1,apexLine:.75,bow:1,length:7,recovery:5,steer:.015,exitSteer:.02,compensation:.2,tailPedal:.1};
+function bounded(q){
+ const z=corners[q.arc],apex=z.apex??((z.cornerStart??z.start)+z.exit)/2,cornerStart=z.cornerStart??z.start;
+ q.onset=clamp(q.onset,Math.max(2.5,cornerStart-20),Math.max(cornerStart-15,apex-4));q.ramp=clamp(q.ramp,3,20);q.delay=clamp(q.delay,0,20);q.entryBrake=clamp(q.entryBrake,0,.3);
+ const available=Math.max(0,q.onset-2.5);q.prepLead=clamp(q.prepLead??28,Math.min(8,available),available);q.feint=clamp(q.feint??0,0,4);q.angle=clamp(q.angle,3,50);q.exitAngle=clamp(q.exitAngle,5,50);q.pedal=clamp(q.pedal,.15,1);q.slip=clamp(q.slip,0,1.5);q.lead=clamp(q.lead,.05,.8);q.line=clamp(q.line,-8,12);q.apexLine=clamp(q.apexLine??.5,-4,8);q.bow=clamp(q.bow,.1,8);
+ const exitSpace=Math.max(ds,z.end-z.exit),minimumRecovery=Math.min(8,exitSpace),maximumHold=Math.max(0,exitSpace-minimumRecovery);
+ q.length=clamp(q.length,Math.min(25,maximumHold),Math.min(70,maximumHold));q.recovery=clamp(q.recovery,minimumRecovery,Math.max(minimumRecovery,exitSpace-q.length));
+ q.steer=clamp(q.steer,-.1,.1);q.exitSteer=clamp(q.exitSteer,-.15,.15);q.compensation=clamp(q.compensation,0,1.3);q.tailPedal=clamp(q.tailPedal,.1,.8);return q;
+}
 function mutate(parent){const q=bounded({...parent}),strength=clamp(options.scale??1,.03,1.5);for(let n=1+Math.floor(rng()*4);n;n--){const key=pick([...Object.keys(scales),'gear']);if(key==='gear')q.gear=pick([0,2,3,4]);else q[key]+=rnd(-scales[key],scales[key])*strength;}if(rng()<.22){q.exitAngle+=rnd(-3,8)*strength;q.exitSteer+=rnd(-.03,.01)*strength;q.bow+=rnd(-.5,1.5)*strength;q.length+=rnd(-3,8)*strength;}return bounded(q);}
 function generate(q){
- const gene=G.clone(initial),z=corners[q.arc],sign=-z.sign,L=q.length,R=q.recovery,exit=z.exit,hold=exit+L,tailStart=Math.max(z.end+20,trailingStraightStart(track));
- for(let i=0;i<128;i++){
-  const s=i*ds,j=i*8,weight=smooth((s-q.onset)/q.ramp)*(1-smooth((s-hold)/R)),power=smooth((s-q.onset-q.delay)/q.ramp)*(1-smooth((s-hold)/R)),phase=smooth((s-exit+12)/24);
+ const gene=G.clone(initial),z=corners[q.arc],sign=-z.sign,apex=z.apex??((z.cornerStart??z.start)+z.exit)/2,exit=z.exit,hold=exit+q.length,R=q.recovery,finish=hold+R;
+ const tailStart=Math.max(z.end+20,trailingStraightStart(track));
+ // Preparation can use the mapped road before START; no vehicle state is reset.
+ for(let i=0;i<G.KNOTS;i++){
+  const s=i*ds,j=i*G.STRIDE;
   if(q.prepLead>0&&s>q.onset-q.prepLead&&s<q.onset){const u=(s-q.onset+q.prepLead)/q.prepLead,w=64*u*u*u*(1-u)**3;gene[j+C.brake]+=q.entryBrake*w;gene[j+C.lineOffset]+=sign*q.feint*w;}
+ }
+ const preparedLine=G.clone(gene),lineStart=Math.max(2.5,q.onset-12),a=lineShape(preparedLine,track,lineStart),b=lineShape(initial,track,finish),inside=z.sign*q.apexLine;
+ const shape=s=>{const before=s<=apex,span=Math.max(ds,before?apex-q.onset:hold-apex),outside=sign*(q.line+(before?0:q.bow)),bend=(outside-inside)/(span*span),u=s-apex;return {d:inside+bend*u*u,slope:2*bend*u,curvature:2*bend};};
+ const entryLine=shape(q.onset),exitLine=shape(hold);
+ for(let i=0;i<G.KNOTS;i++){
+  const s=i*ds,j=i*G.STRIDE,weight=smooth((s-q.onset)/q.ramp)*(1-smooth((s-hold)/R)),power=smooth((s-q.onset-q.delay)/q.ramp)*(1-smooth((s-hold)/R)),phase=smooth((s-apex)/Math.max(ds,exit-apex));
   if(weight>0){gene[j+C.targetSlip]=sign*(q.angle+(q.exitAngle-q.angle)*phase)*DEG*weight;gene[j+C.driveSlip]=q.slip*power;gene[j+C.counterLead]+=(q.lead-gene[j+C.counterLead])*weight;gene[j+C.throttle]+=(q.pedal-gene[j+C.throttle])*power;gene[j+C.brake]*=1-weight;gene[j+C.steer]+=sign*(q.steer+(q.exitSteer-q.steer)*phase)*weight;if(q.gear&&weight>.4)gene[j+C.gearHold]=q.gear;}
-  // A parabolic bow has the corner's curvature sign throughout its first
-  // segment. Recovery is a separate opposite-curvature segment after it.
-  const u=s-exit,amp=sign*q.bow;let line=sign*q.line;
-  if(u>=0&&u<=L)line=sign*q.line+4*amp*(u/L)*(1-u/L);
-  else if(u>L){const v=Math.min(u-L,R),slope=-4*amp/L;line=sign*q.line+slope*v-slope/(2*R)*v*v;}
-  const lineWeight=smooth((s-q.onset+8)/(q.ramp+12))*(1-smooth((s-(exit+L+R))/30));
-  gene[j+C.lineOffset]+=(line-gene[j+C.lineOffset])*lineWeight;
-  // Complete the final straight using pedals rather than retaining unrelated
-  // grip-reference braking after the evolved exit changed the arrival speed.
+  if(s>lineStart&&s<finish)gene[j+C.lineOffset]=s<q.onset?joinLine(a,entryLine,q.onset-lineStart,(s-lineStart)/(q.onset-lineStart)):s>hold?joinLine(exitLine,b,R,(s-hold)/R):shape(s).d;
+  // A changed arrival speed may require different pedals on the final straight.
   if(z===corners.at(-1)&&s>tailStart){const w=smooth((s-tailStart)/15);gene[j+C.brake]*=1-w;gene[j+C.throttle]+=(q.tailPedal-gene[j+C.throttle])*w;gene[j+C.gearHold]=0;}
  }
  const n=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds}),coupled=FF.couple(vehicle,track,initial,n,baseline.frames);
- for(let i=0;i<128;i++)n[i*8+C.steer]+=(coupled[i*8+C.steer]-n[i*8+C.steer])*q.compensation;
+ for(let i=0;i<G.KNOTS;i++)n[i*G.STRIDE+C.steer]+=(coupled[i*G.STRIDE+C.steer]-n[i*G.STRIDE+C.steer])*q.compensation;
  return G.normalize(n,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
 }
 
@@ -83,17 +94,55 @@ function adaptive(vehicle,track,parent,rng,options={}){
  const norm=g=>G.normalize(g,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
  const rnd=(a,b)=>a+(b-a)*rng(),pick=a=>a[Math.floor(rng()*a.length)],FF={couple};
 function mutate(parent){
- const m=parent.metric.bestExit,z=m?F.exitZones(track).find(x=>x.exit===m.zoneExit):pick(F.exitZones(track)),end=m?.end||z.exit+5;
- const center=clamp(end+rnd(-6,12),z.exit-8,z.end-8),width=rnd(8,30),gene=G.clone(parent.gene),sign=-z.sign;
+ const m=parent.metric.bestArc,all=options.zones||zones(track),z=options.zone||all.find(x=>m&&(x.id===m.zoneId||x.exit===m.zoneExit))||pick(all),end=m?.end||z.apex;
+ const center=clamp(end+rnd(-6,12),z.start+4,z.end-8),width=rnd(8,30),gene=G.clone(parent.gene),sign=-z.sign;
  const family=pick(FAMILIES);
  const change={family,center,width,steer:sign*rnd(-.065,.045),angle:rnd(-3,14)*DEG,line:sign*rnd(-2.8,2.8),lead:rnd(-.16,.1),slip:rnd(-.3,.3),pedal:rnd(-.12,.2),gear:pick([0,3,4,'rpm']),shiftAt:clamp(end+rnd(-14,2),z.exit-8,z.end-15)};
  const localFine=end-z.exit>25?.28:1;
  for(const key of ['steer','angle','line','lead','slip','pedal'])change[key]*=localFine;
+ if(family==='apex-arc'){
+  // The inherited line is joined to a quadratic bow around the geometric
+  // apex. This only changes driver targets; the physical replay must still
+  // maintain speed and remain inside the actual road boundaries.
+  const apex=z.apex??((z.cornerStart??z.start)+z.exit)/2;
+  const start=Math.ceil((z.start+ds)/ds)*ds,finish=Math.floor((z.end-ds)/ds)*ds;
+  const span=Math.min(rnd(24,44),(apex-start)*.65,(finish-apex)*.65);
+  if(span<1.5*ds)return {gene,change};
+  const first=apex-span,last=apex+span,a=lineShape(parent.gene,track,start),b=lineShape(parent.gene,track,finish);
+  const inside=G.sample(parent.gene,apex,track.length).lineOffset+z.sign*rnd(-.5,1.8),bend=-z.sign*rnd(.8,3)/(span*span);
+  const shape=s=>{const u=s-apex;return {d:inside+bend*u*u,slope:2*bend*u,curvature:2*bend};};
+  const left=shape(first),right=shape(last),angle=rnd(2,7)*DEG,slipSign=m?.sign===1||m?.sign===-1?m.sign:sign;
+  const pedal=rnd(.02,.10),lead=rnd(-.025,.055);
+  Object.assign(change,{start,end:finish,apex,first,last,inside,bend,angle,sign:slipSign,pedal,lead});
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds;if(s<=start||s>=finish)continue;
+   const j=i*G.STRIDE,w=smoother((s-start)/(first-start))*smoother((finish-s)/(finish-last));
+   gene[j+C.lineOffset]=s<first?joinLine(a,left,first-start,(s-start)/(first-start)):s>last?joinLine(right,b,finish-last,(s-last)/(finish-last)):shape(s).d;
+   gene[j+C.targetSlip]+=slipSign*angle*w;
+   gene[j+C.counterLead]+=lead*w;
+   gene[j+C.throttle]+=pedal*w;gene[j+C.brake]*=1-.35*w;
+  }
+  return {gene:norm(gene),change};
+ }
+ if(family==='speed-hold'){
+  const frames=parent.result.frames.filter(f=>f.s>=z.start&&f.s<=z.end);
+  if(!frames.length)return {gene,change};
+  const slow=frames.reduce((a,b)=>a.speed<b.speed?a:b),lost=(m?.speedRetention??1)<.95;
+  const center=clamp(slow.s,z.start+ds,z.end-ds),width=Math.min(rnd(14,32),center-z.start,z.end-center);
+  const pedal=lost?rnd(.04,.16):rnd(-.03,.05),release=lost?rnd(.25,.65):rnd(.05,.2),excessSlip=Math.max(...(slow.wheelSlip?.slice(2)||[0]).map(Math.abs))>.45;
+  Object.assign(change,{center,width,pedal,release,excessSlip});
+  for(let i=0;i<G.KNOTS;i++){
+   const j=i*G.STRIDE,w=pulse(i*ds,center,width);if(!w)continue;
+   gene[j+C.throttle]+=pedal*w;gene[j+C.brake]*=1-release*w;
+   if(excessSlip)gene[j+C.driveSlip]*=1-.25*w;
+  }
+  return {gene:norm(gene),change};
+ }
  if(family==='sustained-angle'){
-  // Refine a real corner-connected powered episode, not an isolated angle
-  // peak. The unchanged driver supplies countersteering and pedal feedback;
+  // Refine the measured continuous apex arc, including its approach.
+  // The unchanged driver supplies countersteering and pedal feedback;
   // only another complete physical replay can establish an improvement.
-  if(!m?.anchored||![m.start,m.end].every(Number.isFinite)||m.end<=m.start)return {gene,change};
+  if(!m||![m.start,m.end].every(Number.isFinite)||m.end<=m.start)return {gene,change};
   const start=clamp(m.start,z.start+ds,z.end-ds),finish=clamp(m.end,start,z.end-ds),fade=rnd(6,12),angle=rnd(2,7)*DEG;
   const left=Math.max(z.start+ds,start-fade),right=Math.min(z.end-ds,finish+fade),slipSign=m.sign===1||m.sign===-1?m.sign:sign;
   Object.assign(change,{start,end:finish,fade,angle,sign:slipSign,center:(start+finish)/2,width:(finish-start)/2+fade});
@@ -203,9 +252,9 @@ function ensureChanged(vehicle,parent,proposal,rng,strength=1){
  return {...proposal,gene,change:{...(proposal.change||{}),family:'fine-fallback'}};
 }
 function niche(vehicle,track,result,record,zone){
- return F.measure({...result,score:0,styleScore:0,frames:record.filter(f=>f.s>=zone.start&&f.s<=zone.end)},track,vehicle);
+ return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
 function signature(){return FAMILIES.join(',')+'\n'+[entry,adaptive,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,supports,ensureChanged,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:1,FAMILIES,zones,supports,entry,adaptive,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+const api=Object.freeze({VERSION:2,FAMILIES,zones,supports,entry,adaptive,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

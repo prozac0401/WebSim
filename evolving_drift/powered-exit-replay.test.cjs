@@ -11,7 +11,7 @@ test('an evolved stock Supra physically accelerates through a continuous 30m cor
   const result=Physics.evaluateGene(vehicle,track,fixture.gene,{record:true});
   assert.equal(result.valid,true);
   assert.equal(result.status,'finished');
-  const power=Fitness.measure(result,track,vehicle),exit=power.bestExit;
+  const power=Fitness.measurePower(result,track,vehicle),exit=power.bestExit;
   assert.ok(exit.anchored);
   assert.ok(exit.distance>30);
   assert.ok(exit.duration>1.4);
