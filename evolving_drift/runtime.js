@@ -1,7 +1,7 @@
 /* One release identity for the page, coordinator and pure evaluators. */
 (function(root){
  'use strict';
- const RELEASE='autostart-20261030-1';
+ const RELEASE='connection-search-20261030-1';
  const updateMessage='실행 파일의 버전이 다릅니다. 페이지를 새로고침한 뒤 새 실험을 시작해 주세요.';
  function mismatch(){return Object.assign(Error(updateMessage),{code:'runtime-mismatch'});}
  function url(path){const [resource,fragment]=path.split('#');return resource+(resource.includes('?')?'&':'?')+'v='+encodeURIComponent(RELEASE)+(fragment?'#'+fragment:'');}

@@ -6,6 +6,7 @@
   const Shape=root.DriftMutationShape||(typeof require==='function'?require('./mutation-shape.js'):null);
   const Fitness=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
   const Strategies=root.DriftEvolutionStrategies||(typeof require==='function'?require('./evolution-strategies.js'):null);
+  const Connections=root.DriftConnectionAnalysis||(typeof require==='function'?require('./connection-analysis.js'):null);
   const Learning=root.DriftEvolutionLearning||(typeof require==='function'?require('./evolution-learning.js'):null);
   const FailureAnalysis=root.DriftFailureAnalysis||(typeof require==='function'?require('./failure-analysis.js'):null);
   const EvaluationCache=root.DriftEvaluationCache||(typeof require==='function'?require('./evaluation-cache.js'):null);
@@ -194,6 +195,11 @@
     }),low=Math.min(...scores);
     return scores.map((value,i)=>value<=low+1e-6?i:-1).filter(i=>i>=0);
   }
+  function connectionSupport(target,zone,track){
+    return (target.zoneId===zone.id||target.fromZoneId===zone.id||target.toZoneId===zone.id)&&
+      (target.complete||target.coverage>=.15&&Number.isFinite(target.actualStart)&&Number.isFinite(target.actualEnd)&&
+       (target.kind!=='link'||target.actualStart<=target.start+2*track.length/(G.KNOTS-1)));
+  }
   class Engine {
     constructor(vehicle,track,options={}){
       if(!vehicle||!track)throw new TypeError('A fixed vehicle and a track are required.');
@@ -214,8 +220,9 @@
       this._rankResult=options.rankResult||Fitness?.rank;
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
       this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
+      this._connectionCache=new WeakMap();this._connectionSearch=options.connectionSearch!==false;
       this._learningEnabled=options.learning!==false;this._learning=null;
-      this._weakestArcIndices=[];this._selectionStats={promotions:0,paretoParents:0};
+      this._weakestArcIndices=[];this._selectionStats={promotions:0,paretoParents:0,connectionProposals:0,connectionImprovements:0};
       this._parents=[];this._best=null;this._lastCandidate=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
       this.initialized=false;this.ready=false;this.blockedReason=null;this.generation=0;this.totalEvaluated=0;this.history=[];this.plateauGenerations=0;
       this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
@@ -249,9 +256,37 @@
       if(!cached[arc])cached[arc]=Strategies.niche(this.vehicle,this.track,entry.result,entry.record,this._strategyZones[arc]);
       return cached[arc];
     }
+    _connections(entry){
+      if(!this._connectionCache.has(entry))this._connectionCache.set(entry,Connections.measure(this.track,entry.result.drift,entry.record));
+      return this._connectionCache.get(entry).regions;
+    }
+    _connectionCandidate(arc,pool,scale){
+      if(!this._connectionSearch||!Connections)return null;
+      const zone=this._strategyZones[arc],groups=new Map();
+      for(const parent of pool){
+        if(!parent.accepted||!isValidResult(parent.result))continue;
+        for(const target of this._connections(parent)){
+          if(target.complete||!connectionSupport(target,zone,this.track))continue;
+          // A late isolated slide near the second apex is not an established
+          // incoming link. First grow a real corner/first-apex anchor.
+          if(!groups.has(target.id))groups.set(target.id,[]);groups.get(target.id).push({parent,target});
+        }
+      }
+      // Preserve a majority of the existing broad/exploratory search. The
+      // guided share inherits measured partial success, not a scripted run.
+      if(!groups.size||this._rng()>=.25)return null;
+      const group=[...groups.values()][Math.floor(this._rng()*groups.size)].sort((a,b)=>b.target.progress-a.target.progress||a.parent.sequence-b.parent.sequence);
+      const chosen=group[this._rng()<.75?0:Math.floor(this._rng()*Math.min(3,group.length))];
+      const proposal=Strategies.connect(this.vehicle,this.track,chosen.parent,this._rng,{lineBounds:this.lineBounds,zones:this._strategyZones,
+        connectionTarget:chosen.target,scale,referenceRecord:this._baselineEntry.record,referenceGene:this._baselineEntry.gene});
+      this._selectionStats.connectionProposals++;
+      return {parentId:chosen.parent.id,gene:proposal.gene,kind:proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
+    }
     _intentCandidate(){
       const learned=this._learning?.choose(this._rng,Strategies.FAMILIES,{weakestArcs:this._weakestArcIndices});
       const arc=learned?.arc??Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
+      const connection=this._connectionCandidate(arc,pool,clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale));
+      if(connection)return connection;
       const exploit=this._rng()<.6&&this._regional(pool[0],arc).score>1e-8;
       const parent=exploit?pool[0]:pool[Math.floor(this._rng()*pool.length)],metric=this._regional(parent,arc);
       const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],referenceRecord:this._baselineEntry.record,referenceGene:this._baselineEntry.gene,scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)};
@@ -269,7 +304,7 @@
       const warmParent=parent.id!=='baseline'&&metric.score<=1e-8&&this._entryCounts[arc]>8&&this._rng()<.5;
       if(this._entryCounts[arc]>8&&(metric.bestArc?.distance>5||warmParent)&&this._rng()<.8){
         const run=metric.bestArc,zone=this._strategyZones[arc];
-        const missingConnection=!!run&&((run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5);
+        const missingConnection=!!run&&!metric.arcs?.find(a=>a.zoneId===zone.id)?.complete&&((run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5);
         const missingLink=metric.links?.some(link=>!link.complete);
         const family=missingLink&&this._rng()<.4?'link':missingConnection&&this._rng()<.45?'bridge':learned?.family;
         const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,{...options,family});
@@ -285,8 +320,22 @@
       const unique=new Map(entries.filter(e=>e.accepted&&isValidResult(e.result)).map(e=>[e.id,e]));
       const ranked=[...unique.values()].sort((a,b)=>this._regional(b,arc).score-this._regional(a,arc).score||a.sequence-b.sequence);
       const chosen=[],zone=this._strategyZones[arc],distance=(a,b)=>localGeneDistance(a.gene,b.gene,zone,this.track.length,this.lineBounds);
-      const add=entry=>{if(entry&&!chosen.some(p=>p.id===entry.id)&&(!chosen.length||Math.min(...chosen.map(p=>distance(p,entry)))>1e-7))chosen.push(entry);};
+      const add=(entry,force=false)=>{if(entry&&entry.accepted&&isValidResult(entry.result)&&!chosen.some(p=>p.id===entry.id)&&(force||!chosen.length||Math.min(...chosen.map(p=>distance(p,entry)))>1e-7))chosen.push(entry);};
       add(ranked[0]);add(this._baselineEntry);
+      if(this._connectionSearch&&Connections){
+        const specialists=new Map();
+        for(const entry of ranked)for(const target of this._connections(entry)){
+          if(!connectionSupport(target,zone,this.track)||target.progress<=0)continue;
+          const previous=specialists.get(target.id);
+          if(!previous||target.progress>previous.target.progress)specialists.set(target.id,{entry,target});
+        }
+        // Equal local genes can arrive with different speed/yaw inherited
+        // from an earlier corner; keep the physically proven specialist.
+        // Do not reshuffle early exploration for a late, unanchored fragment
+        // that the guided search cannot use yet. Retention and use share one
+        // eligibility rule, so the prepared search is unchanged until then.
+        if(specialists.size){add(this._best,true);for(const {entry}of specialists.values())add(entry,true);}
+      }
       const behavior=entry=>{const m=this._regional(entry,arc),r=m.bestArc,l=m.bestLink;return [clamp((r?.distance||0)/Math.max(1,zone.end-zone.start),0,1),clamp((r?.distanceWeightedAngle||0)/70,0,1),clamp(r?.speedRetention||0,0,1),r?.connectionCoverage||0,l?.coverage||0];};
       const vectors=new Map(ranked.map(e=>[e,behavior(e)]));
       const spread=(pool,limit)=>{
@@ -356,7 +405,10 @@
         for(const entry of this._candidates){
           const arc=entry.arcIndex,parent=this._nicheArchives[arc]?.find(p=>p.id===entry.parentId)||this._baselineEntry;
           const regionalImprovement=entry.accepted&&Number.isInteger(arc)&&this._regional(entry,arc).score>this._regional(parent,arc).score+.01;
-          this._learning.observe(entry,{improved:regionalImprovement});
+          const targetId=entry.mutation?.connectionId;
+          const connectionImprovement=entry.accepted&&targetId&&this._connections(entry).some(t=>t.id===targetId&&t.progress>(this._connections(parent).find(p=>p.id===targetId)?.progress||0)+.01);
+          if(connectionImprovement)this._selectionStats.connectionImprovements++;
+          this._learning.observe(entry,{improved:regionalImprovement||!!connectionImprovement});
         }
         this._learning.finishGeneration(this._candidates);
       }
