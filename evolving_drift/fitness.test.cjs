@@ -476,17 +476,24 @@ test('future telemetry and a later failure cannot change earlier replay scores',
   assert.equal(later.at(-1).score,0);assert.equal(later.at(-1).finalValid,false);assert.match(later.at(-1).reason,/이탈.*무효/);
 });
 
-test('failed finishes and spins at any recorded position are never selected',()=>{
+test('unfinished terminal records remain invalid, including legacy records stopped at a spin',()=>{
   for(const status of ['offtrack','collision','timeout','spin','invalid']){
     const raw={...replay(),valid:false,status},ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
     assert.equal(ranked.score,0);assert.equal(ranked.drift.score,0);assert.equal(timeline.at(-1).score,0);assert.equal(timeline.at(-1).finalValid,false);
   }
+});
+
+test('recorded spins reset continuity without invalidating a recovered completed run',()=>{
   const base=replay();
   for(const index of [0,Math.floor(base.frames.length/2),base.frames.length-1])for(const explicit of [false,true]){
     const raw={...base,frames:base.frames.map((f,i)=>i!==index?f:explicit?{...f,status:'spin'}:{...f,beta:76*DEG,yaw:Math.atan2(f.vy,f.vx)-76*DEG})};
     const ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
-    assert.equal(ranked.valid,false);assert.equal(ranked.status,'spin');assert.equal(ranked.score,0);assert.equal(ranked.drift.spinDetected,true);
-    for(const point of timeline.slice(index)){assert.equal(point.score,0);assert.equal(point.earning,false);assert.match(point.reason,/스핀.*무효/);}
+    assert.equal(ranked.valid,true);assert.equal(ranked.status,'finished');assert.ok(ranked.score>0);assert.equal(ranked.drift.spinDetected,true);
+    const point=timeline[index];assert.equal(point.chainMultiplier,1);assert.equal(point.earning,false);assert.equal(point.score,index?timeline[index-1].score:0);assert.match(point.reason,/스핀.*점수 유지/);
+    if(index<base.frames.length-1)assert.ok(timeline.slice(index+1).some(p=>p.earning));
+    assert.equal(timeline.at(-1).score,ranked.score);assert.equal(timeline.at(-1).finalValid,true);
+    assert.equal(Fitness.measurePower(raw,track,vehicle).spinDetected,true);
+    assert.ok(Fitness.measurePower(raw,track,vehicle).score>0);
   }
 });
 

@@ -6,6 +6,7 @@
  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),wrap=x=>Math.atan2(Math.sin(x),Math.cos(x));
  const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
  const finite=(x,fallback=0)=>Number.isFinite(x)?x:fallback;
+ const isSpin=frame=>frame.status==='spin'||frame.speed>=3&&Math.abs(frame.beta||0)>=75*DEG;
  function zones(track){
   const ranges=(track.zones||[]).map(zone=>{
    // Same longitudinal geometry as renderer._road: s is the strip's START.
@@ -55,8 +56,8 @@
    const moving=!!previous&&dt>0&&dt<.1&&progress>0&&distance>0&&distance<=Math.max(previous.speed,speed)*dt*1.2+.02&&progress<=Math.max(previous.speed,speed)*dt*4+.05;
    const fresh=moving&&hi>lo?Math.min(distance,progress)*(hi-lo)/progress:0;
    this.highWater=Math.max(this.highWater,Math.min(this.track.length,finite(frame.s,2.5)));
-   if(frame.status==='spin'||speed>=3&&angle>=75)this.spinDetected=true;
-   if(moving&&fresh>0&&angle<10){
+   const spinning=isSpin(frame);if(spinning){this.spinDetected=true;this.recoveredEntry=null;this.gripRecovery={duration:0,distance:0};}
+   if(!spinning&&moving&&fresh>0&&angle<10){
     this.gripRecovery.duration+=dt;this.gripRecovery.distance+=fresh;
     if(this.cornerIndex>=0&&!this.gripRecovery.qualified&&this.gripRecovery.duration>=.5&&this.gripRecovery.distance>=8){
      this.recoveredEntry={fromCorner:this.cornerIndex,peak:0};this.gripRecovery.qualified=true;
@@ -67,7 +68,7 @@
    }
    // Keep a qualified recovery through an early entry before the next core.
    // Its subsequent drift peak must survive the eventual reference change.
-   if(this.recoveredEntry&&moving&&fresh>0&&angle>=10&&angle<=70&&speed>=8)this.recoveredEntry.peak=Math.max(this.recoveredEntry.peak,speed);
+   if(!spinning&&this.recoveredEntry&&moving&&fresh>0&&angle>=10&&angle<=70&&speed>=8)this.recoveredEntry.peak=Math.max(this.recoveredEntry.peak,speed);
    let referenceReset=false;
    if(moving&&fresh>0)for(let index=this.cornerIndex+1;index<this.corners.length;index++){
     const corner=this.corners[index];if(frame.s<corner.cornerStart)break;
@@ -83,7 +84,7 @@
    // Full-course reference, including straights outside the legacy apex
    // detector. A short feint is provisional; sustained drift fixes a causal
    // speed basis that a release/restart alone cannot lower.
-   if(moving&&fresh>0&&angle>=10&&angle<=70&&speed>=8){
+   if(!spinning&&moving&&fresh>0&&angle>=10&&angle<=70&&speed>=8){
     if(!this.referenceRun||this.referenceRun.sign!==sign)this.referenceRun={sign,duration:0,distance:0,peak:speed};
     const run=this.referenceRun;run.duration+=dt;run.distance+=fresh;run.peak=Math.max(run.peak,speed);
     if(run.duration>=.25-1e-9&&run.distance>=3-1e-9)this.actualReference=Math.max(this.actualReference,run.peak);
@@ -97,13 +98,13 @@
    const direction=Math.abs(roadCurvature)>.004?smooth(curvature/roadCurvature):1;
    const curveQ=moving?direction/(1+(change/.02)**2):0;this.previousCurvature=moving?curvature:null;
    const conditions={area:hi>lo||frame.s>=2.5&&frame.s<=this.track.length,angle:angle>=10&&angle<=70,speed:speed>=8,retention:retention>.7,forward:moving&&fresh>0};
-   const eligible=Object.values(conditions).every(Boolean)&&!this.spinDetected;
+   const eligible=Object.values(conditions).every(Boolean)&&!spinning;
    const zoneMultiplier=this.zones.some(z=>frame.s>=z.start&&frame.s<z.end)?ZONE_MULTIPLIER:1;
-   let transitioning=false,reset=false,baseDelta=0,delta=0;
+   let transitioning=false,reset=spinning,baseDelta=0,delta=0;
    const compatible=eligible&&(!this.chainSign||sign===this.chainSign);
    if(this.chainSign&&!compatible){
     const link=this.transition?.link||this.links.find(z=>z.fromSign!==z.toSign&&-z.fromSign===this.chainSign&&frame.s>=z.straightStart&&frame.s<=z.straightEnd&&!this.usedTransitions.has(z.id));
-    const smoothTransition=moving&&fresh>0&&speed>=8&&retention>.7&&Math.abs(wrap((frame.beta||0)-(previous.beta||0)))/dt<=4;
+    const smoothTransition=!spinning&&moving&&fresh>0&&speed>=8&&retention>.7&&Math.abs(wrap((frame.beta||0)-(previous.beta||0)))/dt<=4;
     if(link&&smoothTransition&&(angle<10||this.transition&&eligible&&sign===-link.toSign)){
      if(!this.transition){this.transition={link,startTime:previous.time,distance:0};this.usedTransitions.add(link.id);}
      this.transition.distance+=fresh;
@@ -129,13 +130,13 @@
    }
    return {baseDelta,delta,chainMultiplier:this.multiplier(),zoneMultiplier,combinedMultiplier:this.multiplier()*zoneMultiplier,
     appliedMultiplier:baseDelta>0?delta/baseDelta:this.multiplier()*zoneMultiplier,chainDistance:this.chainDistance,chainEffectiveDistance:this.chainEffectiveDistance,
-    transitioning,chainReset:reset,referenceReset,referenceScope:this.corners[this.cornerIndex]?.id||'course',quality:{angle:angleQ,speed:speedQ,curve:curveQ},conditions,referenceSpeed:reference,speedRetention:retention,
-    phase:transitioning?'transition':zoneMultiplier===2?'zone':'course',parts:{...this.parts},potentialScore:this.total};
+    spinning,transitioning,chainReset:reset,referenceReset,referenceScope:this.corners[this.cornerIndex]?.id||'course',quality:{angle:angleQ,speed:speedQ,curve:curveQ},conditions,referenceSpeed:reference,speedRetention:retention,
+    phase:spinning?'spin':transitioning?'transition':zoneMultiplier===2?'zone':'course',parts:{...this.parts},potentialScore:this.total};
   }
   summary(){return {score:this.total,parts:{...this.parts},chainMultiplier:this.multiplier(),maxMultiplier:this.maxMultiplier,chainDistance:this.chainDistance,chainEffectiveDistance:this.chainEffectiveDistance,
    maxChainDistance:this.maxChainDistance,scoredDistance:this.scoredDistance,zoneDistance:this.zoneDistance,meanAngle:this.scoredDistance>0?this.angleIntegral/this.scoredDistance:0};}
  }
- function signature(){return [CHAIN_METRES,MAX_MULTIPLIER,ZONE_MULTIPLIER,...[clamp,wrap,smooth,finite,zones,paceProfile,paceAt,chainArea,Accumulator].map(String)].join('\n');}
- const api=Object.freeze({VERSION:1,CHAIN_METRES,MAX_MULTIPLIER,ZONE_MULTIPLIER,zones,paceProfile,paceAt,Accumulator,signature});root.DriftCourseScoring=api;
+ function signature(){return [CHAIN_METRES,MAX_MULTIPLIER,ZONE_MULTIPLIER,...[clamp,wrap,smooth,finite,isSpin,zones,paceProfile,paceAt,chainArea,Accumulator].map(String)].join('\n');}
+ const api=Object.freeze({VERSION:2,CHAIN_METRES,MAX_MULTIPLIER,ZONE_MULTIPLIER,isSpin,zones,paceProfile,paceAt,Accumulator,signature});root.DriftCourseScoring=api;
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

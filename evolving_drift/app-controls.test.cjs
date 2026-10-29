@@ -52,8 +52,8 @@ function environment({fallback=false,apex=false,broken=false,complete=false,earl
     ready(worker=workers.at(-1)){worker.emit({type:'ready',baseline,best,state:state()});},
     tick(){const entry=timers.entries().next().value;if(entry){timers.delete(entry[0]);entry[1]();}},steps:()=>steps,scoreCalls:()=>scoreCalls,
     updateStats(evaluation,learning){evaluationStats=evaluation;learningStats=learning;workers.at(-1).emit({type:'candidate',candidate:{...best,id:'stats-candidate'},best,state:state()});},
-    publishBest(){const entry={...best,id:'new-best',record:[{...frame}],result:{...result,score:2}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});},
-    selectFailure(status='offtrack',failureAnalysis=null){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status,failureAnalysis}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});workers.at(-1).emit({type:'paused'});}};
+    publishBest(id='new-best',score=2){const entry={...best,id,record:[{...frame}],result:{...result,score}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});},
+    selectFailure(status='offtrack',failureAnalysis=null){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status,failureAnalysis}};workers.at(-1).emit({type:'candidate',candidate:entry,best,state:state()});get('records').children.find(row=>row.children[0].textContent==='failed-test').onclick();}};
 }
 
 test('pause waits for its worker acknowledgement before allowing resume or one generation',()=>{
@@ -112,32 +112,60 @@ test('file fallback cancels the pending tick before a fast pause and resume',asy
   env.get('reset').onclick();assert.equal(env.timers.size,0);
 });
 
-test('a completed replay holds its final frame while evolution keeps running and publishing records',()=>{
+test('the highest valid record autoplays, holds its finish for one real second, and loops while evolution continues',()=>{
   const env=environment();env.ready();env.get('evolve').onclick();const worker=env.workers[0],messages=worker.messages.length;
-  assert.equal(env.state().evolving,true);assert.equal(env.state().playing,true);
+  assert.equal(env.state().evolving,true);assert.equal(env.state().playing,true);assert.equal(env.state().replay.autoFollow,true);
   env.advance(31000);
   const finished=env.state();assert.equal(finished.replay.id,'baseline');assert.equal(finished.replay.time,30);
-  assert.equal(finished.playing,false);assert.equal(finished.evolving,true);assert.equal(env.get('play').textContent,'▶ 재생');
+  assert.equal(finished.playing,true);assert.equal(finished.replay.finishHoldMs,1000);assert.equal(finished.evolving,true);assert.equal(env.get('play').textContent,'Ⅱ 일시정지');
   assert.match(env.get('run-state').textContent,/유효 완주/);assert.equal(env.get('replay-score-label').textContent,'확정 점수');
   env.updateStats({simulatedTicks:120,reusedTicks:0,totalTicks:120,cacheHits:0,evaluations:1},{enabled:true,failuresAnalyzed:0,guidedProposals:0});
-  const heldRecord=env.render().record;env.publishBest();env.advance(5000);
-  assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,30);assert.equal(env.state().playing,false);
-  assert.equal(env.state().evolving,true);assert.equal(env.state().lastCandidate.id,'new-best');assert.equal(env.state().score,2);
+  const heldRecord=env.render().record;env.get('playback').value='4';env.advance(999);
+  assert.equal(env.state().replay.time,30);assert.equal(env.render().record,heldRecord);assert.equal(env.state().replay.finishHoldMs,1);
+  env.advance(1);assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
+  env.advance(250);assert.equal(env.state().replay.time,1);
   assert.equal(env.state().evaluationStats.evaluations,1);assert.equal(worker.messages.length,messages,'finishing the replay does not pause background evaluation');
-  assert.equal(env.render().time,30);assert.equal(env.render().record,heldRecord,'a new representative does not replace the selected replay');
 });
 
-test('play from the finish, rewind, record choice and reset leave the held final view',()=>{
+test('a new highest record immediately replaces autoplay or its finish hold, while lower candidates do not',()=>{
+  const env=environment();env.ready();assert.equal(env.state().playing,true);env.advance(1000);
+  env.publishBest();assert.equal(env.state().replay.id,'new-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
+  env.advance(31000);assert.equal(env.state().replay.finishHoldMs,1000);
+  env.publishBest('newer-best',3);assert.equal(env.state().replay.id,'newer-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().replay.finishHoldMs,0);
+  env.advance(1000);env.updateStats(null,null);assert.equal(env.state().replay.id,'newer-best');assert.equal(env.state().replay.time,1);assert.equal(env.state().score,3);
+});
+
+test('manual pause during the finish hold prevents looping and new-best interruption until representative selection',()=>{
   const env=environment();env.ready();env.get('evolve').onclick();env.advance(31000);
+  env.get('play').onclick();assert.equal(env.state().replay.time,30);assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);
+  env.publishBest();env.advance(5000);assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,30);
   env.get('play').onclick();assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
   env.advance(1000);assert.equal(env.state().replay.time,1);
   env.advance(30000);env.get('restart').onclick();assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,false);
-  env.get('play').onclick();env.advance(31000);
-  env.updateStats({simulatedTicks:120,reusedTicks:0,totalTicks:120,cacheHits:0,evaluations:1},null);
+  env.get('records').children.find(row=>row.children[0].textContent==='new-best · 대표').onclick();
+  assert.equal(env.state().replay.id,'new-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);assert.equal(env.state().replay.autoFollow,true);
+});
+
+test('manual seeking and candidate inspection are preserved until evolution starts again',()=>{
+  const env=environment();env.ready();env.get('timeline').value='500';env.get('timeline').oninput();
+  assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);assert.equal(env.state().replay.time,15);
+  env.publishBest();assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,15);
+  env.updateStats(null,null);
   env.get('records').children.find(row=>row.children[0].textContent==='stats-candidate').onclick();
   assert.equal(env.state().replay.id,'stats-candidate');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,false);
   env.get('play').onclick();env.advance(1000);assert.equal(env.state().replay.time,1);
-  env.get('reset').onclick();env.ready();assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,0);assert.equal(env.state().evolving,false);
+  env.publishBest('newer-best',3);assert.equal(env.state().replay.id,'stats-candidate');assert.equal(env.state().replay.time,1);
+  env.get('evolve').onclick();assert.equal(env.state().replay.id,'newer-best');assert.equal(env.state().replay.time,0);assert.equal(env.state().replay.autoFollow,true);assert.equal(env.state().playing,true);
+  env.get('reset').onclick();env.ready();assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,0);assert.equal(env.state().evolving,false);assert.equal(env.state().playing,true);
+});
+
+test('evolution pause acknowledgement does not override manual inspection or restart autoplay',()=>{
+  const env=environment();env.ready();env.get('evolve').onclick();env.advance(1000);env.get('evolve').onclick();
+  assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);
+  env.selectFailure();env.publishBest();env.workers[0].emit({type:'paused'});env.advance(5000);
+  assert.equal(env.state().replay.id,'failed-test');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,false);
+  env.get('one-generation').onclick();assert.equal(env.state().replay.id,'new-best');assert.equal(env.state().replay.autoFollow,true);assert.equal(env.state().playing,true);
+  env.workers[0].emit({type:'paused'});assert.equal(env.state().evolving,false);assert.equal(env.state().playing,true,'automatic one-generation completion preserves autoplay');
 });
 
 test('representative summary shows whole-course continuity while the corner replay shortcut still seeks its interval',()=>{
@@ -182,6 +210,18 @@ test('a broken chain resets continuity to one without subtracting earlier points
   assert.equal(env.get('score-reason').textContent,'연속 중단 · 배수 1로 초기화');
   assert.equal(env.get('score-chain-multiplier').textContent,'×1.00');assert.equal(env.get('score-zone-multiplier').textContent,'×2');assert.equal(env.get('score-combined-multiplier').textContent,'×2.00');
   assert.equal(env.get('score-exit').textContent,'현재 연속 드리프트 0.0 m');
+});
+
+test('a recoverable spin retains earned points and shows a reset multiplier without a failure label',()=>{
+  const rows=[
+    {time:0,score:10,delta:1,earning:true,provisional:true,chainMultiplier:1.5,reason:'연속 드리프트 득점'},
+    {time:15,score:10,delta:0,earning:false,provisional:true,chainMultiplier:1,reason:'스핀 · 연속 배수 초기화 · 기존 점수 유지'},
+    {time:30,score:12,delta:1,earning:true,provisional:false,finalValid:true,chainMultiplier:1.2,reason:'완주 · 점수 확정'}
+  ].map(row=>({phase:'course',zoneMultiplier:1,combinedMultiplier:row.chainMultiplier,chainDistance:0,conditions:{},parts:{base:row.score,continuity:0,zone:0},...row}));
+  const env=environment({timeline:rows});env.ready();env.get('timeline').value='500';env.get('timeline').oninput();
+  assert.equal(env.get('replay-score').textContent,'10.00');assert.equal(env.get('score-chain-multiplier').textContent,'×1.00');assert.equal(env.get('replay-score-label').textContent,'잠정 점수');
+  assert.equal(env.get('score-change').textContent,'득점 없음');assert.match(env.get('score-reason').textContent,/스핀.*점수 유지/);assert.equal(env.get('failure-analysis').hidden,true);
+  env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score').textContent,'12.00');assert.equal(env.get('replay-score-label').textContent,'확정 점수');
 });
 
 test('current continuity, zone and combined multipliers follow replay position without multiplying old points',()=>{
@@ -272,7 +312,7 @@ test('straight drift links show current progress, transition and completed count
 test('courses without an intermediate straight do not show an unmet straight-link condition or enable its replay',()=>{
   const env=environment({apex:true});env.ready();
   assert.equal(env.get('straight-links').textContent,'0 / 0');
-  assert.equal(env.get('replay-straight-link').disabled,true);env.get('replay-straight-link').onclick();assert.equal(env.state().playing,false);
+  const before=env.state().replay;assert.equal(env.get('replay-straight-link').disabled,true);env.get('replay-straight-link').onclick();assert.deepEqual(env.state().replay,before);assert.equal(env.state().playing,true);
   assert.match(env.get('score-link').textContent,/해당 직선 없음/);assert.equal(env.get('score-criteria').children.some(c=>c.textContent.includes('직선 연결 완료')),false);
 });
 
@@ -302,7 +342,7 @@ test('failed replay separates recorded observations from hypotheses and seeks th
   assert.equal(worker.messages.length,messages);assert.equal(env.steps(),0);assert.equal(env.scoreCalls(),calls,'seeking uses the existing replay score cache');
   env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score').textContent,'0.00');
   env.ready();assert.equal(env.get('failure-analysis').hidden,true);assert.equal(env.state().failureAnalysis,null);
-  env.selectFailure('spin',failureFixture);env.get('reset').onclick();
+  env.selectFailure('offtrack',failureFixture);env.get('reset').onclick();
   assert.equal(env.get('failure-analysis').hidden,true);assert.equal(env.get('replay-failure-origin').disabled,true);assert.equal(env.get('failure-evidence').children.length,0);assert.equal(env.state().failureAnalysis,null);
 });
 
@@ -312,7 +352,7 @@ test('unresolved failures do not invent an origin while a real zero-second origi
   assert.match(env.get('failure-origin').textContent,/선행 징후 시점 미확인/);assert.equal(env.get('replay-failure-origin').disabled,true);
   env.get('replay-failure-origin').onclick();assert.equal(env.state().playing,false);
   assert.match(env.get('failure-hypotheses').children[0].textContent,/가설을 좁히기 어렵습니다/);
-  env.selectFailure('spin',{...failureFixture,origin:{time:0,s:0,zoneIndex:0}});assert.equal(env.get('replay-failure-origin').disabled,false);
+  env.selectFailure('offtrack',{...failureFixture,origin:{time:0,s:0,zoneIndex:0}});assert.equal(env.get('replay-failure-origin').disabled,false);
   env.get('replay-failure-origin').onclick();assert.equal(env.state().playing,true);assert.equal(env.state().replay.time,0);
   env.selectFailure('timeout');assert.equal(env.get('failure-details').hidden,true);assert.equal(env.get('replay-failure-origin').disabled,true);assert.match(env.get('failure-summary').textContent,/분석이 없습니다/);
 });
@@ -348,6 +388,8 @@ test('simplified page removes ghost and graphs while retaining replay, details a
   for(const id of ['ghost','gene-chart','gene-steer','gene-throttle','gene-brake','gene-cursor','factor-rows','history'])assert.equal(pageIds.has(id),false,id+' must be removed rather than hidden');
   assert.doesNotMatch(html,/<svg\b|그립 고스트|factor-panel|gene-panel/);
   assert.doesNotMatch(html,/연결 45|옆으로 이동 35|잠정 점수는 주행에 따라 낮아질/);assert.match(html,/이미 얻은 점수는 유지/);
+  assert.ok(html.includes('드리프트가 끊어지거나, 스핀할 경우 배수는 1로 돌아가고 이미 얻은 점수는 유지됩니다. 짧은 방향 전환 중에는 배수만 유지합니다. 코스를 벗어나면 전체 점수가 무효가 되며, 완주해야 확정됩니다.'));
+  assert.doesNotMatch(html,/이탈·충돌·스핀은 무효/);
   for(const id of ['score-chain-multiplier','score-zone-multiplier','score-combined-multiplier'])assert.ok(pageIds.has(id));
   for(const id of ['score-details','failure-details','experiment-details','stock-details','course-summary']){
     const tag=html.match(new RegExp('<details[^>]*id="'+id+'"[^>]*>'))?.[0];assert.ok(tag,id+' remains available on demand');assert.doesNotMatch(tag,/\bopen\b/);
