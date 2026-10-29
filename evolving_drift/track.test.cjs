@@ -28,7 +28,7 @@ test('the public course records its specific event and the limits of its reconst
 });
 test('the public event has open measured geometry, terrain and polygon limits',()=>{
   const t=Track.get();assert.ok(t.length>500&&t.length<700);assert.ok(t.judgedStart>0&&t.judgedEnd<t.length);
-  assert.ok(t.boundaryPolygons.length>=2);assert.ok(t.obstacles.some(o=>o.type==='polygon'));
+  assert.equal(t.boundaryPolygons.length,1);assert.equal(t.competitionBoundary.kind,'rendered-road-ribbon');assert.ok(t.obstacles.some(o=>o.type==='polygon'));
   assert.ok(t.excludedPolygons.length>0);assert.ok(t.excludedPolygons.every(p=>Object.isFrozen(p)&&p.every(Object.isFrozen)));
   assert.ok(t.geometrySignature.length>100);assert.ok(t.dataVersion>=1);
   assert.ok(Math.hypot(t.points.at(-1).x-t.points[0].x,t.points.at(-1).y-t.points[0].y)>100);

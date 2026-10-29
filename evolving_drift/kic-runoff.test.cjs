@@ -22,7 +22,7 @@ function heightAt(q,vertices){const [a,b,c]=vertices,den=cross(a,b,c),wa=cross(q
 
 test('KIC red runoff rejects the reported front-contact point that the asphalt apron formerly allowed',()=>{
   const q={x:-21.2251,y:-13.3267,s:369.355},exclusions=new Set(painted().map(s=>s.exclusionIndex));
-  const previous=Model.build({...data,excludedPolygons:data.excludedPolygons.filter((_,i)=>!exclusions.has(i))});
+  const previous=Model.build({...data,boundaryPolygons:[...data.boundaryPolygons,data.environment.terrain.sourcePolygon],excludedPolygons:data.excludedPolygons.filter((_,i)=>!exclusions.has(i))});
   assert.equal(previous.contains(q.x,q.y,q.s),true,'the original apron accepted this red-strip point');
   assert.equal(track.contains(q.x,q.y,q.s),false,'the painted runoff must be outside the permitted road');
   const car=Catalog.get(),yaw=track.sample(q.s).heading,offset=Physics.frontContacts(car,{x:0,y:0,yaw})[0];
@@ -44,12 +44,12 @@ test('KIC runoff paint and exclusion footprints match over their complete width'
   assert.equal(groups.size,6);
   for(const [index,paintedArea]of groups)assert.ok(Math.abs(paintedArea-area(data.excludedPolygons[index]))<1e-6,'paint covers the whole excluded strip segment');
   // At the long edge beside the reported point, both road-side red paint and
-  // grass-side red paint are excluded; ordinary apron beyond the paint remains.
+  // grass-side red paint are excluded. Adjacent apron is scenery, not course.
   const footprint=data.excludedPolygons[[...groups.keys()][4]],a=footprint[0],b=footprint[1],c=footprint[2],d=footprint[3];
   const start={x:(a.x+d.x)/2,y:(a.y+d.y)/2},end={x:(b.x+c.x)/2,y:(b.y+c.y)/2},length=Math.hypot(end.x-start.x,end.y-start.y);
   const mid={x:(start.x+end.x)/2,y:(start.y+end.y)/2},normal={x:-(end.y-start.y)/length,y:(end.x-start.x)/length};
   for(const offset of [-1.74,0,1.74])assert.equal(track.contains(mid.x+normal.x*offset,mid.y+normal.y*offset),false);
-  assert.ok([-1.76,1.76].some(offset=>track.contains(mid.x+normal.x*offset,mid.y+normal.y*offset)),'asphalt side beyond the 3.5m strip remains permitted');
+  for(const offset of [-1.76,1.76])assert.equal(track.contains(mid.x+normal.x*offset,mid.y+normal.y*offset),false,'leaving the red paint does not make surrounding apron drivable');
 });
 
 test('KIC runoff rendering follows the existing height field and clears overlapping grass',()=>{

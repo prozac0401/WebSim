@@ -93,6 +93,9 @@ test('observed steering limits are separate from unproven insufficient counterst
 
 test('curvature and speed can suggest nominal demand but never prove overspeed',()=>{
  const a=analyze(divergent({speed:40})),h=a.hypotheses.find(h=>h.kind==='speed-demand');assert.ok(h);assert.equal(h.confidence,'low');assert.match(h.summary,/확정할 수 없습니다/);
+ assert.ok(a.recommendedFamilies.includes('entry-speed'));assert.ok(a.speedPreparation.requiredDistanceM>0);
+ assert.ok(a.speedPreparation.targetSpeed<a.speedPreparation.observedSpeed);
+ assert.ok(a.window.startS<=a.speedPreparation.brakingStartS);assert.ok(a.window.startS<a.origin.s,'speed repair searches before the already-visible path error');
  const straight=course(()=>0),b=Analysis.analyze(vehicle,straight,replay({road:straight,speed:40,pathError:s=>s<75?0:(s-75)*.1,headingError:.2}),{zones:[]});
  assert.ok(!kinds(b).includes('speed-demand'));
  const c=Analysis.analyze({},track,divergent({speed:40}),{zones});assert.ok(!kinds(c).includes('speed-demand'));

@@ -119,7 +119,7 @@ test('apex replay shows sustained angle and minimum speed retention, seeks its i
   assert.equal(env.get('apex-connection').textContent,'apex 통과 · 연결 중');
   assert.equal(env.get('full-connections').textContent,'0 / 2');assert.equal(env.get('connection-coverage').textContent,'65.0%');
   assert.equal(env.state().objective.type,'continuous-apex-drift');
-  assert.equal(env.get('arc-speed').textContent,'기준 72.0 · 코너 최저 64.8 · 탈출 68.4 km/h');
+  assert.equal(env.get('arc-speed').textContent,'진입 기준 72.0 · 코너 최저 64.8 · 탈출 68.4 km/h');
   assert.equal(env.get('replay-apex-arc').disabled,false);
   const messageCount=env.workers[0].messages.length;
   env.get('replay-apex-arc').onclick();
@@ -261,7 +261,7 @@ test('accepted prefix reuse totals and guided trials are shown without claiming 
   env.updateStats(evaluation,learning);
   assert.equal(env.get('evaluation-progress').hidden,false);assert.equal(env.get('evaluation-reuse').textContent,'물리 계산 재사용 40.0%');
   assert.match(env.get('evaluation-detail').textContent,/새 계산 3,600회 · 재사용 2,400회 \/ 전체 6,000회 · 재사용 후보 2 \/ 평가 3개/);
-  assert.equal(env.get('learning-progress').textContent,'실패 분석 2개 · 가설 기반 시도 1개');
+  assert.equal(env.get('learning-progress').textContent,'실패 분석 2개 · 가설 기반 시도 1개 · 취약 구간 탐색 0개');
   assert.deepEqual(env.state().evaluationStats,evaluation);assert.equal(env.state().evaluationReuseRatio,.4);assert.deepEqual(env.state().learningStats,learning);
   env.updateStats({simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:0},{...learning,enabled:false});
   assert.equal(env.get('evaluation-reuse').textContent,'물리 계산 재사용 —');assert.equal(env.state().evaluationReuseRatio,null);assert.equal(env.get('learning-progress').hidden,true);

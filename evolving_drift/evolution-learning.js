@@ -3,18 +3,20 @@
 (function(root){
 'use strict';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const REPAIR_FAMILIES=Object.freeze(['timing','lead','steer','line','power','angle','combined']);
+const REPAIR_FAMILIES=Object.freeze(['entry-speed','timing','lead','steer','line','power','angle','combined']);
 class Policy {
  constructor(zones,{enabled=true,scale=1}={}){
-  this.enabled=enabled;this.baseScale=scale;this.generation=0;this.observations=0;this.failuresAnalyzed=0;this.guidedProposals=0;this.explorationProposals=0;
+  this.enabled=enabled;this.baseScale=scale;this.generation=0;this.observations=0;this.failuresAnalyzed=0;this.guidedProposals=0;this.explorationProposals=0;this.focusProposals=0;
   this.zones=zones.map(()=>({trials:0,valid:0,improved:0,scale:1,families:{},hints:[]}));
  }
- choose(rng,families){
+ choose(rng,families,{weakestArcs=[]}={}){
   if(!this.enabled||!this.zones.length)return null;
   // A fixed exploration share prevents noisy early diagnoses from taking over.
   const explore=rng()<.25;
-  let arc=Math.floor(rng()*this.zones.length),repair=null;
+  let arc=Math.floor(rng()*this.zones.length),repair=null,focus=false;
+  const weakest=[...new Set(weakestArcs)].filter(i=>Number.isInteger(i)&&this.zones[i]);
   if(explore)this.explorationProposals++;
+  else if(weakest.length&&rng()<.35){arc=weakest[Math.floor(rng()*weakest.length)];focus=true;this.focusProposals++;}
   else {
    const hinted=this.zones.map((z,i)=>({z,i})).filter(x=>x.z.hints.length);
    if(hinted.length&&rng()<.55){
@@ -27,9 +29,9 @@ class Policy {
   if(repair){
    const allowed=repair.recommendedFamilies.filter(f=>REPAIR_FAMILIES.includes(f));
    const candidates=allowed.length?allowed:['lead','line','timing'];
-   return {arc,scale,explore,repair,family:this._family(zone,candidates,rng)};
+   return {arc,scale,explore,focus,repair,family:this._family(zone,candidates,rng)};
   }
-  return {arc,scale,explore,repair:null,family:explore?undefined:this._family(zone,families,rng)};
+  return {arc,scale,explore,focus,repair:null,family:explore?undefined:this._family(zone,families,rng)};
  }
  _family(zone,families,rng){
   const weights=families.map(f=>{
@@ -53,7 +55,7 @@ class Policy {
   const diagnosis=entry.result?.failureAnalysis,index=diagnosis?.precedingZoneIndex??diagnosis?.origin?.zoneIndex,target=this.zones[index];
   if(entry.accepted||!target||!diagnosis?.window||!Number.isFinite(diagnosis.origin?.s)||diagnosis.kind==='unknown')return;
   this.failuresAnalyzed++;
-  const hint={candidateId:entry.id,generation:this.generation,kind:diagnosis.kind,origin:{...diagnosis.origin},precedingZoneIndex:diagnosis.precedingZoneIndex,window:{...diagnosis.window},recommendedFamilies:[...(diagnosis.recommendedFamilies||[])]};
+  const hint={candidateId:entry.id,generation:this.generation,kind:diagnosis.kind,origin:{...diagnosis.origin},precedingZoneIndex:diagnosis.precedingZoneIndex,window:{...diagnosis.window},speedPreparation:diagnosis.speedPreparation?{...diagnosis.speedPreparation}:undefined,recommendedFamilies:[...(diagnosis.recommendedFamilies||[])]};
   // Do not let thousands of copies of one late failure drown out earlier hints.
   const previous=target.hints.findIndex(h=>h.kind===hint.kind&&Math.abs(h.origin.s-hint.origin.s)<8);
   if(previous>=0)target.hints.splice(previous,1);
@@ -68,7 +70,7 @@ class Policy {
    zone.scale=clamp(zone.scale*(rate===0?.65:rate<.25?.8:rate>.6?1.06:1),.12,1.5);
   }
  }
- snapshot(){return {enabled:this.enabled,observations:this.observations,failuresAnalyzed:this.failuresAnalyzed,guidedProposals:this.guidedProposals,explorationProposals:this.explorationProposals,zones:this.zones.map((z,zoneIndex)=>({zoneIndex,trials:z.trials,valid:z.valid,improved:z.improved,scale:clamp(z.scale*this.baseScale,.03,1.5),lastOriginS:z.hints.at(-1)?.origin.s??null}))};}
+ snapshot(){return {enabled:this.enabled,observations:this.observations,failuresAnalyzed:this.failuresAnalyzed,guidedProposals:this.guidedProposals,explorationProposals:this.explorationProposals,focusProposals:this.focusProposals,zones:this.zones.map((z,zoneIndex)=>({zoneIndex,trials:z.trials,valid:z.valid,improved:z.improved,scale:clamp(z.scale*this.baseScale,.03,1.5),lastOriginS:z.hints.at(-1)?.origin.s??null}))};}
 }
 const api=Object.freeze({VERSION:1,REPAIR_FAMILIES,Policy});root.DriftEvolutionLearning=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis==='undefined'?window:globalThis);

@@ -4,12 +4,13 @@
 'use strict';
 const G=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
 const F=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
+const SpeedPlanner=root.DriftEntrySpeedPlanner||(typeof require==='function'?require('./entry-speed-planner.js'):null);
 if(!G||!F)throw new Error('Load Genome and Fitness before EvolutionStrategies.');
 const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const smoother=t=>{t=clamp(t,0,1);return t*t*t*(10+t*(-15+6*t));};
 const pulse=(s,c,w)=>Math.abs(s-c)>=w?0:.5+.5*Math.cos(Math.PI*(s-c)/w);
-const FAMILIES=Object.freeze(['link','link','link','bridge','bridge','bridge','apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach']);
+const FAMILIES=Object.freeze(['link','link','link','bridge','bridge','bridge','apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach','entry-speed','entry-speed']);
 const straightCache=new WeakMap();
 function zones(track){return F.apexZones(track);}
 function links(track){return F.straightLinks(track);}
@@ -56,10 +57,11 @@ function entry(vehicle,track,prepared,rng,arcIndex,previousParams=null,options={
  if(!corners[arcIndex])throw new RangeError('A detected exit region is required.');
 function random(){
  const arc=pick(corners),last=arc===corners.at(-1),maximumLength=Math.max(0,Math.min(60,arc.end-arc.exit-8)),length=rnd(0,maximumLength),lower=approachStart(track,arc,corners),upper=Math.max(lower,(arc.apex??((arc.cornerStart??arc.start)+arc.exit)/2)-4),onset=rng()<.4?rnd(lower,upper):clamp((arc.cornerStart??arc.start)+rnd(-35,8),lower,upper);
- return bounded({arc:corners.indexOf(arc),onset,ramp:rnd(5,14),delay:rnd(0,8),entryBrake:rnd(0,.12),prepPedal:rnd(.4,1),prepRelease:rnd(.25,.9),prepLead:rnd(8,Math.max(8,onset-2.5)),feint:rnd(.3,2.2),angle:rnd(12,32),exitAngle:rnd(14,35),pedal:rnd(.5,1),slip:rng()<.15?0:rnd(.2,1.1),lead:rnd(.05,.5),gear:pick(last?[0,2,3]:[0,3,4]),line:rnd(0,last?7:3.5),apexLine:rnd(.2,2.2),bow:rnd(.5,last?4:2.5),length,recovery:rnd(14,30),steer:rnd(-.04,.04),exitSteer:rnd(-.035,.035),compensation:1,tailPedal:rnd(.25,.6)});
+ return bounded({arc:corners.indexOf(arc),onset,ramp:rnd(5,14),delay:rnd(0,8),entryBrake:rnd(0,.12),prepPedal:rnd(.4,1),prepRelease:rnd(.25,.9),prepLead:rnd(8,Math.max(8,onset-2.5)),feint:rnd(.3,2.2),angle:rnd(12,32),exitAngle:rnd(14,35),pedal:rnd(.5,1),slip:rng()<.15?0:rnd(.2,1.1),lead:rnd(.05,.5),gear:pick(last?[0,2,3]:[0,3,4]),line:rnd(0,last?7:3.5),apexLine:rnd(.2,2.2),bow:rnd(.5,last?4:2.5),length,recovery:rnd(14,30),steer:rnd(-.04,.04),exitSteer:rnd(-.035,.035),compensation:1,tailPedal:rnd(.25,.6),entrySpeedRatio:rnd(.9,1.25),brakeLead:rnd(-5,20),brakeStrength:rnd(.8,1.3),brakeRelease:rnd(-10,8)});
 }
-const scales={onset:22,prepPedal:.12,prepRelease:.15,ramp:3,delay:3,entryBrake:.04,prepLead:18,feint:.5,angle:5,exitAngle:5,pedal:.1,slip:.2,lead:.08,line:1,apexLine:.75,bow:1,length:7,recovery:5,steer:.015,exitSteer:.02,compensation:.2,tailPedal:.1};
+const scales={onset:22,prepPedal:.12,prepRelease:.15,ramp:3,delay:3,entryBrake:.04,prepLead:18,feint:.5,angle:5,exitAngle:5,pedal:.1,slip:.2,lead:.08,line:1,apexLine:.75,bow:1,length:7,recovery:5,steer:.015,exitSteer:.02,compensation:.2,tailPedal:.1,entrySpeedRatio:.12,brakeLead:10,brakeStrength:.18,brakeRelease:8};
 function bounded(q){
+ Object.assign(q,SpeedPlanner.parameters(q));
  const z=corners[q.arc],apex=z.apex??((z.cornerStart??z.start)+z.exit)/2;
  const lower=approachStart(track,z,corners);q.onset=clamp(q.onset,lower,Math.max(lower,apex-4));q.prepPedal=clamp(q.prepPedal??.4,.15,1);q.prepRelease=clamp(q.prepRelease??.5,0,1);q.ramp=clamp(q.ramp,3,20);q.delay=clamp(q.delay,0,20);q.entryBrake=clamp(q.entryBrake,0,.3);
  const available=Math.max(0,q.onset-lower);q.prepLead=clamp(q.prepLead??28,Math.min(8,available),available);q.feint=clamp(q.feint??0,0,4);q.angle=clamp(q.angle,3,50);q.exitAngle=clamp(q.exitAngle,5,50);q.pedal=clamp(q.pedal,.15,1);q.slip=clamp(q.slip,0,1.5);q.lead=clamp(q.lead,.05,.8);q.line=clamp(q.line,-8,12);q.apexLine=clamp(q.apexLine??.5,-4,8);q.bow=clamp(q.bow,.1,8);
@@ -74,7 +76,12 @@ function generate(q){
  // Preparation can use the mapped road before START; no vehicle state is reset.
  for(let i=0;i<G.KNOTS;i++){
   const s=i*ds,j=i*G.STRIDE,acceleration=smooth((s-preparationStart)/8)*(1-smooth((s-q.onset)/(q.ramp+q.delay)));
-  if(acceleration>0){gene[j+C.throttle]+=(q.prepPedal-gene[j+C.throttle])*acceleration;gene[j+C.brake]*=1-q.prepRelease*acceleration;}
+  if(acceleration>0){
+   // A preparation accelerator must not silently replace the offline braking
+   // phase. Its eventual replacement is the independent evolved brake plan.
+   if(initial[j+C.brake]>.02&&speedAt(prepared.record,s+2)<speedAt(prepared.record,s-2))gene[j+C.throttle]=Math.min(gene[j+C.throttle],initial[j+C.throttle]);
+   else{gene[j+C.throttle]+=(q.prepPedal-gene[j+C.throttle])*acceleration;gene[j+C.brake]*=1-q.prepRelease*acceleration;}
+  }
   if(q.prepLead>0&&s>q.onset-q.prepLead&&s<q.onset){const u=(s-q.onset+q.prepLead)/q.prepLead,w=64*u*u*u*(1-u)**3;gene[j+C.brake]+=q.entryBrake*w;gene[j+C.lineOffset]+=sign*q.feint*w;}
  }
  const preparedLine=G.clone(gene),lineStart=Math.max(preparationStart,q.onset-12),a=lineShape(preparedLine,track,lineStart),b=lineShape(initial,track,finish),inside=z.sign*q.apexLine;
@@ -87,13 +94,15 @@ function generate(q){
   // A changed arrival speed may require different pedals on the final straight.
   if(z===corners.at(-1)&&s>tailStart){const w=smooth((s-tailStart)/15);gene[j+C.brake]*=1-w;gene[j+C.throttle]+=(q.tailPedal-gene[j+C.throttle])*w;gene[j+C.gearHold]=0;}
  }
- const n=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds}),coupled=FF.couple(vehicle,track,initial,n,baseline.frames);
+ const normalized=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
+ const entrySpeed=SpeedPlanner.plan(vehicle,track,normalized,prepared.record,z,q,{lower:preparationStart,arrivalRecord:prepared.record,referenceGene:initial});
+ const n=SpeedPlanner.apply(normalized,entrySpeed),coupled=FF.couple(vehicle,track,initial,n,baseline.frames);
  for(let i=0;i<G.KNOTS;i++)n[i*G.STRIDE+C.steer]+=(coupled[i*G.STRIDE+C.steer]-n[i*G.STRIDE+C.steer])*q.compensation;
- return G.normalize(n,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
+ return {gene:G.normalize(n,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds}),entrySpeed};
 }
 
  let params;if(previousParams&&previousParams.arc===arcIndex)params=mutate(previousParams);else do{params=random();}while(params.arc!==arcIndex);
- return ensureChanged(vehicle,prepared.gene,{gene:generate(params),params:Object.freeze({...params})},rng);
+ const generated=generate(params);return ensureChanged(vehicle,prepared.gene,{...generated,params:Object.freeze({...params}),change:{family:'entry',entrySpeed:generated.entrySpeed}},rng);
 }
 function adaptive(vehicle,track,parent,rng,options={}){
  const p=vehicle.physics||vehicle,ds=track.length/(G.KNOTS-1),bounds=options.lineBounds||G.corridorBounds(vehicle,track);
@@ -110,6 +119,12 @@ function mutate(parent){
  const change={family,center,width,steer:sign*rnd(-.065,.045),angle:rnd(-3,14)*DEG,line:sign*rnd(-2.8,2.8),lead:rnd(-.16,.1),slip:rnd(-.3,.3),pedal:rnd(-.12,.2),gear:pick([0,3,4,'rpm']),shiftAt:clamp(end+rnd(-14,2),z.exit-8,z.end-15)};
  const localFine=end-z.exit>25?.28:1;
  for(const key of ['steer','angle','line','lead','slip','pedal'])change[key]*=localFine;
+ if(family==='entry-speed'){
+  const params={entrySpeedRatio:rnd(.85,1.2),brakeLead:rnd(-5,30),brakeStrength:rnd(.8,1.3),brakeRelease:rnd(-15,8)};
+  const entrySpeed=SpeedPlanner.plan(vehicle,track,gene,options.referenceRecord||parent.result.frames,z,params,{lower:approachStart(track,z,all),arrivalRecord:parent.result.frames,referenceGene:options.referenceGene});
+  Object.assign(change,{start:entrySpeed.start,end:entrySpeed.end+entrySpeed.rampOut,entrySpeed});
+  return {gene:norm(SpeedPlanner.apply(gene,entrySpeed)),change};
+ }
  if(family==='link'){
   if(!adjacent.length)return {gene,change};
   const measured=parent.metric.links||[],ranked=adjacent.map(link=>({link,quality:measured.find(r=>r.id===link.id)?.coverage||0})).sort((a,b)=>a.quality-b.quality);
@@ -316,8 +331,27 @@ function mutate(parent){
  }
  // Blend targets before recoupling steering to the normalized line. A blend
  // of already-coupled steering would use the wrong nonlinear path curvature.
- const gene=norm(FF.couple(vehicle,track,parent.gene,norm(mixed),parent.result.frames));
- return ensureChanged(vehicle,parent.gene,{...proposal,gene},rng,strength);
+ let gene=norm(FF.couple(vehicle,track,parent.gene,norm(mixed),parent.result.frames));
+ // Some curve/link proposals co-evolve a local approach-speed plan. The
+ // unchanged driver still executes only the resulting ordinary pedal genes.
+ if(['link','bridge','apex-arc','trajectory'].includes(proposal.change.family)&&rng()<.35){
+  const all=options.zones||zones(track),z=all.find(z=>z.id===proposal.change.toZoneId)||options.zone||all.find(z=>z.id===parent.metric.bestArc?.zoneId);
+  if(z){
+   const params={entrySpeedRatio:rnd(.9,1.25),brakeLead:rnd(-5,20),brakeStrength:rnd(.8,1.2),brakeRelease:rnd(-10,8)};
+   const entrySpeed=SpeedPlanner.plan(vehicle,track,gene,options.referenceRecord||parent.result.frames,z,params,{lower:approachStart(track,z,all),arrivalRecord:parent.result.frames,referenceGene:options.referenceGene});
+   const prepared=SpeedPlanner.apply(gene,entrySpeed);
+   for(let i=0;i<G.LENGTH;i++)gene[i]+=(prepared[i]-gene[i])*Math.min(1,strength);
+   gene=norm(gene);proposal.change.entrySpeed=entrySpeed;
+  }
+ }
+ return proposal.change.family==='entry-speed'?ensurePedalChanged(parent.gene,{...proposal,gene},track,strength):ensureChanged(vehicle,parent.gene,{...proposal,gene},rng,strength);
+}
+function ensurePedalChanged(parent,proposal,track,strength=1){
+ if(proposal.gene.some((value,i)=>value!==parent[i]))return proposal;
+ const plan=proposal.change.entrySpeed,ds=track.length/(G.KNOTS-1),lower=clamp(Math.ceil(plan.start/ds),0,G.KNOTS-1),upper=clamp(Math.floor((plan.end+plan.rampOut)/ds),lower,G.KNOTS-1);
+ const knot=clamp(Math.round((plan.start+plan.end)/2/ds),lower,upper),gene=G.clone(proposal.gene),j=knot*G.STRIDE+C.brake;
+ gene[j]=clamp(gene[j]+(gene[j]>=.5?-1:1)*.002*strength,0,1);
+ return {...proposal,gene,change:{...proposal.change,pedalFallback:true}};
 }
 function ensureChanged(vehicle,parent,proposal,rng,strength=1){
  if(proposal.gene.some((v,i)=>v!==parent[i]))return proposal;
@@ -330,6 +364,16 @@ function repair(vehicle,track,parent,rng,options={}){
  const p=vehicle.physics||vehicle,diagnosis=options.diagnosis,ds=track.length/(G.KNOTS-1),strength=clamp(options.scale??1,.03,1.5);
  if(!diagnosis?.window||!Number.isFinite(diagnosis.origin?.s))throw new TypeError('A recorded precursor window is required.');
  const bounds=options.lineBounds||G.corridorBounds(vehicle,track),norm=g=>G.normalize(g,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
+ if(options.family==='entry-speed'){
+  const all=options.zones||zones(track),z=options.zone||all[diagnosis.precedingZoneIndex??diagnosis.origin.zoneIndex];
+  if(!z)throw new TypeError('An observed corner is required for entry-speed repair.');
+  const rnd=(a,b)=>a+(b-a)*rng(),params={entrySpeedRatio:rnd(.85,1.2),brakeLead:rnd(-5,30),brakeStrength:rnd(.8,1.3),brakeRelease:rnd(-15,8)};
+  const entrySpeed=SpeedPlanner.plan(vehicle,track,parent.gene,options.referenceRecord||parent.record,z,params,{lower:approachStart(track,z,all),arrivalRecord:parent.record,referenceGene:options.referenceGene});
+  const planned=SpeedPlanner.apply(parent.gene,entrySpeed),gene=G.clone(parent.gene);
+  for(let i=0;i<G.LENGTH;i++)gene[i]+=(planned[i]-gene[i])*Math.min(1,strength);
+  const change={family:'entry-speed',source:'failure-window',basisCandidateId:diagnosis.candidateId,originS:diagnosis.origin.s,start:entrySpeed.start,end:entrySpeed.end+entrySpeed.rampOut,scale:strength,entrySpeed};
+  return ensurePedalChanged(parent.gene,{gene:norm(gene),change},track,strength);
+ }
  const start=clamp(diagnosis.window.startS,0,track.length-2*ds),end=clamp(diagnosis.window.endS,start+2*ds,track.length);
  const prior=Number.isInteger(diagnosis.precedingZoneIndex)?options.zones?.[diagnosis.precedingZoneIndex]:null;
  const searchPrior=!!prior&&rng()<.6;
@@ -344,7 +388,7 @@ function repair(vehicle,track,parent,rng,options={}){
   // intents to explore, not a command to suppress every sideways movement.
   if(family==='timing'){
    const shifted=G.sample(parent.gene,clamp(s+amount*10,0,track.length),track.length);
-   for(const key of ['targetSlip','counterLead','driveSlip','throttle'])gene[j+C[key]]+=(shifted[key]-gene[j+C[key]])*w;
+   for(const key of ['targetSlip','counterLead','driveSlip','throttle','brake'])gene[j+C[key]]+=(shifted[key]-gene[j+C[key]])*w;
   }
   if(['lead','combined'].includes(family))gene[j+C.counterLead]+=.09*amount*w;
   if(['steer','combined'].includes(family))gene[j+C.steer]+=.018*amount*w;
@@ -370,7 +414,7 @@ function repair(vehicle,track,parent,rng,options={}){
 function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
-function signature(){return FAMILIES.join(',')+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:5,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+function signature(){return FAMILIES.join(',')+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,trailingStraightStart].map(String).join('\n');}
+const api=Object.freeze({VERSION:6,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

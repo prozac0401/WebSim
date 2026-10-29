@@ -32,12 +32,12 @@
   const linkState=(link,total)=>total===0?'해당 직선 없음':link?.complete?'앞뒤 코너 연결 완료':link?.coverage>0?'앞뒤 코너 연결 중':'직선 연결 탐색 중';
   const canReplayLink=link=>Number.isFinite(link?.startTime)&&link.duration>0;
   const linkRetention=link=>Number.isFinite(link?.startTime)&&link.minSpeed>0?percent(link.speedRetention):'—';
-  const speedSummary=arc=>arc?'기준 '+(arc.entrySpeed*3.6).toFixed(1)+' · 코너 최저 '+(arc.minSpeed*3.6).toFixed(1)+' · 탈출 '+(arc.exitSpeed*3.6).toFixed(1)+' km/h':'진입 기준 · 최저 · 탈출';
+  const speedSummary=arc=>arc?(arc.referenceSource==='sustained-drift'?'드리프트 진입 기준 ':arc.referenceSource==='core-entry'?'코너 진입 기준 ':'진입 기준 ')+(arc.entrySpeed*3.6).toFixed(1)+' · 코너 최저 '+(arc.minSpeed*3.6).toFixed(1)+' · 탈출 '+(arc.exitSpeed*3.6).toFixed(1)+' km/h':'진입 기준 · 최저 · 탈출';
   const failureAnalysis=()=>selected?.result.valid===false?selected.result.failureAnalysis||null:null;
   const count=value=>Number.isFinite(value)?Math.max(0,Math.floor(value)).toLocaleString('ko-KR'):'—';
   const reuseRatio=stats=>stats?.totalTicks>0&&Number.isFinite(stats.reusedTicks)?stats.reusedTicks/stats.totalTicks:null;
   const locationText=point=>[Number.isFinite(point?.time)?point.time.toFixed(2)+'초':null,Number.isFinite(point?.s)?point.s.toFixed(1)+' m':null].filter(Boolean).join(' · ')||'위치 미확인';
-  const familyLabels={lead:'카운터 준비',steer:'조향',line:'목표 경로',power:'가속·제동',angle:'목표 슬립각',combined:'연속 조작',timing:'진입·전환 시점'};
+  const familyLabels={'entry-speed':'진입 전 감속·제동 해제',lead:'카운터 준비',steer:'조향',line:'목표 경로',power:'가속·제동',angle:'목표 슬립각',combined:'연속 조작',timing:'진입·전환 시점'};
   function drawFailureAnalysis(){
     const failed=selected?.result.valid===false,analysis=failureAnalysis();$('failure-analysis').hidden=!failed;
     $('failure-evidence').replaceChildren();$('failure-hypotheses').replaceChildren();
@@ -59,7 +59,7 @@
     $('evaluation-reuse').textContent='물리 계산 재사용 '+percent(ratio);
     $('evaluation-detail').textContent=evaluation?'새 계산 '+count(evaluation.simulatedTicks)+'회 · 재사용 '+count(evaluation.reusedTicks)+'회 / 전체 '+count(evaluation.totalTicks)+'회 · 재사용 후보 '+count(evaluation.cacheHits)+' / 평가 '+count(evaluation.evaluations)+'개':'';
     $('learning-progress').hidden=!learning?.enabled;
-    $('learning-progress').textContent=learning?.enabled?'실패 분석 '+count(learning.failuresAnalyzed)+'개 · 가설 기반 시도 '+count(learning.guidedProposals)+'개':'';
+    $('learning-progress').textContent=learning?.enabled?'실패 분석 '+count(learning.failuresAnalyzed)+'개 · 가설 기반 시도 '+count(learning.guidedProposals)+'개 · 취약 구간 탐색 '+count(learning.focusProposals||0)+'개':'';
   }
   function scoreReplay(){
     const frames=selected?.record||selected?.result.frames;
@@ -115,7 +115,7 @@
   function choose(entry){if(!entry)return;selected=entry;time=0;playing=false;$('play').textContent='▶ 재생';drawGenes();renderRecords();drawFailureAnalysis();draw();}
   function renderRecords(){
     const entries=[baseline?{id:'baseline',generation:0,kind:'baseline',gene:baseline.gene,result:baseline.result,record:baseline.record}:null,best&&best.id!=='baseline'?best:null,...archive.slice().reverse()].filter(Boolean),seen=new Set();$('records').replaceChildren();
-    for(const entry of entries){if(seen.has(entry.id))continue;seen.add(entry.id);const b=document.createElement('button');b.className='record';b.setAttribute('aria-pressed',String(selected?.id===entry.id));const r=entry.result;const name=entry.id==='baseline'?'그립 기준':entry.id+(entry.id===best?.id?' · 최고':'');for(const [i,text] of [name,labels[r.status]||r.status,r.valid?r.score.toFixed(2)+'점'+(r.drift?' · 완전 '+connectionCount(r.drift):''):'선발 제외',r.time.toFixed(2)+'초'].entries()){const s=document.createElement('span');s.textContent=text;if(i===1)s.className=r.valid?'valid':'failed';b.append(s);}b.addEventListener('click',()=>choose(entry));$('records').append(b);}
+    for(const entry of entries){if(seen.has(entry.id))continue;seen.add(entry.id);const b=document.createElement('button');b.className='record';b.setAttribute('aria-pressed',String(selected?.id===entry.id));const r=entry.result;const name=entry.id==='baseline'?'그립 기준':entry.id+(entry.id===best?.id?' · 대표':'');for(const [i,text] of [name,labels[r.status]||r.status,r.valid?r.score.toFixed(2)+'점'+(r.drift?' · 완전 '+connectionCount(r.drift):''):'선발 제외',r.time.toFixed(2)+'초'].entries()){const s=document.createElement('span');s.textContent=text;if(i===1)s.className=r.valid?'valid':'failed';b.append(s);}b.addEventListener('click',()=>choose(entry));$('records').append(b);}
   }
   function stats(){
     if(!state)return;
@@ -214,7 +214,7 @@
     for(const cursor of document.querySelectorAll('.factor-cursor')){cursor.setAttribute('x1',Math.min(1,car.s/track.length)*1000);cursor.setAttribute('x2',Math.min(1,car.s/track.length)*1000);}
     renderer.render({track,car,record:frames,reference:baseline?.record,time,mode:camera,fov:Number($('fov').value),smoke:$('smoke').checked,marks:$('marks').checked,ghost:$('ghost').checked&&selected?.id!=='baseline',vehicle});
     $('speed-value').textContent=(car.speed*3.6).toFixed(0);$('angle-value').textContent=(Math.abs(car.beta)*180/Math.PI).toFixed(1)+'°';$('gear-value').textContent=vehicle.electric?'D':car.gear;$('rpm-value').textContent=Math.round(car.rpm)+' rpm';$('steering-value').textContent=(car.steer*180/Math.PI).toFixed(1)+'°';$('throttle-meter').value=car.throttle;$('brake-meter').value=car.brake;$('torque-value').textContent=Math.round(car.rearTorque)+' Nm';$('slip-value').textContent=car.wheelSlip.slice(2).map(x=>(100*x).toFixed(0)).join(' / ')+'%';$('gene-cursor').setAttribute('x1',car.s/track.length*1000);$('gene-cursor').setAttribute('x2',car.s/track.length*1000);
-    const end=selected?.result.time||0;$('replay-time').textContent=selected?time.toFixed(1)+' / '+end.toFixed(1)+' s':'—';$('timeline').value=end?time/end*1000:0;if(selected){$('run-label').textContent=selected.id==='baseline'?'그립 기준 주행':selected.id+(selected.id===best?.id?' · 최고 유전자':'');$('run-state').textContent=time>=end?labels[selected.result.status]+' · '+(selected.result.reason||''):'진행 '+Math.min(track.length,car.s).toFixed(0)+' / '+Math.round(track.length)+'m';}$('model-source').textContent=renderer.getState().modelSource?.label||'EV2 외형 자산';
+    const end=selected?.result.time||0;$('replay-time').textContent=selected?time.toFixed(1)+' / '+end.toFixed(1)+' s':'—';$('timeline').value=end?time/end*1000:0;if(selected){$('run-label').textContent=selected.id==='baseline'?'그립 기준 주행':selected.id+(selected.id===best?.id?' · 대표 유전자':'');$('run-state').textContent=time>=end?labels[selected.result.status]+' · '+(selected.result.reason||''):'진행 '+Math.min(track.length,car.s).toFixed(0)+' / '+Math.round(track.length)+'m';}$('model-source').textContent=renderer.getState().modelSource?.label||'EV2 외형 자산';
   }
   function advance(ms){if(playing&&selected){time=Math.min(selected.result.time,time+ms/1000*Number($('playback').value));if(time>=selected.result.time){if(evolving&&selected.result.valid){choose(best);playing=true;$('play').textContent='Ⅱ 일시정지';}else{playing=false;$('play').textContent='▶ 재생';}}}draw();}
   $('replay-apex-arc').onclick=()=>{const arc=best?.result.drift?.bestArc;if(!arc)return;choose(best);time=Math.max(0,(arc.initiationTime??arc.startTime)-.5);playing=true;$('play').textContent='Ⅱ 일시정지';draw();$('stage').scrollIntoView?.({block:'center'});};
@@ -233,7 +233,7 @@
     const car=track?DriftRenderer.sampleFrames(selected?.record,time)||DriftPhysics.initialState(vehicle,track):null;
     return JSON.stringify({mode:appMode,development,availableCourses:DriftTrack.list().length,verifiedCourses:DriftTrack.list().length,coordinates:'metres; x east, y north, yaw CCW; z reconstructed relative height',variant:vehicle.id,stock:true,rwd:vehicle.spec.factoryDrive,course:track?.id||null,courseKind:track?.kind||null,courseMetadata:track?{name:track.name,length:track.length,judgedStart:track.judgedStart,judgedEnd:track.judgedEnd,elevation:track.elevation,provenance:track.provenance,reconstruction:track.reconstruction}:null,
       release:DriftRuntime.RELEASE,runtimeIdentity,generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
-      replayScoring,failureAnalysis:failureAnalysis(),evaluationStats:state?.evaluationStats||null,evaluationReuseRatio:reuseRatio(state?.evaluationStats),learningStats:state?.learningStats||null,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
+      replayScoring,failureAnalysis:failureAnalysis(),evaluationStats:state?.evaluationStats||null,evaluationReuseRatio:reuseRatio(state?.evaluationStats),learningStats:state?.learningStats||null,selectionStats:state?.selectionStats||null,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
       objective:{type:'continuous-apex-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.parts||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
   };
   let lastPaint=0;

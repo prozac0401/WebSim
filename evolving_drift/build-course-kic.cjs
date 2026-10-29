@@ -13,13 +13,15 @@ const weights=full.map((_,i)=>(arc[Math.min(i+1,arc.length-1)]-arc[Math.max(0,i-
 function smoothHeight(index){let total=0,sum=0;for(let j=0;j<full.length;j++){const d=Math.abs(arc[j]-arc[index]);if(d>270)continue;const w=Math.exp(-.5*(d/90)**2)*weights[j];sum+=elevation.elevations[j]*w;total+=w;}return sum/total;}
 const datum=smoothHeight(145);
 const centerline=source.road.indices.map(i=>({...full[i],z:smoothHeight(i)-datum,widthLeft:7,widthRight:7,bank:0}));
-const base={id:'kr-kic-t21-kdl-2016-r2',name:'영암 KIC T21 · 2016 KDL R2',version:2,
+const base={id:'kr-kic-t21-kdl-2016-r2',name:'영암 KIC T21 · 2016 KDL R2',version:3,
   kind:'event-reconstruction',verifiedCompetition:true,officialLayout:false,
   description:'실대회 구간 재구성 · T2 → T1 역방향 · 공식 클리핑 존 미확인',
   source:'FIA 코너 도면 + 2016 KDL R2 개최 기록·리그 영상 + OpenStreetMap',
   event:{series:'KDL',year:2016,round:2,dates:['2016-06-04','2016-06-05'],category:'PRO',direction:'F1 T2 → T1, reverse'},
   width:14,centerline,judgedStart:110,judgedEnd:360,
-  provenance:{event:'documented',route:'documented',geometry:'OSM map reconstruction',boundary:'estimated paved limits excluding the modeled red-brown runoff strip, not official event cone positions',
+  competitionBoundary:{kind:'rendered-road-ribbon',widthM:14,whiteLineInsetM:.3,whiteLineWidthM:.12,sceneryApronDrivable:false,surveyed:false},
+  presentation:{environment:'경기 구간은 화면에 표시된 기존 14m 도로 띠입니다. 주변의 넓은 포장 공간은 배경이며 주행 구간에 포함하지 않습니다. 흰 선 바깥쪽 끝에서 도로 끝까지 약 0.24m가 남습니다. 이 경계는 모형 설정이며 공식 경기 경계의 실측값은 아닙니다. 노면 마찰·수목 수종·개별 위치·시설 높이는 미확인입니다.'},
+  provenance:{event:'documented',route:'documented',geometry:'OSM map reconstruction',boundary:'existing rendered 14m road ribbon is the competition corridor; estimated width, not official event cone positions; surrounding asphalt apron is scenery only',
     timing:'simulation start/finish and scoring interval',elevation:'90m DSM, arc-weighted Gaussian sigma=90m',crossfall:'unknown; zero-bank approximation',
     materials:'visual appearance only; uniform dry grip model, not measured friction',vegetation:'mapped woodland, generic crowns; species and individual positions unknown',
     structures:'OSM footprints; estimated heights',datumM:datum,verticalDatum:'EGM2008',visualHeightScale:1},
@@ -41,15 +43,21 @@ base.zones=[{s:t2.s,side:-1,length:13,provenance:'simulation scoring target, not
   {s:t1.s,side:1,length:18,provenance:'simulation scoring target, not an official clip zone'}];
 const pointsAt=(s,offset)=>{const p=track.sample(s);return {x:p.x-Math.sin(p.heading)*offset,y:p.y+Math.cos(p.heading)*offset,z:p.z};};
 const ribbon=[];for(let s=0;s<track.length;s+=4.5)ribbon.push(s);ribbon.push(track.length);
-const left=ribbon.map(s=>pointsAt(s,7)),right=ribbon.map(s=>pointsAt(s,-7));
-// Physical road continues beyond the experiment's timing lines.
-for(const edge of [left,right])for(const [i,sign]of [[0,-1],[edge.length-1,1]]){const p=track.sample(i?track.length:0);edge[i].x+=Math.cos(p.heading)*8*sign;edge[i].y+=Math.sin(p.heading)*8*sign;}
+// The race corridor uses the same centreline nodes/normals as renderer._track.
+// Nearby asphalt is visible scenery, not a second drivable polygon. Retain all
+// rendered endpoints and add timing-line extensions beyond START/FINISH only.
+const left=track.points.map(p=>pointsAt(p.s,p.widthLeft)),right=track.points.map(p=>pointsAt(p.s,-p.widthRight));
+for(const edge of [left,right]){
+  const first=track.sample(0),last=track.sample(track.length),a=edge[0],b=edge.at(-1);
+  edge.unshift({...a,x:a.x-Math.cos(first.heading)*8,y:a.y-Math.sin(first.heading)*8});
+  edge.push({...b,x:b.x+Math.cos(last.heading)*8,y:b.y+Math.sin(last.heading)*8});
+}
 const roadPolygon=[...left,...right.slice().reverse()];
 const features=source.features.map(f=>({...f,points:f.coordinates.map(local)})),find=id=>features.find(f=>f.wayId===id).points;
 const east=find('237655756'),south=find('237655758'),inner=find('237957447');
 // Asphalt apron between mapped grass islands. Bounds carry map/visual uncertainty.
 const apron=[...east.slice(0,9).reverse(),...south.slice(0,7),...inner.slice(0,12)];
-base.boundaryPolygons=[roadPolygon,apron];
+base.boundaryPolygons=[roadPolygon];
 base.excludedPolygons=features.filter(f=>['grass','forest'].includes(f.tags.landuse)).map(f=>f.points);
 const height=p=>track.surface(p.x,p.y).z;
 const withZ=points=>points.map(p=>({...p,z:height(p)}));
@@ -80,7 +88,7 @@ function terrainTriangles(polygon){
   }
   coarse.forEach(triangle=>divide(triangle));return triangles;
 }
-base.environment.terrain={triangles:terrainTriangles(apron),color:'#565b5c',material:'asphalt',
+base.environment.terrain={triangles:terrainTriangles(apron),color:'#565b5c',material:'asphalt',role:'off-course-asphalt',drivable:false,
   source:'OSM grass-island boundaries + KDL video; estimated apron',sourcePolygon:withZ(apron),
   method:'Height-field resampling; longest edge <=8m, adaptive refinement for >3mm sampled display error. Not additional survey detail.'};
 // Show the mapped road continuing beyond the experiment, rather than a cut-off
