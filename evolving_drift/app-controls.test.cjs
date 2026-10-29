@@ -13,8 +13,8 @@ function environment({fallback=false,powered=false}={}){
   const vehicle={id:'test-car',vehicleId:'test-car',label:'Test',physics:{peakPowerW:100000,peakTorque:200,massKg:1200},limitations:[],sourceUrl:'',spec:{factoryDrive:'RWD'}};
   const track={id:'test-track',name:'Test track',length:500,judgedStart:50,judgedEnd:450};
   const frame={time:0,s:0,x:0,y:0,yaw:0,speed:0,beta:0,steer:0,throttle:0,brake:0,gear:1,rpm:800,rearTorque:0,wheelSlip:[0,0,0,0]};
-  const result={valid:true,status:'finished',score:1,time:30,maxAngle:2,driftDistance:0};
-  if(powered)result.power={success:true,bestExit:{distance:40,duration:2.1,startTime:12,entrySpeed:15,exitSpeed:20}};
+  const result={valid:true,status:'finished',score:1,time:30,maxAngle:powered?42:2,driftDistance:0};
+  if(powered)result.power={success:true,bestExit:{distance:40,duration:2.1,startTime:12,entrySpeed:15,exitSpeed:20,distanceWeightedAngle:31.6}};
   const baseline={gene:Genome.create(),record:[frame],result,prepared:true};
   const best={...baseline,id:'baseline'};
   const state=()=>({generation:Math.floor(steps/20),totalEvaluated:steps,evaluated:steps%20,mutationScale:1,history:[],stats:{validCount:steps,failureCount:0}});
@@ -81,6 +81,8 @@ test('file fallback cancels the pending tick before a fast pause and resume',asy
 test('powered-exit replay seeks the measured interval and resets with a new experiment',()=>{
   const env=environment({powered:true});env.ready();
   assert.equal(env.get('powered-exit-distance').textContent,'40.0 m');
+  assert.equal(env.get('best-angle').textContent,'31.6°');
+  assert.equal(env.get('peak-angle').textContent,'순간 최대 42.0°');
   assert.equal(env.get('powered-exit-goal').textContent,'달성');
   assert.equal(env.get('powered-exit-speed').textContent,'54.0 → 72.0 km/h');
   assert.equal(env.get('replay-powered-exit').disabled,false);
@@ -91,4 +93,6 @@ test('powered-exit replay seeks the measured interval and resets with a new expe
   env.get('reset').onclick();
   assert.equal(env.get('replay-powered-exit').disabled,true);assert.equal(env.state().playing,false);
   assert.equal(env.get('powered-exit-duration').textContent,'연속 가속 탈출');
+  assert.equal(env.get('best-angle').textContent,'—');
+  assert.equal(env.get('peak-angle').textContent,'순간 최대 —');
 });
