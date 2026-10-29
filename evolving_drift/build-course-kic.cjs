@@ -13,13 +13,13 @@ const weights=full.map((_,i)=>(arc[Math.min(i+1,arc.length-1)]-arc[Math.max(0,i-
 function smoothHeight(index){let total=0,sum=0;for(let j=0;j<full.length;j++){const d=Math.abs(arc[j]-arc[index]);if(d>270)continue;const w=Math.exp(-.5*(d/90)**2)*weights[j];sum+=elevation.elevations[j]*w;total+=w;}return sum/total;}
 const datum=smoothHeight(145);
 const centerline=source.road.indices.map(i=>({...full[i],z:smoothHeight(i)-datum,widthLeft:7,widthRight:7,bank:0}));
-const base={id:'kr-kic-t21-kdl-2016-r2',name:'영암 KIC T21 · 2016 KDL R2',version:1,
+const base={id:'kr-kic-t21-kdl-2016-r2',name:'영암 KIC T21 · 2016 KDL R2',version:2,
   kind:'event-reconstruction',verifiedCompetition:true,officialLayout:false,
   description:'실대회 구간 재구성 · T2 → T1 역방향 · 공식 클리핑 존 미확인',
   source:'FIA 코너 도면 + 2016 KDL R2 개최 기록·리그 영상 + OpenStreetMap',
   event:{series:'KDL',year:2016,round:2,dates:['2016-06-04','2016-06-05'],category:'PRO',direction:'F1 T2 → T1, reverse'},
   width:14,centerline,judgedStart:110,judgedEnd:360,
-  provenance:{event:'documented',route:'documented',geometry:'OSM map reconstruction',boundary:'estimated paved limits, not official event cone positions',
+  provenance:{event:'documented',route:'documented',geometry:'OSM map reconstruction',boundary:'estimated paved limits excluding the modeled red-brown runoff strip, not official event cone positions',
     timing:'simulation start/finish and scoring interval',elevation:'90m DSM, arc-weighted Gaussian sigma=90m',crossfall:'unknown; zero-bank approximation',
     materials:'visual appearance only; uniform dry grip model, not measured friction',vegetation:'mapped woodland, generic crowns; species and individual positions unknown',
     structures:'OSM footprints; estimated heights',datumM:datum,verticalDatum:'EGM2008',visualHeightScale:1},
@@ -109,7 +109,22 @@ const innerEdge=inner.slice(0,12);
 base.environment.lines.push({points:withZ(innerEdge),width:1.9,color:'#3f957c',source:'KDL video 135/285s; approximate green paint extent'});
 for(let i=0;i<innerEdge.length-1;i++){const a=innerEdge[i],b=innerEdge[i+1],n=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/2.2);
   for(let j=0;j<n;j++){const at=t=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});base.environment.lines.push({points:withZ([at(j/n),at((j+1)/n)]),width:.7,color:j%2?'#e0ded3':'#a74344',source:'video curb appearance; width estimated, no vertical bump modeled'});}}
-base.environment.lines.push({points:withZ(south.slice(0,7)),width:3.5,color:'#875657',source:'KDL video 135/340s; approximate red-brown runoff paint'});
+// The red runoff is outside the permitted driving surface across its full
+// painted width. One footprint supplies both exclusions and rendered triangles;
+// a separate line decal would otherwise leave its inner half drivable.
+const runoffEdge=south.slice(0,7),runoffHalfWidth=1.75;
+for(let i=1;i<runoffEdge.length;i++){
+  const a=runoffEdge[i-1],b=runoffEdge[i],length=Math.hypot(b.x-a.x,b.y-a.y);
+  if(!length)continue;
+  const nx=-(b.y-a.y)/length*runoffHalfWidth,ny=(b.x-a.x)/length*runoffHalfWidth;
+  const polygon=[{x:a.x+nx,y:a.y+ny},{x:b.x+nx,y:b.y+ny},{x:b.x-nx,y:b.y-ny},{x:a.x-nx,y:a.y-ny}];
+  const exclusionIndex=base.excludedPolygons.push(polygon)-1;
+  for(const triangle of terrainTriangles(polygon))base.environment.surfaces.push({
+    // Surfaces receive a further 6mm renderer lift. A 40mm display layer clears
+    // the mapped grass's coarse triangles without changing the ground surface.
+    points:triangle.map(p=>({...p,z:p.z+.034})),color:'#875657',role:'non-drivable-runoff',drivable:false,exclusionIndex,
+    source:'KDL video 135/340s; approximate red-brown runoff extent, excluded across the visible 3.5m width',dimensionsEstimated:true});
+}
 // Keep street edge paint on the actual ribbon; do not invent sponsor lettering.
 base.environment.lines.push({points:ribbon.map(s=>pointsAt(s,6.7)),width:.12,color:'#dddeda'},
   {points:ribbon.map(s=>pointsAt(s,-6.7)),width:.12,color:'#dddeda'});

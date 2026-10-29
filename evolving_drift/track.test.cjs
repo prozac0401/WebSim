@@ -40,21 +40,23 @@ test('the public event has open measured geometry, terrain and polygon limits',(
     assert.ok(p.widthLeft>0&&p.widthRight>0);assert.ok(['z','gradientX','gradientY','normalZ','muScale'].every(key=>Number.isFinite(road[key])));
   }
 });
-test('excluded islands reject body overlap and swept crossing without becoming wall collisions',()=>{
+test('excluded islands reject either front contact and swept crossing while body-only overlap is permitted',()=>{
   const Physics=require('./physics.js'),car=Catalog.get(),rectangle=(x0,y0,x1,y1)=>[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}];
   const track={...Track.create(),obstacles:[],contains:()=>true,boundaryPolygons:[rectangle(-100,-100,100,100)]};
-  const state={x:20,y:0,yaw:0,s:20};
-  for(const polygon of [rectangle(19.9,-.1,20.1,.1),rectangle(16,-.05,24,.05),rectangle(15,-5,25,5)]){
+  const state={x:20,y:0,yaw:0,s:20},contacts=Physics.frontContacts(car,state);
+  for(const polygon of [...contacts.map(p=>rectangle(p.x-.1,p.y-.1,p.x+.1,p.y+.1)),rectangle(15,-5,25,5)]){
     track.excludedPolygons=[polygon];assert.equal(Physics.failure(car,track,state),'offtrack');
   }
+  track.excludedPolygons=[rectangle(19.9,-.1,20.1,.1)];assert.equal(Physics.failure(car,track,state),null,'only body overlap with excluded ground is permitted');
   track.excludedPolygons=[rectangle(14.99,-2,15.01,2)];assert.equal(Physics.failure(car,track,state),null);
   assert.equal(Physics.failure(car,track,state,{x:10,y:0,yaw:0}),'offtrack');
   track.obstacles=[{type:'polygon',points:rectangle(19.9,-.1,20.1,.1)}];assert.equal(Physics.failure(car,track,state),'collision','wall collision keeps its original failure classification');
 });
 test('polygon acceleration never retains stale mutable geometry between calls',()=>{
   const Physics=require('./physics.js'),car=Catalog.get(),rectangle=(x0,y0,x1,y1)=>[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}];
-  const boundary=rectangle(0,-5,40,5),obstacle=rectangle(100,-1,101,1),excluded=rectangle(80,-1,81,1);
-  const track={...Track.create(),contains:()=>true,boundaryPolygons:[boundary],obstacles:[{type:'polygon',points:obstacle}],excludedPolygons:[excluded]},state={x:20,y:0,yaw:0,s:20};
+  const state={x:20,y:0,yaw:0,s:20},contact=Physics.frontContacts(car,state)[0];
+  const boundary=rectangle(0,-5,40,5),obstacle=rectangle(100,-1,101,1),excluded=rectangle(contact.x+59.9,contact.y-.1,contact.x+60.1,contact.y+.1);
+  const track={...Track.create(),contains:()=>true,boundaryPolygons:[boundary],obstacles:[{type:'polygon',points:obstacle}],excludedPolygons:[excluded]};
   assert.equal(Physics.failure(car,track,state),null);
   obstacle.forEach(p=>p.x-=80);assert.equal(Physics.failure(car,track,state),'collision');
   obstacle.forEach(p=>p.x+=80);assert.equal(Physics.failure(car,track,state),null);
@@ -65,20 +67,20 @@ test('polygon acceleration never retains stale mutable geometry between calls',(
 test('worker initializes the public default course from prepared records',async()=>{
   const messages=[],loaded=[];
   class Engine{constructor(){this.ready=true;this.best={id:'baseline'};}initialize(){}snapshot(){return {generation:0};}}
-  const context=vm.createContext({onmessage:null,importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
+  const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...require('./runtime.js'),identity:()=> 'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
     DriftCatalog:Catalog,DriftTrack:Track,DriftPreparedGrips:{async load(vehicle,track){loaded.push(track.id);return {}; }},DriftEvolution:{Engine}});
   vm.runInContext(fs.readFileSync(require.resolve('./worker.js'),'utf8'),context);
-  await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,seed:37}});
+  await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,seed:37,runtimeIdentity:'test-runtime'}});
   assert.deepEqual(loaded,[PUBLIC_ID]);assert.equal(messages[0].type,'ready');
 });
 test('worker rejects a development fixture before loading records unless explicitly enabled',async()=>{
   for(const includeDevelopment of [undefined,false,'true',true]){
     const messages=[];let loads=0;
     class Engine{constructor(){this.ready=true;this.best={id:'baseline'};}initialize(){}snapshot(){return {generation:0};}}
-    const context=vm.createContext({onmessage:null,importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
+    const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...require('./runtime.js'),identity:()=> 'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
       DriftCatalog:Catalog,DriftTrack:Track,DriftPreparedGrips:{async load(){loads++;return {}; }},DriftEvolution:{Engine}});
     vm.runInContext(fs.readFileSync(require.resolve('./worker.js'),'utf8'),context);
-    await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,trackId:Track.DEVELOPMENT_ID,includeDevelopment,seed:37}});
+    await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,trackId:Track.DEVELOPMENT_ID,includeDevelopment,seed:37,runtimeIdentity:'test-runtime'}});
     assert.equal(loads,includeDevelopment===true?1:0);assert.equal(messages[0].type,includeDevelopment===true?'ready':'error');
   }
 });

@@ -1,24 +1,24 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const Genome=require('./genome.js'),Evolution=require('./evolution.js');
+const Genome=require('./genome.js'),Evolution=require('./evolution.js'),Runtime=require('./runtime.js');
 const source=fs.readFileSync(require.resolve('./worker.js'),'utf8');
 const vehicle={id:'fixed-rwd',physics:{maxSteer:.6,gearRatios:[3,2,1],wheelbaseM:2.6}},track={id:'test',length:500,judgedStart:120,judgedEnd:400,sample:s=>({s,x:s,y:0,heading:0,curvature:.01,widthLeft:7,widthRight:7})};
 const evaluateGene=(_v,_t,g)=>({valid:true,status:'finished',score:1+Array.from(g).reduce((a,n,i)=>a+(i%8===4?Math.abs(n):0),0),time:30,driftDistance:0,frames:[{x:0,y:0,s:0,time:0} ]});
 const baseline={gene:Genome.create(),genomeVersion:Genome.VERSION,stride:Genome.STRIDE,record:[{x:0,y:0,s:0,time:0}],result:{valid:true,status:'finished',score:1,time:30,driftDistance:0}};
-function environment({broken=false}={}){
+function environment({broken=false,staleReady=false,staleResult=false}={}){
   const messages=[],finished=[];
   class Worker{
     constructor(){if(broken)throw Error('No nested workers');this.alive=true;}
     postMessage(m){
-      if(m.type==='init')setTimeout(()=>this.alive&&this.onmessage?.({data:{type:'ready'}}),0);
-      else setTimeout(()=>{if(!this.alive)return;finished.push(m.sequence);this.onmessage?.({data:{type:'result',sequence:m.sequence,result:evaluateGene(vehicle,track,m.gene)}});},(5-m.sequence%4)*4);
+      if(m.type==='init')setTimeout(()=>this.alive&&this.onmessage?.({data:{type:'ready',runtimeIdentity:staleReady?undefined:'test-runtime'}}),0);
+      else setTimeout(()=>{if(!this.alive)return;finished.push(m.sequence);this.onmessage?.({data:{type:'result',sequence:m.sequence,runtimeIdentity:staleResult?'old-runtime':'test-runtime',result:{...evaluateGene(vehicle,track,m.gene),score:staleResult?999999:evaluateGene(vehicle,track,m.gene).score}}});},(5-m.sequence%4)*4);
     }
     terminate(){this.alive=false;}
   }
-  const context=vm.createContext({onmessage:null,importScripts(){},postMessage:m=>messages.push(m),setTimeout,clearTimeout,Worker,
+  const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...Runtime,identity:()=>'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),setTimeout,clearTimeout,Worker,
     DriftCatalog:{get:()=>vehicle},DriftTrack:{get:()=>track,DEFAULT_ID:track.id},DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:Evolution,DriftPhysics:{evaluateGene}});
   vm.runInContext(source,context);
-  return {context,messages,finished,send:m=>context.onmessage({data:m}),snapshot:()=>vm.runInContext('engine.snapshot()',context),close:()=>vm.runInContext('running=false;clearTimeout(timer);cancelPool()',context)};
+  return {context,messages,finished,send:m=>context.onmessage({data:{runtimeIdentity:'test-runtime',...m}}),snapshot:()=>vm.runInContext('engine.snapshot()',context),close:()=>vm.runInContext('running=false;clearTimeout(timer);cancelPool()',context)};
 }
 async function until(fn){const deadline=Date.now()+5000;while(!fn()){if(Date.now()>deadline)throw Error('Pool did not settle');await new Promise(r=>setTimeout(r,5));}}
 test('four workers commit out-of-order completions in the same seeded order as serial evaluation',async()=>{
@@ -47,5 +47,31 @@ test('a reset discards old replies and keeps the new experiment at its prepared 
   const env=environment();try{
     await env.send({type:'init',workers:4,seed:37});await env.send({type:'run'});await env.send({type:'init',workers:4,seed:99});
     await new Promise(r=>setTimeout(r,70));assert.equal(env.snapshot().totalEvaluated,0);assert.equal(env.snapshot().best.id,'baseline');
+  }finally{env.close();}
+});
+
+test('missing evaluator identity falls back before any unverified result is accepted',async()=>{
+  const env=environment({staleReady:true});try{
+    await env.send({type:'init',workers:4,seed:37});await env.send({type:'run',once:true});
+    await until(()=>env.messages.some(m=>m.type==='paused'));
+    assert.equal(env.snapshot().totalEvaluated,20);assert.equal(env.finished.length,0);
+    assert.equal(env.messages.filter(m=>m.type==='candidate').at(-1).state.workerCount,1);
+  }finally{env.close();}
+});
+
+test('a mismatched evaluator result is discarded and evaluated locally in reservation order',async()=>{
+  const env=environment({staleResult:true});try{
+    await env.send({type:'init',workers:4,seed:37});await env.send({type:'run',once:true});
+    await until(()=>env.messages.some(m=>m.type==='paused'));
+    const candidates=env.messages.filter(m=>m.type==='candidate');assert.equal(candidates.length,20);
+    assert.ok(candidates.every(m=>m.candidate.result.score!==999999));assert.equal(candidates.at(-1).state.workerCount,1);
+  }finally{env.close();}
+});
+
+test('a coordinator rejects a different page identity before loading a baseline',async()=>{
+  const env=environment();try{
+    await env.send({type:'init',workers:4,seed:37,runtimeIdentity:'old-page'});
+    assert.ok(env.messages.some(m=>m.type==='error'&&m.message.includes('버전')));
+    assert.ok(!env.messages.some(m=>m.type==='ready'));
   }finally{env.close();}
 });

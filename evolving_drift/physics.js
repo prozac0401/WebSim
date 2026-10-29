@@ -20,7 +20,8 @@
   // Explicit legacy utility for offline conversion only. Runtime evaluateGene
   // requires the version-2 genome and state-feedback driver.
   function commandAt(gene,s,length){const n=gene.length/3,t=clamp(s/length*(n-1),0,n-1),i=Math.min(n-2,Math.floor(t)),f=t-i;return {steer:gene[i*3]+(gene[i*3+3]-gene[i*3])*f,throttle:gene[i*3+1]+(gene[i*3+4]-gene[i*3+1])*f,brake:gene[i*3+2]+(gene[i*3+5]-gene[i*3+2])*f};}
-  function footprint(v,a){const p=cfg(v),l=p.lengthM/2,w=p.widthM/2,c=Math.cos(a.yaw),s=Math.sin(a.yaw);return [[l,w],[l,-w],[-l,-w],[-l,w]].map(([x,y])=>({x:a.x+x*c-y*s,y:a.y+x*s+y*c}));}
+  function bodyCenter(v,a){const offset=cfg(v).bodyCenterOffsetM||0;return {x:a.x+offset*Math.cos(a.yaw),y:a.y+offset*Math.sin(a.yaw)};}
+  function footprint(v,a){const p=cfg(v),l=p.lengthM/2,w=p.widthM/2,c=Math.cos(a.yaw),s=Math.sin(a.yaw),center=bodyCenter(v,a);return [[l,w],[l,-w],[-l,-w],[-l,w]].map(([x,y])=>({x:center.x+x*c-y*s,y:center.y+x*s+y*c}));}
   function frontContacts(v,a){const p=cfg(v),lf=p.wheelbaseM*(1-(p.frontWeightFraction||.52)),halfTrack=(p.trackWidthM||p.widthM*.84)/2,c=Math.cos(a.yaw),s=Math.sin(a.yaw);return [halfTrack,-halfTrack].map(y=>({x:a.x+lf*c-y*s,y:a.y+lf*s+y*c}));}
   const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
   // Immutable course polygons can share metadata across ticks. Mutable geometry
@@ -117,7 +118,7 @@
     return previous.every((point,i)=>contactOnRoad(track,point,old.s??a.s,cache)&&visit(i,0,1,point,current[i],0));
   }
   function failure(v,track,a,old){
-    const p=cfg(v),c=Math.cos(a.yaw),s=Math.sin(a.yaw),body=footprint(v,a),cache=new WeakMap(),bodyBounds=bounds(body);
+    const p=cfg(v),c=Math.cos(a.yaw),s=Math.sin(a.yaw),center=bodyCenter(v,a),body=footprint(v,a),cache=new WeakMap(),bodyBounds=bounds(body);
     let swept=null,sweptBounds=null,previous=null;
     for(const o of track.obstacles||[]){
       const polygon=o.polygon?.points||(o.type==='polygon'?o.points:null);
@@ -131,10 +132,10 @@
         }
         continue;
       }
-      const dx=o.x-a.x,dy=o.y-a.y,lx=dx*c+dy*s,ly=-dx*s+dy*c;
+      const dx=o.x-center.x,dy=o.y-center.y,lx=dx*c+dy*s,ly=-dx*s+dy*c;
       if(Math.hypot(Math.max(0,Math.abs(lx)-p.lengthM/2),Math.max(0,Math.abs(ly)-p.widthM/2))<=o.r)return 'collision';
       // Conservative swept centres prevent skipping a narrow obstacle at speed.
-      if(old){const dx2=a.x-old.x,dy2=a.y-old.y,l2=dx2*dx2+dy2*dy2;const t=clamp(((o.x-old.x)*dx2+(o.y-old.y)*dy2)/(l2||1),0,1);if(Math.hypot(o.x-old.x-t*dx2,o.y-old.y-t*dy2)<o.r+p.widthM*.48)return 'collision';}
+      if(old){const before=bodyCenter(v,{...old,yaw:old.yaw??a.yaw}),dx2=center.x-before.x,dy2=center.y-before.y,l2=dx2*dx2+dy2*dy2;const t=clamp(((o.x-before.x)*dx2+(o.y-before.y)*dy2)/(l2||1),0,1),padding=Math.abs(p.bodyCenterOffsetM||0)*wrap(a.yaw-(old.yaw??a.yaw))**2/8;if(Math.hypot(o.x-before.x-t*dx2,o.y-before.y-t*dy2)<o.r+p.widthM*.48+padding)return 'collision';}
     }
     // The chosen course rule requires both front contact centres to remain
     // on the road. Rear tyres and body overhang may cross the road boundary;
@@ -255,8 +256,8 @@
     while(a.status==='running'){step(v,track,a,Driver.command(v,track,a,gene));if(record&&(++ticks%2===0||a.status!=='running'))frames.push(frame(a));}
     return result(a,frames,track);
   }
-  function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
-  const api={DT,torqueAt,initialState,commandAt,footprint,frontContacts,failure,step,evaluateGene,frame,signature};
+  function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,bodyCenter,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
+  const api={DT,torqueAt,initialState,commandAt,bodyCenter,footprint,frontContacts,failure,step,evaluateGene,frame,signature};
   // Compatibility for offline Node tooling; the browser has no grip-search API.
   if(typeof module!=='undefined'&&module.exports){api.buildGripBaseline=(...args)=>require('./grip-baseline-builder.cjs').buildGripBaseline(...args);module.exports=api;}
   root.DriftPhysics=api;

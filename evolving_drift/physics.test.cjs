@@ -25,6 +25,32 @@ function slopedTrack(gx,gy=0,muScale=1){
   return track;
 }
 
+test('asset body origins shift collision hulls and obstacles while keeping front contacts at the physical axles',()=>{
+  const car=catalog.get('g80-2.5t-rwd'),p=car.physics,track=straightTrack(),state={x:20,y:0,s:20,yaw:0};
+  const centre=physics.bodyCenter(car,state),body=physics.footprint(car,state),neutral={...car,physics:{...p,bodyCenterOffsetM:0}};
+  near(body.reduce((n,v)=>n+v.x,0)/4,centre.x);near(centre.x,state.x+p.bodyCenterOffsetM);
+  assert.deepEqual(physics.frontContacts(car,state),physics.frontContacts(neutral,state));
+  const rectangle=(x,y)=>[{x:x-.01,y:y-.01},{x:x+.01,y:y-.01},{x:x+.01,y:y+.01},{x:x-.01,y:y+.01}];
+  for(const polygon of [false,true]){
+    const x=state.x-p.lengthM/2+p.bodyCenterOffsetM/2;
+    track.obstacles=polygon?[{type:'polygon',points:rectangle(x,0)}]:[{x,y:0,r:.01}];
+    assert.equal(physics.failure(car,track,state),'collision','the shifted rear overhang reaches this obstacle');
+    assert.equal(physics.failure(neutral,track,state),null);
+    const clearX=state.x+p.lengthM/2+p.bodyCenterOffsetM/2;
+    track.obstacles=polygon?[{type:'polygon',points:rectangle(clearX,0)}]:[{x:clearX,y:0,r:.01}];
+    assert.equal(physics.failure(car,track,state),null,'the old geometric-origin nose no longer produces a false collision');
+    assert.equal(physics.failure(neutral,track,state),'collision');
+  }
+  const rotated={...state,yaw:.8};near(physics.footprint(car,rotated).reduce((n,v)=>n+v.x,0)/4,state.x+p.bodyCenterOffsetM*Math.cos(.8));
+  near(physics.footprint(car,rotated).reduce((n,v)=>n+v.y,0)/4,p.bodyCenterOffsetM*Math.sin(.8));
+});
+
+test('body-origin alignment changes no force, mass, wheel position or integrated free-road trajectory',()=>{
+  const car=catalog.get('porter-lpg-mt'),neutral={...car,physics:{...car.physics,bodyCenterOffsetM:0}},track=straightTrack(),a=physics.initialState(car,track),b=physics.initialState(neutral,track);
+  for(let i=0;i<240;i++){const input={steer:i<120?.025:-.025,throttle:.6,brake:0};physics.step(car,track,a,input);physics.step(neutral,track,b,input);}
+  assert.equal(a.status,'running');assert.deepEqual(physics.frame(a),physics.frame(b));
+});
+
 test('explicit flat surfaces preserve the previous planar trajectory',()=>{
   const car=catalog.get(),implicit=tracks.create(),explicit={...implicit,surface:()=>({z:17,gradientX:0,gradientY:0,normalZ:1,muScale:1})};
   const a=physics.initialState(car,implicit),b=physics.initialState(car,explicit);
