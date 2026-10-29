@@ -1219,3 +1219,8 @@ Original prompt: 다음 시뮬레이터를 만들어 보려고 해요. 기존 �
 ## 2026-10-29 Move evolution controls above the replay
 - Moved the existing evolution start/pause, single-generation button and status into a responsive bar between course information and the replay workspace. IDs and all runtime logic remain unchanged; no duplicate controls.
 - Existing app controls5/5 PASS. Actual browser1440x1080 and390x844 both show the start button at~364px before the stage, without horizontal overflow. Start/pause acknowledgement and single-generation resume PASS with errors0. Original game client ran and screenshots inspected. Only HTML/CSS and this log changed.
+
+## 2026-10-29 Restore the original course map and road presentation
+- User removed the new cyan eligibility lines, then explicitly requested the original course map. Restored renderer.js exactly to85b4565: original compact map, length/scoring-length label and road START/FINISH. Removed score ribbon decals, extra map trace/legend and their display-only helpers/tests.
+- Removed the obsolete HTML/CSS color legend and renderer timeline argument; retained live scoring/conditions and the new top evolution controls. Updated instructions to describe score-panel feedback.
+- Existing app controls5/5 PASS. Saved physical replay UI check on desktop390px mobile confirms live19.45point feedback, exact final score, rewind/reset, no obsolete legend and top controls; no browser errors. Original game client and desktop/mobile screenshots inspected. No physics, genome, ranking or prepared reference changes.
