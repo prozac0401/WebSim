@@ -267,18 +267,37 @@ test('body contact with a course obstacle fails in the current step', () => {
   assert.deepEqual(physics.frame(state), failed);
 });
 
-test('a moving spin fails before completion and cannot continue after detection',()=>{
-  const car=catalog.get(),track=straightTrack();track.length=100;
+test('a moving spin continues under the same forces and can cross the finish while on the road',()=>{
+  const car=catalog.get(),track=straightTrack();
   for(const sign of [-1,1]){
-    const a=physics.initialState(car,track);Object.assign(a,{x:100.1,s:100.1,yaw:-sign*76*Math.PI/180,vx:8,vy:0,speed:8,r:0});a.wheelOmega.fill(8/car.tireRadius);
+    const a=physics.initialState(car,track);Object.assign(a,{x:100,s:100,yaw:-sign*76*Math.PI/180,vx:8,vy:0,speed:8,r:0});a.wheelOmega.fill(8/car.tireRadius);
     physics.step(car,track,a,{steer:0,throttle:0,brake:0});
-    assert.equal(a.status,'spin','a crossed finish line cannot legitimize a spin');
+    assert.equal(a.status,'running','high sideslip alone is recoverable');
     assert.ok(Math.abs(a.beta)>=75*Math.PI/180);assert.ok(a.speed>=3);
-    const frozen=physics.frame(a);physics.step(car,track,a,{steer:.4,throttle:1,brake:0});assert.deepEqual(physics.frame(a),frozen);
+    const before=physics.frame(a);for(let i=0;i<30;i++)physics.step(car,track,a,{steer:0,throttle:0,brake:0});
+    assert.equal(a.status,'running');assert.ok(a.time>before.time);assert.notEqual(a.x,before.x);assert.notEqual(a.beta,before.beta,'the tyre forces evolve the pose instead of freezing or clamping it');
+    const finishTrack={...track,length:100},finish=physics.initialState(car,finishTrack);
+    Object.assign(finish,{x:99.99,s:99.99,yaw:-sign*76*Math.PI/180,vx:8,vy:0,speed:8,r:0});finish.wheelOmega.fill(8/car.tireRadius);
+    physics.step(car,finishTrack,finish,{steer:0,throttle:0,brake:0});
+    assert.ok(Math.abs(finish.beta)>=75*Math.PI/180);assert.equal(finish.status,'finished');assert.equal(physics.result(finish,[physics.frame(finish)],finishTrack).valid,true);
   }
 });
 
-test('spin detection distinguishes normal heading changes, signed drift and slow launches',()=>{
+test('boundary, collision and timeout failures remain terminal during a spin',()=>{
+  const car=catalog.get();
+  for(const expected of ['offtrack','collision','timeout']){
+    const track=straightTrack(),state=physics.initialState(car,track);
+    Object.assign(state,{x:100,s:100,yaw:-76*Math.PI/180,vx:8,vy:0,speed:8});state.wheelOmega.fill(8/car.tireRadius);
+    if(expected==='offtrack'){track.length=100;track.width=2;state.y=5;}
+    if(expected==='collision'){track.length=100;track.obstacles=[{x:100,y:0,r:2}];}
+    if(expected==='timeout')state.time=90;
+    physics.step(car,track,state,{steer:0,throttle:0,brake:0});
+    assert.ok(Math.abs(state.beta)>=75*Math.PI/180);assert.equal(state.status,expected);
+    const stopped=physics.frame(state);physics.step(car,track,state,{steer:.4,throttle:1,brake:0});assert.deepEqual(physics.frame(state),stopped);
+  }
+});
+
+test('motion telemetry distinguishes normal heading changes, signed drift and slow launches',()=>{
   const car=catalog.get(),track=straightTrack();
   for(const heading of [-Math.PI+.01,Math.PI/2,Math.PI-.01]){
     const a=physics.initialState(car,track);Object.assign(a,{x:150,s:150,yaw:heading,vx:8*Math.cos(heading),vy:8*Math.sin(heading),speed:8});a.wheelOmega.fill(8/car.tireRadius);

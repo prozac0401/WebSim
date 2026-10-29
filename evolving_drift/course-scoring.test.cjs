@@ -30,6 +30,36 @@ test('breaking the chain resets only future multipliers while previously earned 
  for(let i=1;i<timeline.length;i++)assert.ok(timeline[i].score>=timeline[i-1].score);
 });
 
+test('sustained spins retain prior points, reset continuity and allow fresh drift points after recovery',()=>{
+ const {track,raw}=fixture({zones:[{s:70,length:80}],angle:s=>s>=82.5&&s<=102.5?90:55});
+ const ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(ranked,track,vehicle);
+ const first=timeline.findIndex(f=>f.spinning),end=timeline.findLastIndex(f=>f.spinning),prior=timeline[first-1];
+ assert.ok(prior.score>0&&prior.chainMultiplier>1);
+ for(const point of timeline.slice(first,end+1)){
+  near(point.score,prior.score);assert.equal(point.chainMultiplier,1);assert.equal(point.delta,0);assert.equal(point.transitioning,false);
+  assert.equal(point.zoneMultiplier,2);assert.match(point.reason,/스핀.*기존 점수 유지/);
+ }
+ assert.ok(timeline[end+1].delta>0);assert.ok(timeline[end+1].chainMultiplier>1&&timeline[end+1].chainMultiplier<1.02);
+ assert.equal(ranked.valid,true);assert.equal(ranked.status,'finished');near(ranked.score,timeline.at(-1).score);
+ const cut=raw.frames.slice(0,first+5),prefix=Fitness.replayTimeline({...ranked,status:'running',valid:false,frames:cut},track,vehicle);
+ for(let i=0;i<cut.length;i++)near(prefix[i].score,timeline[i].score);
+ const failed={...ranked,status:'offtrack',valid:false,frames:raw.frames.map((f,i)=>i===raw.frames.length-1?{...f,status:'offtrack'}:f)};
+ assert.equal(Fitness.rank(vehicle,track,failed).score,0);assert.equal(Fitness.replayTimeline(failed,track,vehicle).at(-1).score,0);
+});
+
+test('spinning cannot erase the sustained speed reference or farm already travelled progress',()=>{
+ const {track,raw}=fixture({angle:s=>s>=80&&s<100?90:55,speed:s=>s>=100?40/3.6:25});
+ const timeline=Fitness.replayTimeline(raw,track,vehicle),prior=timeline.findLast(f=>f.s<80).score;
+ for(const point of timeline.filter(f=>f.s>=80)){near(point.score,prior);assert.equal(point.chainMultiplier,1);assert.ok(point.referenceSpeed>=25);}
+ const accumulator=new Score.Accumulator(track),frame=(s,time,beta=55*D)=>({s,time,x:s,y:0,beta,speed:25,vx:25,vy:0});
+ let previous=frame(2.5,0);accumulator.step(previous,null);
+ for(let i=1;i<=100;i++){const next=frame(2.5+i,i*.04);accumulator.step(next,previous);previous=next;}
+ const earned=accumulator.summary().score;
+ for(let i=1;i<=8;i++){const next=frame(102.5-i,previous.time+.04,90*D);accumulator.step(next,previous);previous=next;}
+ for(let i=1;i<=8;i++){const next=frame(94.5+i,previous.time+.04);accumulator.step(next,previous);previous=next;}
+ near(accumulator.summary().score,earned);assert.equal(accumulator.multiplier(),1);
+});
+
 test('ZONE strips use rendered start plus length, union overlaps, and split crossing frames exactly',()=>{
  const zones=[{s:17.3,length:3.6},{startS:19.4,endS:25.7}],{track,raw}=fixture({zones,step:1.7});
  assert.deepEqual(Score.zones(track),[{start:17.3,end:25.7}]);

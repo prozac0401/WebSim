@@ -4,6 +4,8 @@
 'use strict';
 const DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),cache=new WeakMap();
 const CourseScoring=root.DriftCourseScoring||(typeof require==='function'?require('./course-scoring.js'):null);
+// A recorded spin is a recoverable event; only an unfinished terminal result invalidates it.
+function failedAt(result,status,last){return status!=='running'&&status!=='finished'&&status!=='spin'||last&&status!=='running'&&(result.valid!==true||result.status!=='finished');}
 function exitZones(track){
  if(cache.has(track))return cache.get(track);const arcs=[];let run=null;
  const curvature=s=>[-4,-2,0,2,4].reduce((n,d)=>n+(track.sample(clamp(s+d,0,track.length)).curvature||0),0)/5;
@@ -18,7 +20,7 @@ function inspectFrame(frame,previous,track,vehicle,zones=exitZones(track)){
  const rearForce=(frame.wheelForces?.[2]?.fx||0)+(frame.wheelForces?.[3]?.fx||0),forwardSpeed=frame.vx*Math.cos(frame.yaw)+frame.vy*Math.sin(frame.yaw);
  const zone=zones.find(z=>frame.s>=z.exit&&frame.s<=z.end),inScored=frame.s>=track.judgedStart&&frame.s<=track.judgedEnd||!!zone;
  const continuous=dt>0&&dt<.1,moving=progress>0&&ds>0&&ds<=Math.max(previous?.speed||0,frame.speed)*dt*1.2+.02;
- const conditions={area:inScored,angle:angle>=10&&angle<=55,speed:frame.speed>=8,throttle:frame.throttle>=.15,brake:frame.brake<=.03,propulsion:frame.rearTorque>0&&rearForce>p.massKg*.3&&rearForce*forwardSpeed>0,forward:continuous&&moving};
+ const conditions={area:inScored,angle:angle>=10&&angle<=55&&!CourseScoring.isSpin(frame),speed:frame.speed>=8,throttle:frame.throttle>=.15,brake:frame.brake<=.03,propulsion:frame.rearTorque>0&&rearForce>p.massKg*.3&&rearForce*forwardSpeed>0,forward:continuous&&moving};
  const drifting=conditions.angle&&conditions.speed&&conditions.forward,drive=conditions.throttle&&conditions.brake&&conditions.propulsion;
  return {angle,dt,progress,distance:ds,rearForce,rearPower:rearForce*forwardSpeed,zone,inScored,continuous,conditions,drifting,drive,
   phase:inScored?(zone?'exit':'judged'):frame.s<track.judgedStart?'preparation':'recovery'};
@@ -47,14 +49,15 @@ function measurePower(result,track,vehicle,{trace=false}={}){
  function emit(i,facts,anchored=false){
   if(!trace)return;const f=frames[i],last=i===frames.length-1,status=last?result.status:(f.status||'running');
   const style=last?finalStyle:Number.isFinite(f.scoreIntegral)?f.scoreIntegral/(track.judgedEnd-track.judgedStart)*100:styleProxy;
-  const snapshot=scoredState(runs,run,qualityDistance,exitQuality,style),failed=spinDetected||status!=='running'&&status!=='finished'||last&&result.valid!==true;
+  const snapshot=scoredState(runs,run,qualityDistance,exitQuality,style),failed=failedAt(result,status,last);
   const score=failed?0:snapshot.potentialScore,delta=score-lastPotential;lastPotential=score;
   const estimatedStyle=!Number.isFinite(f.scoreIntegral)&&!last;
   const settlement=last&&!Number.isFinite(f.scoreIntegral)&&Object.prototype.hasOwnProperty.call(snapshot.parts,'style')
    &&Math.abs(clamp(finalStyle,0,100)-clamp(styleProxy,0,100))>1e-7&&Math.abs(delta)>1e-7;
   const earning=!failed&&!settlement&&facts.inScored&&delta>1e-7,conditions={...facts.conditions,corner:anchored};
   let reason;
-  if(failed)reason=status==='spin'||spinDetected?'스핀 · 점수 무효':status==='offtrack'?'앞바퀴 이탈 · 점수 무효':status==='collision'?'차체 충돌 · 점수 무효':'완주 실패 · 점수 무효';
+  if(failed)reason=status==='offtrack'?'앞바퀴 이탈 · 점수 무효':status==='collision'?'차체 충돌 · 점수 무효':'완주 실패 · 점수 무효';
+  else if(CourseScoring.isSpin(f))reason='스핀 · 현재 드리프트 종료';
   else if(settlement)reason='완주 정산 · 보조 주행 점수 확정';
   else if(!facts.inScored)reason=facts.phase==='preparation'?'준비 구간 · 득점 없음':'회복·비채점 구간 · 득점 없음';
   else if(earning)reason=facts.drifting&&facts.drive?(anchored?'가속 탈출 · 거리와 유지 각도 반영':'가속 드리프트 · 구동 품질 반영'):'보조 주행 점수';
@@ -71,17 +74,17 @@ function measurePower(result,track,vehicle,{trace=false}={}){
    parts:snapshot.parts,qualified:snapshot.qualified&&!failed,finalValid:last&&result.valid===true&&!failed,
    exit:exit?{distance:exit.distance,duration:exit.duration,angle:exit.distanceWeightedAngle,entrySpeed:exit.entrySpeed,exitSpeed:exit.exitSpeed}:null});
  }
- if(frames.length){const first=frames[0],facts=inspectFrame(first,null,track,vehicle,zones);spinDetected=first.status==='spin'||first.speed>=3&&facts.angle>=75;emit(0,facts);}
+ if(frames.length){const first=frames[0],facts=inspectFrame(first,null,track,vehicle,zones);spinDetected=CourseScoring.isSpin(first);emit(0,facts);}
  for(let i=1;i<frames.length;i++){
   const a=frames[i-1],b=frames[i],facts=inspectFrame(b,a,track,vehicle,zones),{dt,progress,distance:ds,angle,rearForce:rearFx,rearPower:power,zone,inScored,drifting,drive}=facts;
-  if(b.status==='spin'||b.speed>=3&&angle>=75)spinDetected=true;
+  const spinning=CourseScoring.isSpin(b);if(spinning)spinDetected=true;
   if(!facts.continuous){close();episode=null;emit(i,facts);continue;}
   const sign=Math.sign(b.beta);if(!drifting||episode&&episode.sign!==sign)episode=null;
   if(drifting&&!episode)episode={start:a.s,sign,turns:new Map()};
   if(episode){const turn=Math.atan2(Math.sin(Math.atan2(b.vy,b.vx)-Math.atan2(a.vy,a.vx)),Math.cos(Math.atan2(b.vy,b.vx)-Math.atan2(a.vy,a.vx)));for(const z of zones)if(b.s>=z.start&&b.s<=z.exit)episode.turns.set(z.exit,(episode.turns.get(z.exit)||0)+turn);}
-  const q=(angle>=10&&angle<=55?.2+.8*(angle-10)/45:0)*b.speed/Math.hypot(b.speed,12)*clamp(rearFx/(p.massKg*1.2),0,1)*clamp((.06-b.brake)/.06,0,1);
+  const q=(!spinning&&angle>=10&&angle<=55?.2+.8*(angle-10)/45:0)*b.speed/Math.hypot(b.speed,12)*clamp(rearFx/(p.massKg*1.2),0,1)*clamp((.06-b.brake)/.06,0,1);
   if(inScored&&b.rearTorque>0&&b.throttle>=.1&&rearFx>0){qualityDistance+=Math.min(ds,Math.max(0,progress))*q;if(zone)exitQuality+=Math.min(ds,Math.max(0,progress))*q;}
-  if(b.s>=track.judgedStart&&b.s<=track.judgedEnd)styleProxy+=Math.max(0,progress)*clamp((angle-2)/28,0,1)*clamp((85-angle)/30,0,1)*b.speed/Math.hypot(b.speed,12)/(track.judgedEnd-track.judgedStart)*100;
+  if(!spinning&&b.s>=track.judgedStart&&b.s<=track.judgedEnd)styleProxy+=Math.max(0,progress)*clamp((angle-2)/28,0,1)*clamp((85-angle)/30,0,1)*b.speed/Math.hypot(b.speed,12)/(track.judgedEnd-track.judgedStart)*100;
   const anchored=!!zone&&!!episode&&episode.start<=zone.exit-5&&(episode.turns.get(zone.exit)||0)*zone.sign>.10;
   if(drifting&&drive){totalPowerDistance+=ds;if(run&&(!zone||run.zoneExit!==zone.exit||run.sign!==sign))close();
    if(zone){if(!run)run={start:a.s,end:b.s,startTime:a.time,endTime:b.time,distance:0,duration:0,zoneExit:zone.exit,sign,anchored,entrySpeed:a.speed,exitSpeed:b.speed,minSpeed:b.speed,meanThrottle:0,meanAngle:0,distanceWeightedAngle:0,meanRearForce:0,meanRearPowerW:0,meanRearSlip:0,counterFraction:0,meanRPM:0,maxBrake:0};
@@ -90,7 +93,7 @@ function measurePower(result,track,vehicle,{trace=false}={}){
   }else close();
   emit(i,facts,anchored);
  }
- close();const scored=scoredState(runs,null,qualityDistance,exitQuality,finalStyle),completed=result.valid===true&&result.status==='finished'&&!spinDetected;
+ close();const scored=scoredState(runs,null,qualityDistance,exitQuality,finalStyle),completed=result.valid===true&&result.status==='finished';
  const output={score:completed?scored.potentialScore:0,styleScore:finalStyle,totalPowerDistance,qualityDistance,exitQuality,bestExit:scored.bestExit,bestAttempt:scored.bestAttempt,success:completed&&scored.qualified,runs,zones,spinDetected};
  if(trace)output.timeline=timeline;return output;
 }
@@ -322,16 +325,16 @@ function measure(result,track,vehicle,options={}){
  for(let i=0;i<frames.length;i++){
   const f=frames[i],a=i?frames[i-1]:null,dt=a?f.time-a.time:0,progress=a?f.s-a.s:0,ds=a?Math.hypot(f.x-a.x,f.y-a.y):0;
   const angle=Math.abs(f.beta||0)/DEG,continuous=!!a&&dt>0&&dt<.1,moving=continuous&&progress>0&&ds>0&&ds<=Math.max(a.speed,f.speed)*dt*1.2+.02;
-  if(f.status==='spin'||f.speed>=3&&angle>=75)spinDetected=true;
+  const spinning=CourseScoring.isSpin(f);if(spinning)spinDetected=true;
   const rearForce=(f.wheelForces?.[2]?.fx||0)+(f.wheelForces?.[3]?.fx||0),forwardSpeed=f.vx*Math.cos(f.yaw)+f.vy*Math.sin(f.yaw);
   const propelled=f.rearTorque>0&&rearForce>p.massKg*.3&&rearForce*forwardSpeed>0&&f.throttle>=.15&&f.brake<=.03;
   let active=null,retention=0,currentRun=null,currentContribution=0;
   for(const state of states){
    const z=state.zone;
-   advanceReference(state,a,f,moving&&!spinDetected);
+   advanceReference(state,a,f,moving&&!spinning);
    const reference=state.referenceSpeed,ratio=reference>0?f.speed/reference:0;
    if(f.s>=z.start&&f.s<=z.end){active=state;retention=ratio;}
-   if(!a||!moving||spinDetected){close(state);state.preparation=[];state.previousHeading=null;continue;}
+   if(!a||!moving||spinning){close(state);state.preparation=[];state.previousHeading=null;continue;}
    const rightSign=(f.beta||0)*z.sign<0;
    if(f.s<=z.start){
     const enough=f.speed>=Math.max(8,reference*.9);
@@ -372,13 +375,13 @@ function measure(result,track,vehicle,options={}){
    if(active===state)currentRun=state.run;
   }
   let activeLink=null,linkContribution=0;
-  for(const link of linkStates){const credit=advanceLink(link,a,f,moving,spinDetected);if(f.s>=link.zone.start&&f.s<=link.zone.end){activeLink=link;linkContribution=credit;}}
+  for(const link of linkStates){const credit=advanceLink(link,a,f,moving,spinning);if(f.s>=link.zone.start&&f.s<=link.zone.end){activeLink=link;linkContribution=credit;}}
   // The full-course accumulator owns its causal speed reference. Legacy
   // regional references remain diagnostics and cannot silently reset it.
   const courseFacts=course?.step(f,a);
   if(options.trace){
    const snapshot=objectiveSnapshot(states,linkStates,!!options.zoneId),last=i===frames.length-1,status=last?result.status:(f.status||'running');
-   const failed=spinDetected||status!=='running'&&status!=='finished'||last&&(result.valid!==true||result.status!=='finished');
+   const failed=failedAt(result,status,last);
    const score=failed?0:snapshot.score,delta=score-lastScore;lastScore=score;
    const preStartDrift=f.s<track.judgedStart?{active:!failed&&moving&&angle>=10&&angle<=70&&f.speed>=Math.max(8,(refs[allZones[0]?.id]||0)*.8*.9),s:f.s,speed:f.speed,angle,distanceToStart:track.judgedStart-f.s}:null;
    const link=activeLink?linkSnapshot(activeLink):null,inStraight=!!activeLink&&f.s>=activeLink.zone.straightStart&&f.s<=activeLink.zone.straightEnd;
@@ -388,7 +391,8 @@ function measure(result,track,vehicle,options={}){
    const complete=!!current?.complete;
    const conditions={area,angle:angle>=10&&angle<=70,speed:f.speed>=8,retention:retained>=.9,forward:moving,curve:(current?.curveQuality||0)>=.7,apex,complete,link:!!link?.complete,propulsion:propelled};
    const earning=!failed&&area&&delta>1e-7,reassessment=earning&&currentContribution<=1e-12&&linkContribution<=1e-12;
-   let reason=failed?(spinDetected||status==='spin'?'스핀':status==='offtrack'?'앞바퀴 이탈':status==='collision'?'차체 충돌':'완주 실패')+' · 점수 무효'
+   let reason=failed?(status==='offtrack'?'앞바퀴 이탈':status==='collision'?'차체 충돌':'완주 실패')+' · 점수 무효'
+    :spinning?'스핀 · 현재 드리프트 종료'
     :!area?(phase==='initiation'?'출발선 전 드리프트 · 진입 연결 준비 · 득점 없음':phase==='preparation'?'준비 구간 · 득점 없음':'회복·비채점 구간 · 득점 없음')
     :reassessment?'연결·곡선 확인 · 앞선 주행 점수 재평가'
     :active&&(retention<=.7||retainedQuality(active)===0)?'코너 내 속도 70% 이하 · 해당 코너 0점'
@@ -399,9 +403,10 @@ function measure(result,track,vehicle,options={}){
     :delta< -1e-7?'곡선 연결·유지 각도 변화로 점수 재평가':'현재 연속 드리프트 기록 유지';
    timeline.push({time:f.time,s:f.s,score,potentialScore:snapshot.score,delta,earning,reassessment,provisional:!last,estimatedStyle:false,status,phase,reason,conditions,parts:snapshot.parts,arc:snapshot.bestArc,fullConnectionCount:snapshot.fullConnectionCount,totalArcCount:snapshot.totalArcCount,straightLinkCount:snapshot.straightLinkCount,totalLinkCount:snapshot.totalLinkCount,link,preStartDrift,finalValid:last&&!failed&&result.valid===true});
    if(courseFacts){
-    const terminalFailure=spinDetected||status!=='running'&&status!=='finished'||last&&status==='finished'&&result.valid!==true;
+    const terminalFailure=failedAt(result,status,last);
     const previousScore=timeline.length>1?timeline.at(-2).score:0,score=terminalFailure?0:courseFacts.potentialScore;
-    const c=courseFacts.conditions,reason=terminalFailure?(spinDetected||status==='spin'?'스핀':status==='offtrack'?'앞바퀴 이탈':status==='collision'?'차체 충돌':'완주 실패')+' · 전체 점수 무효'
+    const c=courseFacts.conditions,reason=terminalFailure?(status==='offtrack'?'앞바퀴 이탈':status==='collision'?'차체 충돌':'완주 실패')+' · 전체 점수 무효'
+     :courseFacts.spinning?'스핀 · 배수 ×1 · 기존 점수 유지'
      :courseFacts.transitioning?'방향 전환 중 · 연속 배수 유지 · 득점 없음'
      :courseFacts.delta>0?(courseFacts.zoneMultiplier===2?'ZONE ×2 · 새 진행 거리 득점':'연속 드리프트 · 새 진행 거리 득점')
      :!c.angle?'슬립각 10~70° 필요 · 연속 배수 ×1'
@@ -413,7 +418,7 @@ function measure(result,track,vehicle,options={}){
    }
   }
  }
- const snapshot=objectiveSnapshot(states,linkStates,!!options.zoneId),valid=result.valid===true&&result.status==='finished'&&!spinDetected;
+ const snapshot=objectiveSnapshot(states,linkStates,!!options.zoneId),valid=result.valid===true&&result.status==='finished';
  const power=options.diagnostics===false?null:measurePower({...result,frames},track,vehicle);
  const output={...snapshot,score:valid?snapshot.score:0,referenceSpeeds:refs,referencePace,spinDetected,power};
  if(course){
@@ -425,10 +430,10 @@ function measure(result,track,vehicle,options={}){
 }
 function rank(vehicle,track,result,record=result.frames,options={}){
  const drift=measure({...result,frames:record},track,vehicle,options),power=drift.power;
- return {...result,valid:result.valid&&!drift.spinDetected,status:drift.spinDetected?'spin':result.status,reason:drift.spinDetected?'스핀 · 차체 제어 상실':result.reason,
+ return {...result,
   styleScore:result.styleScore??result.score??0,score:drift.score,drift,power};
 }
 function replayTimeline(result,track,vehicle,record=result.frames){return measure({...result,frames:record},track,vehicle,{trace:true,diagnostics:false}).timeline;}
-function signature(){return JSON.stringify(WEIGHTS)+'\n'+CourseScoring.signature()+'\n'+[exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,preparedPace,referenceSpeeds,advanceReference,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
-const api=Object.freeze({VERSION:7,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+function signature(){return JSON.stringify(WEIGHTS)+'\n'+CourseScoring.signature()+'\n'+[failedAt,exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,preparedPace,referenceSpeeds,advanceReference,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
+const api=Object.freeze({VERSION:8,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
