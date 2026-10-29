@@ -5,18 +5,23 @@ const source=fs.readFileSync(require.resolve('./worker.js'),'utf8');
 const vehicle={id:'fixed-rwd',physics:{maxSteer:.6,gearRatios:[3,2,1],wheelbaseM:2.6}},track={id:'test',length:500,judgedStart:120,judgedEnd:400,sample:s=>({s,x:s,y:0,heading:0,curvature:.01,widthLeft:7,widthRight:7})};
 const evaluateGene=(_v,_t,g)=>({valid:true,status:'finished',score:1+Array.from(g).reduce((a,n,i)=>a+(i%8===4?Math.abs(n):0),0),time:30,driftDistance:0,frames:[{x:0,y:0,s:0,time:0} ]});
 const baseline={gene:Genome.create(),genomeVersion:Genome.VERSION,stride:Genome.STRIDE,record:[{x:0,y:0,s:0,time:0}],result:{valid:true,status:'finished',score:1,time:30,driftDistance:0}};
+class Evaluator{
+  constructor(v,t){this.vehicle=v;this.track=t;this.ids=[];}
+  evaluate(gene,{id,parentId}={}){const hit=this.ids.includes(parentId),reusedTicks=hit?80:0;this.ids.push(id);this.ids=this.ids.slice(-4);return{...evaluateGene(this.vehicle,this.track,gene),evaluation:{simulatedTicks:100-reusedTicks,reusedTicks,totalTicks:100,cacheHit:hit}};}
+  cachedIds(){return this.ids.slice();}
+}
 function environment({broken=false,staleReady=false,staleResult=false}={}){
   const messages=[],finished=[];
   class Worker{
     constructor(){if(broken)throw Error('No nested workers');this.alive=true;}
     postMessage(m){
-      if(m.type==='init')setTimeout(()=>this.alive&&this.onmessage?.({data:{type:'ready',runtimeIdentity:staleReady?undefined:'test-runtime'}}),0);
-      else setTimeout(()=>{if(!this.alive)return;finished.push(m.sequence);this.onmessage?.({data:{type:'result',sequence:m.sequence,runtimeIdentity:staleResult?'old-runtime':'test-runtime',result:{...evaluateGene(vehicle,track,m.gene),score:staleResult?999999:evaluateGene(vehicle,track,m.gene).score}}});},(5-m.sequence%4)*4);
+      if(m.type==='init'){this.evaluator=new Evaluator(vehicle,track);setTimeout(()=>this.alive&&this.onmessage?.({data:{type:'ready',runtimeIdentity:staleReady?undefined:'test-runtime'}}),0);}
+      else setTimeout(()=>{if(!this.alive)return;finished.push(m.sequence);const result=this.evaluator.evaluate(m.gene,{id:m.id,parentId:m.parentId});if(staleResult)result.score=999999;this.onmessage?.({data:{type:'result',sequence:m.sequence,runtimeIdentity:staleResult?'old-runtime':'test-runtime',result,cacheIds:this.evaluator.cachedIds()}});},(5-m.sequence%4)*4);
     }
     terminate(){this.alive=false;}
   }
   const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...Runtime,identity:()=>'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),setTimeout,clearTimeout,Worker,
-    DriftCatalog:{get:()=>vehicle},DriftTrack:{get:()=>track,DEFAULT_ID:track.id},DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:Evolution,DriftPhysics:{evaluateGene}});
+    DriftCatalog:{get:()=>vehicle},DriftTrack:{get:()=>track,DEFAULT_ID:track.id},DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:Evolution,DriftPhysics:{evaluateGene},DriftEvaluationCache:{Evaluator}});
   vm.runInContext(source,context);
   return {context,messages,finished,send:m=>context.onmessage({data:{runtimeIdentity:'test-runtime',...m}}),snapshot:()=>vm.runInContext('engine.snapshot()',context),close:()=>vm.runInContext('running=false;clearTimeout(timer);cancelPool()',context)};
 }
@@ -74,4 +79,30 @@ test('a coordinator rejects a different page identity before loading a baseline'
     assert.ok(env.messages.some(m=>m.type==='error'&&m.message.includes('버전')));
     assert.ok(!env.messages.some(m=>m.type==='ready'));
   }finally{env.close();}
+});
+
+test('accepted work counters start at zero, sum exact ticks and reset with the experiment',async()=>{
+ const env=environment();try{
+  await env.send({type:'init',workers:4,seed:37});
+  const plain=value=>JSON.parse(JSON.stringify(value)),zero={simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:0};
+  assert.deepEqual(plain(env.messages.at(-1).state.evaluationStats),zero);
+  await env.send({type:'run',once:true});await until(()=>env.messages.some(m=>m.type==='paused'));
+  const candidates=env.messages.filter(m=>m.type==='candidate'),last=candidates.at(-1).state.evaluationStats;
+  assert.equal(last.evaluations,20);assert.equal(last.totalTicks,2000);assert.equal(last.totalTicks,last.simulatedTicks+last.reusedTicks);
+  assert.deepEqual(candidates.map(m=>m.state.evaluationStats.evaluations),Array.from({length:20},(_,i)=>i+1));
+  await env.send({type:'init',workers:4,seed:38});assert.deepEqual(plain(env.messages.at(-1).state.evaluationStats),zero);
+ }finally{env.close();}
+});
+
+test('idle workers receive their cached parent jobs before general dispatch',()=>{
+ const env=environment();try{
+  vm.runInContext(`
+    globalThis.dispatches=[];running=true;engine={};workerCount=2;
+    jobs=[{id:'child-a',parentId:'parent-a',sequence:1,gene:[]},{id:'child-b',parentId:'parent-b',sequence:2,gene:[]}];
+    slots=['parent-b','parent-a'].map((id,index)=>({busy:null,ready:true,cacheIds:new Set([id]),worker:{postMessage:m=>dispatches.push({slot:index,sequence:m.sequence,id:m.id,parentId:m.parentId}),terminate(){}}}));
+    engine.planCandidate=()=>null;pump();
+  `,env.context);
+  const dispatched=JSON.parse(vm.runInContext('JSON.stringify(dispatches)',env.context));
+  assert.deepEqual(dispatched,[{slot:0,sequence:2,id:'child-b',parentId:'parent-b'},{slot:1,sequence:1,id:'child-a',parentId:'parent-a'}]);
+ }finally{env.close();}
 });

@@ -325,10 +325,52 @@ function ensureChanged(vehicle,parent,proposal,rng,strength=1){
  for(let offset=-1;offset<=1;offset++)gene[(center+offset)*G.STRIDE+C.steer]=clamp(gene[(center+offset)*G.STRIDE+C.steer]+amount*(offset===0?1:.5),-p.maxSteer,p.maxSteer);
  return {...proposal,gene,change:{...(proposal.change||{}),family:'fine-fallback'}};
 }
+function repair(vehicle,track,parent,rng,options={}){
+ if(parent.accepted!==true||parent.result?.valid!==true||parent.result?.status!=='finished')throw new TypeError('Repairs require a completed valid parent, never a failed genome.');
+ const p=vehicle.physics||vehicle,diagnosis=options.diagnosis,ds=track.length/(G.KNOTS-1),strength=clamp(options.scale??1,.03,1.5);
+ if(!diagnosis?.window||!Number.isFinite(diagnosis.origin?.s))throw new TypeError('A recorded precursor window is required.');
+ const bounds=options.lineBounds||G.corridorBounds(vehicle,track),norm=g=>G.normalize(g,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
+ const start=clamp(diagnosis.window.startS,0,track.length-2*ds),end=clamp(diagnosis.window.endS,start+2*ds,track.length);
+ const prior=Number.isInteger(diagnosis.precedingZoneIndex)?options.zones?.[diagnosis.precedingZoneIndex]:null;
+ const searchPrior=!!prior&&rng()<.6;
+ const priorEnd=Math.max(start+ds,Math.min(diagnosis.origin.s-ds,prior?.exit+12||diagnosis.origin.s));
+ const center=clamp(searchPrior?start+ds+rng()*(priorEnd-start-ds):diagnosis.origin.s+(rng()-.5)*12,start+ds,end-ds),width=Math.max(2*ds,Math.min(30,Math.max(center-start,end-center)));
+ const family=options.family||'timing',direction=rng()<.5?-1:1,magnitude=(.3+.7*rng())*strength,amount=direction*magnitude;
+ const gene=G.clone(parent.gene),change={family,source:'failure-window',basisCandidateId:diagnosis.candidateId,originS:diagnosis.origin.s,precedingZoneIndex:diagnosis.precedingZoneIndex,searchPrior,start,end,center,width,direction,scale:strength};
+ for(let i=0;i<G.KNOTS;i++){
+  const s=i*ds;if(s<=start||s>=end)continue;
+  const w=pulse(s,center,width)*smooth((s-start)/ds)*smooth((end-s)/ds),j=i*G.STRIDE;if(!w)continue;
+  // Test both directions. An observed failure is a hypothesis about which
+  // intents to explore, not a command to suppress every sideways movement.
+  if(family==='timing'){
+   const shifted=G.sample(parent.gene,clamp(s+amount*10,0,track.length),track.length);
+   for(const key of ['targetSlip','counterLead','driveSlip','throttle'])gene[j+C[key]]+=(shifted[key]-gene[j+C[key]])*w;
+  }
+  if(['lead','combined'].includes(family))gene[j+C.counterLead]+=.09*amount*w;
+  if(['steer','combined'].includes(family))gene[j+C.steer]+=.018*amount*w;
+  if(['angle','combined'].includes(family))gene[j+C.targetSlip]+=3*DEG*amount*w;
+  if(['line','combined'].includes(family))gene[j+C.lineOffset]+=.65*amount*w;
+  if(family==='power'){gene[j+C.driveSlip]+=.1*amount*w;gene[j+C.throttle]+=.055*amount*w;}
+ }
+ // A timing hypothesis can be unobservable on a flat grip target. Use a
+ // bounded local steering trial in that same precursor window, not elsewhere.
+ if(!gene.some((v,i)=>v!==parent.gene[i])){
+  const i=clamp(Math.round(center/ds),1,G.KNOTS-2),j=i*G.STRIDE+C.steer;
+  gene[j]=clamp(gene[j]+(gene[j]>=p.maxSteer?-1:gene[j]<=-p.maxSteer?1:direction)*.002*strength,-p.maxSteer,p.maxSteer);
+  change.family='steer';change.fallbackFrom=family;
+ }
+ const normalized=norm(couple(vehicle,track,parent.gene,norm(gene),parent.record));
+ if(!normalized.some((v,i)=>v!==parent.gene[i])){
+  const i=clamp(Math.round(center/ds),1,G.KNOTS-2),j=i*G.STRIDE+C.steer;
+  normalized[j]=clamp(normalized[j]+(normalized[j]>=0?-1:1)*.002*strength,-p.maxSteer,p.maxSteer);
+  change.family='steer';change.fallbackFrom=family;
+ }
+ return {gene:normalized,change};
+}
 function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
-function signature(){return FAMILIES.join(',')+'\n'+[entry,adaptive,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:4,FAMILIES,zones,links,approachStart,supports,entry,adaptive,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+function signature(){return FAMILIES.join(',')+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,trailingStraightStart].map(String).join('\n');}
+const api=Object.freeze({VERSION:5,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

@@ -257,7 +257,7 @@
     return result(a,frames,track);
   }
   function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,bodyCenter,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
-  const api={DT,torqueAt,initialState,commandAt,bodyCenter,footprint,frontContacts,failure,step,evaluateGene,frame,signature};
+  const api={DT,torqueAt,initialState,commandAt,bodyCenter,footprint,frontContacts,failure,step,evaluateGene,frame,result,signature};
   // Compatibility for offline Node tooling; the browser has no grip-search API.
   if(typeof module!=='undefined'&&module.exports){api.buildGripBaseline=(...args)=>require('./grip-baseline-builder.cjs').buildGripBaseline(...args);module.exports=api;}
   root.DriftPhysics=api;

@@ -5,6 +5,9 @@
   const G=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
   const Fitness=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
   const Strategies=root.DriftEvolutionStrategies||(typeof require==='function'?require('./evolution-strategies.js'):null);
+  const Learning=root.DriftEvolutionLearning||(typeof require==='function'?require('./evolution-learning.js'):null);
+  const FailureAnalysis=root.DriftFailureAnalysis||(typeof require==='function'?require('./failure-analysis.js'):null);
+  const EvaluationCache=root.DriftEvaluationCache||(typeof require==='function'?require('./evaluation-cache.js'):null);
   if(!G)throw new Error('Load DriftGenome before DriftEvolution.');
   const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const DEFAULTS=Object.freeze({knots:G.KNOTS,populationSize:20,maxSteerRad:.52,
@@ -165,9 +168,11 @@
       if(!(Number.isFinite(this.minMutationScale)&&this.minMutationScale>0&&Number.isFinite(this.maxMutationScale)&&this.maxMutationScale>=this.minMutationScale&&Number.isFinite(this.mutationScale)&&this.mutationScale>0))throw new RangeError('Invalid mutation scale limits.');
       this.mutationScale=clamp(this.mutationScale,this.minMutationScale,this.maxMutationScale);
       this._physics=options.physics||null;this._baseline=options.baseline||null;this._rng=createRng(this.seed);
+      this._evaluator=null;this._reuse=options.reuse!==false&&!options.physics;this._evaluationStats={simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:0};
       this._rankResult=options.rankResult||Fitness?.rank;
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
       this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
+      this._learningEnabled=options.learning!==false;this._learning=null;
       this._parents=[];this._best=null;this._lastCandidate=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
       this.initialized=false;this.ready=false;this.blockedReason=null;this.generation=0;this.totalEvaluated=0;this.history=[];this.plateauGenerations=0;
       this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
@@ -191,6 +196,7 @@
       this._baselineEntry=entry;
       if(this._strategyRequested&&Strategies?.supports(this.vehicle,this.track,entry.record)){
         this._strategyZones=Strategies.zones(this.track);this._nicheArchives=this._strategyZones.map(()=>[entry]);this._entryCounts=this._strategyZones.map(()=>0);
+        this._learning=new Learning.Policy(this._strategyZones,{enabled:this._learningEnabled,scale:this.mutationScale});
       }
       this.history.push({generation:0,bestScore:entry.result.score,validCount:1,failureCount:0,evaluated:1,mutationScale:this.mutationScale,plateauGenerations:0});return this.snapshot();
     }
@@ -200,13 +206,18 @@
       return cached[arc];
     }
     _intentCandidate(){
-      const arc=Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
+      const learned=this._learning?.choose(this._rng,Strategies.FAMILIES);
+      const arc=learned?.arc??Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
       const parent=this._rng()<.6?pool[0]:pool[Math.floor(this._rng()*pool.length)],metric=this._regional(parent,arc);
-      const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:this.mutationScale};
+      const options={lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)};
       this._entryCounts[arc]++;
+      if(learned?.repair){
+        const proposal=Strategies.repair(this.vehicle,this.track,parent,this._rng,{...options,family:learned.family,diagnosis:learned.repair});
+        return {parentId:parent.id,gene:proposal.gene,kind:'repair-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
+      }
       if(this._rng()<.12){
         const strategy=this._rng()<.7?'fine':'local',limits={maxSteerRad:this.maxSteerRad,gearCount:this.gearCount,lineBounds:this.lineBounds};
-        const raw=mutateGene(parent.gene,{...limits,rng:this._rng,scale:this.mutationScale,track:this.track,vehicle:this.vehicle,strategy});
+        const raw=mutateGene(parent.gene,{...limits,rng:this._rng,scale:options.scale,track:this.track,vehicle:this.vehicle,strategy});
         const gene=normalizeGene(Strategies.couple(this.vehicle,this.track,parent.gene,raw,parent.record),limits);
         return {parentId:parent.id,gene,kind:'global-'+strategy,arcIndex:arc};
       }
@@ -214,7 +225,7 @@
         const run=metric.bestArc,zone=this._strategyZones[arc];
         const missingConnection=(run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5;
         const missingLink=metric.links?.some(link=>!link.complete);
-        const family=missingLink&&this._rng()<.4?'link':missingConnection&&this._rng()<.45?'bridge':undefined;
+        const family=missingLink&&this._rng()<.4?'link':missingConnection&&this._rng()<.45?'bridge':learned?.family;
         const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,{...options,family});
         return {parentId:parent.id,gene:proposal.gene,kind:'arc-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
       }
@@ -252,12 +263,14 @@
     acceptCandidate(job,result){
       const planned=this._planned[0];if(!planned||planned.id!==job?.id||planned.sequence!==job?.sequence||planned.generation!==job?.generation)throw new Error('Candidate results must be accepted in reservation order.');
       this._planned.shift();const complete=isValidResult(result),record=result?.frames||[];
+      if(!complete&&result&&FailureAnalysis)result={...result,failureAnalysis:FailureAnalysis.analyze(this.vehicle,this.track,result,{zones:this._strategyZones})};
       // Failed runs never enter ranking or parent selection, but replaying
       // their valid prefix still needs the same fixed approach-speed floor.
       const referenceSpeeds=this._baselineEntry.result.drift?.referenceSpeeds;
       const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
         result&&referenceSpeeds?{...result,drift:{...result.drift,referenceSpeeds:{...referenceSpeeds}}}:result;
       const accepted=complete&&isValidResult(ranked),entry={...planned,result:ranked,record,accepted};
+      if(result?.evaluation){for(const key of ['simulatedTicks','reusedTicks','totalTicks'])this._evaluationStats[key]+=result.evaluation[key]||0;if(result.evaluation.cacheHit)this._evaluationStats.cacheHits++;this._evaluationStats.evaluations++;}
       this._candidates.push(entry);this._lastCandidate=entry;this.totalEvaluated++;this.stats.evaluated++;
       if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;this._best=entry;}}else this.stats.failureCount++;
       if(this._candidates.length===this.populationSize)this._finishGeneration();return this.snapshot();
@@ -266,24 +279,38 @@
       if(this._planned.length)throw new Error('Accept planned candidates before using sequential step.');
       if(!this._physics)this._physics=root.DriftPhysics||(typeof require==='function'?require('./physics.js'):null);
       if(typeof this._physics?.evaluateGene!=='function')throw new TypeError('DriftPhysics.evaluateGene is required to evaluate offspring.');
-      const job=this.planCandidate();if(!job)return;const result=this._physics.evaluateGene(this.vehicle,this.track,cloneGene(job.gene),{record:true});this.acceptCandidate(job,result);
+      const job=this.planCandidate();if(!job)return;
+      if(this._reuse&&!this._evaluator)this._evaluator=new EvaluationCache.Evaluator(this.vehicle,this.track);
+      const result=this._evaluator?this._evaluator.evaluate(job.gene,{id:job.id,parentId:job.parentId}):this._physics.evaluateGene(this.vehicle,this.track,cloneGene(job.gene),{record:true});
+      this.acceptCandidate(job,result);
     }
     _finishGeneration(){
       const valid=this._candidates.filter(e=>e.accepted),improvement=this._best.result.score-this._generationStartScore,meaningful=improvement>=this._threshold();
+      // Update evidence only at the generation barrier, so sequential and
+      // parallel reservation see identical policies and valid parent archives.
+      if(this._learning){
+        for(const entry of this._candidates){
+          const arc=entry.arcIndex,parent=this._nicheArchives[arc]?.find(p=>p.id===entry.parentId)||this._baselineEntry;
+          const regionalImprovement=entry.accepted&&Number.isInteger(arc)&&this._regional(entry,arc).score>this._regional(parent,arc).score+.01;
+          this._learning.observe(entry,{improved:regionalImprovement});
+        }
+        this._learning.finishGeneration(this._candidates);
+      }
       this.plateauGenerations=meaningful?0:this.plateauGenerations+1;
       if(valid.length)this._parents=selectDiverseParents([this._best,...this._parents,...valid],this._best,Math.min(DEFAULTS.parentLimit,this.populationSize),this.lineBounds);
       // Reservations in a generation all see these same archives. New replay
       // results only become parents when the complete generation is accepted.
       for(let arc=0;arc<this._strategyZones.length;arc++)this._nicheArchives[arc]=this._retainNiche([...this._nicheArchives[arc],...valid],arc);
       const rate=valid.length/this.populationSize,usedScale=this.mutationScale,multiplier=!valid.length?.5:rate<.2?.7:meaningful?.94:this.plateauGenerations>=3&&rate>.35?1.12:1;
-      this.mutationScale=clamp(usedScale*multiplier,this.minMutationScale,this.maxMutationScale);this.generation++;
+      const localScales=this._learning?.enabled?this._learning.snapshot().zones.map(z=>z.scale):[];
+      this.mutationScale=clamp(localScales.length?localScales.reduce((a,b)=>a+b,0)/localScales.length:usedScale*multiplier,this.minMutationScale,this.maxMutationScale);this.generation++;
       const diversity=this._parents.length>1?this._parents.slice(1).reduce((s,p)=>s+geneDistance(p.gene,this._parents[0].gene,this.lineBounds),0)/(this._parents.length-1):0;
       this.history.push({generation:this.generation,bestScore:this._best.result.score,...this.stats,mutationScale:usedScale,nextMutationScale:this.mutationScale,retainedParents:!valid.length,meaningfulImprovement:meaningful,improvement,improvementThreshold:this._threshold(),plateauGenerations:this.plateauGenerations,parentDiversity:diversity});
       this._candidates=[];this._generationStartScore=this._best.result.score;this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
     }
     step(count=1){if(!Number.isInteger(count)||count<1||count>10000)throw new RangeError('step count must be between 1 and 10000.');if(!this.initialized)this.initialize();if(this.ready)for(let i=0;i<count;i++)this._evaluateCandidate();return this.snapshot();}
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
-    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,stats:{...this.stats},history:this.history.map(e=>({...e}))};}
+    snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
   const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
