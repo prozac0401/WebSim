@@ -2,6 +2,7 @@
 (function(root){
   'use strict';
   const Genome=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
+  const Runtime=root.DriftRuntime||(typeof require==='function'?require('./runtime.js'):null);
   if(!Genome)throw Error('Load DriftGenome before DriftPreparedGrips.');
   const SCHEMA=3,KNOTS=Genome.KNOTS,STRIDE=Genome.STRIDE,GENOME_VERSION=Genome.VERSION,records=new Map(),pending=new Map();
   const fields=['time','x','y','z','grade','bank','yaw','vx','vy','r','s','speed','beta','steer','throttle','brake','gear','rpm','torque','rearTorque','ax','ay',
@@ -58,8 +59,8 @@
     if(!pending.has(id)){
       const task=(async()=>{
         if(typeof module!=='undefined'&&module.exports)register(require('./'+entry.path));
-        else if(typeof importScripts==='function')importScripts(entry.path);
-        else await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL(entry.path,base).href;script.onload=()=>{script.remove();resolve();};script.onerror=()=>{script.remove();reject(Error('사전 그립 기록 파일을 읽지 못했습니다.'));};document.head.append(script);});
+        else if(typeof importScripts==='function')importScripts(Runtime.url(entry.path));
+        else await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL(Runtime.url(entry.path),base).href;script.onload=()=>{script.remove();resolve();};script.onerror=()=>{script.remove();reject(Error('사전 그립 기록 파일을 읽지 못했습니다.'));};document.head.append(script);});
       })();pending.set(id,task);task.catch(()=>pending.delete(id));
     }
     await pending.get(id);return get(vehicle,track);

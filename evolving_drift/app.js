@@ -2,6 +2,7 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),renderer=new DriftRenderer($('canvas'));
+  let runtimeIdentity=null;
   const params=new URLSearchParams(location.search),development=params.get('development')==='1',availableTracks=DriftTrack.list({includeDevelopment:development});
   const preferredTrack=params.get('track')||(development?DriftTrack.DEVELOPMENT_ID:'kr-kic-t21-kdl-2016-r2');
   let vehicle=DriftCatalog.get(DriftCatalog.DEFAULT_ID),track=availableTracks.find(t=>t.id===preferredTrack)||availableTracks[0]||null,worker=null,engine=null,baseline=null,best=null,selected=null,archive=[],state=null,playing=false,evolving=false,pauseRequested=false,evolutionTimer=null,time=0,last=0,camera='follow',ready=false,manual=false,token=0,appMode='initializing',baselineError=null;
@@ -109,6 +110,7 @@
     for(const h of state.history.slice(-24)){const bar=document.createElement('span');bar.style.height=Math.max(2,h.bestScore/max*36)+'px';bar.setAttribute('aria-label',h.generation+'세대 '+h.bestScore.toFixed(2)+'점');$('history').append(bar);}
   }
   function receive(m){
+    if(m.type==='ready'||m.type==='candidate')try{DriftRuntime.assertIdentity(m.runtimeIdentity,runtimeIdentity);}catch(error){worker?.terminate();receive({type:'error',message:error.message,updateRequired:true});return;}
     if(m.type==='ready'){appMode='ready';baselineError=null;baseline={...m.baseline,result:m.best.result};best=m.best;state=m.state;$('loading').hidden=true;$('baseline-notice').hidden=true;setReady(true);running(false);$('evolution-status').textContent=(track.kind==='development'?'가상 개발 코스 · ':'')+'준비된 기준 기록을 불러왔습니다. 진화를 시작할 수 있습니다.';choose(best);stats();}
     if(m.type==='candidate'){state=m.state;archive.push(m.candidate);if(archive.length>12)archive.shift();if(m.best)best=m.best;stats();renderRecords();$('evolution-status').textContent=state.totalEvaluated+'개 후보 평가 · '+(m.candidate.result.valid?'유효 완주':'실패 개체 선발 제외')+' · 변이 폭 '+state.mutationScale.toFixed(2);}
     if(m.type==='paused'){pauseRequested=false;running(false);if(best)choose(best);}
@@ -116,7 +118,8 @@
       const loading=!baseline;appMode=loading?'baseline-unavailable':'error';baselineError=m.message||'기준 기록을 불러오지 못했습니다.';pauseRequested=false;clearTimeout(evolutionTimer);evolutionTimer=null;running(false);setReady(false);
       $('loading').hidden=!!track;$('baseline-notice').hidden=!track;$('baseline-notice-title').textContent=loading?'이 사양의 기준 주행을 준비 중입니다':'진화 계산을 멈췄습니다';
       const detail=loading?'코스와 카메라는 살펴볼 수 있습니다. 준비된 기준 기록을 불러온 뒤 재생과 진화를 시작합니다.':'새 실험으로 다시 시작할 수 있습니다. 저장된 주행 기록은 계속 재생할 수 있습니다.';
-      $('baseline-notice-detail').textContent=detail;$('evolution-status').textContent=detail;
+      if(m.updateRequired){$('baseline-notice-title').textContent='실행 파일 업데이트 필요';$('baseline-notice-detail').textContent=m.message;$('evolution-status').textContent=m.message;}
+      else{$('baseline-notice-detail').textContent=detail;$('evolution-status').textContent=detail;}
       if(loading){$('run-label').textContent='코스 미리보기';$('run-state').textContent='선택 사양의 기준 기록 준비 중';$('replay-time').textContent='—';}
       else for(const id of ['play','restart','timeline'])$(id).disabled=false;
       if(!track){setBusy('코스를 불러오지 못했습니다',false);$('loading-detail').textContent='코스 자료와 연결 상태를 확인해 주세요.';}draw();
@@ -145,8 +148,9 @@
     appMode='loading-baseline';setBusy('준비된 기준 기록을 불러오고 있습니다');$('loading-detail').textContent='선택한 차량과 코스의 저장된 조작·리플레이를 읽습니다.';
     $('run-label').textContent='기준 기록 불러오는 중';$('run-state').textContent='저장된 조작·리플레이 불러오기';$('evolution-status').textContent='준비된 기준 기록을 불러온 뒤 변이를 시작합니다.';draw();
     const seed=Math.max(1,Math.min(2147483646,Math.floor(Number($('seed').value)||37)));$('seed').value=seed;
-    if(location.protocol!=='file:'&&typeof Worker!=='undefined'){worker=new Worker('worker.js');worker.onmessage=e=>{if(current===token)receive(e.data);};worker.onerror=e=>{if(current===token)receive({type:'error',message:e.message||'계산 작업을 시작하지 못했습니다.'});};worker.postMessage({type:'init',variantId:vehicle.id,trackId:track.id,seed,includeDevelopment:development,workers:Number(params.get('workers'))||undefined});}
-    else try{const b=await DriftPreparedGrips.load(vehicle,track);if(current!==token)return;engine=new DriftEvolution.Engine(vehicle,track,{seed,populationSize:20,knots:128,baseline:b});engine.initialize();if(!engine.ready)throw new Error(engine.blockedReason||'준비된 기준 기록을 사용할 수 없습니다.');receive({type:'ready',baseline:b,best:engine.best,state:engine.snapshot()});}catch(e){if(current===token)receive({type:'error',message:e.message});}
+    try{runtimeIdentity=DriftRuntime.identity(vehicle,track);}catch(error){receive({type:'error',message:error.message,updateRequired:error.code==='runtime-mismatch'});return;}
+    if(location.protocol!=='file:'&&typeof Worker!=='undefined'){worker=new Worker(DriftRuntime.url('worker.js'));worker.onmessage=e=>{if(current===token)receive(e.data);};worker.onerror=e=>{if(current===token)receive({type:'error',message:e.message||'계산 작업을 시작하지 못했습니다.',updateRequired:String(e.message||'').includes('실행 파일의 버전이 다릅니다')});};worker.postMessage({type:'init',variantId:vehicle.id,trackId:track.id,seed,includeDevelopment:development,workers:Number(params.get('workers'))||undefined,runtimeIdentity});}
+    else try{const b=await DriftPreparedGrips.load(vehicle,track);if(current!==token)return;engine=new DriftEvolution.Engine(vehicle,track,{seed,populationSize:20,knots:128,baseline:b});engine.initialize();if(!engine.ready)throw new Error(engine.blockedReason||'준비된 기준 기록을 사용할 수 없습니다.');receive({type:'ready',baseline:b,best:engine.best,state:engine.snapshot(),runtimeIdentity});}catch(e){if(current===token)receive({type:'error',message:e.message});}
   }
   function evolve(once){
     if(!ready||pauseRequested)return;
@@ -158,7 +162,7 @@
     running(true);if(!once){choose(best);playing=true;$('play').textContent='Ⅱ 일시정지';}
     if(worker){worker.postMessage({type:'run',once});return;}
     const current=token,stop=once?engine.generation+1:Infinity;
-    function tick(){evolutionTimer=null;if(!evolving||current!==token)return;try{engine.step(1);receive({type:'candidate',state:engine.snapshot(),candidate:engine.lastCandidate,best:engine.best});if(engine.generation>=stop)receive({type:'paused'});else evolutionTimer=setTimeout(tick,10);}catch(e){receive({type:'error',message:e.message});}}
+    function tick(){evolutionTimer=null;if(!evolving||current!==token)return;try{engine.step(1);receive({type:'candidate',state:engine.snapshot(),candidate:engine.lastCandidate,best:engine.best,runtimeIdentity});if(engine.generation>=stop)receive({type:'paused'});else evolutionTimer=setTimeout(tick,10);}catch(e){receive({type:'error',message:e.message});}}
     evolutionTimer=setTimeout(tick,10);
   }
   function drawGenes(){
@@ -198,7 +202,7 @@
   window.render_game_to_text=()=>{
     const car=track?DriftRenderer.sampleFrames(selected?.record,time)||DriftPhysics.initialState(vehicle,track):null;
     return JSON.stringify({mode:appMode,development,availableCourses:DriftTrack.list().length,verifiedCourses:DriftTrack.list().length,coordinates:'metres; x east, y north, yaw CCW; z reconstructed relative height',variant:vehicle.id,stock:true,rwd:vehicle.spec.factoryDrive,course:track?.id||null,courseKind:track?.kind||null,courseMetadata:track?{name:track.name,length:track.length,judgedStart:track.judgedStart,judgedEnd:track.judgedEnd,elevation:track.elevation,provenance:track.provenance,reconstruction:track.reconstruction}:null,
-      generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
+      release:DriftRuntime.RELEASE,runtimeIdentity,generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
       replayScoring,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
       objective:{type:'continuous-apex-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.parts||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
   };

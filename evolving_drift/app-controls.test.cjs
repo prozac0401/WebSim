@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const Genome=require('./genome.js');
+const Genome=require('./genome.js'),Runtime=require('./runtime.js');
 const source=fs.readFileSync(require.resolve('./app.js'),'utf8');
 
 // Execute the real app and its handlers with a deliberately queued worker
@@ -23,7 +23,7 @@ function environment({fallback=false,apex=false,reassess=false,complete=false,ea
     constructor(){this.messages=[];this.alive=true;workers.push(this);}
     postMessage(message){this.messages.push(message);}
     terminate(){this.alive=false;}
-    emit(message){this.onmessage?.({data:message});}
+    emit(message){this.onmessage?.({data:{runtimeIdentity:'test-runtime',...message}});}
   }
   class Renderer{resize(){}render(){}retryVehicle(){}getState(){return{};}static sampleFrames(frames){return frames?.[0];}}
   class Engine{
@@ -35,7 +35,7 @@ function environment({fallback=false,apex=false,reassess=false,complete=false,ea
   const context=vm.createContext({window,document:{getElementById:get,createElement:element,querySelector:element,querySelectorAll:()=>[],body:element(),addEventListener(){}},
     location:{protocol:fallback?'file:':'http:',search:''},URLSearchParams,requestAnimationFrame(){},
     setTimeout:fn=>{const id=nextTimer++;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),Worker:fallback?undefined:Worker,
-    DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame})},
+    DriftRuntime:{...Runtime,identity:()=>'test-runtime'},DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame})},
     DriftCatalog:{DEFAULT_ID:vehicle.id,get:()=>vehicle,list:()=>[vehicle]},DriftTrack:{list:()=>[track]},
     DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:{Engine},DriftFitness:{replayTimeline(result){scoreCalls++;return [
       {time:0,score:0,delta:0,earning:false,provisional:true,fullConnectionCount:0,totalArcCount:2,straightLinkCount:0,totalLinkCount:straight?2:0,phase:'preparation',reason:'준비 구간 · 득점 없음',conditions:{},parts:{sideways:0,connection:0,curve:0,propulsion:0}},
@@ -65,6 +65,27 @@ test('pause waits for its worker acknowledgement before allowing resume or one g
   assert.equal(env.state().evolving,false);assert.equal(env.state().pauseRequested,false);
   assert.equal(env.get('evolve').disabled,false);assert.equal(env.get('one-generation').disabled,false);
   env.get('evolve').onclick();assert.equal(worker.messages.at(-1).type,'run');assert.equal(env.state().evolving,true);
+});
+
+test('the page rejects an old coordinator ready response instead of enabling evolution',()=>{
+  const env=environment(),worker=env.workers[0];worker.emit({type:'ready',runtimeIdentity:undefined});
+  assert.equal(env.state().mode,'baseline-unavailable');assert.equal(env.get('evolve').disabled,true);
+  assert.equal(worker.alive,false);assert.match(env.state().baselineError,/버전/);
+  assert.match(env.get('baseline-notice-detail').textContent,/새로고침/);
+});
+
+test('the page rejects a mismatched candidate without adding it to replay or parents',()=>{
+  const env=environment();env.ready();const before=env.state(),worker=env.workers[0];
+  worker.emit({type:'candidate',runtimeIdentity:'old-worker'});
+  const after=env.state();assert.equal(after.mode,'error');assert.equal(after.score,before.score);
+  assert.equal(after.lastCandidate,null);assert.equal(worker.alive,false);assert.equal(env.get('evolve').disabled,true);
+  assert.equal(after.release,Runtime.RELEASE);
+});
+
+test('a worker bootstrap release mismatch visibly asks for a page update',()=>{
+  const env=environment();env.workers[0].onerror({message:'Uncaught Error: 실행 파일의 버전이 다릅니다. 페이지를 새로고침한 뒤 새 실험을 시작해 주세요.'});
+  assert.equal(env.get('baseline-notice-title').textContent,'실행 파일 업데이트 필요');
+  assert.match(env.get('baseline-notice-detail').textContent,/새로고침/);assert.equal(env.get('evolve').disabled,true);
 });
 
 test('error and reset clear a pending pause and old replies cannot change the new run',()=>{

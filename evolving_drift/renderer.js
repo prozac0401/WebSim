@@ -203,7 +203,8 @@
         : {kind:'schematic',label:'차체 도식 · EV2 원본 외형 로딩 중'};
       const finish = vehicle.paintFinish || root.VehiclePaints?.choose(id, 0, spec) || source?.paintReference || null;
       const paint = vehicle.color || car.color || finish?.hex || '#d9dcdb';
-      const key = [id, paint, finish?.id, spec.variantId, spec.lengthMm, spec.heightMm, spec.widthMm, spec.wheelbaseMm, spec.frontTireRadiusMm, spec.rearTireRadiusMm, spec.wheelInches].join('|');
+      const params = vehicle.physics || vehicle;
+      const key = [id, paint, finish?.id, spec.variantId, spec.lengthMm, spec.heightMm, spec.widthMm, spec.wheelbaseMm, spec.frontTireRadiusMm, spec.rearTireRadiusMm, spec.wheelInches,params.wheelbaseM,params.frontWeightFraction,params.trackWidthM,params.widthM,params.bodyCenterOffsetM].join('|');
       const cached = this.meshes.get(key);
       if (cached && cached.sourceAsset === source) { if (!source) cached.sourceInfo = loadingInfo; return cached; }
       if (!source && loadState?.status !== 'error' && root.ManufacturerModels?.canLoad?.(id) && !this.loading.has(id)) {
@@ -213,28 +214,62 @@
       // into generic faces loses textures, smooth normals and model detail.
       const mesh = source?.primitives?.length ? root.ManufacturerModels.create(id, spec, paint) : fallbackMesh(spec, paint);
       mesh.paintFinish = finish;
-      const params = vehicle.physics || vehicle;
       const wb = finite(params.wheelbase, finite(params.wheelbaseM, finite(spec.wheelbaseMm, 2800) / 1000));
       const front = finite(params.lf, finite(params.frontAxle, wb * (1-finite(params.frontWeightFraction,.5))));
       const rear = finite(params.lr, wb - front);
+      const bodyOffset=finite(params.bodyCenterOffsetM);
       const width = finite(params.trackWidth, finite(params.trackWidthM, finite(params.widthM,mesh.width) * .84));
       const radius = finite(params.wheelRadius, finite(params.tireRadius, finite(spec.frontTireRadiusMm, 335) / 1000));
       const wheels = [point(front, width / 2, radius), point(front, -width / 2, radius), point(-rear, width / 2, radius), point(-rear, -width / 2, radius)];
-      // EV2's wheel metadata already accounts for original model axes. The
-      // local conversion also handles models whose lateral scale is negative.
+      // Source assets use a geometric body origin. Physics uses its own axle,
+      // track and CG coordinates. Keep the body and original vertex buffers;
+      // translate each wheel assembly into the physical contact convention.
+      const sourceWheels=[],groups=[[],[],[],[],[]],bottoms=[Infinity,Infinity,Infinity,Infinity];
       for (const primitive of mesh.manufacturer?.primitives || []) {
         const wheel = root.VehicleWheels?.localWheel(mesh, primitive.wheel);
-        if (wheel) wheels[(wheel.axle === 'front' ? 0 : 2) + (wheel.side > 0 ? 0 : 1)] = point(...wheel.center);
+        const index=wheel?(wheel.axle==='front'?0:2)+(wheel.side>0?0:1):-1;
+        groups[index+1].push(primitive);
+        if(wheel){sourceWheels[index]=point(...wheel.center);bottoms[index]=Math.min(bottoms[index],(primitive.bounds.min[2]+mesh.modelOffset[2])*mesh.modelScale[2]);}
       }
+      const wheelOffsets=wheels.map((target,index)=>{const original=sourceWheels[index];if(!original)return point(0,0,0);const delta=point(target.x-original.x,target.y-original.y,-bottoms[index]);target.z=original.z+delta.z;return delta;});
+      this.assetGroupCache=this.assetGroupCache||new WeakMap();
+      let groupAssets=mesh.manufacturer&&this.assetGroupCache.get(mesh.manufacturer);
+      if(mesh.manufacturer&&!groupAssets){
+        groupAssets=groups.map((primitives,index)=>({...mesh.manufacturer,primitives,...(mesh.manufacturer.fallbackPrimitives?{fallbackPrimitives:mesh.manufacturer.fallbackPrimitives.filter(p=>{
+          const wheel=root.VehicleWheels?.localWheel(mesh,p.wheel),group=wheel?(wheel.axle==='front'?0:2)+(wheel.side>0?0:1)+1:0;return group===index;
+        })}:{})}));
+        this.assetGroupCache.set(mesh.manufacturer,groupAssets);
+      }
+      const manufacturerParts=mesh.manufacturer?groups.map((primitives,index)=>{
+        if(!primitives.length)return null;
+        const part=Object.create(mesh),delta=index?wheelOffsets[index-1]:point(bodyOffset,0,0);
+        // VehicleSurfaces caches GPU buffers by this shared asset identity.
+        // Variant-specific placement must not re-upload the same source mesh.
+        part.manufacturer=groupAssets[index];
+        part.modelOffset=mesh.modelOffset.map((v,axis)=>v+[delta.x,delta.y,delta.z][axis]/mesh.modelScale[axis]);
+        return part;
+      }):null;
       const sourceInfo = source?.source || loadingInfo;
       // Avoid invoking the lazy Canvas fallback when preparing the WebGL model.
-      const prepared = Object.assign(Object.create(mesh), { wheels, radius, sourceInfo, id, spec, sourceAsset: source });
+      const prepared = Object.assign(Object.create(mesh), { wheels, radius, sourceInfo, id, spec, sourceAsset: source,bodyOffset,manufacturerParts,wheelAlignment:{sourceWheels,offsets:wheelOffsets,residualOffsets:wheelOffsets.map(d=>point(d.x-bodyOffset,d.y,d.z))} });
       let softwareFaces;
       Object.defineProperty(prepared, 'faces', { get() {
-        if (!softwareFaces) softwareFaces = mesh.faces.filter(f => f.fill).map(f => {
-          const wheel = root.VehicleWheels?.localWheel(mesh, f.wheel);
-          return { ...f, wheel: wheel ? (wheel.axle === 'front' ? 0 : 2) + (wheel.side > 0 ? 0 : 1) : f.part === 'wheels' ? wheelIndex(f.vertices[0]) : -1 };
-        });
+        if (!softwareFaces){
+          // Some EV2 Canvas fallbacks are independently authored metric meshes;
+          // use their own pivots, not the imported high-detail wheel centres.
+          // Preserve their schematic silhouette and the common collision origin;
+          // only wheel placement is exact, not those fallback wheel-arch shapes.
+          const own={faces:mesh.faces.filter(f=>f.fill).map(f=>({...f}))};root.VehicleWheels?.prepareFaces(own);
+          const origins=[],bottoms=[Infinity,Infinity,Infinity,Infinity];
+          const tagged=own.faces.map(f=>{const wheel=root.VehicleWheels?.localWheel(mesh,f.wheel),index=wheel?(wheel.axle==='front'?0:2)+(wheel.side>0?0:1):-1;
+            if(index>=0){origins[index]=point(...wheel.center);for(const v of f.vertices)bottoms[index]=Math.min(bottoms[index],v.z);}
+            return{...f,wheel:index,wheelScale:f.wheel?.space==='mesh'?[1,1,1]:mesh.modelScale||[1,1,1]};
+          });
+          const offsets=wheels.map((target,index)=>origins[index]?point(target.x-origins[index].x,target.y-origins[index].y,-bottoms[index]):point(0,0,0));
+          prepared.softwareWheels=wheels.map((wheel,index)=>point(wheel.x,wheel.y,origins[index]?origins[index].z+offsets[index].z:wheel.z));
+          prepared.softwareWheelAlignment={origins,offsets};
+          softwareFaces=tagged.map(f=>{const delta=f.wheel>=0?offsets[f.wheel]:point(bodyOffset,0,0);return{...f,vertices:f.vertices.map(v=>point(v.x+delta.x,v.y+delta.y,v.z+delta.z))};});
+        }
         return softwareFaces;
       }});
       this.meshes.set(key, prepared); return prepared;
@@ -347,6 +382,16 @@
       const w=Number.isFinite(force?.x)&&Number.isFinite(force?.y)?force:mesh.wheels[index],c=Math.cos(finite(frame.yaw)),s=Math.sin(finite(frame.yaw));
       const x=frame.x+w.x*c-w.y*s,y=frame.y+w.x*s+w.y*c;return point(x,y,(track?this._surface(track,x,y,frame.s).z:finite(frame.z))+.04);
     }
+    _wheelAssemblyPose(frame,mesh,index,track,pose=this._pose(track,frame)){
+      // Pitch/roll orient the assembly, but cannot move the contact away from
+      // the planar physics point. The local tyre bottom is z=0 after alignment.
+      const wheel=mesh.wheels[index],contact=this._worldWheel(frame,mesh,index,track),local=applyBasis(pose.basis,point(wheel.x,wheel.y,0));
+      return {basis:pose.basis,position:point(contact.x-local.x,contact.y-local.y,contact.z-.04+.012-local.z)};
+    }
+    _bodyAssemblyPose(frame,mesh,track,pose=this._pose(track,frame)){
+      const offset=finite(mesh.bodyOffset),local=applyBasis(pose.basis,point(offset,0,0)),yaw=finite(frame.yaw),x=frame.x+offset*Math.cos(yaw),y=frame.y+offset*Math.sin(yaw);
+      return {basis:pose.basis,position:point(x-local.x,y-local.y,this._surface(track,x,y,frame.s).z+.012-local.z)};
+    }
     _slip(frame,index){
       const value=frame.wheelSlip?.[index]??frame.slips?.[index]??frame.wheels?.[index]?.slip;
       if(typeof value==='number')return Math.hypot(value, Math.tan(clamp(finite(frame.wheelForces?.[index]?.alpha),-.9,.9)));
@@ -424,8 +469,11 @@
       gl.colorMask(true,true,true,true);return renderer.canvas;
     }
     _surfaceEntries(frame,mesh,spin,track){
-      const pose=this._pose(track,frame),position={...point(pose.x,pose.y,pose.z+.055),angle:finite(frame.yaw)};
-      if(mesh.manufacturer)return [{mesh,position,basis:pose.basis,car:{spec:mesh.spec,wheelAngles:spin,steer:finite(frame.steer),brakeLightState:{intensity:clamp(finite(frame.brake),0,1)}}}];
+      const pose=this._pose(track,frame),body=this._bodyAssemblyPose(frame,mesh,track,pose),position={...body.position,angle:finite(frame.yaw)};
+      if(mesh.manufacturer){
+        const car={spec:mesh.spec,wheelAngles:spin,steer:finite(frame.steer),brakeLightState:{intensity:clamp(finite(frame.brake),0,1)}};
+        return mesh.manufacturerParts.flatMap((part,index)=>!part?[]:[{mesh:part,...(index?this._wheelAssemblyPose(frame,mesh,index-1,track,pose):{position,basis:body.basis}),car}]);
+      }
       if(!mesh.surfaceParts){
         const part=faces=>({faces,length:mesh.length,width:mesh.width,height:mesh.height});
         const body=[],wheels=[[],[],[],[]];
@@ -440,16 +488,16 @@
       }
       const entries=[{mesh:mesh.surfaceParts.body,position,basis:pose.basis}];
       mesh.surfaceParts.wheels.forEach((wheel,index)=>{
-        if(!wheel.faces.length)return;const center=applyBasis(pose.basis,mesh.wheels[index]);
-        entries.push({mesh:wheel,position:point(position.x+center.x,position.y+center.y,position.z+center.z),basis:multiplyBasis(pose.basis,multiplyBasis(yawBasis(index<2?finite(frame.steer):0),pitchBasis(-finite(spin[index]))))});
+        if(!wheel.faces.length)return;const assembly=this._wheelAssemblyPose(frame,mesh,index,track,pose),center=applyBasis(assembly.basis,mesh.wheels[index]);
+        entries.push({mesh:wheel,position:point(assembly.position.x+center.x,assembly.position.y+center.y,assembly.position.z+center.z),basis:multiplyBasis(assembly.basis,multiplyBasis(yawBasis(index<2?finite(frame.steer):0),pitchBasis(-finite(spin[index]))))});
       });
       // No selected flag: all five parts must share a single depth buffer.
       return entries;
     }
     _car(frame,mesh,camera,spin,ghost,track){
-      const queue=[],ctx=this.ctx,pose=this._pose(track,frame);
-      const transform=p=>{const q=applyBasis(pose.basis,p);return point(frame.x+q.x,frame.y+q.y,pose.z+q.z+.055);};
-      const shadow=Array.from({length:18},(_,i)=>{const q=transform(point(Math.cos(i/18*TAU)*mesh.length*.53+.25,Math.sin(i/18*TAU)*mesh.width*.57+.15,0));q.z=this._surface(track,q.x,q.y,frame.s).z+.022;return q;});
+      const queue=[],ctx=this.ctx,pose=this._pose(track,frame),body=this._bodyAssemblyPose(frame,mesh,track,pose);
+      const transform=p=>{const q=applyBasis(body.basis,p);return point(body.position.x+q.x,body.position.y+q.y,body.position.z+q.z);};
+      const shadow=Array.from({length:18},(_,i)=>{const q=transform(point(Math.cos(i/18*TAU)*mesh.length*.53+.25+finite(mesh.bodyOffset),Math.sin(i/18*TAU)*mesh.width*.57+.15,0));q.z=this._surface(track,q.x,q.y,frame.s).z+.022;return q;});
       this._polygon(shadow,'rgba(26,34,34,.22)',camera,queue);this._paint(queue);queue.length=0;
       if(this.surfaceRenderer?.available){
         let layer;
@@ -462,8 +510,12 @@
       for(const face of this._track(track).geometry.objects)this._polygon(face.vertices,face.fill,camera,queue,face.fill,.3);
       for(const face of mesh.faces){
         let vertices=face.vertices;
-        if(face.wheel>=0){const center=mesh.wheels[face.wheel],angle=spin[face.wheel]||0,steer=face.wheel<2?finite(frame.steer):0,cs=Math.cos(angle),sn=Math.sin(angle),ct=Math.cos(steer),st=Math.sin(steer);vertices=vertices.map(p=>{const x=p.x-center.x,y=p.y-center.y,z=p.z-center.z,rx=x*cs+z*sn,rz=-x*sn+z*cs;return point(center.x+rx*ct-y*st,center.y+rx*st+y*ct,center.z+rz);});}
-        const world=vertices.map(transform);let fill=face.fill;
+        let projectVertex=transform;
+        if(face.wheel>=0){const center=(mesh.softwareWheels||mesh.wheels)[face.wheel],angle=spin[face.wheel]||0,steer=face.wheel<2?finite(frame.steer):0,cs=Math.cos(angle),sn=Math.sin(angle),ct=Math.cos(steer),st=Math.sin(steer),sx=face.wheelScale?.[0]||1,sz=face.wheelScale?.[2]||1;
+          vertices=vertices.map(p=>{const x=(p.x-center.x)/sx,y=p.y-center.y,z=(p.z-center.z)/sz,rx=(x*cs+z*sn)*sx,rz=(-x*sn+z*cs)*sz;return point(center.x+rx*ct-y*st,center.y+rx*st+y*ct,center.z+rz);});
+          const assembly=this._wheelAssemblyPose(frame,mesh,face.wheel,track,pose);projectVertex=p=>{const q=applyBasis(assembly.basis,p);return point(assembly.position.x+q.x,assembly.position.y+q.y,assembly.position.z+q.z);};
+        }
+        const world=vertices.map(projectVertex);let fill=face.fill;
         if(face.material==='paint'||face.material==='chrome'){
           const [a,b,c]=world;if(c){const ux=b.x-a.x,uy=b.y-a.y,uz=b.z-a.z,vx=c.x-a.x,vy=c.y-a.y,vz=c.z-a.z,n=point(uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx),norm=Math.hypot(n.x,n.y,n.z)||1;
             const light=.66+.34*Math.abs((-.3*n.x-.45*n.y+.84*n.z)/norm);fill=shade(color(fill),light);}

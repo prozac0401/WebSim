@@ -8,6 +8,19 @@ const stock = require('../evolving_vehicles_2/tuning-evolution.js');
 const powertrain = require('../evolving_vehicles_2/powertrain-profiles.js');
 const catalog = require('./catalog.js');
 
+test('body origins reproduce offline EV2 axle calibration and never change stock force inputs',()=>{
+  const generated=require('./build-model-origins.cjs').checkOrWrite(true);
+  assert.deepEqual(catalog.BODY_ORIGINS,generated);assert.equal(Object.keys(generated).length,7);
+  for(const car of catalog.list()){
+    const origin=generated[car.vehicleId],p=car.physics;
+    assert.match(origin.sourceSha256,/^[a-f0-9]{64}$/);assert.match(origin.wheelPreparationSha256,/^[a-f0-9]{64}$/);
+    assert.match(origin.method,/not measured CG/);assert.equal(car.bodyOrigin.status,'asset-derived-origin-alignment');
+    assert.equal(p.bodyCenterOffsetM,p.wheelbaseM*(.5-(p.frontWeightFraction||.52))-p.lengthM*origin.axleMidpointFraction);
+    assert.equal(p.frontWeightFraction,car.spec.frontWeightFraction);assert.equal(p.massKg,car.spec.massKg);
+    assert.equal(p.wheelbaseM,car.spec.wheelbaseM||car.spec.wheelbaseMm/1000);
+  }
+});
+
 test('catalogue exposes every existing RWD variant and no other drivetrain', () => {
   const expected = Object.values(stock.VARIANTS).flat().filter(v => v.spec.factoryDrive === 'rwd');
   assert.deepEqual(catalog.list().map(v => v.id).sort(), expected.map(v => v.id).sort());

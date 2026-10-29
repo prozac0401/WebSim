@@ -20,6 +20,59 @@
     return value;
   };
   const SUPRA_SOURCE = 'https://toyota.jp/pages/contents/carlineup/archive/supra/2019-05/pdf/supra_main_s_201905.pdf';
+  // BEGIN GENERATED BODY ORIGINS (node build-model-origins.cjs)
+  const BODY_ORIGINS = freeze({
+    "bmw_m2": {
+      "axleMidpointFraction": 0.017746387125634186,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/bmw_m2-runtime.js",
+      "sourceSha256": "a43e04982b53f13c556b58db2aab0a7881b38372b6f8d0dea84a88f8addd10db",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "g70": {
+      "axleMidpointFraction": 0.02885398306806091,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/g70-runtime.js",
+      "sourceSha256": "abd9b30fc2170557bcf994a5dfae0d521e9b32922b023ca3d585f6d520ec8e50",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "g80": {
+      "axleMidpointFraction": 0.028707946126042067,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/g80-runtime.js",
+      "sourceSha256": "2f78a8d5375452ead12568cd9b9d8cb75297e714fab4415eb6479f66cc353df8",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "gr86": {
+      "axleMidpointFraction": -0.0036489917198866406,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/gr86-runtime.js",
+      "sourceSha256": "78f96033bb8de2437317e2c52f610a6a0a984e437824313b77aa5013613f619b",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "ioniq5": {
+      "axleMidpointFraction": -0.00871258089578963,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/ioniq5-runtime.js",
+      "sourceSha256": "94770cc6d2a232054df03974c562725e57f5984be5f96a8285746d1ee4018702",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "porter2": {
+      "axleMidpointFraction": -0.0016582157643677928,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/porter2-runtime.js",
+      "sourceSha256": "964b6c82d32c44deb3c4dcdc874ec7aa249c83e085e372a73f3160b9528d8588",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    },
+    "supra": {
+      "axleMidpointFraction": -0.0045818248052143925,
+      "sourceAsset": "../evolving_vehicles_2/assets/models/supra-runtime.js",
+      "sourceSha256": "5155e06f2c64f9535601869750880f718800f2c67f1c62dfb672c8dbd5627158",
+      "wheelPreparationSha256": "0ca423f135536a44c816793779deccd56b7b044584590e07af0eb1881f452be5",
+      "method": "Mean of the four EV2 wheel-group X centres minus source bounding-box X centre, divided by source body length. Visual/collision origin mapping, not measured CG data."
+    }
+  });
+  // END GENERATED BODY ORIGINS
 
   function gearing(spec, profile) {
     if (spec.electric) {
@@ -117,10 +170,16 @@
     if (variant.vehicleId === 'porter2') limitations.push('포터 II의 후륜 복륜·서스펜션과 전복 거동은 단순화됩니다. 차종별 실차 드리프트 가능성을 검증한 결과가 아닙니다.');
     if (electric) limitations.push('모터 회전수 상한과 토크-속도 곡선은 추정이며 배터리 충전율·열에 의한 출력 제한은 재현하지 않습니다.');
 
+    const bodyOrigin=BODY_ORIGINS[variant.vehicleId];
+    if(!bodyOrigin)throw new Error('Missing offline EV2 body-origin calibration: '+variant.vehicleId);
+    const bodyCenterOffsetM=(spec.wheelbaseM||spec.wheelbaseMm/1000)*(.5-(spec.frontWeightFraction||.52))-spec.lengthMm/1000*bodyOrigin.axleMidpointFraction;
     const physics = {
       massKg: spec.massKg,
       wheelbaseM: spec.wheelbaseM || spec.wheelbaseMm / 1000,
       lengthM: spec.lengthMm / 1000, widthM: spec.widthMm / 1000,
+      // Geometry only: the source body's geometric centre relative to the
+      // existing physical CG. Wheelbase, mass and all tyre-force inputs stay fixed.
+      bodyCenterOffsetM,
       frontWeightFraction: spec.frontWeightFraction, cgHeightM: spec.cgHeightM,
       tireRadius: spec.rearTireRadiusMm / 1000,
       peakTorque: spec.torqueNm, peakPowerW,
@@ -146,13 +205,14 @@
     if (isSupra) sources.push({ title: '2019 일본 RZ 토크 범위·기어비·액티브 디퍼렌셜', url: SUPRA_SOURCE, status: 'verified-exact-market', verifiedAt: '2026-10-28' });
     return freeze({
       id: variant.id, variantId: variant.id, vehicleId: variant.vehicleId,
+      bodyOrigin:{...bodyOrigin,bodyCenterOffsetM,status:'asset-derived-origin-alignment'},
       label: spec.name + ' · ' + variant.label,
       modelYear: spec.modelYear || null, market: spec.market || 'KR',
       spec, factorySpec: spec, physics, ...physics,
       profile, sources,
       provenance: {
         stock: 'EV2 VARIANTS immutable factory specification',
-        derivedFields: ['wheelbaseM', 'lengthM', 'widthM', 'tireRadius', 'peakPowerW'],
+        derivedFields: ['wheelbaseM', 'lengthM', 'widthM', 'tireRadius', 'peakPowerW', 'bodyCenterOffsetM'],
         estimatedFields: ['frontWeightFraction', 'cgHeightM', 'maxSteer', 'steerRate', 'torqueCurve', 'idleRPM', 'maxRPM', 'shiftRPM', 'efficiency', 'gripCoefficient', 'brakeAcceleration'],
         nominalTireRadius: true,
         stockVerifiedAt: variant.verifiedAt,
@@ -171,7 +231,7 @@
     if (!entry) throw new RangeError('Unknown stock RWD variant: ' + id);
     return entry;
   }
-  const api = freeze({ list, get, DEFAULT_ID, PS_WATTS });
+  const api = freeze({ list, get, DEFAULT_ID, PS_WATTS, BODY_ORIGINS });
   root.DriftCatalog = api;
   if (isNode) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
