@@ -5,7 +5,7 @@ const source=fs.readFileSync(require.resolve('./app.js'),'utf8');
 
 // Execute the real app and its handlers with a deliberately queued worker
 // response. This tests the UI/worker boundary, not a copy of the control logic.
-function environment({fallback=false,apex=false,reassess=false,complete=false,early=false,straight=false,linked=false,linkUnmeasured=false}={}){
+function environment({fallback=false,apex=false,reassess=false,complete=false,early=false,straight=false,linked=false,linkUnmeasured=false,evaluationStats=null,learningStats=null}={}){
   const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0,scoreCalls=0;
   function element(){return{children:[],value:'1',disabled:false,hidden:false,checked:false,textContent:'',classList:{toggle(){},remove(){}},
     setAttribute(){},append(...items){this.children.push(...items);},before(){},replaceChildren(...items){this.children=items;},addEventListener(){},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
@@ -18,7 +18,7 @@ function environment({fallback=false,apex=false,reassess=false,complete=false,ea
   if(result.drift)Object.assign(result.drift,{straightLinkCount:linked?1:0,totalLinkCount:straight?2:0,bestLink:straight?{id:'link-1',fromZoneId:'apex-1',toZoneId:'apex-2',start:100,end:200,straightStart:130,straightEnd:170,coverage:linked?1:.6,complete:linked,distance:100,duration:13,startTime:12,endTime:25,entrySpeed:20,minSpeed:linkUnmeasured?0:18.4,exitSpeed:19,speedRetention:linkUnmeasured?0:.92,transitionDuration:.2,transitionDistance:4,score:3}:null});
   const baseline={gene:Genome.create(),record:[frame],result,prepared:true};
   const best={...baseline,id:'baseline'};
-  const state=()=>({generation:Math.floor(steps/20),totalEvaluated:steps,evaluated:steps%20,mutationScale:1,history:[],stats:{validCount:steps,failureCount:0}});
+  const state=()=>({generation:Math.floor(steps/20),totalEvaluated:steps,evaluated:steps%20,mutationScale:1,history:[],stats:{validCount:steps,failureCount:0},evaluationStats,learningStats});
   class Worker{
     constructor(){this.messages=[];this.alive=true;workers.push(this);}
     postMessage(message){this.messages.push(message);}
@@ -49,7 +49,8 @@ function environment({fallback=false,apex=false,reassess=false,complete=false,ea
   return{get,workers,timers,state:()=>JSON.parse(window.render_game_to_text()),
     ready(worker=workers.at(-1)){worker.emit({type:'ready',baseline,best,state:state()});},
     tick(){const entry=timers.entries().next().value;if(entry){timers.delete(entry[0]);entry[1]();}},steps:()=>steps,scoreCalls:()=>scoreCalls,
-    selectFailure(status='offtrack'){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});workers.at(-1).emit({type:'paused'});}};
+    updateStats(evaluation,learning){evaluationStats=evaluation;learningStats=learning;workers.at(-1).emit({type:'candidate',candidate:{...best,id:'stats-candidate'},best,state:state()});},
+    selectFailure(status='offtrack',failureAnalysis=null){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status,failureAnalysis}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});workers.at(-1).emit({type:'paused'});}};
 }
 
 test('pause waits for its worker acknowledgement before allowing resume or one generation',()=>{
@@ -218,4 +219,62 @@ test('a started link without a measured straight speed displays missing retentio
   env.get('timeline').value=String(20/30*1000);env.get('timeline').oninput();
   assert.match(env.get('score-link').textContent,/직선 내 최저속도 유지율 —$/);
   assert.doesNotMatch(env.get('score-link').textContent,/유지율 0\.0%/);
+});
+
+const failureFixture={version:1,kind:'trajectory-divergence',summary:'실패 2.4초 전부터 목표선 오차와 바깥쪽 진행이 이어졌습니다.',failure:{time:30,s:420,reason:'offtrack'},origin:{time:27.6,s:365,zoneIndex:1},window:{startS:330,endS:420,startTime:26,endTime:30},evidence:[{label:'목표선 오차',value:2.365,unit:'m'},{label:'회전 방향',value:'바깥쪽'}],hypotheses:[{kind:'trajectory-divergence',confidence:'medium',summary:'목표 경로와 조향 준비가 함께 영향을 주었을 가능성이 있습니다.'}],recommendedFamilies:['line','lead'],precedingZoneIndex:0};
+
+test('failed replay separates recorded observations from hypotheses and seeks the precursor without simulation',()=>{
+  const env=environment();env.ready();assert.equal(env.get('failure-analysis').hidden,true);
+  env.selectFailure('offtrack',failureFixture);const worker=env.workers[0],messages=worker.messages.length,calls=env.scoreCalls();
+  assert.equal(env.get('failure-analysis').hidden,false);assert.equal(env.get('failure-details').hidden,false);
+  assert.equal(env.get('failure-summary').textContent,failureFixture.summary);
+  assert.match(env.get('failure-origin').textContent,/27\.60초 · 365\.0 m → 실패 30\.00초 · 420\.0 m/);
+  assert.equal(env.get('failure-evidence').children[0].children[0].textContent,'목표선 오차');
+  assert.equal(env.get('failure-evidence').children[0].children[1].textContent,'2.37 m');
+  assert.match(env.get('failure-hypotheses').children[0].textContent,/가능성.*근거 수준: 보통/);
+  assert.match(env.get('failure-next').textContent,/목표 경로 · 카운터 준비/);
+  assert.deepEqual(env.state().failureAnalysis,failureFixture);
+  env.get('replay-failure-origin').onclick();
+  assert.equal(env.state().replay.id,'failed-test');assert.equal(env.state().replay.time,27.6);assert.equal(env.state().playing,true);
+  assert.equal(worker.messages.length,messages);assert.equal(env.steps(),0);assert.equal(env.scoreCalls(),calls,'seeking uses the existing replay score cache');
+  env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score').textContent,'0.00');
+  env.ready();assert.equal(env.get('failure-analysis').hidden,true);assert.equal(env.state().failureAnalysis,null);
+  env.selectFailure('spin',failureFixture);env.get('reset').onclick();
+  assert.equal(env.get('failure-analysis').hidden,true);assert.equal(env.get('replay-failure-origin').disabled,true);assert.equal(env.get('failure-evidence').children.length,0);assert.equal(env.state().failureAnalysis,null);
+});
+
+test('unresolved failures do not invent an origin while a real zero-second origin is replayable',()=>{
+  const env=environment();env.ready();
+  env.selectFailure('collision',{...failureFixture,kind:'unresolved',origin:null,window:null,evidence:[],hypotheses:[],recommendedFamilies:[]});
+  assert.match(env.get('failure-origin').textContent,/선행 징후 시점 미확인/);assert.equal(env.get('replay-failure-origin').disabled,true);
+  env.get('replay-failure-origin').onclick();assert.equal(env.state().playing,false);
+  assert.match(env.get('failure-hypotheses').children[0].textContent,/가설을 좁히기 어렵습니다/);
+  env.selectFailure('spin',{...failureFixture,origin:{time:0,s:0,zoneIndex:0}});assert.equal(env.get('replay-failure-origin').disabled,false);
+  env.get('replay-failure-origin').onclick();assert.equal(env.state().playing,true);assert.equal(env.state().replay.time,0);
+  env.selectFailure('timeout');assert.equal(env.get('failure-details').hidden,true);assert.equal(env.get('replay-failure-origin').disabled,true);assert.match(env.get('failure-summary').textContent,/분석이 없습니다/);
+});
+
+test('accepted prefix reuse totals and guided trials are shown without claiming elapsed speedup and reset cleanly',()=>{
+  const evaluation={simulatedTicks:3600,reusedTicks:2400,totalTicks:6000,cacheHits:2,evaluations:3};
+  const learning={enabled:true,observations:3,failuresAnalyzed:2,guidedProposals:1,explorationProposals:2,zones:[]};
+  const env=environment();env.ready();assert.equal(env.get('evaluation-progress').hidden,true);assert.equal(env.get('learning-progress').hidden,true);
+  env.updateStats(evaluation,learning);
+  assert.equal(env.get('evaluation-progress').hidden,false);assert.equal(env.get('evaluation-reuse').textContent,'물리 계산 재사용 40.0%');
+  assert.match(env.get('evaluation-detail').textContent,/새 계산 3,600회 · 재사용 2,400회 \/ 전체 6,000회 · 재사용 후보 2 \/ 평가 3개/);
+  assert.equal(env.get('learning-progress').textContent,'실패 분석 2개 · 가설 기반 시도 1개');
+  assert.deepEqual(env.state().evaluationStats,evaluation);assert.equal(env.state().evaluationReuseRatio,.4);assert.deepEqual(env.state().learningStats,learning);
+  env.updateStats({simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:0},{...learning,enabled:false});
+  assert.equal(env.get('evaluation-reuse').textContent,'물리 계산 재사용 —');assert.equal(env.state().evaluationReuseRatio,null);assert.equal(env.get('learning-progress').hidden,true);
+  env.get('reset').onclick();assert.equal(env.get('evaluation-progress').hidden,true);assert.equal(env.get('evaluation-detail').textContent,'');assert.equal(env.state().evaluationStats,null);assert.equal(env.state().learningStats,null);
+});
+
+test('the shipped page supplies diagnostic targets and loads serial evaluation dependencies before evolution',()=>{
+  const html=fs.readFileSync(require.resolve('./evolving_drift.html'),'utf8');
+  const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>match[1]);
+  const index=name=>scripts.indexOf(name+'.js?v='+Runtime.RELEASE);
+  for(const name of ['evaluation-cache','failure-analysis','evolution-learning'])assert.ok(index(name)>=0,name+' must use the same release as the page');
+  assert.ok(index('physics')<index('evaluation-cache'));assert.ok(index('evaluation-cache')<index('evolution'));
+  assert.ok(index('fitness')<index('failure-analysis'));assert.ok(index('failure-analysis')<index('evolution'));assert.ok(index('evolution-learning')<index('evolution'));
+  for(const id of ['failure-analysis','failure-marker','failure-summary','failure-origin','replay-failure-origin','failure-details','failure-evidence','failure-hypotheses','failure-window','failure-next','evaluation-progress','evaluation-reuse','evaluation-detail','learning-progress'])assert.equal(html.split('id="'+id+'"').length-1,1,id+' must be present exactly once');
+  assert.match(html,/원인 가설 · 미확정/);assert.match(html,/실제 실행 시간의 단축률은 아닙니다/);
 });

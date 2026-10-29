@@ -68,7 +68,7 @@ test('worker initializes the public default course from prepared records',async(
   const messages=[],loaded=[];
   class Engine{constructor(){this.ready=true;this.best={id:'baseline'};}initialize(){}snapshot(){return {generation:0};}}
   const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...require('./runtime.js'),identity:()=> 'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
-    DriftCatalog:Catalog,DriftTrack:Track,DriftPreparedGrips:{async load(vehicle,track){loaded.push(track.id);return {}; }},DriftEvolution:{Engine}});
+    DriftCatalog:Catalog,DriftTrack:Track,DriftEvaluationCache:{Evaluator:class{}},DriftPreparedGrips:{async load(vehicle,track){loaded.push(track.id);return {}; }},DriftEvolution:{Engine}});
   vm.runInContext(fs.readFileSync(require.resolve('./worker.js'),'utf8'),context);
   await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,seed:37,runtimeIdentity:'test-runtime'}});
   assert.deepEqual(loaded,[PUBLIC_ID]);assert.equal(messages[0].type,'ready');
@@ -78,7 +78,7 @@ test('worker rejects a development fixture before loading records unless explici
     const messages=[];let loads=0;
     class Engine{constructor(){this.ready=true;this.best={id:'baseline'};}initialize(){}snapshot(){return {generation:0};}}
     const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...require('./runtime.js'),identity:()=> 'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),clearTimeout,setTimeout,
-      DriftCatalog:Catalog,DriftTrack:Track,DriftPreparedGrips:{async load(){loads++;return {}; }},DriftEvolution:{Engine}});
+      DriftCatalog:Catalog,DriftTrack:Track,DriftEvaluationCache:{Evaluator:class{}},DriftPreparedGrips:{async load(){loads++;return {}; }},DriftEvolution:{Engine}});
     vm.runInContext(fs.readFileSync(require.resolve('./worker.js'),'utf8'),context);
     await context.onmessage({data:{type:'init',variantId:Catalog.DEFAULT_ID,trackId:Track.DEVELOPMENT_ID,includeDevelopment,seed:37,runtimeIdentity:'test-runtime'}});
     assert.equal(loads,includeDevelopment===true?1:0);assert.equal(messages[0].type,includeDevelopment===true?'ready':'error');

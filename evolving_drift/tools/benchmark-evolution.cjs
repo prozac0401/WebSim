@@ -23,8 +23,8 @@ function retryFileAction(action){
 }
 function writeJSON(file,value){const temp=file+'.tmp-'+process.pid;retryFileAction(()=>fs.writeFileSync(temp,JSON.stringify(value,null,2)));retryFileAction(()=>fs.renameSync(temp,file));}
 function parseArgs(args){
- const config={seed:37,vehicle:null,track:null,budget:200,workers:2,development:false,stopOnSuccess:false,out:null,help:false};
- const numeric=new Set(['seed','budget','workers']),flags={'--development':'development','--stop-on-success':'stopOnSuccess','--help':'help'},values={'--seed':'seed','--vehicle':'vehicle','--track':'track','--budget':'budget','--workers':'workers','--out':'out'};
+ const config={seed:37,vehicle:null,track:null,budget:200,workers:2,development:false,stopOnSuccess:false,noCache:false,noLearning:false,out:null,help:false};
+ const numeric=new Set(['seed','budget','workers']),flags={'--development':'development','--stop-on-success':'stopOnSuccess','--no-cache':'noCache','--no-learning':'noLearning','--help':'help'},values={'--seed':'seed','--vehicle':'vehicle','--track':'track','--budget':'budget','--workers':'workers','--out':'out'};
  for(let i=0;i<args.length;i++){const flag=args[i];if(flags[flag]){config[flags[flag]]=true;continue;}const key=values[flag];if(!key||args[i+1]===undefined)throw Error('Unknown or incomplete option: '+flag);config[key]=numeric.has(key)?Number(args[++i]):args[++i];}
  if(!Number.isInteger(config.seed)||config.seed<0||config.seed>0xffffffff)throw Error('--seed must be an unsigned 32-bit integer.');
  if(!Number.isInteger(config.budget)||config.budget<0||config.budget>100000)throw Error('--budget must be 0..100000 physical candidate evaluations.');
@@ -37,11 +37,12 @@ function runWorker(){
   verifySources(workerData.sourceHashes);
   const Physics=require(path.join(base,'physics.js')),Catalog=require(path.join(base,'catalog.js')),Tracks=require(path.join(base,'track.js'));
   const vehicle=Catalog.get(workerData.vehicle),track=Tracks.get(workerData.track,{includeDevelopment:workerData.development});
+  const evaluator=new (require(path.join(base,'evaluation-cache.js')).Evaluator)(vehicle,track,{enabled:!workerData.noCache});
   if(sha(Physics.signature())!==workerData.physicsSignatureHash)throw Error('Evaluator physics signature differs from coordinator.');
   let evaluations=0;
   parentPort.on('message',message=>{
    if(message.type!=='evaluate')return;
-   try{const start=performance.now();evaluations++;const result=Physics.evaluateGene(vehicle,track,message.gene,{record:true});parentPort.postMessage({type:'result',sequence:message.sequence,result,evaluateMs:performance.now()-start,evaluations});}
+   try{const start=performance.now();evaluations++;const result=evaluator.evaluate(message.gene,{id:message.id,parentId:message.parentId});parentPort.postMessage({type:'result',sequence:message.sequence,result,evaluateMs:performance.now()-start,evaluations});}
    catch(error){parentPort.postMessage({type:'error',message:error.stack||String(error),sequence:message.sequence});}
   });
   parentPort.postMessage({type:'ready',evaluations,physicsSignatureHash:workerData.physicsSignatureHash});
@@ -66,7 +67,7 @@ class Pool{
   worker.on('exit',code=>{clearTimeout(startup);if(!this.closing){const error=Error('Evaluator exited unexpectedly: '+code);if(!slot.ready)reject(error);this.fail(error);}});
  })));}
  fail(error){this.error=error;if(this.batch){const batch=this.batch;this.batch=null;batch.reject(error);}}
- dispatch(){if(!this.batch)return;for(const slot of this.slots){if(slot.busy||!slot.ready||this.batch.next>=this.batch.jobs.length)continue;const job=this.batch.jobs[this.batch.next++];slot.busy=job;slot.timer=setTimeout(()=>this.fail(Error('Evaluation timed out: '+job.id)),120000);slot.worker.postMessage({type:'evaluate',sequence:job.sequence,gene:job.gene});}}
+ dispatch(){if(!this.batch)return;for(const slot of this.slots){if(slot.busy||!slot.ready||this.batch.next>=this.batch.jobs.length)continue;const job=this.batch.jobs[this.batch.next++];slot.busy=job;slot.timer=setTimeout(()=>this.fail(Error('Evaluation timed out: '+job.id)),120000);slot.worker.postMessage({type:'evaluate',sequence:job.sequence,gene:job.gene,id:job.id,parentId:job.parentId});}}
  evaluate(jobs){if(this.error)throw this.error;if(this.batch)throw Error('A batch is already active');return new Promise((resolve,reject)=>{this.batch={jobs,next:0,results:new Map(),resolve,reject};this.dispatch();});}
  async close(){this.closing=true;for(const slot of this.slots)clearTimeout(slot.timer);await Promise.allSettled(this.slots.map(slot=>slot.worker.terminate()));}
 }
@@ -81,19 +82,22 @@ async function main(config){
  const started=Date.now(),startupCalls={step:0,evaluateGene:0,buildGripBaseline:0},original={};let baseline,engine;
  // The exact production loading/initialization path is guarded, not replaced.
  for(const key of Object.keys(startupCalls)){original[key]=Physics[key];Physics[key]=()=>{startupCalls[key]++;throw Error('Unexpected startup simulation: '+key);};}
- try{baseline=await Prepared.load(vehicle,track);engine=new Evolution.Engine(vehicle,track,{seed:config.seed,populationSize:20,baseline,physics:Physics});engine.initialize();if(!engine.ready)throw Error(engine.blockedReason||'Engine did not initialize');}
+ try{baseline=await Prepared.load(vehicle,track);engine=new Evolution.Engine(vehicle,track,{seed:config.seed,populationSize:20,baseline,physics:Physics,learning:!config.noLearning});engine.initialize();if(!engine.ready)throw Error(engine.blockedReason||'Engine did not initialize');}
  finally{Object.assign(Physics,original);}
  if(engine.totalEvaluated!==0||Object.values(startupCalls).some(Boolean))throw Error('Initialization did not preserve zero candidate evaluations');
  const hashes=sourceHashes(),genesisGeneHash=geneHash(baseline.gene),signatures={physics:sha(Physics.signature()),fitness:sha(Fitness.signature()),genome:sha(Genome.signature())};
- const lineage=new Map([['baseline',{geneHash:genesisGeneHash,valid:true,status:'finished'}]]),rows=[],reservations=[],pool=new Pool(config.workers,{vehicle:vehicle.id,track:track.id,development:config.development,sourceHashes:hashes,physicsSignatureHash:signatures.physics});
+ const lineage=new Map([['baseline',{geneHash:genesisGeneHash,valid:true,status:'finished'}]]),rows=[],reservations=[],pool=new Pool(config.workers,{vehicle:vehicle.id,track:track.id,development:config.development,noCache:config.noCache,sourceHashes:hashes,physicsSignatureHash:signatures.physics});
  let valid=0,failed=0,stopped='running',lastBestId=null,error=null,lastPublishedCount=0;
  fs.writeFileSync(files.lineage,'');
  function checkpoint(){
   const best=engine.best,state=engine.snapshot(),bestGeneHash=geneHash(best.gene);
   if(lastBestId!==best.id){const {frames,...result}=best.result;writeJSON(files.best,{config,sourceHashes:hashes,signatures,genesisGeneHash,preparedFingerprint:baseline.fingerprint,id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,gene:Array.from(best.gene),result,frames:best.record});lastBestId=best.id;}
-  const deterministicRows=rows.map(({evaluateMs,...row})=>row);
+  const deterministicRows=rows.map(({evaluateMs,evaluation,...row})=>row);
   const reproductionHash=sha(JSON.stringify({seed:config.seed,vehicle:vehicle.id,track:track.id,genesisGeneHash,rows:deterministicRows,history:state.history,bestGeneHash}));
   const report={schema:1,method:'Production DriftEvolution.Engine; Prepared.load is the only genesis; reserve each generation of 20 before evaluation; accept in reservation order; workers only evaluate Physics.evaluateGene.',config,startedAt:new Date(started).toISOString(),elapsedMs:Date.now()-started,stopped,error,sourceHashes:hashes,signatures,geneHashEncoding:'SHA-256 of little-endian Float64 values',genesisGeneHash,preparedFingerprint:baseline.fingerprint,startupCalls,startupEvaluations:0,evaluated:rows.length,valid,failed,objective:'continuous-apex-drift',legacyPoweredExitSuccess:!error&&best.result.valid===true&&best.result.status==='finished'&&best.result.power?.success===true,best:{id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,score:best.result.score,status:best.result.status,drift:best.result.drift,power:best.result.power},history:state.history,finalGeneration:state.generation,remainingReservations:state.reserved,reservations,completionOrder:pool.completionOrder,rows,reproductionHash,files:Object.fromEntries(Object.entries(files).map(([key,file])=>[key,path.relative(repo,file).replaceAll(path.sep,'/')]))};
+  report.method='Production Engine; Prepared.load genesis; ordered generation reservations; exact 120Hz evaluation with optional verified-prefix reuse.';
+  report.learningStats=state.learningStats;
+  report.evaluationStats=rows.reduce((sum,row)=>{for(const key of ['simulatedTicks','reusedTicks','totalTicks'])sum[key]+=row.evaluation?.[key]||0;if(row.evaluation?.cacheHit)sum.cacheHits++;return sum;},{simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:rows.length});
   writeJSON(files.report,report);lastPublishedCount=rows.length;return report;
  }
  try{
@@ -111,6 +115,7 @@ async function main(config){
     engine.acceptCandidate(job,evaluated.result);const entry=engine.lastCandidate,result=entry.result;
     const power=result.power||Fitness.measurePower(result,track,vehicle),fullValid=result.valid===true&&result.status==='finished',success=entry.accepted&&fullValid&&power.success===true;
     const {gene,...proposal}=job,row={...proposal,ordinal:rows.length+1,geneHash:geneHash(gene),parentGeneHash:lineage.get(job.parentId).geneHash,status:result.status,valid:result.valid===true,accepted:entry.accepted,score:result.score,rawPhysicsScore:evaluated.result.score,time:result.time,progress:result.progress,maxAngle:result.maxAngle,driftDistance:result.driftDistance,peakWheelSlip:result.peakWheelSlip,legacyPoweredExitSuccess:success,drift:result.drift,power,evaluateMs:evaluated.evaluateMs};
+    row.evaluation=evaluated.result.evaluation;row.failureAnalysis=result.failureAnalysis;
     if(entry.accepted){valid++;lineage.set(job.id,{geneHash:row.geneHash,valid:fullValid,status:result.status});}else failed++;
     rows.push(row);fs.appendFileSync(files.lineage,JSON.stringify(row)+'\n');
    }
@@ -132,7 +137,7 @@ async function main(config){
 }
 if(!isMainThread)runWorker();
 else if(require.main===module){
- try{const config=parseArgs(process.argv.slice(2));if(config.help)console.log('Usage: node '+path.relative(repo,__filename).replaceAll(path.sep,'/')+' --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 400 --workers 2 [--out prefix] [--stop-on-success] [--development]\nBudget 0 verifies initialization only. Workers 1 permits a serial-parity comparison. Stop-on-success is the legacy powered-exit diagnostic only; use a budget for the continuous apex objective. No discovered genome input is supported.');else main(config).catch(error=>{console.error(error.stack||String(error));process.exitCode=1;});}
+ try{const config=parseArgs(process.argv.slice(2));if(config.help)console.log('Usage: node '+path.relative(repo,__filename).replaceAll(path.sep,'/')+' --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 400 --workers 2 [--out prefix] [--stop-on-success] [--development] [--no-cache] [--no-learning]\nBudget 0 verifies initialization only. Workers 1 permits a serial-parity comparison. Stop-on-success is the legacy powered-exit diagnostic only; use a budget for the continuous apex objective. No discovered genome input is supported.');else main(config).catch(error=>{console.error(error.stack||String(error));process.exitCode=1;});}
  catch(error){console.error(error.stack||String(error));process.exitCode=1;}
 }
 module.exports={parseArgs,geneHash,writeJSON};

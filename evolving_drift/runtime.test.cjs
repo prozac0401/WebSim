@@ -31,6 +31,7 @@ test('a pure evaluator requires a matching model before evaluating and stamps ev
  const messages=[];let evaluations=0;
  const context=vm.createContext({URLSearchParams,importScripts(){},onmessage:null,postMessage:m=>messages.push(m),
   DriftRuntime:{...Runtime,identity:()=> 'matching-model'},DriftCatalog:{get:()=>({})},DriftTrack:{get:()=>({})},
+  DriftEvaluationCache:{Evaluator:class{evaluate(){evaluations++;return{valid:true,status:'finished'};}cachedIds(){return[];}}},
   DriftPhysics:{evaluateGene(){evaluations++;return{valid:true,status:'finished'};}}});
  vm.runInContext(fs.readFileSync(require.resolve('./evaluation-worker.js'),'utf8'),context);
  const send=data=>context.onmessage({data});
