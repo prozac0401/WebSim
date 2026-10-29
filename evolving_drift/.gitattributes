@@ -1,0 +1,4 @@
+# Offline source hashes and generated modules must survive cross-platform checkout.
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf

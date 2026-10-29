@@ -1,0 +1,17 @@
+{
+  "name": "websim-evolving-drift",
+  "private": true,
+  "scripts": {
+    "course:build": "node build-courses.cjs",
+    "course:check": "node build-courses.cjs --check",
+    "build": "node build-grips.cjs",
+    "build:development": "node build-grips.cjs --development",
+    "watch": "node watch-grips.cjs",
+    "watch:development": "node watch-grips.cjs --development",
+    "check": "node build-grips.cjs --check",
+    "check:development": "node build-grips.cjs --check --development",
+    "benchmark": "node tools/benchmark-evolution.cjs",
+    "pretest": "node build-grips.cjs --check --development",
+    "test": "node --test *.test.cjs"
+  }
+}

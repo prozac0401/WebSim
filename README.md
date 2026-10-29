@@ -2,7 +2,7 @@
 
 **지금 만나 볼 이야기: [주말 계획표 시즌2](weekend_season2/index.html)** — 가상의 다른 삶에서 일·가족·취미·휴식을 챙기며 주말을 계획하고, 한 해의 이야기를 만들어 보세요. 홈페이지 첫 화면에서 바로 시작할 수 있습니다.
 
-브라우저에서 직접 조작하는 시뮬레이터와 도구 31개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
+브라우저에서 직접 조작하는 시뮬레이터와 도구 32개를 모았습니다. [전체 도구 목록](https://prozac0401.github.io/WebSim/)에서 이름·주제 검색과 분류 필터를 사용할 수 있습니다. 각 실행 화면의 **WebSim / 다른 실험 / 이론·사용법**으로 이동할 수 있습니다.
 
 사용법은 첫 실험의 순서와 결과 읽기를 앞에 배치합니다. 모형의 규칙, 수식, 구현 가정과 참고자료는 뒤의 **제작 원리와 학술적 의미**에서 펼쳐 볼 수 있습니다. 화면의 색과 숫자는 이 설명과 연결해 읽을 수 있습니다.
 
@@ -38,6 +38,7 @@
 
 ## 우주와 물리
 
+- [진화하는 드리프트](evolving_drift/evolving_drift.html) — EV2의 순정 후륜 7개 차종·16개 출고 조합으로 운전 조작을 진화시킵니다. 코스별 1,024개 유전값에 진입 라인·슬립각·카운터 시점·구동 슬립·유지 기어를 담고, 실제 대회 구간을 자료로 재구성한 코스에서 비교합니다. · [코스 자료](evolving_drift/track-research.html) · [사용법](evolving_drift/evolving_drift_doc.html) · [자료와 모형의 범위](evolving_drift/RESOURCES.md)
 - [그림자 조각 공방](shadow_sculpture/shadow_sculpture.html) — 두 방향의 그림자를 맞추고, 같은 그림자를 남기는 더 작은 조각을 만듭니다. · [사용법](shadow_sculpture/shadow_sculpture_doc.html)
 - [늘리면 넓어지는 구조물](auxetic_workshop/auxetic_workshop.html) — 회전 판의 비율·시작값 예제 5종, 접힘 격자 2종, 키리가미 절개로 연결과 가로·세로 변화를 비교합니다. · [사용법](auxetic_workshop/auxetic_workshop_doc.html)
 - [잉크 타임머신](ink_time_machine/ink_time_machine.html) — 섞고 되돌리는 실험과, 움직이는 잉크에 색을 더하고 휘젓는 자유 실험을 오갑니다. · [사용법](ink_time_machine/ink_time_machine_doc.html)

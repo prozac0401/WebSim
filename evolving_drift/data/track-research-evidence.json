@@ -1,0 +1,631 @@
+{
+  "reviewedAt": "2026-10-28",
+  "method": "Read-only public YouTube watch-page player metadata and public preview storyboard images; selected sheets visually inspected with view_image. This is thumbnail inspection, not full-motion playback.",
+  "timestampLimit": "Approximate frame timestamps are computed from the public storyboard interval and tile index. A frame is not a surveyed measurement.",
+  "license": "No open reuse license verified. Retained locally as research references; do not redistribute images as production textures/assets.",
+  "localReferenceDirectory": "output/drift-track-research/korea/",
+  "videos": [
+    {
+      "event": "2016 KDL Round 2 PRO",
+      "venue": "Korea International Circuit T21",
+      "eventDates": "2016-06-04/2016-06-05",
+      "videoUrl": "https://www.youtube.com/watch?v=i4decJM0q1s",
+      "title": "[KDL] 2016 korea drift league 2round",
+      "author": "korea drift kdl",
+      "publisherRelation": "League-named channel; description links league site and video shows organizer logo",
+      "organizerOfficialVideoConfirmed": false,
+      "thumbnailSpec": {
+        "tileWidth": 320,
+        "frameCount": 91,
+        "columns": 3,
+        "tileHeight": 180,
+        "level": 3,
+        "rows": 3,
+        "intervalMs": 5000
+      },
+      "files": [
+        {
+          "file": "kdl-r2-storyboard-0.jpg",
+          "sha256": "466de08ad683656bb6c5ee3b86eadfafb08e181974db9f7b5b5c3492e675bd07",
+          "sheetIndex": 0,
+          "approxStartSeconds": 0,
+          "approxEndSeconds": 40,
+          "bytes": 53633
+        },
+        {
+          "file": "kdl-r2-storyboard-1.jpg",
+          "sha256": "5d2b0d736d0ede21f7eb226dc8b0c63e9c24286e988d1a9c6c4bc6a9c5798d56",
+          "sheetIndex": 1,
+          "approxStartSeconds": 45,
+          "approxEndSeconds": 85,
+          "bytes": 57863
+        },
+        {
+          "file": "kdl-r2-storyboard-2.jpg",
+          "sha256": "dc3d4c3626c1e31b6f1feec862de2bab1122fdfe5ec03fb03cd182a40aa92da5",
+          "sheetIndex": 2,
+          "approxStartSeconds": 90,
+          "approxEndSeconds": 130,
+          "bytes": 56193
+        },
+        {
+          "file": "kdl-r2-storyboard-3.jpg",
+          "sha256": "e559c14258d99c2473627c7ddfd7838e5934851a61357b70f144b79f258c4c85",
+          "sheetIndex": 3,
+          "approxStartSeconds": 135,
+          "approxEndSeconds": 175,
+          "bytes": 50237
+        },
+        {
+          "file": "kdl-r2-storyboard-4.jpg",
+          "sha256": "b30a6f8c3d36e7ee1df7d9ddd7d2c8e125a50ab40bebecc7891d1ee3e1e4ce47",
+          "sheetIndex": 4,
+          "approxStartSeconds": 180,
+          "approxEndSeconds": 220,
+          "bytes": 51162
+        },
+        {
+          "file": "kdl-r2-storyboard-5.jpg",
+          "sha256": "b91f8f198e39740b86fc1115110bc2e067d73167cee7775490c871a80dfd5a6b",
+          "sheetIndex": 5,
+          "approxStartSeconds": 225,
+          "approxEndSeconds": 265,
+          "bytes": 45454
+        },
+        {
+          "file": "kdl-r2-storyboard-6.jpg",
+          "sha256": "d21d62856fb9d557eba7642aeaf39f56aaa6b1bf6480133bf126a3fc89bd6852",
+          "sheetIndex": 6,
+          "approxStartSeconds": 270,
+          "approxEndSeconds": 310,
+          "bytes": 58612
+        },
+        {
+          "file": "kdl-r2-storyboard-7.jpg",
+          "sha256": "adccaf7dd605ee58f5f319deb82a1ef55b7d117980d02aa275ff3e038142aa04",
+          "sheetIndex": 7,
+          "approxStartSeconds": 315,
+          "approxEndSeconds": 355,
+          "bytes": 65285
+        },
+        {
+          "file": "kdl-r2-storyboard-8.jpg",
+          "sha256": "8f0b600acff3e6443217c3e303c1c2bd34207785064d19ccc10b67e83ddf36cc",
+          "sheetIndex": 8,
+          "approxStartSeconds": 360,
+          "approxEndSeconds": 400,
+          "bytes": 85119
+        },
+        {
+          "file": "kdl-r2-storyboard-9.jpg",
+          "sha256": "3b5ded4b7a5ed0294a776ee901b95162c0ce1dafa1795c77ea1031b59ed96953",
+          "sheetIndex": 9,
+          "approxStartSeconds": 405,
+          "approxEndSeconds": 445,
+          "bytes": 67332
+        },
+        {
+          "file": "kdl-r2-storyboard-10.jpg",
+          "sha256": "d8695f6a279d1be6e9656923325b276cab66c364728e74b6ffd6b11e31a7a771",
+          "sheetIndex": 10,
+          "approxStartSeconds": 448,
+          "approxEndSeconds": 448,
+          "bytes": 639
+        }
+      ]
+    },
+    {
+      "event": "2024 KDGP Round 1",
+      "venue": "Inje Speedium",
+      "eventDates": "2024-04-13/2024-04-14",
+      "videoUrl": "https://www.youtube.com/watch?v=xqE1vrietsk",
+      "title": "KDGP 2024 Season 1 After Movie 精彩回顧 | D2 Racing | D1GP x KDGP Competition",
+      "author": "D2 RACING SPORT",
+      "publisherRelation": "participant team",
+      "organizerOfficialVideoConfirmed": false,
+      "thumbnailSpec": {
+        "level": 3,
+        "tileWidth": 320,
+        "tileHeight": 180,
+        "frameCount": 92,
+        "columns": 3,
+        "rows": 3,
+        "intervalMs": 1000
+      },
+      "files": [
+        {
+          "file": "inje-storyboard-0.jpg",
+          "sha256": "fba746ad8e985f9bdfe213eca1e6b7c269539726ffa32c1d1d5dfe9665a7d2ca",
+          "sheetIndex": 0,
+          "approxStartSeconds": 0,
+          "approxEndSeconds": 8,
+          "bytes": 70528
+        },
+        {
+          "file": "inje-storyboard-3.jpg",
+          "sha256": "2bf5146f7167d2c7437d2335230dd969e12a8adc8948ce30078c0f97b8e5a1cc",
+          "sheetIndex": 3,
+          "approxStartSeconds": 27,
+          "approxEndSeconds": 35,
+          "bytes": 66718
+        },
+        {
+          "file": "inje-storyboard-6.jpg",
+          "sha256": "15957cba2b5e1880eed21b4effdc2995875adbe99bb2c46f2915593efbac7ae8",
+          "sheetIndex": 6,
+          "approxStartSeconds": 54,
+          "approxEndSeconds": 62,
+          "bytes": 64902
+        },
+        {
+          "file": "inje-storyboard-9.jpg",
+          "sha256": "b30d2744296b727602854f5f75890fc7db76f6e46cfc5c4f55bcdf40d6203a42",
+          "sheetIndex": 9,
+          "approxStartSeconds": 81,
+          "approxEndSeconds": 89,
+          "bytes": 73944
+        }
+      ]
+    },
+    {
+      "event": "2024 KDGP Round 2",
+      "venue": "Korea International Circuit",
+      "eventDates": "2024-06-08/2024-06-09",
+      "videoUrl": "https://www.youtube.com/watch?v=Kf37UeNI3_A",
+      "title": "KDGP 2024 Season 2 After Movie 精彩回顧 | D2 Racing | D1GP x KDGP Competition",
+      "author": "D2 RACING SPORT",
+      "publisherRelation": "participant team",
+      "organizerOfficialVideoConfirmed": false,
+      "thumbnailSpec": {
+        "level": 3,
+        "tileWidth": 341,
+        "tileHeight": 180,
+        "frameCount": 120,
+        "columns": 3,
+        "rows": 3,
+        "intervalMs": 1000
+      },
+      "files": [
+        {
+          "file": "kic-storyboard-0.jpg",
+          "sha256": "210648b88003bb3e063f2343e7ec476374a1a4d1b4399af3a7f09ed6049770be",
+          "sheetIndex": 0,
+          "approxStartSeconds": 0,
+          "approxEndSeconds": 8,
+          "bytes": 81745
+        },
+        {
+          "file": "kic-storyboard-2.jpg",
+          "sha256": "1e1366bf970de797ac4ed636e68476ee12242813c5aceab607cdba91f7c6f3be",
+          "sheetIndex": 2,
+          "approxStartSeconds": 18,
+          "approxEndSeconds": 26,
+          "bytes": 79118
+        },
+        {
+          "file": "kic-storyboard-4.jpg",
+          "sha256": "a6d9be2445f0f7840ad4a0bea896c95d9b15e895e8335709a83abaca7bfdd66f",
+          "sheetIndex": 4,
+          "approxStartSeconds": 36,
+          "approxEndSeconds": 44,
+          "bytes": 60466
+        },
+        {
+          "file": "kic-storyboard-6.jpg",
+          "sha256": "9c7d949eca904593765b6b5368451833f7b5c14582479b8b0f7188c3b8424e47",
+          "sheetIndex": 6,
+          "approxStartSeconds": 54,
+          "approxEndSeconds": 62,
+          "bytes": 73252
+        }
+      ]
+    },
+    {
+      "event": "2026 Korea Drift Series Round 4",
+      "venue": "Belle Foret International MotoArena",
+      "eventDates": "2026-09-05/2026-09-06",
+      "videoUrl": "https://www.youtube.com/watch?v=X4ZHi1SE8ig",
+      "title": "2026 Korea Drift Series Round 4 Battle for Top 8 Run",
+      "author": "Bella Cañete",
+      "publisherRelation": "participant driver",
+      "organizerOfficialVideoConfirmed": false,
+      "thumbnailSpec": {
+        "level": 3,
+        "tileWidth": 101,
+        "tileHeight": 180,
+        "frameCount": 72,
+        "columns": 3,
+        "rows": 3,
+        "intervalMs": 1000
+      },
+      "files": [
+        {
+          "file": "belleforet-storyboard-0.jpg",
+          "sha256": "ac9792612381578861dabe7259f221b16584918a2ec98a3bd3b4ecaee67852c6",
+          "sheetIndex": 0,
+          "approxStartSeconds": 0,
+          "approxEndSeconds": 8,
+          "bytes": 21864
+        },
+        {
+          "file": "belleforet-storyboard-1.jpg",
+          "sha256": "3e58850e31c821e1bbce1a3b9ce67e2735a1ebed9dff23a686c5b81c3fa3f6b2",
+          "sheetIndex": 1,
+          "approxStartSeconds": 9,
+          "approxEndSeconds": 17,
+          "bytes": 20032
+        },
+        {
+          "file": "belleforet-storyboard-2.jpg",
+          "sha256": "83d2f188c21342212234b15c2a89d18c3ff85b131f2904eb37b27c24e122a792",
+          "sheetIndex": 2,
+          "approxStartSeconds": 18,
+          "approxEndSeconds": 26,
+          "bytes": 22532
+        },
+        {
+          "file": "belleforet-storyboard-3.jpg",
+          "sha256": "c76d0df1d3f7694b670139050dcb54ae1a0429bcaa26da0dcde80d05faed0619",
+          "sheetIndex": 3,
+          "approxStartSeconds": 27,
+          "approxEndSeconds": 35,
+          "bytes": 23291
+        },
+        {
+          "file": "belleforet-storyboard-4.jpg",
+          "sha256": "229ada775f586ddf1cae67d1d65f20abd1daf678b24e40f404129256f7346623",
+          "sheetIndex": 4,
+          "approxStartSeconds": 36,
+          "approxEndSeconds": 44,
+          "bytes": 21219
+        },
+        {
+          "file": "belleforet-storyboard-5.jpg",
+          "sha256": "056daf37ab08d7a70041b52a2f3ed2eca32c0ddbabe94678df7ff0d16440c7d7",
+          "sheetIndex": 5,
+          "approxStartSeconds": 45,
+          "approxEndSeconds": 53,
+          "bytes": 24157
+        },
+        {
+          "file": "belleforet-storyboard-6.jpg",
+          "sha256": "8f00227991cc3e7a3fed0e82f33c8f1bd8f3dc004c9601a5d8c8e5a59e3a40d0",
+          "sheetIndex": 6,
+          "approxStartSeconds": 54,
+          "approxEndSeconds": 62,
+          "bytes": 24913
+        },
+        {
+          "file": "belleforet-storyboard-7.jpg",
+          "sha256": "85f98d7156f2255c804311fb948466ad88cc69139309b841c98c9719a6ebb4b7",
+          "sheetIndex": 7,
+          "approxStartSeconds": 63,
+          "approxEndSeconds": 71,
+          "bytes": 18984
+        }
+      ]
+    }
+  ],
+  "negativeFindingMeaning": "Not found or not retrievable in the sources examined. This does not claim that the organizer has never published or does not possess the information.",
+  "sourceChecks": [
+    {
+      "url": "https://www.d2-race.com/RacingTeam/GALLERY",
+      "relation": "participant team",
+      "result": "2024 Inje and KIC event dates/results found; no layout coordinates or clipping diagram in retrieved page."
+    },
+    {
+      "url": "https://www.d2-race.com/VideosCollection",
+      "relation": "participant team",
+      "result": "Officially linked YouTube highlight videos found. No organizer status claimed."
+    },
+    {
+      "url": "https://www.koreadrift.or.kr/",
+      "relation": "KDA website named in 2022 organizer press release",
+      "result": "DNS lookup failed during research; no current organizer drawings retrieved."
+    },
+    {
+      "url": "https://caam.kr/",
+      "relation": "KDS operator website listed by KARA",
+      "result": "DNS lookup failed during research."
+    },
+    {
+      "url": "https://kara.or.kr/static/upload/boardkara/20240419061243_1785004618_0.pdf",
+      "relation": "national ASN",
+      "result": "Search-index text identifies KDS operator and Instagram. Direct PDF retrieval failed. Index contains organizer information, not event geometry."
+    },
+    {
+      "url": "https://www.instagram.com/c.a.a.m_motortainment/",
+      "relation": "KDS operator profile linked by KARA",
+      "result": "Public metadata identifies C.A.A.M Official Korea and links @korea_drift_series. Public fetched HTML did not expose post captions or course drawings."
+    },
+    {
+      "url": "https://www.instagram.com/korea_drift_series/",
+      "relation": "KDS profile linked by operator",
+      "result": "Public metadata identifies Korea Drift Series and links @c.a.a.m_motortainment. Public fetched HTML did not expose post captions or course drawings."
+    },
+    {
+      "url": "https://www.speedium.co.kr/",
+      "relation": "venue operator",
+      "result": "Public home accessible, circuit-information link redirected to login. No event drawing obtained; no login attempted."
+    },
+    {
+      "url": "https://inje.gangwon.kr/egf/bp/board/article/download?fileSeq=99265",
+      "relation": "local government",
+      "result": "2023-207 planning notice search index says detailed planning documents are kept at Inje cultural/tourism department and omitted from publication. Direct retrieval failed. Does not establish 2024 competition cone layout."
+    },
+    {
+      "url": "https://koreacircuit.com/Tracks",
+      "relation": "venue operator",
+      "result": "Full/A/B circuit dimensions found; no 2024 KDGP R2 diagram."
+    },
+    {
+      "url": "https://koreacircuit.com/DriftSportsDriving",
+      "relation": "venue operator",
+      "result": "Generic drift program description; not a specific 2024 competition layout."
+    },
+    {
+      "url": "https://koreacircuit.com/Notice/12/read/82",
+      "relation": "venue operator",
+      "result": "2026 winter drift practice test notice found. Embedded image URL returned 404. Notice is practice operation, not evidence for 2024 KDGP R2."
+    },
+    {
+      "url": "https://belleforetresort.com/content/moto_intro",
+      "relation": "venue operator",
+      "result": "Official kart map and facility aerial photo saved. No KDS scoring diagram or local paddock elevations."
+    },
+    {
+      "url": "https://belleforetresort.com/content/moto_challenge",
+      "relation": "venue operator",
+      "result": "No KDS event-specific course drawing located in retrieved competition page."
+    },
+    {
+      "url": "https://belleforetresort.com/moto_rental",
+      "relation": "venue operator",
+      "result": "No KDS event-specific course drawing located in retrieved schedule page."
+    }
+  ],
+  "interpretationLimits": [
+    "T21 event direction and southeast GP T1/T2 identification are documented; start/finish, scoring, clipping and event boundaries are simulation settings, not surveyed event coordinates.",
+    "2016 KDL video frames after approximately 315 seconds include post-final donuts and podium preparation; do not turn this celebration path into a judged course.",
+    "KIC 36-44 second preview frames show a TAXI sign; those cones are environmental evidence, not verified competition scoring boundaries.",
+    "No surveyed course geometry or elevation, measured friction, exact tree species, or permission to redistribute video imagery is established by these preview frames."
+  ],
+  "publicCourse": {
+    "eventId": "kr-kic-t21-kdl-2016-r2",
+    "eventLabel": "2016 KOREA DRIFT LEAGUE Round 2 PRO — KIC T21",
+    "eventDates": [
+      "2016-06-04",
+      "2016-06-05"
+    ],
+    "researchDate": "2026-10-28",
+    "status": "Actual competition venue and T2-to-T1 direction identified; event boundaries require video/map reconstruction, not a survey-certified replica.",
+    "sources": [
+      {
+        "id": "league-video",
+        "url": "https://www.youtube.com/watch?v=i4decJM0q1s",
+        "title": "[KDL] 2016 korea drift league 2round",
+        "publisher": "korea drift kdl",
+        "channelId": "UCeQoNeWxzrXkkDeqHLnJGNQ",
+        "published": "2016-06-28",
+        "type": "event-video-on-league-named-channel",
+        "publisherEvidence": "Video description links www.koreadriftleague.com; video contains league title, June round podium and Mobibugs Sportainment end logo. Channel name alone is not external authentication.",
+        "inspected": "Public preview storyboard images, 320x180 per tile, 5-second spacing. Full-motion video was not watched. Direct public 1080p playback request returned HTTP 403 and was not bypassed.",
+        "localManifest": "kdl-2016-r2-preview-evidence.json",
+        "rights": "No open redistribution licence verified. Local research evidence only; do not ship copied video frames as simulator assets."
+      },
+      {
+        "id": "season-announcement",
+        "url": "https://www.top-rider.com/article/view/trd201603150012",
+        "date": "2016-03-15",
+        "type": "press-report-of-organizer-announcement",
+        "facts": [
+          "Organizer Mobibugs Sportainment",
+          "T21 means KIC Turn2 to Turn1",
+          "TRIANGLE and DRIFT CITY are separate layouts and must not be merged into T21"
+        ]
+      },
+      {
+        "id": "round-result",
+        "url": "https://www.top-rider.com/article/view/trd201606090003",
+        "date": "2016-06-09",
+        "type": "event-report",
+        "facts": [
+          "June 4 PRO qualifying and June 5 final",
+          "Afternoon PRO top-16 tournament used T21",
+          "Morning semi-pro used DRIFT CITY",
+          "Noritsugu Totani won PRO, Yoo Jin-hong second"
+        ]
+      },
+      {
+        "id": "round-result-crosscheck",
+        "url": "https://raceweek.co.kr/?p=4742",
+        "date": "2016-06-08",
+        "type": "event-report-with-organizer-photo-credit",
+        "facts": [
+          "June 4–5 KDL Round 2 at KIC",
+          "T21 PRO top-16 final",
+          "Photo credit Mobibugs Sportainment"
+        ]
+      },
+      {
+        "id": "fia-numbered-diagram",
+        "url": "https://www.fia.com/sites/default/files/external_archive/node4128/Doc%201%20KOREA_CIRCUIT_13%20FIA.pdf",
+        "pageUrl": "https://www.fia.com/events/fia-formula-one-world-championship/season-2013/2013-korean-grand-prix-event-information",
+        "localFile": "fia-2013-korea-circuit-diagram.pdf",
+        "render": "fia-2013-korea-circuit-diagram.png",
+        "type": "official-FIA-corner-number-map",
+        "facts": [
+          "Blue corner numbers identify T1 and T2 at southeast end of GP circuit",
+          "T1 follows main straight; T2 precedes long diagonal backstraight",
+          "NOT the northern permanent-circuit first corners",
+          "Circuit centreline length 5.615 km is full GP length, not drift course length"
+        ],
+        "rights": "FIA/F1 original rights; no open redistribution licence verified. Use as research reference, not a shipped visual asset.",
+        "sha256": "6243b9fe70e1375278658a39896a8de60a3e2efe8c22260ecbe91a3771365267"
+      },
+      {
+        "id": "fia-numbered-circuit-map",
+        "url": "https://www.fia.com/sites/default/files/external_archive/node3784/14-korea-circuit-print.pdf",
+        "pageUrl": "https://www.fia.com/events/fia-formula-one-world-championship/season-2013/2013-korean-grand-prix-circuit-map",
+        "localFile": "fia-2013-korea-circuit-map.pdf",
+        "render": "fia-2013-korea-circuit-map.png",
+        "type": "official-FIA-corner-number-and-runoff-map",
+        "sha256": "19ac4ca6bfc88e60389e79a85d09aa3eab2ee0f4c856c9aa05e5bbf199bdf8b5"
+      }
+    ],
+    "metricReference": {
+      "file": "evolving_vehicles_2/data/elevation/yeongam.json",
+      "coordinateOrder": "longitude, latitude",
+      "originalIndexMeaning": "Indices refer to this existing repository file, not FIA corner numbers.",
+      "landmarks": [
+        {
+          "label": "Backstraight approach northwest of T2",
+          "index": 160,
+          "lonLat": [
+            126.41884395,
+            34.73246385
+          ]
+        },
+        {
+          "label": "T2 bend",
+          "index": 155,
+          "lonLat": [
+            126.4207362,
+            34.7309882
+          ]
+        },
+        {
+          "label": "Connector between T2 and T1",
+          "index": 150,
+          "lonLat": [
+            126.4208044,
+            34.7303548
+          ]
+        },
+        {
+          "label": "T1 bend",
+          "index": 145,
+          "lonLat": [
+            126.4207408,
+            34.7299877
+          ]
+        },
+        {
+          "label": "Main straight northwest of T1",
+          "index": 140,
+          "lonLat": [
+            126.420032,
+            34.7301524
+          ]
+        }
+      ],
+      "direction": "Descending indices: 160 -> 155 -> 150 -> 145 -> 140. This is reverse GP direction.",
+      "caution": "This locates permanent road geometry. A centreline-only corridor omits the event's visible T1 runoff usage. Event driving corridor and cone locations must be reconstructed separately from video."
+    },
+    "frameGuide": [
+      {
+        "approxSeconds": 40,
+        "sheet": "kdl-r2-storyboard-0.jpg",
+        "tile": "row3 col3",
+        "purpose": "Oblique aerial road/green border/runoff reference"
+      },
+      {
+        "approxSeconds": 125,
+        "sheet": "kdl-r2-storyboard-2.jpg",
+        "tile": "row3 col2",
+        "purpose": "Near-overhead parked car lineup and outer T1 road boundary"
+      },
+      {
+        "approxSeconds": 130,
+        "sheet": "kdl-r2-storyboard-2.jpg",
+        "tile": "row3 col3",
+        "purpose": "Near-overhead parked car lineup, inner green strip and curved T1 pavement edge"
+      },
+      {
+        "approxSeconds": 135,
+        "sheet": "kdl-r2-storyboard-3.jpg",
+        "tile": "row1 col1",
+        "purpose": "Wide elevated actual tandem, T1 runway/runoff context"
+      },
+      {
+        "approxSeconds": 180,
+        "sheet": "kdl-r2-storyboard-4.jpg",
+        "tile": "row1 col1",
+        "purpose": "Long runoff/road white line and cone alignment"
+      },
+      {
+        "approxSeconds": 275,
+        "sheet": "kdl-r2-storyboard-6.jpg",
+        "tile": "row1 col2",
+        "purpose": "Elevated tandem and cones in broad T1 paved apron"
+      },
+      {
+        "approxSeconds": 285,
+        "sheet": "kdl-r2-storyboard-6.jpg",
+        "tile": "row2 col1",
+        "purpose": "Paved apron, green strip, outer grandstand and visible car trajectory"
+      },
+      {
+        "approxSeconds": 290,
+        "sheet": "kdl-r2-storyboard-6.jpg",
+        "tile": "row2 col2",
+        "purpose": "Tandem in apron with permanent green/red edge"
+      },
+      {
+        "approxSeconds": 315,
+        "sheet": "kdl-r2-storyboard-7.jpg",
+        "tile": "row1 col1",
+        "purpose": "Near-overhead cars and tyre marks; post-run donut area must not automatically become judged route"
+      },
+      {
+        "approxSeconds": 335,
+        "sheet": "kdl-r2-storyboard-7.jpg",
+        "tile": "row2 col2",
+        "purpose": "Wide aerial podium location, paved apron perimeter, green/red areas"
+      },
+      {
+        "approxSeconds": 340,
+        "sheet": "kdl-r2-storyboard-7.jpg",
+        "tile": "row2 col3",
+        "purpose": "Wide aerial boundary and T1 inner island; useful static boundary alignment"
+      }
+    ],
+    "elevation": {
+      "source": "Existing EV2 Open-Meteo / Copernicus DEM GLO-90 2021 samples",
+      "resolutionM": 90,
+      "indices140to160Metres": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        5,
+        3,
+        4
+      ],
+      "limitation": "DSM ground/building/tree mix, not road survey, curb measurement or camber. Mostly 4 m absolute geoid elevation does not establish zero road camber. Off-road apron should not inherit an unverified precise slope."
+    },
+    "unverified": [
+      "Official 2016 Round 2 PRO start and finish line positions",
+      "Official judging-zone/clip names, quantities and metre coordinates",
+      "Exact temporary cone positions and scored corridor width",
+      "Event course length in metres",
+      "Surveyed surface elevation/camber or curb heights",
+      "Precise tree species and 2016 friction coefficients"
+    ],
+    "implementationRecommendation": "Use the real T2-to-T1 permanent geometry plus the visible T1 paved apron. Label run-up start, deceleration end, guidance line and judging zones as simulation settings where no official event coordinates exist. Do not copy publication speed claims (170–180 km/h modified PRO cars) as stock-car capability or required entry speed."
+  }
+}
