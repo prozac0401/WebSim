@@ -6,7 +6,7 @@ const source=fs.readFileSync(require.resolve('./app.js'),'utf8');
 // Execute the real app and its handlers with a deliberately queued worker
 // response. This tests the UI/worker boundary, not a copy of the control logic.
 function environment({fallback=false,powered=false}={}){
-  const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0;
+  const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0,scoreCalls=0;
   function element(){return{value:'1',disabled:false,hidden:false,checked:false,textContent:'',classList:{toggle(){},remove(){}},
     setAttribute(){},append(){},before(){},replaceChildren(){},addEventListener(){},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
   const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
@@ -36,11 +36,16 @@ function environment({fallback=false,powered=false}={}){
     setTimeout:fn=>{const id=nextTimer++;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),Worker:fallback?undefined:Worker,
     DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame})},
     DriftCatalog:{DEFAULT_ID:vehicle.id,get:()=>vehicle,list:()=>[vehicle]},DriftTrack:{list:()=>[track]},
-    DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:{Engine}});
+    DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:{Engine},DriftFitness:{replayTimeline(result){scoreCalls++;return [
+      {time:0,score:0,delta:0,earning:false,provisional:true,phase:'preparation',reason:'준비 구간 · 득점 없음',conditions:{},parts:{style:0}},
+      {time:15,score:.75,delta:.02,earning:true,provisional:true,phase:'exit',reason:'가속 탈출 · 거리와 유지 각도 반영',conditions:{angle:true},parts:{continuity:.75}},
+      {time:30,score:result.valid?result.score:0,delta:0,earning:false,provisional:false,finalValid:result.valid,phase:'recovery',reason:result.valid?'회복·비채점 구간 · 득점 없음':'트랙 이탈 · 점수 무효',conditions:{},parts:{style:1}}
+    ];}}});
   vm.runInContext(source,context);
   return{get,workers,timers,state:()=>JSON.parse(window.render_game_to_text()),
     ready(worker=workers.at(-1)){worker.emit({type:'ready',baseline,best,state:state()});},
-    tick(){const entry=timers.entries().next().value;if(entry){timers.delete(entry[0]);entry[1]();}},steps:()=>steps};
+    tick(){const entry=timers.entries().next().value;if(entry){timers.delete(entry[0]);entry[1]();}},steps:()=>steps,scoreCalls:()=>scoreCalls,
+    selectFailure(){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status:'offtrack'}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});workers.at(-1).emit({type:'paused'});}};
 }
 
 test('pause waits for its worker acknowledgement before allowing resume or one generation',()=>{
@@ -95,4 +100,16 @@ test('powered-exit replay seeks the measured interval and resets with a new expe
   assert.equal(env.get('powered-exit-duration').textContent,'연속 가속 탈출');
   assert.equal(env.get('best-angle').textContent,'—');
   assert.equal(env.get('peak-angle').textContent,'순간 최대 —');
+});
+
+test('replay scoring follows seeks, caches the timeline and invalidates a failed finish',()=>{
+  const env=environment();env.ready();assert.equal(env.scoreCalls(),1);
+  assert.equal(env.state().replayScoring.phase,'preparation');assert.equal(env.get('replay-score').textContent,'0.00');
+  env.get('timeline').value='500';env.get('timeline').oninput();
+  assert.equal(env.state().replayScoring.earning,true);assert.equal(env.get('replay-score').textContent,'0.75');
+  env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score-label').textContent,'확정 점수');
+  env.get('restart').onclick();assert.equal(env.state().replayScoring.score,0);assert.equal(env.scoreCalls(),1,'seeking does not rebuild or simulate');
+  env.selectFailure();env.get('timeline').value='1000';env.get('timeline').oninput();
+  assert.equal(env.get('replay-score').textContent,'0.00');assert.equal(env.get('replay-score-label').textContent,'점수 무효');assert.equal(env.state().replayScoring.finalValid,false);
+  env.get('reset').onclick();assert.equal(env.state().replayScoring,null);assert.equal(env.get('replay-scoring').hidden,true);
 });

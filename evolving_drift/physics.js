@@ -217,6 +217,11 @@
     const bad=failure(v,track,a,old);
     if(bad){a.status=bad;a.reason=bad==='collision'?'방호물 충돌':'차체가 주행 경계 이탈';}
     else if(![a.x,a.y,a.speed,a.yaw].every(Number.isFinite)){a.status='invalid';a.reason='수치 오류';}
+    // Judge loss of alignment with actual motion, not world heading: a normal
+    // hairpin can rotate the car by 180 degrees while keeping small sideslip.
+    // Below 3 m/s the velocity direction is too sensitive to tiny launch or
+    // stopping motions. This stops the run; it does not clamp pose or forces.
+    else if(a.speed>=3&&Math.abs(a.beta)>=75*Math.PI/180){a.status='spin';a.reason='진행 방향을 잃은 스핀';}
     else if(a.s>=track.length){a.status='finished';}
     else if(a.stalled>8||a.time>90){a.status='timeout';a.reason=a.stalled>8?'주행 정지':'제한 시간 초과';}
     return a;

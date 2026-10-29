@@ -174,6 +174,72 @@ test('sustained-angle refinement respects the schema cap and uses actual driver 
   assert.ok(next.steer<old.steer,'the real driver reacts to the raised target without a pose or force override');
 });
 
+test('recovery joins path and control targets inside one window without changing the next corner',()=>{
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0];
+  for(let i=0;i<G.KNOTS;i++){
+    const s=i/127*f.track.length,j=i*G.STRIDE,hold=clampTest((180-s)/25,0,1);
+    f.gene[j+C.lineOffset]=Math.sin(s/220*Math.PI)*1.5;f.gene[j+C.targetSlip]=hold*.4;f.gene[j+C.driveSlip]=hold*.7;
+    f.gene[j+C.throttle]=.3+.5*hold;f.gene[j+C.brake]=0;f.gene[j+C.counterLead]=.3-.15*hold;f.gene[j+C.gearHold]=3;
+    f.gene[j+C.steer]=.01*Math.sin(s/15);
+  }
+  const before=f.gene.slice(),parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{start:z.exit,end:z.exit+30,zoneExit:z.exit,sign:1,anchored:true}}};
+  const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('recovery')+.5)/Strategies.FAMILIES.length:.5;};
+  const proposal=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2}),{start,end}=proposal.change;
+  assert.equal(proposal.change.family,'recovery');assert.ok(start>=z.exit&&end<z.end);assert.ok(end-start>=3*f.track.length/127);
+  assert.deepEqual(proposal,Strategies.adaptive(f.vehicle,f.track,parent,random()));assert.deepEqual(parent.gene,before);
+  for(let s=0;s<=f.track.length;s+=.2)if(s<=start||s>=end){
+    const a=G.sample(proposal.gene,s,f.track.length),b=G.sample(before,s,f.track.length);
+    if(s>start-18-f.track.length/127&&s<z.end){delete a.steer;delete b.steer;}
+    assert.deepEqual(a,b,'only the necessary lookahead steering correction can precede the recovery; next-corner controls stay unchanged');
+  }
+  const middle=G.sample(proposal.gene,start+.7*(end-start),f.track.length),old=G.sample(before,start+.7*(end-start),f.track.length);
+  assert.ok(Math.abs(middle.targetSlip)<Math.abs(old.targetSlip)*.1);assert.ok(middle.driveSlip<old.driveSlip*.1,'both drift targets relax in the same window');
+  for(let i=0;i<G.KNOTS;i++){
+    const s=i/127*f.track.length,j=i*G.STRIDE;
+    assert.equal(proposal.gene[j+C.gearHold],before[j+C.gearHold]);
+    for(const c of [C.lineOffset,C.targetSlip,C.driveSlip,C.counterLead,C.throttle,C.brake])assert.ok(Math.abs(small.gene[j+c]-before[j+c]-.2*(proposal.gene[j+c]-before[j+c]))<1e-12);
+    const residual=g=>g[j+C.steer]-Strategies.feedforward(f.vehicle,f.track,g,s,15);
+    assert.ok(Math.abs(residual(small.gene)-residual(before)-.2*(residual(proposal.gene)-residual(before)))<1e-12,'steering residual and actual changed-path feedforward stay separate');
+  }
+});
+
+test('new trajectories recover slip and propulsion targets over the same window',()=>{
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{start:z.exit,end:z.exit+15,zoneExit:z.exit,sign:1,anchored:true}}};
+  let calls=0;const rng=()=>++calls===3?(Strategies.FAMILIES.indexOf('trajectory')+.5)/Strategies.FAMILIES.length:.5;
+  const proposal=Strategies.adaptive(f.vehicle,f.track,parent,rng),m=proposal.change,hold=m.start+m.length,finish=hold+m.recovery;
+  assert.equal(m.family,'trajectory');assert.ok(m.recovery>=14);assert.ok(finish<z.end);
+  let laterKnots=0;
+  for(let i=0;i<G.KNOTS;i++){
+    const s=i/127*f.track.length;if(s<=hold||s>=finish)continue;
+    const j=i*G.STRIDE;
+    assert.ok(Math.abs(proposal.gene[j+C.targetSlip]/m.angle-proposal.gene[j+C.driveSlip]/.7)<1e-12,'both intents have the same recovery phase');
+    if(s>hold+.65*m.recovery){assert.ok(proposal.gene[j+C.targetSlip]>0&&proposal.gene[j+C.driveSlip]>0,'neither target is abruptly zeroed by a separate short release');laterKnots++;}
+  }
+  assert.ok(laterKnots>0);
+  for(let s=z.end;s<=f.track.length;s+=.2)assert.deepEqual(G.sample(proposal.gene,s,f.track.length),G.sample(parent.gene,s,f.track.length),'the next corner does not inherit a trailing recovery or line offset');
+});
+
+test('pre-start feint uses the mapped approach and produces real alternating wheel loads',()=>{
+  const Physics=require('./physics.js'),Driver=require('./driver.js'),vehicle=require('./catalog.js').get();
+  const course={length:260,width:60,judgedStart:140,judgedEnd:200,obstacles:[],zones:[],
+    sample:s=>({s,x:s,y:0,z:0,heading:0,grade:0,bank:0,curvature:0,widthLeft:30,widthRight:30}),
+    project:(x,y)=>({s:x,error:y,distance:Math.abs(y),x,y:0,heading:0})};
+  const gene=G.create();for(let i=0;i<G.KNOTS;i++)gene[i*G.STRIDE+C.throttle]=.35;
+  const record=[{s:0,speed:15},{s:260,speed:15}],zones=[{start:140,exit:180,end:250,sign:-1}],params={arc:0,onset:140,ramp:10,delay:10,entryBrake:0,prepLead:120,feint:1.8,angle:15,exitAngle:15,pedal:.6,slip:.5,lead:.25,gear:0,line:0,bow:2,length:40,recovery:20,steer:0,exitSteer:0,compensation:1,tailPedal:.4};
+  const proposal=Strategies.entry(vehicle,course,{gene,record},()=>.5,0,params,{zones});
+  assert.equal(proposal.params.prepLead,120);assert.ok(proposal.params.onset-proposal.params.prepLead>=2.5);
+  assert.ok(G.sample(proposal.gene,60,course.length).lineOffset>.5,'preparation is available well before the former onset minus 28m limit');
+  assert.deepEqual(G.sample(proposal.gene,0,course.length),G.sample(gene,0,course.length));
+  const state=Physics.initialState(vehicle,course),samples=[];
+  while(state.status==='running'&&state.s<130&&state.time<30){
+    Physics.step(vehicle,course,state,Driver.command(vehicle,course,state,proposal.gene));
+    if(state.s>=25){const w=state.wheelForces;samples.push({steer:state.steer,load:w[0].load+w[2].load-w[1].load-w[3].load});}
+  }
+  assert.equal(state.status,'running');assert.ok(state.s>=130,'the whole preparation is integrated without resetting pose or velocity');
+  assert.ok(Math.max(...samples.map(f=>f.steer))>.001&&Math.min(...samples.map(f=>f.steer))<-.001);
+  assert.ok(Math.max(...samples.map(f=>f.load))>5&&Math.min(...samples.map(f=>f.load))< -5,'tyre loads respond to both directions of actual lateral acceleration');
+});
+
 test('entry tail acceleration preserves a later real corner and only resumes on the terminal straight',()=>{
   const vehicle=require('./catalog.js').get(),track=require('./track.js').get('jp-tsukuba-d1gp-2025'),zones=Strategies.zones(track),zone=zones.at(-1),gene=G.create();
   for(let i=0;i<128;i++){gene[i*8+C.throttle]=.4;gene[i*8+C.brake]=.3;}

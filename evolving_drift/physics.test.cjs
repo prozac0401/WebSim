@@ -191,6 +191,31 @@ test('body contact with a course obstacle fails in the current step', () => {
   assert.deepEqual(physics.frame(state), failed);
 });
 
+test('a moving spin fails before completion and cannot continue after detection',()=>{
+  const car=catalog.get(),track=straightTrack();track.length=100;
+  for(const sign of [-1,1]){
+    const a=physics.initialState(car,track);Object.assign(a,{x:100.1,s:100.1,yaw:-sign*76*Math.PI/180,vx:8,vy:0,speed:8,r:0});a.wheelOmega.fill(8/car.tireRadius);
+    physics.step(car,track,a,{steer:0,throttle:0,brake:0});
+    assert.equal(a.status,'spin','a crossed finish line cannot legitimize a spin');
+    assert.ok(Math.abs(a.beta)>=75*Math.PI/180);assert.ok(a.speed>=3);
+    const frozen=physics.frame(a);physics.step(car,track,a,{steer:.4,throttle:1,brake:0});assert.deepEqual(physics.frame(a),frozen);
+  }
+});
+
+test('spin detection distinguishes normal heading changes, signed drift and slow launches',()=>{
+  const car=catalog.get(),track=straightTrack();
+  for(const heading of [-Math.PI+.01,Math.PI/2,Math.PI-.01]){
+    const a=physics.initialState(car,track);Object.assign(a,{x:150,s:150,yaw:heading,vx:8*Math.cos(heading),vy:8*Math.sin(heading),speed:8});a.wheelOmega.fill(8/car.tireRadius);
+    physics.step(car,track,a,{steer:0,throttle:0,brake:0});assert.equal(a.status,'running','world heading alone is not a spin');assert.ok(Math.abs(a.beta)<.05);
+  }
+  for(const beta of [-70,-40,0,40,70]){
+    const a=physics.initialState(car,track);Object.assign(a,{x:150,s:150,yaw:-beta*Math.PI/180,vx:8,vy:0,speed:8});a.wheelOmega.fill(8/car.tireRadius);
+    physics.step(car,track,a,{steer:0,throttle:0,brake:0});assert.equal(a.status,'running','opposite drift directions below the limit remain physical states');
+  }
+  const slow=physics.initialState(car,track);Object.assign(slow,{x:150,s:150,yaw:-100*Math.PI/180,vx:2,vy:0,speed:2});slow.wheelOmega.fill(2/car.tireRadius);
+  physics.step(car,track,slow,{steer:0,throttle:0,brake:0});assert.equal(slow.status,'running','near-launch velocity direction alone is not decisive');
+});
+
 test('torque lookup and transient delivered torque respect stock torque and power ceilings', () => {
   const track = straightTrack();
   for (const car of catalog.list()) {
@@ -301,6 +326,24 @@ test('state feedback counters developing oversteer without changing the vehicle 
   assert.ok(a.steer<0&&b.steer>0,'opposite developing spins need opposite driver steering');
   assert.deepEqual(physics.frame(left),before,'driver returns controls and cannot move or stabilize the body directly');
   assert.equal(a.brake,0,'recovery does not add an invisible brake');
+});
+
+test('releasing the drift target retains measured countersteer and crosses zero continuously',()=>{
+  const car=catalog.get(),track=straightTrack(),gene=genome.create(),state=physics.initialState(car,track),DEG=Math.PI/180;
+  Object.assign(state,{vx:12,vy:0,speed:12,r:0});
+  const command=(beta,target)=>{
+    state.yaw=-beta;
+    for(let i=0;i<genome.KNOTS;i++)gene[i*genome.STRIDE+genome.CHANNELS.targetSlip]=target;
+    return driver.command(car,track,state,gene);
+  };
+  for(const sign of [-1,1]){
+    const zero=command(sign*15*DEG,0),before=physics.frame(state);
+    assert.ok(sign*zero.steer>.3,'remaining sideslip still receives countersteer after the target reaches zero');
+    for(const target of [-1e-9,1e-9])near(command(sign*15*DEG,target).steer,zero.steer,1e-7,'release through zero');
+    assert.deepEqual(physics.frame(state),before,'the driver cannot rotate or move the body');
+    assert.equal(zero.brake,0);
+  }
+  near(command(4*DEG,0).steer,0,1e-12,'ordinary grip sideslip keeps its deadzone');
 });
 
 test('line, drift attitude and wheel-slip genes affect bounded driver commands',()=>{

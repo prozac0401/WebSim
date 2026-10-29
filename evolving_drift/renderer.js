@@ -28,6 +28,32 @@
   const hexColor = fill => '#' + color(fill).map(c => Math.round(clamp(c, 0, 255)).toString(16).padStart(2, '0')).join('');
   const framesOf = record => Array.isArray(record) ? record : record?.frames || record?.trajectory || record?.samples || [];
   const frameTime = f => finite(f?.time, finite(f?.t));
+  const SCORE_COLOR='#36bdcc',INACTIVE_COLOR='#a9b1b6';
+  // Display eligibility, not earned points: tyre propulsion, angle, continuity
+  // and a valid completed run are still evaluated exclusively by Fitness.
+  function scoringRanges(track) {
+    const fitness=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null),length=finite(track.length);
+    const intervals=[{start:track.judgedStart,end:track.judgedEnd},...(fitness?.exitZones(track)||[]).map(z=>({start:z.exit,end:z.end}))]
+      .filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)).map(r=>({start:clamp(r.start,0,length),end:clamp(r.end,0,length)}))
+      .filter(r=>r.end>r.start).sort((a,b)=>a.start-b.start||a.end-b.end),merged=[];
+    for(const range of intervals){const last=merged.at(-1);if(last&&range.start<=last.end)last.end=Math.max(last.end,range.end);else merged.push({...range});}
+    return merged;
+  }
+  function scoringTrace(record,timeline,time) {
+    const frames=framesOf(record),segments=[];
+    if(!Array.isArray(timeline)||timeline.length!==frames.length)return segments;
+    for(let i=1;i<frames.length;i++){
+      const a=frames[i-1],b=frames[i],start=frameTime(a),end=frameTime(b);
+      if(start>=time)break;
+      if(!(end>start)||Math.abs(finite(timeline[i]?.time,-Infinity)-end)>1e-6)return [];
+      const u=clamp((time-start)/(end-start),0,1);
+      // A partial interval has not reached the next scoring sample yet.
+      // Keep it neutral until the same sample is visible in the score panel.
+      segments.push({a:{x:a.x,y:a.y},b:{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u},earning:end<=time+1e-8&&timeline[i]?.earning===true});
+      if(end>=time)break;
+    }
+    return segments;
+  }
   function sampleFrames(record, time) {
     const frames = framesOf(record);
     if (!frames.length) return null;
@@ -118,7 +144,18 @@
         const offset = d => {const x=p.x+normal.x*d,y=p.y+normal.y*d;return point(x,y,this._surface(track,x,y,p.s).z+.012);};
         return { ...p, z:finite(p.z,this._surface(track,p.x,p.y,p.s).z), heading, leftWidth,rightWidth,left: offset(leftWidth), right: offset(-rightWidth), leftOut: offset(leftWidth+2.5), rightOut: offset(-rightWidth-2.5), normal };
       });
-      const geometry=this._environmentGeometry(track),fitPoints=edges.flatMap(p=>[p.leftOut,p.rightOut]);
+      const geometry=this._environmentGeometry(track),fitPoints=edges.flatMap(p=>[p.leftOut,p.rightOut]),ranges=scoringRanges(track),scoreBands=[];
+      let previous=0;for(const r of ranges){if(r.start>previous)scoreBands.push({start:previous,end:r.start,eligible:false});scoreBands.push({...r,eligible:true});previous=r.end;}
+      if(previous<track.length)scoreBands.push({start:previous,end:track.length,eligible:false});
+      for(const band of scoreBands){
+        const samples=[band.start];for(let s=band.start+2;s<band.end;s+=2)samples.push(s);samples.push(band.end);
+        band.path=samples.map(s=>({...this._sample(track,s),s}));band.color=band.eligible?SCORE_COLOR:INACTIVE_COLOR;
+        for(const side of [-1,1]){
+          const strip=band.path.map(p=>{const halfWidth=side>0?finite(p.widthLeft,width/2):finite(p.widthRight,width/2),offset=side*Math.max(.2,halfWidth-1.35),normal=point(-Math.sin(finite(p.heading)),Math.cos(finite(p.heading)));
+            return [-.1,.1].map(extra=>{const x=p.x+normal.x*(offset+extra),y=p.y+normal.y*(offset+extra);return point(x,y,this._surface(track,x,y,p.s).z+.036);});});
+          for(let i=0;i<strip.length-1;i++)geometry.decals.push({vertices:[strip[i][0],strip[i+1][0],strip[i+1][1],strip[i][1]],fill:band.color,material:'rubber',flat:true,scoreOverlay:true});
+        }
+      }
       // Frame the driving area, not the full DEM grid or distant woodland.
       // Environment geometry still uses its own bounds for depth clipping.
       for(const polygon of track.boundaryPolygons||[])for(const p of polygon)fitPoints.push(this._atSurface(track,p));
@@ -127,7 +164,7 @@
       const bounds=measure(fitPoints),sceneBounds=measure([...fitPoints,...[...geometry.ground,...geometry.decals,...geometry.objects].flatMap(face=>face.vertices)]);
       const roadFaces=[];for(let i=0;i<edges.length-1;i++){const a=edges[i],b=edges[i+1];roadFaces.push({vertices:[a.left,b.left,b.right,a.right],fill:track.environment?.roadColor||track.roadColor||'#656b6d',material:'rubber'});if(!track.environment)for(const vertices of [[a.leftOut,b.leftOut,b.left,a.left],[a.right,b.right,b.rightOut,a.rightOut]])roadFaces.push({vertices,fill:'#c3c2a7',material:'rubber'});}
       const dimensions={length:sceneBounds.maxX-sceneBounds.minX,width:sceneBounds.maxY-sceneBounds.minY,height:sceneBounds.maxZ-sceneBounds.minZ,bounds:sceneBounds},groundMesh={faces:[...geometry.ground,...roadFaces,...geometry.decals],...dimensions},occluders={faces:[...groundMesh.faces,...geometry.objects],...dimensions};
-      const result = { edges, width, bounds, fitPoints, geometry,groundMesh,occluders,center: point((bounds.minX + bounds.maxX) / 2, (bounds.minY + bounds.maxY) / 2,(bounds.minZ+bounds.maxZ)/2), span: Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY) + width * 3 };
+      const result = { edges, width, bounds, fitPoints, geometry,groundMesh,occluders,scoringRanges:ranges,scoreBands,center: point((bounds.minX + bounds.maxX) / 2, (bounds.minY + bounds.maxY) / 2,(bounds.minZ+bounds.maxZ)/2), span: Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY) + width * 3 };
       this.trackCache.set(track, result); return result;
     }
     _environmentGeometry(track) {
@@ -331,14 +368,17 @@
         this._line(strip,'#e9b744',7,camera);
         const p=this._project(strip[3],camera);if(p&&p.depth<camera.distance+150)zones.push({x:p.x,y:p.y,text:zone.label||'ZONE'});
       }
-      for(const [s,label,fill] of [[track.judgedStart,'START','#edf0e3'],[track.judgedEnd,'FINISH','#e6c77e']])if(Number.isFinite(s)){
+      const scoringEnd=layout.scoringRanges.at(-1)?.end;
+      const markers=[[track.judgedStart,'채점 시작',SCORE_COLOR],[scoringEnd,'득점 구간 끝',SCORE_COLOR]];
+      if(track.judgedStart>12)markers.unshift([Math.min(12,track.judgedStart/2),'PREP · 준비',INACTIVE_COLOR]);
+      for(const [s,label,fill] of markers)if(Number.isFinite(s)){
         const p=this._sample(track,s),h=finite(p.heading),n=point(-Math.sin(h),Math.cos(h));
         const left=finite(p.widthLeft,layout.width/2),right=finite(p.widthRight,layout.width/2),at=d=>{const x=p.x+n.x*d,y=p.y+n.y*d;return point(x,y,this._surface(track,x,y,p.s).z+.045);};
         this._line([at(-right),at(left)],fill,3,camera);
         const tag=this._project({...at(left+2),z:at(left+2).z+.25},camera);if(tag)zones.push({x:tag.x,y:tag.y,text:label});
       }
       ctx.font='600 9px system-ui';ctx.textAlign='center';
-      for(const tag of zones){ctx.fillStyle='rgba(31,44,45,.75)';ctx.fillRect(tag.x-24,tag.y-14,48,15);ctx.fillStyle='#fff6d7';ctx.fillText(tag.text,tag.x,tag.y-3);}
+      for(const tag of zones){const width=Math.max(48,ctx.measureText(tag.text).width+12);ctx.fillStyle='rgba(31,44,45,.75)';ctx.fillRect(tag.x-width/2,tag.y-14,width,15);ctx.fillStyle='#fff6d7';ctx.fillText(tag.text,tag.x,tag.y-3);}
     }
     _worldWheel(frame, mesh, index,track) {
       const explicit=frame.wheels?.[index];
@@ -481,20 +521,26 @@
       }
       this._paint(queue);
     }
-    _map(track,car,reference){
-      const ctx=this.ctx,layout=this._track(track),b=layout.bounds,w=Math.min(194,Math.max(134,this.width*.24),this.width-36),h=142,x=this.width-w-18,y=18,pad=17;
+    _map(track,car,reference,record,time,scoreTimeline){
+      const trace=scoringTrace(record,scoreTimeline,time),hasTimeline=Array.isArray(scoreTimeline)&&scoreTimeline.length===framesOf(record).length&&scoreTimeline.length>0;
+      const ctx=this.ctx,layout=this._track(track),b=layout.bounds,w=Math.min(194,Math.max(148,this.width*.24),this.width-36),h=hasTimeline?173:157,x=this.width-w-18,y=18,pad=17;
       ctx.save();ctx.fillStyle='rgba(246,249,247,.92)';ctx.strokeStyle='rgba(96,117,111,.20)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect?.(x,y,w,h,9);if(!ctx.roundRect)ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();
-      const scale=Math.min((w-2*pad)/Math.max(1,b.maxX-b.minX),(h-48)/Math.max(1,b.maxY-b.minY));
-      const project=p=>({x:x+w/2+(p.x-layout.center.x)*scale,y:y+26+(h-42)/2+(p.y-layout.center.y)*scale});
-      for(let i=0;i<layout.edges.length-1;i++){const a=layout.edges[i],b=layout.edges[i+1];ctx.beginPath();[a.left,b.left,b.right,a.right].forEach((p,j)=>{const q=project(p);j?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.closePath();ctx.fillStyle='#c5d4cb';ctx.fill();}
-      ctx.beginPath();let started=false;for(const p of layout.edges){if(p.s<finite(track.judgedStart)||p.s>finite(track.judgedEnd,track.length))continue;const q=project(p);started?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);started=true;}ctx.strokeStyle='#3f8b73';ctx.lineWidth=3;ctx.stroke();
+      const mapHeight=87,scale=Math.min((w-2*pad)/Math.max(1,b.maxX-b.minX),mapHeight/Math.max(1,b.maxY-b.minY));
+      const project=p=>({x:x+w/2+(p.x-layout.center.x)*scale,y:y+25+mapHeight/2+(p.y-layout.center.y)*scale});
+      for(let i=0;i<layout.edges.length-1;i++){const a=layout.edges[i],b=layout.edges[i+1];ctx.beginPath();[a.left,b.left,b.right,a.right].forEach((p,j)=>{const q=project(p);j?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.closePath();ctx.fillStyle='#cbd1d4';ctx.fill();}
+      for(const band of layout.scoreBands){ctx.beginPath();band.path.forEach((p,i)=>{const q=project(p);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.strokeStyle=band.color;ctx.lineWidth=3;ctx.stroke();}
+      let drawing=false,earning=null;ctx.lineWidth=2;
+      for(const segment of trace){const a=project(segment.a),b=project(segment.b);if(!drawing||earning!==segment.earning){if(drawing)ctx.stroke();ctx.beginPath();ctx.moveTo(a.x,a.y);earning=segment.earning;ctx.strokeStyle=earning?'#167449':INACTIVE_COLOR;drawing=true;}ctx.lineTo(b.x,b.y);}if(drawing)ctx.stroke();
       const marker=(frame,fill)=>{if(!frame)return;const q=project(frame);ctx.fillStyle=fill;ctx.beginPath();ctx.arc(q.x,q.y,3.5,0,TAU);ctx.fill();};marker(reference,'#d39148');marker(car,'#152d37');
-      ctx.fillStyle='#405b50';ctx.font='600 10px system-ui';ctx.textAlign='left';ctx.fillText('COURSE',x+12,y+17);ctx.font='10px system-ui';ctx.fillText(Math.round(track.length)+' m · 채점 '+Math.round(finite(track.judgedEnd,track.length)-finite(track.judgedStart))+' m',x+12,y+h-11,w-24);ctx.restore();
+      ctx.fillStyle='#405b50';ctx.font='600 10px system-ui';ctx.textAlign='left';ctx.fillText('COURSE',x+12,y+17);ctx.font='10px system-ui';
+      const legend=hasTimeline?[[46,SCORE_COLOR,'득점 가능 구간'],[30,'#167449','현재 주행 득점'],[14,INACTIVE_COLOR,'준비·미득점']]:[[30,SCORE_COLOR,'득점 가능'],[14,INACTIVE_COLOR,'준비·비채점']];
+      for(const [offset,fill,label] of legend){ctx.fillStyle=fill;ctx.fillRect(x+12,y+h-offset-6,14,3);ctx.fillStyle='#405b50';ctx.fillText(label,x+31,y+h-offset,w-43);}ctx.restore();
     }
     render(options={}){
       const {track,car}=options;if(!track||!car)return;
       this.resize();const ctx=this.ctx;ctx.setTransform(this.dpr,0,0,this.dpr,0,0);
       const time=finite(options.time,frameTime(car)),mode=options.mode||'follow',mesh=this._vehicle(options.vehicle,car);
+      this.scoringRegions=this._track(track).scoringRanges;this.scoringPhase=this.scoringRegions.some(r=>car.s>=r.start&&car.s<=r.end)?'eligible':car.s<(this.scoringRegions[0]?.start??0)?'preparation':'unscored';
       this.modelSource=mesh.sourceInfo;
       this.modelDetail=mesh.manufacturer?{mode:'ev2-full-asset',triangles:mesh.manufacturer.triangles,primitives:mesh.manufacturer.primitives.length,paint:mesh.paint,finish:mesh.paintFinish?.id}: {mode:'loading-placeholder'};
       const camera=this._camera(track,car,mode,finite(options.fov,55),time,options.record);
@@ -505,14 +551,16 @@
       if(reference)this._car(reference,mesh,camera,this._spin(framesOf(options.reference),time),true,track);
       this._car(car,mesh,camera,this._spin(history,time),false,track);
       const marks=this.effects.marks;this._effects(history,time,mesh,camera,false,options.smoke!==false,track);this.effects.marks=marks;
-      this._map(track,car,reference);
+      this._map(track,car,reference,options.record,time,options.scoreTimeline);
       if(!mesh.manufacturer){ctx.fillStyle='rgba(38,55,59,.75)';ctx.fillRect(16,this.height-35,Math.min(310,this.width-32),23);ctx.fillStyle='#f1f5f3';ctx.font='11px system-ui';ctx.textAlign='left';ctx.fillText(mesh.sourceInfo.label,25,this.height-19,this.width-50);}
       this.camera=camera;this.mode=mode;this.currentVehicle=mesh.id;this.fov=finite(options.fov,55);
     }
-    getState(){return {renderer:this.surfaceRenderer?.available&&this.surfacePoseAdapter?'perspective-webgl-depth':'perspective-canvas-mesh',threeDimensional:true,terrainElevation:true,vehicleRoll:true,mode:this.mode||'follow',verticalFov:this.fov||55,vehicle:this.currentVehicle,modelSource:this.modelSource,modelDetail:this.modelDetail,surfaceFailure:this.surfaceFailure||null,effects:{...this.effects},camera:this.camera?{distance:this.camera.distance,pitch:this.camera.pitch,yaw:this.camera.yaw,target:{...this.camera.target}}:null};}
+    getState(){return {renderer:this.surfaceRenderer?.available&&this.surfacePoseAdapter?'perspective-webgl-depth':'perspective-canvas-mesh',threeDimensional:true,terrainElevation:true,vehicleRoll:true,mode:this.mode||'follow',verticalFov:this.fov||55,vehicle:this.currentVehicle,modelSource:this.modelSource,modelDetail:this.modelDetail,surfaceFailure:this.surfaceFailure||null,scoring:{phase:this.scoringPhase||null,meaning:'eligible region; not guaranteed points',ranges:(this.scoringRegions||[]).map(r=>({...r}))},effects:{...this.effects},camera:this.camera?{distance:this.camera.distance,pitch:this.camera.pitch,yaw:this.camera.yaw,target:{...this.camera.target}}:null};}
     destroy(){this.surfaceRenderer?.dispose();this.meshes.clear();this.liveFrames=[];}
   }
   DriftRenderer.sampleFrames=sampleFrames;
+  DriftRenderer.scoringRanges=scoringRanges;
+  DriftRenderer.scoringTrace=scoringTrace;
   root.DriftRenderer=DriftRenderer;
   if(typeof module!=='undefined'&&module.exports)module.exports=DriftRenderer;
 })(typeof window!=='undefined'?window:globalThis);

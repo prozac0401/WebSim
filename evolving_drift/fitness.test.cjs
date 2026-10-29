@@ -119,3 +119,96 @@ test('an isolated angle spike cannot beat a larger angle sustained across the ex
  const spin=Fitness.measure(withAngle(base,70),track,vehicle);
  assert.equal(spin.bestExit,null);assert.equal(spin.success,false);assert.ok(spin.score<spike.score);
 });
+
+let physicalReplay;
+function actualReplay(){
+ if(!physicalReplay){
+  const Physics=require('./physics.js'),Catalog=require('./catalog.js'),Tracks=require('./track.js'),fixture=require('./test-fixtures/supra-t21-powered-exit.json');
+  const car=Catalog.get(fixture.vehicle),course=Tracks.get(fixture.track),raw=Physics.evaluateGene(car,course,fixture.gene);
+  assert.equal(raw.valid,true);
+  physicalReplay={car,course,raw,timeline:Fitness.replayTimeline(raw,course,car)};
+ }
+ return physicalReplay;
+}
+
+test('physical replay scores match independent prefixes and the final ranking',()=>{
+ const {raw,course,car,timeline}=actualReplay(),scored=timeline.map((t,i)=>t.earning?i:-1).filter(i=>i>=0);
+ assert.ok(scored.length>10);
+ for(const fraction of [0,.25,.5,.75,1]){
+  const index=scored[Math.floor(fraction*(scored.length-1))],frame=raw.frames[index];
+  // Treat this prefix as a provisional completed calculation. Its style input
+  // comes from this physical frame, never from the full replay's final score.
+  const prefix={...raw,frames:raw.frames.slice(0,index+1),status:'finished',valid:true,score:frame.scoreIntegral/(course.judgedEnd-course.judgedStart)*100};
+  assert.ok(Math.abs(Fitness.measure(prefix,course,car).score-timeline[index].score)<1e-10);
+  assert.equal(timeline[index].provisional,true);
+ }
+ const final=timeline.at(-1),ranked=Fitness.rank(car,course,raw);
+ assert.equal(final.score,ranked.score);assert.equal(final.potentialScore,ranked.score);
+ assert.equal(final.provisional,false);assert.equal(final.finalValid,true);
+});
+
+test('physical preparation and recovery preserve points without earning more',()=>{
+ const {timeline}=actualReplay();
+ for(const phase of ['preparation','recovery']){
+  const frames=timeline.filter(t=>t.phase===phase);assert.ok(frames.length>5);
+  for(const frame of frames){assert.equal(frame.earning,false);assert.equal(frame.delta,0);assert.match(frame.reason,/득점 없음/);}
+ }
+ assert.ok(timeline.some(t=>t.earning&&t.phase==='exit'));
+});
+
+test('future failure, future telemetry and final score never leak into earlier replay points',()=>{
+ const raw=replay(),cut=raw.frames.findIndex(f=>f.s>95),original=Fitness.replayTimeline(raw,track,vehicle);
+ const changed={...raw,score:999,valid:false,status:'offtrack',frames:raw.frames.map((f,i)=>i<=cut?f:{...f,brake:1,beta:0,rearTorque:0,wheelForces:[]})};
+ const laterFailure=Fitness.replayTimeline(changed,track,vehicle);
+ assert.deepEqual(laterFailure.slice(0,cut+1),original.slice(0,cut+1));
+ assert.ok(laterFailure[cut].score>0,'pending completion does not erase the provisional prefix');
+ assert.equal(laterFailure.at(-1).score,0);assert.equal(laterFailure.at(-1).earning,false);
+ assert.equal(laterFailure.at(-1).finalValid,false);assert.match(laterFailure.at(-1).reason,/트랙 이탈.*무효/);
+});
+
+test('every failed completion invalidates the final replay score',()=>{
+ for(const status of ['offtrack','collision','timeout','spin','invalid']){
+  const raw={...replay(),valid:false,status},ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
+  assert.equal(ranked.score,0);assert.equal(ranked.power.success,false);
+  assert.equal(timeline.at(-1).score,0);assert.equal(timeline.at(-1).qualified,false);assert.equal(timeline.at(-1).finalValid,false);
+ }
+ const inconsistent={...replay(),valid:true,status:'offtrack'};
+ assert.equal(Fitness.replayTimeline(inconsistent,track,vehicle).at(-1).score,0);
+});
+
+test('spin telemetry invalidates a claimed finish including the first recorded frame',()=>{
+ const base=replay();
+ for(const index of [0,Math.floor(base.frames.length/2),base.frames.length-1]){
+  for(const explicit of [false,true]){
+   const raw={...base,frames:base.frames.map((f,i)=>i!==index?f:explicit?{...f,status:'spin'}:{...f,beta:76*Math.PI/180,yaw:Math.atan2(f.vy,f.vx)-76*Math.PI/180})};
+   const ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
+   assert.equal(ranked.valid,false,'spin at frame '+index);assert.equal(ranked.status,'spin');assert.equal(ranked.score,0);assert.equal(ranked.power.success,false);
+   for(const point of timeline.slice(index)){assert.equal(point.score,0);assert.equal(point.earning,false);assert.match(point.reason,/스핀.*무효/);}
+  }
+ }
+});
+
+test('earning describes actual point increases and distinguishes auxiliary style from powered exit',()=>{
+ const normal=Fitness.replayTimeline(replay(),track,vehicle),braking=Fitness.replayTimeline(replay({brake:.2}),track,vehicle);
+ for(const point of [...normal,...braking])assert.equal(point.earning,point.conditions.area&&point.delta>1e-7&&!/완주 정산/.test(point.reason));
+ assert.ok(normal.some(p=>p.earning&&p.conditions.corner&&/가속 탈출/.test(p.reason)));
+ const auxiliary=braking.filter(p=>p.earning);assert.ok(auxiliary.length>0);
+ for(const point of auxiliary){assert.equal(point.conditions.brake,false);assert.equal(point.reason,'보조 주행 점수');}
+});
+
+test('compact replay style estimates are disclosed and settled without inventing location earnings',()=>{
+ const raw=replay({brake:.2}),timeline=Fitness.replayTimeline(raw,track,vehicle);
+ assert.ok(timeline.slice(0,-1).every(p=>p.estimatedStyle));
+ const final=timeline.at(-1);
+ assert.equal(final.estimatedStyle,false);assert.ok(Math.abs(final.delta)>1e-7);
+ assert.equal(final.earning,false);assert.equal(final.reason,'완주 정산 · 보조 주행 점수 확정');
+ assert.equal(final.score,Fitness.rank(vehicle,track,raw).score);
+ assert.ok(actualReplay().timeline.every(p=>!p.estimatedStyle),'original physics integrals need no style estimate');
+});
+
+test('measurement, ranking and replay explanations do not mutate frozen inputs',()=>{
+ const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
+ const raw=freeze(replay()),car=freeze({physics:{...vehicle.physics}}),course=Object.freeze({...track}),before=JSON.stringify({raw,car});
+ const a=Fitness.measure(raw,course,car,{trace:true}),b=Fitness.rank(car,course,raw),c=Fitness.replayTimeline(raw,course,car);
+ assert.equal(JSON.stringify({raw,car}),before);assert.equal(a.score,b.score);assert.deepEqual(a.timeline,c);
+});
