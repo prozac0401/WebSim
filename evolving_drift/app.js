@@ -5,7 +5,7 @@
   let runtimeIdentity=null;
   const params=new URLSearchParams(location.search),development=params.get('development')==='1',availableTracks=DriftTrack.list({includeDevelopment:development});
   const preferredTrack=params.get('track')||(development?DriftTrack.DEVELOPMENT_ID:'kr-kic-t21-kdl-2016-r2');
-  let vehicle=DriftCatalog.get(DriftCatalog.DEFAULT_ID),track=availableTracks.find(t=>t.id===preferredTrack)||availableTracks[0]||null,worker=null,engine=null,baseline=null,best=null,selected=null,archive=[],state=null,playing=false,evolving=false,pauseRequested=false,evolutionTimer=null,time=0,last=0,camera='follow',ready=false,manual=false,token=0,appMode='initializing',baselineError=null;
+  let vehicle=DriftCatalog.get('porter-lpg-mt'),track=availableTracks.find(t=>t.id===preferredTrack)||availableTracks[0]||null,worker=null,engine=null,baseline=null,best=null,selected=null,archive=[],state=null,playing=false,evolving=false,pauseRequested=false,evolutionTimer=null,time=0,last=0,camera='follow',ready=false,manual=false,token=0,appMode='initializing',baselineError=null;
   let autoFollow=true,finishHoldMs=0;
   const labels={finished:'유효 완주',offtrack:'앞바퀴 이탈 · 실패',collision:'차체 충돌 · 실패',timeout:'시간 초과',invalid:'계산 오류',spin:'스핀 · 자세 회복'};
   const resultLabel=r=>r.status==='timeout'?(r.reason==='주행 정지'?'주행 정지 · 실패':'제한 시간 초과 · 실패'):(labels[r.status]||r.status);

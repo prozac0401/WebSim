@@ -1,6 +1,6 @@
 'use strict';
 // Pure candidate evaluation: no parent selection, random numbers or grip search.
-const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'finish-switch-20261029-1';
+const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'porter-default-20261030-1';
 importScripts('runtime.js?v='+encodeURIComponent(requestedRelease));
 DriftRuntime.assertRelease(requestedRelease);
 importScripts(...['../evolving_vehicles/vehicle-specs.js','../evolving_vehicles_2/circuit-vehicle-specs.js','../evolving_vehicles_2/tuning-evolution.js','../evolving_vehicles_2/powertrain-profiles.js','catalog.js','course-model.js','kic-t21.js','inje-sdc.js','kic-sdc.js','ebisu-west.js','tsukuba-d1.js','track.js','genome.js','driver.js','physics.js','evaluation-cache.js','prepared-grips.js','course-scoring.js','fitness.js'].map(DriftRuntime.url));
