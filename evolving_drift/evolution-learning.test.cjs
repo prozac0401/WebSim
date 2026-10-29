@@ -59,3 +59,22 @@ test('repair changes valid-parent intent in the precursor window, stays determin
  assert.notDeepEqual(clipped.gene,saturated,'a normalized-away repair still produces a trial within the precursor window');
  assert.equal(clipped.change.family,'steer');assert.equal(clipped.change.fallbackFrom,'lead');
 });
+
+test('a brake-held stop teaches pedal release from a valid parent without copying the failed genome',()=>{
+ const d={...diagnosis,kind:'sustained-stop',candidateId:'stopped-child',recommendedFamilies:['brake-release']};
+ const policy=new Policy([{}]);policy.observe({id:d.candidateId,accepted:false,result:{valid:false,status:'timeout',failureAnalysis:d}});
+ const random=rng(23),choices=Array.from({length:200},()=>policy.choose(random,['lead'])).filter(c=>c.repair);
+ assert.ok(choices.length>30);assert.ok(choices.every(c=>c.family==='brake-release'));
+ const vehicle={physics:{maxSteer:.6,wheelbaseM:2.6,gearRatios:[4,2,1],lengthM:4.5,widthM:1.8}},track={length:220,width:30,sample:s=>({s,x:s,y:0,heading:0,curvature:0})};
+ const gene=G.create();for(let i=0;i<G.KNOTS;i++){gene[i*8+G.CHANNELS.brake]=.4;gene[i*8+G.CHANNELS.throttle]=.1;gene[i*8+G.CHANNELS.gearHold]=2;}
+ const parent={gene,record:[{s:0,speed:15},{s:220,speed:15}],accepted:true,result:{valid:true,status:'finished'}},before=gene.slice();
+ const options={family:'brake-release',diagnosis:d},proposal=Strategies.repair(vehicle,track,parent,rng(4),options);
+ assert.deepEqual(proposal,Strategies.repair(vehicle,track,parent,rng(4),options));assert.deepEqual(gene,before);
+ assert.ok(proposal.gene.some((v,i)=>i%8===G.CHANNELS.brake&&v<gene[i]));
+ for(let i=0;i<gene.length;i++){
+  const s=Math.floor(i/8)/127*track.length,c=i%8;
+  if(![G.CHANNELS.brake,G.CHANNELS.throttle].includes(c)||s<=proposal.change.start||s>=proposal.change.end)assert.equal(proposal.gene[i],gene[i]);
+  if(c===G.CHANNELS.brake)assert.ok(proposal.gene[i]<=gene[i]);
+ }
+ assert.throws(()=>Strategies.repair(vehicle,track,{...parent,accepted:false},rng(),options),/valid parent/);
+});

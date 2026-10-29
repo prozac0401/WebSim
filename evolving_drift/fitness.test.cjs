@@ -1,5 +1,5 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),Fitness=require('./fitness.js');
+const test=require('node:test'),assert=require('node:assert/strict'),Fitness=require('./fitness.js'),CourseScoring=require('./course-scoring.js');
 const DEG=Math.PI/180,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const vehicle={physics:{massKg:1500}};
 const track={id:'test-apex',length:240,judgedStart:20,judgedEnd:200,sample:s=>({curvature:s>=60&&s<=130?.014:0})};
@@ -30,16 +30,19 @@ test('apex evaluation includes linked bends without a powered-exit straight',()=
 test('larger sustained sideways angle wins on the same path and maintained speed',()=>{
   const angles=[15,25,40,55,70],metrics=angles.map(angle=>metric({angle}));
   for(let i=0;i<metrics.length;i++){
-    const m=metrics[i];assert.ok(m.score>0&&m.score<=100);assert.ok(Math.abs(m.score-sum(m.parts))<1e-9);
+    const m=metrics[i];assert.ok(Number.isFinite(m.score)&&m.score>0);assert.ok(Math.abs(m.score-sum(m.parts))<1e-9);
+    assert.deepEqual(Object.keys(m.parts).sort(),['base','continuity','zone']);
     assert.ok(m.sidewaysDistance>0);assert.ok(m.bestArc);
     if(i)assert.ok(m.score>metrics[i-1].score,angles[i]+' degrees must beat '+angles[i-1]);
   }
+  assert.ok(metrics.at(-1).score>100,'distance-based scoring is not capped at the former regional maximum');
 });
 
 test('losing 90 to 40 km/h suppresses the main objective despite a larger angle',()=>{
   const held=metric({angle:35,speed:25}),lost=metric({angle:55,speed:s=>25-(25-40/3.6)*clamp((s-60)/25,0,1)});
   assert.ok(lost.score<held.score*.6,'high-angle deceleration must not beat maintained-speed drift');
-  assert.ok(lost.parts.sideways<held.parts.sideways);assert.ok(lost.parts.connection<held.parts.connection);
+  assert.ok(lost.parts.base<held.parts.base);assert.ok(lost.parts.continuity<held.parts.continuity);
+  assert.ok(lost.regionalParts.sideways<held.regionalParts.sideways);assert.ok(lost.regionalParts.connection<held.regionalParts.connection);
   assert.ok(lost.speedRetention<held.speedRetention);
 });
 
@@ -51,17 +54,23 @@ test('speed retention rewards recovery continuously and never resets at a new sl
   assert.ok(resetAttempt.score<fast.score*.4,'a later low-speed slide cannot define a fresh low entry-speed target');
 });
 
-test('low speed during an apex drift invalidates the whole window and cannot be hidden by restarting',()=>{
+test('low speed invalidates the regional apex window and stops new points without erasing earlier distance',()=>{
   const options={angle:s=>s>=75&&s<85?0:55,speed:s=>s<60?25:40/3.6};
-  const m=metric(options);assert.equal(m.score,0);assert.ok(m.bestArc);
+  const m=metric(options);assert.equal(m.regionalScore,0);assert.ok(m.score>0);assert.ok(m.bestArc);
   assert.equal(m.bestArc.speedScope,'apex-window');
   assert.ok(Math.abs(m.bestArc.speedRetention-(40/3.6)/25)<1e-9,'display the lost window speed, not a short earlier 100% run');
   assert.ok(Math.abs(m.speedRetention-m.bestArc.speedRetention)<1e-9);
+  const timeline=Fitness.replayTimeline(replay(options),track,vehicle),lost=timeline.filter(p=>p.s>=60);
+  assert.ok(lost.every(p=>p.delta===0&&p.chainMultiplier===1),'the low-speed restart earns nothing and keeps the chain reset');
+  assert.ok(lost.every(p=>p.score===m.score),'points earned before the loss remain unchanged');
 });
 
-test('the first slide-release frame cannot hide a simultaneous large speed drop',()=>{
-  const m=metric({angle:s=>s<110?35:0,speed:s=>s<110?20:8});
-  assert.equal(m.score,0,'changing beta to zero on the slowing frame must not preserve the former score');
+test('the first slide-release frame records a simultaneous speed drop and resets only future continuity',()=>{
+  const raw=replay({angle:s=>s<110?35:0,speed:s=>s<110?20:8}),m=Fitness.measure(raw,track,vehicle);
+  assert.equal(m.regionalScore,0,'changing beta to zero cannot hide the regional window speed loss');
+  const timeline=Fitness.replayTimeline(raw,track,vehicle),i=timeline.findIndex(p=>p.s>=110),point=timeline[i];
+  assert.ok(timeline[i-1].score>0);assert.equal(point.score,timeline[i-1].score);assert.equal(point.delta,0);
+  assert.equal(point.chainMultiplier,1);assert.equal(point.conditions.retention,false);assert.equal(m.score,point.score);
 });
 
 test('braking for the next bend after a clean recovery does not erase the completed drift',()=>{
@@ -100,7 +109,10 @@ test('the same braking after sustained drift begins remains a real speed loss, i
  const z=Fitness.apexZones(preparationTrack)[0],speed=s=>s<80?25:12,reference=replay({course:preparationTrack,speed:12,angle:0});
  const raw=replay({course:preparationTrack,angleStart:50,angle:s=>s>=80&&s<110?0:35,speed});
  const m=Fitness.rank(vehicle,preparationTrack,raw,raw.frames,{reference:reference.frames}).drift;
- assert.equal(m.bestArc,null,'the low-speed restart cannot even establish a credited episode');assert.equal(m.score,0);assert.equal(m.fullConnectionCount,0);
+ assert.equal(m.bestArc,null,'the low-speed restart cannot establish a credited regional episode');assert.equal(m.regionalScore,0);assert.equal(m.fullConnectionCount,0);
+ const timeline=Fitness.replayTimeline(Fitness.rank(vehicle,preparationTrack,raw,raw.frames,{reference:reference.frames}),preparationTrack,vehicle);
+ assert.ok(m.score>0,'the earlier sufficient-speed whole-course drift retains its points');
+ assert.ok(timeline.filter(p=>p.s>=80).every(p=>p.delta===0&&p.chainMultiplier===1),'restarting at lower speed cannot earn more points');
  const resumed=replay({course:preparationTrack,angleStart:50,angle:s=>s>=80&&s<110?0:35,speed:s=>s<80?25:20});
  const p=Fitness.rank(vehicle,preparationTrack,resumed,resumed.frames,{reference:reference.frames}).drift;
  assert.equal(p.bestArc.entrySpeed,25);assert.equal(p.bestArc.referenceSource,'sustained-drift');assert.ok(p.bestArc.referenceS<z.start);
@@ -153,10 +165,11 @@ test('planned approach speed changes after a prefix cannot rewrite earlier refer
  const later=Fitness.replayTimeline(changed,preparationTrack,vehicle);assert.deepEqual(later.slice(0,cut+1),original.slice(0,cut+1));
 });
 
-test('propulsion is a bounded five-point supporting factor, not the objective gate',()=>{
+test('propulsion remains a bounded regional diagnostic and does not change points for identical motion',()=>{
   const powered=metric(),coasting=metric({force:0,torque:0,throttle:0}),braking=metric({force:0,torque:0,throttle:0,brake:.3});
-  assert.ok(coasting.score>0);assert.ok(powered.score>=coasting.score);assert.ok(powered.score-coasting.score<=5+1e-9);
-  for(const key of ['sideways','connection','curve'])assert.ok(Math.abs(powered.parts[key]-coasting.parts[key])<1e-9,key+' must not require acceleration');
+  assert.ok(coasting.score>0);assert.equal(powered.score,coasting.score);assert.deepEqual(powered.parts,coasting.parts);
+  assert.ok(powered.regionalScore>=coasting.regionalScore);assert.ok(powered.regionalScore-coasting.regionalScore<=5+1e-9);
+  for(const key of ['sideways','connection','curve'])assert.ok(Math.abs(powered.regionalParts[key]-coasting.regionalParts[key])<1e-9,key+' must not require acceleration');
   assert.ok(Math.abs(braking.score-coasting.score)<1e-9,'identical physical speed/path/angle are not invalidated solely by a pedal');
   const largerAngle=metric({angle:55,force:0,torque:0,throttle:0}),smallPowered=metric({angle:15,force:9000,torque:6000});
   assert.ok(largerAngle.score>smallPowered.score);
@@ -164,26 +177,26 @@ test('propulsion is a bounded five-point supporting factor, not the objective ga
 
 test('one continuous drift crossing the apex beats disconnected slides and angle spikes',()=>{
   const steady=metric({angle:35}),split=metric({angle:s=>s>=88&&s<=102?0:35}),spike=metric({angle:s=>s>=94&&s<=95?70:15});
-  assert.ok(steady.parts.connection>split.parts.connection);assert.ok(steady.score>split.score);assert.ok(steady.score>spike.score);
-  const wrongSign=metric({angle:-35});assert.ok(wrongSign.score<steady.score*.1,'opposite-signed body slip is not the same apex drift');
+  assert.ok(steady.parts.continuity>split.parts.continuity);assert.ok(steady.regionalParts.connection>split.regionalParts.connection);assert.ok(steady.score>split.score);assert.ok(steady.score>spike.score);
+  const wrongSign=metric({angle:-35});assert.ok(wrongSign.regionalScore<steady.regionalScore*.1,'opposite-signed body slip is not the same regional apex drift');
 });
 
-test('a complete entry-to-exit connection outranks a larger angle confined to the exit',()=>{
+test('regional apex diagnostics favor complete entry-to-exit connection over a larger exit fragment',()=>{
   const z=Fitness.apexZones(track)[0];
   const exitOnly=metric({angle:s=>s>z.apex+1?70:0});
   for(const angle of [15,25,40]){
     const connected=metric({angle});
     assert.equal(connected.bestArc.complete,true);assert.equal(connected.fullConnectionCount,1);assert.equal(connected.totalArcCount,1);
     assert.ok(Math.abs(connected.bestArc.connectionCoverage-1)<1e-9);
-    assert.ok(connected.score>exitOnly.score,angle+' degrees across the whole corner must beat a 70-degree exit fragment');
+    assert.ok(connected.regionalScore>exitOnly.regionalScore,angle+' degrees across the whole corner must beat a 70-degree exit fragment in regional diagnostics');
   }
-  assert.equal(exitOnly.bestArc.complete,false);assert.equal(exitOnly.fullConnectionCount,0);assert.equal(exitOnly.parts.connection,0);
+  assert.equal(exitOnly.bestArc.complete,false);assert.equal(exitOnly.fullConnectionCount,0);assert.equal(exitOnly.regionalParts.connection,0);
 });
 
 test('crossing the apex by a few metres is not a complete corner connection',()=>{
   const z=Fitness.apexZones(track)[0],tiny=metric({angle:s=>Math.abs(s-z.apex)<=2?60:0}),full=metric({angle:25});
   assert.ok(tiny.bestArc);assert.equal(tiny.bestArc.complete,false);assert.equal(tiny.fullConnectionCount,0);
-  assert.ok(tiny.bestArc.connectionCoverage<.1);assert.ok(tiny.parts.connection<full.parts.connection*.1);
+  assert.ok(tiny.bestArc.connectionCoverage<.1);assert.ok(tiny.regionalParts.connection<full.regionalParts.connection*.1);
   assert.ok(tiny.score<full.score);
 });
 
@@ -193,7 +206,7 @@ test('the core entry and exit boundaries decide full coverage without requiring 
   const missesEntry=metric({angle:s=>s>z.cornerStart+1&&s<=z.exit?25:0});
   assert.equal(core.bestArc.complete,true);assert.equal(core.fullConnectionCount,1);assert.equal(core.bestArc.connectionCoverage,1);
   for(const m of [missesExit,missesEntry]){assert.equal(m.bestArc.complete,false);assert.ok(m.bestArc.connectionCoverage<1);assert.ok(m.score<core.score);}
-  const raw=replay({angle:s=>s>=z.cornerStart&&s<=z.exit?25:0}),timeline=Fitness.replayTimeline(raw,track,vehicle);
+  const raw=replay({angle:s=>s>=z.cornerStart&&s<=z.exit?25:0}),timeline=Fitness.measure(raw,track,vehicle,{zoneId:z.id,trace:true}).timeline;
   const before=raw.frames.findIndex(f=>f.s>=z.exit)-1,atExit=before+1;
   assert.equal(timeline[before].conditions.complete,false);assert.equal(timeline[atExit].conditions.complete,true);
 });
@@ -205,7 +218,7 @@ test('split, reversed and missing telemetry episodes cannot assemble a complete 
   const raw=replay({angle:65}),gapped=Fitness.measure({...raw,frames:raw.frames.filter(f=>Math.abs(f.s-z.apex)>2)},track,vehicle);
   for(const m of [split,reversed,gapped]){
     assert.equal(m.fullConnectionCount,0);assert.equal(m.bestArc.complete,false);assert.ok(m.bestArc.connectionCoverage<1);
-    assert.ok(m.score<full.score,'a high-angle split must not displace a complete maintained-speed connection');
+    assert.ok(m.regionalScore<full.regionalScore,'a high-angle split must not displace a complete maintained-speed connection in regional diagnostics');
   }
 });
 
@@ -214,26 +227,29 @@ test('full geometric coverage only counts as a maintained-speed connection at ni
   assert.equal(almost.bestArc.connectionCoverage,1);assert.equal(almost.bestArc.complete,false);assert.equal(almost.fullConnectionCount,0);
   assert.equal(held.bestArc.connectionCoverage,1);assert.equal(held.bestArc.complete,true);assert.equal(held.fullConnectionCount,1);
   assert.ok(held.score>almost.score);
-  const slow=metric({speed:s=>s<60?25:40/3.6,angle:55});assert.equal(slow.score,0);assert.equal(slow.fullConnectionCount,0);
+  const slow=metric({speed:s=>s<60?25:40/3.6,angle:55});assert.equal(slow.regionalScore,0);assert.ok(slow.score>0);assert.equal(slow.fullConnectionCount,0);
 });
 
 const preparationTrack={id:'test-pre-start-drift',length:260,judgedStart:100,judgedEnd:220,sample:s=>({curvature:s>=120&&s<=180?.014:0})};
 function preparationReplay(options={}){
   const raw=replay({course:preparationTrack,angleStart:50,angleEnd:240,...options});
   const reference=replay({course:preparationTrack,speed:20,angle:0});
-  return {...raw,drift:{referenceSpeeds:Fitness.referenceSpeeds(preparationTrack,reference.frames)}};
+  return {...raw,drift:{referenceSpeeds:Fitness.referenceSpeeds(preparationTrack,reference.frames),referencePace:CourseScoring.paceProfile(preparationTrack,reference.frames)}};
 }
 
-test('sufficient-speed pre-START drift preserves its origin without awarding preparation distance',()=>{
+test('sufficient-speed drift before the former START preserves its regional origin and earns whole-course points',()=>{
   const early=preparationReplay(),atStart=preparationReplay({angleStart:100});
   const a=Fitness.measure(early,preparationTrack,vehicle),b=Fitness.measure(atStart,preparationTrack,vehicle);
   assert.equal(a.bestArc.startedBeforeStart,true);assert.ok(a.bestArc.initiationS<preparationTrack.judgedStart-20);
   assert.ok(a.bestArc.initiationTime<a.bestArc.startTime);assert.equal(a.bestArc.start,preparationTrack.judgedStart);
-  assert.ok(Math.abs(a.bestArc.distance-b.bestArc.distance)<1e-9);assert.ok(Math.abs(a.score-b.score)<1e-9);
+  assert.ok(Math.abs(a.bestArc.distance-b.bestArc.distance)<1e-9);assert.ok(Math.abs(a.regionalScore-b.regionalScore)<1e-9);
+  assert.ok(a.score>b.score,'additional eligible distance before the former START earns points');
   assert.equal(a.fullConnectionCount,1);
   const timeline=Fitness.replayTimeline(early,preparationTrack,vehicle),pre=timeline.filter(p=>p.s<preparationTrack.judgedStart);
-  assert.ok(pre.some(p=>p.phase==='initiation'&&p.preStartDrift?.active));
-  for(const p of pre){assert.equal(p.score,0);assert.equal(p.earning,false);if(p.preStartDrift?.active){assert.ok(p.preStartDrift.speed>=8);assert.ok(p.preStartDrift.angle>=10);assert.ok(p.preStartDrift.distanceToStart>0);}}
+  assert.ok(pre.some(p=>p.phase==='course'&&p.earning&&p.score>0));
+  assert.ok(pre.every(p=>p.preStartDrift===null),'the old unscored preparation overlay is retired');
+  assert.ok(timeline.some(p=>p.s>preparationTrack.judgedEnd&&p.earning),'the course after the former FINISH also earns points');
+  for(let i=1;i<timeline.length;i++)assert.ok(timeline[i].score>=timeline[i-1].score,'earned points accumulate across former judging boundaries');
 });
 
 test('release, sign reversal and a telemetry gap reset the pre-START origin',()=>{
@@ -252,15 +268,15 @@ test('slow early preparation does not masquerade as sufficient-speed initiation 
   assert.equal(m.bestArc.startedBeforeStart,true);assert.ok(m.bestArc.initiationS>=79.5);assert.ok(m.bestArc.initiationS<100);
   assert.ok(m.score>0);assert.equal(m.fullConnectionCount,1);assert.ok(m.bestArc.speedRetention>=.9);
   const timeline=Fitness.replayTimeline(raw,preparationTrack,vehicle);
-  assert.ok(timeline.filter(p=>p.s>=50&&p.s<80).every(p=>!p.preStartDrift?.active));
+  assert.ok(timeline.filter(p=>p.s>=50&&p.s<80).every(p=>!p.earning&&p.delta===0&&p.chainMultiplier===1));
 });
 
-test('pre-START explanations are causal and do not infer initiation from later frames',()=>{
+test('whole-course explanations before the former START are causal and do not infer later motion',()=>{
   const raw=preparationReplay(),cut=raw.frames.findIndex(f=>f.s===90),original=Fitness.replayTimeline(raw,preparationTrack,vehicle);
   const changed={...raw,frames:raw.frames.map((f,i)=>i<=cut?f:{...f,beta:0})};
   const later=Fitness.replayTimeline(changed,preparationTrack,vehicle);
-  assert.deepEqual(later.slice(0,cut+1),original.slice(0,cut+1));assert.equal(original[cut].preStartDrift.active,true);
-  assert.ok(original[cut].preStartDrift.s<=raw.frames[cut].s);assert.equal(original[cut].score,0);
+  assert.deepEqual(later.slice(0,cut+1),original.slice(0,cut+1));assert.equal(original[cut].phase,'course');
+  assert.equal(original[cut].preStartDrift,null);assert.ok(original[cut].score>0);assert.ok(original[cut].chainDistance>0);
 });
 
 const linkedTracks=[false,true].map(opposite=>({id:'test-linked-'+opposite,length:320,judgedStart:20,judgedEnd:260,
@@ -290,14 +306,17 @@ test('straight-link speed floors never inherit an unrelated corner approach or c
  assert.equal(m.bestLink.referenceScope,'straight-entry');assert.equal(m.bestLink.complete,true);assert.equal(m.straightLinkCount,1);
 });
 
-test('continuous drift through the straight outranks higher-angle corners separated by grip driving',()=>{
+test('straight continuity raises the whole-course score for equal-angle motion and preserves regional link diagnostics',()=>{
   const link=Fitness.straightLinks(linkedTracks[0])[0],held=linkedMetric({angle:25});
   const broken=linkedMetric({angle:s=>s>link.straightStart&&s<link.straightEnd?0:70});
   assert.equal(held.fullConnectionCount,2);assert.equal(held.totalLinkCount,1);assert.equal(held.straightLinkCount,1);
   assert.equal(held.bestLink.complete,true);assert.ok(Math.abs(held.bestLink.coverage-1)<1e-9);assert.ok(held.sequenceCoverage>.99);
   assert.equal(broken.fullConnectionCount,2,'both corners alone still qualify');assert.equal(broken.straightLinkCount,0);
-  assert.ok(held.score>broken.score,'grip recovery between high-angle corners is not the full-course objective');
-  assert.ok(Math.abs(held.score-sum(held.parts))<1e-9);assert.ok(held.score<=100);
+  assert.ok(held.regionalScore>broken.regionalScore,'regional diagnostics still favor complete links over high-angle isolated corners');
+  const equalAngleBroken=linkedMetric({angle:s=>s>link.straightStart&&s<link.straightEnd?0:25});
+  assert.ok(held.score>equalAngleBroken.score);assert.ok(held.parts.continuity>equalAngleBroken.parts.continuity);
+  assert.ok(held.scoring.maxChainDistance>equalAngleBroken.scoring.maxChainDistance);
+  assert.ok(Math.abs(held.score-sum(held.parts))<1e-9);
 });
 
 test('a continuous inside line can complete a link while travelling less distance than the centreline',()=>{
@@ -389,7 +408,8 @@ test('a missing telemetry interval or a single drift pose at each end cannot man
 
 test('straight-link replay remains causal and only confirms completion after the following apex',()=>{
   const {course,raw}=linkedReplay({opposite:true}),link=Fitness.straightLinks(course)[0],timeline=Fitness.replayTimeline(raw,course,vehicle);
-  assert.ok(timeline.some(p=>p.phase==='link'));assert.equal(timeline.at(-1).straightLinkCount,1);
+  assert.ok(timeline.some(p=>p.s>=link.straightStart&&p.s<=link.straightEnd&&p.link));assert.equal(timeline.at(-1).straightLinkCount,1);
+  assert.ok(timeline.every(p=>['course','zone','transition'].includes(p.phase)));
   assert.ok(timeline.filter(p=>p.s<link.end-.25).every(p=>!p.link?.complete));
   for(const s of [95,125,145,175,205]){
     const index=raw.frames.findIndex(f=>f.s>=s),prefix={...raw,frames:raw.frames.slice(0,index+1)},m=Fitness.measure(prefix,course,vehicle);
@@ -402,14 +422,14 @@ test('straight-link replay remains causal and only confirms completion after the
 
 test('straight cuts and oscillating trajectories cannot earn a clean apex curve',()=>{
   const smooth=metric(),cut=metric({curve:()=>0}),weave=metric({curve:s=>track.sample(s).curvature+.08*Math.sin(s*.65)});
-  assert.ok(cut.parts.connection<smooth.parts.connection*.1);assert.ok(cut.parts.curve<smooth.parts.curve*.1);
-  assert.ok(cut.score<smooth.score);assert.ok(weave.parts.curve<smooth.parts.curve);assert.ok(weave.score<smooth.score);
+  assert.ok(cut.regionalParts.connection<smooth.regionalParts.connection*.1);assert.ok(cut.regionalParts.curve<smooth.regionalParts.curve*.1);
+  assert.ok(cut.regionalScore<smooth.regionalScore);assert.ok(weave.regionalParts.curve<smooth.regionalParts.curve);assert.ok(weave.score<smooth.score);
 });
 
 test('turning only before or after a straight corner crossing does not claim a complete apex connection',()=>{
   const z=Fitness.apexZones(track)[0];
   for(const curve of [s=>s>=40&&s<z.cornerStart?.03:0,s=>s>z.exit&&s<160?.03:0]){
-    const raw=replay({curve}),m=Fitness.measure(raw,track,vehicle),timeline=Fitness.replayTimeline(raw,track,vehicle);
+    const raw=replay({curve}),m=Fitness.measure(raw,track,vehicle),timeline=Fitness.measure(raw,track,vehicle,{zoneId:z.id,trace:true}).timeline;
     assert.equal(m.bestArc.connectionCoverage,1,'the same episode covers both core boundaries');
     assert.equal(m.bestArc.complete,false,'its real turn must occur within the corner itself');
     assert.equal(m.fullConnectionCount,0);assert.ok(timeline.every(p=>!p.conditions.complete));
@@ -428,7 +448,7 @@ test('longer elapsed time, stationary poses and inflated projected progress cann
 
 test('a telemetry gap breaks apex continuity instead of joining separated sections',()=>{
   const raw=replay(),normal=Fitness.measure(raw,track,vehicle),gapped={...raw,frames:raw.frames.filter(f=>f.s<88||f.s>102)};
-  const m=Fitness.measure(gapped,track,vehicle);assert.ok(m.parts.connection<normal.parts.connection);assert.ok(m.score<normal.score);
+  const m=Fitness.measure(gapped,track,vehicle);assert.ok(m.regionalParts.connection<normal.regionalParts.connection);assert.ok(m.parts.continuity<normal.parts.continuity);assert.ok(m.score<normal.score);
 });
 
 test('recorded-prefix scores are exact, causal and finish at the same ranking',()=>{

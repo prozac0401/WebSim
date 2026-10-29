@@ -15,36 +15,27 @@ function fixture(){
  return {engine,vehicle,track,record,baseline,zones:F.apexZones(track)};
 }
 
-test('higher first-corner score cannot overwrite a champion by regressing the next corner or link',()=>{
- const champion=entry('1',[10,10],10),cornerLoss=entry('2',[30,4],10),linkLoss=entry('3',[20,20],1),balanced=entry('4',[11,10],11);
- assert.ok(cornerLoss.result.score>champion.result.score);assert.equal(E.preservesRegions(cornerLoss,champion),false);
- assert.equal(E.preservesRegions(linkLoss,champion),false);assert.equal(E.preservesRegions(balanced,champion),true);
-});
-
-test('a stronger weak region can trade partial points from a stronger corner without locking in local luck',()=>{
+test('higher valid displayed totals replace the representative regardless of regional distribution',()=>{
  const incumbent=entry('1',[30,0],0),balanced=entry('2',[25,15],10);
- assert.ok(balanced.result.score>incumbent.result.score);assert.equal(E.preservesRegions(balanced,incumbent),true);
  const {engine,record}=fixture(),jobs=Array.from({length:4},()=>engine.planCandidate());
  for(const [i,r]of [incumbent.result,balanced.result,result([45,1],0),result([26,15],11)].entries())engine.acceptCandidate(jobs[i],{...r,frames:record});
- assert.equal(engine.best.id,jobs[3].id);assert.equal(engine.best.result.score,52);assert.equal(engine.snapshot().selectionStats.guardedRegressions,0,'the locally worse candidate also had lower total score and never challenged the representative');
+ assert.equal(engine.best.id,jobs[3].id);assert.equal(engine.best.result.score,52);assert.equal(engine.snapshot().selectionStats.promotions,3);
 });
 
-test('weakest-first comparison tolerates insignificant score noise but preserves meaningful regressions',()=>{
- const incumbent=entry('1',[10,20],10);
- assert.equal(E.preservesRegions(entry('2',[9.95,21],11),incumbent),true);
- assert.equal(E.preservesRegions(entry('3',[9.8,40],20),incumbent),false);
-});
-
-test('completed regional connections cannot be exchanged for more partial points',()=>{
- const champion=entry('1',[10,10],10,{complete:[true,false,true]}),candidate=entry('2',[20,20],20);
- assert.equal(E.preservesRegions(candidate,champion),false);
- assert.equal(E.preservesRegions(entry('3',[20,20],20,{complete:[true,false,true]}),champion),true);
+test('failed results never replace a valid representative even with a larger raw score',()=>{
+ const {engine,record}=fixture(),jobs=Array.from({length:4},()=>engine.planCandidate());
+ const outcomes=[result([10,10],10),result([100,100],100,{valid:false}),result([15,15],0),result([15,15],0,{score:30.001})];
+ for(let i=0;i<4;i++){
+  engine.acceptCandidate(jobs[i],{...outcomes[i],frames:record});
+  if(i===1){assert.equal(engine.best.id,jobs[0].id);assert.equal(engine.lastCandidate.accepted,false);}
+ }
+ assert.equal(engine.best.id,jobs[3].id);assert.equal(engine.best.result.score,30.001);
+ assert.equal(engine.snapshot().selectionStats.promotions,2);
 });
 
 test('Pareto trade-offs survive while dominated regional results are excluded',()=>{
  const a=entry('1',[10,2]),b=entry('2',[2,10]),c=entry('3',[1,1]),d=entry('4',[10,2]);
  assert.deepEqual(E.paretoEntries([a,b,c,d]).map(e=>e.id),['1','2','4']);
- assert.ok(E.preservesRegions(a,entry('0',[0,0])),'a first useful corner retains its learning gradient');
 });
 
 test('weakest region includes associated connectors without making all corners equal on a broken link',()=>{
@@ -52,14 +43,14 @@ test('weakest region includes associated connectors without making all corners e
  assert.deepEqual(E.weakestArcs(entry('2',[0,0]),zones),[0,1]);
 });
 
-test('engine compares equal-budget candidates without promoting a local overfit and keeps score semantics',()=>{
+test('regional diversity guides parents without vetoing the maximum valid displayed score',()=>{
  const {engine,record}=fixture(),jobs=Array.from({length:4},()=>engine.planCandidate());
  const outcomes=[result([10,10],10),result([30,4],10),result([12,11],11),result([40,2],0)];
  for(let i=0;i<4;i++)engine.acceptCandidate(jobs[i],{...outcomes[i],frames:record});
- assert.equal(engine.best.id,jobs[2].id);assert.equal(engine.best.result.score,34);
- const stats=engine.snapshot().selectionStats;assert.equal(stats.balancedPromotions,2);assert.equal(stats.guardedRegressions,2);
- assert.equal(Math.max(...outcomes.map(r=>r.score)),44,'the former score-only winner regressed the second region');
- assert.ok(stats.paretoParents>0);assert.ok(engine._nicheArchives.flat().some(e=>e.id===jobs[1].id),'a rejected trade-off remains a real proposal parent');
+ assert.equal(engine.best.id,jobs[1].id);assert.equal(engine.best.result.score,44);
+ const stats=engine.snapshot().selectionStats;assert.equal(stats.promotions,2);
+ assert.equal(engine.best.result.score,Math.max(...outcomes.map(r=>r.score)));
+ assert.ok(stats.paretoParents>0);assert.ok(engine._nicheArchives.flat().some(e=>e.id===jobs[2].id),'a lower-total regional trade-off remains a real proposal parent');
 });
 
 test('zero-score niche ties retain locally diverse valid preparation rather than only the baseline',()=>{

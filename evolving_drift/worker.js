@@ -1,8 +1,8 @@
 'use strict';
-const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'course-speed-20261029-1';
+const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'brake-planning-20261029-1';
 importScripts('runtime.js?v='+encodeURIComponent(requestedRelease));
 DriftRuntime.assertRelease(requestedRelease);
-importScripts(...['../evolving_vehicles/vehicle-specs.js','../evolving_vehicles_2/circuit-vehicle-specs.js','../evolving_vehicles_2/tuning-evolution.js','../evolving_vehicles_2/powertrain-profiles.js','catalog.js','course-model.js','kic-t21.js','inje-sdc.js','kic-sdc.js','ebisu-west.js','tsukuba-d1.js','track.js','genome.js','driver.js','physics.js','evaluation-cache.js','prepared-grips-manifest.js','prepared-grips.js','fitness.js','entry-speed-planner.js','evolution-strategies.js','failure-analysis.js','evolution-learning.js','evolution.js'].map(DriftRuntime.url));
+importScripts(...['../evolving_vehicles/vehicle-specs.js','../evolving_vehicles_2/circuit-vehicle-specs.js','../evolving_vehicles_2/tuning-evolution.js','../evolving_vehicles_2/powertrain-profiles.js','catalog.js','course-model.js','kic-t21.js','inje-sdc.js','kic-sdc.js','ebisu-west.js','tsukuba-d1.js','track.js','genome.js','mutation-shape.js','driver.js','physics.js','evaluation-cache.js','prepared-grips-manifest.js','prepared-grips.js','course-scoring.js','fitness.js','entry-speed-planner.js','evolution-strategies.js','failure-analysis.js','evolution-learning.js','evolution.js'].map(DriftRuntime.url));
 let engine=null,running=false,stopGeneration=Infinity,lastBest=null,timer=null,initToken=0;
 let slots=[],jobs=[],results=new Map(),workerCount=1,configuration=null,poolPromise=null,poolEpoch=0;
 let runtimeIdentity=null,evaluator=null,evaluationStats=null;

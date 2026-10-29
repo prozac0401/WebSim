@@ -3,6 +3,7 @@
 (function(root){
 'use strict';
 const DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),cache=new WeakMap();
+const CourseScoring=root.DriftCourseScoring||(typeof require==='function'?require('./course-scoring.js'):null);
 function exitZones(track){
  if(cache.has(track))return cache.get(track);const arcs=[];let run=null;
  const curvature=s=>[-4,-2,0,2,4].reduce((n,d)=>n+(track.sample(clamp(s+d,0,track.length)).curvature||0),0)/5;
@@ -93,13 +94,14 @@ function measurePower(result,track,vehicle,{trace=false}={}){
  const output={score:completed?scored.potentialScore:0,styleScore:finalStyle,totalPowerDistance,qualityDistance,exitQuality,bestExit:scored.bestExit,bestAttempt:scored.bestAttempt,success:completed&&scored.qualified,runs,zones,spinDetected};
  if(trace)output.timeline=timeline;return output;
 }
-const apexCache=new WeakMap(),WEIGHTS=Object.freeze({sideways:35,connection:45,curve:15,propulsion:5});
+const apexCache=new WeakMap(),courseApexCache=new WeakMap(),WEIGHTS=Object.freeze({sideways:35,connection:45,curve:15,propulsion:5});
 const smooth01=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const slipQuality=beta=>clamp((Math.sin(Math.abs(beta))-Math.sin(2*DEG))/(Math.sin(70*DEG)-Math.sin(2*DEG)),0,1);
 const speedQuality=(speed,reference)=>reference>0?smooth01((speed/reference-.7)/.25)*smooth01((speed-5)/7):0;
-function apexZones(track){
- if(apexCache.has(track))return apexCache.get(track);
+function apexZones(track,fullCourse=false){
+ const cache=fullCourse?courseApexCache:apexCache;if(cache.has(track))return cache.get(track);
+ const scoredStart=fullCourse?2.5:track.judgedStart,scoredEnd=fullCourse?track.length:track.judgedEnd;
  const arcs=[];let run=null;
  const curvature=s=>[-4,-2,0,2,4].reduce((n,d)=>n+(track.sample(clamp(s+d,0,track.length)).curvature||0),0)/5;
  const close=()=>{if(run&&run.exit-run.cornerStart>=10&&Math.abs(run.turn)>=.15)arcs.push({...run,apex:run.moment/run.weight});run=null;};
@@ -111,22 +113,22 @@ function apexZones(track){
  // Geometric apex estimates, not surveyed clipping points. Include turns with
  // short exits too; the old powered-exit detector deliberately omitted them.
  const zones=arcs.map((a,i)=>{
-  const start=Math.max(track.judgedStart,a.cornerStart-35,i?(arcs[i-1].exit+a.cornerStart)/2:0);
-  const end=Math.min(track.length-10,a.exit+60,i<arcs.length-1?(a.exit+arcs[i+1].cornerStart)/2:track.length);
+  const start=Math.max(scoredStart,a.cornerStart-35,i?(arcs[i-1].exit+a.cornerStart)/2:0);
+  const end=Math.min(fullCourse?track.length:track.length-10,a.exit+60,i<arcs.length-1?(a.exit+arcs[i+1].cornerStart)/2:track.length);
   return {id:'apex-'+i,start,cornerStart:a.cornerStart,apex:a.apex,exit:a.exit,end,referenceStart:Math.max(2.5,start-20),sign:a.sign,turn:a.turn,fitRadius:Math.max(6,Math.min(25,(a.exit-a.cornerStart)*.35))};
- }).filter(z=>z.apex>=track.judgedStart&&z.apex<=track.judgedEnd&&z.start<z.apex&&z.end>z.apex);
- const frozen=Object.freeze(zones.map(Object.freeze));apexCache.set(track,frozen);return frozen;
+ }).filter(z=>z.apex>=scoredStart&&z.apex<=scoredEnd&&z.start<z.apex&&z.end>z.apex);
+ const frozen=Object.freeze(zones.map(Object.freeze));cache.set(track,frozen);return frozen;
 }
-const linkCache=new WeakMap();
-function straightLinks(track){
- if(linkCache.has(track))return linkCache.get(track);
- const zones=apexZones(track),links=[];
+const linkCache=new WeakMap(),courseLinkCache=new WeakMap();
+function straightLinks(track,fullCourse=false){
+ const cache=fullCourse?courseLinkCache:linkCache;if(cache.has(track))return cache.get(track);
+ const zones=apexZones(track,fullCourse),links=[];
  for(let i=0;i<zones.length-1;i++){
   const a=zones[i],b=zones[i+1];if(b.cornerStart-a.exit<3)continue;
   links.push(Object.freeze({id:'link-'+i,fromZoneId:a.id,toZoneId:b.id,start:a.apex,end:b.apex,straightStart:a.exit,straightEnd:b.cornerStart,
    fromSign:a.sign,toSign:b.sign,fromTurn:Math.min(.08,Math.abs(a.turn)*.1),toTurn:Math.min(.08,Math.abs(b.turn)*.1)}));
  }
- const frozen=Object.freeze(links);linkCache.set(track,frozen);return frozen;
+ const frozen=Object.freeze(links);cache.set(track,frozen);return frozen;
 }
 function newLinkState(zone,refs){return {zone,preparedPace:refs[zone.id]||0,referenceSpeed:(refs[zone.id]||0)*.8,referenceFloor:(refs[zone.id]||0)*.8,referenceFixed:false,minimumSpeed:Infinity,exitSpeed:null,run:null,runs:[],lastS:-Infinity,previousHeading:null};}
 function closeLink(state){if(state.run)state.runs.push(state.run);state.run=null;}
@@ -311,6 +313,8 @@ function preparationOrigin(frames,reference){
 function measure(result,track,vehicle,options={}){
  const frames=options.record||result.frames||[],allZones=apexZones(track),zones=options.zoneId?allZones.filter(z=>z.id===options.zoneId):allZones;
  const refs={...(options.referenceSpeeds||result.drift?.referenceSpeeds||(options.reference?referenceSpeeds(track,options.reference):{}))};
+ const referencePace=options.referencePace||result.drift?.referencePace||(options.reference?CourseScoring.paceProfile(track,options.reference):null);
+ const course=options.zoneId?null:new CourseScoring.Accumulator(track,{referencePace,links:straightLinks(track,true),corners:apexZones(track,true)});
  const states=zones.map(zone=>{const index=allZones.indexOf(zone),pace=refs[zone.id]||0;return {zone,preparedPace:pace,referenceFloor:pace*.8,referenceSpeed:pace*.8,referenceFixed:false,earlyReference:0,referenceRun:null,referenceS:null,referenceTime:null,referenceAllowedStart:index>0?allZones[index-1].exit:2.5,minimumSpeed:Infinity,preparation:[],fit:newFit(),runs:[],run:null,credit:0,propulsion:0,sidewaysDistance:0,coveredDistance:0,angleDistance:0,angleIntegral:0,signedTurn:0,absoluteTurn:0,previousHeading:null,lastS:-Infinity};});
  const linkStates=straightLinks(track).filter(z=>!options.zoneId||z.fromZoneId===options.zoneId||z.toZoneId===options.zoneId).map(z=>newLinkState(z,refs));
  const timeline=[],p=vehicle.physics||vehicle;let spinDetected=false,lastScore=0;
@@ -369,6 +373,9 @@ function measure(result,track,vehicle,options={}){
   }
   let activeLink=null,linkContribution=0;
   for(const link of linkStates){const credit=advanceLink(link,a,f,moving,spinDetected);if(f.s>=link.zone.start&&f.s<=link.zone.end){activeLink=link;linkContribution=credit;}}
+  // The full-course accumulator owns its causal speed reference. Legacy
+  // regional references remain diagnostics and cannot silently reset it.
+  const courseFacts=course?.step(f,a);
   if(options.trace){
    const snapshot=objectiveSnapshot(states,linkStates,!!options.zoneId),last=i===frames.length-1,status=last?result.status:(f.status||'running');
    const failed=spinDetected||status!=='running'&&status!=='finished'||last&&(result.valid!==true||result.status!=='finished');
@@ -391,11 +398,30 @@ function measure(result,track,vehicle,options={}){
     :!conditions.retention?'속도 손실 · 전체 배점 감소'
     :delta< -1e-7?'곡선 연결·유지 각도 변화로 점수 재평가':'현재 연속 드리프트 기록 유지';
    timeline.push({time:f.time,s:f.s,score,potentialScore:snapshot.score,delta,earning,reassessment,provisional:!last,estimatedStyle:false,status,phase,reason,conditions,parts:snapshot.parts,arc:snapshot.bestArc,fullConnectionCount:snapshot.fullConnectionCount,totalArcCount:snapshot.totalArcCount,straightLinkCount:snapshot.straightLinkCount,totalLinkCount:snapshot.totalLinkCount,link,preStartDrift,finalValid:last&&!failed&&result.valid===true});
+   if(courseFacts){
+    const terminalFailure=spinDetected||status!=='running'&&status!=='finished'||last&&status==='finished'&&result.valid!==true;
+    const previousScore=timeline.length>1?timeline.at(-2).score:0,score=terminalFailure?0:courseFacts.potentialScore;
+    const c=courseFacts.conditions,reason=terminalFailure?(spinDetected||status==='spin'?'스핀':status==='offtrack'?'앞바퀴 이탈':status==='collision'?'차체 충돌':'완주 실패')+' · 전체 점수 무효'
+     :courseFacts.transitioning?'방향 전환 중 · 연속 배수 유지 · 득점 없음'
+     :courseFacts.delta>0?(courseFacts.zoneMultiplier===2?'ZONE ×2 · 새 진행 거리 득점':'연속 드리프트 · 새 진행 거리 득점')
+     :!c.angle?'슬립각 10~70° 필요 · 연속 배수 ×1'
+     :!c.speed?'속도 28.8km/h 이상 필요 · 연속 배수 ×1'
+     :!c.retention?'기준 속도의 70% 이하 · 득점 중단 · 연속 배수 ×1':'새 전진 거리 필요 · 연속 배수 ×1';
+    Object.assign(timeline.at(-1),courseFacts,{score,delta:score-previousScore,earning:!terminalFailure&&courseFacts.delta>0,reassessment:false,reason,
+     provisional:status==='running',preStartDrift:null,parts:terminalFailure?{base:0,continuity:0,zone:0}:courseFacts.parts,
+     finalValid:last&&result.valid===true&&result.status==='finished'&&!terminalFailure});
+   }
   }
  }
  const snapshot=objectiveSnapshot(states,linkStates,!!options.zoneId),valid=result.valid===true&&result.status==='finished'&&!spinDetected;
  const power=options.diagnostics===false?null:measurePower({...result,frames},track,vehicle);
- const output={...snapshot,score:valid?snapshot.score:0,referenceSpeeds:refs,spinDetected,power};if(options.trace)output.timeline=timeline;return output;
+ const output={...snapshot,score:valid?snapshot.score:0,referenceSpeeds:refs,referencePace,spinDetected,power};
+ if(course){
+  const scoring=course.summary(),parts=valid?scoring.parts:{base:0,continuity:0,zone:0};
+  Object.assign(output,{score:valid?scoring.score:0,parts,scoring:{...scoring,potentialScore:scoring.score,score:valid?scoring.score:0,parts},
+   regionalScore:snapshot.score,regionalParts:snapshot.parts,sequenceFactor:1});
+ }
+ if(options.trace)output.timeline=timeline;return output;
 }
 function rank(vehicle,track,result,record=result.frames,options={}){
  const drift=measure({...result,frames:record},track,vehicle,options),power=drift.power;
@@ -403,6 +429,6 @@ function rank(vehicle,track,result,record=result.frames,options={}){
   styleScore:result.styleScore??result.score??0,score:drift.score,drift,power};
 }
 function replayTimeline(result,track,vehicle,record=result.frames){return measure({...result,frames:record},track,vehicle,{trace:true,diagnostics:false}).timeline;}
-function signature(){return JSON.stringify(WEIGHTS)+'\n'+[exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,preparedPace,referenceSpeeds,advanceReference,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
-const api=Object.freeze({VERSION:6,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+function signature(){return JSON.stringify(WEIGHTS)+'\n'+CourseScoring.signature()+'\n'+[exitZones,inspectFrame,completedRun,angleQuality,progressQuality,successfulParts,sumParts,scoredState,measurePower,apexZones,straightLinks,newLinkState,closeLink,advanceLink,linkSnapshot,preparedPace,referenceSpeeds,advanceReference,newFit,addFit,solveFit,fitQuality,turnQuality,retainedQuality,connectionOf,connectionFactor,preparationOrigin,describeRun,arcSnapshot,objectiveSnapshot,slipQuality,speedQuality,smooth01,wrap,measure,rank,replayTimeline].map(String).join('\n').replace(/\r\n/g,'\n');}
+const api=Object.freeze({VERSION:7,WEIGHTS,apexZones,straightLinks,referenceSpeeds,exitZones,inspectFrame,measurePower,measure,rank,replayTimeline,signature});root.DriftFitness=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

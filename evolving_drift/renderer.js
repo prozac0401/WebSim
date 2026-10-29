@@ -66,7 +66,7 @@
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d', { alpha: false });
       this.meshes = new Map(); this.loading = new Set(); this.trackCache = new WeakMap();
-      this.follow = null; this.lastTime = null; this.lastRecord = null; this.lastMode = null;
+      this.follow = null; this.lastTime = null; this.lastRecord = null; this.lastMode = null; this.lastTrack = null; this.finishCamera = null;
       this.wheelAngles = [0, 0, 0, 0]; this.liveFrames = []; this.lastLiveTime = -1;
       this.modelSource = null; this.effects = { marks: 0, smoke: 0 };
       this.surfaceRenderer = null;
@@ -282,8 +282,18 @@
     }
     _camera(track, car, mode, fov, time, record) {
       const layout = this._track(track), f = this.height * .5 / Math.tan(clamp(fov, 30, 90) * Math.PI / 360);
+      const finished = !!record && car.status === 'finished';
+      const rewind = time < finite(this.lastTime, time) - 1e-9;
+      const changedView = mode !== this.lastMode || record !== this.lastRecord || track !== this.lastTrack;
+      if (!finished || rewind || changedView) this.finishCamera = null;
+      if (this.finishCamera) {
+        this.lastTime = time;
+        // Resize and FOV still affect projection; the finished camera's world
+        // position, target and orientation no longer follow or settle.
+        return { ...this.finishCamera, target: { ...this.finishCamera.target }, f, cx: this.width * .5, cy: this.height * (mode === 'follow' ? .57 : .53) };
+      }
       let target, yaw, pitch, distance;
-      const reset = !this.follow || mode !== this.lastMode || record !== this.lastRecord || time < finite(this.lastTime, time) - .01 || Math.abs(time - finite(this.lastTime, time)) > 1;
+      const reset = !this.follow || changedView || rewind || Math.abs(time - finite(this.lastTime, time)) > 1;
       if (mode === 'follow') {
         const heading = Math.hypot(finite(car.vx), finite(car.vy)) > 2 ? Math.atan2(car.vy, car.vx) : finite(car.yaw);
         const pose=this._pose(track,car),desired = { x: car.x + Math.cos(heading) * 3.8, y: car.y + Math.sin(heading) * 3.8,z:pose.z+.45, heading };
@@ -309,8 +319,12 @@
           distance=Math.max(distance,h*cp+z*sp+Math.max(Math.abs(right)*f/availableX,Math.abs(vertical)*f/availableY,.61));
         }
       }
-      this.lastMode = mode; this.lastTime = time; this.lastRecord = record;
-      return { target, yaw, pitch, distance, f, cx: this.width * .5, cy: this.height * (mode === 'follow' ? .57 : .53), sinYaw: Math.sin(yaw), cosYaw: Math.cos(yaw), sinPitch: Math.sin(pitch), cosPitch: Math.cos(pitch) };
+      this.lastMode = mode; this.lastTime = time; this.lastRecord = record; this.lastTrack = track;
+      const camera = { target, yaw, pitch, distance, f, cx: this.width * .5, cy: this.height * (mode === 'follow' ? .57 : .53), sinYaw: Math.sin(yaw), cosYaw: Math.cos(yaw), sinPitch: Math.sin(pitch), cosPitch: Math.cos(pitch) };
+      // Calculate this frame first: seeking straight to the finish must never
+      // latch the camera from an earlier, pre-finish render.
+      if (finished) this.finishCamera = { ...camera, target: { ...camera.target } };
+      return camera;
     }
     _project(p, camera) {
       const x = p.x - camera.target.x, y = p.y - camera.target.y, z = finite(p.z) - finite(camera.target.z);
@@ -366,7 +380,7 @@
         this._line(strip,'#e9b744',7,camera);
         const p=this._project(strip[3],camera);if(p&&p.depth<camera.distance+150)zones.push({x:p.x,y:p.y,text:zone.label||'ZONE'});
       }
-      for(const [s,label,fill] of [[track.judgedStart,'START','#edf0e3'],[track.judgedEnd,'FINISH','#e6c77e']])if(Number.isFinite(s)){
+      for(const [s,label,fill] of [[Math.min(2.5,track.length),'START','#edf0e3'],[track.length,'FINISH','#e6c77e']])if(Number.isFinite(s)){
         const p=this._sample(track,s),h=finite(p.heading),n=point(-Math.sin(h),Math.cos(h));
         const left=finite(p.widthLeft,layout.width/2),right=finite(p.widthRight,layout.width/2),at=d=>{const x=p.x+n.x*d,y=p.y+n.y*d;return point(x,y,this._surface(track,x,y,p.s).z+.045);};
         this._line([at(-right),at(left)],fill,3,camera);
@@ -494,7 +508,7 @@
       // No selected flag: all five parts must share a single depth buffer.
       return entries;
     }
-    _car(frame,mesh,camera,spin,ghost,track){
+    _car(frame,mesh,camera,spin,track){
       const queue=[],ctx=this.ctx,pose=this._pose(track,frame),body=this._bodyAssemblyPose(frame,mesh,track,pose);
       const transform=p=>{const q=applyBasis(body.basis,p);return point(body.position.x+q.x,body.position.y+q.y,body.position.z+q.z);};
       const shadow=Array.from({length:18},(_,i)=>{const q=transform(point(Math.cos(i/18*TAU)*mesh.length*.53+.25+finite(mesh.bodyOffset),Math.sin(i/18*TAU)*mesh.width*.57+.15,0));q.z=this._surface(track,q.x,q.y,frame.s).z+.022;return q;});
@@ -503,7 +517,7 @@
         let layer;
         try { layer=this._surfaceLayer(this._surfaceEntries(frame,mesh,spin,track),camera,this._track(track).occluders); }
         catch(error){this.surfaceFailure=String(error);this.surfaceRenderer.available=false;}
-        if(layer){ctx.save();if(ghost)ctx.globalAlpha=.25;ctx.drawImage(layer,0,0,this.width,this.height);ctx.restore();return;}
+        if(layer){ctx.save();ctx.drawImage(layer,0,0,this.width,this.height);ctx.restore();return;}
       }
       // Software fallback keeps supplied walls/trees in the painter order with
       // the vehicle. The WebGL path above uses their actual depth pre-pass.
@@ -522,7 +536,7 @@
         }
         this._polygon(world,fill,camera,queue,fill,.25);
       }
-      ctx.save();if(ghost)ctx.globalAlpha=.25;this._paint(queue);ctx.restore();
+      ctx.save();this._paint(queue);ctx.restore();
     }
     _obstacles(track,camera){
       const queue=[];
@@ -533,15 +547,15 @@
       }
       this._paint(queue);
     }
-    _map(track,car,reference){
+    _map(track,car){
       const ctx=this.ctx,layout=this._track(track),b=layout.bounds,w=Math.min(194,Math.max(134,this.width*.24),this.width-36),h=142,x=this.width-w-18,y=18,pad=17;
       ctx.save();ctx.fillStyle='rgba(246,249,247,.92)';ctx.strokeStyle='rgba(96,117,111,.20)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect?.(x,y,w,h,9);if(!ctx.roundRect)ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();
       const scale=Math.min((w-2*pad)/Math.max(1,b.maxX-b.minX),(h-48)/Math.max(1,b.maxY-b.minY));
       const project=p=>({x:x+w/2+(p.x-layout.center.x)*scale,y:y+26+(h-42)/2+(p.y-layout.center.y)*scale});
       for(let i=0;i<layout.edges.length-1;i++){const a=layout.edges[i],b=layout.edges[i+1];ctx.beginPath();[a.left,b.left,b.right,a.right].forEach((p,j)=>{const q=project(p);j?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.closePath();ctx.fillStyle='#c5d4cb';ctx.fill();}
-      ctx.beginPath();let started=false;for(const p of layout.edges){if(p.s<finite(track.judgedStart)||p.s>finite(track.judgedEnd,track.length))continue;const q=project(p);started?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);started=true;}ctx.strokeStyle='#3f8b73';ctx.lineWidth=3;ctx.stroke();
-      const marker=(frame,fill)=>{if(!frame)return;const q=project(frame);ctx.fillStyle=fill;ctx.beginPath();ctx.arc(q.x,q.y,3.5,0,TAU);ctx.fill();};marker(reference,'#d39148');marker(car,'#152d37');
-      ctx.fillStyle='#405b50';ctx.font='600 10px system-ui';ctx.textAlign='left';ctx.fillText('COURSE',x+12,y+17);ctx.font='10px system-ui';ctx.fillText(Math.round(track.length)+' m · 채점 '+Math.round(finite(track.judgedEnd,track.length)-finite(track.judgedStart))+' m',x+12,y+h-11,w-24);ctx.restore();
+      ctx.beginPath();let started=false;for(const p of layout.edges){const q=project(p);started?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);started=true;}ctx.strokeStyle='#3f8b73';ctx.lineWidth=3;ctx.stroke();
+      const q=project(car);ctx.fillStyle='#152d37';ctx.beginPath();ctx.arc(q.x,q.y,3.5,0,TAU);ctx.fill();
+      ctx.fillStyle='#405b50';ctx.font='600 10px system-ui';ctx.textAlign='left';ctx.fillText('COURSE',x+12,y+17);ctx.font='10px system-ui';ctx.fillText(Math.round(track.length)+' m · ZONE ×2',x+12,y+h-11,w-24);ctx.restore();
     }
     render(options={}){
       const {track,car}=options;if(!track||!car)return;
@@ -550,19 +564,18 @@
       this.modelSource=mesh.sourceInfo;
       this.modelDetail=mesh.manufacturer?{mode:'ev2-full-asset',triangles:mesh.manufacturer.triangles,primitives:mesh.manufacturer.primitives.length,paint:mesh.paint,finish:mesh.paintFinish?.id}: {mode:'loading-placeholder'};
       const camera=this._camera(track,car,mode,finite(options.fov,55),time,options.record);
-      const history=this._history(options.record,car,time),reference=options.ghost===false?null:sampleFrames(options.reference,time);
+      const history=this._history(options.record,car,time);
       this._ground(track,camera);
       this._effects(history,time,mesh,camera,options.marks!==false,false,track);
       this._obstacles(track,camera);
-      if(reference)this._car(reference,mesh,camera,this._spin(framesOf(options.reference),time),true,track);
-      this._car(car,mesh,camera,this._spin(history,time),false,track);
+      this._car(car,mesh,camera,this._spin(history,time),track);
       const marks=this.effects.marks;this._effects(history,time,mesh,camera,false,options.smoke!==false,track);this.effects.marks=marks;
-      this._map(track,car,reference);
+      this._map(track,car);
       if(!mesh.manufacturer){ctx.fillStyle='rgba(38,55,59,.75)';ctx.fillRect(16,this.height-35,Math.min(310,this.width-32),23);ctx.fillStyle='#f1f5f3';ctx.font='11px system-ui';ctx.textAlign='left';ctx.fillText(mesh.sourceInfo.label,25,this.height-19,this.width-50);}
       this.camera=camera;this.mode=mode;this.currentVehicle=mesh.id;this.fov=finite(options.fov,55);
     }
-    getState(){return {renderer:this.surfaceRenderer?.available&&this.surfacePoseAdapter?'perspective-webgl-depth':'perspective-canvas-mesh',threeDimensional:true,terrainElevation:true,vehicleRoll:true,mode:this.mode||'follow',verticalFov:this.fov||55,vehicle:this.currentVehicle,modelSource:this.modelSource,modelDetail:this.modelDetail,surfaceFailure:this.surfaceFailure||null,effects:{...this.effects},camera:this.camera?{distance:this.camera.distance,pitch:this.camera.pitch,yaw:this.camera.yaw,target:{...this.camera.target}}:null};}
-    destroy(){this.surfaceRenderer?.dispose();this.meshes.clear();this.liveFrames=[];}
+    getState(){return {renderer:this.surfaceRenderer?.available&&this.surfacePoseAdapter?'perspective-webgl-depth':'perspective-canvas-mesh',threeDimensional:true,terrainElevation:true,vehicleRoll:true,mode:this.mode||'follow',verticalFov:this.fov||55,vehicle:this.currentVehicle,modelSource:this.modelSource,modelDetail:this.modelDetail,surfaceFailure:this.surfaceFailure||null,effects:{...this.effects},camera:this.camera?{distance:this.camera.distance,pitch:this.camera.pitch,yaw:this.camera.yaw,target:{...this.camera.target},finishLocked:!!this.finishCamera}:null};}
+    destroy(){this.surfaceRenderer?.dispose();this.meshes.clear();this.liveFrames=[];this.finishCamera=null;}
   }
   DriftRenderer.sampleFrames=sampleFrames;
   root.DriftRenderer=DriftRenderer;

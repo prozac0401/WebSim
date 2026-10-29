@@ -36,8 +36,12 @@
   const start=clamp(Math.min(found?crossing:profileStart,profileStart)-q.brakeLead,lower,end-2*ds),length=end-start;
   const rampIn=Math.min(2*ds,length*.2),rampOut=Math.min(3*ds,length*.3),effectiveDistance=Math.max(ds,length-(rampIn+rampOut)/2);
   const approachSpeed=at(arrival,start),deceleration=Math.max(0,(approachSpeed**2-targetSpeed**2)/(2*effectiveDistance));
-  const pressure=clamp(deceleration/(p.brakeAcceleration||9.8)*q.brakeStrength,0,.85);
-  return {zoneId:zone.id,trackLength:track.length,start,end,rampIn,rampOut,pressure,targetSpeed,referenceSpeed,approachSpeed,curvature:peak,requiredDistance,deceleration,parameters:q};
+  // The placement estimate and emitted pedal must share one braking budget.
+  // A short window or strength mutation must not request more deceleration
+  // than the rear load/brake-share estimate used to construct that window.
+  const brakeLimit=braking/(p.brakeAcceleration||9.8);
+  const pressure=clamp(deceleration/(p.brakeAcceleration||9.8)*q.brakeStrength,0,Math.min(.85,brakeLimit));
+  return {zoneId:zone.id,trackLength:track.length,start,end,rampIn,rampOut,pressure,brakeLimit,targetSpeed,referenceSpeed,approachSpeed,curvature:peak,requiredDistance,deceleration,parameters:q};
  }
  function apply(gene,plan){
   const child=G.clone(gene),ds=plan.trackLength/(G.KNOTS-1);

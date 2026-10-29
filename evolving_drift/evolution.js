@@ -3,6 +3,7 @@
 (function(root) {
   'use strict';
   const G=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
+  const Shape=root.DriftMutationShape||(typeof require==='function'?require('./mutation-shape.js'):null);
   const Fitness=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
   const Strategies=root.DriftEvolutionStrategies||(typeof require==='function'?require('./evolution-strategies.js'):null);
   const Learning=root.DriftEvolutionLearning||(typeof require==='function'?require('./evolution-learning.js'):null);
@@ -32,12 +33,9 @@
     const usable=regions.map(a=>({...a,start:Math.max(3,a.start)})).filter(a=>a.end-a.start>=2&&a.start<G.KNOTS-5);
     routeCache.set(track,usable);return usable;
   }
-  function bump(gene,channel,center,radius,amount){
-    for(let i=Math.max(0,Math.ceil(center-radius));i<=Math.min(G.KNOTS-1,Math.floor(center+radius));i++){
-      const u=(i-center)/radius;gene[i*G.STRIDE+channel]+=amount*(.5+.5*Math.cos(Math.PI*u));
-    }
-  }
-  function coordinated(child,regions,rng,scale,gearCount,track,lineBounds){
+  function bump(gene,channel,center,radius,amount,limits={}){return Shape.bump(gene,channel,center,radius,amount,limits);}
+  function coordinated(child,regions,rng,scale,gearCount,track,lineBounds,limits){
+    const add=(channel,center,radius,amount)=>bump(child,channel,center,radius,amount,limits);
     const weights=regions.map(a=>Math.sqrt(a.peak)*(a.end-a.start)),total=weights.reduce((a,b)=>a+b,0);
     let choice=rng()*total,index=0;while(index<weights.length-1&&choice>weights[index])choice-=weights[index++];
     const arc=regions[index],span=arc.end-arc.start,preRadius=clamp(span*.3,3,8);
@@ -46,24 +44,24 @@
     // An outside feint precedes the turn. Targets and torque demand then rise
     // together while the brakes release; actual actuator limits remain physical.
     const at=lineBounds?.[Math.round(clamp(preparation,0,G.KNOTS-1))],outside=at?(side>0?-at.min:at.max):3;
-    bump(child,C.lineOffset,preparation,preRadius,-side*Math.max(.6,outside*(.15+rng()*.20))*scale);
-    bump(child,C.lineOffset,initiation,Math.max(3,span*.32),side*(.10+rng()*.20)*scale);
-    bump(child,C.targetSlip,hold,radius,-side*(8+rng()*12)*DEG*scale);
-    bump(child,C.driveSlip,hold,radius,(.025+rng()*.07)*scale);
-    bump(child,C.throttle,hold,radius,(.025+rng()*.075)*scale);
-    bump(child,C.brake,initiation,Math.max(4,span*.7),-(.04+rng()*.12)*scale);
-    bump(child,C.counterLead,hold,radius,(rng()-.35)*.16*scale);
+    add(C.lineOffset,preparation,preRadius,-side*Math.max(.6,outside*(.15+rng()*.20))*scale);
+    add(C.lineOffset,initiation,Math.max(3,span*.32),side*(.10+rng()*.20)*scale);
+    add(C.targetSlip,hold,radius,-side*(8+rng()*12)*DEG*scale);
+    add(C.driveSlip,hold,radius,(.025+rng()*.07)*scale);
+    add(C.throttle,hold,radius,(.025+rng()*.075)*scale);
+    add(C.brake,initiation,Math.max(4,span*.7),-(.04+rng()*.12)*scale);
+    add(C.counterLead,hold,radius,(rng()-.35)*.16*scale);
     // A corner is a seed for an entry/exit sequence, not an isolated window.
     // The extra targets taper into its adjacent straights over a limited
     // distance; the open-course endpoints bound this continuation attempt.
     const ds=track.length/(G.KNOTS-1),extension=(8+rng()*16)/ds;
     for(const [center,amount] of [[arc.start-extension*.35,.28],[arc.end+extension*.35,.48]]){
       const continuationRadius=Math.max(2,extension*.8);
-      bump(child,C.targetSlip,center,continuationRadius,-side*(8+rng()*10)*DEG*scale*amount);
-      bump(child,C.driveSlip,center,continuationRadius,.05*scale*amount);
-      bump(child,C.throttle,center,continuationRadius,.08*scale*amount);
-      bump(child,C.brake,center,continuationRadius,-.10*scale*amount);
-      bump(child,C.counterLead,center,continuationRadius,.04*scale*amount);
+      add(C.targetSlip,center,continuationRadius,-side*(8+rng()*10)*DEG*scale*amount);
+      add(C.driveSlip,center,continuationRadius,.05*scale*amount);
+      add(C.throttle,center,continuationRadius,.08*scale*amount);
+      add(C.brake,center,continuationRadius,-.10*scale*amount);
+      add(C.counterLead,center,continuationRadius,.04*scale*amount);
     }
     if(gearCount>1&&rng()<.20){const gear=Math.min(gearCount,2+Math.floor(rng()*2));for(let i=Math.ceil(initiation);i<=Math.min(G.KNOTS-1,Math.floor(arc.end));i++)child[i*G.STRIDE+C.gearHold]=gear;}
   }
@@ -99,16 +97,26 @@
       if(source[C.gearHold]>0&&source[C.gearHold]<=gearCount&&weight>.5)child[j+C.gearHold]=source[C.gearHold];
     }
   }
-  function localMutation(child,rng,scale,maxSteerRad,gearCount,fine){
+  function localMutation(child,rng,scale,maxSteerRad,gearCount,fine,limits){
     const count=1+Math.floor(rng()*(fine?2:3));
     const amplitude=[Math.min(.025,maxSteerRad*.06),.075,.045,.45,8*DEG,.08,.035,1];
     for(let k=0;k<count;k++){
-      const channel=Math.floor(rng()*G.STRIDE),center=Math.floor(rng()*G.KNOTS),radius=2+Math.floor(rng()*(fine?4:10));
+      const channel=Math.floor(rng()*G.STRIDE),center=Math.floor(rng()*G.KNOTS),radius=3+Math.floor(rng()*(fine?3:8));
       if(channel===C.gearHold){
         if(fine||gearCount<=1)continue;
         const gear=rng()<.35?0:1+Math.floor(rng()*gearCount);
         for(let i=Math.max(0,center-radius);i<=Math.min(G.KNOTS-1,center+radius);i++)child[i*G.STRIDE+channel]=gear;
-      }else bump(child,channel,center,radius,(rng()*2-1)*amplitude[channel]*scale*(fine?.28:1));
+      }else{
+        // Ordinary exploration changes a related control sequence together;
+        // fine polishing may still adjust one channel across the same window.
+        const channels=fine?[channel]:[C.throttle,C.brake,C.driveSlip].includes(channel)?[C.throttle,C.brake,C.driveSlip]:channel===C.lineOffset?[C.lineOffset,C.steer,C.counterLead]:[C.steer,C.targetSlip,C.counterLead];
+        const span=Shape.window(center,radius);
+        for(const selected of channels){
+          const amount=(rng()*2-1)*amplitude[selected]*scale*(fine?.28:1),values=[0,.35+.65*rng(),1,.35+.65*rng(),0];
+          const changed=Shape.add(child,selected,{...span,values,amount},limits);
+          if(!changed.changed)Shape.add(child,selected,{...span,values,amount:-amount},limits);
+        }
+      }
     }
   }
   function mutateGene(gene,options={}){
@@ -119,13 +127,14 @@
     const regions=cornerRegions(options.track),strategy=options.strategy||(regions.length&&rng()<.5?'coordinated':'local');
     const drifts=strategy==='extend'?driftRegions(options.parentRecord,options.parentResult):[];
     if(strategy==='extend'&&drifts.length)extendDrift(child,drifts,options.track,rng,scale,gearCount);
-    else if(strategy==='coordinated'&&regions.length)coordinated(child,regions,rng,scale,gearCount,options.track,lineBounds);
-    else localMutation(child,rng,scale,maxSteerRad,gearCount,strategy==='fine');
+    else if(strategy==='coordinated'&&regions.length)coordinated(child,regions,rng,scale,gearCount,options.track,lineBounds,limits);
+    else localMutation(child,rng,scale,maxSteerRad,gearCount,strategy==='fine',limits);
     let normalized=normalizeGene(child,limits);
     // A clipped pedal change or an unchanged gear is not another experiment.
     if(normalized.every((v,i)=>v===gene[i])){
       const center=2+Math.floor(rng()*(G.KNOTS-4)),steer=normalized[center*G.STRIDE+C.steer];
-      bump(normalized,C.steer,center,2,(steer?-Math.sign(steer):rng()<.5?-1:1)*Math.min(.002,maxSteerRad*.01)*scale);
+      const amount=(steer?-Math.sign(steer):rng()<.5?-1:1)*Math.min(.002,maxSteerRad*.01)*scale;
+      if(!bump(normalized,C.steer,center,3,amount,limits).changed)bump(normalized,C.steer,center,3,-amount,limits);
       normalized=normalizeGene(normalized,limits);
     }
     return normalized;
@@ -152,25 +161,13 @@
     }
     return selected;
   }
-  // Keep the public fitness unchanged. Preserve completed connections, then
-  // compare the weakest contributions first. A strong partial corner may
-  // trade some points to improve a weaker one without locking in early luck.
+  // Regional profiles retain diverse parents and guide weak-region searches.
+  // The representative is selected solely by its valid displayed total.
   function selectionProfile(result){
     const drift=result?.drift;if(!Array.isArray(drift?.arcs)||!drift.arcs.length)return null;
     const regions=[...drift.arcs.map(a=>({id:a.zoneId,value:clamp((a.score||0)/100,0,1),complete:!!a.complete})),
       ...(drift.links||[]).map(l=>({id:l.id,value:clamp((l.score||0)/45,0,1),complete:!!l.complete}))];
     return regions;
-  }
-  function preservesRegions(candidate,incumbent){
-    const a=selectionProfile(candidate.result),b=selectionProfile(incumbent.result);if(!a||!b)return true;
-    const values=new Map(a.map(r=>[r.id,r]));
-    if(!b.every(r=>{const next=values.get(r.id);return !!next&&(!r.complete||next.complete);}))return false;
-    const before=b.map(r=>r.value).sort((x,y)=>x-y),after=b.map(r=>values.get(r.id).value).sort((x,y)=>x-y);
-    for(let i=0;i<before.length;i++){
-      if(after[i]<before[i]-.001)return false;
-      if(after[i]>before[i]+.001)return true;
-    }
-    return true;
   }
   function paretoEntries(entries){
     const profiles=new Map(entries.map(e=>[e,selectionProfile(e.result)]));
@@ -218,7 +215,7 @@
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
       this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
       this._learningEnabled=options.learning!==false;this._learning=null;
-      this._weakestArcIndices=[];this._selectionStats={balancedPromotions:0,guardedRegressions:0,paretoParents:0};
+      this._weakestArcIndices=[];this._selectionStats={promotions:0,paretoParents:0};
       this._parents=[];this._best=null;this._lastCandidate=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
       this.initialized=false;this.ready=false;this.blockedReason=null;this.generation=0;this.totalEvaluated=0;this.history=[];this.plateauGenerations=0;
       this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
@@ -330,15 +327,15 @@
       if(!complete&&result&&FailureAnalysis)result={...result,failureAnalysis:FailureAnalysis.analyze(this.vehicle,this.track,result,{zones:this._strategyZones})};
       // Failed runs never enter ranking or parent selection, but replaying
       // their valid prefix still needs the same prepared regional pace floor.
-      const referenceSpeeds=this._baselineEntry.result.drift?.referenceSpeeds;
+      const baselineDrift=this._baselineEntry.result.drift,referenceSpeeds=baselineDrift?.referenceSpeeds,referencePace=baselineDrift?.referencePace;
       const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
-        result&&referenceSpeeds?{...result,drift:{...result.drift,referenceSpeeds:{...referenceSpeeds}}}:result;
+        result&&(referenceSpeeds||referencePace)?{...result,drift:{...result.drift,referenceSpeeds:referenceSpeeds?{...referenceSpeeds}:undefined,referencePace}}:result;
       const accepted=complete&&isValidResult(ranked),entry={...planned,result:ranked,record,accepted};
       if(result?.evaluation){for(const key of ['simulatedTicks','reusedTicks','totalTicks'])this._evaluationStats[key]+=result.evaluation[key]||0;if(result.evaluation.cacheHit)this._evaluationStats.cacheHits++;this._evaluationStats.evaluations++;}
       this._candidates.push(entry);this._lastCandidate=entry;this.totalEvaluated++;this.stats.evaluated++;
       if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){
-        if(preservesRegions(entry,this._best)){if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;this._best=entry;this._selectionStats.balancedPromotions++;}
-        else this._selectionStats.guardedRegressions++;
+        if(ranked.score-this._best.result.score>=this._threshold())this.stats.improvedCount++;
+        this._best=entry;this._selectionStats.promotions++;
       }}else this.stats.failureCount++;
       if(this._candidates.length===this.populationSize)this._finishGeneration();return this.snapshot();
     }
@@ -381,5 +378,5 @@
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
     snapshot(){return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
-  const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,selectionProfile,preservesRegions,paretoEntries,localGeneDistance,weakestArcs,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,selectionProfile,paretoEntries,localGeneDistance,weakestArcs,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
