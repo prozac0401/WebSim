@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>실제 드리프트 대회 코스 고증 · WebSim</title>
+  <meta name="description" content="영암 T21·인제 B·영암 상설·에비스 West·쓰쿠바의 실제 대회 근거와 지도·영상 재구성 범위, 배치 미확인 국내 후보 3개를 확인합니다.">
+  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="stylesheet" href="track-research.css">
+  <style>@media(max-width:640px){.tabs button{flex:1 1 calc(50% - 8px)}}</style>
+  <script src="track-research.js" defer></script><script src="track-research-view.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="../index.html">W<span>·</span> WebSim</a><nav aria-label="페이지 이동"><a href="evolving_drift.html">드리프트 실험</a><a href="evolving_drift_doc.html">계산 방식</a></nav></header>
+<main>
+  <section class="intro"><p class="eyebrow">TRACK RESEARCH / KOREA FIRST</p><h1>실제 대회 구간에서<br>운전 조작의 진화.</h1><p class="lead"><strong>영암 T21 · 인제 B · 영암 상설 · 에비스 West · 쓰쿠바.</strong><br>국내 3개와 일본 2개의 대회 구간을 도면·지도·선정 영상 프레임으로 재구성했습니다.</p><p id="research-count" class="asof">자료 확인 2026.10.29 · 실행 코스 5개 · 추가 조사 3개</p></section>
+  <section class="summary" aria-label="확보한 자료와 모형의 범위"><div><span>확인·재구성</span><strong>실제 개최 · 대회 주행 구간</strong><p>주최 자료와 경기 영상을 지도에 맞췄습니다. D1GP는 공식 행사 구간도를 확보했고, 국내 코스는 개최·방향·선정 경기 장면을 대조했습니다.</p></div><div><span>모형 설정·미확인</span><strong>폭 · 채점 좌표 · 정밀 고도</strong><p>지도 정합한 경계와 채점 좌표는 실측값이 아닙니다. 90m DEM 고도, 시설 높이와 개별 수목은 근사이며 재질 마찰·수종·캠버도 미확인입니다.</p></div></section>
+  <div id="candidate-tabs" class="tabs" role="group" aria-label="대회장 선택"></div>
+  <article id="candidate" aria-live="polite"></article>
+  <section class="requirements"><div><p class="eyebrow">FROM EVIDENCE TO SIMULATION</p><h2>코스에 넣어야 할 자료</h2></div><ol>
+    <li><strong>그날의 경기 배치</strong><p>시리즈·연도·라운드와 확인된 주행 방향을 고정합니다. 공식 좌표가 없는 출발·채점·클리핑·종료·감속 구간은 모형 설정으로 구분합니다.</p></li>
+    <li><strong>도로와 주변 지형</strong><p>좌우 경계·가변 폭·연석·배수로·벽의 위치와 높이를 저장합니다. 노면 고도와 횡단 경사는 별도 근거가 필요합니다.</p></li>
+    <li><strong>현장 외형</strong><p>영상 시각과 기준점을 붙여 도색·자국·방호물·시설·식생을 배치합니다. 수종·재질을 모르면 미확인으로 남깁니다.</p></li>
+    <li><strong>차량별 시작 기록</strong><p>검증된 코스를 등록한 뒤 등록된 모든 순정 후륜 사양의 그립 주행을 오프라인 계산합니다. 형상이나 물리가 바뀌면 기록도 갱신합니다.</p></li>
+  </ol></section>
+  <section class="elevation"><h2>지도와 고도의 정밀도</h2><p>실행 코스 5개는 OSM 도로 중심선과 시설 윤곽을 사용하고, 고도는 <a href="https://open-meteo.com/en/docs/elevation-api" target="_blank" rel="noopener noreferrer">90m 해상도 DEM</a>을 평활화합니다. 표시 길이와 고도차는 이 재구성 데이터의 수치입니다. 공식 경기 구간 거리나 노면 측량값으로 해석하면 안 됩니다. 높이 배율은 1배이며, 연석·배수 경사·캠버를 실측한 데이터는 아닙니다.</p><p>현재 지도와 DEM의 제작 시점은 경기 연도와 다를 수 있습니다. 주변 지형의 세부 형상, 시설 높이와 개별 수목을 정밀하게 복원한 자료도 아닙니다. 렌더링 점을 촘촘하게 늘려도 원자료의 정밀도가 높아지지는 않습니다.</p><p><a href="https://www.data.go.kr/data/15059920/fileData.do" target="_blank" rel="noopener noreferrer">국토지리정보원 DEM</a>과 <a href="https://www.data.go.kr/data/15059719/fileData.do" target="_blank" rel="noopener noreferrer">수치지형도 V2</a>는 추가 자료 경로입니다. 해당 경기장 도엽의 상세 데이터와 제작연도는 아직 확보하지 않았습니다. 인제 제1주차장·영암 2024·벨포레의 미확인 대회 배치를 본 서킷 중심선으로 대신하지 않습니다.</p></section>
+  <details class="method"><summary>영상 확인 범위와 개발용 코스</summary><p id="visual-method"></p><p>선정 프레임·미리보기와 URL·영상 시각·파일 해시는 로컬 조사 폴더에 보관했습니다. 이 페이지는 원본 링크와 관찰 기록을 제공하며, 영상 이미지를 제작용 텍스처로 배포하지 않습니다. 공식 구간도의 정합과 영상 관찰은 경기장 측량을 대신하지 않습니다.</p><p>S500은 물리·유전 알고리즘 검증에 쓰는 가상 코스입니다. 일반 코스 선택에서 제외했으며 <a href="evolving_drift.html?development=1">개발용 가상 코스 열기</a>로만 접근할 수 있습니다. 실제 대회 재현으로 간주하지 않습니다.</p></details>
+  <footer>WebSim · 진화하는 드리프트 <a href="RESOURCES.md">차량·물리·외형 자료</a></footer>
+</main><noscript>대회장별 상세 비교에는 JavaScript가 필요합니다. 자료 원본은 track-research.js에 있습니다.</noscript>
+</body>
+</html>

@@ -26,18 +26,18 @@ const legacyLaunches = [
   'vicsek_boids_simulator/vicsek_boids_simulator.html'
 ];
 
-test('catalog counts agree with all 31 unique cards and retain the season 2 feature', () => {
-  assert.equal(cards.length, 31);
+test('catalog counts agree with all 32 unique cards and retain the season 2 feature', () => {
+  assert.equal(cards.length, 32);
   const titles = cards.map(card => card.match(/<h3>(.*?)<\/h3>/)[1]);
   assert.equal(new Set(titles).size, cards.length);
-  assert.match(home, /<title>WebSim · 주말 계획표 시즌2와 31가지 생활·과학 실험<\/title>/);
-  assert.match(home, /생활·사회·물리 등 31개 WebSim 도구/);
-  assert.match(home, />31개 도구 둘러보기 /);
-  assert.match(home, />전체 31개 도구<\/p>/);
-  assert.match(home, /data-category="all"[^>]*>전체 <span>31<\/span>/);
+  assert.match(home, /<title>WebSim · 주말 계획표 시즌2와 32가지 생활·과학 실험<\/title>/);
+  assert.match(home, /생활·사회·물리 등 32개 WebSim 도구/);
+  assert.match(home, />32개 도구 둘러보기 /);
+  assert.match(home, />전체 32개 도구<\/p>/);
+  assert.match(home, /data-category="all"[^>]*>전체 <span>32<\/span>/);
   assert.match(home, /class="hero-link" href="weekend_season2\/index.html"/);
   assert.match(home, /class="featured-link" href="weekend_season2\/index.html"/);
-  assert.match(fs.readFileSync(path.join(root, 'README.md'), 'utf8'), /시뮬레이터와 도구 31개/);
+  assert.match(fs.readFileSync(path.join(root, 'README.md'), 'utf8'), /시뮬레이터와 도구 32개/);
 });
 
 test('new card exposes the requested category, exact description, tags, and every search keyword', () => {
@@ -55,10 +55,11 @@ test('new card exposes the requested category, exact description, tags, and ever
 
 test('all 30 previous launches remain registered and every catalog local page still exists', () => {
   const launches = cards.map(card => card.match(/class="try-link" href="([^"]+)"/)[1]);
-  assert.deepEqual(launches.filter(href => !href.startsWith('stopped_saturday/')), legacyLaunches);
+  assert.deepEqual(launches.filter(href => !href.startsWith('stopped_saturday/') && !href.startsWith('evolving_drift/')), legacyLaunches);
+  assert.ok(launches.includes('evolving_drift/evolving_drift.html'));
   const links = cards.flatMap(card => [...card.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(match => match[1]));
   const localLinks = links.filter(href => !/^(?:https?:|#)/.test(href));
-  assert.equal(localLinks.length, 62);
+  assert.equal(localLinks.length, 64);
   for (const href of localLinks) assert.ok(fs.existsSync(path.join(root, href.split(/[?#]/)[0])), `Missing catalog destination: ${href}`);
 });
 

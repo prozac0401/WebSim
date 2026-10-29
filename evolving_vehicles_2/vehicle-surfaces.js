@@ -19,7 +19,7 @@ class VehicleSurfaces {
    const vertex=`
     precision highp float;
     attribute vec3 aPosition;attribute vec3 aNormal;attribute vec3 aColor;attribute float aMaterial;attribute vec2 aUV;
-    uniform vec3 uModelScale;uniform vec3 uModelOffset;uniform vec4 uWheel;
+    uniform vec3 uModelScale;uniform vec3 uModelOffset;uniform vec4 uWheel;uniform float uWheelSteer;
     uniform vec3 uCar;uniform vec2 uPose;uniform vec3 uTarget;uniform vec4 uCamera;uniform vec4 uViewport;uniform vec2 uClip;
     varying vec3 vNormal;varying vec3 vColor;varying vec3 vWorld;varying vec3 vLocal;varying float vMaterial;varying vec2 vUV;
     uniform mat4 uPhotoMatrixA;uniform mat4 uPhotoMatrixB;varying vec3 vPhotoA;varying vec3 vPhotoB;
@@ -28,14 +28,18 @@ class VehicleSurfaces {
      float wc=cos(uWheel.w),ws=sin(uWheel.w);vec3 offset=aPosition-uWheel.xyz;
      vec3 local=uWheel.xyz+vec3(wc*offset.x+ws*offset.z,offset.y,-ws*offset.x+wc*offset.z);
      vec3 normal=vec3(wc*aNormal.x+ws*aNormal.z,aNormal.y,-ws*aNormal.x+wc*aNormal.z);
-     vec3 world=rotateCar((local+uModelOffset)*uModelScale)+uCar;
+     vec3 metric=(local+uModelOffset)*uModelScale,pivot=(uWheel.xyz+uModelOffset)*uModelScale;
+     float sc=cos(uWheelSteer),ss=sin(uWheelSteer);vec3 relative=metric-pivot;
+     metric=pivot+vec3(sc*relative.x-ss*relative.y,ss*relative.x+sc*relative.y,relative.z);
+     normal=normal/uModelScale;normal=vec3(sc*normal.x-ss*normal.y,ss*normal.x+sc*normal.y,normal.z);
+     vec3 world=rotateCar(metric)+uCar;
      vec3 d=world-uTarget;float sy=sin(uCamera.x),cy=cos(uCamera.x),sp=sin(uCamera.y),cp=cos(uCamera.y);
      float h=-d.x*sy+d.y*cy,depth=uCamera.z-h*cp-d.z*sp;
      float right=d.x*cy+d.y*sy,vertical=h*sp-d.z*cp;
      float x=2.0*uCamera.w/uViewport.x*right+(2.0*uViewport.z/uViewport.x-1.0)*depth;
      float y=-2.0*uCamera.w/uViewport.y*vertical+(1.0-2.0*uViewport.w/uViewport.y)*depth;
      float z=(uClip.y+uClip.x)/(uClip.y-uClip.x)*depth-2.0*uClip.y*uClip.x/(uClip.y-uClip.x);
-     gl_Position=vec4(x,y,z,depth);vNormal=rotateCar(normal/uModelScale);vColor=aColor;vWorld=world;vLocal=aPosition;vMaterial=aMaterial;vUV=aUV;
+     gl_Position=vec4(x,y,z,depth);vNormal=rotateCar(normal);vColor=aColor;vWorld=world;vLocal=aPosition;vMaterial=aMaterial;vUV=aUV;
      vPhotoA=(uPhotoMatrixA*vec4(aPosition,1.0)).xyz;vPhotoB=(uPhotoMatrixB*vec4(aPosition,1.0)).xyz;
     }`;
    const fragment=`
@@ -108,7 +112,7 @@ class VehicleSurfaces {
    this.program=gl.createProgram();gl.attachShader(this.program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(this.program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);
    if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(this.program));
    this.attributes=Object.fromEntries(['aPosition','aNormal','aColor','aMaterial','aUV'].map(n=>[n,gl.getAttribLocation(this.program,n)]));
-   this.uniforms=Object.fromEntries(['uCar','uPose','uTarget','uCamera','uViewport','uClip','uEye','uModelScale','uModelOffset','uWheel','uPaint','uFlakes','uTexture','uHasTexture','uOpaqueTexture','uOpacity','uBrake','uBrakeBoost','uBrakeTint','uPhotoMode','uPhotoMatrixA','uPhotoMatrixB','uPhotoTextureA','uPhotoTextureB','uPhotoBlend'].map(n=>[n,gl.getUniformLocation(this.program,n)]));
+   this.uniforms=Object.fromEntries(['uCar','uPose','uTarget','uCamera','uViewport','uClip','uEye','uModelScale','uModelOffset','uWheel','uWheelSteer','uPaint','uFlakes','uTexture','uHasTexture','uOpaqueTexture','uOpacity','uBrake','uBrakeBoost','uBrakeTint','uPhotoMode','uPhotoMatrixA','uPhotoMatrixB','uPhotoTextureA','uPhotoTextureB','uPhotoBlend'].map(n=>[n,gl.getUniformLocation(this.program,n)]));
    this.uintIndices=gl.getExtension('OES_element_index_uint');
    this.available=true;
   } catch(error){this.failure=String(error);}
@@ -289,8 +293,15 @@ class VehicleSurfaces {
    const opacity=p.brakeLight?.overlay?alpha*brake:alpha+(1-alpha)*brake*boost;
    gl.uniform1f(U.uBrake,brake);gl.uniform1f(U.uBrakeBoost,boost);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
    gl.uniform3fv(U.uBrakeTint,p.brakeLight?.tint||defaultBrakeTint);
-   const wheel=p.wheel,angle=wheel?(root.VehicleWheels?.angle?.(mesh,wheel,car)||0):0;
+   const wheel=p.wheel,localWheel=wheel&&root.VehicleWheels?.localWheel?.(mesh,wheel);
+   // Optional per-wheel phases use FL, FR, RL, RR in metric model coordinates
+   // (+Y is the left contact in drift). Existing EV2 callers retain distance/r.
+   const wheelIndex=localWheel?(localWheel.axle==='front'?0:2)+(localWheel.side>0?0:1):-1;
+   const suppliedAngle=wheelIndex>=0?car?.wheelAngles?.[wheelIndex]:undefined;
+   const angle=Number.isFinite(suppliedAngle)?suppliedAngle:wheel?(root.VehicleWheels?.angle?.(mesh,wheel,car)||0):0;
+   const steer=localWheel?.axle==='front'&&Number.isFinite(car?.steer)?car.steer:0;
    gl.uniform4f(U.uWheel,wheel?.center?.[0]||0,wheel?.center?.[1]||0,wheel?.center?.[2]||0,angle);
+   gl.uniform1f(U.uWheelSteer,steer);
    // A photo-fill panel is estimated, not a factory matte finish. Keep its
    // weak neutral reflection below the baked adjacent photograph highlights.
    this._bindPaint(p.photoPaint?{finish:'solid',roughness:.4,clearcoat:.18,photoFill:true}:p.paint?mesh.paintFinish:null);
@@ -333,7 +344,7 @@ class VehicleSurfaces {
    if(mesh.manufacturer)this._drawAsset(mesh,p,camera,entry.selected===false,entry.car);
    for(const geometry of [mesh.manufacturer?null:mesh,entry.effect].filter(Boolean)){
     gl.uniform1f(U.uBrake,0);gl.uniform1f(U.uBrakeBoost,0);gl.uniform3f(U.uBrakeTint,1,.18,.06);
-    gl.uniform1i(U.uPhotoMode,0);gl.uniform4f(U.uWheel,0,0,0,0);this._bindPaint(geometry.paintFinish||null);
+    gl.uniform1i(U.uPhotoMode,0);gl.uniform4f(U.uWheel,0,0,0,0);gl.uniform1f(U.uWheelSteer,0);this._bindPaint(geometry.paintFinish||null);
     gl.uniform3f(U.uModelScale,1,1,1);gl.uniform3f(U.uModelOffset,0,0,0);gl.uniform1f(U.uOpacity,1);gl.uniform1i(U.uHasTexture,0);gl.disableVertexAttribArray(this.attributes.aUV);gl.vertexAttrib2f(this.attributes.aUV,0,0);
     const b=this._buffer(geometry);gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);
     for(const [name,size,offset]of [['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=this.attributes[name];gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}
