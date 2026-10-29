@@ -8,7 +8,7 @@ if(!G||!F)throw new Error('Load Genome and Fitness before EvolutionStrategies.')
 const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const pulse=(s,c,w)=>Math.abs(s-c)>=w?0:.5+.5*Math.cos(Math.PI*(s-c)/w);
-const FAMILIES=Object.freeze(['trajectory','trajectory','trajectory','steer','angle','combined','line','lead','power','gear','gear','gearPower','gearPower','approach','approach']);
+const FAMILIES=Object.freeze(['trajectory','trajectory','trajectory','steer','angle','sustained-angle','sustained-angle','combined','line','lead','power','gear','gear','gearPower','gearPower','approach','approach']);
 const straightCache=new WeakMap();
 function zones(track){return F.exitZones(track).filter(z=>z.end-z.exit>=30);}
 function trailingStraightStart(track){
@@ -80,6 +80,21 @@ function mutate(parent){
  const change={family,center,width,steer:sign*rnd(-.065,.045),angle:rnd(-3,14)*DEG,line:sign*rnd(-2.8,2.8),lead:rnd(-.16,.1),slip:rnd(-.3,.3),pedal:rnd(-.12,.2),gear:pick([0,3,4,'rpm']),shiftAt:clamp(end+rnd(-14,2),z.exit-8,z.end-15)};
  const localFine=end-z.exit>25?.28:1;
  for(const key of ['steer','angle','line','lead','slip','pedal'])change[key]*=localFine;
+ if(family==='sustained-angle'){
+  // Refine a real corner-connected powered episode, not an isolated angle
+  // peak. The unchanged driver supplies countersteering and pedal feedback;
+  // only another complete physical replay can establish an improvement.
+  if(!m?.anchored||![m.start,m.end].every(Number.isFinite)||m.end<=m.start)return {gene,change};
+  const start=clamp(m.start,z.start+ds,z.end-ds),finish=clamp(m.end,start,z.end-ds),fade=rnd(6,12),angle=rnd(2,7)*DEG;
+  const left=Math.max(z.start+ds,start-fade),right=Math.min(z.end-ds,finish+fade),slipSign=m.sign===1||m.sign===-1?m.sign:sign;
+  Object.assign(change,{start,end:finish,fade,angle,sign:slipSign,center:(start+finish)/2,width:(finish-start)/2+fade});
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds;if(s<=left||s>=right)continue;
+   const w=smooth((s-left)/Math.max(ds,start-left))*smooth((right-s)/Math.max(ds,right-finish));
+   gene[i*G.STRIDE+C.targetSlip]+=slipSign*angle*w;
+  }
+  return {gene:norm(gene),change};
+ }
  if(family==='approach'){
   const limit=z.exit-8-ds,center=clamp(rng()<.6?rnd(z.start+2,z.exit-14):rnd(z.start-25,z.start),2,limit-2),width=Math.max(1,Math.min(rnd(6,20),limit-center));
   const brake=rnd(-.10,.22),pedal=rnd(-.20,.12);Object.assign(change,{center,width,brake,pedal});

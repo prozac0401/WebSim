@@ -79,3 +79,43 @@ test('a longer decelerating attempt cannot hide the better continuous powered ex
  assert.ok(m.runs[1].distance>m.runs[0].distance);assert.ok(m.runs[1].speedGain<-2);
  assert.equal(m.bestExit.startTime,m.runs[0].startTime,'best progress preserves speed instead of choosing distance alone');
 });
+
+function withAngle(raw,degrees){
+ return {...raw,frames:raw.frames.map((f,i)=>{
+  if(!f.beta)return {...f};
+  const beta=Math.sign(f.beta)*(typeof degrees==='function'?degrees(f,i):degrees)*Math.PI/180;
+  return {...f,beta,yaw:Math.atan2(f.vy,f.vx)-beta};
+ })};
+}
+
+test('equal complete powered exits keep rewarding sustained angle above twenty degrees',()=>{
+ const metrics=[15,20,30,40,50,55].map(angle=>Fitness.measure(withAngle(replay(),angle),track,vehicle));
+ for(let i=0;i<metrics.length;i++){
+  const m=metrics[i];assert.equal(m.success,true);
+  assert.ok(Math.abs(m.bestExit.distanceWeightedAngle-[15,20,30,40,50,55][i])<1e-8);
+  assert.equal(m.bestExit.distance,metrics[0].bestExit.distance);
+  assert.equal(m.bestExit.duration,metrics[0].bestExit.duration);
+  if(i)assert.ok(m.score>metrics[i-1].score,'a higher sustained angle must not hit the old twenty-degree plateau');
+ }
+});
+
+test('partial powered exits reward sustained angle without admitting failed or braking runs',()=>{
+ const zone=Fitness.exitZones(track)[0],base=replay({accelerate:0});
+ const first=base.frames.findIndex(f=>f.s>=zone.exit),until=base.frames[first-1].time+1.5;
+ base.frames=base.frames.map(f=>f.time<=until?f:{...f,throttle:0,rearTorque:0,wheelForces:[{},{},{fx:0},{fx:0}]});
+ const low=Fitness.measure(withAngle(base,20),track,vehicle),high=Fitness.measure(withAngle(base,40),track,vehicle);
+ assert.equal(low.success,false);assert.equal(high.success,false);assert.ok(high.score>low.score);assert.ok(high.score<59);
+ const failed=withAngle({...base,valid:false,status:'offtrack'},55);assert.equal(Fitness.measure(failed,track,vehicle).score,0);
+ const collision=withAngle({...base,valid:false,status:'collision'},55);assert.equal(Fitness.measure(collision,track,vehicle).score,0);
+ const braking=Fitness.measure(withAngle(replay({brake:.3}),50),track,vehicle);
+ assert.equal(braking.bestExit,null);assert.ok(braking.score<low.score);
+});
+
+test('an isolated angle spike cannot beat a larger angle sustained across the exit',()=>{
+ const base=replay(),steady=Fitness.measure(withAngle(base,30),track,vehicle);
+ const spike=Fitness.measure(withAngle(base,(f,i)=>i===150?55:15),track,vehicle);
+ assert.ok(spike.bestExit.distanceWeightedAngle<16);
+ assert.ok(steady.score>spike.score);
+ const spin=Fitness.measure(withAngle(base,70),track,vehicle);
+ assert.equal(spin.bestExit,null);assert.equal(spin.success,false);assert.ok(spin.score<spike.score);
+});

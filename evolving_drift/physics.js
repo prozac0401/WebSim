@@ -100,6 +100,20 @@
         // Split every body edge at road-polygon crossings so even a narrow
         // concave intrusion between valid corners cannot be skipped.
         for(let i=0;i<body.length;i++)if(!segmentInsideUnion(body[i],body[(i+1)%body.length],track.boundaryPolygons,cache))return 'offtrack';
+        if(old){
+          if(!previous)previous=footprint(v,{...old,yaw:old.yaw??a.yaw});
+          if(!swept)swept=convexHull([...previous,...body]);
+          // The endpoint hull covers linear translation. A rotating corner can
+          // bow beyond its chord: R * angle^2 / 8 bounds that interpolation
+          // error for linear centre motion and the shortest yaw rotation.
+          // Expanding by this amount in each axis conservatively covers the
+          // intervening footprint without moving the vehicle or adding grip.
+          const angle=wrap(a.yaw-(old.yaw??a.yaw)),padding=Math.hypot(p.lengthM,p.widthM)*angle*angle/16;
+          const envelope=padding>1e-12?convexHull(swept.flatMap(q=>[
+            {x:q.x-padding,y:q.y-padding},{x:q.x-padding,y:q.y+padding},
+            {x:q.x+padding,y:q.y-padding},{x:q.x+padding,y:q.y+padding}])):swept;
+          for(let i=0;i<envelope.length;i++)if(!segmentInsideUnion(envelope[i],envelope[(i+1)%envelope.length],track.boundaryPolygons,cache))return 'offtrack';
+        }
       }else{
       // Check the complete perimeter at <=25 cm spacing, not just its corners.
       // This is a bounded sampling approximation for a black-box corridor API.

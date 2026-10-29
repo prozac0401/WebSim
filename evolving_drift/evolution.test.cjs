@@ -132,6 +132,48 @@ test('approach mutations preserve every exit control including interpolated peda
   for(let s=z.exit-8;s<=f.track.length;s+=.25)assert.deepEqual(G.sample(proposal.gene,s,f.track.length),G.sample(parent.gene,s,f.track.length));
 });
 
+test('sustained-angle refinement covers the proven episode, reflects turns and preserves other controls',()=>{
+  const proposals=[];
+  for(const cornerSign of [-1,1]){
+    const f=strategyFixture(cornerSign),z=Strategies.zones(f.track)[0],sign=-cornerSign;
+    for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.targetSlip]=sign*.32;
+    // A selection fixture describes a prior powered episode; this test does
+    // not claim that the changed intent has already achieved a physical run.
+    const run={start:z.exit+1,end:z.exit+42,zoneExit:z.exit,sign,anchored:true};
+    const parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:run}},before=f.gene.slice();
+    const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('sustained-angle')+.5)/Strategies.FAMILIES.length:.5;};
+    const full=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
+    assert.equal(full.change.family,'sustained-angle');assert.equal(full.gene.length,1024);
+    assert.deepEqual(full,Strategies.adaptive(f.vehicle,f.track,parent,random()));
+    assert.deepEqual(parent.gene,before);
+    for(let i=0;i<G.LENGTH;i++){
+      const delta=full.gene[i]-before[i];
+      if(i%G.STRIDE!==C.targetSlip)assert.equal(delta,0,'intent refinement cannot alter the proven path, pedals, gears or steering feedforward');
+      else {assert.ok(sign*delta>=0);assert.ok(Math.abs(small.gene[i]-before[i]-.2*delta)<1e-12);}
+    }
+    for(let s=run.start;s<=run.end;s+=.5)assert.ok(sign*(G.sample(full.gene,s,f.track.length).targetSlip-G.sample(before,s,f.track.length).targetSlip)>.02,'the whole sustained interval is refined, not only its end');
+    for(let s=0;s<=f.track.length;s+=.5)if(s<=z.start||s>=z.end)assert.deepEqual(G.sample(full.gene,s,f.track.length),G.sample(before,s,f.track.length),'interpolation cannot spill into another corner');
+    proposals.push(full.gene);
+  }
+  for(let i=0;i<G.KNOTS;i++)assert.ok(Math.abs(proposals[0][i*G.STRIDE+C.targetSlip]+proposals[1][i*G.STRIDE+C.targetSlip])<1e-12);
+});
+
+test('sustained-angle refinement respects the schema cap and uses actual driver feedback',()=>{
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],run={start:z.exit+1,end:z.exit+42,zoneExit:z.exit,sign:1,anchored:true};
+  const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('sustained-angle')+.5)/Strategies.FAMILIES.length:.5;};
+  const parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:run}};
+  for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.targetSlip]=54*Math.PI/180;
+  const capped=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:1.5});
+  assert.ok(capped.gene.every((v,i)=>i%G.STRIDE!==C.targetSlip||v<=55*Math.PI/180));
+  assert.equal(G.sample(capped.gene,(run.start+run.end)/2,f.track.length).targetSlip,55*Math.PI/180);
+  for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.targetSlip]=.32;
+  const refined=Strategies.adaptive(f.vehicle,f.track,parent,random()),s=(run.start+run.end)/2,p=f.track.sample(s);
+  const state={...p,yaw:p.heading-.32,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),r:0,ax:0,ay:0};
+  const Driver=require('./driver.js'),old=Driver.command(f.vehicle,f.track,state,parent.gene),next=Driver.command(f.vehicle,f.track,state,refined.gene);
+  assert.ok(next.targetSlip>old.targetSlip);
+  assert.ok(next.steer<old.steer,'the real driver reacts to the raised target without a pose or force override');
+});
+
 test('entry tail acceleration preserves a later real corner and only resumes on the terminal straight',()=>{
   const vehicle=require('./catalog.js').get(),track=require('./track.js').get('jp-tsukuba-d1gp-2025'),zones=Strategies.zones(track),zone=zones.at(-1),gene=G.create();
   for(let i=0;i<128;i++){gene[i*8+C.throttle]=.4;gene[i*8+C.brake]=.3;}

@@ -113,3 +113,32 @@ test('the browser physics API has no baseline search entry point',()=>{
   assert.equal(typeof context.window.DriftPhysics.buildGripBaseline,'undefined');
   assert.equal(context.window.DriftPhysics.signature(),Physics.signature());
 });
+
+test('offline reference revalidation requires an actual identical replay and preserves the genome',()=>{
+  const pair=Build.plan([vehicles[0]],[tracks[0]],{},'unchanged-search')[0],source=require('./'+manifest.entries[pair.key].path);
+  const asset=structuredClone({...source,builder:pair.builder,fingerprint:'previous-physics'});
+  const original=Physics.evaluateGene;let calls=0;
+  // Decode only: supply the current identity to the runtime loader, then make
+  // the mocked evaluator return those saved doubles. This tests the migration
+  // gate separately from the real 96-pair replay audit.
+  Prepared.register({...asset,fingerprint:pair.fingerprint});const decoded=Prepared.get(pair.vehicle,pair.track);
+  try{
+    Physics.evaluateGene=(vehicle,track,gene,options)=>{calls++;assert.equal(vehicle,pair.vehicle);assert.equal(track,pair.track);assert.deepEqual(gene,decoded.gene);assert.equal(options.record,true);return structuredClone(decoded.result);};
+    const checked=Build.revalidateArtifact(pair,asset);assert.equal(checked.ok,true);assert.equal(calls,1);
+    assert.equal(checked.artifact.fingerprint,pair.fingerprint);assert.deepEqual(checked.artifact.baseline.gene,source.baseline.gene);
+    assert.deepEqual(checked.artifact.replay,source.replay);assert.deepEqual(checked.artifact.baseline.result,source.baseline.result);
+    assert.equal(checked.artifact.baseline.referenceValidation.previousFingerprint,'previous-physics');
+    assert.equal(checked.artifact.baseline.referenceValidation.searchRepeated,false);
+    assert.equal(checked.artifact.payloadHash,Prepared.hash({baseline:checked.artifact.baseline,replay:checked.artifact.replay}));
+    for(const field of ['status','time','maxAngle']){
+      Physics.evaluateGene=()=>({...structuredClone(decoded.result),[field]:field==='status'?'offtrack':decoded.result[field]+.01});
+      assert.equal(Build.revalidateArtifact(pair,asset).ok,false,field);
+    }
+    Physics.evaluateGene=()=>{const result=structuredClone(decoded.result);result.frames[1].x+=1e-10;return result;};
+    assert.equal(Build.revalidateArtifact(pair,asset).reason,'recorded trajectory or telemetry changed');
+    Physics.evaluateGene=()=>{throw Error('Must reject invalid source before evaluating');};
+    for(const patch of [{builder:'changed-search'},{key:'wrong-pair'},{schema:2},{payloadHash:'corrupt'}])assert.equal(Build.revalidateArtifact(pair,{...asset,...patch}).ok,false);
+    assert.throws(()=>Build.build({check:true,revalidateExisting:true}),/cannot be combined/);
+    assert.throws(()=>Build.build({all:true,revalidateExisting:true}),/cannot be combined/);
+  }finally{Physics.evaluateGene=original;Prepared.register(source);}
+});

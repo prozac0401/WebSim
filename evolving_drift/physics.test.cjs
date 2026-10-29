@@ -86,6 +86,36 @@ test('a narrow concave polygon boundary cannot pass between valid body corners',
   assert.equal(physics.failure(car,track,state),'offtrack');
 });
 
+test('swept outer boundaries reject a concave notch between two valid poses',()=>{
+  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),l=car.lengthM/2,w=car.widthM/2;
+  const x1=20+l+.04,x2=20+l+.08,y=-w+.15;
+  const polygon=[{x:-20,y:-5},{x:x1,y:-5},{x:x1,y},{x:x2,y},{x:x2,y:-5},{x:50,y:-5},{x:50,y:5},{x:-20,y:5}];
+  track.boundaryPolygons=[polygon];track.contains=(x,y)=>Course.inPolygon(x,y,polygon);
+  const old={x:20,y:0,s:20,yaw:0},next={x:20.2,y:.2,s:20.2,yaw:0},mid={x:20.1,y:.1,s:20.1,yaw:0};
+  assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
+  assert.equal(physics.failure(car,track,mid),'offtrack','the physical corner crosses the notch between endpoints');
+  assert.equal(physics.failure(car,track,next,old),'offtrack');
+});
+
+test('swept outer boundaries cover the arc of a rotating corner',()=>{
+  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),l=car.lengthM/2,w=car.widthM/2,R=Math.hypot(l,w),heading=Math.atan2(w,l),halfAngle=.04;
+  const limit=20+R*(1+Math.cos(halfAngle))/2;
+  const polygon=[{x:0,y:-10},{x:limit,y:-10},{x:limit,y:10},{x:0,y:10}];
+  track.boundaryPolygons=[polygon];track.contains=(x,y)=>Course.inPolygon(x,y,polygon);
+  const old={x:20,y:0,s:20,yaw:heading-halfAngle},next={...old,yaw:heading+halfAngle},mid={...old,yaw:heading};
+  assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
+  assert.equal(physics.failure(car,track,mid),'offtrack');
+  assert.equal(physics.failure(car,track,next,old),'offtrack','the endpoint hull alone misses the rotating corner');
+});
+
+test('swept footprints may cross connected overlapping road polygons',()=>{
+  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack();
+  const rectangle=(x0,x1)=>[{x:x0,y:-5},{x:x1,y:-5},{x:x1,y:5},{x:x0,y:5}];
+  track.boundaryPolygons=[rectangle(0,21),rectangle(19,50)];
+  track.contains=(x,y)=>track.boundaryPolygons.some(p=>Course.inPolygon(x,y,p));
+  assert.equal(physics.failure(car,track,{x:22,y:.3,s:22,yaw:.02},{x:18,y:0,s:18,yaw:0}),null);
+});
+
 test('polygon barriers detect crossed edges, contained obstacles and swept contact',()=>{
   const car=catalog.get(),track=straightTrack(),state=physics.initialState(car,track);Object.assign(state,{x:20,y:0,s:20});
   const rectangle=(x0,y0,x1,y1)=>[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}];
