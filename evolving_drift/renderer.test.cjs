@@ -79,7 +79,7 @@ test('Canvas uses the same translated assemblies, steering, spin and slope place
   for(const id of ids){
     const vehicle=Catalog.get(id);load(vehicle.vehicleId);const r=renderer(),mesh=r._vehicle(vehicle,{}),original=Models.create(vehicle.vehicleId,vehicle.spec,mesh.paint),track=surface(.13,-.09),frame={x:20,y:5,s:20,yaw:.65,steer:.3},spin=[.9,-.4,.8,.2],drawn=[];
     r.surfaceRenderer=null;r.ctx={save(){},restore(){}};r._track=()=>({geometry:{objects:[]}});r._paint=()=>{};r._polygon=vertices=>drawn.push(vertices);
-    r._car(frame,mesh,{},spin,false,track);
+    r._car(frame,mesh,{},spin,track);
     const sourceMesh={faces:original.faces.filter(f=>f.fill).map(f=>({...f}))};Wheels.prepareFaces(sourceMesh);
     const source=sourceMesh.faces,entries=r._surfaceEntries(frame,mesh,spin,track),seen=new Set();
     for(let i=0;i<mesh.faces.length;i++){
@@ -95,4 +95,86 @@ test('Canvas uses the same translated assemblies, steering, spin and slope place
     const bodyIndex=mesh.faces.findIndex(face=>face.wheel<0);
     source[bodyIndex].vertices.forEach((v,k)=>{const expected=world(entries[0],{x:v.x+vehicle.physics.bodyCenterOffsetM,y:v.y,z:v.z});for(const key of ['x','y','z'])near(drawn[bodyIndex+1][k][key],expected[key],id+' Canvas body/collision '+key);});
   }
+});
+
+test('replay draws only the selected vehicle and its map marker while retaining camera and effects',()=>{
+  const r=renderer(),car={x:4,y:2,s:4,time:1},record=[car],track={length:10,judgedStart:2,judgedEnd:8};
+  const mesh={sourceInfo:{label:'EV2'},manufacturer:{triangles:0,primitives:[]}},camera={mode:'follow'},spin=[1,2,3,4];
+  const drawn=[],markers=[],effects=[],passes=[];
+  r.ctx=new Proxy({arc(...args){markers.push(args);}},{get:(ctx,key)=>key in ctx?ctx[key]:()=>{}});
+  r.width=800;r.height=600;r.dpr=1;r.effects={marks:0};r.resize=()=>{};r._vehicle=()=>mesh;
+  r._camera=(givenTrack,givenCar,mode,fov)=>{assert.equal(givenTrack,track);assert.equal(givenCar,car);assert.equal(mode,'follow');assert.equal(fov,55);return camera;};
+  r._history=(frames,frame,time)=>{assert.equal(frames,record);assert.equal(frame,car);assert.equal(time,1);return frames;};
+  r._spin=frames=>{assert.equal(frames,record);return spin;};
+  r._ground=()=>passes.push('ground');r._obstacles=()=>passes.push('obstacles');
+  r._effects=(frames,time,givenMesh,givenCamera,marks,smoke)=>{assert.equal(frames,record);effects.push({marks,smoke});};
+  r._car=(...args)=>drawn.push(args);
+  r._track=()=>({bounds:{minX:0,maxX:10,minY:0,maxY:10},center:{x:5,y:5},edges:[
+    {s:2,x:2,y:0,left:{x:2,y:-1},right:{x:2,y:1}},
+    {s:8,x:8,y:0,left:{x:8,y:-1},right:{x:8,y:1}}
+  ]});
+  const options={track,car,record,time:1,mode:'follow',fov:55,marks:true,smoke:true};
+  // Old callers cannot re-enable a second vehicle through obsolete options.
+  Object.defineProperties(options,{reference:{get(){throw Error('obsolete reference was read');}},ghost:{get(){throw Error('obsolete ghost was read');}}});
+  r.render(options);
+  assert.deepEqual(drawn,[[car,mesh,camera,spin,track]]);
+  assert.equal(markers.length,1,'the minimap contains only the selected vehicle marker');
+  assert.deepEqual(passes,['ground','obstacles']);assert.deepEqual(effects,[{marks:true,smoke:false},{marks:false,smoke:true}]);
+  assert.equal(r.camera,camera);assert.equal(r.mode,'follow');assert.equal(r.fov,55);
+});
+
+function cameraScene(){
+  const r=renderer(),track={...surface(0,0),judgedEnd:420};
+  r.ctx=new Proxy({},{get:()=>()=>{}});r.width=800;r.height=600;r.dpr=1;r.effects={marks:0};r.resize=()=>{};
+  r._vehicle=()=>({sourceInfo:{label:'EV2'},manufacturer:{triangles:0,primitives:[]}});
+  r._track=()=>({center:{x:250,y:0,z:0},fitPoints:[{x:0,y:0,z:0},{x:500,y:0,z:0}]});
+  r._history=frames=>frames;r._spin=()=>[0,0,0,0];
+  for(const method of ['_ground','_obstacles','_effects','_car','_map'])r[method]=()=>{};
+  const frame=(x,time,status='running')=>({x,y:0,s:x,time,status,vx:20,vy:0,yaw:0,z:0});
+  return {r,track,frame};
+}
+const cameraPose=c=>({target:{...c.target},yaw:c.yaw,pitch:c.pitch,distance:c.distance});
+
+test('the first finished render computes its camera before latching and repeated renders cannot settle or drift',()=>{
+  const {r,track,frame}=cameraScene(),before=frame(499,9.98),finish=frame(500,10,'finished'),record=[before,finish];
+  const draw=(car,time=car.time)=>r.render({track,car,time,record,mode:'follow'});
+  draw(before);const approach=cameraPose(r.camera);assert.equal(r.getState().camera.finishLocked,false);
+  draw(finish);const latched=cameraPose(r.camera),follow={...r.follow};
+  assert.notDeepEqual(latched,approach,'the pre-finish camera is not latched');
+  assert.equal(r.getState().camera.finishLocked,true);
+  for(const time of [10,10,10.1,11]){draw(finish,time);assert.deepEqual(cameraPose(r.camera),latched);assert.deepEqual(r.follow,follow);}
+  const crossing=frame(421,8.4);draw(crossing);
+  assert.equal(r.getState().camera.finishLocked,false,'rewinding into the recorded run resumes following');
+  assert.equal(r.camera.target.x,crossing.x+3.8);
+  const failed=frame(500,10,'offtrack');r.render({track,car:failed,time:10,record:[failed],mode:'follow'});
+  assert.equal(r.getState().camera.finishLocked,false,'a failed run is not a completed finish');
+});
+
+test('seeking directly to the finish uses that pose and replay, record, track and view changes remain functional',()=>{
+  const {r,track,frame}=cameraScene(),start=frame(5,0),finish=frame(500,10,'finished'),record=[start,finish];
+  const draw=(car,extra={})=>r.render({track,car,time:car.time,record,mode:'follow',fov:55,...extra});
+  draw(start);draw(finish);
+  assert.equal(r.camera.target.x,finish.x+3.8,'a large seek calculates from the finish pose');
+  const latched=cameraPose(r.camera),f=r.camera.f;
+  draw(finish,{fov:75});assert.deepEqual(cameraPose(r.camera),latched);assert.notEqual(r.camera.f,f);
+  r.width=1000;r.height=700;draw(finish,{fov:75});assert.deepEqual(cameraPose(r.camera),latched);assert.equal(r.camera.cx,500);
+  draw(finish,{mode:'top'});assert.notDeepEqual(cameraPose(r.camera),latched);assert.equal(r.getState().camera.finishLocked,true);
+  draw(finish,{mode:'follow'});assert.deepEqual(cameraPose(r.camera),latched);
+  draw(start);assert.equal(r.getState().camera.finishLocked,false);assert.equal(r.camera.target.x,start.x+3.8);
+  const other={...finish,y:12};draw(other,{record:[start,other]});assert.equal(r.camera.target.y,12,'another record gets its own finished camera');
+  draw(finish,{track:{...track}});assert.equal(r.camera.target.y,0,'another track cannot inherit a finished camera');
+  r.destroy();assert.equal(r.finishCamera,null);
+});
+
+test('visible start and finish follow the physical course while zone paint and the map geometry stay in place',()=>{
+  const r=renderer(),track={...surface(0,0),judgedStart:120,judgedEnd:420,zones:[{s:200,side:1,length:12}]},before=JSON.stringify(track);
+  const lines=[],labels=[],layout={width:14,bounds:{minX:0,maxX:500,minY:-7,maxY:7},center:{x:250,y:0,z:0},geometry:{ground:[],decals:[],objects:[]},edges:[]};
+  r.width=800;r.height=600;r.ctx=new Proxy({fillText:text=>labels.push(text),createLinearGradient:()=>({addColorStop(){}})},{get:(ctx,key)=>key in ctx?ctx[key]:()=>{}});
+  r._track=()=>layout;r._paint=()=>{};r._line=(vertices,fill)=>lines.push({vertices,fill});r._project=()=>({x:0,y:0,depth:0});
+  r._ground(track,{cy:300,f:400,pitch:.57,distance:25});
+  const start=lines.find(line=>line.fill==='#edf0e3'),finish=lines.find(line=>line.fill==='#e6c77e'),zone=lines.find(line=>line.fill==='#e9b744');
+  assert.ok(start.vertices.every(p=>p.x===2.5));assert.ok(finish.vertices.every(p=>p.x===500));
+  assert.equal(zone.vertices[0].x,200);assert.equal(zone.vertices.at(-1).x,212);
+  assert.ok(labels.includes('START')&&labels.includes('FINISH'));
+  r._map(track,{x:500,y:0});assert.ok(labels.includes('500 m · ZONE ×2'));assert.equal(JSON.stringify(track),before,'visual labels never mutate prepared course data');
 });

@@ -3,6 +3,7 @@
 (function(root){
 'use strict';
 const G=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
+const Shape=root.DriftMutationShape||(typeof require==='function'?require('./mutation-shape.js'):null);
 const F=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
 const SpeedPlanner=root.DriftEntrySpeedPlanner||(typeof require==='function'?require('./entry-speed-planner.js'):null);
 if(!G||!F)throw new Error('Load Genome and Fitness before EvolutionStrategies.');
@@ -10,7 +11,7 @@ const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const smoother=t=>{t=clamp(t,0,1);return t*t*t*(10+t*(-15+6*t));};
 const pulse=(s,c,w)=>Math.abs(s-c)>=w?0:.5+.5*Math.cos(Math.PI*(s-c)/w);
-const FAMILIES=Object.freeze(['link','link','link','bridge','bridge','bridge','apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach','entry-speed','entry-speed']);
+const FAMILIES=Object.freeze(['link','link','link','bridge','bridge','bridge','apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach','entry-speed','entry-speed','brake-release']);
 const straightCache=new WeakMap();
 function zones(track){return F.apexZones(track);}
 function links(track){return F.straightLinks(track);}
@@ -37,6 +38,30 @@ function feedforward(vehicle,track,gene,s,speed){
  return Math.atan(L*2*Math.sin(Math.atan2(b.y-a.y,b.x-a.x)-heading)/dist);
 }
 function speedAt(record,s){let i=0;while(i<record.length-2&&record[i+1].s<s)i++;const a=record[i],b=record[Math.min(record.length-1,i+1)],t=clamp((s-a.s)/Math.max(1e-9,b.s-a.s),0,1);return a.speed+(b.speed-a.speed)*t;}
+function brakingSlowdown(parent,reference,track,zone,regions){
+ if(parent.accepted!==true||parent.result?.valid!==true||parent.result?.status!=='finished'||!reference?.length)return null;
+ const record=parent.record||parent.result.frames;if(!record?.length)return null;
+ const lower=approachStart(track,zone,regions),ds=track.length/(G.KNOTS-1);
+ let trough=null,ratio=.7;
+ for(const frame of record){
+  if(frame.s<(zone.cornerStart??zone.start)||frame.s>zone.end)continue;
+  const expected=speedAt(reference,frame.s),retention=frame.speed/Math.max(1,expected);
+  if(expected>=5&&expected-frame.speed>=2&&retention<ratio){trough=frame;ratio=retention;}
+ }
+ if(!trough)return null;
+ // Locate the last observed braking episode before the speed trough. The
+ // deficit is evidence for a pedal mutation, not proof that braking alone
+ // caused it. Earlier drift/line genes remain available to other families.
+ let first=null,last=null;
+ for(let i=record.length-1;i>=0;i--){
+  const frame=record[i];if(frame.s>trough.s)continue;if(frame.s<lower)break;
+  if(last&&first.s-frame.s>2*ds)break;
+  if((frame.brake||0)>.03){first=frame;if(!last)last=frame;}
+ }
+ if(!first)return null;
+ return {candidateId:parent.id,origin:{s:first.s},window:{startS:Math.max(lower,first.s-ds),endS:trough.s},
+  slowdown:{s:trough.s,speed:trough.speed,referenceSpeed:speedAt(reference,trough.s),retention:ratio}};
+}
 function couple(vehicle,track,parent,child,record){
  const result=G.clone(child),p=vehicle.physics||vehicle;
  for(let i=0;i<G.KNOTS;i++){const s=i/(G.KNOTS-1)*track.length,v=speedAt(record,s),delta=feedforward(vehicle,track,result,s,v)-feedforward(vehicle,track,parent,s,v);result[i*G.STRIDE+C.steer]=clamp(result[i*G.STRIDE+C.steer]+delta,-p.maxSteer,p.maxSteer);}
@@ -119,6 +144,13 @@ function mutate(parent){
  const change={family,center,width,steer:sign*rnd(-.065,.045),angle:rnd(-3,14)*DEG,line:sign*rnd(-2.8,2.8),lead:rnd(-.16,.1),slip:rnd(-.3,.3),pedal:rnd(-.12,.2),gear:pick([0,3,4,'rpm']),shiftAt:clamp(end+rnd(-14,2),z.exit-8,z.end-15)};
  const localFine=end-z.exit>25?.28:1;
  for(const key of ['steer','angle','line','lead','slip','pedal'])change[key]*=localFine;
+ if(family==='brake-release'){
+  const diagnosis=brakingSlowdown(parent,options.referenceRecord,track,z,all);
+  if(!diagnosis)return {gene,change};
+  const proposal=repair(vehicle,track,{...parent,record:parent.record||parent.result.frames},rng,
+   {...options,family:'brake-release',diagnosis,scale:1});
+  return {...proposal,change:{...proposal.change,source:'valid-slowdown',slowdown:diagnosis.slowdown}};
+ }
  if(family==='entry-speed'){
   const params={entrySpeedRatio:rnd(.85,1.2),brakeLead:rnd(-5,30),brakeStrength:rnd(.8,1.3),brakeRelease:rnd(-15,8)};
   const entrySpeed=SpeedPlanner.plan(vehicle,track,gene,options.referenceRecord||parent.result.frames,z,params,{lower:approachStart(track,z,all),arrivalRecord:parent.result.frames,referenceGene:options.referenceGene});
@@ -307,13 +339,20 @@ function mutate(parent){
   }
   return {gene:norm(gene),change};
  }
+ const powerSlipTarget=family==='gearPower'?rnd(.45,1.1):null;
+ if(powerSlipTarget!==null)change.powerSlipTarget=powerSlipTarget;
  for(let i=0;i<128;i++){
   const s=i*ds,j=i*8,w=pulse(s,center,width);
   if(['gear','gearPower'].includes(family)&&s>=change.shiftAt&&s<=z.end+20){
    const frame=parent.result.frames.reduce((a,b)=>Math.abs(a.s-s)<Math.abs(b.s-s)?a:b),u=Math.abs(frame.vx*Math.cos(frame.yaw)+frame.vy*Math.sin(frame.yaw)),omega=u/p.tireRadius*(1+gene[j+C.driveSlip]);
    const recommended=p.gearRatios.findIndex((ratio,k)=>omega*ratio*(p.finalDriveRatios?.[k]||p.finalDrive)*60/(2*Math.PI)<p.shiftRPM*.98)+1;
    gene[j+C.gearHold]=change.gear==='rpm'?(recommended||p.gearRatios.length):change.gear;
-   if(family==='gearPower'){gene[j+C.driveSlip]=Math.max(gene[j+C.driveSlip],rnd(.45,1.1));gene[j+C.throttle]=Math.max(.8,gene[j+C.throttle]);gene[j+C.brake]=0;}
+   if(family==='gearPower'){
+    const powerWeight=smoother((s-change.shiftAt)/(2*ds))*smoother((Math.min(track.length,z.end+20)-s)/(2*ds));
+    gene[j+C.driveSlip]+=(Math.max(gene[j+C.driveSlip],powerSlipTarget)-gene[j+C.driveSlip])*powerWeight;
+    gene[j+C.throttle]+=(Math.max(.8,gene[j+C.throttle])-gene[j+C.throttle])*powerWeight;
+    gene[j+C.brake]*=1-powerWeight;
+   }
   }
   if(!w)continue;
   if(['steer','combined','spread'].includes(family))gene[j+C.steer]+=change.steer*w;
@@ -324,9 +363,16 @@ function mutate(parent){
  }
  return {gene:norm(gene),change};
 }
- const proposal=mutate(parent),strength=clamp(options.scale??1,.03,1.5),mixed=G.clone(parent.gene);
+ const proposal=mutate(parent),strength=clamp(options.scale??1,.03,1.5),mixed=G.clone(parent.gene),gearChoices=new Map();
+ for(let start=0;start<G.KNOTS;){
+  const gear=proposal.gene[start*G.STRIDE+C.gearHold];let end=start+1;
+  while(end<G.KNOTS&&proposal.gene[end*G.STRIDE+C.gearHold]===gear)end++;
+  let changed=false;for(let i=start;i<end;i++)if(parent.gene[i*G.STRIDE+C.gearHold]!==gear)changed=true;
+  const adopt=changed&&(strength>=1||rng()<strength);for(let i=start;i<end;i++)gearChoices.set(i,adopt);
+  start=end;
+ }
  for(let i=0;i<G.LENGTH;i++){
-  if(i%G.STRIDE===C.gearHold){if(proposal.gene[i]!==parent.gene[i]&&(strength>=1||rng()<strength))mixed[i]=proposal.gene[i];}
+  if(i%G.STRIDE===C.gearHold){if(gearChoices.get(Math.floor(i/G.STRIDE)))mixed[i]=proposal.gene[i];}
   else mixed[i]+=(proposal.gene[i]-parent.gene[i])*strength;
  }
  // Blend targets before recoupling steering to the normalized line. A blend
@@ -348,22 +394,62 @@ function mutate(parent){
 }
 function ensurePedalChanged(parent,proposal,track,strength=1){
  if(proposal.gene.some((value,i)=>value!==parent[i]))return proposal;
- const plan=proposal.change.entrySpeed,ds=track.length/(G.KNOTS-1),lower=clamp(Math.ceil(plan.start/ds),0,G.KNOTS-1),upper=clamp(Math.floor((plan.end+plan.rampOut)/ds),lower,G.KNOTS-1);
- const knot=clamp(Math.round((plan.start+plan.end)/2/ds),lower,upper),gene=G.clone(proposal.gene),j=knot*G.STRIDE+C.brake;
- gene[j]=clamp(gene[j]+(gene[j]>=.5?-1:1)*.002*strength,0,1);
- return {...proposal,gene,change:{...proposal.change,pedalFallback:true}};
+ const plan=proposal.change.entrySpeed,ds=track.length/(G.KNOTS-1),lower=clamp(Math.ceil(Math.max(2.5,plan.start)/ds),0,G.KNOTS-1),upper=clamp(Math.floor((plan.end+plan.rampOut)/ds),lower,G.KNOTS-1);
+ const center=(lower+upper)/2,gene=G.clone(proposal.gene),span=Shape.window(center,3,{lower,upper});
+ const amount=(gene[Math.round(center)*G.STRIDE+C.brake]>=.5?-1:1)*.002*strength;
+ let changed=Shape.add(gene,C.brake,{...span,amount});
+ if(!changed.changed)changed=Shape.add(gene,C.brake,{...span,amount:-amount});
+ // A very short plan still needs multiple editable knots. Expand only the
+ // mutation window, with zero endpoints, and never before spawn preparation.
+ if(!changed.changed){
+  const expanded=Shape.window(center,3,{lower:Math.ceil(2.5/ds),upper:G.KNOTS-1});
+  changed=Shape.add(gene,C.brake,{...expanded,amount});
+  if(!changed.changed)changed=Shape.add(gene,C.brake,{...expanded,amount:-amount});
+ }
+ return {...proposal,gene,change:{...proposal.change,pedalFallback:true,mutationWindow:{start:changed.start*ds,end:changed.end*ds}}};
 }
 function ensureChanged(vehicle,parent,proposal,rng,strength=1){
  if(proposal.gene.some((v,i)=>v!==parent[i]))return proposal;
  const gene=G.clone(proposal.gene),p=vehicle.physics||vehicle,center=2+Math.floor(rng()*(G.KNOTS-4)),current=gene[center*G.STRIDE+C.steer],direction=current>0?-1:current<0?1:rng()<.5?-1:1,amount=direction*Math.min(.002,p.maxSteer*.01)*strength;
- for(let offset=-1;offset<=1;offset++)gene[(center+offset)*G.STRIDE+C.steer]=clamp(gene[(center+offset)*G.STRIDE+C.steer]+amount*(offset===0?1:.5),-p.maxSteer,p.maxSteer);
- return {...proposal,gene,change:{...(proposal.change||{}),family:'fine-fallback'}};
+ const limits={maxSteerRad:p.maxSteer},span=Shape.window(center,3);
+ let changed=Shape.add(gene,C.steer,{...span,amount},limits);
+ if(!changed.changed)changed=Shape.add(gene,C.steer,{...span,amount:-amount},limits);
+ if(!changed.changed){const lead=gene[center*G.STRIDE+C.counterLead],nudge=(lead>.425?-1:1)*.002*strength;changed=Shape.add(gene,C.counterLead,{...span,amount:nudge});}
+ return {...proposal,gene,change:{...(proposal.change||{}),family:'fine-fallback',mutationKnots:{start:changed.start,end:changed.end}}};
+}
+function repairNudge(gene,center,start,end,ds,p,direction,strength){
+ let window=Shape.window(center/ds,3,{lower:Math.max(Math.ceil(2.5/ds),Math.ceil(start/ds)),upper:Math.floor(end/ds)});
+ if(window.end-window.start<3)window=Shape.window(center/ds,3,{lower:Math.ceil(2.5/ds),upper:G.KNOTS-1});
+ const i=Math.round((window.start+window.end)/2),current=gene[i*G.STRIDE+C.steer];
+ const amount=(current>=p.maxSteer?-1:current<=-p.maxSteer?1:direction)*.002*strength,limits={maxSteerRad:p.maxSteer};
+ let changed=Shape.add(gene,C.steer,{...window,amount},limits),family='steer';
+ if(!changed.changed)changed=Shape.add(gene,C.steer,{...window,amount:-amount},limits);
+ if(!changed.changed){family='lead';const lead=gene[i*G.STRIDE+C.counterLead];changed=Shape.add(gene,C.counterLead,{...window,amount:(lead>.425?-1:1)*.002*strength});}
+ return {family,mutationWindow:{start:window.start*ds,end:window.end*ds}};
 }
 function repair(vehicle,track,parent,rng,options={}){
  if(parent.accepted!==true||parent.result?.valid!==true||parent.result?.status!=='finished')throw new TypeError('Repairs require a completed valid parent, never a failed genome.');
  const p=vehicle.physics||vehicle,diagnosis=options.diagnosis,ds=track.length/(G.KNOTS-1),strength=clamp(options.scale??1,.03,1.5);
  if(!diagnosis?.window||!Number.isFinite(diagnosis.origin?.s))throw new TypeError('A recorded precursor window is required.');
  const bounds=options.lineBounds||G.corridorBounds(vehicle,track),norm=g=>G.normalize(g,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
+ if(options.family==='brake-release'){
+  // A stopped child supplies only the observed window. Change a completed
+  // parent's pedal intent; never restart the child or override its physics.
+  const start=clamp(diagnosis.window.startS,0,track.length-2*ds),end=clamp(diagnosis.window.endS+ds,start+2*ds,track.length);
+  const amount=(.2+.6*rng())*Math.min(1,strength),gene=G.clone(parent.gene);
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds;if(s<=start||s>=end)continue;
+   const w=smooth((s-start)/ds)*(1-smooth((s-(end-ds))/ds)),j=i*G.STRIDE;
+   gene[j+C.brake]*=1-amount*w;
+   gene[j+C.throttle]+=.08*amount*w*(1-gene[j+C.throttle]);
+  }
+  const normalized=norm(gene);
+  if(!normalized.some((value,i)=>value!==parent.gene[i])){
+   const fallback=repair(vehicle,track,parent,rng,{...options,family:'timing'});
+   return {...fallback,change:{...fallback.change,fallbackFrom:'brake-release'}};
+  }
+  return {gene:normalized,change:{family:'brake-release',source:'failure-window',basisCandidateId:diagnosis.candidateId,originS:diagnosis.origin.s,start,end,amount,scale:strength}};
+ }
  if(options.family==='entry-speed'){
   const all=options.zones||zones(track),z=options.zone||all[diagnosis.precedingZoneIndex??diagnosis.origin.zoneIndex];
   if(!z)throw new TypeError('An observed corner is required for entry-speed repair.');
@@ -399,22 +485,18 @@ function repair(vehicle,track,parent,rng,options={}){
  // A timing hypothesis can be unobservable on a flat grip target. Use a
  // bounded local steering trial in that same precursor window, not elsewhere.
  if(!gene.some((v,i)=>v!==parent.gene[i])){
-  const i=clamp(Math.round(center/ds),1,G.KNOTS-2),j=i*G.STRIDE+C.steer;
-  gene[j]=clamp(gene[j]+(gene[j]>=p.maxSteer?-1:gene[j]<=-p.maxSteer?1:direction)*.002*strength,-p.maxSteer,p.maxSteer);
-  change.family='steer';change.fallbackFrom=family;
+  Object.assign(change,repairNudge(gene,center,start,end,ds,p,direction,strength),{fallbackFrom:family});
  }
  const normalized=norm(couple(vehicle,track,parent.gene,norm(gene),parent.record));
  if(!normalized.some((v,i)=>v!==parent.gene[i])){
-  const i=clamp(Math.round(center/ds),1,G.KNOTS-2),j=i*G.STRIDE+C.steer;
-  normalized[j]=clamp(normalized[j]+(normalized[j]>=0?-1:1)*.002*strength,-p.maxSteer,p.maxSteer);
-  change.family='steer';change.fallbackFrom=family;
+  Object.assign(change,repairNudge(normalized,center,start,end,ds,p,-direction,strength),{fallbackFrom:family});
  }
  return {gene:normalized,change};
 }
 function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
-function signature(){return FAMILIES.join(',')+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,trailingStraightStart].map(String).join('\n');}
+function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
 const api=Object.freeze({VERSION:6,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

@@ -3,7 +3,7 @@
 (function(root){
 'use strict';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const REPAIR_FAMILIES=Object.freeze(['entry-speed','timing','lead','steer','line','power','angle','combined']);
+const REPAIR_FAMILIES=Object.freeze(['brake-release','entry-speed','timing','lead','steer','line','power','angle','combined']);
 class Policy {
  constructor(zones,{enabled=true,scale=1}={}){
   this.enabled=enabled;this.baseScale=scale;this.generation=0;this.observations=0;this.failuresAnalyzed=0;this.guidedProposals=0;this.explorationProposals=0;this.focusProposals=0;

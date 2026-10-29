@@ -14,10 +14,47 @@ test('entry speed, lead, pressure and release remain separate physical-intent pa
  const f=fixture(),plan=q=>Planner.plan(f.vehicle,f.track,f.gene,f.record,f.zone,q,{arrivalRecord:f.arrival}),base=plan({});
  assert.ok(plan({entrySpeedRatio:.8}).targetSpeed<base.targetSpeed);assert.ok(plan({entrySpeedRatio:1.2}).targetSpeed>base.targetSpeed);
  assert.ok(plan({brakeLead:15}).start<base.start);assert.ok(plan({brakeLead:-10}).start>base.start);
- assert.ok(plan({brakeStrength:.5}).pressure<base.pressure);assert.ok(plan({brakeStrength:1.3}).pressure>base.pressure);
+ assert.ok(plan({brakeStrength:.5}).pressure<base.pressure);assert.ok(plan({brakeStrength:1.3}).pressure>=base.pressure);
+ assert.ok(plan({brakeStrength:.65}).pressure>plan({brakeStrength:.5}).pressure,'strength still varies pedal pressure below the stock braking budget');
  assert.equal(plan({brakeRelease:-10}).end,150);assert.equal(plan({brakeRelease:10}).end,170);
  assert.ok(base.start<f.zone.start-35,'the stopping-distance window can precede a local 35m repair window');
  assert.ok(base.requiredDistance>35);assert.ok(base.pressure>0&&base.pressure<=.85);
+});
+
+test('short braking windows retain the stock rear-axle longitudinal braking budget',()=>{
+ const f=fixture(15);
+ for(const vehicle of Catalog.list()){
+  const p=vehicle.physics,plan=Planner.plan(vehicle,f.track,f.gene,f.record,f.zone,
+   {entrySpeedRatio:.65,brakeStrength:1.65,brakeLead:-25},{arrivalRecord:f.arrival});
+  const deceleration=plan.pressure*p.brakeAcceleration;
+  const rearNormalLoad=p.massKg*9.81*(1-p.frontWeightFraction)-p.massKg*deceleration*p.cgHeightM/p.wheelbaseM;
+  const rearBrakeDemand=p.massKg*deceleration*.38;
+  assert.ok(plan.pressure>0&&plan.pressure<=plan.brakeLimit,vehicle.id);
+  assert.ok(rearBrakeDemand<rearNormalLoad*p.gripCoefficient,vehicle.id+' must respect its stock rear brake share and forward load transfer');
+ }
+});
+
+test('G80 T21 spatial-brake stall reproduction no longer requests the excessive pressure',async()=>{
+ const Tracks=require('./track.js'),Prepared=require('./prepared-grips.js'),fixture=require('./test-fixtures/g80-kic-spatial-brake-stall.json');
+ const vehicle=Catalog.get('g80-3.5t-rwd'),track=Tracks.get('kr-kic-t21-kdl-2016-r2');
+ const baseline=await Prepared.load(vehicle,track),zone=Strategies.zones(track)[1];
+ const plan=Planner.plan(vehicle,track,fixture.gene,baseline.record,zone,fixture.params,
+  {lower:Strategies.approachStart(track,zone),arrivalRecord:baseline.record});
+ assert.ok(plan.deceleration/vehicle.physics.brakeAcceleration*plan.parameters.brakeStrength>.68,
+  'the old unbounded planner requested nearly 69% braking');
+ assert.ok(plan.pressure<.43);
+ // This historical speed plan replaced zero underlying brakes throughout its
+ // active drift. Rescale only that recorded pedal profile to the corrected
+ // budget; later RNG/search changes must not redefine the regression case.
+ const gene=G.clone(fixture.gene);
+ for(let i=0;i<G.KNOTS;i++){const s=i/127*track.length;if(s>plan.start&&s<plan.end+plan.rampOut)gene[i*G.STRIDE+C.brake]*=plan.pressure/fixture.plan.pressure;}
+ const result=Physics.evaluateGene(vehicle,track,gene);
+ assert.notEqual(result.status,'timeout');
+ assert.ok(result.frames.filter(f=>f.s>=300).every(f=>f.speed>8),
+  'the former 327m stationary brake deadlock is gone');
+ // Less brake does not grant extra road width or certify this mutant. This
+ // particular line still exits the course and must remain a failed run.
+ assert.equal(result.status,'offtrack');assert.equal(result.valid,false);assert.equal(result.score,0);
 });
 test('guidance follows the chosen line, stock vehicle and reference without a universal speed cap or simulation',()=>{
  const f=fixture(),before=JSON.stringify(Catalog.list()),inside=G.clone(f.gene);
@@ -70,8 +107,10 @@ test('a normalized-away entry-speed repair stays in its pedal window instead of 
  const options={family:'entry-speed',zones:[f.zone],zone:f.zone,referenceRecord:record,diagnosis:{origin:{s:195,zoneIndex:0},window:{startS:165,endS:220}}};
  for(const proposal of [Strategies.repair(f.vehicle,f.track,parent,()=>.9,options),Strategies.adaptive(f.vehicle,f.track,parent,()=>.9,options)]){
   assert.equal(proposal.change.family,'entry-speed');assert.equal(proposal.change.pedalFallback,true);
-  const changed=[];proposal.gene.forEach((value,i)=>{if(value!==gene[i])changed.push(i);});assert.equal(changed.length,1);assert.equal(changed[0]%8,C.brake);
-  const s=Math.floor(changed[0]/8)/127*f.track.length,p=proposal.change.entrySpeed;assert.ok(s>=p.start&&s<=p.end+p.rampOut);
+  const changed=[];proposal.gene.forEach((value,i)=>{if(value!==gene[i])changed.push(i);});assert.ok(changed.length>=2);assert.ok(changed.every(i=>i%8===C.brake));
+  const window=proposal.change.mutationWindow;
+  for(const i of changed){const s=Math.floor(i/8)/127*f.track.length;assert.ok(s>window.start&&s<window.end);}
+  assert.ok(window.start>=2.5,'a short fallback never reaches before preparation starts');
  }
 });
 test('a longer bridge can co-evolve its approach pedals while preserving drift-angle and stock-force semantics',()=>{

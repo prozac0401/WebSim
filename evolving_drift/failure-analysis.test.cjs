@@ -139,3 +139,52 @@ test('a fixed real failed physics replay yields bounded observed precursor evide
  assert.ok(a.window.startS<=a.origin.s);assert.ok(a.window.endTime<=r.frames.at(-1).time);assert.equal(a.failure.reason,r.reason);
  assert.ok(a.evidence.length>0);assert.ok(a.evidence.every(e=>typeof e.value!=='number'||Number.isFinite(e.value)));
 });
+
+function stoppedReplay({end=7,brake=.5,correction=-.05,requestedGear=2,rpm=750,status='timeout',speedAt=null}={}){
+ const frames=[];let s=40;
+ for(let i=0;i<=Math.round(end/.05);i++){
+  const time=i*.05,speed=speedAt?speedAt(time):time<1?20-10*time:time<3?10+5*(time-1):Math.max(0,20-10*(time-3));
+  if(i)s+=speed*.05;
+  const road=track.sample(s);
+  frames.push({time,s,x:road.x,y:road.y,vx:speed*Math.cos(road.heading),vy:speed*Math.sin(road.heading),yaw:road.heading,
+   brake:time>=3?value(brake,time):0,throttle:.2,driverThrottleCorrection:value(correction,time),gear:2,requestedGear,rpm});
+ }
+ return {valid:false,status,reason:status==='timeout'?'주행 정지':status,time:frames.at(-1).time,frames};
+}
+const analyzeStop=(r,physics={idleRPM:750})=>Analysis.analyze({physics:{...vehicle.physics,...physics}},track,r,{zones});
+
+test('a stopped timeout identifies the latest deceleration and supported pedal and gear observations',()=>{
+ const r=stoppedReplay(),before=JSON.stringify(r),a=analyzeStop(r);
+ assert.equal(a.kind,'sustained-stop');assert.ok(Math.abs(a.origin.time-3)<.051,'earlier recovered braking is not attributed');
+ assert.ok(a.origin.s<a.failure.s);assert.equal(a.window.startTime,a.origin.time);assert.equal(a.window.endTime,r.time);
+ assert.deepEqual(kinds(a),['brake-held-stop','throttle-suppressed-stop','held-gear-low-rpm']);
+ assert.deepEqual(a.recommendedFamilies,['brake-release','timing','power']);assert.ok(!a.recommendedFamilies.includes('entry-speed'));
+ assert.ok(a.evidence.some(e=>e.label==='정지 중 제동 입력 유지'&&e.value>=1.9));
+ assert.ok(a.hypotheses.every(h=>['low','medium'].includes(h.confidence)&&/확정|단정/.test(h.summary)));
+ assert.ok(a.evidence.every(e=>Number.isFinite(e.value)));assert.equal(JSON.stringify(r),before);
+});
+
+test('a constant-speed approach ends at the observed deceleration origin instead of launch',()=>{
+ const a=analyzeStop(stoppedReplay({end:14,speedAt:time=>time<=10?10:Math.max(0,10-5*(time-10))}));
+ assert.equal(a.kind,'sustained-stop');assert.equal(a.origin.time,10);assert.equal(a.window.startTime,10);
+ const gearOnly=analyzeStop(stoppedReplay({brake:0,correction:0}));
+ assert.deepEqual(kinds(gearOnly),['held-gear-low-rpm']);assert.deepEqual(gearOnly.recommendedFamilies,[],'gear remains an observation without an implemented repair family');
+});
+
+test('stopping diagnosis requires final sustained low speed and continuous telemetry',()=>{
+ assert.notEqual(analyzeStop(stoppedReplay({end:5.2})).kind,'sustained-stop');
+ assert.notEqual(analyzeStop(stoppedReplay({status:'offtrack'})).kind,'sustained-stop');
+ const gap=stoppedReplay();gap.frames=gap.frames.filter(f=>f.time<5.5||f.time>6.6);
+ assert.notEqual(analyzeStop(gap).kind,'sustained-stop','a gap cannot bridge the observed stop duration');
+ const decelGap=stoppedReplay();decelGap.frames=decelGap.frames.filter(f=>f.time<4||f.time>=5);
+ const a=analyzeStop(decelGap);assert.equal(a.kind,'sustained-stop');assert.ok(a.origin.time>=5,'missing deceleration cannot be invented');
+});
+
+test('missing or brief pedal data, auto gear and non-idle RPM do not invent causes',()=>{
+ const r=stoppedReplay({brake:t=>Math.round(t*20)%4===0?.5:0,correction:0,requestedGear:0});
+ const a=analyzeStop(r);assert.equal(a.kind,'sustained-stop');assert.deepEqual(a.hypotheses,[]);assert.deepEqual(a.recommendedFamilies,[]);
+ const b=analyzeStop(stoppedReplay({brake:0,correction:0,rpm:2500}));assert.ok(!kinds(b).includes('held-gear-low-rpm'));
+ const c=stoppedReplay();for(const f of c.frames){delete f.brake;delete f.driverThrottleCorrection;delete f.rpm;}
+ assert.deepEqual(analyzeStop(c).hypotheses,[]);
+ const electric=analyzeStop(stoppedReplay({brake:0,correction:0}),{electric:true,idleRPM:750});assert.deepEqual(electric.hypotheses,[]);
+});
