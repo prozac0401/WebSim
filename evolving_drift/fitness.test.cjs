@@ -1,214 +1,166 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),Fitness=require('./fitness.js');
+const DEG=Math.PI/180,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const vehicle={physics:{massKg:1500}};
-const track={length:250,judgedStart:20,judgedEnd:120,sample:s=>({curvature:s>=20&&s<=60?.02:0})};
-function replay({brake=0,force=2500,torque=2500,accelerate=1,valid=true}={}){
- const frames=[];let s=0,x=0,y=0,heading=0,time=0,speed=15;
- while(s<240){const beta=s>=35&&s<=180?-20*Math.PI/180:0,active=s>=65&&s<=165;
-  frames.push({time,s,x,y,vx:speed*Math.cos(heading),vy:speed*Math.sin(heading),yaw:heading-beta,speed,beta,throttle:.6,brake,rearTorque:torque,wheelSlip:[0,0,.2,.2],wheelForces:[{},{},{fx:force/2},{fx:force/2}]});
-  const dt=.05;speed+=active?accelerate*dt:0;const distance=speed*dt;s+=distance;heading+=track.sample(s).curvature*distance;x+=Math.cos(heading)*distance;y+=Math.sin(heading)*distance;time+=dt;
- }
- return {valid,status:valid?'finished':'offtrack',score:20,frames};
-}
-test('powered exit requires actual tyre propulsion and a continuous accelerating corner-connected run',()=>{
- const raw=replay(),ranked=Fitness.rank(vehicle,track,raw);
- assert.equal(ranked.power.success,true);assert.ok(ranked.power.bestExit.duration>=2);assert.ok(ranked.power.bestExit.distance>=30);assert.ok(ranked.power.bestExit.speedGain>0);assert.ok(ranked.power.bestExit.meanRearPowerW>20000);assert.equal(raw.score,20,'ranking does not mutate the physical result');assert.equal(ranked.styleScore,20);assert.ok(ranked.score>=60);
- for(const patch of [{brake:.2},{force:0},{force:-2500},{torque:0},{accelerate:-.5},{valid:false}])assert.equal(Fitness.rank(vehicle,track,replay(patch)).power.success,false,JSON.stringify(patch));
-});
-test('a high-angle braking slide cannot outrank a completed powered-exit objective',()=>{
- const complete=Fitness.rank(vehicle,track,replay()),braking=replay({brake:.2});braking.score=100;
- const incomplete=Fitness.rank(vehicle,track,braking);assert.equal(incomplete.power.success,false);assert.ok(incomplete.score<=59);assert.ok(complete.score>incomplete.score);
- const inconsistent=replay();inconsistent.status='offtrack';const rejected=Fitness.rank(vehicle,track,inconsistent);assert.equal(rejected.score,0);assert.equal(rejected.power.success,false);
- assert.deepEqual(Fitness.rank(vehicle,track,complete),complete,'ranking is idempotent');
-});
-test('missing force data and a straight-cut trajectory cannot masquerade as powered corner exit',()=>{
- const missing=replay();for(const f of missing.frames)delete f.wheelForces;assert.equal(Fitness.rank(vehicle,track,missing).power.success,false);
- const cut=replay();for(const f of cut.frames){f.vx=f.speed;f.vy=0;f.y=0;f.x=f.s;f.yaw=-f.beta;}assert.equal(Fitness.rank(vehicle,track,cut).power.success,false);
-});
-test('physical travelled distance is separate from centreline progress',()=>{
- const short=replay();for(const f of short.frames){f.x*=.2;f.y*=.2;}
- const m=Fitness.rank(vehicle,track,short).power;assert.equal(m.success,false);assert.ok(!m.bestExit||m.bestExit.distance<30);
-});
-test('a telemetry gap breaks drift continuity instead of joining short powered runs',()=>{
- const raw=replay(),zone=Fitness.exitZones(track)[0],inside=raw.frames.filter(f=>f.s>=zone.exit&&f.s<=zone.end);
- const origin=inside[0].time;
- raw.frames=raw.frames.filter(f=>f.time<origin+1||f.time>origin+2.4&&f.time<origin+3.4||f.s>zone.end);
- assert.equal(Fitness.rank(vehicle,track,raw).power.success,false);
-});
+const track={id:'test-apex',length:240,judgedStart:20,judgedEnd:200,sample:s=>({curvature:s>=60&&s<=130?.014:0})};
 
-test('stretching the same completed exit over more time cannot earn a higher score',()=>{
- const slow=replay({accelerate:0});
- // Keep the exact path, angle, pedals and tyre forces; only compare the same
- // constant-speed trajectory at two time scales. Both meet the time minimum.
- const fast={...slow,frames:slow.frames.map(f=>({...f,time:f.time/2,speed:f.speed*2,vx:f.vx*2,vy:f.vy*2}))};
- const slower=Fitness.rank(vehicle,track,slow).power,faster=Fitness.rank(vehicle,track,fast).power;
- assert.equal(slower.success,true);assert.equal(faster.success,true);
- assert.equal(slower.bestExit.distance,faster.bestExit.distance);
- assert.equal(slower.bestExit.speedGain,0);assert.equal(faster.bestExit.speedGain,0);
- assert.ok(faster.bestExit.duration>=2);assert.equal(slower.bestExit.duration,faster.bestExit.duration*2);
- assert.ok(faster.score>slower.score,'carrying more speed over the same distance must outrank taking longer');
-});
-
-test('unfinished powered exits keep improving near the duration and distance thresholds',()=>{
- const zone=Fitness.exitZones(track)[0];
- const near=duration=>{
-  const raw=replay({accelerate:0});raw.score=100;
-  const first=raw.frames.findIndex(f=>f.s>=zone.exit),origin=raw.frames[first-1].time;
-  raw.frames=raw.frames.map(f=>f.time<=origin+duration+1e-8?f:{...f,throttle:0,rearTorque:0,wheelForces:[{},{},{fx:0},{fx:0}]});
-  return Fitness.rank(vehicle,track,raw).power;
- };
- const attempts=[1.8,1.9,1.95].map(near);
- for(const [i,m] of attempts.entries()){
-  assert.equal(m.success,false);assert.ok(m.bestExit.duration<2);assert.ok(m.bestExit.distance<30);
-  assert.ok(m.score<59,'an unfinished attempt keeps headroom below completion');
-  if(i){assert.ok(m.bestExit.distance>attempts[i-1].bestExit.distance);assert.ok(m.score>attempts[i-1].score,'additional continuous progress must not disappear into a saturated partial score');}
- }
-});
-
-test('a longer decelerating attempt cannot hide the better continuous powered exit',()=>{
- const raw=replay({accelerate:0});
- raw.frames=raw.frames.map(f=>{
-  const first=f.s>=65&&f.s<=86,second=f.s>=105&&f.s<=131;
-  if(!first&&!second)return {...f,throttle:0,rearTorque:0,wheelForces:[{},{},{fx:0},{fx:0}]};
-  if(!second)return f;
-  const speed=15-2.5*(f.s-105)/26,scale=speed/f.speed;
-  return {...f,speed,vx:f.vx*scale,vy:f.vy*scale};
- });
- const m=Fitness.rank(vehicle,track,raw).power;
- assert.equal(m.success,false);assert.equal(m.runs.length,2);
- assert.ok(m.runs[1].distance>m.runs[0].distance);assert.ok(m.runs[1].speedGain<-2);
- assert.equal(m.bestExit.startTime,m.runs[0].startTime,'best progress preserves speed instead of choosing distance alone');
-});
-
-function withAngle(raw,degrees){
- return {...raw,frames:raw.frames.map((f,i)=>{
-  if(!f.beta)return {...f};
-  const beta=Math.sign(f.beta)*(typeof degrees==='function'?degrees(f,i):degrees)*Math.PI/180;
-  return {...f,beta,yaw:Math.atan2(f.vy,f.vx)-beta};
- })};
-}
-
-test('equal complete powered exits keep rewarding sustained angle above twenty degrees',()=>{
- const metrics=[15,20,30,40,50,55].map(angle=>Fitness.measure(withAngle(replay(),angle),track,vehicle));
- for(let i=0;i<metrics.length;i++){
-  const m=metrics[i];assert.equal(m.success,true);
-  assert.ok(Math.abs(m.bestExit.distanceWeightedAngle-[15,20,30,40,50,55][i])<1e-8);
-  assert.equal(m.bestExit.distance,metrics[0].bestExit.distance);
-  assert.equal(m.bestExit.duration,metrics[0].bestExit.duration);
-  if(i)assert.ok(m.score>metrics[i-1].score,'a higher sustained angle must not hit the old twenty-degree plateau');
- }
-});
-
-test('partial powered exits reward sustained angle without admitting failed or braking runs',()=>{
- const zone=Fitness.exitZones(track)[0],base=replay({accelerate:0});
- const first=base.frames.findIndex(f=>f.s>=zone.exit),until=base.frames[first-1].time+1.5;
- base.frames=base.frames.map(f=>f.time<=until?f:{...f,throttle:0,rearTorque:0,wheelForces:[{},{},{fx:0},{fx:0}]});
- const low=Fitness.measure(withAngle(base,20),track,vehicle),high=Fitness.measure(withAngle(base,40),track,vehicle);
- assert.equal(low.success,false);assert.equal(high.success,false);assert.ok(high.score>low.score);assert.ok(high.score<59);
- const failed=withAngle({...base,valid:false,status:'offtrack'},55);assert.equal(Fitness.measure(failed,track,vehicle).score,0);
- const collision=withAngle({...base,valid:false,status:'collision'},55);assert.equal(Fitness.measure(collision,track,vehicle).score,0);
- const braking=Fitness.measure(withAngle(replay({brake:.3}),50),track,vehicle);
- assert.equal(braking.bestExit,null);assert.ok(braking.score<low.score);
-});
-
-test('an isolated angle spike cannot beat a larger angle sustained across the exit',()=>{
- const base=replay(),steady=Fitness.measure(withAngle(base,30),track,vehicle);
- const spike=Fitness.measure(withAngle(base,(f,i)=>i===150?55:15),track,vehicle);
- assert.ok(spike.bestExit.distanceWeightedAngle<16);
- assert.ok(steady.score>spike.score);
- const spin=Fitness.measure(withAngle(base,70),track,vehicle);
- assert.equal(spin.bestExit,null);assert.equal(spin.success,false);assert.ok(spin.score<spike.score);
-});
-
-let physicalReplay;
-function actualReplay(){
- if(!physicalReplay){
-  const Physics=require('./physics.js'),Catalog=require('./catalog.js'),Tracks=require('./track.js'),fixture=require('./test-fixtures/supra-t21-powered-exit.json');
-  const car=Catalog.get(fixture.vehicle),course=Tracks.get(fixture.track),raw=Physics.evaluateGene(car,course,fixture.gene);
-  assert.equal(raw.valid,true);
-  physicalReplay={car,course,raw,timeline:Fitness.replayTimeline(raw,course,car)};
- }
- return physicalReplay;
-}
-
-test('physical replay scores match independent prefixes and the final ranking',()=>{
- const {raw,course,car,timeline}=actualReplay(),scored=timeline.map((t,i)=>t.earning?i:-1).filter(i=>i>=0);
- assert.ok(scored.length>10);
- for(const fraction of [0,.25,.5,.75,1]){
-  const index=scored[Math.floor(fraction*(scored.length-1))],frame=raw.frames[index];
-  // Treat this prefix as a provisional completed calculation. Its style input
-  // comes from this physical frame, never from the full replay's final score.
-  const prefix={...raw,frames:raw.frames.slice(0,index+1),status:'finished',valid:true,score:frame.scoreIntegral/(course.judgedEnd-course.judgedStart)*100};
-  assert.ok(Math.abs(Fitness.measure(prefix,course,car).score-timeline[index].score)<1e-10);
-  assert.equal(timeline[index].provisional,true);
- }
- const final=timeline.at(-1),ranked=Fitness.rank(car,course,raw);
- assert.equal(final.score,ranked.score);assert.equal(final.potentialScore,ranked.score);
- assert.equal(final.provisional,false);assert.equal(final.finalValid,true);
-});
-
-test('physical preparation and recovery preserve points without earning more',()=>{
- const {timeline}=actualReplay();
- for(const phase of ['preparation','recovery']){
-  const frames=timeline.filter(t=>t.phase===phase);assert.ok(frames.length>5);
-  for(const frame of frames){assert.equal(frame.earning,false);assert.equal(frame.delta,0);assert.match(frame.reason,/득점 없음/);}
- }
- assert.ok(timeline.some(t=>t.earning&&t.phase==='exit'));
-});
-
-test('future failure, future telemetry and final score never leak into earlier replay points',()=>{
- const raw=replay(),cut=raw.frames.findIndex(f=>f.s>95),original=Fitness.replayTimeline(raw,track,vehicle);
- const changed={...raw,score:999,valid:false,status:'offtrack',frames:raw.frames.map((f,i)=>i<=cut?f:{...f,brake:1,beta:0,rearTorque:0,wheelForces:[]})};
- const laterFailure=Fitness.replayTimeline(changed,track,vehicle);
- assert.deepEqual(laterFailure.slice(0,cut+1),original.slice(0,cut+1));
- assert.ok(laterFailure[cut].score>0,'pending completion does not erase the provisional prefix');
- assert.equal(laterFailure.at(-1).score,0);assert.equal(laterFailure.at(-1).earning,false);
- assert.equal(laterFailure.at(-1).finalValid,false);assert.match(laterFailure.at(-1).reason,/트랙 이탈.*무효/);
-});
-
-test('every failed completion invalidates the final replay score',()=>{
- for(const status of ['offtrack','collision','timeout','spin','invalid']){
-  const raw={...replay(),valid:false,status},ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
-  assert.equal(ranked.score,0);assert.equal(ranked.power.success,false);
-  assert.equal(timeline.at(-1).score,0);assert.equal(timeline.at(-1).qualified,false);assert.equal(timeline.at(-1).finalValid,false);
- }
- const inconsistent={...replay(),valid:true,status:'offtrack'};
- assert.equal(Fitness.replayTimeline(inconsistent,track,vehicle).at(-1).score,0);
-});
-
-test('spin telemetry invalidates a claimed finish including the first recorded frame',()=>{
- const base=replay();
- for(const index of [0,Math.floor(base.frames.length/2),base.frames.length-1]){
-  for(const explicit of [false,true]){
-   const raw={...base,frames:base.frames.map((f,i)=>i!==index?f:explicit?{...f,status:'spin'}:{...f,beta:76*Math.PI/180,yaw:Math.atan2(f.vy,f.vx)-76*Math.PI/180})};
-   const ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
-   assert.equal(ranked.valid,false,'spin at frame '+index);assert.equal(ranked.status,'spin');assert.equal(ranked.score,0);assert.equal(ranked.power.success,false);
-   for(const point of timeline.slice(index)){assert.equal(point.score,0);assert.equal(point.earning,false);assert.match(point.reason,/스핀.*무효/);}
+// Fixed spatial samples keep comparisons of angle, speed and propulsion on
+// exactly the same physical path. Changing speed changes time, not geometry.
+function replay({angle=35,speed=20,force=2500,torque=2500,throttle=.6,brake=0,curve=s=>track.sample(s).curvature,valid=true}={}){
+  const frames=[];let x=0,y=0,heading=0,time=0;
+  const value=(v,s)=>typeof v==='function'?v(s):v,ds=.25;
+  for(let s=0;s<=track.length;s+=ds){
+    const v=value(speed,s),degrees=s>=40&&s<=185?value(angle,s):0,beta=-degrees*DEG;
+    frames.push({time,s,x,y,vx:v*Math.cos(heading),vy:v*Math.sin(heading),yaw:heading-beta,speed:v,beta,throttle:value(throttle,s),brake:value(brake,s),rearTorque:value(torque,s),wheelSlip:[0,0,.2,.2],wheelForces:[{},{},{fx:value(force,s)/2},{fx:value(force,s)/2}],status:s===track.length?(valid?'finished':'offtrack'):'running'});
+    const k=curve(s+ds/2);x+=Math.cos(heading+k*ds/2)*ds;y+=Math.sin(heading+k*ds/2)*ds;heading+=k*ds;time+=ds/v;
   }
- }
+  return {valid,status:valid?'finished':'offtrack',score:20,time,frames};
+}
+const metric=(options={})=>Fitness.measure(replay(options),track,vehicle);
+const sum=parts=>Object.values(parts).reduce((n,v)=>n+v,0);
+function freeze(value){if(value&&typeof value==='object'){for(const v of Object.values(value))freeze(v);Object.freeze(value);}return value;}
+
+test('apex evaluation includes linked bends without a powered-exit straight',()=>{
+  const linked={id:'linked',length:190,judgedStart:15,judgedEnd:160,sample:s=>({curvature:s>=25&&s<80?.02:s>=80&&s<=140?-.02:0})};
+  const zones=Fitness.apexZones(linked);assert.equal(zones.length,2);assert.deepEqual(zones.map(z=>z.sign),[1,-1]);
+  for(const z of zones){assert.ok(z.start<z.apex&&z.apex<z.end);assert.ok(z.referenceStart<=z.start);assert.ok(z.fitRadius>0);}
+  const synthetic=require('./track.js').create();assert.equal(Fitness.apexZones(synthetic).length,3,'all three S500 bends count, including its linked first two');
 });
 
-test('earning describes actual point increases and distinguishes auxiliary style from powered exit',()=>{
- const normal=Fitness.replayTimeline(replay(),track,vehicle),braking=Fitness.replayTimeline(replay({brake:.2}),track,vehicle);
- for(const point of [...normal,...braking])assert.equal(point.earning,point.conditions.area&&point.delta>1e-7&&!/완주 정산/.test(point.reason));
- assert.ok(normal.some(p=>p.earning&&p.conditions.corner&&/가속 탈출/.test(p.reason)));
- const auxiliary=braking.filter(p=>p.earning);assert.ok(auxiliary.length>0);
- for(const point of auxiliary){assert.equal(point.conditions.brake,false);assert.equal(point.reason,'보조 주행 점수');}
+test('larger sustained sideways angle wins on the same path and maintained speed',()=>{
+  const angles=[15,25,40,55,70],metrics=angles.map(angle=>metric({angle}));
+  for(let i=0;i<metrics.length;i++){
+    const m=metrics[i];assert.ok(m.score>0&&m.score<=100);assert.ok(Math.abs(m.score-sum(m.parts))<1e-9);
+    assert.ok(m.sidewaysDistance>0);assert.ok(m.bestArc);
+    if(i)assert.ok(m.score>metrics[i-1].score,angles[i]+' degrees must beat '+angles[i-1]);
+  }
 });
 
-test('compact replay style estimates are disclosed and settled without inventing location earnings',()=>{
- const raw=replay({brake:.2}),timeline=Fitness.replayTimeline(raw,track,vehicle);
- assert.ok(timeline.slice(0,-1).every(p=>p.estimatedStyle));
- const final=timeline.at(-1);
- assert.equal(final.estimatedStyle,false);assert.ok(Math.abs(final.delta)>1e-7);
- assert.equal(final.earning,false);assert.equal(final.reason,'완주 정산 · 보조 주행 점수 확정');
- assert.equal(final.score,Fitness.rank(vehicle,track,raw).score);
- assert.ok(actualReplay().timeline.every(p=>!p.estimatedStyle),'original physics integrals need no style estimate');
+test('losing 90 to 40 km/h suppresses the main objective despite a larger angle',()=>{
+  const held=metric({angle:35,speed:25}),lost=metric({angle:55,speed:s=>25-(25-40/3.6)*clamp((s-60)/25,0,1)});
+  assert.ok(lost.score<held.score*.6,'high-angle deceleration must not beat maintained-speed drift');
+  assert.ok(lost.parts.sideways<held.parts.sideways);assert.ok(lost.parts.connection<held.parts.connection);
+  assert.ok(lost.speedRetention<held.speedRetention);
 });
 
-test('measurement, ranking and replay explanations do not mutate frozen inputs',()=>{
- const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
- const raw=freeze(replay()),car=freeze({physics:{...vehicle.physics}}),course=Object.freeze({...track}),before=JSON.stringify({raw,car});
- const a=Fitness.measure(raw,course,car,{trace:true}),b=Fitness.rank(car,course,raw),c=Fitness.replayTimeline(raw,course,car);
- assert.equal(JSON.stringify({raw,car}),before);assert.equal(a.score,b.score);assert.deepEqual(a.timeline,c);
+test('speed retention rewards recovery continuously and never resets at a new slide',()=>{
+  const outcomes=[.71,.8,.9,.95,1].map(r=>metric({speed:s=>s<60?20:20*r}));
+  for(let i=1;i<outcomes.length;i++)assert.ok(outcomes[i].score>outcomes[i-1].score||i===outcomes.length-1&&Math.abs(outcomes[i].score-outcomes[i-1].score)<1e-8);
+  const fast=metric({angle:45,speed:20});
+  const resetAttempt=metric({angle:s=>s>85&&s<100?0:45,speed:s=>s<60?20:8});
+  assert.ok(resetAttempt.score<fast.score*.4,'a later low-speed slide cannot define a fresh low entry-speed target');
+});
+
+test('low speed during an apex drift invalidates the whole window and cannot be hidden by restarting',()=>{
+  const options={angle:s=>s>=75&&s<85?0:55,speed:s=>s<60?25:40/3.6};
+  const m=metric(options);assert.equal(m.score,0);assert.ok(m.bestArc);
+  assert.equal(m.bestArc.speedScope,'apex-window');
+  assert.ok(Math.abs(m.bestArc.speedRetention-(40/3.6)/25)<1e-9,'display the lost window speed, not a short earlier 100% run');
+  assert.ok(Math.abs(m.speedRetention-m.bestArc.speedRetention)<1e-9);
+});
+
+test('the first slide-release frame cannot hide a simultaneous large speed drop',()=>{
+  const m=metric({angle:s=>s<110?35:0,speed:s=>s<110?20:8});
+  assert.equal(m.score,0,'changing beta to zero on the slowing frame must not preserve the former score');
+});
+
+test('braking for the next bend after a clean recovery does not erase the completed drift',()=>{
+  const held=metric({angle:s=>s<150?35:0,speed:20});
+  const recovered=metric({angle:s=>s<150?35:0,speed:s=>s<160?20:5});
+  assert.ok(held.score>0);assert.ok(Math.abs(held.score-recovered.score)<1e-9);
+});
+
+test('an intentionally slow approach is constrained by the prepared reference speed',()=>{
+  const reference=replay({speed:25}),slow=replay({speed:8,angle:55});
+  const ranked=Fitness.rank(vehicle,track,slow,slow.frames,{reference:reference.frames});
+  const fast=Fitness.rank(vehicle,track,replay({speed:25,angle:35}),undefined,{reference:reference.frames});
+  assert.ok(ranked.score<fast.score*.25);assert.ok(ranked.drift.speedRetention<fast.drift.speedRetention);
+});
+
+test('propulsion is a bounded five-point supporting factor, not the objective gate',()=>{
+  const powered=metric(),coasting=metric({force:0,torque:0,throttle:0}),braking=metric({force:0,torque:0,throttle:0,brake:.3});
+  assert.ok(coasting.score>0);assert.ok(powered.score>=coasting.score);assert.ok(powered.score-coasting.score<=5+1e-9);
+  for(const key of ['sideways','connection','curve'])assert.ok(Math.abs(powered.parts[key]-coasting.parts[key])<1e-9,key+' must not require acceleration');
+  assert.ok(Math.abs(braking.score-coasting.score)<1e-9,'identical physical speed/path/angle are not invalidated solely by a pedal');
+  const largerAngle=metric({angle:55,force:0,torque:0,throttle:0}),smallPowered=metric({angle:15,force:9000,torque:6000});
+  assert.ok(largerAngle.score>smallPowered.score);
+});
+
+test('one continuous drift crossing the apex beats disconnected slides and angle spikes',()=>{
+  const steady=metric({angle:35}),split=metric({angle:s=>s>=88&&s<=102?0:35}),spike=metric({angle:s=>s>=94&&s<=95?70:15});
+  assert.ok(steady.parts.connection>split.parts.connection);assert.ok(steady.score>split.score);assert.ok(steady.score>spike.score);
+  const wrongSign=metric({angle:-35});assert.ok(wrongSign.score<steady.score*.1,'opposite-signed body slip is not the same apex drift');
+});
+
+test('straight cuts and oscillating trajectories cannot earn a clean apex curve',()=>{
+  const smooth=metric(),cut=metric({curve:()=>0}),weave=metric({curve:s=>track.sample(s).curvature+.08*Math.sin(s*.65)});
+  assert.ok(cut.parts.connection<smooth.parts.connection*.1);assert.ok(cut.parts.curve<smooth.parts.curve*.1);
+  assert.ok(cut.score<smooth.score);assert.ok(weave.parts.curve<smooth.parts.curve);assert.ok(weave.score<smooth.score);
+});
+
+test('longer elapsed time, stationary poses and inflated projected progress cannot add sideways distance',()=>{
+  const raw=replay(),normal=Fitness.measure(raw,track,vehicle);
+  const slower={...raw,frames:raw.frames.map(f=>({...f,time:f.time*1.25,speed:f.speed/1.25,vx:f.vx/1.25,vy:f.vy/1.25}))};
+  assert.ok(Fitness.measure(slower,track,vehicle).score<=normal.score+1e-8,'time alone earns no bonus');
+  const shortened={...raw,frames:raw.frames.map(f=>({...f,x:f.x*.2,y:f.y*.2}))};
+  assert.ok(Fitness.measure(shortened,track,vehicle).sidewaysDistance<normal.sidewaysDistance*.3);
+  const end=raw.frames.at(-1),stalled={...raw,frames:[...raw.frames,...Array.from({length:20},(_,i)=>({...end,time:end.time+(i+1)*.025,status:i===19?'finished':'running'}))]};
+  assert.ok(Math.abs(Fitness.measure(stalled,track,vehicle).score-normal.score)<1e-9);
+});
+
+test('a telemetry gap breaks apex continuity instead of joining separated sections',()=>{
+  const raw=replay(),normal=Fitness.measure(raw,track,vehicle),gapped={...raw,frames:raw.frames.filter(f=>f.s<88||f.s>102)};
+  const m=Fitness.measure(gapped,track,vehicle);assert.ok(m.parts.connection<normal.parts.connection);assert.ok(m.score<normal.score);
+});
+
+test('recorded-prefix scores are exact, causal and finish at the same ranking',()=>{
+  const raw=replay(),timeline=Fitness.replayTimeline(raw,track,vehicle);
+  assert.equal(timeline.length,raw.frames.length);assert.ok(timeline.some(t=>t.earning));assert.ok(timeline.every(t=>t.estimatedStyle===false));
+  for(const s of [50,75,100,130,170]){
+    const index=raw.frames.findIndex(f=>f.s>=s),prefix={...raw,frames:raw.frames.slice(0,index+1)};
+    assert.ok(Math.abs(Fitness.measure(prefix,track,vehicle).score-timeline[index].score)<1e-9,'prefix at '+s);
+  }
+  const ranked=Fitness.rank(vehicle,track,raw);assert.equal(timeline.at(-1).score,ranked.score);assert.equal(timeline.at(-1).finalValid,true);
+  assert.deepEqual(Fitness.rank(vehicle,track,ranked),ranked,'ranking is idempotent');
+  for(const point of timeline)assert.equal(point.earning,point.conditions.area&&point.delta>1e-7);
+});
+
+test('replay explanations never announce no points while the displayed score is increasing',()=>{
+  const timeline=Fitness.replayTimeline(replay({angle:55,speed:s=>s<60?25:40/3.6}),track,vehicle);
+  for(const point of timeline)if(point.reason.includes('득점 없음'))assert.equal(point.earning,false,'contradictory explanation at '+point.s+'m');
+});
+
+test('future telemetry and a later failure cannot change earlier replay scores',()=>{
+  const raw=replay(),cut=raw.frames.findIndex(f=>f.s>=115),original=Fitness.replayTimeline(raw,track,vehicle);
+  const changed={...raw,score:999,valid:false,status:'offtrack',frames:raw.frames.map((f,i)=>i<=cut?f:{...f,beta:0,brake:1,rearTorque:0,wheelForces:[],status:i===raw.frames.length-1?'offtrack':'running'})};
+  const later=Fitness.replayTimeline(changed,track,vehicle);
+  assert.deepEqual(later.slice(0,cut+1),original.slice(0,cut+1));assert.ok(later[cut].score>0);
+  assert.equal(later.at(-1).score,0);assert.equal(later.at(-1).finalValid,false);assert.match(later.at(-1).reason,/이탈.*무효/);
+});
+
+test('failed finishes and spins at any recorded position are never selected',()=>{
+  for(const status of ['offtrack','collision','timeout','spin','invalid']){
+    const raw={...replay(),valid:false,status},ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
+    assert.equal(ranked.score,0);assert.equal(ranked.drift.score,0);assert.equal(timeline.at(-1).score,0);assert.equal(timeline.at(-1).finalValid,false);
+  }
+  const base=replay();
+  for(const index of [0,Math.floor(base.frames.length/2),base.frames.length-1])for(const explicit of [false,true]){
+    const raw={...base,frames:base.frames.map((f,i)=>i!==index?f:explicit?{...f,status:'spin'}:{...f,beta:76*DEG,yaw:Math.atan2(f.vy,f.vx)-76*DEG})};
+    const ranked=Fitness.rank(vehicle,track,raw),timeline=Fitness.replayTimeline(raw,track,vehicle);
+    assert.equal(ranked.valid,false);assert.equal(ranked.status,'spin');assert.equal(ranked.score,0);assert.equal(ranked.drift.spinDetected,true);
+    for(const point of timeline.slice(index)){assert.equal(point.score,0);assert.equal(point.earning,false);assert.match(point.reason,/스핀.*무효/);}
+  }
+});
+
+test('legacy powered-exit telemetry remains available without a sixty-point selection tier',()=>{
+  const raw=replay(),legacy=Fitness.measurePower(raw,track,vehicle),ranked=Fitness.rank(vehicle,track,raw);
+  assert.ok(legacy.bestExit?.distance>0);assert.ok(legacy.bestExit?.meanRearPowerW>0);
+  assert.equal(ranked.score,ranked.drift.score);assert.deepEqual(ranked.power,legacy);assert.equal(raw.score,20);
+  assert.ok(Fitness.measurePower(replay({force:0}),track,vehicle).success===false);
+});
+
+test('measurement, ranking and replay explanations leave frozen inputs unchanged',()=>{
+  const raw=freeze(replay()),car=freeze({physics:{...vehicle.physics}}),course=Object.freeze({...track}),before=JSON.stringify({raw,car});
+  const a=Fitness.measure(raw,course,car),b=Fitness.rank(car,course,raw),c=Fitness.replayTimeline(raw,course,car);
+  assert.equal(JSON.stringify({raw,car}),before);assert.equal(a.score,b.score);assert.equal(c.at(-1).score,b.score);
 });

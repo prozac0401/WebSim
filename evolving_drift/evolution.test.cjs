@@ -75,7 +75,7 @@ test('feedforward coupling preserves identity and supplies the changed path dema
 test('clipped EV gear mutations still produce a different bounded candidate',()=>{
   const f=strategyFixture(),p=f.vehicle.physics;p.electric=true;p.gearRatios=[8];p.shiftRPM=0;
   for(let i=0;i<128;i++)f.gene[i*8+C.gearHold]=1;
-  const z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{zoneExit:z.exit,end:z.exit+10}}};
+  const z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneExit:z.exit,end:z.exit+10}}};
   let calls=0;const rng=()=>++calls===3?(Strategies.FAMILIES.indexOf('gear')+.5)/Strategies.FAMILIES.length:.5;
   const proposal=Strategies.adaptive(f.vehicle,f.track,parent,rng);
   assert.equal(proposal.change.family,'fine-fallback');assert.notDeepEqual(proposal.gene,f.gene);
@@ -97,7 +97,7 @@ test('mutation scale changes inherited entry parameters and adaptive control amp
     }
   }
   assert.ok(strictlySmaller,'continuous entry parameters use the adaptive mutation scale');
-  const parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{zoneExit:zones[0].exit,end:zones[0].exit+10}}};
+  const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneExit:zones[0].exit,end:zones[0].exit+10}}};
   const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('steer')+.5)/Strategies.FAMILIES.length:.75;};
   const a=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:1}),b=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
   assert.equal(a.change.family,'steer');assert.equal(b.change.family,'steer');
@@ -106,7 +106,7 @@ test('mutation scale changes inherited entry parameters and adaptive control amp
 });
 
 test('trajectory and power macros scale target deltas before their steering recoupling',()=>{
-  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{zoneExit:z.exit,end:z.exit+15}}};
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneExit:z.exit,end:z.exit+15}}};
   for(const family of ['trajectory','gearPower']){
     const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf(family)+.5)/Strategies.FAMILIES.length:.5;};
     const full=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:1}),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
@@ -125,7 +125,7 @@ test('trajectory and power macros scale target deltas before their steering reco
 });
 
 test('approach mutations preserve every exit control including interpolated pedals',()=>{
-  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{zoneExit:z.exit,end:z.exit+20}}};
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneExit:z.exit,end:z.exit+20}}};
   let calls=0;const rng=()=>++calls===3?(Strategies.FAMILIES.indexOf('approach')+.5)/Strategies.FAMILIES.length:.5;
   const proposal=Strategies.adaptive(f.vehicle,f.track,parent,rng);
   assert.equal(proposal.change.family,'approach');assert.notDeepEqual(proposal.gene,parent.gene);
@@ -137,10 +137,10 @@ test('sustained-angle refinement covers the proven episode, reflects turns and p
   for(const cornerSign of [-1,1]){
     const f=strategyFixture(cornerSign),z=Strategies.zones(f.track)[0],sign=-cornerSign;
     for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.targetSlip]=sign*.32;
-    // A selection fixture describes a prior powered episode; this test does
+    // A selection fixture describes a prior continuous apex episode; this test does
     // not claim that the changed intent has already achieved a physical run.
     const run={start:z.exit+1,end:z.exit+42,zoneExit:z.exit,sign,anchored:true};
-    const parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:run}},before=f.gene.slice();
+    const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}},before=f.gene.slice();
     const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('sustained-angle')+.5)/Strategies.FAMILIES.length:.5;};
     const full=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
     assert.equal(full.change.family,'sustained-angle');assert.equal(full.gene.length,1024);
@@ -161,7 +161,7 @@ test('sustained-angle refinement covers the proven episode, reflects turns and p
 test('sustained-angle refinement respects the schema cap and uses actual driver feedback',()=>{
   const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],run={start:z.exit+1,end:z.exit+42,zoneExit:z.exit,sign:1,anchored:true};
   const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('sustained-angle')+.5)/Strategies.FAMILIES.length:.5;};
-  const parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:run}};
+  const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}};
   for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.targetSlip]=54*Math.PI/180;
   const capped=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:1.5});
   assert.ok(capped.gene.every((v,i)=>i%G.STRIDE!==C.targetSlip||v<=55*Math.PI/180));
@@ -182,7 +182,7 @@ test('recovery joins path and control targets inside one window without changing
     f.gene[j+C.throttle]=.3+.5*hold;f.gene[j+C.brake]=0;f.gene[j+C.counterLead]=.3-.15*hold;f.gene[j+C.gearHold]=3;
     f.gene[j+C.steer]=.01*Math.sin(s/15);
   }
-  const before=f.gene.slice(),parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{start:z.exit,end:z.exit+30,zoneExit:z.exit,sign:1,anchored:true}}};
+  const before=f.gene.slice(),parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{start:z.exit,end:z.exit+30,zoneExit:z.exit,sign:1,anchored:true}}};
   const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('recovery')+.5)/Strategies.FAMILIES.length:.5;};
   const proposal=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2}),{start,end}=proposal.change;
   assert.equal(proposal.change.family,'recovery');assert.ok(start>=z.exit&&end<z.end);assert.ok(end-start>=3*f.track.length/127);
@@ -204,7 +204,7 @@ test('recovery joins path and control targets inside one window without changing
 });
 
 test('new trajectories recover slip and propulsion targets over the same window',()=>{
-  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestExit:{start:z.exit,end:z.exit+15,zoneExit:z.exit,sign:1,anchored:true}}};
+  const f=strategyFixture(-1),z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{start:z.exit,end:z.exit+15,zoneExit:z.exit,sign:1,anchored:true}}};
   let calls=0;const rng=()=>++calls===3?(Strategies.FAMILIES.indexOf('trajectory')+.5)/Strategies.FAMILIES.length:.5;
   const proposal=Strategies.adaptive(f.vehicle,f.track,parent,rng),m=proposal.change,hold=m.start+m.length,finish=hold+m.recovery;
   assert.equal(m.family,'trajectory');assert.ok(m.recovery>=14);assert.ok(finish<z.end);
@@ -241,7 +241,7 @@ test('pre-start feint uses the mapped approach and produces real alternating whe
 });
 
 test('entry tail acceleration preserves a later real corner and only resumes on the terminal straight',()=>{
-  const vehicle=require('./catalog.js').get(),track=require('./track.js').get('jp-tsukuba-d1gp-2025'),zones=Strategies.zones(track),zone=zones.at(-1),gene=G.create();
+  const vehicle=require('./catalog.js').get(),track=require('./track.js').get('jp-tsukuba-d1gp-2025'),zones=Strategies.zones(track).slice(0,-1),zone=zones.at(-1),gene=G.create();
   for(let i=0;i<128;i++){gene[i*8+C.throttle]=.4;gene[i*8+C.brake]=.3;}
   const record=Array.from({length:128},(_,i)=>{const p=track.sample(i/127*track.length);return {...p,speed:15,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),yaw:p.heading};});
   const proposal=Strategies.entry(vehicle,track,{gene,record},E.createRng(18),zones.length-1,null,{zones});
@@ -264,7 +264,7 @@ test('adaptive generation plans see only previously completed niche parents',()=
   const completed=new Set(['baseline']),failed=new Set();let adaptiveCount=0,index=0;
   for(let generation=0;generation<6;generation++){
     const oldArchive=engine._nicheArchives.flat().map(p=>p.id),jobs=Array.from({length:6},()=>engine.planCandidate());
-    for(const job of jobs){assert.ok(completed.has(job.parentId));if(job.kind.startsWith('exit-'))adaptiveCount++;}
+    for(const job of jobs){assert.ok(completed.has(job.parentId));if(job.kind.startsWith('arc-'))adaptiveCount++;}
     for(let i=0;i<jobs.length;i++){
       const result=++index%4===0?{...valid,valid:false,status:'offtrack',score:1e9}:valid;
       engine.acceptCandidate(jobs[i],result);if(result.valid)completed.add(jobs[i].id);else failed.add(jobs[i].id);
@@ -275,7 +275,7 @@ test('adaptive generation plans see only previously completed niche parents',()=
   assert.ok(adaptiveCount>0,'the replay-adaptive branch was exercised');
 });
 
-test('powered strategies initialize without simulation and keep generation reservations deterministic',async()=>{
+test('apex strategies initialize without simulation and keep generation reservations deterministic',async()=>{
   const vehicle=require('./catalog.js').get(),track=require('./track.js').get(),baseline=await require('./prepared-grips.js').load(vehicle,track);
   const before=baseline.gene.slice();let calls=0;
   const evaluate=(_v,_t,_g)=>{calls++;return calls%3===0?{valid:false,status:'offtrack',score:1e9,frames:baseline.record}:{...baseline.result,frames:baseline.record};};
@@ -447,11 +447,11 @@ test('evaluation, public snapshots and reserved jobs cannot edit stored genes',(
 
 test('baseline and candidate ranking use their actual records without evaluating physics again',()=>{
   const calls=[];let evaluations=0;
-  const rankResult=(v,t,result,record)=>{calls.push({v,t,result,record});return {...result,styleScore:result.score,score:result.score+7};};
+  const rankResult=(v,t,result,record,options)=>{calls.push({v,t,result,record,options});return {...result,styleScore:result.score,score:result.score+7};};
   const {engine,baseline}=fixture((_v,_t,gene)=>{evaluations++;return {...complete(gene),frames:[{time:0},{time:1}]};},{rankResult});
   const rawScore=baseline.result.score;engine.initialize();assert.equal(evaluations,0);assert.equal(calls.length,1);
-  assert.equal(calls[0].record,baseline.record);assert.equal(engine.best.result.score,rawScore+7);assert.equal(baseline.result.score,rawScore);
-  engine.step();assert.equal(evaluations,1);assert.equal(calls.length,2);assert.equal(calls[1].record,engine.lastCandidate.record);
+  assert.equal(calls[0].record,baseline.record);assert.equal(calls[0].options.reference,baseline.record);assert.equal(engine.best.result.score,rawScore+7);assert.equal(baseline.result.score,rawScore);
+  engine.step();assert.equal(evaluations,1);assert.equal(calls.length,2);assert.equal(calls[1].record,engine.lastCandidate.record);assert.equal(calls[1].options.reference,baseline.record);
   assert.equal(engine.lastCandidate.result.score,engine.lastCandidate.result.styleScore+7);
   const job=engine.planCandidate();engine.acceptCandidate(job,{valid:true,status:'finished',score:Infinity,frames:[]});
   assert.equal(calls.length,2,'non-finite raw results cannot be rescued by ranking');assert.equal(engine.lastCandidate.accepted,false);
@@ -467,4 +467,61 @@ test('real physics replays every selected parent to the same complete result',()
   const baseline={gene,genomeVersion:2,result,record:result.frames},engine=new E.Engine(vehicle,course,{baseline,physics:Physics,populationSize:2,seed:37});
   engine.initialize();assert.equal(engine.best.result.styleScore,result.score,'default ranking preserves original angle score');
   engine.runGeneration();for(const parent of engine.parents){const raw=Physics.evaluateGene(vehicle,course,parent.gene,{record:true}),replay=require('./fitness.js').rank(vehicle,course,raw);assert.equal(replay.valid,true);assert.equal(replay.status,'finished');assert.equal(replay.score,parent.result.score);assert.equal(replay.time,parent.result.time);}
+});
+
+
+test('apex search includes tight corners without requiring a long powered exit',()=>{
+ const course=require('./track.js').get('development-s500',{includeDevelopment:true}),Fitness=require('./fitness.js');
+ const regions=Strategies.zones(course);
+ assert.equal(regions.length,Fitness.apexZones(course).length);
+ assert.ok(regions.length>Fitness.exitZones(course).length,'the S course no longer drops its first two turns');
+ assert.ok(regions.every(z=>z.start<z.apex&&z.apex<z.end));
+});
+
+test('apex curve targets mirror, join both sides of the apex and scale around their parent',()=>{
+ const variants=[];
+ for(const cornerSign of [-1,1]){
+  const f=strategyFixture(cornerSign),z=Strategies.zones(f.track)[0];
+  const run={zoneId:z.id,zoneExit:z.exit,start:z.apex-20,end:z.apex+25,sign:-cornerSign,distance:45,speedRetention:.96,anchored:true};
+  const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}},before=f.gene.slice();
+  const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('apex-arc')+.5)/Strategies.FAMILIES.length:.5;};
+  const full=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2}),m=full.change;
+  assert.equal(m.family,'apex-arc');assert.ok(m.start<m.first&&m.first<m.apex&&m.apex<m.last&&m.last<m.end);
+  const apex=G.sample(full.gene,m.apex,f.track.length),left=G.sample(full.gene,m.first,f.track.length),right=G.sample(full.gene,m.last,f.track.length);
+  assert.ok(cornerSign*apex.lineOffset>0);assert.ok(cornerSign*left.lineOffset<0&&cornerSign*right.lineOffset<0,'quadratic targets approach from outside and leave toward outside');
+  assert.ok(-cornerSign*apex.targetSlip>0,'the slip intent spans the apex rather than only the exit');
+  for(let i=0;i<G.LENGTH;i++)if(i%G.STRIDE!==C.steer)assert.ok(Math.abs(small.gene[i]-before[i]-.2*(full.gene[i]-before[i]))<1e-12);
+  for(let s=z.end;s<=f.track.length;s+=.5)assert.deepEqual(G.sample(full.gene,s,f.track.length),G.sample(before,s,f.track.length));
+  assert.deepEqual(parent.gene,before);variants.push(full.gene);
+ }
+ for(let i=0;i<G.KNOTS;i++)for(const c of [C.lineOffset,C.targetSlip,C.steer])assert.ok(Math.abs(variants[0][i*G.STRIDE+c]+variants[1][i*G.STRIDE+c])<1e-10);
+});
+
+test('speed preservation repairs the actual slow region without demanding more slip angle',()=>{
+ const f=strategyFixture(-1),z=Strategies.zones(f.track)[0];
+ for(let i=0;i<G.KNOTS;i++)f.gene[i*G.STRIDE+C.driveSlip]=.8;
+ f.record=f.record.map(p=>({...p,speed:Math.abs(p.s-z.apex)<4?8:15,wheelSlip:[0,0,.7,.7]}));
+ const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneId:z.id,zoneExit:z.exit,start:z.start+5,end:z.end-10,sign:1,distance:40,speedRetention:.55}}};
+ const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('speed-hold')+.5)/Strategies.FAMILIES.length:.5;};
+ const child=Strategies.adaptive(f.vehicle,f.track,parent,random()),at=G.sample(child.gene,child.change.center,f.track.length),before=G.sample(parent.gene,child.change.center,f.track.length);
+ assert.equal(child.change.family,'speed-hold');assert.ok(at.throttle>before.throttle);assert.ok(at.brake<before.brake);assert.ok(at.driveSlip<before.driveSlip,'excess wheelspin demand can be reduced while speed is restored');
+ for(let i=0;i<G.KNOTS;i++){assert.equal(child.gene[i*G.STRIDE+C.targetSlip],parent.gene[i*G.STRIDE+C.targetSlip]);assert.equal(child.gene[i*G.STRIDE+C.lineOffset],parent.gene[i*G.STRIDE+C.lineOffset]);}
+});
+
+test('regional apex ranking retains approach-speed evidence from the full replay',()=>{
+ const f=strategyFixture(-1),Fitness=require('./fitness.js'),z=Strategies.zones(f.track)[0],record=f.record.map(p=>({...p,beta:.3,throttle:.5,brake:0}));
+ const result={valid:true,status:'finished',score:0,frames:record,drift:{referenceSpeeds:{[z.id]:22}}};
+ const expected=Fitness.measure(result,f.track,f.vehicle,{zoneId:z.id,referenceSpeeds:result.drift.referenceSpeeds,diagnostics:false});
+ assert.deepEqual(Strategies.niche(f.vehicle,f.track,result,record,z),expected);
+ assert.equal(expected.referenceSpeeds[z.id],22);
+});
+
+test('failed replay preserves the same fixed speed reference without ranking or selecting it',()=>{
+ const {engine,baseline}=fixture();baseline.result.drift={referenceSpeeds:{'apex-0':30}};
+ engine.initialize();const job=engine.planCandidate(),raw={status:'offtrack',valid:false,score:0,frames:[{time:0,s:0,speed:15}]};
+ engine.acceptCandidate(job,raw);
+ const rejected=engine.lastCandidate;assert.equal(rejected.accepted,false);assert.equal(rejected.result.valid,false);assert.equal(rejected.result.status,'offtrack');
+ assert.deepEqual(rejected.result.drift.referenceSpeeds,{'apex-0':30});assert.notEqual(rejected.result.drift.referenceSpeeds,baseline.result.drift.referenceSpeeds);
+ assert.equal(raw.drift,undefined,'attaching replay context must not mutate the physical failure result');
+ assert.equal(engine.best.id,'baseline');
 });

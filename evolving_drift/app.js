@@ -15,11 +15,13 @@
   if(track)$('track').value=track.id;else{const option=document.createElement('option');option.value='';option.textContent='불러올 수 있는 코스 없음';$('track').append(option);}
   $('track').disabled=!availableTracks.length;
   $('development-notice').hidden=track?.kind!=='development';
-  const metrics=document.createElement('div');metrics.className='drift-metrics';metrics.innerHTML='<div><strong id="powered-exit-distance">—</strong><span id="powered-exit-duration">연속 가속 탈출</span></div><div title="연속 2초·30m 이상, 실제 후륜 구동력과 탈출 속도 유지"><strong id="powered-exit-goal">탐색 중</strong><span id="powered-exit-speed">2초 · 30m · 속도 유지</span></div><div title="가속 탈출에서 실제 이동 거리를 기준으로 평균한 차체 슬립각"><strong id="best-angle">—</strong><span>가속 탈출 유지 각도</span><span id="peak-angle">순간 최대 —</span></div><div title="슬립각 10~70°, 속도 4m/s 이상인 구간의 합계"><strong id="drift-distance">—</strong><span>드리프트 구간 합계</span></div><button id="replay-powered-exit" class="secondary" disabled>가속 탈출 구간 보기</button>';
+  const metrics=document.createElement('div');metrics.className='drift-metrics';metrics.innerHTML='<div title="현재 최고 연속 드리프트 구간에서 실제 이동거리로 평균한 차체 슬립각"><strong id="best-angle">—</strong><span>연속 곡선 유지 각도</span><span id="peak-angle">순간 최대 —</span></div><div><strong id="apex-arc-distance">—</strong><span id="apex-arc-duration">연속 드리프트</span><span id="drift-distance">전체 드리프트 —</span></div><div title="같은 apex 평가 구간의 드리프트 최저속도 ÷ 고정된 진입 속도 기준"><strong id="speed-retention">—</strong><span>코너 내 최저속도 유지율</span><span id="arc-speed">진입 기준 · 최저 · 탈출</span></div><div title="실제 궤적의 국소 곡선 품질과 apex 전후 연결"><strong id="curve-quality">—</strong><span>곡선 품질</span><span id="apex-connection">apex 연결 탐색 중</span></div><button id="replay-apex-arc" class="secondary" disabled>연속 드리프트 구간 보기</button>';
   document.querySelector('.counts').before(metrics);
   let scoreCache=new WeakMap(),scoreTimeline=[],replayScoring=null;
-  const phaseNames={preparation:'출발선 전 준비',judged:'채점 구간',exit:'가속 탈출 구간',recovery:'회복 · 비채점 구간'};
-  const criterionLabels={angle:'각도 10~55°',speed:'속도 ≥ 28.8km/h',throttle:'가속 ≥ 15%',brake:'제동 ≤ 3%',propulsion:'실제 후륜 추진력',forward:'연속 전진',corner:'코너부터 연결'};
+  const phaseNames={preparation:'출발선 전 준비',judged:'코너 평가 구간',exit:'코너 이후 연결',recovery:'회복 · 비채점 구간'};
+  const criterionLabels={angle:'각도 10~70°',speed:'속도 ≥ 28.8km/h',retention:'속도 유지 ≥ 90%',curve:'매끄러운 곡선',apex:'apex 전후 연결',forward:'연속 전진',propulsion:'추진력 · 보조'};
+  const percent=value=>Number.isFinite(value)?(value*100).toFixed(1)+'%':'—';
+  const speedSummary=arc=>arc?'기준 '+(arc.entrySpeed*3.6).toFixed(1)+' · 코너 최저 '+(arc.minSpeed*3.6).toFixed(1)+' · 탈출 '+(arc.exitSpeed*3.6).toFixed(1)+' km/h':'진입 기준 · 최저 · 탈출';
   function scoreReplay(){
     const frames=selected?.record||selected?.result.frames;
     if(!frames?.length){scoreTimeline=[];replayScoring=null;return;}
@@ -37,10 +39,11 @@
     $('score-overlay').textContent=label+' '+s.score.toFixed(2)+' · '+(s.earning?'득점 중':phaseNames[s.phase]);
     $('replay-scoring').classList.toggle('earning',s.earning);$('replay-scoring').classList.toggle('invalid',invalid);
     $('score-phase').textContent=phaseNames[s.phase];$('score-reason').textContent=s.reason;
-    $('score-change').textContent=invalid?'선발 제외':s.earning?'득점 중':s.delta< -1e-7?'재평가 ↓':'득점 없음';
-    $('score-exit').textContent=s.exit?'현재 최고 연속 탈출 '+s.exit.distance.toFixed(1)+' m · '+s.exit.duration.toFixed(2)+'초 · 유지 각도 '+s.exit.angle.toFixed(1)+'°':'코너부터 이어진 가속 탈출을 기다립니다.';
+    $('score-change').textContent=invalid?'선발 제외':s.reassessment?'재평가 ↑':s.earning?'득점 중':s.delta< -1e-7?'재평가 ↓':'득점 없음';
+    $('score-exit').textContent=s.arc?'현재 최고 연속 드리프트 '+s.arc.distance.toFixed(1)+' m · '+s.arc.duration.toFixed(2)+'초 · 유지 각도 '+s.arc.distanceWeightedAngle.toFixed(1)+'°':'속도를 유지하는 연속 드리프트를 기다립니다.';
+    $('score-speed').textContent=s.arc?speedSummary(s.arc)+' · 코너 내 최저속도 유지율 '+percent(s.arc.speedRetention):'큰 슬립각 · apex 전후 연결 · 속도 유지';
     $('score-criteria').replaceChildren();for(const [key,label] of Object.entries(criterionLabels)){const chip=document.createElement('span'),met=s.conditions[key];chip.className=met?'met':'unmet';chip.textContent=(met?'✓ ':'○ ')+label;$('score-criteria').append(chip);}
-    const partNames={style:'보조 주행',power:'가속 품질',exit:'탈출 품질',continuity:'연속 탈출',completion:'목표 달성',distance:'추가 거리',angle:'유지 각도',speed:'속도',acceleration:'속도 증가'};
+    const partNames={sideways:'옆으로 이동',connection:'apex 연결',curve:'곡선 품질',propulsion:'구동 유지 · 보조'};
     $('score-parts').textContent=(invalid?'무효 처리 전 산정: ':'')+Object.entries(s.parts).map(([key,value])=>partNames[key]+' '+value.toFixed(2)).join(' · ');
   }
   function specification(){const p=vehicle.physics;$('factory-stats').innerHTML='<div>'+Math.round(p.peakPowerW/735.49875)+' PS<small>순정 출력</small></div><div>'+p.peakTorque+' Nm<small>최대 토크</small></div><div>'+p.massKg+' kg<small>공차 중량</small></div>';$('limitations').textContent=vehicle.limitations.join(' ');$('factory-source').href=vehicle.sourceUrl;}
@@ -69,7 +72,24 @@
     const entries=[baseline?{id:'baseline',generation:0,kind:'baseline',gene:baseline.gene,result:baseline.result,record:baseline.record}:null,best&&best.id!=='baseline'?best:null,...archive.slice().reverse()].filter(Boolean),seen=new Set();$('records').replaceChildren();
     for(const entry of entries){if(seen.has(entry.id))continue;seen.add(entry.id);const b=document.createElement('button');b.className='record';b.setAttribute('aria-pressed',String(selected?.id===entry.id));const r=entry.result;const name=entry.id==='baseline'?'그립 기준':entry.id+(entry.id===best?.id?' · 최고':'');for(const [i,text] of [name,labels[r.status]||r.status,r.valid?r.score.toFixed(2)+'점':'선발 제외',r.time.toFixed(2)+'초'].entries()){const s=document.createElement('span');s.textContent=text;if(i===1)s.className=r.valid?'valid':'failed';b.append(s);}b.addEventListener('click',()=>choose(entry));$('records').append(b);}
   }
-  function stats(){if(!state)return;$('generation').textContent=state.generation+'세대';$('best-score').textContent=best?.result.score.toFixed(2)||'—';$('baseline-score').textContent='그립 '+baseline.result.time.toFixed(2)+'초 · '+baseline.result.score.toFixed(2)+'점';$('peak-angle').textContent='순간 최대 '+best.result.maxAngle.toFixed(1)+'°';$('drift-distance').textContent=best.result.driftDistance.toFixed(1)+' m';const powered=best.result.power,exit=powered?.bestExit;$('best-angle').textContent=Number.isFinite(exit?.distanceWeightedAngle)?exit.distanceWeightedAngle.toFixed(1)+'°':'—';$('powered-exit-distance').textContent=(exit?.distance||0).toFixed(1)+' m';$('powered-exit-duration').textContent='연속 가속 탈출 · '+(exit?.duration||0).toFixed(2)+'초';$('powered-exit-goal').textContent=powered?.success?'달성':'탐색 중';$('powered-exit-speed').textContent=exit?(exit.entrySpeed*3.6).toFixed(1)+' → '+(exit.exitSpeed*3.6).toFixed(1)+' km/h':'2초 · 30m · 속도 유지';$('replay-powered-exit').disabled=!exit;const completed=state.history.at(-1),current=state.evaluated?state.stats:completed;$('valid-count').textContent=current?.validCount||0;$('failed-count').textContent=current?.failureCount||0;$('evaluated-count').textContent=state.evaluated+' / 20';$('generation-progress').value=state.evaluated;$('history').replaceChildren();const max=Math.max(1,...state.history.map(h=>h.bestScore));for(const h of state.history.slice(-24)){const bar=document.createElement('span');bar.style.height=Math.max(2,h.bestScore/max*36)+'px';bar.setAttribute('aria-label',h.generation+'세대 '+h.bestScore.toFixed(2)+'점');$('history').append(bar);}}
+  function stats(){
+    if(!state)return;
+    $('generation').textContent=state.generation+'세대';$('best-score').textContent=best?.result.score.toFixed(2)||'—';
+    $('baseline-score').textContent='그립 '+baseline.result.time.toFixed(2)+'초 · '+baseline.result.score.toFixed(2)+'점';
+    $('peak-angle').textContent='순간 최대 '+best.result.maxAngle.toFixed(1)+'°';
+    $('drift-distance').textContent='전체 드리프트 '+best.result.driftDistance.toFixed(1)+' m';
+    const drift=best.result.drift,arc=drift?.bestArc;
+    $('best-angle').textContent=Number.isFinite(arc?.distanceWeightedAngle)?arc.distanceWeightedAngle.toFixed(1)+'°':'—';
+    $('apex-arc-distance').textContent=arc?arc.distance.toFixed(1)+' m':'—';
+    $('apex-arc-duration').textContent='연속 드리프트'+(arc?' · '+arc.duration.toFixed(2)+'초':'');
+    $('speed-retention').textContent=percent(arc?.speedRetention);$('arc-speed').textContent=speedSummary(arc);
+    $('curve-quality').textContent=percent(arc?.curveQuality);$('apex-connection').textContent=arc?.anchored?'apex 전후 연결':'apex 연결 탐색 중';
+    $('replay-apex-arc').disabled=!arc;
+    const completed=state.history.at(-1),current=state.evaluated?state.stats:completed;
+    $('valid-count').textContent=current?.validCount||0;$('failed-count').textContent=current?.failureCount||0;$('evaluated-count').textContent=state.evaluated+' / 20';
+    $('generation-progress').value=state.evaluated;$('history').replaceChildren();const max=Math.max(1,...state.history.map(h=>h.bestScore));
+    for(const h of state.history.slice(-24)){const bar=document.createElement('span');bar.style.height=Math.max(2,h.bestScore/max*36)+'px';bar.setAttribute('aria-label',h.generation+'세대 '+h.bestScore.toFixed(2)+'점');$('history').append(bar);}
+  }
   function receive(m){
     if(m.type==='ready'){appMode='ready';baselineError=null;baseline={...m.baseline,result:m.best.result};best=m.best;state=m.state;$('loading').hidden=true;$('baseline-notice').hidden=true;setReady(true);running(false);$('evolution-status').textContent=(track.kind==='development'?'가상 개발 코스 · ':'')+'준비된 기준 기록을 불러왔습니다. 진화를 시작할 수 있습니다.';choose(best);stats();}
     if(m.type==='candidate'){state=m.state;archive.push(m.candidate);if(archive.length>12)archive.shift();if(m.best)best=m.best;stats();renderRecords();$('evolution-status').textContent=state.totalEvaluated+'개 후보 평가 · '+(m.candidate.result.valid?'유효 완주':'실패 개체 선발 제외')+' · 변이 폭 '+state.mutationScale.toFixed(2);}
@@ -85,8 +105,8 @@
     }
   }
   async function initialize(){
-    $('best-angle').textContent='—';$('peak-angle').textContent='순간 최대 —';$('powered-exit-duration').textContent='연속 가속 탈출';$('powered-exit-speed').textContent='2초 · 30m · 속도 유지';$('replay-powered-exit').disabled=true;
-    for(const id of ['best-angle','drift-distance','baseline-score','powered-exit-distance','powered-exit-goal'])$(id).textContent='—';
+    $('best-angle').textContent='—';$('peak-angle').textContent='순간 최대 —';$('apex-arc-duration').textContent='연속 드리프트';$('arc-speed').textContent=speedSummary(null);$('apex-connection').textContent='apex 연결 탐색 중';$('replay-apex-arc').disabled=true;
+    for(const id of ['best-angle','drift-distance','baseline-score','apex-arc-distance','speed-retention','curve-quality'])$(id).textContent='—';
     $('generation').textContent='0세대';$('valid-count').textContent='0';$('failed-count').textContent='0';$('evaluated-count').textContent='0 / 20';$('generation-progress').value=0;
     const current=++token;worker?.terminate();worker=null;engine=null;baseline=best=selected=null;archive=[];state=null;baselineError=null;time=0;playing=false;pauseRequested=false;scoreCache=new WeakMap();scoreTimeline=[];replayScoring=null;drawScore();clearTimeout(evolutionTimer);evolutionTimer=null;running(false);setReady(false);$('baseline-notice').hidden=true;
     vehicle=DriftCatalog.get($('vehicle').value);renderer.retryVehicle(vehicle.vehicleId);track=availableTracks.find(t=>t.id===$('track').value)||null;
@@ -146,7 +166,7 @@
     const end=selected?.result.time||0;$('replay-time').textContent=selected?time.toFixed(1)+' / '+end.toFixed(1)+' s':'—';$('timeline').value=end?time/end*1000:0;if(selected){$('run-label').textContent=selected.id==='baseline'?'그립 기준 주행':selected.id+(selected.id===best?.id?' · 최고 유전자':'');$('run-state').textContent=time>=end?labels[selected.result.status]+' · '+(selected.result.reason||''):'진행 '+Math.min(track.length,car.s).toFixed(0)+' / '+Math.round(track.length)+'m';}$('model-source').textContent=renderer.getState().modelSource?.label||'EV2 외형 자산';
   }
   function advance(ms){if(playing&&selected){time=Math.min(selected.result.time,time+ms/1000*Number($('playback').value));if(time>=selected.result.time){if(evolving&&selected.result.valid){choose(best);playing=true;$('play').textContent='Ⅱ 일시정지';}else{playing=false;$('play').textContent='▶ 재생';}}}draw();}
-  $('replay-powered-exit').onclick=()=>{const exit=best?.result.power?.bestExit;if(!exit)return;choose(best);time=Math.max(0,exit.startTime-.5);playing=true;$('play').textContent='Ⅱ 일시정지';draw();$('stage').scrollIntoView?.({block:'center'});};
+  $('replay-apex-arc').onclick=()=>{const arc=best?.result.drift?.bestArc;if(!arc)return;choose(best);time=Math.max(0,arc.startTime-.5);playing=true;$('play').textContent='Ⅱ 일시정지';draw();$('stage').scrollIntoView?.({block:'center'});};
   $('play').onclick=()=>{if(!selected)return;if(time>=selected.result.time)time=0;playing=!playing;$('play').textContent=playing?'Ⅱ 일시정지':'▶ 재생';draw();};$('restart').onclick=()=>{time=0;draw();};$('timeline').oninput=()=>{playing=false;$('play').textContent='▶ 재생';time=Number($('timeline').value)/1000*(selected?.result.time||0);draw();};
   $('evolve').onclick=()=>evolve(false);$('one-generation').onclick=()=>evolve(true);$('reset').onclick=initialize;for(const id of ['vehicle','track','seed'])$(id).onchange=initialize;
   for(const button of document.querySelectorAll('[data-view]'))button.onclick=()=>{camera=button.dataset.view;document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));$('fov').disabled=camera!=='follow';draw();};
@@ -161,7 +181,7 @@
     return JSON.stringify({mode:appMode,development,availableCourses:DriftTrack.list().length,verifiedCourses:DriftTrack.list().length,coordinates:'metres; x east, y north, yaw CCW; z reconstructed relative height',variant:vehicle.id,stock:true,rwd:vehicle.spec.factoryDrive,course:track?.id||null,courseKind:track?.kind||null,courseMetadata:track?{name:track.name,length:track.length,judgedStart:track.judgedStart,judgedEnd:track.judgedEnd,elevation:track.elevation,provenance:track.provenance,reconstruction:track.reconstruction}:null,
       generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
       replayScoring,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
-      objective:{type:'sustained-powered-exit',success:best?.result.power?.success===true,bestExit:best?.result.power?.bestExit||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
+      objective:{type:'continuous-apex-drift',parts:best?.result.drift?.parts||null,bestArc:best?.result.drift?.bestArc||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
   };
   let lastPaint=0;
   function raf(now){const dt=last?Math.min(100,now-last):0;last=now;if(!manual&&(playing||now-lastPaint>300)){advance(dt);lastPaint=now;}requestAnimationFrame(raf);}specification();initialize();requestAnimationFrame(raf);

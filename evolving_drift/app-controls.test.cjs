@@ -5,7 +5,7 @@ const source=fs.readFileSync(require.resolve('./app.js'),'utf8');
 
 // Execute the real app and its handlers with a deliberately queued worker
 // response. This tests the UI/worker boundary, not a copy of the control logic.
-function environment({fallback=false,powered=false}={}){
+function environment({fallback=false,apex=false,reassess=false}={}){
   const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0,scoreCalls=0;
   function element(){return{value:'1',disabled:false,hidden:false,checked:false,textContent:'',classList:{toggle(){},remove(){}},
     setAttribute(){},append(){},before(){},replaceChildren(){},addEventListener(){},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
@@ -13,8 +13,8 @@ function environment({fallback=false,powered=false}={}){
   const vehicle={id:'test-car',vehicleId:'test-car',label:'Test',physics:{peakPowerW:100000,peakTorque:200,massKg:1200},limitations:[],sourceUrl:'',spec:{factoryDrive:'RWD'}};
   const track={id:'test-track',name:'Test track',length:500,judgedStart:50,judgedEnd:450};
   const frame={time:0,s:0,x:0,y:0,yaw:0,speed:0,beta:0,steer:0,throttle:0,brake:0,gear:1,rpm:800,rearTorque:0,wheelSlip:[0,0,0,0]};
-  const result={valid:true,status:'finished',score:1,time:30,maxAngle:powered?42:2,driftDistance:0};
-  if(powered)result.power={success:true,bestExit:{distance:40,duration:2.1,startTime:12,entrySpeed:15,exitSpeed:20,distanceWeightedAngle:31.6}};
+  const result={valid:true,status:'finished',score:1,time:30,maxAngle:apex?42:2,driftDistance:0};
+  if(apex)result.drift={parts:{sideways:20,connection:10,curve:8,propulsion:1},bestArc:{distance:40,duration:2.1,startTime:12,endTime:14.1,entrySpeed:20,minSpeed:18,exitSpeed:19,distanceWeightedAngle:31.6,speedRetention:.9,speedScope:'apex-window',curveQuality:.85,anchored:true}};
   const baseline={gene:Genome.create(),record:[frame],result,prepared:true};
   const best={...baseline,id:'baseline'};
   const state=()=>({generation:Math.floor(steps/20),totalEvaluated:steps,evaluated:steps%20,mutationScale:1,history:[],stats:{validCount:steps,failureCount:0}});
@@ -37,9 +37,9 @@ function environment({fallback=false,powered=false}={}){
     DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame})},
     DriftCatalog:{DEFAULT_ID:vehicle.id,get:()=>vehicle,list:()=>[vehicle]},DriftTrack:{list:()=>[track]},
     DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:{Engine},DriftFitness:{replayTimeline(result){scoreCalls++;return [
-      {time:0,score:0,delta:0,earning:false,provisional:true,phase:'preparation',reason:'준비 구간 · 득점 없음',conditions:{},parts:{style:0}},
-      {time:15,score:.75,delta:.02,earning:true,provisional:true,phase:'exit',reason:'가속 탈출 · 거리와 유지 각도 반영',conditions:{angle:true},parts:{continuity:.75}},
-      {time:30,score:result.valid?result.score:0,delta:0,earning:false,provisional:false,finalValid:result.valid,phase:'recovery',reason:result.valid?'회복·비채점 구간 · 득점 없음':'트랙 이탈 · 점수 무효',conditions:{},parts:{style:1}}
+      {time:0,score:0,delta:0,earning:false,provisional:true,phase:'preparation',reason:'준비 구간 · 득점 없음',conditions:{},parts:{sideways:0,connection:0,curve:0,propulsion:0}},
+      {time:15,score:.75,delta:.02,earning:!reassess,reassessment:reassess,provisional:true,phase:'exit',reason:reassess?'곡선 확인 · 앞선 주행 점수 재평가':'속도를 유지하며 apex 전후 연결',conditions:{angle:!reassess,speed:true,retention:true,curve:true,apex:true,forward:true,propulsion:false},parts:{sideways:.4,connection:.2,curve:.15,propulsion:0},arc:result.drift?.bestArc||null},
+      {time:30,score:result.valid?result.score:0,delta:0,earning:false,provisional:false,finalValid:result.valid,phase:'recovery',reason:result.valid?'회복·비채점 구간 · 득점 없음':'트랙 이탈 · 점수 무효',conditions:{},parts:{sideways:.5,connection:.3,curve:.2,propulsion:0}}
     ];}}});
   vm.runInContext(source,context);
   return{get,workers,timers,state:()=>JSON.parse(window.render_game_to_text()),
@@ -83,33 +83,50 @@ test('file fallback cancels the pending tick before a fast pause and resume',asy
   env.get('reset').onclick();assert.equal(env.timers.size,0);
 });
 
-test('powered-exit replay seeks the measured interval and resets with a new experiment',()=>{
-  const env=environment({powered:true});env.ready();
-  assert.equal(env.get('powered-exit-distance').textContent,'40.0 m');
+test('apex replay shows sustained angle and minimum speed retention, seeks its interval and resets',()=>{
+  const env=environment({apex:true});env.ready();
+  assert.equal(env.get('apex-arc-distance').textContent,'40.0 m');
   assert.equal(env.get('best-angle').textContent,'31.6°');
   assert.equal(env.get('peak-angle').textContent,'순간 최대 42.0°');
-  assert.equal(env.get('powered-exit-goal').textContent,'달성');
-  assert.equal(env.get('powered-exit-speed').textContent,'54.0 → 72.0 km/h');
-  assert.equal(env.get('replay-powered-exit').disabled,false);
+  assert.equal(env.get('speed-retention').textContent,'90.0%');
+  assert.equal(env.get('curve-quality').textContent,'85.0%');
+  assert.equal(env.get('apex-connection').textContent,'apex 전후 연결');
+  assert.equal(env.state().objective.type,'continuous-apex-drift');
+  assert.equal(env.get('arc-speed').textContent,'기준 72.0 · 코너 최저 64.8 · 탈출 68.4 km/h');
+  assert.equal(env.get('replay-apex-arc').disabled,false);
   const messageCount=env.workers[0].messages.length;
-  env.get('replay-powered-exit').onclick();
+  env.get('replay-apex-arc').onclick();
   assert.equal(env.state().replay.time,11.5);assert.equal(env.state().playing,true);
   assert.equal(env.workers[0].messages.length,messageCount,'replay does not start an evolution or re-simulate');
   env.get('reset').onclick();
-  assert.equal(env.get('replay-powered-exit').disabled,true);assert.equal(env.state().playing,false);
-  assert.equal(env.get('powered-exit-duration').textContent,'연속 가속 탈출');
+  assert.equal(env.get('replay-apex-arc').disabled,true);assert.equal(env.state().playing,false);
+  assert.equal(env.get('apex-arc-duration').textContent,'연속 드리프트');
+  assert.equal(env.get('speed-retention').textContent,'—');
+  assert.equal(env.get('curve-quality').textContent,'—');
   assert.equal(env.get('best-angle').textContent,'—');
   assert.equal(env.get('peak-angle').textContent,'순간 최대 —');
 });
 
 test('replay scoring follows seeks, caches the timeline and invalidates a failed finish',()=>{
-  const env=environment();env.ready();assert.equal(env.scoreCalls(),1);
+  const env=environment({apex:true});env.ready();assert.equal(env.scoreCalls(),1);
   assert.equal(env.state().replayScoring.phase,'preparation');assert.equal(env.get('replay-score').textContent,'0.00');
   env.get('timeline').value='500';env.get('timeline').oninput();
   assert.equal(env.state().replayScoring.earning,true);assert.equal(env.get('replay-score').textContent,'0.75');
+  assert.match(env.get('score-speed').textContent,/코너 내 최저속도 유지율 90.0%/);
+  assert.equal(env.state().replayScoring.conditions.propulsion,false,'propulsion is auxiliary rather than a prerequisite for earning');
+  assert.match(env.get('score-parts').textContent,/옆으로 이동 0.40/);
   env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score-label').textContent,'확정 점수');
   env.get('restart').onclick();assert.equal(env.state().replayScoring.score,0);assert.equal(env.scoreCalls(),1,'seeking does not rebuild or simulate');
   env.selectFailure();env.get('timeline').value='1000';env.get('timeline').oninput();
   assert.equal(env.get('replay-score').textContent,'0.00');assert.equal(env.get('replay-score-label').textContent,'점수 무효');assert.equal(env.state().replayScoring.finalValid,false);
   env.get('reset').onclick();assert.equal(env.state().replayScoring,null);assert.equal(env.get('replay-scoring').hidden,true);
+});
+
+
+test('a confirmed earlier curve is labelled as reassessment rather than current earnings',()=>{
+  const env=environment({apex:true,reassess:true});env.ready();env.get('timeline').value='500';env.get('timeline').oninput();
+  assert.equal(env.state().replayScoring.conditions.angle,false);assert.equal(env.state().replayScoring.earning,false);
+  assert.equal(env.get('score-change').textContent,'재평가 ↑');
+  assert.equal(env.get('score-reason').textContent,'곡선 확인 · 앞선 주행 점수 재평가');
+  assert.equal(env.state().objective.bestArc.speedScope,'apex-window');
 });

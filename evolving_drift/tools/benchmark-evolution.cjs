@@ -93,7 +93,7 @@ async function main(config){
   if(lastBestId!==best.id){const {frames,...result}=best.result;writeJSON(files.best,{config,sourceHashes:hashes,signatures,genesisGeneHash,preparedFingerprint:baseline.fingerprint,id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,gene:Array.from(best.gene),result,frames:best.record});lastBestId=best.id;}
   const deterministicRows=rows.map(({evaluateMs,...row})=>row);
   const reproductionHash=sha(JSON.stringify({seed:config.seed,vehicle:vehicle.id,track:track.id,genesisGeneHash,rows:deterministicRows,history:state.history,bestGeneHash}));
-  const report={schema:1,method:'Production DriftEvolution.Engine; Prepared.load is the only genesis; reserve each generation of 20 before evaluation; accept in reservation order; workers only evaluate Physics.evaluateGene.',config,startedAt:new Date(started).toISOString(),elapsedMs:Date.now()-started,stopped,error,sourceHashes:hashes,signatures,geneHashEncoding:'SHA-256 of little-endian Float64 values',genesisGeneHash,preparedFingerprint:baseline.fingerprint,startupCalls,startupEvaluations:0,evaluated:rows.length,valid,failed,success:!error&&best.result.valid===true&&best.result.status==='finished'&&best.result.power?.success===true,best:{id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,score:best.result.score,status:best.result.status,power:best.result.power},history:state.history,finalGeneration:state.generation,remainingReservations:state.reserved,reservations,completionOrder:pool.completionOrder,rows,reproductionHash,files:Object.fromEntries(Object.entries(files).map(([key,file])=>[key,path.relative(repo,file).replaceAll(path.sep,'/')]))};
+  const report={schema:1,method:'Production DriftEvolution.Engine; Prepared.load is the only genesis; reserve each generation of 20 before evaluation; accept in reservation order; workers only evaluate Physics.evaluateGene.',config,startedAt:new Date(started).toISOString(),elapsedMs:Date.now()-started,stopped,error,sourceHashes:hashes,signatures,geneHashEncoding:'SHA-256 of little-endian Float64 values',genesisGeneHash,preparedFingerprint:baseline.fingerprint,startupCalls,startupEvaluations:0,evaluated:rows.length,valid,failed,objective:'continuous-apex-drift',legacyPoweredExitSuccess:!error&&best.result.valid===true&&best.result.status==='finished'&&best.result.power?.success===true,best:{id:best.id,parentId:best.parentId,kind:best.kind,geneHash:bestGeneHash,score:best.result.score,status:best.result.status,drift:best.result.drift,power:best.result.power},history:state.history,finalGeneration:state.generation,remainingReservations:state.reserved,reservations,completionOrder:pool.completionOrder,rows,reproductionHash,files:Object.fromEntries(Object.entries(files).map(([key,file])=>[key,path.relative(repo,file).replaceAll(path.sep,'/')]))};
   writeJSON(files.report,report);lastPublishedCount=rows.length;return report;
  }
  try{
@@ -109,17 +109,17 @@ async function main(config){
    for(let i=0;i<jobs.length;i++){
     const job=jobs[i],evaluated=results[i];if(job.sequence!==evaluated.sequence)throw Error('Evaluation lost reservation order');
     engine.acceptCandidate(job,evaluated.result);const entry=engine.lastCandidate,result=entry.result;
-    const power=result.power||Fitness.measure(result,track,vehicle),fullValid=result.valid===true&&result.status==='finished',success=entry.accepted&&fullValid&&power.success===true;
-    const {gene,...proposal}=job,row={...proposal,ordinal:rows.length+1,geneHash:geneHash(gene),parentGeneHash:lineage.get(job.parentId).geneHash,status:result.status,valid:result.valid===true,accepted:entry.accepted,score:result.score,rawPhysicsScore:evaluated.result.score,time:result.time,progress:result.progress,maxAngle:result.maxAngle,driftDistance:result.driftDistance,peakWheelSlip:result.peakWheelSlip,success,power,evaluateMs:evaluated.evaluateMs};
+    const power=result.power||Fitness.measurePower(result,track,vehicle),fullValid=result.valid===true&&result.status==='finished',success=entry.accepted&&fullValid&&power.success===true;
+    const {gene,...proposal}=job,row={...proposal,ordinal:rows.length+1,geneHash:geneHash(gene),parentGeneHash:lineage.get(job.parentId).geneHash,status:result.status,valid:result.valid===true,accepted:entry.accepted,score:result.score,rawPhysicsScore:evaluated.result.score,time:result.time,progress:result.progress,maxAngle:result.maxAngle,driftDistance:result.driftDistance,peakWheelSlip:result.peakWheelSlip,legacyPoweredExitSuccess:success,drift:result.drift,power,evaluateMs:evaluated.evaluateMs};
     if(entry.accepted){valid++;lineage.set(job.id,{geneHash:row.geneHash,valid:fullValid,status:result.status});}else failed++;
     rows.push(row);fs.appendFileSync(files.lineage,JSON.stringify(row)+'\n');
    }
-   const report=checkpoint();console.log(JSON.stringify({seed:config.seed,evaluated:rows.length,budget:config.budget,generation:report.finalGeneration,valid,failed,bestId:report.best.id,score:report.best.score,success:report.success,bestExit:report.best.power?.bestExit||null}));
+   const report=checkpoint();console.log(JSON.stringify({seed:config.seed,evaluated:rows.length,budget:config.budget,generation:report.finalGeneration,valid,failed,bestId:report.best.id,score:report.best.score,bestArc:report.best.drift?.bestArc||null,parts:report.best.drift?.parts||null}));
    // Complete the already dispatched generation: never conceal evaluated jobs.
-   if(config.stopOnSuccess&&report.success){stopped='success-at-generation-boundary';break;}
+   if(config.stopOnSuccess&&report.legacyPoweredExitSuccess){stopped='success-at-generation-boundary';break;}
   }
   if(rows.length>=config.budget&&stopped==='running')stopped='budget-exhausted';
-  verifySources(hashes);const report=checkpoint();console.log(JSON.stringify({done:true,evaluated:report.evaluated,success:report.success,startupEvaluations:0,reproductionHash:report.reproductionHash,report:report.files.report,best:report.files.best}));
+  verifySources(hashes);const report=checkpoint();console.log(JSON.stringify({done:true,evaluated:report.evaluated,objective:report.objective,startupEvaluations:0,reproductionHash:report.reproductionHash,report:report.files.report,best:report.files.best}));
  }catch(caught){
   error=caught.stack||String(caught);stopped='error';
   try{checkpoint();}catch(publicationError){
@@ -132,7 +132,7 @@ async function main(config){
 }
 if(!isMainThread)runWorker();
 else if(require.main===module){
- try{const config=parseArgs(process.argv.slice(2));if(config.help)console.log('Usage: node '+path.relative(repo,__filename).replaceAll(path.sep,'/')+' --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 400 --workers 2 [--out prefix] [--stop-on-success] [--development]\nBudget 0 verifies initialization only. Workers 1 permits a serial-parity comparison. Stop-on-success stops after the current reserved batch. No discovered genome input is supported.');else main(config).catch(error=>{console.error(error.stack||String(error));process.exitCode=1;});}
+ try{const config=parseArgs(process.argv.slice(2));if(config.help)console.log('Usage: node '+path.relative(repo,__filename).replaceAll(path.sep,'/')+' --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 400 --workers 2 [--out prefix] [--stop-on-success] [--development]\nBudget 0 verifies initialization only. Workers 1 permits a serial-parity comparison. Stop-on-success is the legacy powered-exit diagnostic only; use a budget for the continuous apex objective. No discovered genome input is supported.');else main(config).catch(error=>{console.error(error.stack||String(error));process.exitCode=1;});}
  catch(error){console.error(error.stack||String(error));process.exitCode=1;}
 }
 module.exports={parseArgs,geneHash,writeJSON};
