@@ -43,12 +43,22 @@
     const slipRate = speed > 2 ? ((state.ay || 0) * Math.cos(beta) - (state.ax || 0) * Math.sin(beta)) / speed - state.r : 0;
     const predictedSlip = wrap(beta + target.counterLead * clamp(slipRate, -2.5, 2.5));
     const driftWeight = clamp(Math.abs(target.targetSlip) / (8 * DEG), 0, 1);
+    // Returning the target to grip must not remove countersteering while the
+    // body is still sliding. Blend in the measured attitude above the normal
+    // grip range; this changes the driver's steering, never the vehicle pose.
+    const actualPhase = clamp((Math.abs(beta) - 8 * DEG) / (12 * DEG), 0, 1);
+    const actualWeight = actualPhase * actualPhase * (3 - 2 * actualPhase);
+    const stabilizationWeight = Math.max(driftWeight, actualWeight);
+    const errorWeight = Math.max(clamp(Math.abs(target.targetSlip) / DEG, 0, 1), actualWeight);
     // Natural grip cornering has a small body sideslip. The zero-drift target
-    // tolerates that range while still responding to a developing spin.
+    // tolerates that range. Only the final degree of target release blends the
+    // deadzone, avoiding a discontinuity at zero without weakening drift input.
     const rawError = wrap(predictedSlip - target.targetSlip);
-    const slipError = driftWeight > 0 ? rawError : Math.sign(rawError) * Math.max(0, Math.abs(rawError) - 5 * DEG);
+    const neutralError = Math.sign(rawError) * Math.max(0, Math.abs(rawError) - 5 * DEG);
+    const slipError = errorWeight >= 1 ? rawError : errorWeight <= 0 ? neutralError
+      : neutralError + (rawError - neutralError) * errorWeight;
     const yawCorrection = clamp(.14 * (targetYawRate - state.r), -.18, .18);
-    const correction = pathCorrection + driftWeight * beta + .8 * slipError + yawCorrection;
+    const correction = pathCorrection + stabilizationWeight * beta + .8 * slipError + yawCorrection;
     const steer = clamp(target.steer + correction, -p.maxSteer, p.maxSteer);
     const pathError = (state.x - here.x) * -Math.sin(tangent) + (state.y - here.y) * Math.cos(tangent);
 
