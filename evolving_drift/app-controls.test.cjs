@@ -56,9 +56,24 @@ function environment({fallback=false,apex=false,broken=false,complete=false,earl
     selectFailure(status='offtrack',failureAnalysis=null){const entry={...best,id:'failed-test',record:[{...frame}],result:{...result,valid:false,status,failureAnalysis}};workers.at(-1).emit({type:'candidate',candidate:entry,best,state:state()});get('records').children.find(row=>row.children[0].textContent==='failed-test').onclick();}};
 }
 
+test('the first validated ready starts one continuous run without a click and never runs while loading',()=>{
+  const env=environment(),worker=env.workers[0];
+  assert.equal(env.state().mode,'loading-baseline');assert.equal(env.state().evolving,false);
+  assert.equal(env.get('evolve').disabled,true);assert.equal(env.get('one-generation').disabled,true);
+  env.get('evolve').onclick();env.get('one-generation').onclick();
+  assert.equal(worker.messages.filter(message=>message.type==='run').length,0);
+  env.ready();
+  const runs=worker.messages.filter(message=>message.type==='run');
+  assert.equal(runs.length,1);assert.equal(runs[0].once,false);
+  assert.equal(env.state().mode,'ready');assert.equal(env.state().preparedBaseline,true);assert.equal(env.state().evolving,true);
+  assert.equal(env.get('evolve').textContent,'진화 일시정지');assert.equal(env.get('evolve').disabled,false);assert.equal(env.get('one-generation').disabled,true);
+  env.publishBest();env.updateStats(null,null);env.advance(1000);
+  assert.equal(worker.messages.filter(message=>message.type==='run').length,1,'candidate and replay updates do not launch duplicate runs');
+});
+
 test('pause waits for its worker acknowledgement before allowing resume or one generation',()=>{
   const env=environment();env.ready();const worker=env.workers[0];
-  env.get('evolve').onclick();assert.equal(worker.messages.at(-1).type,'run');
+  assert.equal(worker.messages.at(-1).type,'run');
   env.get('evolve').onclick();assert.equal(worker.messages.at(-1).type,'pause');
   assert.equal(env.state().evolving,true);assert.equal(env.state().pauseRequested,true);
   assert.equal(env.get('evolve').disabled,true);assert.equal(env.get('one-generation').disabled,true);
@@ -76,6 +91,7 @@ test('the page rejects an old coordinator ready response instead of enabling evo
   assert.equal(env.state().mode,'baseline-unavailable');assert.equal(env.get('evolve').disabled,true);
   assert.equal(worker.alive,false);assert.match(env.state().baselineError,/버전/);
   assert.match(env.get('baseline-notice-detail').textContent,/새로고침/);
+  assert.equal(worker.messages.some(message=>message.type==='run'),false,'an unvalidated ready must never trigger automatic evolution');
 });
 
 test('the page rejects a mismatched candidate without adding it to replay or parents',()=>{
@@ -94,7 +110,7 @@ test('a worker bootstrap release mismatch visibly asks for a page update',()=>{
 
 test('error and reset clear a pending pause and old replies cannot change the new run',()=>{
   const env=environment();env.ready();const old=env.workers[0];
-  env.get('evolve').onclick();env.get('evolve').onclick();old.emit({type:'error',message:'test failure'});
+  env.get('evolve').onclick();old.emit({type:'error',message:'test failure'});
   assert.equal(env.state().pauseRequested,false);assert.equal(env.state().evolving,false);assert.equal(env.get('evolve').disabled,true);
   env.get('reset').onclick();env.ready();env.get('evolve').onclick();env.get('evolve').onclick();
   const pausedWorker=env.workers.at(-1);env.get('reset').onclick();
@@ -104,16 +120,44 @@ test('error and reset clear a pending pause and old replies cannot change the ne
 });
 
 test('file fallback cancels the pending tick before a fast pause and resume',async()=>{
-  const env=environment({fallback:true});await new Promise(resolve=>setImmediate(resolve));
-  env.get('evolve').onclick();assert.equal(env.timers.size,1);
+  const env=environment({fallback:true});assert.equal(env.state().evolving,false);assert.equal(env.timers.size,0);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(env.state().evolving,true);assert.equal(env.timers.size,1);assert.equal(env.steps(),0);
+  env.tick();assert.equal(env.steps(),1);assert.equal(env.timers.size,1,'initial automatic evolution schedules and executes a real fallback tick');
   env.get('evolve').onclick();assert.equal(env.timers.size,0);assert.equal(env.state().evolving,false);
   env.get('evolve').onclick();assert.equal(env.timers.size,1);
-  env.tick();assert.equal(env.steps(),1);assert.equal(env.timers.size,1,'exactly one loop remains after resume');
+  env.tick();assert.equal(env.steps(),2);assert.equal(env.timers.size,1,'exactly one loop remains after resume');
   env.get('reset').onclick();assert.equal(env.timers.size,0);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(env.state().mode,'ready');assert.equal(env.state().evolving,false);assert.equal(env.timers.size,0,'reset does not automatically resume fallback evolution');
+});
+
+test('manual evolution pause stays paused when new candidate and replay updates arrive',()=>{
+  const env=environment();env.ready();const worker=env.workers[0];
+  env.get('evolve').onclick();worker.emit({type:'paused'});const messageCount=worker.messages.length;
+  env.publishBest();env.updateStats(null,null);env.advance(31000);
+  assert.equal(env.state().evolving,false);assert.equal(env.state().pauseRequested,false);assert.equal(env.state().playing,false);
+  assert.equal(env.get('evolve').textContent,'진화 시작');assert.equal(env.get('one-generation').disabled,false);
+  assert.equal(worker.messages.length,messageCount,'updates cannot undo an explicit pause');
+});
+
+test('reset, vehicle and course changes after startup prepare an idle experiment until manually started',()=>{
+  const env=environment();env.ready();
+  for(const id of ['reset','vehicle','track']){
+    const old=env.workers.at(-1);
+    env.get(id)[id==='reset'?'onclick':'onchange']();
+    const worker=env.workers.at(-1);
+    assert.equal(old.alive,false);assert.equal(env.state().evolving,false);assert.equal(env.get('evolve').disabled,true);
+    env.ready(old);assert.equal(env.state().mode,'loading-baseline','obsolete ready cannot start the replacement experiment');
+    env.ready();assert.equal(env.state().mode,'ready');assert.equal(env.state().evolving,false);
+    assert.equal(env.get('evolve').textContent,'진화 시작');assert.equal(env.get('evolve').disabled,false);
+    assert.equal(worker.messages.some(message=>message.type==='run'),false);
+    env.get('evolve').onclick();assert.equal(env.state().evolving,true);assert.equal(worker.messages.at(-1).type,'run');
+  }
 });
 
 test('the highest valid record autoplays, holds its finish for one real second, and loops while evolution continues',()=>{
-  const env=environment();env.ready();env.get('evolve').onclick();const worker=env.workers[0],messages=worker.messages.length;
+  const env=environment();env.ready();const worker=env.workers[0],messages=worker.messages.length;
   assert.equal(env.state().evolving,true);assert.equal(env.state().playing,true);assert.equal(env.state().replay.autoFollow,true);
   env.advance(31000);
   const finished=env.state();assert.equal(finished.replay.id,'baseline');assert.equal(finished.replay.time,30);
@@ -142,7 +186,7 @@ test('higher records wait for the current finish and hold, then only the newest 
 });
 
 test('manual pause during the finish hold prevents looping and new-best interruption until representative selection',()=>{
-  const env=environment();env.ready();env.get('evolve').onclick();env.advance(31000);
+  const env=environment();env.ready();env.advance(31000);
   env.get('play').onclick();assert.equal(env.state().replay.time,30);assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);
   env.publishBest();env.advance(5000);assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,30);
   env.get('play').onclick();assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
@@ -153,7 +197,8 @@ test('manual pause during the finish hold prevents looping and new-best interrup
 });
 
 test('manual seeking and candidate inspection are preserved until evolution starts again',()=>{
-  const env=environment();env.ready();env.get('timeline').value='500';env.get('timeline').oninput();
+  const env=environment();env.ready();env.get('evolve').onclick();env.workers[0].emit({type:'paused'});
+  env.get('timeline').value='500';env.get('timeline').oninput();
   assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);assert.equal(env.state().replay.time,15);
   env.publishBest();assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().replay.time,15);
   env.updateStats(null,null);
@@ -166,7 +211,7 @@ test('manual seeking and candidate inspection are preserved until evolution star
 });
 
 test('evolution pause acknowledgement does not override manual inspection or restart autoplay',()=>{
-  const env=environment();env.ready();env.get('evolve').onclick();env.advance(1000);env.get('evolve').onclick();
+  const env=environment();env.ready();env.advance(1000);env.get('evolve').onclick();
   assert.equal(env.state().playing,false);assert.equal(env.state().replay.autoFollow,false);
   env.selectFailure();env.publishBest();env.workers[0].emit({type:'paused'});env.advance(5000);
   assert.equal(env.state().replay.id,'failed-test');assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,false);

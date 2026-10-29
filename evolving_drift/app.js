@@ -6,7 +6,7 @@
   const params=new URLSearchParams(location.search),development=params.get('development')==='1',availableTracks=DriftTrack.list({includeDevelopment:development});
   const preferredTrack=params.get('track')||(development?DriftTrack.DEVELOPMENT_ID:'kr-kic-t21-kdl-2016-r2');
   let vehicle=DriftCatalog.get('porter-lpg-mt'),track=availableTracks.find(t=>t.id===preferredTrack)||availableTracks[0]||null,worker=null,engine=null,baseline=null,best=null,selected=null,archive=[],state=null,playing=false,evolving=false,pauseRequested=false,evolutionTimer=null,time=0,last=0,camera='follow',ready=false,manual=false,token=0,appMode='initializing',baselineError=null;
-  let autoFollow=true,finishHoldMs=0;
+  let autoFollow=true,finishHoldMs=0,autoStartPending=true;
   const labels={finished:'유효 완주',offtrack:'앞바퀴 이탈 · 실패',collision:'차체 충돌 · 실패',timeout:'시간 초과',invalid:'계산 오류',spin:'스핀 · 자세 회복'};
   const resultLabel=r=>r.status==='timeout'?(r.reason==='주행 정지'?'주행 정지 · 실패':'제한 시간 초과 · 실패'):(labels[r.status]||r.status);
   DriftCatalog.list().forEach(v=>{const option=document.createElement('option');option.value=v.id;option.textContent=v.label;$('vehicle').append(option);});$('vehicle').value=vehicle.id;
@@ -131,7 +131,7 @@
   }
   function receive(m){
     if(m.type==='ready'||m.type==='candidate')try{DriftRuntime.assertIdentity(m.runtimeIdentity,runtimeIdentity);}catch(error){worker?.terminate();receive({type:'error',message:error.message,updateRequired:true});return;}
-    if(m.type==='ready'){appMode='ready';baselineError=null;baseline={...m.baseline,result:m.best.result};best=m.best;state=m.state;$('loading').hidden=true;$('baseline-notice').hidden=true;setReady(true);running(false);$('evolution-status').textContent=(track.kind==='development'?'가상 개발 코스 · ':'')+'준비된 기준 기록을 불러왔습니다. 진화를 시작할 수 있습니다.';followBest();stats();}
+    if(m.type==='ready'){appMode='ready';baselineError=null;baseline={...m.baseline,result:m.best.result};best=m.best;state=m.state;$('loading').hidden=true;$('baseline-notice').hidden=true;setReady(true);running(false);$('evolution-status').textContent=(track.kind==='development'?'가상 개발 코스 · ':'')+'준비된 기준 기록을 불러왔습니다. 진화를 시작할 수 있습니다.';followBest();stats();if(autoStartPending){autoStartPending=false;evolve(false);}}
     if(m.type==='candidate'){state=m.state;archive.push(m.candidate);if(archive.length>12)archive.shift();if(m.best?.result.valid&&m.best.result.status==='finished'&&(!best||m.best.result.score>=best.result.score))best=m.best;stats();renderRecords();$('evolution-status').textContent=state.totalEvaluated+'개 후보 평가 · 최근 후보 '+(m.candidate.result.valid?'유효 완주':'실패 · 선발 제외');}
     if(m.type==='paused'){pauseRequested=false;running(false);}
     if(m.type==='error'){
@@ -179,7 +179,7 @@
       else{clearTimeout(evolutionTimer);evolutionTimer=null;receive({type:'paused'});}
       return;
     }
-    running(true);followBest();
+    running(true);followBest();$('evolution-status').textContent='진화 중 · 새로운 주행을 평가하고 있습니다.';
     if(worker){worker.postMessage({type:'run',once});return;}
     const current=token,stop=once?engine.generation+1:Infinity;
     function tick(){evolutionTimer=null;if(!evolving||current!==token)return;try{engine.step(1);receive({type:'candidate',state:engine.snapshot(),candidate:engine.lastCandidate,best:engine.best,runtimeIdentity});if(engine.generation>=stop)receive({type:'paused'});else evolutionTimer=setTimeout(tick,10);}catch(e){receive({type:'error',message:e.message});}}
