@@ -114,7 +114,7 @@ async function main(config){
     if(entry.accepted){valid++;lineage.set(job.id,{geneHash:row.geneHash,valid:fullValid,status:result.status});}else failed++;
     rows.push(row);fs.appendFileSync(files.lineage,JSON.stringify(row)+'\n');
    }
-   const report=checkpoint();console.log(JSON.stringify({seed:config.seed,evaluated:rows.length,budget:config.budget,generation:report.finalGeneration,valid,failed,bestId:report.best.id,score:report.best.score,bestArc:report.best.drift?.bestArc||null,parts:report.best.drift?.parts||null}));
+   const report=checkpoint();console.log(JSON.stringify({seed:config.seed,evaluated:rows.length,budget:config.budget,generation:report.finalGeneration,valid,failed,bestId:report.best.id,score:report.best.score,bestArc:report.best.drift?.bestArc||null,bestLink:report.best.drift?.bestLink||null,fullConnectionCount:report.best.drift?.fullConnectionCount||0,straightLinkCount:report.best.drift?.straightLinkCount||0,parts:report.best.drift?.parts||null}));
    // Complete the already dispatched generation: never conceal evaluated jobs.
    if(config.stopOnSuccess&&report.legacyPoweredExitSuccess){stopped='success-at-generation-boundary';break;}
   }

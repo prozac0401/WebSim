@@ -21,6 +21,7 @@
   // requires the version-2 genome and state-feedback driver.
   function commandAt(gene,s,length){const n=gene.length/3,t=clamp(s/length*(n-1),0,n-1),i=Math.min(n-2,Math.floor(t)),f=t-i;return {steer:gene[i*3]+(gene[i*3+3]-gene[i*3])*f,throttle:gene[i*3+1]+(gene[i*3+4]-gene[i*3+1])*f,brake:gene[i*3+2]+(gene[i*3+5]-gene[i*3+2])*f};}
   function footprint(v,a){const p=cfg(v),l=p.lengthM/2,w=p.widthM/2,c=Math.cos(a.yaw),s=Math.sin(a.yaw);return [[l,w],[l,-w],[-l,-w],[-l,w]].map(([x,y])=>({x:a.x+x*c-y*s,y:a.y+x*s+y*c}));}
+  function frontContacts(v,a){const p=cfg(v),lf=p.wheelbaseM*(1-(p.frontWeightFraction||.52)),halfTrack=(p.trackWidthM||p.widthM*.84)/2,c=Math.cos(a.yaw),s=Math.sin(a.yaw);return [halfTrack,-halfTrack].map(y=>({x:a.x+lf*c-y*s,y:a.y+lf*s+y*c}));}
   const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
   // Immutable course polygons can share metadata across ticks. Mutable geometry
   // is cached only within one failure() call, so later edits never go stale.
@@ -63,6 +64,58 @@
     }
     cuts.sort((x,y)=>x-y);for(let i=1;i<cuts.length;i++){const t=(cuts[i-1]+cuts[i])/2;if(!inside({x:a.x+dx*t,y:a.y+dy*t}))return false;}return true;
   }
+  function pointInInterior(p,polygon,cache){return pointInPolygon(p,polygon,cache)&&!polygonGeometry(polygon,cache).edges.some(e=>onSegment(e.a,e.b,p));}
+  function segmentOutsideInterior(a,b,polygon,cache){
+    if(pointInInterior(a,polygon,cache)||pointInInterior(b,polygon,cache))return false;
+    const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy,cuts=[0,1],box=bounds([a,b]);
+    for(const edge of polygonGeometry(polygon,cache).edges){
+      if(!boundsOverlap(box,edge))continue;
+      const p=edge.a,q=edge.b,ex=q.x-p.x,ey=q.y-p.y,den=dx*ey-dy*ex;
+      if(Math.abs(den)>1e-10){const t=((p.x-a.x)*ey-(p.y-a.y)*ex)/den,u=((p.x-a.x)*dy-(p.y-a.y)*dx)/den;if(t>=0&&t<=1&&u>=0&&u<=1)cuts.push(t);}
+      else if(Math.abs(cross(a,b,p))<1e-9)for(const end of [p,q]){const t=((end.x-a.x)*dx+(end.y-a.y)*dy)/(l2||1);if(t>0&&t<1)cuts.push(t);}
+    }
+    cuts.sort((x,y)=>x-y);for(let i=1;i<cuts.length;i++){const t=(cuts[i-1]+cuts[i])/2;if(pointInInterior({x:a.x+dx*t,y:a.y+dy*t},polygon,cache))return false;}return true;
+  }
+  function contactOnRoad(track,point,hint,cache){
+    if(track.excludedPolygons?.some(poly=>pointInInterior(point,poly,cache)))return false;
+    if(track.boundaryPolygons?.length)return track.boundaryPolygons.some(poly=>pointInPolygon(point,poly,cache));
+    if(typeof track.contains==='function')return track.contains(point.x,point.y,hint);
+    const q=track.project(point.x,point.y,hint),section=track.sample(clamp(q.s,0,track.length)),halfWidth=q.error>=0?(section.widthLeft??track.width/2):(section.widthRight??track.width/2);
+    return q.distance<=halfWidth+1e-6&&q.s>=-10&&q.s<=track.length+10;
+  }
+  function contactSegmentOnRoad(track,a,b,hint,cache){
+    if(!contactOnRoad(track,a,hint,cache)||!contactOnRoad(track,b,hint,cache))return false;
+    if(track.excludedPolygons?.some(poly=>!segmentOutsideInterior(a,b,poly,cache)))return false;
+    if(track.boundaryPolygons?.length)return segmentInsideUnion(a,b,track.boundaryPolygons,cache);
+    // Black-box contains/width APIs lack polygon intersections; sample the
+    // contact path at <=10 cm, including both endpoints.
+    const count=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.1));
+    for(let i=1;i<count;i++){const u=i/count;if(!contactOnRoad(track,{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u},hint,cache))return false;}return true;
+  }
+  function frontContactSweep(v,track,a,old,cache){
+    const current=frontContacts(v,a);if(current.some(point=>!contactOnRoad(track,point,a.s,cache)))return false;
+    if(!old)return true;
+    const yaw=old.yaw??a.yaw,angle=wrap(a.yaw-yaw),p=cfg(v),radius=Math.hypot(p.wheelbaseM*(1-(p.frontWeightFraction||.52)),(p.trackWidthM||p.widthM*.84)/2);
+    const at=t=>frontContacts(v,{x:old.x+(a.x-old.x)*t,y:old.y+(a.y-old.y)*t,yaw:yaw+angle*t});
+    const previous=at(0),visit=(wheel,t0,t1,left,right,depth)=>{
+      const mid=(t0+t1)/2,hint=(old.s??a.s)+(a.s-(old.s??a.s))*mid,point=at(mid)[wheel];
+      if(!contactOnRoad(track,point,hint,cache))return false;
+      const padding=radius*(angle*(t1-t0))**2/8;
+      if(padding<=1e-7||depth>=18)return contactSegmentOnRoad(track,left,point,hint,cache)&&contactSegmentOnRoad(track,point,right,hint,cache);
+      // A rotating contact follows an arc, not its endpoint chord. Certify
+      // the chord's sagitta envelope; if it touches a boundary, subdivide the
+      // actual path instead of rejecting a tyre that merely reaches an edge.
+      const envelope=convexHull([left,right].flatMap(q=>[{x:q.x-padding,y:q.y-padding},{x:q.x-padding,y:q.y+padding},{x:q.x+padding,y:q.y-padding},{x:q.x+padding,y:q.y+padding}]));
+      const clearHoles=!(track.excludedPolygons||[]).some(poly=>polygonsIntersect(envelope,poly,cache));
+      // A union can have an implicit interior hole even when its envelope
+      // perimeter is on-road. Only one simple polygon can certify the whole
+      // envelope; seam crossings and opaque corridor APIs must subdivide.
+      const inOnePolygon=track.boundaryPolygons?.some(poly=>envelope.every((q,i)=>segmentInsideUnion(q,envelope[(i+1)%envelope.length],[poly],cache)));
+      if(clearHoles&&inOnePolygon)return true;
+      return visit(wheel,t0,mid,left,point,depth+1)&&visit(wheel,mid,t1,point,right,depth+1);
+    };
+    return previous.every((point,i)=>contactOnRoad(track,point,old.s??a.s,cache)&&visit(i,0,1,point,current[i],0));
+  }
   function failure(v,track,a,old){
     const p=cfg(v),c=Math.cos(a.yaw),s=Math.sin(a.yaw),body=footprint(v,a),cache=new WeakMap(),bodyBounds=bounds(body);
     let swept=null,sweptBounds=null,previous=null;
@@ -83,49 +136,16 @@
       // Conservative swept centres prevent skipping a narrow obstacle at speed.
       if(old){const dx2=a.x-old.x,dy2=a.y-old.y,l2=dx2*dx2+dy2*dy2;const t=clamp(((o.x-old.x)*dx2+(o.y-old.y)*dy2)/(l2||1),0,1);if(Math.hypot(o.x-old.x-t*dx2,o.y-old.y-t*dy2)<o.r+p.widthM*.48)return 'collision';}
     }
-    // Excluded islands are holes in the otherwise drivable polygon union.
-    // Detect both body overlap and a crossing entirely between fixed steps.
-    for(const polygon of track.excludedPolygons||[]){
-      const excludedBounds=polygonGeometry(polygon,cache).bounds;
-      if(boundsOverlap(bodyBounds,excludedBounds)&&polygonsIntersect(body,polygon,cache))return 'offtrack';
-      if(old){
-        if(!previous){previous=footprint(v,{...old,yaw:old.yaw??a.yaw});sweptBounds=bounds([...previous,...body]);}
-        if(boundsOverlap(sweptBounds,excludedBounds)){if(!swept)swept=convexHull([...previous,...body]);if(polygonsIntersect(swept,polygon,cache))return 'offtrack';}
-      }
-    }
-    if(typeof track.contains==='function'){
-      if(!track.contains(a.x,a.y,a.s))return 'offtrack';
-      for(const corner of body)if(!track.contains(corner.x,corner.y,a.s))return 'offtrack';
-      if(track.boundaryPolygons?.length){
-        // Split every body edge at road-polygon crossings so even a narrow
-        // concave intrusion between valid corners cannot be skipped.
-        for(let i=0;i<body.length;i++)if(!segmentInsideUnion(body[i],body[(i+1)%body.length],track.boundaryPolygons,cache))return 'offtrack';
-        if(old){
-          if(!previous)previous=footprint(v,{...old,yaw:old.yaw??a.yaw});
-          if(!swept)swept=convexHull([...previous,...body]);
-          // The endpoint hull covers linear translation. A rotating corner can
-          // bow beyond its chord: R * angle^2 / 8 bounds that interpolation
-          // error for linear centre motion and the shortest yaw rotation.
-          // Expanding by this amount in each axis conservatively covers the
-          // intervening footprint without moving the vehicle or adding grip.
-          const angle=wrap(a.yaw-(old.yaw??a.yaw)),padding=Math.hypot(p.lengthM,p.widthM)*angle*angle/16;
-          const envelope=padding>1e-12?convexHull(swept.flatMap(q=>[
-            {x:q.x-padding,y:q.y-padding},{x:q.x-padding,y:q.y+padding},
-            {x:q.x+padding,y:q.y-padding},{x:q.x+padding,y:q.y+padding}])):swept;
-          for(let i=0;i<envelope.length;i++)if(!segmentInsideUnion(envelope[i],envelope[(i+1)%envelope.length],track.boundaryPolygons,cache))return 'offtrack';
-        }
-      }else{
-      // Check the complete perimeter at <=25 cm spacing, not just its corners.
-      // This is a bounded sampling approximation for a black-box corridor API.
-      for(let i=0;i<body.length;i++){const from=body[i],to=body[(i+1)%body.length],count=Math.ceil(Math.hypot(to.x-from.x,to.y-from.y)/.25);for(let j=0;j<=count;j++){const u=j/count;if(!track.contains(from.x+(to.x-from.x)*u,from.y+(to.y-from.y)*u,a.s))return 'offtrack';}}
-      }
-    }else for(const corner of body){const q=track.project(corner.x,corner.y,a.s),section=track.sample(clamp(q.s,0,track.length)),halfWidth=q.error>=0?(section.widthLeft??track.width/2):(section.widthRight??track.width/2);if(q.distance>halfWidth+1e-6||q.s< -10||q.s>track.length+10)return 'offtrack';}
+    // The chosen course rule requires both front contact centres to remain
+    // on the road. Rear tyres and body overhang may cross the road boundary;
+    // the full-body obstacle checks above remain unchanged.
+    if(!frontContactSweep(v,track,a,old,cache))return 'offtrack';
     return null;
   }
   function step(v,track,a,input,dt=DT){
     if(a.status!=='running')return a;
     const road=roadSurface(track,a.x,a.y,a.s);
-    const p=cfg(v),mass=p.massKg,L=p.wheelbaseM,frontFraction=p.frontWeightFraction||.52,lf=L*(1-frontFraction),lr=L*frontFraction,halfTrack=(p.trackWidthM||p.widthM*.84)/2,R=p.tireRadius,mu=(p.gripCoefficient||1)*road.muScale,old={x:a.x,y:a.y,yaw:a.yaw};
+    const p=cfg(v),mass=p.massKg,L=p.wheelbaseM,frontFraction=p.frontWeightFraction||.52,lf=L*(1-frontFraction),lr=L*frontFraction,halfTrack=(p.trackWidthM||p.widthM*.84)/2,R=p.tireRadius,mu=(p.gripCoefficient||1)*road.muScale,old={x:a.x,y:a.y,yaw:a.yaw,s:a.s};
     a.steer+=clamp(clamp(input.steer,-p.maxSteer,p.maxSteer)-a.steer,-p.steerRate*dt,p.steerRate*dt);
     a.throttle=clamp(input.throttle,0,1);a.brake=clamp(input.brake,0,1);
     for(const key of Driver.TELEMETRY)if(Number.isFinite(input[key]))a[key]=input[key];
@@ -215,7 +235,7 @@
     }
     a.stalled=a.speed<.5?a.stalled+dt:0;
     const bad=failure(v,track,a,old);
-    if(bad){a.status=bad;a.reason=bad==='collision'?'방호물 충돌':'차체가 주행 경계 이탈';}
+    if(bad){a.status=bad;a.reason=bad==='collision'?'방호물 충돌':'앞바퀴 접지점이 주행 경계 이탈';}
     else if(![a.x,a.y,a.speed,a.yaw].every(Number.isFinite)){a.status='invalid';a.reason='수치 오류';}
     // Judge loss of alignment with actual motion, not world heading: a normal
     // hairpin can rotate the car by 180 degrees while keeping small sideslip.
@@ -235,8 +255,8 @@
     while(a.status==='running'){step(v,track,a,Driver.command(v,track,a,gene));if(record&&(++ticks%2===0||a.status!=='running'))frames.push(frame(a));}
     return result(a,frames,track);
   }
-  function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,footprint,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
-  const api={DT,torqueAt,initialState,commandAt,footprint,failure,step,evaluateGene,frame,signature};
+  function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
+  const api={DT,torqueAt,initialState,commandAt,footprint,frontContacts,failure,step,evaluateGene,frame,signature};
   // Compatibility for offline Node tooling; the browser has no grip-search API.
   if(typeof module!=='undefined'&&module.exports){api.buildGripBaseline=(...args)=>require('./grip-baseline-builder.cjs').buildGripBaseline(...args);module.exports=api;}
   root.DriftPhysics=api;

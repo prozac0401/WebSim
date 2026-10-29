@@ -70,45 +70,47 @@ test('surface friction scales tyre force capacity without changing the stock veh
   assert.ok(forces[1]<forces[0]*.4);assert.equal(JSON.stringify(car.physics),before);
 });
 
-test('asymmetric varying widths and contains inspect the whole vehicle footprint',()=>{
+test('asymmetric varying widths and contains require both front contact points',()=>{
   const car=catalog.get(),track=straightTrack(),state=physics.initialState(car,track);
   Object.assign(state,{x:20,y:.5,s:20});track.sample=s=>({x:s,y:0,s,heading:0,curvature:0,widthLeft:s>15&&s<25?1:5,widthRight:5});
-  assert.equal(physics.failure(car,track,state), 'offtrack','narrow left edge reaches the body before its centre');
+  assert.equal(physics.failure(car,track,state), 'offtrack','one front tyre leaves the narrow left edge');
   track.contains=(x,y)=>y<=1&&y>=-5;assert.equal(physics.failure(car,track,state),'offtrack','contains overrides the wide legacy width');
   state.y=-1;assert.equal(physics.failure(car,track,state),null);
 });
 
-test('a narrow concave polygon boundary cannot pass between valid body corners',()=>{
+test('road intrusions beneath body overhang do not fail valid front contacts',()=>{
   const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),state=physics.initialState(car,track);
   const polygon=[{x:0,y:-5},{x:40,y:-5},{x:40,y:5},{x:20.33,y:5},{x:20.33,y:.5},{x:20.31,y:.5},{x:20.31,y:5},{x:0,y:5}];
   track.boundaryPolygons=[polygon];track.contains=(x,y)=>Course.inPolygon(x,y,polygon);Object.assign(state,{x:20,y:0,s:20});
   assert.ok(physics.footprint(car,state).every(p=>track.contains(p.x,p.y)));assert.ok(track.contains(state.x,state.y));
-  assert.equal(physics.failure(car,track,state),'offtrack');
+  assert.equal(physics.failure(car,track,state),null);
 });
 
 test('swept outer boundaries reject a concave notch between two valid poses',()=>{
-  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),l=car.lengthM/2,w=car.widthM/2;
-  const x1=20+l+.04,x2=20+l+.08,y=-w+.15;
+  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),p=car.physics,l=p.wheelbaseM*(1-(p.frontWeightFraction||.52)),w=(p.trackWidthM||p.widthM*.84)/2;
+  const x1=20+l+.07,x2=20+l+.13,y=-w+.15;
   const polygon=[{x:-20,y:-5},{x:x1,y:-5},{x:x1,y},{x:x2,y},{x:x2,y:-5},{x:50,y:-5},{x:50,y:5},{x:-20,y:5}];
   track.boundaryPolygons=[polygon];track.contains=(x,y)=>Course.inPolygon(x,y,polygon);
   const old={x:20,y:0,s:20,yaw:0},next={x:20.2,y:.2,s:20.2,yaw:0},mid={x:20.1,y:.1,s:20.1,yaw:0};
   assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
-  assert.equal(physics.failure(car,track,mid),'offtrack','the physical corner crosses the notch between endpoints');
+  assert.equal(physics.failure(car,track,mid),'offtrack','one front contact crosses the notch between endpoints');
   assert.equal(physics.failure(car,track,next,old),'offtrack');
 });
 
-test('swept outer boundaries cover the arc of a rotating corner',()=>{
-  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),l=car.lengthM/2,w=car.widthM/2,R=Math.hypot(l,w),heading=Math.atan2(w,l),halfAngle=.04;
+test('swept outer boundaries cover the arc of each rotating front contact',()=>{
+  const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack(),p=car.physics,l=p.wheelbaseM*(1-(p.frontWeightFraction||.52)),w=(p.trackWidthM||p.widthM*.84)/2,R=Math.hypot(l,w),heading=Math.atan2(w,l),halfAngle=.04;
   const limit=20+R*(1+Math.cos(halfAngle))/2;
   const polygon=[{x:0,y:-10},{x:limit,y:-10},{x:limit,y:10},{x:0,y:10}];
   track.boundaryPolygons=[polygon];track.contains=(x,y)=>Course.inPolygon(x,y,polygon);
   const old={x:20,y:0,s:20,yaw:heading-halfAngle},next={...old,yaw:heading+halfAngle},mid={...old,yaw:heading};
   assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
   assert.equal(physics.failure(car,track,mid),'offtrack');
-  assert.equal(physics.failure(car,track,next,old),'offtrack','the endpoint hull alone misses the rotating corner');
+  assert.equal(physics.failure(car,track,next,old),'offtrack','the endpoint chord alone misses the rotating contact');
+  const inclusive=polygon.map(p=>({...p,x:p.x===limit?20+R:p.x}));track.boundaryPolygons=[inclusive];
+  assert.equal(physics.failure(car,track,next,old),null,'a contact may touch the road boundary at the arc extremum');
 });
 
-test('swept footprints may cross connected overlapping road polygons',()=>{
+test('swept front contacts may cross connected overlapping road polygons',()=>{
   const Course=require('./course-model.js'),car=catalog.get(),track=straightTrack();
   const rectangle=(x0,x1)=>[{x:x0,y:-5},{x:x1,y:-5},{x:x1,y:5},{x:x0,y:5}];
   track.boundaryPolygons=[rectangle(0,21),rectangle(19,50)];
@@ -125,6 +127,54 @@ test('polygon barriers detect crossed edges, contained obstacles and swept conta
   const small={...car,physics:{...car.physics,lengthM:1,widthM:1}};
   track.obstacles=[{type:'polygon',points:[{x:19,y:2},{x:22,y:2},{x:22,y:-2},{x:21,y:-2},{x:21,y:1},{x:19,y:1}]}];
   assert.equal(physics.failure(small,track,state),null,'a concave polygon is not its bounding box');
+});
+
+test('both front contacts may remain on the road while the rear and centre leave it',()=>{
+  const car=catalog.get(),track=straightTrack();track.width=4;
+  const state={x:20,y:-2.5,s:20,yaw:Math.PI/2},p=car.physics;
+  const contacts=physics.frontContacts(car,state),halfTrack=(p.trackWidthM||p.widthM*.84)/2;
+  assert.ok(contacts.every(point=>Math.abs(point.y)<=2));assert.ok(Math.abs(state.y)>2);
+  const rearY=state.y-p.wheelbaseM*(p.frontWeightFraction||.52);
+  assert.ok(rearY< -2);assert.ok(physics.footprint(car,state).some(point=>Math.abs(point.y)>2));
+  assert.equal(physics.failure(car,track,state),null,'rear/body overhang is allowed by the selected two-front-contact rule');
+  const oneOut={x:20,y:2-halfTrack+.01,s:20,yaw:0};
+  assert.equal(physics.frontContacts(car,oneOut).filter(point=>Math.abs(point.y)<=2).length,1);
+  assert.equal(physics.failure(car,track,oneOut),'offtrack');
+  assert.equal(physics.failure(car,track,{...oneOut,y:2-halfTrack}),null,'outer boundary contact counts as on-road');
+  track.obstacles=[{x:20,y:rearY,r:.05}];
+  assert.equal(physics.failure(car,track,state),'collision','rear-body contact with a barrier still fails');
+});
+
+test('excluded islands affect individual front paths without requiring the axle or rear to stay over road',()=>{
+  const car=catalog.get(),track=straightTrack(),state={x:20,y:0,s:20,yaw:0},contacts=physics.frontContacts(car,state);
+  const square=(x,y,r=.04)=>[{x:x-r,y:y-r},{x:x+r,y:y-r},{x:x+r,y:y+r},{x:x-r,y:y+r}];
+  track.excludedPolygons=[square(contacts[0].x,0)];
+  assert.equal(physics.failure(car,track,state),null,'a non-collision island between the two front tyres is permitted');
+  track.excludedPolygons=[square(contacts[0].x,contacts[0].y)];
+  assert.equal(physics.failure(car,track,state),'offtrack');
+  track.excludedPolygons=[square(contacts[0].x+.1,contacts[0].y,.02)];
+  const next={...state,x:20.2,s:20.2};
+  assert.equal(physics.failure(car,track,state),null);assert.equal(physics.failure(car,track,next),null);
+  assert.equal(physics.failure(car,track,next,state),'offtrack','a hole crossed entirely between integration steps is detected');
+  track.excludedPolygons=[square(20-1,0)];assert.equal(physics.failure(car,track,state),null,'rear/body overlap with a road exclusion is allowed');
+});
+
+test('a rotating contact cannot arc through an excluded island between valid endpoints',()=>{
+  const car=catalog.get(),track=straightTrack(),p=car.physics,l=p.wheelbaseM*(1-(p.frontWeightFraction||.52)),w=(p.trackWidthM||p.widthM*.84)/2,R=Math.hypot(l,w),heading=Math.atan2(w,l),d=.00015;
+  const old={x:20,y:0,s:20,yaw:heading-.04},next={...old,yaw:heading+.04};
+  track.excludedPolygons=[[{x:20+R-d,y:-d},{x:20+R+d,y:-d},{x:20+R+d,y:d},{x:20+R-d,y:d}]];
+  assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
+  assert.equal(physics.failure(car,track,next,old),'offtrack');
+});
+
+test('a polygon union cannot hide an interior hole from the rotating front-contact sweep',()=>{
+  const car=catalog.get(),old={x:20,y:0,yaw:0,s:20},next={...old,yaw:.2},quarter={...old,yaw:.05};
+  const hole=physics.frontContacts(car,quarter)[0],r=.0005,x0=hole.x-r,x1=hole.x+r,y0=hole.y-r,y1=hole.y+r;
+  const rect=(x0,y0,x1,y1)=>[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}];
+  // The union's enclosed 1mm hole has no separate excludedPolygons entry.
+  const track={length:200,width:200,obstacles:[],boundaryPolygons:[rect(-100,-100,x0,100),rect(x1,-100,100,100),rect(x0,-100,x1,y0),rect(x0,y1,x1,100)]};
+  assert.equal(physics.failure(car,track,old),null);assert.equal(physics.failure(car,track,next),null);
+  assert.equal(physics.failure(car,track,quarter),'offtrack');assert.equal(physics.failure(car,track,next,old),'offtrack');
 });
 
 test('score normalization uses the actual judged interval length',()=>{
