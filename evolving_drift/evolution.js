@@ -211,7 +211,11 @@
         return {parentId:parent.id,gene,kind:'global-'+strategy,arcIndex:arc};
       }
       if(this._entryCounts[arc]>8&&metric.bestArc?.distance>5&&this._rng()<.8){
-        const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,options);
+        const run=metric.bestArc,zone=this._strategyZones[arc];
+        const missingConnection=(run.connectionCoverage??0)<1||run.start>(zone.cornerStart??zone.start)+.5||run.end<zone.exit-.5;
+        const missingLink=metric.links?.some(link=>!link.complete);
+        const family=missingLink&&this._rng()<.4?'link':missingConnection&&this._rng()<.45?'bridge':undefined;
+        const view={...parent,metric,result:{...parent.result,frames:parent.record}},proposal=Strategies.adaptive(this.vehicle,this.track,view,this._rng,{...options,family});
         return {parentId:parent.id,gene:proposal.gene,kind:'arc-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
       }
       const previous=parent.params?.arc===arc&&this._rng()<.82?parent.params:null;
@@ -225,7 +229,8 @@
       const ranked=[...unique.values()].sort((a,b)=>this._regional(b,arc).score-this._regional(a,arc).score||a.sequence-b.sequence);
       const chosen=[],keys=new Set();
       for(const entry of ranked){const run=this._regional(entry,arc).bestArc,s=run?.end??this._strategyZones[arc].exit;
-        const key=[Math.floor((run?.distance||0)/3),Math.floor((run?.distanceWeightedAngle||0)/5),Math.floor((run?.speedRetention||0)*10),Math.floor(G.sample(entry.gene,s,this.track.length).lineOffset/1.5),entry.params?'entry':'adaptive'].join('/');
+        const link=this._regional(entry,arc).bestLink;
+        const key=[Math.floor((run?.distance||0)/3),Math.floor((run?.distanceWeightedAngle||0)/5),Math.floor((run?.speedRetention||0)*10),Math.floor((link?.coverage||0)*10),Math.floor(G.sample(entry.gene,s,this.track.length).lineOffset/1.5),entry.params?'entry':'adaptive'].join('/');
         if(keys.has(key))continue;keys.add(key);chosen.push(entry);if(chosen.length>=16)break;
       }
       return chosen.length?chosen:[this._baselineEntry];

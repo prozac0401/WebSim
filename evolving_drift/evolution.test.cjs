@@ -47,7 +47,7 @@ test('entry strategies mirror outside line and slip intent, and sanitize short e
     const a=Strategies.entry(right.vehicle,right.track,{gene:right.gene,record:right.record},E.createRng(seed),0,null,{zones:zone(-1)});
     const b=Strategies.entry(left.vehicle,left.track,{gene:left.gene,record:left.record},E.createRng(seed),0,null,{zones:zone(1)});
     assert.ok(a.params.onset<=110,'initiation precedes the end of an 18m corner');
-    assert.ok(a.params.length<=33&&a.params.length>=25,'38m exits cannot generate a hold longer than available space');
+    assert.ok(a.params.length<=33&&a.params.length>=0,'38m exits permit short holds and cannot exceed available space');
     assert.equal(a.params.onset,b.params.onset);
     for(let i=0;i<128;i++){
       assert.ok(Math.abs(a.gene[i*8+C.lineOffset]+b.gene[i*8+C.lineOffset])<1e-12);
@@ -219,6 +219,146 @@ test('new trajectories recover slip and propulsion targets over the same window'
   for(let s=z.end;s<=f.track.length;s+=.2)assert.deepEqual(G.sample(proposal.gene,s,f.track.length),G.sample(parent.gene,s,f.track.length),'the next corner does not inherit a trailing recovery or line offset');
 });
 
+test('entry evolution explores the full physical approach and encodes pre-start drift and acceleration in v2 controls',()=>{
+  const f=strategyFixture(-1),zones=Strategies.zones(f.track),prepared={gene:f.gene,record:f.record},before=f.gene.slice();
+  const proposals=Array.from({length:80},(_,i)=>Strategies.entry(f.vehicle,f.track,prepared,E.createRng(i+1),0,null,{zones}));
+  assert.ok(proposals.some(p=>p.params.onset<15),'random exploration reaches the road near the real spawn');
+  assert.ok(proposals.some(p=>p.params.onset>zones[0].cornerStart-5),'near-corner initiation is still explored');
+  const original={...proposals[0].params,onset:-100,prepLead:500,prepPedal:.95,prepRelease:.9};
+  const earliest=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,0,original,{zones});
+  assert.equal(earliest.params.onset,2.5);assert.equal(earliest.params.prepLead,0);
+  assert.ok(G.sample(earliest.gene,30,f.track.length).targetSlip>.1);
+  assert.ok(G.sample(earliest.gene,30,f.track.length).driveSlip>0,'drive slip can be requested before START');
+  const params={...original,onset:40,prepLead:25,feint:0};
+  const fast=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,0,params,{zones});
+  const mild=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,0,{...params,prepPedal:.4,prepRelease:0},{zones});
+  const a=G.sample(fast.gene,20,f.track.length),b=G.sample(mild.gene,20,f.track.length);
+  assert.ok(a.throttle>b.throttle+.4);assert.ok(a.brake<b.brake*.2,'the preparation changes real pedal genes');
+  assert.ok(G.sample(fast.gene,55,f.track.length).targetSlip>.1,'onset is no longer limited by cornerStart minus 20m');
+  assert.equal(fast.gene.length,1024);assert.deepEqual(f.gene,before);assert.deepEqual(original,{...proposals[0].params,onset:-100,prepLead:500,prepPedal:.95,prepRelease:.9});
+  assert.deepEqual(G.normalize(fast.gene,{maxSteerRad:f.vehicle.physics.maxSteer,gearCount:6,lineBounds:G.corridorBounds(f.vehicle,f.track)}),fast.gene);
+});
+
+test('later-corner preparation starts after the previous real exit and preserves earlier control targets',()=>{
+  const f=strategyFixture(-1),zones=[{id:'first',start:20,cornerStart:25,apex:35,exit:45,end:60,sign:1},{id:'second',start:60,cornerStart:90,apex:105,exit:120,end:180,sign:-1}],prepared={gene:f.gene,record:f.record};
+  const params=Strategies.entry(f.vehicle,f.track,prepared,E.createRng(5),1,null,{zones}).params;
+  const next=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,1,{...params,onset:-100,prepLead:500},{zones});
+  assert.equal(next.params.onset,45);assert.equal(next.params.prepLead,0);assert.equal(Strategies.approachStart(f.track,zones[1],zones),45);
+  const ds=f.track.length/(G.KNOTS-1);
+  for(let s=0;s<=45-ds;s+=.25){
+    const a=G.sample(next.gene,s,f.track.length),b=G.sample(f.gene,s,f.track.length);
+    delete a.steer;delete b.steer;assert.deepEqual(a,b,'only path lookahead steering may anticipate the later line');
+  }
+});
+
+test('bridge mutations extend missing apex connections upstream or downstream while preserving their valid parent',()=>{
+  const reflected=[];
+  for(const cornerSign of [-1,1])for(const direction of ['before','after']){
+    const f=strategyFixture(cornerSign),z=Strategies.zones(f.track)[0],sign=-cornerSign;
+    const run={zoneId:z.id,zoneExit:z.exit,start:direction==='before'?z.apex+8:z.cornerStart-3,end:direction==='before'?z.exit+18:z.apex-6,sign,distanceWeightedAngle:22,connectionCoverage:0,anchored:false};
+    for(let i=0;i<G.KNOTS;i++){
+      const s=i/(G.KNOTS-1)*f.track.length,j=i*G.STRIDE,inside=s>=run.start&&s<=run.end;
+      f.gene[j+C.targetSlip]=inside?sign*.4:0;f.gene[j+C.driveSlip]=inside?.5:0;
+      f.gene[j+C.throttle]=inside?.7:.4;f.gene[j+C.brake]=inside?0:.3;f.gene[j+C.gearHold]=3;
+      f.gene[j+C.lineOffset]=sign*Math.sin(s/f.track.length*Math.PI)*.5||0;
+    }
+    const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}},before=f.gene.slice();
+    const full=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge'}),small=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge',scale:.2});
+    assert.equal(full.change.family,'bridge');assert.equal(full.change.direction,direction);assert.equal(full.gene.length,1024);
+    assert.deepEqual(full,Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge'}));assert.deepEqual(parent.gene,before);
+    const {start,end}=full.change,probe=direction==='before'?z.cornerStart:z.exit;
+    assert.ok(start<probe&&end>probe,'the missing corner boundary is inside the mutation window');
+    assert.ok(sign*(G.sample(full.gene,probe,f.track.length).targetSlip-G.sample(before,probe,f.track.length).targetSlip)>.1);
+    if(direction==='before')assert.ok(start<f.track.judgedStart,'an inherited post-apex drift may grow back before START');
+    for(let i=0;i<G.KNOTS;i++){
+      const s=i/(G.KNOTS-1)*f.track.length,j=i*G.STRIDE;
+      assert.equal(full.gene[j+C.gearHold],before[j+C.gearHold]);
+      for(const c of [C.lineOffset,C.targetSlip,C.driveSlip,C.counterLead,C.throttle,C.brake]){
+        assert.ok(Math.abs(small.gene[j+c]-before[j+c]-.2*(full.gene[j+c]-before[j+c]))<1e-12);
+        if(s<=start||s>=end)assert.equal(full.gene[j+c],before[j+c]);
+      }
+    }
+    for(let s=0;s<=f.track.length;s+=.25)if(s<=start||s>=end){
+      const a=G.sample(full.gene,s,f.track.length),b=G.sample(before,s,f.track.length);delete a.steer;delete b.steer;
+      assert.deepEqual(a,b,'interpolated controls also stay outside the localized bridge');
+    }
+    assert.deepEqual(G.normalize(full.gene,{maxSteerRad:f.vehicle.physics.maxSteer,gearCount:6,lineBounds:G.corridorBounds(f.vehicle,f.track)}),full.gene);
+    reflected.push({cornerSign,direction,gene:full.gene});
+  }
+  for(const direction of ['before','after']){
+    const a=reflected.find(x=>x.cornerSign===-1&&x.direction===direction).gene,b=reflected.find(x=>x.cornerSign===1&&x.direction===direction).gene;
+    for(let i=0;i<G.KNOTS;i++)for(const c of [C.lineOffset,C.targetSlip,C.steer])assert.ok(Math.abs(a[i*G.STRIDE+c]+b[i*G.STRIDE+c])<1e-12,'the entire approach and exit intent reflects with the real corner');
+  }
+});
+
+test('short exits can reduce their hold to zero and terminal recovery can begin before the inherited drift ends',()=>{
+  const f=strategyFixture(-1),z={id:'short',start:60,cornerStart:80,apex:100,exit:120,end:152.5,sign:-1},zones=[z],prepared={gene:f.gene,record:f.record};
+  const variants=Array.from({length:20},(_,i)=>Strategies.entry(f.vehicle,f.track,prepared,E.createRng(i+1),0,null,{zones}));
+  assert.ok(variants.some(p=>p.params.length<8));assert.ok(variants.some(p=>p.params.length>16));
+  const zero=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,0,{...variants[0].params,length:0,recovery:32.5},{zones});
+  assert.equal(zero.params.length,0);assert.equal(zero.params.recovery,32.5);
+  for(let i=0;i<G.KNOTS;i++){f.gene[i*G.STRIDE+C.targetSlip]=.4;f.gene[i*G.STRIDE+C.driveSlip]=.5;}
+  const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneId:z.id,zoneExit:z.exit,start:z.cornerStart,end:z.end-.1,anchored:true,sign:1}}};
+  const p=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'recovery',zones,zone:z,links:[]});
+  assert.equal(p.change.family,'recovery');assert.ok(p.change.start>=z.exit&&p.change.start<parent.metric.bestArc.end);
+  assert.ok(p.change.end-p.change.start>=3*f.track.length/(G.KNOTS-1));assert.ok(p.change.end<z.end);
+});
+
+function linkedStrategyFixture(sign,sameSign){
+  const f=strategyFixture(sign),length=320,secondSign=sameSign?sign:-sign;
+  const track={length,width:40,judgedStart:60,judgedEnd:280,sample:s=>{
+    let left=clampTest(s,0,length),x=0,y=0,heading=0,curvature=0;
+    for(const [span,k] of [[80,0],[40,sign*.02],[80,0],[40,secondSign*.02],[80,0]]){
+      const n=Math.min(left,span);curvature=k;
+      if(k){x+=(Math.sin(heading+k*n)-Math.sin(heading))/k;y+=(Math.cos(heading)-Math.cos(heading+k*n))/k;heading+=k*n;}
+      else{x+=n*Math.cos(heading);y+=n*Math.sin(heading);}
+      left-=n;if(left<=0)break;
+    }
+    return{s,x,y,heading,curvature};
+  }};
+  const zones=[{id:'a',start:60,cornerStart:80,apex:100,exit:120,end:160,sign},{id:'b',start:160,cornerStart:200,apex:220,exit:240,end:280,sign:secondSign}];
+  const links=[{id:'a-b',fromZoneId:'a',toZoneId:'b',start:100,end:220,straightStart:120,straightEnd:200,fromSign:sign,toSign:secondSign}];
+  const record=Array.from({length:65},(_,i)=>{const p=track.sample(i*5);return {...p,time:i/3,speed:15,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),yaw:p.heading};});
+  const gene=G.create();for(let i=0;i<G.KNOTS;i++){
+    const j=i*G.STRIDE,s=i/(G.KNOTS-1)*length;gene[j+C.throttle]=.4;gene[j+C.brake]=.15;gene[j+C.gearHold]=3;
+    if(s>=80&&s<=130){gene[j+C.targetSlip]=-sign*.35;gene[j+C.driveSlip]=.4;}
+  }
+  return{...f,track,zones,links,record,gene};
+}
+
+test('link mutations cross regional boundaries with continuous same-direction intent or one smooth opposite transition',()=>{
+  const reflected=[];
+  for(const sameSign of [true,false])for(const sign of [-1,1]){
+    const f=linkedStrategyFixture(sign,sameSign),z=f.zones[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneId:z.id,start:80,end:125,sign:-sign},links:[{id:'a-b',coverage:.2}]}};
+    const options={family:'link',zones:f.zones,zone:z,links:f.links},p=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options),small=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{...options,scale:.2});
+    assert.equal(p.change.family,'link');assert.equal(p.change.sameSign,sameSign);assert.ok(p.change.start<z.apex&&p.change.end>f.zones[1].apex);
+    assert.deepEqual(p,Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options));assert.equal(p.gene.length,1024);
+    const samples=[];for(let s=100;s<=220;s+=.25)samples.push({s,beta:G.sample(p.gene,s,f.track.length).targetSlip});
+    if(sameSign)assert.ok(samples.every(f=>-sign*f.beta>=12*Math.PI/180-.002),'the complete intermediate straight retains a drift target');
+    else{
+      let crossings=0;for(let i=1;i<samples.length;i++)if(samples[i-1].beta*samples[i].beta<0)crossings++;
+      assert.equal(crossings,1,'a single direction change replaces a grip interval');
+      const low=samples.filter(f=>Math.abs(f.beta)<10*Math.PI/180),distance=low.at(-1).s-low[0].s;
+      assert.ok(low[0].s>120&&low.at(-1).s<200);assert.ok(distance<=8&&distance/15<=.35);
+      assert.ok(samples.slice(1).every((f,i)=>Math.abs(f.beta-samples[i].beta)/(.25/15)<=4),'sampled intent also respects a finite transition rate');
+    }
+    for(let i=0;i<G.KNOTS;i++){
+      const s=i/(G.KNOTS-1)*f.track.length,j=i*G.STRIDE;assert.equal(p.gene[j+C.gearHold],f.gene[j+C.gearHold]);
+      for(const c of [C.lineOffset,C.targetSlip,C.driveSlip,C.counterLead,C.throttle,C.brake]){
+        assert.ok(Math.abs(small.gene[j+c]-f.gene[j+c]-.2*(p.gene[j+c]-f.gene[j+c]))<1e-12);
+        if(s<=p.change.start||s>=p.change.end)assert.equal(p.gene[j+c],f.gene[j+c]);
+      }
+    }
+    const middle=G.sample(p.gene,160,f.track.length);assert.ok(middle.driveSlip>0);assert.ok(middle.throttle>=.4);assert.ok(middle.brake<.01);
+    reflected.push({sameSign,sign,gene:p.gene});
+    if(sameSign){const recovery=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{...options,family:'recovery'});assert.equal(recovery.change.family,'link','middle-corner recovery cannot intentionally return to grip');}
+  }
+  for(const sameSign of [true,false]){
+    const a=reflected.find(p=>p.sameSign===sameSign&&p.sign===-1).gene,b=reflected.find(p=>p.sameSign===sameSign&&p.sign===1).gene;
+    for(let i=0;i<G.KNOTS;i++)for(const c of [C.lineOffset,C.targetSlip,C.steer])assert.ok(Math.abs(a[i*G.STRIDE+c]+b[i*G.STRIDE+c])<1e-12);
+  }
+});
+
 test('pre-start feint uses the mapped approach and produces real alternating wheel loads',()=>{
   const Physics=require('./physics.js'),Driver=require('./driver.js'),vehicle=require('./catalog.js').get();
   const course={length:260,width:60,judgedStart:140,judgedEnd:200,obstacles:[],zones:[],
@@ -291,20 +431,20 @@ test('apex strategies initialize without simulation and keep generation reservat
   assert.deepEqual(plannedGenes,seen);assert.deepEqual(baseline.gene,before);
 });
 
-test('road corridors use the full connected width, body clearance and swept boundaries',()=>{
-  const Course=require('./course-model.js'),body={physics:{lengthM:4,widthM:2}};
+test('road corridors use both front contacts across the full connected road and stop at swept islands',()=>{
+  const Course=require('./course-model.js'),body={physics:{lengthM:4,widthM:2,wheelbaseM:2.6,frontWeightFraction:.5,trackWidthM:1.6}};
   const rectangle=(x0,x1,y0,y1)=>[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}];
   const outer=rectangle(-10,110,-9,15),island=rectangle(45,55,4,4.02),far=rectangle(-10,110,18,25);
   const course={length:100,width:14,boundaryPolygons:[outer,far],excludedPolygons:[island],obstacles:[],
     sample:s=>({s,x:s,y:0,heading:0,curvature:0,widthLeft:7,widthRight:7}),project:(x,y)=>({s:x,x,y:0,error:y}),
     contains:(x,y)=>(Course.inPolygon(x,y,outer)||Course.inPolygon(x,y,far))&&!Course.inPolygon(x,y,island)};
   const bounds=G.corridorBounds(body,course),open=bounds[20],blocked=bounds[64];
-  assert.ok(open.max>13.8&&open.max<13.9,'mapped apron is wider than nominal 7 m half-width');
-  assert.ok(open.min< -7.8&&open.min> -7.9);
+  assert.ok(open.max>14.199&&open.max<=14.2,'upper road 15m minus front half-track .8m, without a body-overhang penalty');
+  assert.ok(open.min< -8.199&&open.min>=-8.2,'lower road -9m plus front half-track .8m');
   assert.ok(open.max<18,'cannot jump to a disconnected outer road');
-  assert.ok(blocked.max<2.86&&blocked.max>2.8,'a 2 cm grass island cannot be skipped by the scan');
-  const wider=G.corridorBounds({physics:{lengthM:4,widthM:4}},course);
-  assert.ok(wider[20].max<open.max-.99,'body width reduces available centre offset');
+  assert.ok(blocked.max>3.199&&blocked.max<=3.2,'a front tyre reaches the 2cm island at 4m minus .8m');
+  const wider=G.corridorBounds({physics:{...body.physics,widthM:4,trackWidthM:3.6}},course);
+  assert.ok(wider[20].max<open.max-.99,'front contact spacing controls the available centre offset');
   const gene=G.create();for(let i=0;i<G.KNOTS;i++)gene[i*G.STRIDE+C.lineOffset]=20;
   const normalized=G.normalize(gene,{lineBounds:bounds});
   assert.equal(normalized[20*G.STRIDE+C.lineOffset],open.max);assert.equal(normalized[64*G.STRIDE+C.lineOffset],blocked.max);
