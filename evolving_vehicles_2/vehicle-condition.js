@@ -9,13 +9,15 @@
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
   const finite=(x,fallback=0)=>Number.isFinite(x)?x:fallback;
   const positive=x=>Math.max(0,finite(x));
-  const G=9.81,PS_W=735.49875;
+  const G=9.81,PS_W=735.49875,STEFAN_BOLTZMANN=5.670374419e-8;
   const MODEL=Object.freeze({
-    version:'estimated-v1',ambientC:20,initialTireC:45,initialBrakeC:70,
+    version:'estimated-v2',ambientC:20,initialTireC:45,initialBrakeC:70,
     initialEngineC:90,initialMotorC:45,initialBatteryC:25,
     dischargeEfficiency:.92,regenEfficiency:.78,engineChargeEfficiency:.80,hybridChargeTargetSoc:.60,hybridGeneratorMaxW:8000,
     tireHeatCapacityJK:6500,tireWearRate:.000045,
     brakeFrontCapacityJK:10000,brakeRearCapacityJK:8000,
+    // Generic exposed rotor-pair area and emissivity, not measured car data.
+    brakeFrontRadiatingAreaM2:.30,brakeRearRadiatingAreaM2:.24,brakeEmissivity:.7,
     frictionEnergyForFullWearJ:2e9,
     motorHeatCapacityJK:40000,batteryHeatCapacityPerKwhJK:6000,
     engineHeatCapacityJK:110000,
@@ -86,6 +88,24 @@
     const equilibrium=ambientC+heatW/conductanceWPerK;
     return Math.max(ambientC,equilibrium+(old-equilibrium)*decay);
   }
+  function cooledBrakeTemperature(old,heatW,conductanceWPerK,capacityJK,areaM2,ambientC,dt){
+    // Radiation: epsilon*sigma*A*(T^4-Ta^4), with absolute temperatures.
+    // Factor out (T-Ta) to retain a positive cooling conductance. Re-evaluate
+    // at the midpoint of bounded steps; a frame-sized frozen coefficient
+    // would overcool on large updates. The race still runs at fixed 120 Hz.
+    const ambientK=Math.max(1,ambientC+273.15);
+    const radiation=t=>{
+      const kelvin=Math.max(ambientK,t+273.15);
+      return MODEL.brakeEmissivity*STEFAN_BOLTZMANN*areaM2*(kelvin*kelvin+ambientK*ambientK)*(kelvin+ambientK);
+    };
+    const steps=Math.max(1,Math.ceil(dt/.1)),h=dt/steps;
+    let temperature=old;
+    for(let i=0;i<steps;i++){
+      const midpoint=cooledTemperature(temperature,heatW,conductanceWPerK+radiation(temperature),capacityJK,ambientC,h/2);
+      temperature=cooledTemperature(temperature,heatW,conductanceWPerK+radiation(midpoint),capacityJK,ambientC,h);
+    }
+    return temperature;
+  }
   function update(car,state,dt,input={}){
     if(!state||!Number.isFinite(dt)||dt<0)throw new RangeError('condition dt must be finite and nonnegative');
     if(dt===0)return state.power;
@@ -135,9 +155,9 @@
     }
     const brakeUpgrade=1+.12*state.levels.brakes;
     const brakeFront=clamp(finite(input.brakeFrontFraction,.65),0,1);
-    for(const [name,share,capacity] of [['front',brakeFront,MODEL.brakeFrontCapacityJK],['rear',1-brakeFront,MODEL.brakeRearCapacityJK]]){
+    for(const [name,share,capacity,area] of [['front',brakeFront,MODEL.brakeFrontCapacityJK,MODEL.brakeFrontRadiatingAreaM2],['rear',1-brakeFront,MODEL.brakeRearCapacityJK,MODEL.brakeRearRadiatingAreaM2]]){
       const axle=state.brakes[name];
-      axle.temperatureC=cooledTemperature(axle.temperatureC,frictionW*share,(12+1.3*speed)*(1+.09*state.levels.brakes),capacity*brakeUpgrade,state.ambientC,dt);
+      axle.temperatureC=cooledBrakeTemperature(axle.temperatureC,frictionW*share,(12+1.3*speed)*(1+.09*state.levels.brakes),capacity*brakeUpgrade,area,state.ambientC,dt);
       axle.wear=clamp(axle.wear+frictionW*share*dt/(MODEL.frictionEnergyForFullWearJ*(1+.15*state.levels.brakes)),0,1);
     }
     if(state.kind!=='combustion'){

@@ -76,6 +76,45 @@ test('grade holding uses actual wheel work: climbing produces no brake heat; des
  assert(full.c.frictionBrakeForceN>down.c.frictionBrakeForceN);
 });
 
+test('hot brakes cool during unbraked driving and recover performance without undoing wear',()=>{
+ function straight(speed){
+  const r=make({vehicleId:'supra',initialSpeed:speed,conditionOptions:{initialBrakeC:851}}),c=r.cars[0];
+  r._refreshConditionProfiles=()=>{};r._target=()=>speed;
+  r.sampleForCar=()=>({grade:0,curvature:0,x:0,y:0,elevation:0,centerS:0});
+  c.condition.brakes.front.wear=.1;c.condition.brakes.rear.wear=.05;
+  const before=Condition.snapshot(c.condition);
+  r.step(30);
+  assert.equal(c.speed,speed);assert.equal(c.serviceBrakeForceN,0);
+  assert.equal(c.condition.energy.frictionBrakeJ,0,'drive work must not heat the friction brakes');
+  for(const axle of ['front','rear']){
+   assert(c.condition.brakes[axle].temperatureC<before.brakes[axle].temperatureC);
+   assert(c.condition.brakes[axle].temperatureC>c.condition.ambientC);
+   assert.equal(c.condition.brakes[axle].wear,before.brakes[axle].wear);
+  }
+  assert(Condition.limits(c,c.condition).brakeFactor>before.brakes.factor);
+  return c.condition;
+ }
+ const slow=straight(10),fast=straight(30);
+ for(const axle of ['front','rear'])assert(fast.brakes[axle].temperatureC<slow.brakes[axle].temperatureC,'airflow must strengthen cooling');
+});
+
+test('actual braking heats both axles, then releasing it stops adding brake energy',()=>{
+ const r=make({vehicleId:'supra',initialSpeed:40}),c=r.cars[0],initial=Condition.snapshot(c.condition);
+ r._refreshConditionProfiles=()=>{};r._target=()=>12;
+ r.sampleForCar=()=>({grade:0,curvature:0,x:0,y:0,elevation:0,centerS:0});
+ r.step(4);
+ const hot=Condition.snapshot(c.condition),holdSpeed=c.speed;
+ assert(c.speed<40);assert(hot.energy.frictionBrakeJ>0);
+ for(const axle of ['front','rear'])assert(hot.brakes[axle].temperatureC>initial.brakes[axle].temperatureC);
+ r._target=()=>holdSpeed;r.step(30);
+ assert.equal(c.serviceBrakeForceN,0);
+ assert.equal(c.condition.energy.frictionBrakeJ,hot.energy.frictionBrakeJ);
+ for(const axle of ['front','rear']){
+  assert(c.condition.brakes[axle].temperatureC<hot.brakes[axle].temperatureC);
+  assert.equal(c.condition.brakes[axle].wear,hot.brakes[axle].wear);
+ }
+});
+
 test('EV hot derating limits low-speed torque as well as high-speed power',()=>{
  for(const [speed,torque] of [[5,40],[35,10000]]){
   const normal=make({vehicleId:'ioniq5',initialSpeed:speed,spec:{torqueNm:torque}});
@@ -118,9 +157,13 @@ test('actual drive and blended braking stay within the current axle reserve and 
 });
 
 test('fixed physics time gives identical condition and motion states across render batching',()=>{
- const a=make({vehicleId:'ioniq5'}),b=make({vehicleId:'ioniq5'});a.step(3);for(let i=0;i<180;i++)b.step(1/60);
- assert.deepEqual(a.cars[0].condition,b.cars[0].condition);
- assert.deepEqual([a.cars[0].speed,a.cars[0].distance],[b.cars[0].speed,b.cars[0].distance]);
+ for(const options of [{vehicleId:'ioniq5'},{vehicleId:'supra',initialSpeed:25,conditionOptions:{initialBrakeC:851}}]){
+  const a=make(options),b=make(options);
+  for(let i=0;i<60;i++)a.step(16/60);
+  for(let i=0;i<960;i++)b.step(1/60);
+  assert.deepEqual(a.cars[0].condition,b.cars[0].condition,'16x playback must retain the same heat and cooling history');
+  assert.deepEqual([a.cars[0].speed,a.cars[0].distance],[b.cars[0].speed,b.cars[0].distance]);
+ }
 });
 
 test('lap state persists but fresh evaluation/session state resets independently without changing factory or cost',()=>{
