@@ -4,9 +4,11 @@
   const Genome=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
   const Runtime=root.DriftRuntime||(typeof require==='function'?require('./runtime.js'):null);
   if(!Genome)throw Error('Load DriftGenome before DriftPreparedGrips.');
-  const SCHEMA=3,KNOTS=Genome.KNOTS,STRIDE=Genome.STRIDE,GENOME_VERSION=Genome.VERSION,records=new Map(),pending=new Map();
+  const SCHEMA=4,KNOTS=Genome.KNOTS,STRIDE=Genome.STRIDE,GENOME_VERSION=Genome.VERSION,records=new Map(),pending=new Map();
   const fields=['time','x','y','z','grade','bank','yaw','vx','vy','r','s','speed','beta','steer','throttle','brake','gear','rpm','torque','rearTorque','ax','ay',
-    'targetSlip','lineOffset','counterLead','driveSlipTarget','requestedGear','driverSteerCorrection','driverThrottleCorrection','targetYawRate','pathError','predictedSlip','gearShiftVeto'];
+    'targetSlip','lineOffset','counterLead','driveSlipTarget','requestedGear','driverSteerCorrection','driverThrottleCorrection','targetYawRate','pathError','predictedSlip','gearShiftVeto',
+    'engineOmega','clutchPedal','clutchEngagement','clutchTorque','clutchSlipRPM','clutchSlipEnergyJ','clutchLocked','clutchCapacityNm','clutchLaunchAssist',
+    'clutchEventIndex','clutchEventStart','clutchEventOpenSec','clutchEventCloseSec','clutchKickCount','clutchKickActive'];
   function stable(value){
     if(Array.isArray(value))return '['+value.map(stable).join(',')+']';
     if(value&&typeof value==='object')return '{'+Object.keys(value).sort().filter(k=>typeof value[k]!=='undefined').map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}';

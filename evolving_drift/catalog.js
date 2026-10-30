@@ -166,7 +166,8 @@
     limitations.push(verifiedDifferential
       ? (isGR86 ? 'Torsen LSD' : isM2 ? 'Active M Differential' : '액티브 디퍼렌셜') + ' 장착은 해당 시장 공식 장비표에서 확인했습니다. 모형은 공통 차동제한 근사를 사용하며 실제 토크 배분·잠금 특성·ECU 맵을 재현하지 않습니다.'
       : '정확한 출고 사양의 차동제한 장치와 제어 상태는 미확인입니다. 모델은 오픈 디퍼렌셜을 가정하며 임의의 LSD를 추가하지 않습니다.');
-    if (isM2 || isGR86) limitations.push('기존 EV2의 공회전 관측·참고값을 유지합니다. RPM 상한은 같은 세대 해외 제조사 자료의 참고값이고 변속 시점·손실은 추정입니다. 클러치 조작·변속 지연은 이 드리프트 모형에서 별도로 해석하지 않습니다.');
+    if (isM2 || isGR86) limitations.push('기존 EV2의 공회전 관측·참고값을 유지합니다. RPM 상한은 같은 세대 해외 제조사 자료의 참고값이고 변속 시점·손실은 추정입니다.');
+    if (profile.transmissionType === 'MT') limitations.push('수동차는 클러치 분리·재결합과 독립 엔진 회전을 계산합니다. 엔진 회전 관성·클러치 전달 용량·출발 보조는 실측값이 아닌 모형 추정이며 클러치 열화·고장은 재현하지 않습니다.');
     if (variant.vehicleId === 'porter2') limitations.push('포터 II의 후륜 복륜·서스펜션과 전복 거동은 단순화됩니다. 차종별 실차 드리프트 가능성을 검증한 결과가 아닙니다.');
     if (electric) limitations.push('모터 회전수 상한과 토크-속도 곡선은 추정이며 배터리 충전율·열에 의한 출력 제한은 재현하지 않습니다.');
 
@@ -189,7 +190,13 @@
       differentialStatus: verifiedDifferential ? 'verified-hardware-estimated-control' : 'unverified-open-assumption',
       torqueCurve: torquePoints(variant, profile, peakPowerW),
       torqueCurveStatus: officialAnchors ? 'official-anchors-estimated-shape' : 'estimated',
-      electric, powertrainType: spec.powertrainType,
+      electric, powertrainType: spec.powertrainType, transmissionType: profile.transmissionType,
+      ...(profile.transmissionType==='MT'?{
+        engineInertiaKgM2:variant.vehicleId==='porter2'?.45:isM2?.30:.22,
+        clutchCapacityNm:spec.torqueNm*1.35,
+        manualShiftDurationS:profile.shiftModel?.upshiftDurationS||.45,
+        clutchModelStatus:'estimated-not-manufacturer-verified'
+      }:{}),
       idleRPM: electric ? 0 : profile.idleRPM || 900,
       maxRPM: electric ? 16000 : profile.maxRPM || 7000,
       shiftRPM: electric ? 0 : profile.shiftRPM || 6000,
@@ -213,7 +220,7 @@
       provenance: {
         stock: 'EV2 VARIANTS immutable factory specification',
         derivedFields: ['wheelbaseM', 'lengthM', 'widthM', 'tireRadius', 'peakPowerW', 'bodyCenterOffsetM'],
-        estimatedFields: ['frontWeightFraction', 'cgHeightM', 'maxSteer', 'steerRate', 'torqueCurve', 'idleRPM', 'maxRPM', 'shiftRPM', 'efficiency', 'gripCoefficient', 'brakeAcceleration'],
+        estimatedFields: ['frontWeightFraction', 'cgHeightM', 'maxSteer', 'steerRate', 'torqueCurve', 'idleRPM', 'maxRPM', 'shiftRPM', 'efficiency', 'gripCoefficient', 'brakeAcceleration', ...(profile.transmissionType==='MT'?['engineInertiaKgM2','clutchCapacityNm','manualShiftDurationS']:[])],
         nominalTireRadius: true,
         stockVerifiedAt: variant.verifiedAt,
         catalogReviewedAt: '2026-10-28'

@@ -9,7 +9,41 @@
   const DEG = Math.PI / 180;
   const TELEMETRY = Object.freeze(['targetSlip', 'lineOffset', 'counterLead', 'driveSlipTarget',
     'requestedGear', 'driverSteerCorrection', 'driverThrottleCorrection', 'targetYawRate',
-    'pathError', 'predictedSlip']);
+    'pathError', 'predictedSlip', 'clutchEventIndex', 'clutchEventStart',
+    'clutchEventOpenSec', 'clutchEventCloseSec', 'clutchKickCount', 'clutchKickActive']);
+
+  function initialClutchState() {
+    return { clutchEventIndex: -1, clutchEventStart: -1, clutchEventOpenSec: 0,
+      clutchEventCloseSec: 0, clutchKickCount: 0, clutchKickActive: 0 };
+  }
+
+  function clutchCommand(vehicle, track, state, gene) {
+    const p=vehicle.physics||vehicle;
+    if ((p.transmissionType||vehicle.profile?.transmissionType)!=='MT' || !Number.isFinite(state.time))
+      return { ...initialClutchState(), clutch: 0 };
+    const out=initialClutchState();
+    for(const key of Object.keys(out))if(Number.isFinite(state[key]))out[key]=state[key];
+    const knot=Math.floor(clamp(state.s/track.length,0,1)*(Genome.KNOTS-1));
+    const end=out.clutchEventStart+out.clutchEventOpenSec+out.clutchEventCloseSec;
+    const available=out.clutchEventStart<0 || state.time>=end+.20;
+    // Only crossed knots can fire. Mark every crossed knot consumed even while
+    // another event is active; nothing is queued for a later accidental kick.
+    if(available)for(let i=Math.max(0,out.clutchEventIndex+1);i<=knot;i++){
+      const at=i*Genome.STRIDE;
+      if(gene[at+Genome.CHANNELS.clutchKick]<.5)continue;
+      out.clutchEventStart=state.time;
+      out.clutchEventOpenSec=clamp(gene[at+Genome.CHANNELS.disengageSec],.04,.45);
+      out.clutchEventCloseSec=clamp(gene[at+Genome.CHANNELS.reengageSec],.03,.30);
+      out.clutchKickCount++;
+      break;
+    }
+    out.clutchEventIndex=Math.max(out.clutchEventIndex,knot);
+    const elapsed=state.time-out.clutchEventStart;
+    out.clutchKickActive=out.clutchEventStart>=0&&elapsed<out.clutchEventOpenSec+out.clutchEventCloseSec?1:0;
+    const clutch=!out.clutchKickActive?0:elapsed<out.clutchEventOpenSec?1:
+      clamp(1-(elapsed-out.clutchEventOpenSec)/out.clutchEventCloseSec,0,1);
+    return { ...out, clutch };
+  }
 
   function reference(track, gene, s) {
     s = clamp(s, 0, track.length);
@@ -74,7 +108,7 @@
     const release = clamp(1 - excessSlip / (24 * DEG), 0, 1) * lineRelease;
     throttle = clamp(throttle, 0, 1) * release;
     const gearHold = p.electric ? 1 : clamp(Math.round(target.gearHold), 0, p.gearRatios.length);
-    return { steer, throttle, brake: target.brake, gearHold,
+    return { steer, throttle, brake: target.brake, gearHold, ...clutchCommand(vehicle, track, state, gene),
       targetSlip: target.targetSlip, lineOffset: target.lineOffset, counterLead: target.counterLead,
       driveSlipTarget: target.driveSlip, requestedGear: gearHold,
       driverSteerCorrection: steer - target.steer,
@@ -83,9 +117,9 @@
   }
 
   function signature() {
-    return [DEG, TELEMETRY.join(','), ...[clamp, wrap, reference, command].map(String)].join('\n').replace(/\r\n/g, '\n');
+    return [DEG, TELEMETRY.join(','), ...[clamp, wrap, initialClutchState, clutchCommand, reference, command].map(String)].join('\n').replace(/\r\n/g, '\n');
   }
-  const api = { command, signature, TELEMETRY };
+  const api = { command, signature, TELEMETRY, initialClutchState, clutchCommand };
   root.DriftDriver = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

@@ -6,6 +6,7 @@
   const DT=1/120,G=9.81,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
   const Genome=root.DriftGenome||(typeof require==='function'?require('./genome.js'):null);
   const Driver=root.DriftDriver||(typeof require==='function'?require('./driver.js'):null);
+  const Clutch=root.DriftManualClutch||(typeof require==='function'?require('./manual-clutch.js'):null);
   const cfg=v=>v.physics||v;
   function torqueAt(v,rpm){const p=cfg(v),c=p.torqueCurve;let torque=p.peakTorque;if(c&&c.length){let i=0;while(i<c.length-2&&rpm>c[i+1].rpm)i++;const a=c[i],b=c[i+1];torque=a.torqueNm+(b.torqueNm-a.torqueNm)*clamp((rpm-a.rpm)/(b.rpm-a.rpm),0,1);}return Math.max(0,Math.min(torque,p.peakTorque,p.peakPowerW/Math.max(rpm*Math.PI/30,1)));}
   function roadSurface(track,x,y,hint){
@@ -16,7 +17,7 @@
     const heading=section.heading,c=Math.cos(heading),s=Math.sin(heading);
     return {z,gradientX:gx,gradientY:gy,normalZ,muScale,grade:section.grade??gx*c+gy*s,bank:section.bank??Math.atan(-gx*s+gy*c)};
   }
-  function initialState(v,track){const p=cfg(v),a=track.sample(2.5),road=roadSurface(track,a.x,a.y,2.5);return {x:a.x,y:a.y,z:road.z,grade:road.grade,bank:road.bank,yaw:a.heading,vx:0,vy:0,r:0,s:2.5,time:0,speed:0,beta:0,steer:0,throttle:0,brake:0,gear:1,rpm:p.electric?0:(p.idleRPM||800),torque:0,rearTorque:0,wheelOmega:[0,0,0,0],wheelSlip:[0,0,0,0],wheelForces:[],ax:0,ay:0,status:'running',reason:null,maxAngle:0,driftDistance:0,scoreIntegral:0,judgedDistance:0,peakWheelSlip:0,shiftTimer:0,stalled:0,targetSlip:0,lineOffset:0,counterLead:.25,driveSlipTarget:0,requestedGear:0,driverSteerCorrection:0,driverThrottleCorrection:0,targetYawRate:0,pathError:0,predictedSlip:0,gearShiftVeto:0,vehicle:v};}
+  function initialState(v,track){const p=cfg(v),a=track.sample(2.5),road=roadSurface(track,a.x,a.y,2.5);return {x:a.x,y:a.y,z:road.z,grade:road.grade,bank:road.bank,yaw:a.heading,vx:0,vy:0,r:0,s:2.5,time:0,speed:0,beta:0,steer:0,throttle:0,brake:0,gear:1,rpm:p.electric?0:(p.idleRPM||800),torque:0,rearTorque:0,wheelOmega:[0,0,0,0],wheelSlip:[0,0,0,0],wheelForces:[],ax:0,ay:0,status:'running',reason:null,maxAngle:0,driftDistance:0,scoreIntegral:0,judgedDistance:0,peakWheelSlip:0,shiftTimer:0,stalled:0,targetSlip:0,lineOffset:0,counterLead:.25,driveSlipTarget:0,requestedGear:0,driverSteerCorrection:0,driverThrottleCorrection:0,targetYawRate:0,pathError:0,predictedSlip:0,gearShiftVeto:0,...Clutch.initialState(v),...(Driver.initialClutchState?.()||{}),vehicle:v};}
   // Explicit legacy utility for offline conversion only. Runtime evaluateGene
   // requires the version-2 genome and state-feedback driver.
   function commandAt(gene,s,length){const n=gene.length/3,t=clamp(s/length*(n-1),0,n-1),i=Math.min(n-2,Math.floor(t)),f=t-i;return {steer:gene[i*3]+(gene[i*3+3]-gene[i*3])*f,throttle:gene[i*3+1]+(gene[i*3+4]-gene[i*3+1])*f,brake:gene[i*3+2]+(gene[i*3+5]-gene[i*3+2])*f};}
@@ -143,6 +144,26 @@
     if(!frontContactSweep(v,track,a,old,cache))return 'offtrack';
     return null;
   }
+  // Rear wheel response used inside the manual clutch constraint. Newton steps
+  // stay bracketed; tyre derivatives are nonnegative, including saturation.
+  function manualWheelResponse(d,drive,dt){
+    const {omega:oldOmega,Vx,R,load,capacity,cy,braking,resistance}=d,inertia=1.5,den=Math.max(Math.abs(Vx),3),slope=load*10*R/den;
+    const forces=omega=>{const slip=(omega*R-Vx)/den,cx=load*10*slip,q=Math.hypot(cx,cy),t=capacity>0?Math.tanh(q/capacity):0,k=capacity<=0?0:q>1e-8?capacity*t/q:1;
+      const share=q>1e-8?cx*cx/(q*q):0,derivative=capacity<=0?0:slope*(k*(1-share)+(1-t*t)*share);return {fx:cx*k,fy:cy*k,slip,derivative};};
+    const unbraked=drive-resistance,holdTorque=unbraked-R*forces(0).fx+inertia*oldOmega/dt;
+    const sticks=braking>0&&Math.abs(holdTorque)<=braking,appliedBrake=braking>0?(sticks?holdTorque:braking*Math.sign(holdTorque)):0,torque=unbraked-appliedBrake;
+    if(sticks)return {omega:0,f:forces(0),appliedBrake,torque};
+    let lo=Math.min(oldOmega,Vx/R)-Math.abs(torque)*dt/inertia-capacity*R*dt/inertia-2;
+    let hi=Math.max(oldOmega,Vx/R)+Math.abs(torque)*dt/inertia+capacity*R*dt/inertia+2,omega=clamp(oldOmega,lo,hi),f;
+    for(let j=0;j<24;j++){
+      f=forces(omega);const res=omega-oldOmega-dt*(torque-R*f.fx)/inertia;
+      if(Math.abs(res)<1e-10)break;
+      if(res>0)hi=omega;else lo=omega;
+      const next=omega-res/(1+dt*R*f.derivative/inertia);
+      omega=next>lo&&next<hi?next:(lo+hi)/2;
+    }
+    return {omega,f:forces(omega),appliedBrake,torque};
+  }
   function step(v,track,a,input,dt=DT){
     if(a.status!=='running')return a;
     const road=roadSurface(track,a.x,a.y,a.s);
@@ -153,9 +174,10 @@
     const c=Math.cos(a.yaw),sn=Math.sin(a.yaw),u=a.vx*c+a.vy*sn,w=-a.vx*sn+a.vy*c;
     const gravityScale=G/(1+road.gradientX**2+road.gradientY**2),gravityX=-gravityScale*road.gradientX,gravityY=-gravityScale*road.gradientY;
     const gravityLong=gravityX*c+gravityY*sn,gravitySide=-gravityX*sn+gravityY*c,normalLoad=mass*G*road.normalZ;
+    const manual=Clutch.isManual(v),clutchModel=manual?Clutch.parameters(v):null;
     const ratios=p.gearRatios,finalFor=gear=>p.finalDriveRatios?.[gear-1]??p.finalDrive,ratio=ratios[a.gear-1]*finalFor(a.gear);
     const shaft=Math.max(0,(a.wheelOmega[2]+a.wheelOmega[3])/2),rawRPM=shaft*ratio*30/Math.PI;
-    a.rpm=p.electric?rawRPM:Math.max(p.idleRPM||800,rawRPM);
+    a.rpm=manual?a.engineOmega*30/Math.PI:p.electric?rawRPM:Math.max(p.idleRPM||800,rawRPM);
     a.shiftTimer=Math.max(0,a.shiftTimer-dt);
     const requestedGear=p.electric?1:clamp(Math.round(input.gearHold||0),0,ratios.length);
     a.requestedGear=requestedGear;a.gearShiftVeto=0;
@@ -163,27 +185,63 @@
     else if(a.shiftTimer===0){
       if(requestedGear>0&&requestedGear!==a.gear){
         const projectedRPM=shaft*ratios[requestedGear-1]*finalFor(requestedGear)*30/Math.PI;
-        if(projectedRPM<=(p.maxRPM||7000)){a.gear=requestedGear;a.shiftTimer=.22;}
+        if(projectedRPM<=(p.maxRPM||7000)){a.gear=requestedGear;a.shiftTimer=manual?(p.manualShiftDurationS||.45):.22;}
         else a.gearShiftVeto=1;
-      }else if(requestedGear===0){
-        if(a.rpm>(p.shiftRPM||6000)&&a.gear<ratios.length){a.gear++;a.shiftTimer=.22;}
-        else if(a.rpm<1500&&a.gear>1&&a.throttle>.1){a.gear--;a.shiftTimer=.22;}
+      }else if(requestedGear===0&&(!manual||!(input.clutch>0||input.clutchKickActive))){
+        if(a.rpm>(p.shiftRPM||6000)&&a.gear<ratios.length){a.gear++;a.shiftTimer=manual?(p.manualShiftDurationS||.45):.22;}
+        else if(a.rpm<1500&&a.gear>1&&a.throttle>.1){a.gear--;a.shiftTimer=manual?(p.manualShiftDurationS||.45):.22;}
       }
     }
     const gearRatio=ratios[a.gear-1]*finalFor(a.gear);
-    a.rpm=p.electric?shaft*gearRatio*30/Math.PI:Math.max(p.idleRPM||800,shaft*gearRatio*30/Math.PI);
+    a.rpm=manual?a.engineOmega*30/Math.PI:p.electric?shaft*gearRatio*30/Math.PI:Math.max(p.idleRPM||800,shaft*gearRatio*30/Math.PI);
     let requested=torqueAt(v,a.rpm)*Math.pow(a.throttle,1.15);
-    if(!p.electric&&a.throttle<.03&&u>2)requested=-p.peakTorque*.07;
+    if(!p.electric&&a.throttle<.03&&(manual?a.rpm>(p.idleRPM||800):u>2))requested=-p.peakTorque*.07;
     if(a.rpm>(p.maxRPM||7000))requested=Math.min(requested,0);
-    if(a.shiftTimer>0)requested*=.25;
+    if(a.shiftTimer>0)requested*=manual?0:.25;
     const response=p.electric?.06:.16;a.torque+=(requested-a.torque)*(1-Math.exp(-dt/response));
     a.torque=Math.min(a.torque,torqueAt(v,a.rpm));if(a.rpm>(p.maxRPM||7000))a.torque=Math.min(a.torque,0);
+    if(manual){
+      const idleOmega=(p.idleRPM||800)*Math.PI/30,limitOmega=(p.maxRPM||7000)*Math.PI/30,J=clutchModel.engineInertiaKgM2;
+      // Bounded idle governor supplies ordinary engine torque, never resets RPM.
+      if(a.engineOmega<idleOmega)a.torque=Math.max(a.torque,Math.min(torqueAt(v,p.idleRPM||800),(idleOmega-a.engineOmega)*J/.08));
+      a.torque=Math.min(a.torque,Math.max(0,(limitOmega-a.engineOmega)*J/dt));
+    }
     a.rearTorque=a.torque*gearRatio*(p.efficiency||.9);
     const loadTransfer=mass*clamp(a.ax-gravityLong,-7,5)*(p.cgHeightM||.5)/L;
     const frontLoad=clamp(normalLoad*frontFraction-loadTransfer,normalLoad*.16,normalLoad*.84),rearLoad=normalLoad-frontLoad;
     const lateralTransfer=mass*clamp(a.ay-gravitySide,-9,9)*(p.cgHeightM||.5)/(halfTrack*2);
     const frontLeft=clamp(frontLoad/2-lateralTransfer*frontFraction,frontLoad*.02,frontLoad*.98),rearLeft=clamp(rearLoad/2-lateralTransfer*(1-frontFraction),rearLoad*.02,rearLoad*.98);
     const loads=[frontLeft,frontLoad-frontLeft,rearLeft,rearLoad-rearLeft];
+    let manualSolution=null;
+    if(manual){
+      const pedal=clamp(Number.isFinite(input.clutch)?input.clutch:0,0,1),shiftRelease=Math.min(.15,(p.manualShiftDurationS||.45)/3);
+      const engagement=(1-pedal)*(a.shiftTimer>0?clamp(1-a.shiftTimer/shiftRelease,0,1):1);
+      const idleOmega=(p.idleRPM||800)*Math.PI/30,shaftOmega=(a.wheelOmega[2]+a.wheelOmega[3])/2;
+      let capacity=clutchModel.clutchCapacityNm*engagement;
+      // The driver handles launch/anti-stall clutch pressure below idle shaft
+      // speed. Stored flywheel energy above idle is still available on release.
+      const launch=shaftOmega*gearRatio<idleOmega*1.05;
+      if(launch)capacity=Math.min(capacity,Math.max(0,a.torque+(a.engineOmega-idleOmega)*clutchModel.engineInertiaKgM2/dt));
+      const descriptors=[2,3].map(i=>{const wy=(i%2===0?1:-1)*halfTrack,Vx=u-a.r*wy,Vy=w-a.r*lr;
+        return {omega:a.wheelOmega[i],Vx,R,load:loads[i],capacity:mu*loads[i],cy:-loads[i]*7.8*Math.atan2(Vy,Math.max(Math.abs(Vx),2)),braking:a.brake*mass*(p.brakeAcceleration||9.8)*R*.19,resistance:Vx>0?.012*loads[i]*R:0};});
+      const response=torque=>{const total=Clutch.wheelTorque(torque,gearRatio,p.efficiency||.9),locking=p.diffType==='open'?0:clamp((a.wheelOmega[2]-a.wheelOmega[3])*22,-Math.abs(total)*.38,Math.abs(total)*.38),drives=[total/2-locking,total/2+locking];
+        const responses=descriptors.map((d,i)=>manualWheelResponse(d,drives[i],dt));return {shaftOmega:(responses[0].omega+responses[1].omega)/2,responses,drives};};
+      const solve=()=>Clutch.solve({engineOmega:a.engineOmega,engineTorque:a.torque,engineInertiaKgM2:clutchModel.engineInertiaKgM2,capacityNm:capacity,gearRatio,dt,wheelResponse:response});
+      manualSolution=solve();
+      // Free-rev acceleration changes RPM within this step. Bound combustion
+      // power at the solved speed too; flywheel transfer remains a separate
+      // clutch torque and can exceed engine torque only by spending inertia.
+      if(a.torque>0){
+        const ceiling=manualSolution.engineOmega>(p.maxRPM||7000)*Math.PI/30+1e-8?0:p.peakPowerW/Math.max(manualSolution.engineOmega,1);
+        if(a.torque>ceiling){a.torque=ceiling;manualSolution=solve();}
+      }
+      const beforeSlip=a.engineOmega-shaftOmega*gearRatio;
+      a.clutchSlipEnergyJ+=Math.abs(manualSolution.torque)*(Math.abs(beforeSlip)+Math.abs(manualSolution.slip))*.5*dt;
+      a.engineOmega=manualSolution.engineOmega;a.rpm=a.engineOmega*30/Math.PI;
+      a.clutchPedal=pedal;a.clutchEngagement=engagement;a.clutchTorque=manualSolution.torque;a.clutchSlipRPM=manualSolution.slip*30/Math.PI;
+      a.clutchLocked=manualSolution.locked?1:0;a.clutchCapacityNm=capacity;a.clutchLaunchAssist=launch&&engagement>0?1:0;
+      a.rearTorque=Clutch.wheelTorque(manualSolution.torque,gearRatio,p.efficiency||.9);
+    }else{a.engineOmega=a.rpm*Math.PI/30;a.clutchPedal=0;a.clutchEngagement=0;a.clutchTorque=0;a.clutchSlipRPM=0;a.clutchLocked=0;a.clutchCapacityNm=0;a.clutchLaunchAssist=0;}
     let rearDrive=[a.rearTorque/2,a.rearTorque/2];
     if(p.diffType!=='open'){const locking=clamp((a.wheelOmega[2]-a.wheelOmega[3])*22,-Math.abs(a.rearTorque)*.38,Math.abs(a.rearTorque)*.38);rearDrive=[rearDrive[0]-locking,rearDrive[1]+locking];}
     let fx=0,fy=0,moment=0;const wheelForces=[];
@@ -203,13 +261,13 @@
       // make it reverse every tick during forward braking.
       const holdTorque=unbraked-R*forces(0).fx+inertia*a.wheelOmega[i]/dt;
       const sticks=braking>0&&Math.abs(holdTorque)<=braking;
-      const appliedBrake=braking>0?(sticks?holdTorque:braking*Math.sign(holdTorque)):0;
-      const torque=unbraked-appliedBrake;
+      let appliedBrake=braking>0?(sticks?holdTorque:braking*Math.sign(holdTorque)):0;
+      let torque=unbraked-appliedBrake;
       // Implicit wheel angular integration avoids stiff low-speed slip oscillation.
       let lo=Math.min(a.wheelOmega[i],Vx/R)-Math.abs(torque)*dt/inertia-capacity*R*dt/inertia-2;
       let hi=Math.max(a.wheelOmega[i],Vx/R)+Math.abs(torque)*dt/inertia+capacity*R*dt/inertia+2;
-      for(let j=0;j<13;j++){const mid=(lo+hi)/2,f=forces(mid),res=mid-a.wheelOmega[i]-dt*(torque-R*f.fx)/inertia;if(res>0)hi=mid;else lo=mid;}
-      a.wheelOmega[i]=sticks?0:(lo+hi)/2;
+      if(manualSolution&&!front){const solved=manualSolution.wheels.responses[i-2];a.wheelOmega[i]=solved.omega;appliedBrake=solved.appliedBrake;torque=solved.torque;}
+      else{for(let j=0;j<13;j++){const mid=(lo+hi)/2,f=forces(mid),res=mid-a.wheelOmega[i]-dt*(torque-R*f.fx)/inertia;if(res>0)hi=mid;else lo=mid;}a.wheelOmega[i]=sticks?0:(lo+hi)/2;}
       const f=forces(a.wheelOmega[i]);a.wheelSlip[i]=f.slip;
       const bx=f.fx*dc-f.fy*ds,by=f.fx*ds+f.fy*dc;fx+=bx;fy+=by;moment+=wx*by-wy*bx;
       wheelForces.push({fx:f.fx,fy:f.fy,load:loads[i],slip:f.slip,alpha,x:wx,y:wy,driveTorque:drive,brakeTorque:braking,appliedBrakeTorque:appliedBrake,netWheelTorque:torque});
@@ -253,7 +311,7 @@
     while(a.status==='running'){step(v,track,a,Driver.command(v,track,a,gene));if(record&&(++ticks%2===0||a.status!=='running'))frames.push(frame(a));}
     return result(a,frames,track);
   }
-  function signature(){return [DT,G,Driver.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,bodyCenter,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
+  function signature(){return [DT,G,Driver.signature(),Clutch.signature(),Genome.signature?Genome.signature():String(Genome.sample),...[clamp,wrap,cfg,torqueAt,roadSurface,initialState,commandAt,bodyCenter,footprint,frontContacts,cross,bounds,boundsOverlap,polygonGeometry,onSegment,segmentsIntersect,pointInPolygon,polygonsIntersect,convexHull,segmentInsideUnion,pointInInterior,segmentOutsideInterior,contactOnRoad,contactSegmentOnRoad,frontContactSweep,failure,manualWheelResponse,step,frame,result,evaluateGene].map(String)].join('\n').replace(/\r\n/g,'\n');}
   const api={DT,torqueAt,initialState,commandAt,bodyCenter,footprint,frontContacts,failure,step,evaluateGene,frame,result,signature};
   // Compatibility for offline Node tooling; the browser has no grip-search API.
   if(typeof module!=='undefined'&&module.exports){api.buildGripBaseline=(...args)=>require('./grip-baseline-builder.cjs').buildGripBaseline(...args);module.exports=api;}

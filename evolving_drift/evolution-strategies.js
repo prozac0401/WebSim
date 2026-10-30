@@ -316,12 +316,12 @@ function mutate(parent){
   const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
   const phase=clamp((start-riseStart)/(riseEnd-riseStart),0,1),initialD=d+offset*smooth(phase),initialSlope=slope+offset*6*phase*(1-phase)/(riseEnd-riseStart);
   const offsetEnd=Math.min(z.end-2*ds,z.exit+100),offsetReturn=Math.min(z.exit+65,offsetEnd-2*ds);
-  for(let i=0;i<128;i++){const s=i*ds,j=i*8,w=smooth((s-riseStart)/(riseEnd-riseStart))*(1-smooth((s-offsetReturn)/(offsetEnd-offsetReturn)));gene[j+C.lineOffset]+=offset*w;}
+  for(let i=0;i<G.KNOTS;i++){const s=i*ds,j=i*G.STRIDE,w=smooth((s-riseStart)/(riseEnd-riseStart))*(1-smooth((s-offsetReturn)/(offsetEnd-offsetReturn)));gene[j+C.lineOffset]+=offset*w;}
   const rejoinGene=G.clone(gene),hold=start+length,finish=hold+recovery,from=G.sample(parent.gene,hold,track.length),to=G.sample(parent.gene,finish,track.length);
   const holdLine={d:initialD+initialSlope*length+.5*curvature*length*length,slope:initialSlope+curvature*length,curvature},endLine=lineShape(rejoinGene,track,finish);
   const residualA=from.steer-feedforward(vehicle,track,parent.gene,hold,speedAt(parent.result.frames,hold))+steer,residualB=to.steer-feedforward(vehicle,track,parent.gene,finish,speedAt(parent.result.frames,finish));
-  for(let i=0;i<128;i++){
-   const s=i*ds,j=i*8,u=s-start,initialLine=gene[j+C.lineOffset];
+  for(let i=0;i<G.KNOTS;i++){
+   const s=i*ds,j=i*G.STRIDE,u=s-start,initialLine=gene[j+C.lineOffset];
    if(u< -12||u>=length+recovery)continue;
    const line=u<=length?initialD+initialSlope*u+.5*curvature*u*u:joinLine(holdLine,endLine,recovery,(u-length)/recovery),w=smooth((u+12)/12);
    gene[j+C.lineOffset]=initialLine+(line-initialLine)*w;
@@ -341,8 +341,8 @@ function mutate(parent){
  }
  const powerSlipTarget=family==='gearPower'?rnd(.45,1.1):null;
  if(powerSlipTarget!==null)change.powerSlipTarget=powerSlipTarget;
- for(let i=0;i<128;i++){
-  const s=i*ds,j=i*8,w=pulse(s,center,width);
+ for(let i=0;i<G.KNOTS;i++){
+  const s=i*ds,j=i*G.STRIDE,w=pulse(s,center,width);
   if(['gear','gearPower'].includes(family)&&s>=change.shiftAt&&s<=z.end+20){
    const frame=parent.result.frames.reduce((a,b)=>Math.abs(a.s-s)<Math.abs(b.s-s)?a:b),u=Math.abs(frame.vx*Math.cos(frame.yaw)+frame.vy*Math.sin(frame.yaw)),omega=u/p.tireRadius*(1+gene[j+C.driveSlip]);
    const recommended=p.gearRatios.findIndex((ratio,k)=>omega*ratio*(p.finalDriveRatios?.[k]||p.finalDrive)*60/(2*Math.PI)<p.shiftRPM*.98)+1;
@@ -515,7 +515,7 @@ function connect(vehicle,track,parent,rng,options={}){
  const length=clamp(v*rnd(.9,1.8),4*ds,45),start=Math.floor(Math.max(lower,boundary-(before?length:Math.max(2*ds,v*.65)))/ds)*ds;
  const end=Math.ceil(Math.min(upper,boundary+(before?Math.max(3*ds,v*.65):length))/ds)*ds;
  const span=Math.max(ds,end-start),fade=Math.min(span*.3,2*ds),gene=G.clone(parent.gene),sign=-zone.sign;
- const change={family:'connection-'+mode,connectionId:target.id,condition:target.reason,kind:target.kind,start,end,sourceS,breakS:boundary,pathError,powerCut,before};
+ const change={family:'connection-'+mode,retryFamily:'connection-'+mode,connectionId:target.id,condition:target.reason,kind:target.kind,start,end,sourceS,breakS:boundary,pathError,powerCut,before};
  const weight=s=>smoother((s-start)/fade)*smoother((end-s)/fade);
  if(mode==='line'){
   // Interpolated displacement anchors follow the parent's measured on-road
@@ -584,7 +584,35 @@ function connect(vehicle,track,parent,rng,options={}){
 function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
-function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,connect,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:8,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+function clutchKick(vehicle,track,parent,rng,options={}){
+ const p=vehicle.physics||vehicle;if(p.transmissionType!=='MT'||C.clutchKick===undefined)return null;
+ if(!parent.accepted||!parent.result?.valid||parent.result.status!=='finished')throw new TypeError('Clutch mutations require a completed valid parent.');
+ const record=parent.record||parent.result.frames,all=options.zones||zones(track),z=options.zone||all[Math.floor(rng()*all.length)];
+ if(!z||!record?.length)return null;
+ const ds=track.length/(G.KNOTS-1),start=Math.max(2.5,(z.cornerStart??z.start)-25),end=Math.min(track.length-ds,z.end),frames=record.filter(f=>f.s>=start&&f.s<=end&&f.speed>=6);
+ if(!frames.length)return null;
+ const wanted=options.connectionTarget?.breakS,frame=Number.isFinite(wanted)?frames.reduce((a,b)=>Math.abs(a.s-wanted)<Math.abs(b.s-wanted)?a:b):frames[Math.floor(rng()*frames.length)];
+ const gene=G.clone(parent.gene),clear=k=>{const j=k*G.STRIDE;for(const channel of [C.clutchKick,C.disengageSec,C.reengageSec])gene[j+channel]=G.DESCRIPTORS[channel].defaultValue;};
+ for(let i=0;i<G.KNOTS;i++)if(gene[i*G.STRIDE+C.clutchKick]<.5)clear(i);
+ const events=Array.from({length:G.KNOTS},(_,i)=>i).filter(i=>gene[i*G.STRIDE+C.clutchKick]>=.5),near=events.filter(i=>Math.abs(i*ds-frame.s)<20);
+ const old=near.length?near[Math.floor(rng()*near.length)]:null,index=clamp(Math.round(frame.s/ds)+(old===null?0:Math.round((rng()*2-1)*3)),Math.ceil(start/ds),Math.floor(end/ds));
+ const previous=old===null?null:{disengage:gene[old*G.STRIDE+C.disengageSec],reengage:gene[old*G.STRIDE+C.reengageSec]};
+ if(old!==null)clear(old);
+ // Event count is a bounded search representation, not a force or validity
+ // constraint. The driver separately consumes distance triggers in time.
+ if(old===null&&events.length>=8)clear(events[Math.floor(rng()*events.length)]);
+ const j=index*G.STRIDE,strength=clamp(options.scale??1,.15,1),remove=old!==null&&rng()<.15;
+ if(remove)clear(index);
+ else {
+  gene[j+C.clutchKick]=1;
+  gene[j+C.disengageSec]=clamp((previous?.disengage??.10)+(rng()*2-1)*.07*strength,.04,.45);
+  gene[j+C.reengageSec]=clamp((previous?.reengage??.09)+(rng()*2-1)*.055*strength,.03,.30);
+ }
+ if(!remove){Shape.bump(gene,C.throttle,index,3,.05*strength);Shape.bump(gene,C.brake,index,3,-.08*strength);}
+ const bounds=options.lineBounds||G.corridorBounds(vehicle,track),normalized=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds,manualClutch:true});
+ return {gene:normalized,change:{family:'clutch-kick',eventKnot:index,eventS:index*ds,removed:remove,previousEventKnot:old,disengageSec:normalized[j+C.disengageSec],reengageSec:normalized[j+C.reengageSec]}};
+}
+function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,connect,clutchKick,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
+const api=Object.freeze({VERSION:9,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,clutchKick,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

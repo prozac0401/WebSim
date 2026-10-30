@@ -58,7 +58,7 @@ test('zero-score niche ties retain locally diverse valid preparation rather than
  for(let n=0;n<24;n++){
   const e=entry(String(n+1),[0,0]);e.gene=G.clone(engine._baselineEntry.gene);
   const begin=Math.floor(zones[1].referenceStart/engine.track.length*127),end=Math.ceil(zones[1].end/engine.track.length*127);
-  for(let k=begin;k<=end;k++){e.gene[k*8+C.throttle]=n/24;e.gene[k*8+C.targetSlip]=(n%5)*.03;e.gene[k*8+C.counterLead]=.1+(n%7)*.1;}
+  for(let k=begin;k<=end;k++){e.gene[k*G.STRIDE+C.throttle]=n/24;e.gene[k*G.STRIDE+C.targetSlip]=(n%5)*.03;e.gene[k*G.STRIDE+C.counterLead]=.1+(n%7)*.1;}
   entries.push(e);
  }
  const failed={...entries.at(-1),id:'failed',accepted:false,result:result([100,100],45,{valid:false})};
@@ -70,19 +70,21 @@ test('zero-score niche ties retain locally diverse valid preparation rather than
 test('niche diversity measures local controls rather than unrelated previous-corner differences',()=>{
  const {engine,zones}=fixture(),a=G.clone(engine._baselineEntry.gene),b=G.clone(a);b[C.throttle]=.99;
  assert.equal(E.localGeneDistance(a,b,zones[1],engine.track.length,engine.lineBounds),0);
- b[90*8+C.throttle]=.99;assert.ok(E.localGeneDistance(a,b,zones[1],engine.track.length,engine.lineBounds)>0);
+ b[90*G.STRIDE+C.throttle]=.99;assert.ok(E.localGeneDistance(a,b,zones[1],engine.track.length,engine.lineBounds)>0);
 });
 
 test('zero-score preparation is actually inherited by adaptive proposals after initial exploration',()=>{
  const {engine,record}=fixture(),parent={...entry('step',[0,0]),record,gene:G.clone(engine._baselineEntry.gene)};
- parent.gene[90*8+C.throttle]=.73;engine._nicheArchives[1]=[engine._baselineEntry,parent];engine._entryCounts[1]=20;
+ // Isolate the legacy regional operator; hierarchy has separate seeded tests.
+ engine._trajectoryEnabled=false;
+ parent.gene[90*G.STRIDE+C.throttle]=.73;engine._nicheArchives[1]=[engine._baselineEntry,parent];engine._entryCounts[1]=20;
  const metric={score:0,bestArc:null,links:[],bestLink:null};engine._regional=()=>metric;
  let received;
  engine._weakestArcIndices=[1];engine._learning={choose(_rng,_families,options){received=options;return {arc:1,scale:.2,family:'angle'};}};
  const numbers=[.9,.75,.9,.1,.1];engine._rng=()=>numbers.length?numbers.shift():.5;
  const proposal=engine._intentCandidate();assert.deepEqual(received,{weakestArcs:[1]});
- assert.equal(proposal.parentId,'step');assert.ok(proposal.kind.startsWith('arc-'));assert.equal(proposal.gene[90*8+C.throttle],.73);
- assert.notDeepEqual(proposal.gene,parent.gene);assert.equal(parent.gene[90*8+C.throttle],.73);
+ assert.equal(proposal.parentId,'step');assert.ok(proposal.kind.startsWith('arc-'));assert.equal(proposal.gene[90*G.STRIDE+C.throttle],.73);
+ assert.notDeepEqual(proposal.gene,parent.gene);assert.equal(parent.gene[90*G.STRIDE+C.throttle],.73);
 });
 
 test('weakest-region guidance changes only at the generation barrier',()=>{
