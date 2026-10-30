@@ -8,7 +8,7 @@ test('the historical stock Supra exit remains invalid when it crosses the curren
   const bytes=Buffer.alloc(fixture.gene.length*8);
   fixture.gene.forEach((value,index)=>bytes.writeDoubleLE(value,index*8));
   assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),fixture.geneHash);
-  const result=Physics.evaluateGene(vehicle,track,fixture.gene,{record:true});
+  const result=Physics.evaluateGene(vehicle,track,require('./test-fixtures/upgrade-controls.cjs')(fixture.gene),{record:true});
   // This historical fixture predates the narrower competition ribbon. Its
   // archived 30m exit must not override current front-contact validity.
   assert.equal(result.valid,false);

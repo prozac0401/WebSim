@@ -20,7 +20,7 @@ test('height-field logic, boundary geometry and version changes invalidate prepa
   for(const patch of [{geometrySignature:track.geometrySignature+' changed helper'}, {dataVersion:track.dataVersion+1}, {boundaryPolygons:[[{x:0,y:0},{x:1,y:0},{x:0,y:1}]]}, {excludedPolygons:[[{x:0,y:0},{x:1,y:0},{x:0,y:1}]]}, {surface:()=>({z:1,gradientX:0,gradientY:0,normalZ:1,muScale:1})}, {contains:()=>false}])assert.notEqual(Prepared.fingerprint(vehicle,{...track,...patch}),original);
 });
 
-test('schema 3 preserves behavioral genome and driver telemetry and rejects legacy records',()=>{
+test('schema 4 preserves behavioral genome and driver telemetry and rejects legacy records',()=>{
   const vehicle={...vehicles[0],id:'replay-schema-test'},track=tracks[0];
   const a=Physics.frame(Physics.initialState(vehicle,track)),b={...a,time:1,z:123.5,grade:.08,bank:-.04};
   for(const [i,key] of Driver.TELEMETRY.entries())b[key]=(i+1)/10;b.gearShiftVeto=1;
@@ -28,8 +28,8 @@ test('schema 3 preserves behavioral genome and driver telemetry and rejects lega
   const baseline={...format,gene:Array.from(gene),result:{status:'finished',valid:true,time:1,score:0}},replay=Build.encodeReplay([a,b]);
   const record={schema:Prepared.SCHEMA,...format,key:Prepared.key(vehicle,track),fingerprint:Prepared.fingerprint(vehicle,track),baseline,replay};
   record.payloadHash=Prepared.hash({baseline,replay});Prepared.register(record);
-  const decoded=Prepared.get(vehicle,track);assert.equal(Prepared.SCHEMA,3);assert.equal(replay.stride,Prepared.fields.length+12);assert.equal(replay.stride,45);
-  assert.deepEqual(decoded.gene,gene);assert.equal(decoded.genomeVersion,2);assert.equal(decoded.stride,8);
+  const decoded=Prepared.get(vehicle,track);assert.equal(Prepared.SCHEMA,4);assert.equal(replay.stride,Prepared.fields.length+12);assert.equal(replay.stride,60);
+  assert.deepEqual(decoded.gene,gene);assert.equal(decoded.genomeVersion,3);assert.equal(decoded.stride,11);
   for(const key of ['z','grade','bank',...Driver.TELEMETRY,'gearShiftVeto'])assert.equal(decoded.record[1][key],b[key],key);
   for(const patch of [{schema:1},{schema:2},{genomeVersion:1},{stride:3},{knots:64}])assert.throws(()=>Prepared.register({...record,...patch}),/Unsupported/);
   for(const patch of [{gene:Array(384).fill(0)},{genomeVersion:1},{stride:3}]){
@@ -109,7 +109,7 @@ test('missing, stale, and corrupted records fail rather than calculating a repla
 });
 test('the browser physics API has no baseline search entry point',()=>{
   const context=vm.createContext({});context.window=context;
-  for(const file of ['genome.js','driver.js','physics.js'])vm.runInContext(fs.readFileSync(require.resolve('./'+file),'utf8'),context);
+  for(const file of ['genome.js','driver.js','manual-clutch.js','physics.js'])vm.runInContext(fs.readFileSync(require.resolve('./'+file),'utf8'),context);
   assert.equal(typeof context.window.DriftPhysics.buildGripBaseline,'undefined');
   assert.equal(context.window.DriftPhysics.signature(),Physics.signature());
 });

@@ -2,8 +2,8 @@
  * Legacy three-channel records can be converted only by the offline builder. */
 (function(root) {
   'use strict';
-  const VERSION=2,STRIDE=8,KNOTS=128,LENGTH=STRIDE*KNOTS,DEG=Math.PI/180;
-  const CHANNELS=Object.freeze({steer:0,throttle:1,brake:2,lineOffset:3,targetSlip:4,counterLead:5,driveSlip:6,gearHold:7});
+  const VERSION=3,STRIDE=11,KNOTS=128,LENGTH=STRIDE*KNOTS,DEG=Math.PI/180;
+  const CHANNELS=Object.freeze({steer:0,throttle:1,brake:2,lineOffset:3,targetSlip:4,counterLead:5,driveSlip:6,gearHold:7,clutchKick:8,disengageSec:9,reengageSec:10});
   const DESCRIPTORS=Object.freeze([
     ['steer','기본 조향','rad',-.61,.61,0,false],
     ['throttle','가속','ratio',0,1,0,false],
@@ -13,12 +13,17 @@
     ['targetSlip','목표 슬립각','rad',-55*DEG,55*DEG,0,false],
     ['counterLead','역조향 선행시간','s',.05,.8,.25,false],
     ['driveSlip','목표 구동 슬립','ratio',0,1.5,0,false],
-    ['gearHold','유지 기어','gear',0,8,0,true]
+    ['gearHold','유지 기어','gear',0,8,0,true],
+    // An enabled knot is a distance-triggered event. Its two durations run
+    // on elapsed simulation time, so a stopped car cannot hold it open forever.
+    ['clutchKick','클러치 킥 시작','event',0,1,0,true],
+    ['disengageSec','클러치 분리 시간','s',.04,.45,.12,false],
+    ['reengageSec','클러치 재결합 시간','s',.03,.30,.08,false]
   ].map(([key,label,unit,min,max,defaultValue,discrete],index)=>Object.freeze({key,index,label,unit,min,max,defaultValue,discrete})));
-  const schemaError=()=>new TypeError('Drift genome v2 requires 128 × 8 = 1024 values; legacy 384-value records must be rebuilt offline.');
+  const schemaError=()=>new TypeError('Drift genome v3 requires 128 × 11 = 1408 values; older records must be rebuilt offline.');
   function shape(gene){if(!gene||gene.length!==LENGTH)throw schemaError();}
-  function clone(gene){shape(gene);const copy=Float64Array.from(gene);if(!copy.every(Number.isFinite))throw new TypeError('Genome v2 values must be finite.');return copy;}
-  function create(){const gene=new Float64Array(LENGTH);for(let i=0;i<KNOTS;i++)gene[i*STRIDE+CHANNELS.counterLead]=.25;return gene;}
+  function clone(gene){shape(gene);const copy=Float64Array.from(gene);if(!copy.every(Number.isFinite))throw new TypeError('Genome v3 values must be finite.');return copy;}
+  function create(){const gene=new Float64Array(LENGTH);for(let i=0;i<KNOTS;i++)for(const d of DESCRIPTORS)gene[i*STRIDE+d.index]=d.defaultValue;return gene;}
   function corridorBounds(vehicle,track){
     const raw=vehicle?.physics||vehicle||{},lengthM=raw.lengthM||4.5,widthM=raw.widthM||1.8,clearance=.15;
     const shapeVehicle={physics:{...raw,lengthM:lengthM+2*clearance,widthM:widthM+2*clearance}};
@@ -56,7 +61,7 @@
     }
     return Object.freeze(bounds);
   }
-  function normalize(gene,{maxSteerRad=.61,gearCount=8,lineBounds=null}={}){
+  function normalize(gene,{maxSteerRad=.61,gearCount=8,lineBounds=null,manualClutch=true}={}){
     if(!Number.isFinite(maxSteerRad)||maxSteerRad<=0)throw new RangeError('maxSteerRad must be positive.');
     if(!Number.isInteger(gearCount)||gearCount<1)throw new RangeError('gearCount must be a positive integer.');
     if(lineBounds&&(!Array.isArray(lineBounds)||lineBounds.length!==KNOTS||lineBounds.some(b=>!Number.isFinite(b?.min)||!Number.isFinite(b?.max)||b.min>b.max)))throw new RangeError('lineBounds must contain 128 finite min/max corridors.');
@@ -64,7 +69,7 @@
     for(let i=0;i<LENGTH;i++){
       const d=DESCRIPTORS[i%STRIDE],line=d.key==='lineOffset'&&lineBounds?lineBounds[Math.floor(i/STRIDE)]:null;
       const min=d.key==='steer'?-maxSteerRad:line?Math.max(d.min,line.min):d.min,max=d.key==='steer'?maxSteerRad:d.key==='gearHold'?gearCount:line?Math.min(d.max,line.max):d.max;
-      const value=Math.max(min,Math.min(max,copy[i]));copy[i]=d.discrete?Math.round(value):value;
+      const value=Math.max(min,Math.min(max,copy[i]));copy[i]=!manualClutch&&d.index>=CHANNELS.clutchKick?d.defaultValue:d.discrete?Math.round(value):value;
     }
     return copy;
   }
@@ -74,7 +79,7 @@
     const t=Math.max(0,Math.min(KNOTS-1,s/length*(KNOTS-1))),a=Math.floor(t),b=Math.min(KNOTS-1,a+1),u=t-a,result={};
     for(const d of DESCRIPTORS){
       const value=d.discrete?Math.round(gene[Math.round(t)*STRIDE+d.index]):gene[a*STRIDE+d.index]+(gene[b*STRIDE+d.index]-gene[a*STRIDE+d.index])*u;
-      if(!Number.isFinite(value))throw new TypeError('Genome v2 values must be finite.');result[d.key]=value;
+      if(!Number.isFinite(value))throw new TypeError('Genome v3 values must be finite.');result[d.key]=value;
     }
     return result;
   }

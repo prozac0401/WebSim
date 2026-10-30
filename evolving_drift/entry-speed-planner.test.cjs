@@ -7,7 +7,7 @@ function fixture(radius=40){
  const zone={id:'z',start:125,cornerStart:160,apex:190,exit:220,end:280,sign:1};
  const record=Array.from({length:81},(_,i)=>({s:i*5,speed:30,brake:i>=24&&i<32?.25:0}));
  const arrival=record.map(f=>({...f,speed:40})),gene=G.create();
- for(let i=0;i<128;i++){gene[i*8+C.throttle]=.8;gene[i*8+C.driveSlip]=.5;gene[i*8+C.targetSlip]=-.3;}
+ for(let i=0;i<128;i++){gene[i*G.STRIDE+C.throttle]=.8;gene[i*G.STRIDE+C.driveSlip]=.5;gene[i*G.STRIDE+C.targetSlip]=-.3;}
  return {vehicle,track,zone,record,arrival,gene};
 }
 test('entry speed, lead, pressure and release remain separate physical-intent parameters',()=>{
@@ -38,7 +38,8 @@ test('G80 T21 spatial-brake stall reproduction no longer requests the excessive 
  const Tracks=require('./track.js'),Prepared=require('./prepared-grips.js'),fixture=require('./test-fixtures/g80-kic-spatial-brake-stall.json');
  const vehicle=Catalog.get('g80-3.5t-rwd'),track=Tracks.get('kr-kic-t21-kdl-2016-r2');
  const baseline=await Prepared.load(vehicle,track),zone=Strategies.zones(track)[1];
- const plan=Planner.plan(vehicle,track,fixture.gene,baseline.record,zone,fixture.params,
+ const upgraded=require('./test-fixtures/upgrade-controls.cjs')(fixture.gene);
+ const plan=Planner.plan(vehicle,track,upgraded,baseline.record,zone,fixture.params,
   {lower:Strategies.approachStart(track,zone),arrivalRecord:baseline.record});
  assert.ok(plan.deceleration/vehicle.physics.brakeAcceleration*plan.parameters.brakeStrength>.68,
   'the old unbounded planner requested nearly 69% braking');
@@ -46,7 +47,7 @@ test('G80 T21 spatial-brake stall reproduction no longer requests the excessive 
  // This historical speed plan replaced zero underlying brakes throughout its
  // active drift. Rescale only that recorded pedal profile to the corrected
  // budget; later RNG/search changes must not redefine the regression case.
- const gene=G.clone(fixture.gene);
+ const gene=G.clone(upgraded);
  for(let i=0;i<G.KNOTS;i++){const s=i/127*track.length;if(s>plan.start&&s<plan.end+plan.rampOut)gene[i*G.STRIDE+C.brake]*=plan.pressure/fixture.plan.pressure;}
  const result=Physics.evaluateGene(vehicle,track,gene);
  assert.notEqual(result.status,'timeout');
@@ -58,7 +59,7 @@ test('G80 T21 spatial-brake stall reproduction no longer requests the excessive 
 });
 test('guidance follows the chosen line, stock vehicle and reference without a universal speed cap or simulation',()=>{
  const f=fixture(),before=JSON.stringify(Catalog.list()),inside=G.clone(f.gene);
- for(let i=0;i<128;i++)inside[i*8+C.lineOffset]=8;
+ for(let i=0;i<128;i++)inside[i*G.STRIDE+C.lineOffset]=8;
  const base=Planner.plan(f.vehicle,f.track,f.gene,f.record,f.zone),tight=Planner.plan(f.vehicle,f.track,inside,f.record,f.zone);
  assert.ok(tight.curvature>base.curvature);assert.ok(tight.targetSpeed<base.targetSpeed);
  const original=Physics.step;Physics.step=()=>{throw Error('planning must not run physics');};
@@ -72,12 +73,12 @@ test('guidance follows the chosen line, stock vehicle and reference without a un
 });
 test('the plan writes only bounded pedal genes inside its braking and release window',()=>{
  const f=fixture(),before=G.clone(f.gene),plan=Planner.plan(f.vehicle,f.track,f.gene,f.record,f.zone,{}, {arrivalRecord:f.arrival}),child=Planner.apply(f.gene,plan);
- assert.deepEqual(f.gene,before);assert.equal(child.length,1024);
- assert.ok(child.some((value,i)=>i%8===C.brake&&value>before[i]));
- assert.ok(child.some((value,i)=>i%8===C.throttle&&value<before[i]));
- assert.ok(child.some((value,i)=>i%8===C.driveSlip&&value<before[i]));
- for(let i=0;i<128;i++)for(let c=0;c<8;c++){
-  const s=i/127*f.track.length,j=i*8+c;
+ assert.deepEqual(f.gene,before);assert.equal(child.length,1408);
+ assert.ok(child.some((value,i)=>i%G.STRIDE===C.brake&&value>before[i]));
+ assert.ok(child.some((value,i)=>i%G.STRIDE===C.throttle&&value<before[i]));
+ assert.ok(child.some((value,i)=>i%G.STRIDE===C.driveSlip&&value<before[i]));
+ for(let i=0;i<128;i++)for(let c=0;c<G.STRIDE;c++){
+  const s=i/127*f.track.length,j=i*G.STRIDE+c;
   if(![C.brake,C.throttle,C.driveSlip].includes(c)||s<=plan.start||s>=plan.end+plan.rampOut)assert.equal(child[j],before[j]);
   else assert.ok(child[j]>=0&&child[j]<=(c===C.driveSlip?1.5:1));
  }
@@ -87,18 +88,18 @@ test('a target faster than the observed approach preserves acceleration when no 
  const plan=Planner.plan(f.vehicle,f.track,f.gene,record,f.zone,{entrySpeedRatio:1.45},{arrivalRecord:record});
  assert.ok(plan.targetSpeed>plan.approachSpeed);assert.equal(plan.requiredDistance,0);assert.equal(plan.deceleration,0);assert.equal(plan.pressure,0);
  assert.deepEqual(Planner.apply(f.gene,plan),f.gene,'a zero-brake plan must not turn acceleration into coasting');
- const braking=G.clone(f.gene);for(let i=0;i<128;i++)braking[i*8+C.brake]=.2;
+ const braking=G.clone(f.gene);for(let i=0;i<128;i++)braking[i*G.STRIDE+C.brake]=.2;
  const released=Planner.apply(braking,plan);
- assert.ok(released.some((value,i)=>i%8===C.brake&&value<braking[i]),'an unnecessary inherited brake can still be released');
- for(let i=0;i<128;i++)for(const channel of [C.throttle,C.driveSlip])assert.equal(released[i*8+channel],braking[i*8+channel]);
+ assert.ok(released.some((value,i)=>i%G.STRIDE===C.brake&&value<braking[i]),'an unnecessary inherited brake can still be released');
+ for(let i=0;i<128;i++)for(const channel of [C.throttle,C.driveSlip])assert.equal(released[i*G.STRIDE+channel],braking[i*G.STRIDE+channel]);
 });
 test('adaptive and failure-guided entry-speed proposals genuinely brake upstream from a valid parent',()=>{
  const f=fixture(),parent={id:'valid',accepted:true,gene:f.gene,record:f.arrival,result:{valid:true,status:'finished',frames:f.arrival},metric:{bestArc:null}};
  const options={family:'entry-speed',zones:[f.zone],zone:f.zone,referenceRecord:f.record,diagnosis:{candidateId:'failed',origin:{s:195,zoneIndex:0},window:{startS:165,endS:220}}};
  for(const proposal of [Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options),Strategies.repair(f.vehicle,f.track,parent,()=>.5,options)]){
   assert.equal(proposal.change.family,'entry-speed');assert.ok(proposal.change.entrySpeed.pressure>0);
-  assert.ok(proposal.gene.some((value,i)=>i%8===C.brake&&value>parent.gene[i]&&Math.floor(i/8)/127*f.track.length<165));
-  assert.ok(proposal.gene.some((value,i)=>i%8===C.throttle&&value<parent.gene[i]));
+  assert.ok(proposal.gene.some((value,i)=>i%G.STRIDE===C.brake&&value>parent.gene[i]&&Math.floor(i/G.STRIDE)/127*f.track.length<165));
+  assert.ok(proposal.gene.some((value,i)=>i%G.STRIDE===C.throttle&&value<parent.gene[i]));
  }
  assert.throws(()=>Strategies.repair(f.vehicle,f.track,{...parent,accepted:false},()=>.5,options),/valid parent/);
 });
@@ -107,9 +108,9 @@ test('a normalized-away entry-speed repair stays in its pedal window instead of 
  const options={family:'entry-speed',zones:[f.zone],zone:f.zone,referenceRecord:record,diagnosis:{origin:{s:195,zoneIndex:0},window:{startS:165,endS:220}}};
  for(const proposal of [Strategies.repair(f.vehicle,f.track,parent,()=>.9,options),Strategies.adaptive(f.vehicle,f.track,parent,()=>.9,options)]){
   assert.equal(proposal.change.family,'entry-speed');assert.equal(proposal.change.pedalFallback,true);
-  const changed=[];proposal.gene.forEach((value,i)=>{if(value!==gene[i])changed.push(i);});assert.ok(changed.length>=2);assert.ok(changed.every(i=>i%8===C.brake));
+  const changed=[];proposal.gene.forEach((value,i)=>{if(value!==gene[i])changed.push(i);});assert.ok(changed.length>=2);assert.ok(changed.every(i=>i%G.STRIDE===C.brake));
   const window=proposal.change.mutationWindow;
-  for(const i of changed){const s=Math.floor(i/8)/127*f.track.length;assert.ok(s>window.start&&s<window.end);}
+  for(const i of changed){const s=Math.floor(i/G.STRIDE)/127*f.track.length;assert.ok(s>window.start&&s<window.end);}
   assert.ok(window.start>=2.5,'a short fallback never reaches before preparation starts');
  }
 });
@@ -117,6 +118,6 @@ test('a longer bridge can co-evolve its approach pedals while preserving drift-a
  const f=fixture(),run={zoneId:'z',start:195,end:230,sign:-1,distanceWeightedAngle:20},parent={gene:f.gene,result:{frames:f.arrival},metric:{bestArc:run}};
  const proposal=Strategies.adaptive(f.vehicle,f.track,parent,()=>.1,{family:'bridge',zones:[f.zone],zone:f.zone,referenceRecord:f.record});
  assert.equal(proposal.change.family,'bridge');assert.ok(proposal.change.entrySpeed);
- assert.ok(proposal.gene.some((value,i)=>i%8===C.brake&&value>parent.gene[i]));
- assert.ok(proposal.gene.some((value,i)=>i%8===C.targetSlip&&Math.abs(value)>0));
+ assert.ok(proposal.gene.some((value,i)=>i%G.STRIDE===C.brake&&value>parent.gene[i]));
+ assert.ok(proposal.gene.some((value,i)=>i%G.STRIDE===C.targetSlip&&Math.abs(value)>0));
 });

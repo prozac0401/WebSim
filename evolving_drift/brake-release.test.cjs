@@ -8,11 +8,12 @@ test('a completed G80 parent can evolve away inherited braking after an earlier 
  const vehicle=Catalog.get(fixture.vehicle),track=Tracks.get(fixture.track),baseline=await Prepared.load(vehicle,track);
  const bytes=Buffer.alloc(fixture.gene.length*8);fixture.gene.forEach((v,i)=>bytes.writeDoubleLE(v,i*8));
  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),fixture.geneHash);
- const before=Physics.evaluateGene(vehicle,track,fixture.gene),regions=Strategies.zones(track);
+ const gene=require('./test-fixtures/upgrade-controls.cjs')(fixture.gene);
+ const before=Physics.evaluateGene(vehicle,track,gene),regions=Strategies.zones(track);
  assert.equal(before.valid,true);assert.equal(before.status,'finished');
  const minimum=run=>Math.min(...run.frames.filter(f=>f.s>=300&&f.s<=400).map(f=>f.speed))*3.6;
  assert.ok(minimum(before)>4&&minimum(before)<5,'historical parent crawls through the second corner despite completing');
- const parent={id:fixture.id,accepted:true,gene:fixture.gene,record:before.frames,result:before,metric:{bestArc:null}};
+ const parent={id:fixture.id,accepted:true,gene,record:before.frames,result:before,metric:{bestArc:null}};
  const proposal=Strategies.adaptive(vehicle,track,parent,()=>0,{family:'brake-release',zone:regions[1],zones:regions,referenceRecord:baseline.record});
  assert.ok(Strategies.FAMILIES.includes('brake-release'));
  assert.equal(proposal.change.family,'brake-release');assert.equal(proposal.change.source,'valid-slowdown');
@@ -22,8 +23,8 @@ test('a completed G80 parent can evolve away inherited braking after an earlier 
  assert.ok(proposal.change.end>350&&proposal.change.end<370);
  let changedBrakes=0;
  proposal.gene.forEach((value,i)=>{
-  if(![C.brake,C.throttle].includes(i%G.STRIDE))assert.equal(value,fixture.gene[i],'steering, gearing and attitude targets stay inherited');
-  if(i%G.STRIDE===C.brake){assert.ok(value<=fixture.gene[i]);if(value<fixture.gene[i])changedBrakes++;}
+  if(![C.brake,C.throttle].includes(i%G.STRIDE))assert.equal(value,gene[i],'steering, gearing and attitude targets stay inherited');
+  if(i%G.STRIDE===C.brake){assert.ok(value<=gene[i]);if(value<gene[i])changedBrakes++;}
  });
  assert.ok(changedBrakes>0);
  const after=Physics.evaluateGene(vehicle,track,proposal.gene);

@@ -17,10 +17,10 @@ test('first influence includes interpolation, discrete gear and the full driver 
  }
 });
 
-test('all eight late channel changes reproduce every full-run frame and save exact physical ticks',()=>{
+test('all genome-channel late changes reproduce every full-run frame and save exact physical ticks',()=>{
  const track=straight(),a=gene(),evaluator=new Cache.Evaluator(vehicle,track),base=exact(evaluator,track,a,{id:'parent'});
  assert.equal(base.valid,true);assert.equal(base.evaluation.reusedTicks,0);
- const amounts=[.003,-.04,.02,.12,.03,.05,.03,3];
+ const amounts=[.003,-.04,.02,.12,.03,.05,.03,3,1,.02,.02];
  for(let channel=0;channel<G.STRIDE;channel++){
   const b=G.clone(a);for(let knot=90;knot<95;knot++)b[knot*G.STRIDE+channel]+=amounts[channel];
   const result=exact(evaluator,track,b,{id:'child-'+channel,parentId:'parent'});
@@ -38,7 +38,7 @@ test('cached state is isolated from returned frames and no failed or prepared re
  const child=gene();child[100*G.STRIDE+C.throttle]=.5;
  const result=exact(evaluator,track,child,{id:'child',parentId:'parent'});assert.ok(result.evaluation.cacheHit);
  assert.ok(!evaluator.cachedIds().includes('failed'));
- const failing=gene();for(let i=75;i<128;i++){failing[i*8+C.throttle]=0;failing[i*8+C.brake]=1;}
+ const failing=gene();for(let i=75;i<128;i++){failing[i*G.STRIDE+C.throttle]=0;failing[i*G.STRIDE+C.brake]=1;}
  const bad=exact(evaluator,track,failing,{id:'failed-after-prefix'});assert.equal(bad.valid,false);assert.ok(bad.evaluation.reusedTicks>0);
  assert.ok(!evaluator.cachedIds().includes('failed-after-prefix'));
 });
@@ -47,7 +47,7 @@ test('bounded caches and reset instances preserve results, including exact whole
  const track=straight(),a=gene(),cache=new Cache.Evaluator(vehicle,track,{identity:'one',maxEntries:1}),first=cache.evaluate(a,{id:'a'});
  const same=exact(cache,track,a,{id:'same'});assert.equal(same.evaluation.simulatedTicks,0);assert.equal(same.evaluation.reusedTicks,first.evaluation.totalTicks);
  assert.deepEqual(cache.cachedIds(),['same']);
- const b=G.clone(a);b[110*8+C.throttle]=.5;exact(cache,track,b,{id:'b'});assert.deepEqual(cache.cachedIds(),['b']);
+ const b=G.clone(a);b[110*G.STRIDE+C.throttle]=.5;exact(cache,track,b,{id:'b'});assert.deepEqual(cache.cachedIds(),['b']);
  for(const options of [{enabled:false},{maxFrames:1},{identity:'new-runtime'}]){
   const fresh=new Cache.Evaluator(vehicle,track,options),result=exact(fresh,track,a,{id:'fresh'});assert.equal(result.evaluation.reusedTicks,0);
   if(options.enabled===false||options.maxFrames===1)assert.deepEqual(fresh.cachedIds(),[]);
@@ -60,7 +60,7 @@ test('odd terminal ticks retain exact recording parity when a late input changes
  // is an odd tick; constant genes keep the physical launch independent of L.
  const track=straight(frame.s+.001),cache=new Cache.Evaluator(vehicle,track),base=exact(cache,track,a,{id:'parent'});
  assert.equal(base.evaluation.totalTicks%2,1);
- const child=G.clone(a);child[115*8+C.counterLead]+=.01;
+ const child=G.clone(a);child[115*G.STRIDE+C.counterLead]+=.01;
  const result=exact(cache,track,child,{id:'child',parentId:'parent'});assert.equal(result.evaluation.totalTicks%2,1);assert.ok(result.evaluation.cacheHit);
 });
 
@@ -68,7 +68,7 @@ test('resuming during a real gear shift preserves its timer, transient torque an
  const track=straight(260),a=gene(),cache=new Cache.Evaluator(vehicle,track),base=cache.evaluate(a,{id:'parent'}),ds=track.length/127;
  const knot=Array.from({length:126},(_,i)=>i+1).find(i=>{const frame=base.frames.findLast(f=>f.status==='running'&&f.s<(i-1)*ds-1e-9);return frame?.shiftTimer>.05&&frame.s>20;});
  assert.ok(knot,'the physical run contains a usable shift checkpoint');
- const child=G.clone(a);child[knot*8+C.throttle]-=.01;
+ const child=G.clone(a);child[knot*G.STRIDE+C.throttle]-=.01;
  const result=exact(cache,track,child,{id:'child',parentId:'parent'});
  assert.ok(base.frames[result.evaluation.reusedTicks/2].shiftTimer>.05);assert.ok(result.evaluation.cacheHit);
 });
@@ -78,9 +78,9 @@ test('a real prepared gene is simulated before caching; recoupled late line and 
  const track=Tracks.get('kr-kic-t21-kdl-2016-r2'),baseline=await Prepared.load(vehicle,track),cache=new Cache.Evaluator(vehicle,track);
  assert.deepEqual(cache.cachedIds(),[]);
  const first=cache.evaluate(baseline.gene,{id:'runtime-parent'});assert.equal(first.valid,true);assert.equal(first.evaluation.reusedTicks,0);
- const child=G.clone(baseline.gene);for(let i=85;i<90;i++)child[i*8+C.lineOffset]+=.02;
+ const child=G.clone(baseline.gene);for(let i=85;i<90;i++)child[i*G.STRIDE+C.lineOffset]+=.02;
  const coupled=G.normalize(Strategies.couple(vehicle,track,baseline.gene,child,first.frames),{maxSteerRad:vehicle.physics.maxSteer,gearCount:vehicle.physics.gearRatios.length});
- assert.ok(coupled.some((value,index)=>index<85*8&&value!==baseline.gene[index]),'line coupling changes earlier steer knots');
+ assert.ok(coupled.some((value,index)=>index<85*G.STRIDE&&value!==baseline.gene[index]),'line coupling changes earlier steer knots');
  const full=P.evaluateGene(vehicle,track,coupled),cached=cache.evaluate(coupled,{id:'child',parentId:'runtime-parent'});
  assert.deepEqual(physical(cached),full);assert.ok(cached.evaluation.reusedTicks>cached.evaluation.simulatedTicks);
  const rank=r=>Fitness.rank(vehicle,track,r,r.frames,{reference:baseline.record});assert.deepEqual(rank(physical(cached)),rank(full));

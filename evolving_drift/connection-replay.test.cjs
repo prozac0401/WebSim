@@ -1,11 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const fixture=require('./test-fixtures/kic-t21-connection-progress.json');
-const Catalog=require('./catalog.js'),Track=require('./track.js'),Prepared=require('./prepared-grips.js');
-const Physics=require('./physics.js'),Fitness=require('./fitness.js'),Analysis=require('./connection-analysis.js');
+const {Catalog,Tracks:Track,Prepared,Physics,Fitness,Analysis}=require('./test-fixtures/historical-v2-runtime.cjs').loadFrozenRuntime();
 const geneHash=gene=>{const bytes=Buffer.alloc(gene.length*8);gene.forEach((v,i)=>bytes.writeDoubleLE(v,i*8));return crypto.createHash('sha256').update(bytes).digest('hex');};
 
-test('measured valid parent/child genes reproduce partial connection gains without claiming completion',async()=>{
+test('historical v2: measured valid parent/child genes reproduce partial connection gains without claiming completion',async()=>{
  const vehicle=Catalog.get(fixture.vehicle),track=Track.get(fixture.track),baseline=await Prepared.load(vehicle,track);
  assert.equal(geneHash(baseline.gene),fixture.baselineGeneHash);
  for(const pair of fixture.pairs){

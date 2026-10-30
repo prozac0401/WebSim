@@ -3,12 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fixture = require('./test-fixtures/kic-t21-guided-completed-corner.json');
-const Catalog = require('./catalog.js');
-const Tracks = require('./track.js');
-const Physics = require('./physics.js');
-const Fitness = require('./fitness.js');
-const Genome = require('./genome.js');
-const Prepared = require('./prepared-grips.js');
+const {Catalog,Tracks,Physics,Fitness,Genome,Prepared}=require('./test-fixtures/historical-v2-runtime.cjs').loadFrozenRuntime();
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 function geneHash(gene) {
   const bytes = Buffer.alloc(gene.length * 8);
@@ -16,7 +11,7 @@ function geneHash(gene) {
   return sha(bytes);
 }
 
-test('an evolved guided line correction physically completes the second T21 corner without prefix reuse', { timeout: 180000 }, async t => {
+test('historical v2: an evolved guided line correction physically completes the second T21 corner without prefix reuse', { timeout: 180000 }, async t => {
   const vehicle = Catalog.get(fixture.vehicle), track = Tracks.get(fixture.track);
   assert.equal(sha(Physics.signature()), fixture.signatures.physics);
   assert.equal(sha(Fitness.signature()), fixture.signatures.fitness);

@@ -23,6 +23,9 @@ test('HTML and every worker import use the same versioned runtime assets',()=>{
   const imported=[],context=vm.createContext({URLSearchParams,location:{search:'?v='+Runtime.RELEASE},DriftRuntime:Runtime,importScripts:(...paths)=>imported.push(...paths),onmessage:null});
   vm.runInContext(fs.readFileSync(require.resolve('./'+file),'utf8'),context);
   assert.ok(imported.length>10);assert.ok(imported.every(p=>new URL(p,'https://test.invalid/').searchParams.get('v')===Runtime.RELEASE));
+  const names=imported.map(p=>p.split('?')[0]);
+  assert(names.indexOf('manual-clutch.js')<names.indexOf('physics.js'));
+  if(file==='worker.js')assert(names.indexOf('connection-analysis.js')<names.indexOf('trajectory-search.js')&&names.indexOf('trajectory-search.js')<names.indexOf('evolution.js'));
  }
  assert.equal(Runtime.url('record.js?x=1#part'),'record.js?x=1&v='+Runtime.RELEASE+'#part');
 });
@@ -49,7 +52,7 @@ test('prepared record requests carry the release in both worker and page loaders
   else context.document={currentScript:{src:'https://example.invalid/evolving_drift/prepared-grips.js'},createElement:()=>({remove(){}}),head:{append(script){requested.push(script.src);script.onerror();}}};
   vm.runInContext(source,context);const api=context.DriftPreparedGrips;
   const vehicle={id:'test',physics:{}},track={id:'course',points:[],length:100,width:10,judgedStart:10,judgedEnd:90,sample(){},project(){}};
-  context.DriftPreparedGripsManifest={schema:3,genomeVersion:Genome.VERSION,stride:Genome.STRIDE,knots:Genome.KNOTS,entries:{[api.key(vehicle,track)]:{path:'grip-records/test.js',fingerprint:api.fingerprint(vehicle,track)}}};
+  context.DriftPreparedGripsManifest={schema:api.SCHEMA,genomeVersion:Genome.VERSION,stride:Genome.STRIDE,knots:Genome.KNOTS,entries:{[api.key(vehicle,track)]:{path:'grip-records/test.js',fingerprint:api.fingerprint(vehicle,track)}}};
   await assert.rejects(api.load(vehicle,track));assert.equal(requested.length,1);
   const url=new URL(requested[0],'https://example.invalid/evolving_drift/');assert.equal(url.searchParams.get('v'),Runtime.RELEASE);assert.ok(url.pathname.endsWith('/grip-records/test.js'));
  }

@@ -25,8 +25,9 @@ const G=9.81,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),wrap=a=>Math.atan2(Math.si
     for(let i=1;i<speed.length;i++){const ds=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);speed[i]=Math.min(speed[i],Math.sqrt(speed[i-1]**2+2*acceleration*ds));}
     return {speed,acceleration,braking,at(s){let lo=0,hi=points.length-1;while(lo+1<hi){const mid=(lo+hi)>>1;if(points[mid].s<=s)lo=mid;else hi=mid;}const t=clamp((s-points[lo].s)/Math.max(1e-9,points[hi].s-points[lo].s),0,1);return speed[lo]+(speed[hi]-speed[lo])*t;}};
   }
-  function buildGripBaseline(v,track,{knots=Genome.KNOTS}={}){
+  function buildGripBaseline(v,track,{knots=Genome.KNOTS,onAttempt=null}={}){
     if(knots!==Genome.KNOTS)throw new RangeError('Grip baseline requires the shared genome knot count.');
+    if(onAttempt!==null&&typeof onAttempt!=='function')throw new TypeError('onAttempt must be a function.');
     const p=cfg(v),attempts=[],lineBuilder=require('./grip-line.js'),lineBounds=Genome.corridorBounds(v,track);
     if(!lineBuilder)throw new Error('Load DriftGripLine before building the grip baseline.');
     const lines=lineBuilder.candidates(track,v);let best=null;
@@ -84,6 +85,13 @@ const G=9.81,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),wrap=a=>Math.atan2(Math.si
       // The replay, not the feedback driver's trace, must satisfy the unchanged
       // footprint/collision/score physics and the grip-specific limits.
       const run=evaluateGene(v,track,gene),grip=run.valid&&run.maxAngle<7&&run.peakWheelSlip<.32;
+      if(onAttempt&&!grip&&run.valid){
+        // Diagnostics/fallback receive immutable copies. Observing a failed
+        // candidate cannot alter this search's gene, replay or ranking.
+        const snapshot=structuredClone({metadata:{...metadata,grip,stage:'genome-replay'},gene:Array.from(gene),result:run});
+        const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
+        onAttempt(freeze(snapshot));
+      }
       attempts.push({...metadata,status:run.status,time:run.time,maxAngle:run.maxAngle,peakWheelSlip:run.peakWheelSlip,grip,stage:'genome-replay'});
       if(grip&&(!best||run.time<best.result.time))best={genomeVersion:Genome.VERSION,stride:Genome.STRIDE,knots:Genome.KNOTS,gene,record:run.frames,result:run,attempts,lineId:line.id,
         line:{id:line.id,pathLength:line.pathLength,maxOffset:line.maxOffset,closed:false},aggression,brakingScale,feedforwardFit:metadata.feedforwardFit};

@@ -9,21 +9,22 @@ const factory={id:'fixed-rwd',massKg:1400,powerPs:300,physics:{maxSteer:.52,gear
 const curve=sign=>({id:'curve-'+sign,length:600,sample:s=>({curvature:s>=200&&s<=340?sign*.02:0})});
 const track=curve(1);
 function fixture(evaluateGene=(_v,_t,gene)=>complete(gene),extra={}){
-  const gene=controls(),baseline={genomeVersion:2,gene,result:complete(gene),record:[{x:0,y:0}]};
+  const gene=controls(),baseline={genomeVersion:G.VERSION,gene,result:complete(gene),record:[{x:0,y:0}]};
   const physics={evaluateGene,buildGripBaseline(){throw Error('Runtime cannot build baselines.');}};
   return{baseline,physics,engine:new E.Engine(factory,track,{seed:37,populationSize:20,baseline,physics,rankResult:(_vehicle,_track,result)=>result,...extra})};
 }
 
-test('v2 has eight bounded channels and leaves the source untouched',()=>{
-  assert.equal(G.VERSION,2);assert.equal(G.KNOTS,128);assert.equal(G.STRIDE,8);assert.equal(G.LENGTH,1024);
+test('v3 has eleven bounded channels and leaves the source untouched',()=>{
+  assert.equal(G.VERSION,3);assert.equal(G.KNOTS,128);assert.equal(G.STRIDE,11);assert.equal(G.LENGTH,1408);
   const gene=G.create();assert.equal(gene[C.counterLead],.25);assert.equal(gene[C.lineOffset],0);
   for(let i=0;i<G.LENGTH;i++)gene[i]=i<G.STRIDE?2000:-2000;
   const before=gene.slice(),normalized=G.normalize(gene,{maxSteerRad:.4,gearCount:6});
   assert.deepEqual(gene,before);
   assert.deepEqual(Array.from(normalized.slice(0,8)),[.4,1,1,1000,55*Math.PI/180,.8,1.5,6]);
-  assert.deepEqual(Array.from(normalized.slice(8,16)),[-.4,0,0,-1000,-55*Math.PI/180,.05,0,0]);
+  assert.deepEqual(Array.from(normalized.slice(8,11)),[1,.45,.30]);
+  assert.deepEqual(Array.from(normalized.slice(11,22)),[-.4,0,0,-1000,-55*Math.PI/180,.05,0,0,0,.04,.03]);
   assert.equal(G.normalize(G.create().fill(2.7),{gearCount:6})[C.gearHold],3);
-  assert.throws(()=>G.clone(new Float64Array(384)),/v2.*1024.*offline/);
+  assert.throws(()=>G.clone(new Float64Array(384)),/v3.*1408.*offline/);
   assert.throws(()=>G.normalize(G.create().fill(NaN)),/finite/);
   assert.equal(G.signature(),G.signature());
 });
@@ -35,7 +36,7 @@ function strategyFixture(sign=1){
     return {s,x:s<80?s:80+Math.sin(.02*arc)/.02+after*Math.cos(h),y:s<80?0:sign*(1-Math.cos(.02*arc))/.02+after*Math.sin(h),heading:h,curvature:s>=80&&s<=120?sign*.02:0};
   }};
   const record=Array.from({length:45},(_,i)=>{const p=track.sample(i*5);return {...p,time:i/3,speed:15,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),yaw:p.heading,beta:0};});
-  const gene=G.create();for(let i=0;i<128;i++){gene[i*8+C.throttle]=.4;gene[i*8+C.brake]=.3;}
+  const gene=G.create();for(let i=0;i<128;i++){gene[i*G.STRIDE+C.throttle]=.4;gene[i*G.STRIDE+C.brake]=.3;}
   return {vehicle,track,record,gene};
 }
 const clampTest=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -50,9 +51,9 @@ test('entry strategies mirror outside line and slip intent, and sanitize short e
     assert.ok(a.params.length<=33&&a.params.length>=0,'38m exits permit short holds and cannot exceed available space');
     assert.equal(a.params.onset,b.params.onset);
     for(let i=0;i<128;i++){
-      assert.ok(Math.abs(a.gene[i*8+C.lineOffset]+b.gene[i*8+C.lineOffset])<1e-12);
-      assert.ok(Math.abs(a.gene[i*8+C.targetSlip]+b.gene[i*8+C.targetSlip])<1e-12);
-      assert.ok(Math.abs(a.gene[i*8+C.steer]+b.gene[i*8+C.steer])<1e-12,'steering residuals reflect with the turn');
+      assert.ok(Math.abs(a.gene[i*G.STRIDE+C.lineOffset]+b.gene[i*G.STRIDE+C.lineOffset])<1e-12);
+      assert.ok(Math.abs(a.gene[i*G.STRIDE+C.targetSlip]+b.gene[i*G.STRIDE+C.targetSlip])<1e-12);
+      assert.ok(Math.abs(a.gene[i*G.STRIDE+C.steer]+b.gene[i*G.STRIDE+C.steer])<1e-12,'steering residuals reflect with the turn');
     }
   }
   assert.deepEqual(right.gene,before);
@@ -62,19 +63,19 @@ test('feedforward coupling preserves identity and supplies the changed path dema
   const {vehicle}=strategyFixture(),track={length:220,sample:s=>({s,x:s,y:0,heading:0,curvature:0})},gene=G.create();
   const record=[{s:0,speed:15},{s:220,speed:15}];
   assert.deepEqual(Strategies.couple(vehicle,track,gene,gene,record),gene);
-  const changed=G.clone(gene);for(let i=0;i<128;i++)changed[i*8+C.lineOffset]=.5*Math.sin(i/127*Math.PI);
+  const changed=G.clone(gene);for(let i=0;i<128;i++)changed[i*G.STRIDE+C.lineOffset]=.5*Math.sin(i/127*Math.PI);
   const coupled=Strategies.couple(vehicle,track,gene,changed,record),s=75,look=12.2;
   const point=x=>({x,y:G.sample(coupled,x,track.length).lineOffset}),here=point(s),ahead=point(s+look),before=point(s-1),after=point(s+1);
   const tangent=Math.atan2(after.y-before.y,after.x-before.x),distance=Math.hypot(ahead.x-here.x,ahead.y-here.y),curvature=2*Math.sin(Math.atan2(ahead.y-here.y,ahead.x-here.x)-tangent)/distance;
   const command=require('./driver.js').command(vehicle,track,{...here,s,yaw:tangent,vx:15*Math.cos(tangent),vy:15*Math.sin(tangent),r:15*curvature,ax:0,ay:0},coupled);
   assert.ok(Math.abs(command.steer-G.sample(coupled,s,track.length).steer)<1e-12,'on the new path the driver preserves its corrected feedforward');
   assert.ok(Math.abs(command.steer)>1e-5,'a curved line requires steering even on a straight road');
-  assert.ok(gene.every((v,i)=>v===(i%8===C.counterLead ? .25 : 0)));
+  assert.deepEqual(gene,G.create());
 });
 
 test('clipped EV gear mutations still produce a different bounded candidate',()=>{
   const f=strategyFixture(),p=f.vehicle.physics;p.electric=true;p.gearRatios=[8];p.shiftRPM=0;
-  for(let i=0;i<128;i++)f.gene[i*8+C.gearHold]=1;
+  for(let i=0;i<128;i++)f.gene[i*G.STRIDE+C.gearHold]=1;
   const z=Strategies.zones(f.track)[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneExit:z.exit,end:z.exit+10}}};
   let calls=0;const rng=()=>++calls===3?(Strategies.FAMILIES.indexOf('gear')+.5)/Strategies.FAMILIES.length:.5;
   const proposal=Strategies.adaptive(f.vehicle,f.track,parent,rng);
@@ -112,13 +113,13 @@ test('trajectory and power macros scale target deltas before their steering reco
     const full=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:1}),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
     assert.equal(full.change.family,family);assert.equal(small.change.family,family);let moved=false;
     for(let i=0;i<128;i++)for(const channel of [C.throttle,C.brake,C.lineOffset,C.targetSlip,C.counterLead,C.driveSlip]){
-      const j=i*8+channel,a=full.gene[j]-f.gene[j],b=small.gene[j]-f.gene[j];
+      const j=i*G.STRIDE+channel,a=full.gene[j]-f.gene[j],b=small.gene[j]-f.gene[j];
       assert.ok(Math.abs(b-.2*a)<1e-12,'continuous intents scale around their actual parent');if(Math.abs(a)>1e-8)moved=true;
     }
     assert.ok(moved);
     for(let i=0;i<128;i++){
-      const s=i/127*f.track.length,base=f.gene[i*8+C.steer]-Strategies.feedforward(f.vehicle,f.track,f.gene,s,15);
-      const a=full.gene[i*8+C.steer]-Strategies.feedforward(f.vehicle,f.track,full.gene,s,15),b=small.gene[i*8+C.steer]-Strategies.feedforward(f.vehicle,f.track,small.gene,s,15);
+      const s=i/127*f.track.length,base=f.gene[i*G.STRIDE+C.steer]-Strategies.feedforward(f.vehicle,f.track,f.gene,s,15);
+      const a=full.gene[i*G.STRIDE+C.steer]-Strategies.feedforward(f.vehicle,f.track,full.gene,s,15),b=small.gene[i*G.STRIDE+C.steer]-Strategies.feedforward(f.vehicle,f.track,small.gene,s,15);
       assert.ok(Math.abs((b-base)-.2*(a-base))<1e-12,'FF follows the actual blended path while the driving residual scales');
     }
   }
@@ -143,7 +144,7 @@ test('sustained-angle refinement covers the proven episode, reflects turns and p
     const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}},before=f.gene.slice();
     const random=()=>{let calls=0;return()=>++calls===3?(Strategies.FAMILIES.indexOf('sustained-angle')+.5)/Strategies.FAMILIES.length:.5;};
     const full=Strategies.adaptive(f.vehicle,f.track,parent,random()),small=Strategies.adaptive(f.vehicle,f.track,parent,random(),{scale:.2});
-    assert.equal(full.change.family,'sustained-angle');assert.equal(full.gene.length,1024);
+    assert.equal(full.change.family,'sustained-angle');assert.equal(full.gene.length,1408);
     assert.deepEqual(full,Strategies.adaptive(f.vehicle,f.track,parent,random()));
     assert.deepEqual(parent.gene,before);
     for(let i=0;i<G.LENGTH;i++){
@@ -219,7 +220,7 @@ test('new trajectories recover slip and propulsion targets over the same window'
   for(let s=z.end;s<=f.track.length;s+=.2)assert.deepEqual(G.sample(proposal.gene,s,f.track.length),G.sample(parent.gene,s,f.track.length),'the next corner does not inherit a trailing recovery or line offset');
 });
 
-test('entry evolution explores the full physical approach and encodes pre-start drift and acceleration in v2 controls',()=>{
+test('entry evolution explores the full physical approach and encodes pre-start drift and acceleration in v3 controls',()=>{
   const f=strategyFixture(-1),zones=Strategies.zones(f.track),prepared={gene:f.gene,record:f.record},before=f.gene.slice();
   const proposals=Array.from({length:80},(_,i)=>Strategies.entry(f.vehicle,f.track,prepared,E.createRng(i+1),0,null,{zones}));
   assert.ok(proposals.some(p=>p.params.onset<15),'random exploration reaches the road near the real spawn');
@@ -235,7 +236,7 @@ test('entry evolution explores the full physical approach and encodes pre-start 
   const a=G.sample(fast.gene,20,f.track.length),b=G.sample(mild.gene,20,f.track.length);
   assert.ok(a.throttle>b.throttle+.4);assert.ok(a.brake<b.brake*.2,'the preparation changes real pedal genes');
   assert.ok(G.sample(fast.gene,55,f.track.length).targetSlip>.1,'onset is no longer limited by cornerStart minus 20m');
-  assert.equal(fast.gene.length,1024);assert.deepEqual(f.gene,before);assert.deepEqual(original,{...proposals[0].params,onset:-100,prepLead:500,prepPedal:.95,prepRelease:.9});
+  assert.equal(fast.gene.length,1408);assert.deepEqual(f.gene,before);assert.deepEqual(original,{...proposals[0].params,onset:-100,prepLead:500,prepPedal:.95,prepRelease:.9});
   assert.deepEqual(G.normalize(fast.gene,{maxSteerRad:f.vehicle.physics.maxSteer,gearCount:6,lineBounds:G.corridorBounds(f.vehicle,f.track)}),fast.gene);
 });
 
@@ -264,7 +265,7 @@ test('bridge mutations extend missing apex connections upstream or downstream wh
     }
     const parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:run}},before=f.gene.slice();
     const full=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge'}),small=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge',scale:.2});
-    assert.equal(full.change.family,'bridge');assert.equal(full.change.direction,direction);assert.equal(full.gene.length,1024);
+    assert.equal(full.change.family,'bridge');assert.equal(full.change.direction,direction);assert.equal(full.gene.length,1408);
     assert.deepEqual(full,Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{family:'bridge'}));assert.deepEqual(parent.gene,before);
     const {start,end}=full.change,probe=direction==='before'?z.cornerStart:z.exit;
     assert.ok(start<probe&&end>probe,'the missing corner boundary is inside the mutation window');
@@ -294,7 +295,7 @@ test('bridge mutations extend missing apex connections upstream or downstream wh
 test('short exits can reduce their hold to zero and terminal recovery can begin before the inherited drift ends',()=>{
   const f=strategyFixture(-1),z={id:'short',start:60,cornerStart:80,apex:100,exit:120,end:152.5,sign:-1},zones=[z],prepared={gene:f.gene,record:f.record};
   const variants=Array.from({length:20},(_,i)=>Strategies.entry(f.vehicle,f.track,prepared,E.createRng(i+1),0,null,{zones}));
-  assert.ok(variants.some(p=>p.params.length<8));assert.ok(variants.some(p=>p.params.length>16));
+  assert.ok(variants.some(p=>p.params.length<G.STRIDE));assert.ok(variants.some(p=>p.params.length>16));
   const zero=Strategies.entry(f.vehicle,f.track,prepared,()=>.5,0,{...variants[0].params,length:0,recovery:32.5},{zones});
   assert.equal(zero.params.length,0);assert.equal(zero.params.recovery,32.5);
   for(let i=0;i<G.KNOTS;i++){f.gene[i*G.STRIDE+C.targetSlip]=.4;f.gene[i*G.STRIDE+C.driveSlip]=.5;}
@@ -332,7 +333,7 @@ test('link mutations cross regional boundaries with continuous same-direction in
     const f=linkedStrategyFixture(sign,sameSign),z=f.zones[0],parent={gene:f.gene,result:{frames:f.record},metric:{bestArc:{zoneId:z.id,start:80,end:125,sign:-sign},links:[{id:'a-b',coverage:.2}]}};
     const options={family:'link',zones:f.zones,zone:z,links:f.links},p=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options),small=Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,{...options,scale:.2});
     assert.equal(p.change.family,'link');assert.equal(p.change.sameSign,sameSign);assert.ok(p.change.start<z.apex&&p.change.end>f.zones[1].apex);
-    assert.deepEqual(p,Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options));assert.equal(p.gene.length,1024);
+    assert.deepEqual(p,Strategies.adaptive(f.vehicle,f.track,parent,()=>.5,options));assert.equal(p.gene.length,1408);
     const samples=[];for(let s=100;s<=220;s+=.25)samples.push({s,beta:G.sample(p.gene,s,f.track.length).targetSlip});
     if(sameSign)assert.ok(samples.every(f=>-sign*f.beta>=12*Math.PI/180-.002),'the complete intermediate straight retains a drift target');
     else{
@@ -382,15 +383,15 @@ test('pre-start feint uses the mapped approach and produces real alternating whe
 
 test('entry tail acceleration preserves a later real corner and only resumes on the terminal straight',()=>{
   const vehicle=require('./catalog.js').get(),track=require('./track.js').get('jp-tsukuba-d1gp-2025'),zones=Strategies.zones(track).slice(0,-1),zone=zones.at(-1),gene=G.create();
-  for(let i=0;i<128;i++){gene[i*8+C.throttle]=.4;gene[i*8+C.brake]=.3;}
+  for(let i=0;i<128;i++){gene[i*G.STRIDE+C.throttle]=.4;gene[i*G.STRIDE+C.brake]=.3;}
   const record=Array.from({length:128},(_,i)=>{const p=track.sample(i/127*track.length);return {...p,speed:15,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),yaw:p.heading};});
   const proposal=Strategies.entry(vehicle,track,{gene,record},E.createRng(18),zones.length-1,null,{zones});
   const holdEnd=zone.exit+proposal.params.length+proposal.params.recovery;
   const corner=record.findIndex(p=>p.s>Math.max(holdEnd,zone.end+20)&&Math.abs(p.curvature)>.01);
   assert.ok(corner>=0,'the fixture has an actual later corner beyond the mutation window');
-  assert.equal(proposal.gene[corner*8+C.brake],.3,'the later grip braking command is preserved');
+  assert.equal(proposal.gene[corner*G.STRIDE+C.brake],.3,'the later grip braking command is preserved');
   assert.ok(Strategies.trailingStraightStart(track)>record[corner].s);
-  assert.ok(proposal.gene[127*8+C.brake]<.3,'the terminal straight can still use its changed arrival speed');
+  assert.ok(proposal.gene[127*G.STRIDE+C.brake]<.3,'the terminal straight can still use its changed arrival speed');
 });
 
 test('adaptive generation plans see only previously completed niche parents',()=>{
@@ -399,7 +400,7 @@ test('adaptive generation plans see only previously completed niche parents',()=
     const p=f.track.sample(i*.5),beta=p.s>=85&&p.s<=200?.3:0;
     return {...p,time:i/30,speed:15,vx:15*Math.cos(p.heading),vy:15*Math.sin(p.heading),yaw:p.heading-beta,beta,ax:0,ay:0,r:p.curvature*15,throttle:.8,brake:0,rearTorque:1000,wheelForces:[{fx:0},{fx:0},{fx:1500},{fx:1500}],wheelSlip:[0,0,.4,.4]};
   });
-  const valid={valid:true,status:'finished',score:1,frames:record},baseline={genomeVersion:2,gene:f.gene,result:valid,record};
+  const valid={valid:true,status:'finished',score:1,frames:record},baseline={genomeVersion:G.VERSION,gene:f.gene,result:valid,record};
   const engine=new E.Engine(f.vehicle,f.track,{baseline,seed:723,populationSize:6});engine.initialize();
   const completed=new Set(['baseline']),failed=new Set();let adaptiveCount=0,index=0;
   for(let generation=0;generation<6;generation++){
@@ -425,7 +426,7 @@ test('apex strategies initialize without simulation and keep generation reservat
   calls=0;const planned=make();planned.initialize();const plannedGenes=[],accepted=new Set(['baseline']);
   for(let generation=0;generation<2;generation++){
     const jobs=Array.from({length:6},()=>planned.planCandidate());assert.equal(calls,generation*6,'planning never simulates');
-    for(const job of jobs){assert.ok(job.kind==='immigrant'||job.kind.startsWith('global-'));if(job.kind==='immigrant')assert.equal(job.parentId,'baseline');else assert.ok(accepted.has(job.parentId));if(job.parameterParentId)assert.ok(accepted.has(job.parameterParentId));plannedGenes.push(Array.from(job.gene));const result=evaluate(vehicle,track,job.gene);planned.acceptCandidate(job,result);if(result.valid)accepted.add(job.id);}
+    for(const job of jobs){assert.ok(['immigrant','clutch-kick','coarse-line-speed','duplicate-diversify'].includes(job.kind)||/^(global-|line-fine-|connection-|arc-|repair-)/.test(job.kind));if(job.kind==='immigrant')assert.equal(job.parentId,'baseline');else assert.ok(accepted.has(job.parentId));if(job.parameterParentId)assert.ok(accepted.has(job.parameterParentId));plannedGenes.push(Array.from(job.gene));const result=evaluate(vehicle,track,job.gene);planned.acceptCandidate(job,result);if(result.valid)accepted.add(job.id);}
     assert.ok(planned._nicheArchives.flat().every(parent=>accepted.has(parent.id)),'failed candidates never enter a corner archive');
   }
   assert.deepEqual(plannedGenes,seen);assert.deepEqual(baseline.gene,before);
@@ -460,11 +461,11 @@ test('line diversity uses actual corridor width rather than the serialization gu
 
 test('completed moving drift profiles grow into adjacent straights without admitting failed parents',()=>{
   const route={length:600,width:24,sample:s=>({curvature:s>=200&&s<=280?.02:0})},parent=G.create();
-  for(let i=0;i<128;i++){const j=i*8,s=i/127*600;parent[j+C.throttle]=.5;parent[j+C.brake]=.2;if(s>=240&&s<=280){parent[j+C.targetSlip]=-.3;parent[j+C.driveSlip]=.12;parent[j+C.counterLead]=.4;}}
+  for(let i=0;i<128;i++){const j=i*G.STRIDE,s=i/127*600;parent[j+C.throttle]=.5;parent[j+C.brake]=.2;if(s>=240&&s<=280){parent[j+C.targetSlip]=-.3;parent[j+C.driveSlip]=.12;parent[j+C.counterLead]=.4;}}
   const record=Array.from({length:31},(_,i)=>({s:250+i,speed:12,beta:-.25})),result={valid:true,status:'finished',score:20};
   const options={seed:5,strategy:'extend',track:route,parentRecord:record,parentResult:result};
   const child=E.mutateGene(parent,options),grown=[];
-  for(let i=0;i<128;i++){const s=i/127*600,j=i*8;if(s>280&&child[j+C.targetSlip]<-.01){grown.push(s);assert.ok(child[j+C.driveSlip]>0);assert.ok(child[j+C.brake]<parent[j+C.brake]);assert.equal(child[j+C.steer],parent[j+C.steer]);}}
+  for(let i=0;i<128;i++){const s=i/127*600,j=i*G.STRIDE;if(s>280&&child[j+C.targetSlip]<-.01){grown.push(s);assert.ok(child[j+C.driveSlip]>0);assert.ok(child[j+C.brake]<parent[j+C.brake]);assert.equal(child[j+C.steer],parent[j+C.steer]);}}
   assert.ok(grown.length>0&&Math.max(...grown)<320,'bounded growth, no whole-course mutation');
   assert.deepEqual(child,E.mutateGene(parent,options));
   assert.deepEqual(E.driftRegions(record,{...result,status:'offtrack'}),[]);
@@ -478,15 +479,15 @@ test('sampling interpolates continuous targets but chooses a discrete nearest ge
   assert.equal(G.sample(gene,.49,127).gearHold,2);assert.equal(G.sample(gene,.51,127).gearHold,6);
   assert.equal(G.sample(gene,-10,127).lineOffset,-2);
   assert.equal(G.sample(gene,1000,127).counterLead,.25);
-  assert.throws(()=>G.sample(new Float64Array(384),1,600),/v2/);
+  assert.throws(()=>G.sample(new Float64Array(384),1,600),/v3/);
 });
 
 test('offline legacy conversion supplies neutral factors, never silent runtime migration',()=>{
   const gene=G.fromLegacy([-.1,.2,.3,.1,.8,0],{gearCount:6});
-  assert.equal(gene.length,G.LENGTH);assert.equal(gene[0],-.1);assert.equal(gene.at(-8),.1);
-  for(let i=0;i<G.KNOTS;i++)assert.deepEqual(Array.from(gene.slice(i*8+3,i*8+8)),[0,0,.25,0,0]);
+  assert.equal(gene.length,G.LENGTH);assert.equal(gene[0],-.1);assert.equal(gene.at(-G.STRIDE),.1);
+  for(let i=0;i<G.KNOTS;i++)assert.deepEqual(Array.from(gene.slice(i*G.STRIDE+3,i*G.STRIDE+8)),[0,0,.25,0,0]);
   const {engine}=fixture(undefined,{baseline:{gene:new Float64Array(384),result:complete(controls()),record:[{}]}});
-  assert.equal(engine.initialize().ready,false);assert.match(engine.blockedReason,/v2.*1024.*offline/);
+  assert.equal(engine.initialize().ready,false);assert.match(engine.blockedReason,/v3.*1408.*offline/);
 });
 
 test('route-aware mutation joins outside preparation, initiation, power and brake release',()=>{
@@ -495,7 +496,7 @@ test('route-aware mutation joins outside preparation, initiation, power and brak
   assert.deepEqual(parent,before);assert.deepEqual(left,E.mutateGene(parent,{...options,track}));
   const offsets=[];let joined=0,leadChanged=false;
   for(let i=0;i<G.KNOTS;i++){
-    const j=i*8,s=i/127*600;
+    const j=i*G.STRIDE,s=i/127*600;
     if(s<200&&left[j+C.lineOffset]<-.01)offsets.push(s);
     assert.ok(Math.abs(left[j+C.targetSlip]+right[j+C.targetSlip])<1e-12);
     assert.ok(Math.abs(left[j+C.lineOffset]+right[j+C.lineOffset])<1e-12);
@@ -510,7 +511,7 @@ test('route-aware mutation joins outside preparation, initiation, power and brak
 test('fine mutation remains local, smooth, bounded and deterministic',()=>{
   const parent=controls(),a=E.mutateGene(parent,{seed:71,strategy:'fine',gearCount:6}),b=E.mutateGene(parent,{seed:71,strategy:'fine',gearCount:6});
   assert.deepEqual(a,b);assert.deepEqual(a,G.normalize(a,{maxSteerRad:.52,gearCount:6}));
-  let changed=0;for(let i=0;i<G.KNOTS;i++){if(a.slice(i*8,i*8+8).some((v,c)=>v!==parent[i*8+c]))changed++;if(i)for(let c=0;c<7;c++)assert.ok(Math.abs((a[i*8+c]-parent[i*8+c])-(a[(i-1)*8+c]-parent[(i-1)*8+c]))<.12);}
+  let changed=0;for(let i=0;i<G.KNOTS;i++){if(a.slice(i*G.STRIDE,i*G.STRIDE+8).some((v,c)=>v!==parent[i*G.STRIDE+c]))changed++;if(i)for(let c=0;c<7;c++)assert.ok(Math.abs((a[i*G.STRIDE+c]-parent[i*G.STRIDE+c])-(a[(i-1)*G.STRIDE+c]-parent[(i-1)*G.STRIDE+c]))<.12);}
   assert.ok(changed>0&&changed<30);
 });
 
@@ -544,7 +545,7 @@ test('missing, incomplete and wrong-version baselines never touch the physics AP
 });
 
 test('valid diversity is retained alongside the champion without rewarding failures',()=>{
-  const make=(id,value,score,status='finished')=>{const gene=controls();for(let i=35;i<65;i++)gene[i*8+C.lineOffset]=value;return{id,sequence:Number(id.slice(1)),gene,result:{valid:status==='finished',status,score,driftDistance:20}};};
+  const make=(id,value,score,status='finished')=>{const gene=controls();for(let i=35;i<65;i++)gene[i*G.STRIDE+C.lineOffset]=value;return{id,sequence:Number(id.slice(1)),gene,result:{valid:status==='finished',status,score,driftDistance:20}};};
   const champion=make('p0',0,10),duplicate=make('p1',0,9.99),different=make('p2',.6,9.9),failed=make('p3',3,100,'offtrack');
   const selected=E.selectDiverseParents([champion,duplicate,different,failed],champion,3);
   assert.deepEqual(selected.map(e=>e.id),['p0','p2']);
@@ -602,9 +603,9 @@ test('real physics replays every selected parent to the same complete result',()
   const course={id:'straight-test',length:80,width:40,judgedStart:20,judgedEnd:60,obstacles:[],zones:[],
     sample:s=>({s,x:s,y:0,z:0,heading:0,grade:0,bank:0,curvature:0,widthLeft:20,widthRight:20}),
     project:(x,y)=>({s:x,error:y,distance:Math.abs(y),x,y:0,heading:0})};
-  const gene=G.create();for(let i=0;i<G.KNOTS;i++)gene[i*8+C.throttle]=.35;
+  const gene=G.create();for(let i=0;i<G.KNOTS;i++)gene[i*G.STRIDE+C.throttle]=.35;
   const result=Physics.evaluateGene(vehicle,course,gene,{record:true});assert.equal(result.valid,true);
-  const baseline={gene,genomeVersion:2,result,record:result.frames},engine=new E.Engine(vehicle,course,{baseline,physics:Physics,populationSize:2,seed:37});
+  const baseline={gene,genomeVersion:G.VERSION,result,record:result.frames},engine=new E.Engine(vehicle,course,{baseline,physics:Physics,populationSize:2,seed:37});
   engine.initialize();assert.equal(engine.best.result.styleScore,result.score,'default ranking preserves original angle score');
   engine.runGeneration();for(const parent of engine.parents){const raw=Physics.evaluateGene(vehicle,course,parent.gene,{record:true}),replay=require('./fitness.js').rank(vehicle,course,raw);assert.equal(replay.valid,true);assert.equal(replay.status,'finished');assert.equal(replay.score,parent.result.score);assert.equal(replay.time,parent.result.time);}
 });

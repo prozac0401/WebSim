@@ -327,10 +327,14 @@ test('torque lookup and transient delivered torque respect stock torque and powe
     const highRPM = car.maxRPM * .98;
     const omega = highRPM * Math.PI / 30 / (car.gearRatios[0] * car.finalDrive);
     state.wheelOmega.fill(omega);
+    // Manual engine and wheel shafts remain independent while the shift
+    // clutch is open; exercise the engine limiter on its actual state.
+    if(car.physics.transmissionType==='MT')state.engineOmega=highRPM*Math.PI/30;
     physics.step(car, track, state, { steer: 0, throttle: 1, brake: 0 });
     assert.ok(state.torque <= car.peakTorque + 1e-8, car.id + ': delivered torque');
     assert.ok(Math.max(0, state.torque) * state.rpm * Math.PI / 30 <= car.peakPowerW + 1e-6, car.id + ': transient delivered power');
     state.wheelOmega.fill(car.maxRPM * 1.1 * Math.PI / 30 / (car.gearRatios[state.gear - 1] * car.finalDrive));
+    if(car.physics.transmissionType==='MT')state.engineOmega=car.maxRPM*1.1*Math.PI/30;
     state.torque = car.peakTorque;
     physics.step(car, track, state, { steer: 0, throttle: 1, brake: 0 });
     assert.ok(state.torque <= 0, car.id + ': over-rev must cut positive drive immediately');
@@ -474,7 +478,7 @@ test('forward wheel locking does not numerically reverse the braked wheels',()=>
 });
 
 test('runtime rejects the old three-channel genome rather than misreading its stride',()=>{
-  assert.throws(()=>physics.evaluateGene(catalog.get(),straightTrack(),new Float64Array(384)),/genome v2/);
+  assert.throws(()=>physics.evaluateGene(catalog.get(),straightTrack(),new Float64Array(384)),/genome v3/);
 });
 
 test('valid forward drift continues to earn more speed quality above 43.2 km/h',()=>{
