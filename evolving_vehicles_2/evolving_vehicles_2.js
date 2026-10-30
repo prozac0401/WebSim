@@ -204,7 +204,7 @@ function updatePaintUI(car){
 function updateUI(){
  if(!race)return;const order=race.standings(),car=watching(),leader=order[0],spec=car.spec,p=car.entrant,stock=stockMode(),ready=modelReady();
  updateModelStatus();
- updatePowertrainHUD(car);updatePaintUI(car);updateConditionUI(car);
+ updatePowertrainHUD(car);updatePaintUI(car);
  $('start').textContent=race.finished?(stock?'↺ 같은 구성 재주행':'↺ 같은 세대 재주행'):running?'Ⅱ 일시정지':race.time>0?'▶ 계속 달리기':'▶ 레이스 시작';
  $('reset').textContent=stock?'↻ 같은 구성 재주행':'↻ 같은 세대 재주행';
  $('start').setAttribute('aria-pressed',String(running));$('start').disabled=!ready;$('step').disabled=!ready||race.finished;$('evaluate').disabled=!ready||race.finished||fast;$('evaluate').textContent=fast?'평가 중…':stock?'출고 성능 빠른 평가':'이번 세대 빠른 평가';
@@ -229,39 +229,9 @@ function updateUI(){
  }
  updateTuning(car);historyUI();
 }
+// Internal diagnostics only: thermal state remains available through
+// render_game_to_text, without a public condition panel or per-frame DOM work.
 function conditionSnapshot(car){return car.condition&&window.VehicleCondition?window.VehicleCondition.snapshot(car.condition):null;}
-function updateConditionUI(car){
- const state=conditionSnapshot(car),panel=$('condition-panel');panel.hidden=!state;if(!state)return;
- const percent=value=>Number.isFinite(value)?Math.round(Math.max(0,value)*100)+'%':'—';
- const temperature=value=>Number.isFinite(value)?Math.round(value)+'℃':'—';
- const kilowatts=value=>(Math.max(0,Number(value)||0)/1000).toFixed(1)+' kW';
- for(const axle of ['front','rear']){
-  const tire=state.tires[axle];$('condition-'+axle+'-temp').textContent=temperature(tire.temperatureC);
-  $('condition-'+axle+'-wear').textContent='잔존 '+percent(tire.remaining)+' · 접지 '+percent(tire.gripFactor);
-  $('condition-'+axle+'-card').dataset.limited=String(tire.gripFactor<.95);
- }
- $('condition-brake-temp').textContent=temperature(state.brakes.front.temperatureC)+' / '+temperature(state.brakes.rear.temperatureC);
- $('condition-brake-factor').textContent='제동 성능 '+percent(state.brakes.factor);
- $('condition-brake-card').dataset.limited=String(state.brakes.factor<.95);
- const powertrain=state.powertrain;
- $('condition-power-factor').textContent=percent(powertrain.powerFactor);
- $('condition-power-card').dataset.limited=String(powertrain.powerFactor<.95);
- const temperatures=[[powertrain.engineTemperatureC,'엔진'],[powertrain.motorTemperatureC,'모터'],[powertrain.batteryTemperatureC,'배터리']].filter(([value])=>Number.isFinite(value));
- $('condition-power-temp').textContent=temperatures.map(([value,label])=>label+' '+temperature(value)).join(' · ');
- const electric=Number.isFinite(powertrain.soc);$('condition-electric').hidden=!electric;
- $('condition-soc').textContent='배터리 '+percent(powertrain.soc);
- $('condition-regen').textContent='회생 '+kilowatts(state.power.regenW);
- $('condition-friction').textContent='마찰제동 '+kilowatts(state.power.frictionBrakeW);
- $('condition-engine-charge').hidden=state.kind!=='hybrid';$('condition-engine-charge').textContent='엔진 충전 '+kilowatts(state.power.engineChargeW);
- const laps=car.lapConditions||[];$('condition-laps').hidden=!laps.length;
- $('condition-laps-summary').textContent='랩별 기록과 상태 · '+laps.length+'랩 완료';
- $('condition-lap-rows').replaceChildren(...laps.map((lap,index)=>{
-  const row=document.createElement('tr'),values=[String(lap.lap||index+1),fTime(car.lapTimes[index]),percent(lap.brakes.factor)+' / '+percent(lap.powertrain.powerFactor),percent(lap.tires.front.remaining)+' / '+percent(lap.tires.rear.remaining),(lap.limitations||[]).join(' · ')||'성능 제한 없음'];
-  for(const value of values){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}return row;
- }));
- const reasons=state.limitations||[],reason=$('condition-reason');reason.dataset.limited=String(reasons.length>0);
- reason.textContent=reasons.length?reasons.join(' · '):car.finished?'측정 완료 · 마지막 차량 상태를 표시합니다.':car.dnf?'주행 중단 · 마지막 차량 상태를 표시합니다.':race.time===0?'출발 준비 · 매 측정은 같은 초기 상태에서 시작합니다.':'온도·소모에 따른 성능 제한 없음';
-}
 let powertrainHUDKey='';
 function updatePowertrainHUD(car){
  const t=car.telemetry,hud=$('powertrain-hud'),hidden=!t||t.kind==='electric';
