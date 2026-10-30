@@ -1,0 +1,2253 @@
+{
+  "schema": 1,
+  "status": "completed",
+  "track": "kr-kic-t21-kdl-2016-r2",
+  "seed": 37,
+  "method": "All16 x40 smoke plus selected4 x200 trajectorySearch on/off. Current physics, genome, scoring, clutch mutation support and retry policy held fixed. Fresh engines/evaluators in every run; fixed seed means correlated candidates and repeated prefixes.",
+  "scheduledCandidateInstances": 2240,
+  "distinctVehicleGenePairs": 2076,
+  "repeatedInstanceCount": 164,
+  "knownRepeatedSmokePrefixInstances": 160,
+  "signatures": {
+    "physics": "e49943aa45f2b21b96601efd6e3fb74f681b1a5fae2868f35d73e8d8ed93fe56",
+    "fitness": "d4bd109be4c02081b9e4488442ea83e06e65f3bb16843eea0f7d8ebc650fac61",
+    "genome": "c2d6a45f5bde5eebfcc209a77677e35e4e1c430756c55b01b45c995ea9154e6a"
+  },
+  "validInstances": 1428,
+  "failureInstances": {
+    "offtrack": 459,
+    "timeout": 301,
+    "collision": 52
+  },
+  "clutch": {
+    "enabled": 200,
+    "executed": 196,
+    "validExecuted": 190
+  },
+  "smoke": [
+    {
+      "vehicle": "g80-2.5t-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 27,
+      "failed": 13,
+      "score": 1.5269725411661548,
+      "representative": "g2-8",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.036428000526780566,
+        "maximumLinkCoverage": 0.05194735105579323,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6187.0498262384735,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 647.9063427168264
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 21,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2879975336448757,
+        "progress": 0.011785425045415708,
+        "completed": 0,
+        "velocitySamples": 104,
+        "meanVelocityHeadingErrorDeg": 3.6064086313209702,
+        "meanOutwardVelocityMps": 0.3395657862253524,
+        "sampledMinimumFrontMarginM": 2.907091656907243,
+        "geometry": 0.9314563017487688,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-g80-2.5t-rwd-on-n40.json",
+        "reportSha256": "dcd9f9651b19312754bf695b2fa3b69da9ed87756cf2477e6d4e671db5421a8f",
+        "reproductionHash": "40040231898921c7d4c07fad9480ebe3a1d1cca19402996c6bd7f2b7cdd5febf",
+        "preparedFingerprint": "9d658f244531ad58",
+        "genesisGeneHash": "b823c18e058a555f2c9c37c6803ae7c560f0d10839bb245843c862851e4a0e31"
+      },
+      "label": "제네시스 G80 · 2.5T RWD · 20인치"
+    },
+    {
+      "vehicle": "g80-3.5t-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 29,
+      "failed": 11,
+      "score": 9.952375261868418,
+      "representative": "g2-15",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.4192605151337269,
+        "maximumLinkCoverage": 0.07225245325057905,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6190.975472784912,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 648.3174354618558
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 1,
+        "coarseProposals": 18,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.3433890019066978,
+        "progress": 0.10258080193219327,
+        "completed": 0,
+        "velocitySamples": 110,
+        "meanVelocityHeadingErrorDeg": 4.756565673904044,
+        "meanOutwardVelocityMps": 0.25828535304823674,
+        "sampledMinimumFrontMarginM": 2.868804415422583,
+        "geometry": 0.927732090544893,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-g80-3.5t-rwd-on-n40.json",
+        "reportSha256": "fc14dd98f450f72ac59d29da663df059ae39321266a4f953b064831df60fd864",
+        "reproductionHash": "d2c6ead8db4f9025c8181315496bfacb8067fcbbc770b7f5642627d18c0db7df",
+        "preparedFingerprint": "857e2887a02ff3d1",
+        "genesisGeneHash": "80369693363a8c53371910bab9bd0ef48ecd80c7dc75fdbd37b6087c6d5f385d"
+      },
+      "label": "제네시스 G80 · 3.5T RWD · 20인치"
+    },
+    {
+      "vehicle": "ioniq5-standard",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 20,
+      "failed": 20,
+      "score": 10.608854810704356,
+      "representative": "g1-11",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.07836775484644355,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6806.469350451482,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 712.7718036087488
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 19,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2500687143323829,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 103,
+        "meanVelocityHeadingErrorDeg": 11.697265331378022,
+        "meanOutwardVelocityMps": 0.9514557324218588,
+        "sampledMinimumFrontMarginM": 0.44255464454015114,
+        "geometry": 0.818124489323118,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-ioniq5-standard-on-n40.json",
+        "reportSha256": "2fd1e25a519e36f71049fa14e10b76ad6ef54df7043d5c8fb9d51b04361adc40",
+        "reproductionHash": "bbacb2882492db4307ec6184700d52154a7bda1abc48c9552231c60807b8ff13",
+        "preparedFingerprint": "adc2b78ae21c52d4",
+        "genesisGeneHash": "9470d03dfa13be34a9bbd77adb4c25cf1f50b7b24cee891411ebfe36968490e4"
+      },
+      "label": "현대 아이오닉 5 · Standard RWD · 63 kWh · 19인치"
+    },
+    {
+      "vehicle": "ioniq5-long-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 17,
+      "failed": 23,
+      "score": 2.5042710416365312,
+      "representative": "g2-9",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.10800437854384917,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 8453.56066740636,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 885.2548029799816
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 21,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2542296024214733,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 106,
+        "meanVelocityHeadingErrorDeg": 10.925963022314104,
+        "meanOutwardVelocityMps": 0.856854692340228,
+        "sampledMinimumFrontMarginM": 1.7943084691347861,
+        "geometry": 0.843576952396725,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-ioniq5-long-rwd-on-n40.json",
+        "reportSha256": "14e26af6c515a8ca6ed316d9dac2e899bcf30635018f10d420286a9b797d5536",
+        "reproductionHash": "546bbea37e881f6763a010484c57c3e5ea532b244e9ba720b9c7e98da9d4d993",
+        "preparedFingerprint": "052936e6511011ae",
+        "genesisGeneHash": "bb9b3c4cfce03b4e262096094a27d9ac6f6db68632a98dddc1e21f2714046b17"
+      },
+      "label": "현대 아이오닉 5 · Long Range RWD · 84 kWh · 20인치"
+    },
+    {
+      "vehicle": "porter-lpg-mt",
+      "manual": true,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 37,
+      "failed": 3,
+      "score": 3.5119639009786945,
+      "representative": "g2-17",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.18614519346553263,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 6,
+        "candidatesWithExecutedEvents": 6,
+        "validWithExecutedEvents": 6
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 4559.906503663721,
+        "peakClutchTorqueNm": 344.21355000000005,
+        "peakEngineOmega": 477.5122924322088
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 1,
+        "coarseProposals": 15,
+        "fineProposals": 5,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2929975880071331,
+        "progress": 0.0279418988998029,
+        "completed": 0,
+        "velocitySamples": 75,
+        "meanVelocityHeadingErrorDeg": 6.507118206294485,
+        "meanOutwardVelocityMps": 0.155361230466879,
+        "sampledMinimumFrontMarginM": 0.4689372315816682,
+        "geometry": 0.9120151853756051,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-porter-lpg-mt-on-n40.json",
+        "reportSha256": "1d797794dcb6ee5d8a52df825c6fb288735e3a0f7d0fd91263c3f0548c04764c",
+        "reproductionHash": "0a7c5688a1dc8b9526d39073813d60b21b20113e5f944fac2e41b304315d829a",
+        "preparedFingerprint": "9f996f181b8a9dec",
+        "genesisGeneHash": "a8ee0890d5ec4fe4458467de81a141b3aeab8553f9a50a0f667ecfbd32136554"
+      },
+      "label": "현대 포터 II · 2.5 LPG 터보 RWD · 슈퍼캡 6MT"
+    },
+    {
+      "vehicle": "porter-lpg-at",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 30,
+      "failed": 10,
+      "score": 1.5148697524284924,
+      "representative": "g1-9",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 4909.6137950395605,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 514.1335543486463
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 23,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2552312498534441,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 86,
+        "meanVelocityHeadingErrorDeg": 9.679095524360982,
+        "meanOutwardVelocityMps": 0.6320529405875459,
+        "sampledMinimumFrontMarginM": 1.4747084216201223,
+        "geometry": 0.8464173678863656,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-porter-lpg-at-on-n40.json",
+        "reportSha256": "def55c95a052e731661171a17fa9ea0d87e13e7a97d6dec378bd38e3b0901e55",
+        "reproductionHash": "c739bb719d77f3d5f60bd465edcadf9f1e8a5178436a20803036fa03513dc37d",
+        "preparedFingerprint": "deb1094edba8c23e",
+        "genesisGeneHash": "05ccbaaeccbc636917001de8558ef3b788ee239b07a0323d50c70c2848ee71f8"
+      },
+      "label": "현대 포터 II · 2.5 LPG 터보 RWD · 슈퍼캡 5AT"
+    },
+    {
+      "vehicle": "porter-diesel-at",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 33,
+      "failed": 7,
+      "score": 8.017812688644426,
+      "representative": "g2-20",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.1883240302312344,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 4355.533672001689,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 456.1104195474494
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 17,
+        "fineProposals": 7,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2851310702730814,
+        "progress": 0.027049294840079723,
+        "completed": 0,
+        "velocitySamples": 76,
+        "meanVelocityHeadingErrorDeg": 7.082957852678623,
+        "meanOutwardVelocityMps": 0.5559586542702838,
+        "sampledMinimumFrontMarginM": 0.5468318325632773,
+        "geometry": 0.8749084071302318,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-porter-diesel-at-on-n40.json",
+        "reportSha256": "8244792aac9fa05df6d8df85f65641dbe9dabcb1526df427420ee567323fc1dd",
+        "reproductionHash": "3f4a56c029b7ab52919d06cc0643cac1a8e337806de7cde96cad0bf699ed6ea4",
+        "preparedFingerprint": "1c8fc133ad0028a7",
+        "genesisGeneHash": "987d1dd1b9202658dbd8b2dbcec5898f51b005ae3e73b5d31d596d6815a19df7"
+      },
+      "label": "현대 포터 II · 2020 국내 A-2 2.5 디젤 RWD · 초장축 슈퍼캡 5AT"
+    },
+    {
+      "vehicle": "porter-diesel-mt",
+      "manual": true,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 36,
+      "failed": 4,
+      "score": 1.639674285833562,
+      "representative": "g1-13",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.03992939084816702,
+        "maximumLinkCoverage": 0.00778734265253306,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 3,
+        "candidatesWithExecutedEvents": 3,
+        "validWithExecutedEvents": 3
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 4340.75376677568,
+        "peakClutchTorqueNm": 350.8326,
+        "peakEngineOmega": 454.5626714914899
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 21,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.27443494392507856,
+        "progress": 0.0011380981798183875,
+        "completed": 0,
+        "velocitySamples": 69,
+        "meanVelocityHeadingErrorDeg": 7.146154582229439,
+        "meanOutwardVelocityMps": 0.14317005826004828,
+        "sampledMinimumFrontMarginM": 0.48169044333314504,
+        "geometry": 0.9100069910063862,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-porter-diesel-mt-on-n40.json",
+        "reportSha256": "706d58af8df600d04630f35e6490b4555ad798cc50f0282e30c6e233b873d91c",
+        "reproductionHash": "021c8542acad42133777da83b6e92351d5841f49c4ca97dbf6f668234a2024dd",
+        "preparedFingerprint": "bdba76ab63aca9bb",
+        "genesisGeneHash": "b382d666066a6493761162f405b4fa4de3e7cd6e1d5f1f0d859c1faf164ceb2c"
+      },
+      "label": "현대 포터 II · 2020 국내 A-2 2.5 디젤 RWD · 초장축 슈퍼캡 6MT"
+    },
+    {
+      "vehicle": "g70-2.0t-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 28,
+      "failed": 12,
+      "score": 2.8831673797314425,
+      "representative": "g2-11",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.1623441180012846,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6495.391683009894,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 680.1958264510708
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 2,
+        "coarseProposals": 16,
+        "fineProposals": 3,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.27167742298237835,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 94,
+        "meanVelocityHeadingErrorDeg": 7.389885725798781,
+        "meanOutwardVelocityMps": 0.3864868633506032,
+        "sampledMinimumFrontMarginM": 1.2714356586153392,
+        "geometry": 0.9013402097201297,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-g70-2.0t-rwd-on-n40.json",
+        "reportSha256": "9102051a4c624146476a26a52a4abd70782076bab156be821b87377c6a189ea3",
+        "reproductionHash": "a533f0b909a74c6e5dc92dfe7be879f7a8315bf3355007c911cd13d8f5992b62",
+        "preparedFingerprint": "5c734e66ca4cdbe0",
+        "genesisGeneHash": "e7b988757827f2632a24319e738e9c30241308fc532eb209424d0a6dc13b9444"
+      },
+      "label": "제네시스 G70 (전기형) · 2019 국내 2.0T RWD · 8AT · 18인치"
+    },
+    {
+      "vehicle": "g70-3.3t-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 27,
+      "failed": 13,
+      "score": 13.708274015862463,
+      "representative": "g2-15",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.5248612262755838,
+        "maximumLinkCoverage": 0.09045094838568925,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6499.530697702526,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 680.62926305612
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 1,
+        "coarseProposals": 18,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.35984176946005686,
+        "progress": 0.12841821147238436,
+        "completed": 0,
+        "velocitySamples": 109,
+        "meanVelocityHeadingErrorDeg": 4.7375215729853295,
+        "meanOutwardVelocityMps": 0.2617145816278624,
+        "sampledMinimumFrontMarginM": 2.924405918873864,
+        "geometry": 0.9261980763861063,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-g70-3.3t-rwd-on-n40.json",
+        "reportSha256": "98baad3d633375eb087e7bf8eaae5236907b9b4a720b8e6bc593f7cfa14ccdb0",
+        "reproductionHash": "4e4a71ae20a0f09efac9e543e9262ad41def9bd8a3527ecfd55aa27e12916c30",
+        "preparedFingerprint": "e0f6261cfea05d06",
+        "genesisGeneHash": "eb8ddbd06fc615ddccc96fd339529f83d658762e81f9b96303e16dbb5e87a095"
+      },
+      "label": "제네시스 G70 (전기형) · 2019 국내 3.3T Sport RWD · 8AT · 19인치"
+    },
+    {
+      "vehicle": "g70-2.2d-rwd",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 27,
+      "failed": 13,
+      "score": 2.3560336095893533,
+      "representative": "g1-7",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.17494168774025082,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 4198.083654685335,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 439.6222922904946
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 1,
+        "coarseProposals": 19,
+        "fineProposals": 2,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2771720921063454,
+        "progress": 0.027602915987924977,
+        "completed": 0,
+        "velocitySamples": 86,
+        "meanVelocityHeadingErrorDeg": 7.328870391683903,
+        "meanOutwardVelocityMps": 0.8685840396950083,
+        "sampledMinimumFrontMarginM": 0.0731922087230562,
+        "geometry": 0.8512170510901879,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-g70-2.2d-rwd-on-n40.json",
+        "reportSha256": "b1c3f5221bf28b6c2d2640da534e8025e933d1d756103269be3f63a646c01037",
+        "reproductionHash": "e6b3928fb5b5937914d95bb3a8bceabac016d3305ca0687f5bfc46927e776792",
+        "preparedFingerprint": "0ce829daafea3a1a",
+        "genesisGeneHash": "b270317e3c1b4897ee3e5d1118d27da5e5f0e6c4d04008f6b904d8a16db8087a"
+      },
+      "label": "제네시스 G70 (전기형) · 2019 국내 R2.2 디젤 RWD · 8AT · 17인치"
+    },
+    {
+      "vehicle": "supra-3.0t-rz",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 11,
+      "failed": 29,
+      "score": 4.234158055790602,
+      "representative": "g2-9",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.039111652531328554,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6499.841044432316,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 680.6617624896658
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 7,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 19,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2465460416478883,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 100,
+        "meanVelocityHeadingErrorDeg": 12.27262597974078,
+        "meanOutwardVelocityMps": 0.9124815694423396,
+        "sampledMinimumFrontMarginM": 0.6395771479012602,
+        "geometry": 0.8155954389981764,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-supra-3.0t-rz-on-n40.json",
+        "reportSha256": "40d9431627e5d67556baa0d5bfc7b49218457150c0e590ea0cd89541cbaa03bc",
+        "reproductionHash": "c109a5fee3ff39b63ab3ac4f003c12b5d9be829271ca30da321471cf5347ecb1",
+        "preparedFingerprint": "c7cf7fe8e3f128fe",
+        "genesisGeneHash": "ce40c19786faef326c7a2e98613bb8eb1bbcfabe4a9d917ad3545228856e5345"
+      },
+      "label": "토요타 GR 수프라 A90 · GR Supra 3.0T 8AT · 19인치"
+    },
+    {
+      "vehicle": "bmw-m2-3.0t-dct",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 26,
+      "failed": 14,
+      "score": 16.62789706928829,
+      "representative": "g2-4",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.14817424052997102,
+        "maximumLinkCoverage": 0.07201240017894021,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6496.963161945168,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 680.3603913403484
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 1,
+        "coarseProposals": 24,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2626982857458977,
+        "progress": 0,
+        "completed": 0,
+        "velocitySamples": 101,
+        "meanVelocityHeadingErrorDeg": 9.941801944733813,
+        "meanOutwardVelocityMps": 0.6783725380076245,
+        "sampledMinimumFrontMarginM": 2.1082569925928327,
+        "geometry": 0.8579158337984226,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-bmw-m2-3.0t-dct-on-n40.json",
+        "reportSha256": "bc3942b63c9f554781a0b1ecade346f15979b296053b7f5b0d97638794e22106",
+        "reproductionHash": "6fa52a40ec9249af0813fb20e8c948bd8f0aedf9f442ed7b01d22509b28f76b1",
+        "preparedFingerprint": "e040505976700589",
+        "genesisGeneHash": "7c3bfdfcfa86fd149dfeb36d4a61752028adcd8c369b701bff075eb2035e8563"
+      },
+      "label": "BMW M2 F87 · 2016 독일 3.0T RWD · 7DCT · 19인치"
+    },
+    {
+      "vehicle": "bmw-m2-3.0t-mt",
+      "manual": true,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 30,
+      "failed": 10,
+      "score": 12.987069273838713,
+      "representative": "g2-16",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.7835219768790133,
+        "maximumLinkCoverage": 0.16599501901880315,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 3,
+        "guidedValid": 2
+      },
+      "clutch": {
+        "candidatesWithEvents": 7,
+        "candidatesWithExecutedEvents": 7,
+        "validWithExecutedEvents": 7
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 7000,
+        "peakClutchTorqueNm": 627.75,
+        "peakEngineOmega": 733.0382858376183
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 3,
+        "coarseProposals": 14,
+        "fineProposals": 5,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.3836988569700578,
+        "progress": 0.16816758531427017,
+        "completed": 0,
+        "velocitySamples": 74,
+        "meanVelocityHeadingErrorDeg": 5.1228148316182045,
+        "meanOutwardVelocityMps": 0.0539580634122556,
+        "sampledMinimumFrontMarginM": 0.16417849136766835,
+        "geometry": 0.9291245348113805,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-bmw-m2-3.0t-mt-on-n40.json",
+        "reportSha256": "16fc38132decec57626c2d13de9f8d8aa67b7ec8332c3a3b74384742ace036ae",
+        "reproductionHash": "5e26bc76a25326db33c02bac1135e0d02ca03a73f084738df8c9810d98ebca86",
+        "preparedFingerprint": "7c722155d61623c5",
+        "genesisGeneHash": "5817eff4f14c58ec585be3405e89fda0c1817e312f235b32db9dd9f5fd286056"
+      },
+      "label": "BMW M2 F87 · 2016 독일 3.0T RWD · 6MT · 19인치"
+    },
+    {
+      "vehicle": "gr86-2.4-rz-mt",
+      "manual": true,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 26,
+      "failed": 14,
+      "score": 5.0922196863137605,
+      "representative": "g2-6",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0,
+        "maximumLinkCoverage": 0.0951973050891835,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 10,
+        "candidatesWithExecutedEvents": 10,
+        "validWithExecutedEvents": 9
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 7500,
+        "peakClutchTorqueNm": 337.5,
+        "peakEngineOmega": 785.3981633974483
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "coarse",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 0,
+        "coarseProposals": 19,
+        "fineProposals": 0,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.2848038126123425,
+        "progress": 0.014054452391416615,
+        "completed": 0,
+        "velocitySamples": 85,
+        "meanVelocityHeadingErrorDeg": 6.022067141810888,
+        "meanOutwardVelocityMps": 0.3097655415795294,
+        "sampledMinimumFrontMarginM": 0.3989553922820265,
+        "geometry": 0.9118569339443355,
+        "feasible": false
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-gr86-2.4-rz-mt-on-n40.json",
+        "reportSha256": "e395b68d682752744611aeebf2184ab776274469057d8ddd57e1a74f99a4fb14",
+        "reproductionHash": "c99fa2bd5041ca48cc8424a7da8657396d455fb0d745c043995f2779d4820fbc",
+        "preparedFingerprint": "9aec5f60a08faefc",
+        "genesisGeneHash": "88bff0e2b6b78005c5c55215503252efd9ae1831c3f861bc4eedb6c42a4d4299"
+      },
+      "label": "토요타 GR86 ZN8 · 2022 일본 RZ 2.4 RWD · 6MT · 18인치"
+    },
+    {
+      "vehicle": "gr86-2.4-rz-at",
+      "manual": false,
+      "phase": "smoke",
+      "trajectoryEnabled": true,
+      "evaluated": 40,
+      "valid": 24,
+      "failed": 16,
+      "score": 3.513733641052131,
+      "representative": "g2-19",
+      "connections": {
+        "completedCornerRuns": 0,
+        "completedLinkRuns": 0,
+        "fullyConnectedRuns": 0,
+        "maximumCornerCoverage": 0.11176406551161806,
+        "maximumLinkCoverage": 0.1437621404288011,
+        "representative": {
+          "corners": 0,
+          "links": 0
+        },
+        "guided": 0,
+        "guidedValid": 0
+      },
+      "clutch": {
+        "candidatesWithEvents": 0,
+        "candidatesWithExecutedEvents": 0,
+        "validWithExecutedEvents": 0
+      },
+      "bestClutch": {
+        "enabledEvents": 0,
+        "executedEvents": 0,
+        "activeFrames": 0,
+        "peakRpm": 6998.953712524426,
+        "peakClutchTorqueNm": 0,
+        "peakEngineOmega": 732.9287188693914
+      },
+      "lineSearch": {
+        "enabled": true,
+        "phase": "refine",
+        "families": 8,
+        "parents": 8,
+        "feasibleParents": 2,
+        "coarseProposals": 11,
+        "fineProposals": 9,
+        "duplicateAvoided": 0,
+        "retry": {
+          "blocked": 0,
+          "skipped": 0
+        }
+      },
+      "actualTrajectory": {
+        "observed": true,
+        "merit": 0.28292587463663815,
+        "progress": 0.03777835912406682,
+        "completed": 0,
+        "velocitySamples": 95,
+        "meanVelocityHeadingErrorDeg": 8.964822657803992,
+        "meanOutwardVelocityMps": 0.7945790853036879,
+        "sampledMinimumFrontMarginM": 1.2651923840646522,
+        "geometry": 0.8486750959652077,
+        "feasible": true
+      },
+      "source": {
+        "report": "output/drift-qa/line-clutch-final-s37-smoke-gr86-2.4-rz-at-on-n40.json",
+        "reportSha256": "aed15b48b62ae6ce5390f838ae0c70b34367ef9fcb99dd44f08af675220f4d28",
+        "reproductionHash": "cc739b3829262faf48f405c7162b261964680805bd904101480088787f4623c9",
+        "preparedFingerprint": "69b87ff1324a6c9f",
+        "genesisGeneHash": "f97c966e73b2f8a6e7416d3f193bde9e7c47e3e00f87a855e63b7034d6442d4c"
+      },
+      "label": "토요타 GR86 ZN8 · 2022 일본 RZ 2.4 RWD · 6AT · 18인치"
+    }
+  ],
+  "paired": [
+    {
+      "vehicle": "porter-lpg-mt",
+      "on": {
+        "vehicle": "porter-lpg-mt",
+        "manual": true,
+        "phase": "paired",
+        "trajectoryEnabled": true,
+        "evaluated": 200,
+        "valid": 175,
+        "failed": 25,
+        "score": 5.123124304199557,
+        "representative": "g10-17",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.12437569928309217,
+          "maximumLinkCoverage": 0.1863190801150834,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 0,
+          "guidedValid": 0
+        },
+        "clutch": {
+          "candidatesWithEvents": 40,
+          "candidatesWithExecutedEvents": 39,
+          "validWithExecutedEvents": 39
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 4799.704725399287,
+          "peakClutchTorqueNm": 344.21355000000005,
+          "peakEngineOmega": 502.6239034904872
+        },
+        "lineSearch": {
+          "enabled": true,
+          "phase": "reopen",
+          "families": 8,
+          "parents": 8,
+          "feasibleParents": 2,
+          "coarseProposals": 70,
+          "fineProposals": 39,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.2720477292508337,
+          "progress": 0,
+          "completed": 0,
+          "velocitySamples": 72,
+          "meanVelocityHeadingErrorDeg": 6.140991956418421,
+          "meanOutwardVelocityMps": 0.44368748503204836,
+          "sampledMinimumFrontMarginM": 0.9071231131000673,
+          "geometry": 0.8973421297218929,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-porter-lpg-mt-on-n200.json",
+          "reportSha256": "0f5f668bc4de43188721421b7c783fcb4c1be73148a0289aa7b0ac51f7ea5d0f",
+          "reproductionHash": "8fec18b513694a4a111936dce38ee29a207192a74be6ebfe114f0707337d102c",
+          "preparedFingerprint": "9f996f181b8a9dec",
+          "genesisGeneHash": "a8ee0890d5ec4fe4458467de81a141b3aeab8553f9a50a0f667ecfbd32136554"
+        },
+        "label": "현대 포터 II · 2.5 LPG 터보 RWD · 슈퍼캡 6MT"
+      },
+      "off": {
+        "vehicle": "porter-lpg-mt",
+        "manual": true,
+        "phase": "paired",
+        "trajectoryEnabled": false,
+        "evaluated": 200,
+        "valid": 151,
+        "failed": 49,
+        "score": 10.210003187332433,
+        "representative": "g10-20",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.020396481447862883,
+          "maximumLinkCoverage": 0.21002040953488232,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 0,
+          "guidedValid": 0
+        },
+        "clutch": {
+          "candidatesWithEvents": 47,
+          "candidatesWithExecutedEvents": 46,
+          "validWithExecutedEvents": 46
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 4988.354903453605,
+          "peakClutchTorqueNm": 344.21355000000005,
+          "peakEngineOmega": 522.3793039396156
+        },
+        "lineSearch": {
+          "enabled": false,
+          "phase": "coarse",
+          "families": 0,
+          "parents": 0,
+          "feasibleParents": 0,
+          "coarseProposals": 0,
+          "fineProposals": 0,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.28258506449367027,
+          "progress": 0.00499042325235307,
+          "completed": 0,
+          "velocitySamples": 89,
+          "meanVelocityHeadingErrorDeg": 6.1163504572852725,
+          "meanOutwardVelocityMps": 0.21332794745303868,
+          "sampledMinimumFrontMarginM": 0.444641399815012,
+          "geometry": 0.919563983292988,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-porter-lpg-mt-off-n200.json",
+          "reportSha256": "2f0be4d5a42a00209050404839d5c3306a6daef10f296193067f7425073c6cea",
+          "reproductionHash": "155b05c30a056be6e181e239112be4e621c4fb97e1728c4892139724febbe5d9",
+          "preparedFingerprint": "9f996f181b8a9dec",
+          "genesisGeneHash": "a8ee0890d5ec4fe4458467de81a141b3aeab8553f9a50a0f667ecfbd32136554"
+        },
+        "label": "현대 포터 II · 2.5 LPG 터보 RWD · 슈퍼캡 6MT"
+      },
+      "delta": {
+        "score": -5.086878883132876,
+        "valid": 24,
+        "meanVelocityHeadingErrorDeg": 0.024641499133148947,
+        "meanOutwardVelocityMps": 0.23035953757900968,
+        "sampledMinimumFrontMarginM": 0.46248171328505533
+      }
+    },
+    {
+      "vehicle": "gr86-2.4-rz-mt",
+      "on": {
+        "vehicle": "gr86-2.4-rz-mt",
+        "manual": true,
+        "phase": "paired",
+        "trajectoryEnabled": true,
+        "evaluated": 200,
+        "valid": 146,
+        "failed": 54,
+        "score": 8.690584366343874,
+        "representative": "g7-13",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.005651710487736787,
+          "maximumLinkCoverage": 0.29587147320127527,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 0,
+          "guidedValid": 0
+        },
+        "clutch": {
+          "candidatesWithEvents": 54,
+          "candidatesWithExecutedEvents": 52,
+          "validWithExecutedEvents": 47
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 7500,
+          "peakClutchTorqueNm": 337.5,
+          "peakEngineOmega": 785.3981633974483
+        },
+        "lineSearch": {
+          "enabled": true,
+          "phase": "refine",
+          "families": 8,
+          "parents": 8,
+          "feasibleParents": 6,
+          "coarseProposals": 71,
+          "fineProposals": 23,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.2873841687320549,
+          "progress": 0.043671952456353254,
+          "completed": 0,
+          "velocitySamples": 81,
+          "meanVelocityHeadingErrorDeg": 7.497297850891224,
+          "meanOutwardVelocityMps": 0.9103549342140141,
+          "sampledMinimumFrontMarginM": 1.4392359609818577,
+          "geometry": 0.8500754847009322,
+          "feasible": true
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-gr86-2.4-rz-mt-on-n200.json",
+          "reportSha256": "6b525ecfd1e9daf8b638e3851849ca694de1e4f4d044adddad5f42b6f0cffeb3",
+          "reproductionHash": "576df88bf9a410156886b3417bac71acaf30a8610b049a66ae7ad852f5f119fb",
+          "preparedFingerprint": "9aec5f60a08faefc",
+          "genesisGeneHash": "88bff0e2b6b78005c5c55215503252efd9ae1831c3f861bc4eedb6c42a4d4299"
+        },
+        "label": "토요타 GR86 ZN8 · 2022 일본 RZ 2.4 RWD · 6MT · 18인치"
+      },
+      "off": {
+        "vehicle": "gr86-2.4-rz-mt",
+        "manual": true,
+        "phase": "paired",
+        "trajectoryEnabled": false,
+        "evaluated": 200,
+        "valid": 124,
+        "failed": 76,
+        "score": 16.293757755029564,
+        "representative": "g10-19",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 1,
+          "maximumLinkCoverage": 0.3609783344997776,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 18,
+          "guidedValid": 7
+        },
+        "clutch": {
+          "candidatesWithEvents": 33,
+          "candidatesWithExecutedEvents": 33,
+          "validWithExecutedEvents": 33
+        },
+        "bestClutch": {
+          "enabledEvents": 1,
+          "executedEvents": 1,
+          "activeFrames": 9,
+          "peakRpm": 7500,
+          "peakClutchTorqueNm": 337.5,
+          "peakEngineOmega": 785.3981633974483
+        },
+        "lineSearch": {
+          "enabled": false,
+          "phase": "coarse",
+          "families": 0,
+          "parents": 0,
+          "feasibleParents": 0,
+          "coarseProposals": 0,
+          "fineProposals": 0,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 1,
+            "skipped": 2
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.4323254518964389,
+          "progress": 0.25984817344658523,
+          "completed": 0,
+          "velocitySamples": 83,
+          "meanVelocityHeadingErrorDeg": 5.693874758955799,
+          "meanOutwardVelocityMps": 0.48357275387228715,
+          "sampledMinimumFrontMarginM": 0.03948929080492428,
+          "geometry": 0.8979738452704298,
+          "feasible": true
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-gr86-2.4-rz-mt-off-n200.json",
+          "reportSha256": "deeea6b2ec4da5de6fa43cddcbe34883a25d8b083260f11f07a46ba05688c1d2",
+          "reproductionHash": "703e90acc673b44d8777ce78373a8364fc8293190a28071e2d144f0f6b2232ee",
+          "preparedFingerprint": "9aec5f60a08faefc",
+          "genesisGeneHash": "88bff0e2b6b78005c5c55215503252efd9ae1831c3f861bc4eedb6c42a4d4299"
+        },
+        "label": "토요타 GR86 ZN8 · 2022 일본 RZ 2.4 RWD · 6MT · 18인치"
+      },
+      "delta": {
+        "score": -7.60317338868569,
+        "valid": 22,
+        "meanVelocityHeadingErrorDeg": 1.803423091935425,
+        "meanOutwardVelocityMps": 0.426782180341727,
+        "sampledMinimumFrontMarginM": 1.3997466701769334
+      }
+    },
+    {
+      "vehicle": "supra-3.0t-rz",
+      "on": {
+        "vehicle": "supra-3.0t-rz",
+        "manual": false,
+        "phase": "paired",
+        "trajectoryEnabled": true,
+        "evaluated": 200,
+        "valid": 81,
+        "failed": 119,
+        "score": 11.228696967368647,
+        "representative": "g7-15",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.1718078036317083,
+          "maximumLinkCoverage": 0.14185654934754569,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 0,
+          "guidedValid": 0
+        },
+        "clutch": {
+          "candidatesWithEvents": 0,
+          "candidatesWithExecutedEvents": 0,
+          "validWithExecutedEvents": 0
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 6497.202445209211,
+          "peakClutchTorqueNm": 0,
+          "peakEngineOmega": 680.3854490251632
+        },
+        "lineSearch": {
+          "enabled": true,
+          "phase": "refine",
+          "families": 8,
+          "parents": 8,
+          "feasibleParents": 1,
+          "coarseProposals": 127,
+          "fineProposals": 0,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.2463458259716184,
+          "progress": 0,
+          "completed": 0,
+          "velocitySamples": 91,
+          "meanVelocityHeadingErrorDeg": 12.660608395932911,
+          "meanOutwardVelocityMps": 1.080684081126806,
+          "sampledMinimumFrontMarginM": 0.13764576557661815,
+          "geometry": 0.8059518304108376,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-supra-3.0t-rz-on-n200.json",
+          "reportSha256": "57b3b7f08429ae3368ebad40c15673bc194799cd21333b2381599b24828d73d3",
+          "reproductionHash": "14e78e742dd2b577570cc0c4549673e2d76ad90c27b7e3d8e7d77d30a8f175ef",
+          "preparedFingerprint": "c7cf7fe8e3f128fe",
+          "genesisGeneHash": "ce40c19786faef326c7a2e98613bb8eb1bbcfabe4a9d917ad3545228856e5345"
+        },
+        "label": "토요타 GR 수프라 A90 · GR Supra 3.0T 8AT · 19인치"
+      },
+      "off": {
+        "vehicle": "supra-3.0t-rz",
+        "manual": false,
+        "phase": "paired",
+        "trajectoryEnabled": false,
+        "evaluated": 200,
+        "valid": 88,
+        "failed": 112,
+        "score": 13.103115937063802,
+        "representative": "g10-18",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.6627499265218106,
+          "maximumLinkCoverage": 0.31071752127512364,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 50,
+          "guidedValid": 16
+        },
+        "clutch": {
+          "candidatesWithEvents": 0,
+          "candidatesWithExecutedEvents": 0,
+          "validWithExecutedEvents": 0
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 6492.230607890405,
+          "peakClutchTorqueNm": 0,
+          "peakEngineOmega": 679.8647994386431
+        },
+        "lineSearch": {
+          "enabled": false,
+          "phase": "coarse",
+          "families": 0,
+          "parents": 0,
+          "feasibleParents": 0,
+          "coarseProposals": 0,
+          "fineProposals": 0,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 4,
+            "skipped": 7
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.27746472692985624,
+          "progress": 0,
+          "completed": 0,
+          "velocitySamples": 97,
+          "meanVelocityHeadingErrorDeg": 4.46013554935185,
+          "meanOutwardVelocityMps": 0.46872213596956214,
+          "sampledMinimumFrontMarginM": 3.200963712631741,
+          "geometry": 0.9095247380751054,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-supra-3.0t-rz-off-n200.json",
+          "reportSha256": "16cd50429d1e25878a0cc1e55f9d88deabce60baceb23811de67b70eed1cc886",
+          "reproductionHash": "8101d727ee6a09697baad6d4471012d0081ad82f6813fbbfaecc58640d3f4ccb",
+          "preparedFingerprint": "c7cf7fe8e3f128fe",
+          "genesisGeneHash": "ce40c19786faef326c7a2e98613bb8eb1bbcfabe4a9d917ad3545228856e5345"
+        },
+        "label": "토요타 GR 수프라 A90 · GR Supra 3.0T 8AT · 19인치"
+      },
+      "delta": {
+        "score": -1.8744189696951548,
+        "valid": -7,
+        "meanVelocityHeadingErrorDeg": 8.20047284658106,
+        "meanOutwardVelocityMps": 0.6119619451572438,
+        "sampledMinimumFrontMarginM": -3.063317947055123
+      }
+    },
+    {
+      "vehicle": "ioniq5-standard",
+      "on": {
+        "vehicle": "ioniq5-standard",
+        "manual": false,
+        "phase": "paired",
+        "trajectoryEnabled": true,
+        "evaluated": 200,
+        "valid": 116,
+        "failed": 84,
+        "score": 10.935783874964198,
+        "representative": "g5-4",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0,
+          "maximumLinkCoverage": 0.11063407039167272,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 0,
+          "guidedValid": 0
+        },
+        "clutch": {
+          "candidatesWithEvents": 0,
+          "candidatesWithExecutedEvents": 0,
+          "validWithExecutedEvents": 0
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 6806.469350451482,
+          "peakClutchTorqueNm": 0,
+          "peakEngineOmega": 712.7718036087488
+        },
+        "lineSearch": {
+          "enabled": true,
+          "phase": "reopen",
+          "families": 8,
+          "parents": 8,
+          "feasibleParents": 1,
+          "coarseProposals": 91,
+          "fineProposals": 30,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.25005290055021123,
+          "progress": 0,
+          "completed": 0,
+          "velocitySamples": 106,
+          "meanVelocityHeadingErrorDeg": 11.64068810508952,
+          "meanOutwardVelocityMps": 0.925841893599133,
+          "sampledMinimumFrontMarginM": 0.32384756361009526,
+          "geometry": 0.8181761214428362,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-ioniq5-standard-on-n200.json",
+          "reportSha256": "940766d383e410be8455c24c74360823784d28ce744a2ead9d920919adec64f7",
+          "reproductionHash": "fcc091ee492d9a8bdaafccb1928b1b0ab93ca16b276df64f87bd2d417a8461ac",
+          "preparedFingerprint": "adc2b78ae21c52d4",
+          "genesisGeneHash": "9470d03dfa13be34a9bbd77adb4c25cf1f50b7b24cee891411ebfe36968490e4"
+        },
+        "label": "현대 아이오닉 5 · Standard RWD · 63 kWh · 19인치"
+      },
+      "off": {
+        "vehicle": "ioniq5-standard",
+        "manual": false,
+        "phase": "paired",
+        "trajectoryEnabled": false,
+        "evaluated": 200,
+        "valid": 119,
+        "failed": 81,
+        "score": 8.599333865432492,
+        "representative": "g10-2",
+        "connections": {
+          "completedCornerRuns": 0,
+          "completedLinkRuns": 0,
+          "fullyConnectedRuns": 0,
+          "maximumCornerCoverage": 0.46679808994878474,
+          "maximumLinkCoverage": 0.19208190208625617,
+          "representative": {
+            "corners": 0,
+            "links": 0
+          },
+          "guided": 26,
+          "guidedValid": 17
+        },
+        "clutch": {
+          "candidatesWithEvents": 0,
+          "candidatesWithExecutedEvents": 0,
+          "validWithExecutedEvents": 0
+        },
+        "bestClutch": {
+          "enabledEvents": 0,
+          "executedEvents": 0,
+          "activeFrames": 0,
+          "peakRpm": 6806.469350451482,
+          "peakClutchTorqueNm": 0,
+          "peakEngineOmega": 712.7718036087488
+        },
+        "lineSearch": {
+          "enabled": false,
+          "phase": "coarse",
+          "families": 0,
+          "parents": 0,
+          "feasibleParents": 0,
+          "coarseProposals": 0,
+          "fineProposals": 0,
+          "duplicateAvoided": 0,
+          "retry": {
+            "blocked": 0,
+            "skipped": 0
+          }
+        },
+        "actualTrajectory": {
+          "observed": true,
+          "merit": 0.26518642400507825,
+          "progress": 0,
+          "completed": 0,
+          "velocitySamples": 104,
+          "meanVelocityHeadingErrorDeg": 8.669262830253523,
+          "meanOutwardVelocityMps": 0.760016734432636,
+          "sampledMinimumFrontMarginM": 1.1949817912542393,
+          "geometry": 0.8727286104617107,
+          "feasible": false
+        },
+        "source": {
+          "report": "output/drift-qa/line-clutch-final-s37-paired-ioniq5-standard-off-n200.json",
+          "reportSha256": "dd030f083a89d098b6cf885405ec1b35d13cd1de36c7da5486379fff2c8c3f5f",
+          "reproductionHash": "11cd1df0b7a4740f05430bdb118d9d2d69846d7debc04ec55c1041812a88bb4d",
+          "preparedFingerprint": "adc2b78ae21c52d4",
+          "genesisGeneHash": "9470d03dfa13be34a9bbd77adb4c25cf1f50b7b24cee891411ebfe36968490e4"
+        },
+        "label": "현대 아이오닉 5 · Standard RWD · 63 kWh · 19인치"
+      },
+      "delta": {
+        "score": 2.3364500095317062,
+        "valid": -3,
+        "meanVelocityHeadingErrorDeg": 2.9714252748359975,
+        "meanOutwardVelocityMps": 0.1658251591664971,
+        "sampledMinimumFrontMarginM": -0.871134227644144
+      }
+    }
+  ],
+  "prefixParity": [
+    {
+      "vehicle": "porter-lpg-mt",
+      "compared": 40,
+      "keys": [
+        "id",
+        "parentId",
+        "geneHash",
+        "parentGeneHash",
+        "score",
+        "status",
+        "valid",
+        "accepted",
+        "kind"
+      ],
+      "passed": true
+    },
+    {
+      "vehicle": "gr86-2.4-rz-mt",
+      "compared": 40,
+      "keys": [
+        "id",
+        "parentId",
+        "geneHash",
+        "parentGeneHash",
+        "score",
+        "status",
+        "valid",
+        "accepted",
+        "kind"
+      ],
+      "passed": true
+    },
+    {
+      "vehicle": "supra-3.0t-rz",
+      "compared": 40,
+      "keys": [
+        "id",
+        "parentId",
+        "geneHash",
+        "parentGeneHash",
+        "score",
+        "status",
+        "valid",
+        "accepted",
+        "kind"
+      ],
+      "passed": true
+    },
+    {
+      "vehicle": "ioniq5-standard",
+      "compared": 40,
+      "keys": [
+        "id",
+        "parentId",
+        "geneHash",
+        "parentGeneHash",
+        "score",
+        "status",
+        "valid",
+        "accepted",
+        "kind"
+      ],
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "One course and one seed; no statistical generalization or physical stock-car validation.",
+    "400 or1000 historical study scores are not directly comparable: manual drivetrain, prepared genesis and genome have changed.",
+    "Sampled margin and line merit are search diagnostics, not safety proofs; physical offtrack/collision checks still decide validity.",
+    "Clutch inertia/capacity are documented estimates. Clutch-active runs prove input availability, not a causal scoring benefit.",
+    "Smoke on40 repeats the first40 of paired on200 for four variants; 2240 counts actual scheduled evaluations, not independent discoveries."
+  ],
+  "sourceSummary": {
+    "path": "output/drift-qa/line-clutch-final-s37-all-summary.json",
+    "sha256": "b6ac97a7c514a5ea70ac19f8a2b8198016fa4d4f75142c8e0fbeebd9bd66d63f"
+  },
+  "sourceIdentities": [
+    {
+      "path": "evolving_drift/catalog.js",
+      "sha256": "d1377e644fb628476517b40b9236cf26188028131d7e1af9c16d641a9199a9b0",
+      "lfSha256": "d1377e644fb628476517b40b9236cf26188028131d7e1af9c16d641a9199a9b0"
+    },
+    {
+      "path": "evolving_drift/connection-analysis.js",
+      "sha256": "db9f7e9bf1d827307bccab8ed4b37cac78c3074c79a76d5b028e177f497c661d",
+      "lfSha256": "db9f7e9bf1d827307bccab8ed4b37cac78c3074c79a76d5b028e177f497c661d"
+    },
+    {
+      "path": "evolving_drift/course-model.js",
+      "sha256": "5f6529cf5cbe89a9796c187afb7d1be8ef83a7a9e0746bf410ebb3cd7d499eac",
+      "lfSha256": "5f6529cf5cbe89a9796c187afb7d1be8ef83a7a9e0746bf410ebb3cd7d499eac"
+    },
+    {
+      "path": "evolving_drift/course-scoring.js",
+      "sha256": "ac933860213728e784d8ef88f8622c0f34ad8e16ab2759fb94e845e42f8eded1",
+      "lfSha256": "124e76f84e425a8976426ea089c4282135b091398c443c6dd3ed6c8463781d35"
+    },
+    {
+      "path": "evolving_drift/driver.js",
+      "sha256": "3fe79c4f5c93685b4ae8eedae6f0ca3213535413343edd6fdc6e4101e5cf5aff",
+      "lfSha256": "3fe79c4f5c93685b4ae8eedae6f0ca3213535413343edd6fdc6e4101e5cf5aff"
+    },
+    {
+      "path": "evolving_drift/ebisu-west.js",
+      "sha256": "139a23166573836e122a0862dad57a57628fdd64ff28bbd7beabde15456dcec3",
+      "lfSha256": "139a23166573836e122a0862dad57a57628fdd64ff28bbd7beabde15456dcec3"
+    },
+    {
+      "path": "evolving_drift/entry-speed-planner.js",
+      "sha256": "b0fd4a2597090dc36cf88ccfcf2414a770af5ecb2885bac78a6ef1e151bc6123",
+      "lfSha256": "b0fd4a2597090dc36cf88ccfcf2414a770af5ecb2885bac78a6ef1e151bc6123"
+    },
+    {
+      "path": "evolving_drift/evaluation-cache.js",
+      "sha256": "faffc4c805380aad4ebe642b6ddf98df60566ae9c2186cf359ff0343811d8d47",
+      "lfSha256": "faffc4c805380aad4ebe642b6ddf98df60566ae9c2186cf359ff0343811d8d47"
+    },
+    {
+      "path": "evolving_drift/evolution-learning.js",
+      "sha256": "3a2a15c27dfdf5e067ec4c75804da50ee00962d2469618ce4564031f8ae5691c",
+      "lfSha256": "3a2a15c27dfdf5e067ec4c75804da50ee00962d2469618ce4564031f8ae5691c"
+    },
+    {
+      "path": "evolving_drift/evolution-strategies.js",
+      "sha256": "f4df4cb3ded2fb62b79e6061d743eb8bf6e9724a8697195d35dec57b5310185c",
+      "lfSha256": "ffaade2440fd08becf69ff7c6f2d06b31f93ddad8be59eed6467fed3748d4249"
+    },
+    {
+      "path": "evolving_drift/evolution.js",
+      "sha256": "fb24000b9d7939d6cc5631f996dda9be45c1db131e23184a91ba9e053ed711af",
+      "lfSha256": "924923f8b177460938a8ad5b398b58a460653056d4f28f0bba6ce78a954a4578"
+    },
+    {
+      "path": "evolving_drift/failure-analysis.js",
+      "sha256": "60ea26631d2918a297e209254f4791d9ad5a219df0174d2114f13d313f8c0aa9",
+      "lfSha256": "60ea26631d2918a297e209254f4791d9ad5a219df0174d2114f13d313f8c0aa9"
+    },
+    {
+      "path": "evolving_drift/fitness.js",
+      "sha256": "b9cb8a75a1fd52b0abc800129b2a3c40be7b98cb2e434947e37761bb5d561fb1",
+      "lfSha256": "52ef094bc5240c87bd11a5663853bea60dad50365bd89fd5ee580bac5adfe3c9"
+    },
+    {
+      "path": "evolving_drift/genome.js",
+      "sha256": "a2ebb6d860cd6af2e2a8f5a0c3ac2808d62311d8d7bbd439c2968c0d45cbe497",
+      "lfSha256": "a2ebb6d860cd6af2e2a8f5a0c3ac2808d62311d8d7bbd439c2968c0d45cbe497"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--bmw-m2-3.0t-dct.js",
+      "sha256": "c814a68f9718335cd7ab5d253f1dba0af442758b201569d17063fcefee797d85",
+      "lfSha256": "c814a68f9718335cd7ab5d253f1dba0af442758b201569d17063fcefee797d85"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--bmw-m2-3.0t-mt.js",
+      "sha256": "c541802e2c49f2eb300608cd21f34a4374ceeede02afe44ab1670b0946f93171",
+      "lfSha256": "c541802e2c49f2eb300608cd21f34a4374ceeede02afe44ab1670b0946f93171"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g70-2.0t-rwd.js",
+      "sha256": "2ad704c87d366f2f1b7b6752da169d5f8d6a73379b7d5c92084223d2bc0eb6cd",
+      "lfSha256": "2ad704c87d366f2f1b7b6752da169d5f8d6a73379b7d5c92084223d2bc0eb6cd"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g70-2.2d-rwd.js",
+      "sha256": "97710b0c835265b05072afa45b44d2aacf70ad3c2f45b56a347b9563acd0e2d9",
+      "lfSha256": "97710b0c835265b05072afa45b44d2aacf70ad3c2f45b56a347b9563acd0e2d9"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g70-3.3t-rwd.js",
+      "sha256": "bcd255947bb24f8f54260825ea7e6315d80f8fc94f40e965f9705ea778802332",
+      "lfSha256": "bcd255947bb24f8f54260825ea7e6315d80f8fc94f40e965f9705ea778802332"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g80-2.5t-rwd.js",
+      "sha256": "a01b7666d782b36d6b298f5a7da96a256cc6095e5a3441510749296c972fc07a",
+      "lfSha256": "a01b7666d782b36d6b298f5a7da96a256cc6095e5a3441510749296c972fc07a"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g80-3.5t-rwd.js",
+      "sha256": "cd79ec54eab7559a6c3218c6a051a935a224db6c47c40ff5aec426dd58e31ac3",
+      "lfSha256": "cd79ec54eab7559a6c3218c6a051a935a224db6c47c40ff5aec426dd58e31ac3"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--gr86-2.4-rz-at.js",
+      "sha256": "f16d8df266a46c788405552ab3544529b68930a99bd2daa2f96d5711fdb084ca",
+      "lfSha256": "f16d8df266a46c788405552ab3544529b68930a99bd2daa2f96d5711fdb084ca"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--gr86-2.4-rz-mt.js",
+      "sha256": "24ee5514a6a1bcfb51aecaacc80b2896842e723eb80ab0d28b5020ba0cffc584",
+      "lfSha256": "24ee5514a6a1bcfb51aecaacc80b2896842e723eb80ab0d28b5020ba0cffc584"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--ioniq5-long-rwd.js",
+      "sha256": "da249415f5179cd12c6065f1007ab7ac6ff3e8e4785ba59a5d46d80d8f893dc5",
+      "lfSha256": "da249415f5179cd12c6065f1007ab7ac6ff3e8e4785ba59a5d46d80d8f893dc5"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--ioniq5-standard.js",
+      "sha256": "d66bb93b08f6752732693820182874abcc8e2690a92144b249b6ef9fa8db3590",
+      "lfSha256": "d66bb93b08f6752732693820182874abcc8e2690a92144b249b6ef9fa8db3590"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-diesel-at.js",
+      "sha256": "637ee425314639147775e68aab101de884506fca935c5ed222dcb29dc5e9ff1e",
+      "lfSha256": "637ee425314639147775e68aab101de884506fca935c5ed222dcb29dc5e9ff1e"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-diesel-mt.js",
+      "sha256": "14ec0eaf156906d1972be2e29ea69416f294145a516f01eb3fe5fb12c2f011e4",
+      "lfSha256": "14ec0eaf156906d1972be2e29ea69416f294145a516f01eb3fe5fb12c2f011e4"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-lpg-at.js",
+      "sha256": "6a404f58630bf445047d1c07fd385233d43fd37abd000ddc119121886655c873",
+      "lfSha256": "6a404f58630bf445047d1c07fd385233d43fd37abd000ddc119121886655c873"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-lpg-mt.js",
+      "sha256": "f29af0f453421b7535ae7f2f922b2f4b8c3cf84430f7c686755f9eeb4ebf19d6",
+      "lfSha256": "f29af0f453421b7535ae7f2f922b2f4b8c3cf84430f7c686755f9eeb4ebf19d6"
+    },
+    {
+      "path": "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--supra-3.0t-rz.js",
+      "sha256": "ce9960d3654a5a58d66e44dd5923ace238a3bd911aa2e1b3e91034a5c63417ca",
+      "lfSha256": "ce9960d3654a5a58d66e44dd5923ace238a3bd911aa2e1b3e91034a5c63417ca"
+    },
+    {
+      "path": "evolving_drift/inje-sdc.js",
+      "sha256": "fbba3b380c3c309b594fc112f4faa95869bc0b2851978d57e5bfe8d5ef753eeb",
+      "lfSha256": "fbba3b380c3c309b594fc112f4faa95869bc0b2851978d57e5bfe8d5ef753eeb"
+    },
+    {
+      "path": "evolving_drift/kic-sdc.js",
+      "sha256": "67282fa54bf85880511ebe9ae58c85aedeb4866e7a0db115b598290687149732",
+      "lfSha256": "67282fa54bf85880511ebe9ae58c85aedeb4866e7a0db115b598290687149732"
+    },
+    {
+      "path": "evolving_drift/kic-t21.js",
+      "sha256": "abb15bc5b96ac2d48901c2202076603178a00d7b5a1b150857eb81d54d773a2d",
+      "lfSha256": "abb15bc5b96ac2d48901c2202076603178a00d7b5a1b150857eb81d54d773a2d"
+    },
+    {
+      "path": "evolving_drift/manual-clutch.js",
+      "sha256": "12b526abed80bad402c5a0e5cbaa6df789e1418f12572f1f154de409369ae3c3",
+      "lfSha256": "12b526abed80bad402c5a0e5cbaa6df789e1418f12572f1f154de409369ae3c3"
+    },
+    {
+      "path": "evolving_drift/mutation-shape.js",
+      "sha256": "e370531162cc4bdafd93414577575d8cce12f6058a832a622b1d325a89dbc270",
+      "lfSha256": "e370531162cc4bdafd93414577575d8cce12f6058a832a622b1d325a89dbc270"
+    },
+    {
+      "path": "evolving_drift/physics.js",
+      "sha256": "1b3f2c59d1efaa300e432e007b2edeec42b0a4b1963e8e7551b554b39c1ef3cc",
+      "lfSha256": "99404c77f6d3af868a088636e53f58928ceee2b3725bce3f8a935ba21fd83530"
+    },
+    {
+      "path": "evolving_drift/prepared-grips-manifest.js",
+      "sha256": "c22cb5efd3646d25f2dabb288f75758bacf8dd48a9e8dc12c2fc8f6e6f1e1259",
+      "lfSha256": "c22cb5efd3646d25f2dabb288f75758bacf8dd48a9e8dc12c2fc8f6e6f1e1259"
+    },
+    {
+      "path": "evolving_drift/prepared-grips.js",
+      "sha256": "74a05998c39db117618d215e514b96149db7216e8370eead0fac16ad2f6e01bc",
+      "lfSha256": "74a05998c39db117618d215e514b96149db7216e8370eead0fac16ad2f6e01bc"
+    },
+    {
+      "path": "evolving_drift/runtime.js",
+      "sha256": "b0c552b9d98a170e489ab792d9ebf53665ff98bc6cbaec427ba917b20f7dd7c1",
+      "lfSha256": "1d3de40db3edd11238b96127732093c833cbe532dc516a2f857a271bfe1e505e"
+    },
+    {
+      "path": "evolving_drift/tools/benchmark-line-clutch.cjs",
+      "sha256": "aba5fc0254c240888b032512d807d01280bb42ec5098dd25e85f04e65c126535",
+      "lfSha256": "a91e7faa5b5b5501e586b5db5c3d092aa0c02aa93d73f8793498c2e8f172c2dd"
+    },
+    {
+      "path": "evolving_drift/track.js",
+      "sha256": "95be15fa538c432d31349a24039168653ca83e2574bef04dc69b69c716dbf1c9",
+      "lfSha256": "95be15fa538c432d31349a24039168653ca83e2574bef04dc69b69c716dbf1c9"
+    },
+    {
+      "path": "evolving_drift/trajectory-search.js",
+      "sha256": "9e095c3d15cff137b97a83e10fe8fdae3eab2eae61620d5726b4ab4be2723e4b",
+      "lfSha256": "9e095c3d15cff137b97a83e10fe8fdae3eab2eae61620d5726b4ab4be2723e4b"
+    },
+    {
+      "path": "evolving_drift/tsukuba-d1.js",
+      "sha256": "4de084cdb2bd83164543d2fccdc1e96a2024e7ebecd132051df14aa16bf2576d",
+      "lfSha256": "4de084cdb2bd83164543d2fccdc1e96a2024e7ebecd132051df14aa16bf2576d"
+    },
+    {
+      "path": "evolving_vehicles_2/circuit-vehicle-specs.js",
+      "sha256": "544dd9fc1030ba161fbfaa1820540a58d301094042d23e2f7b3ce36dabadb3e7",
+      "lfSha256": "8687ceaedc51de8d8304a10255770bf755c5e3b6474e3db827aadd7df899be7d"
+    },
+    {
+      "path": "evolving_vehicles_2/powertrain-profiles.js",
+      "sha256": "22ed0f741b7ab8db2327b371b680f7579fedf2f2149f1046f119aff7dbc767a2",
+      "lfSha256": "be00693215934df0196ec5091627176099b898c657234c896e7a4c35b2b1dd96"
+    },
+    {
+      "path": "evolving_vehicles_2/tuning-evolution.js",
+      "sha256": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686",
+      "lfSha256": "5ada373c6c756e775b62487aecffcd14bb4e7059a43527021b17b7dc39bca084"
+    },
+    {
+      "path": "evolving_vehicles/vehicle-specs.js",
+      "sha256": "2370fb5206b5fe53ecfa6c36eeaedc72d946c8bf138e271f98b6ddb98eef2c75",
+      "lfSha256": "0551180082436a80dc2119b967aaf7d17db5f68431d1f4ffcf21db65c58fcc79"
+    }
+  ],
+  "reproduction": {
+    "command": "node evolving_drift/tools/run-line-clutch-study.cjs --run --scope all --parallel 2 --workers 2 --prefix reproduction-line-clutch",
+    "startup": "Check in or build all prepared records offline first. The benchmark never searches for a grip seed at startup.",
+    "sourceHashNote": "Raw hashes reflect study checkout bytes; lfSha256 supports cross-platform text checkout comparison. Runtime signatures and prepared fingerprints must also match."
+  },
+  "clutchPhysicalEvidence": {
+    "method": "0.7 s straight-road paired physical integration, initial speed18m/s, full throttle; select the lowest gear >=2 whose initial engine RPM is <=70% of redline. Kick open0.25s then close8/120s; control clutch engaged throughout. Observes rear-wheel torque/slip, not complete drift-chain success.",
+    "dt": 0.008333333333333333,
+    "sourceHashes": {
+      "physics.js": "99404c77f6d3af868a088636e53f58928ceee2b3725bce3f8a935ba21fd83530",
+      "manual-clutch.js": "12b526abed80bad402c5a0e5cbaa6df789e1418f12572f1f154de409369ae3c3",
+      "manual-clutch.test.cjs": "3c6aadff40599dd57109cd9b979ae0954e0d8f821b9d4d200fd5928732f10b0e"
+    },
+    "tests": {
+      "manualClutch": 8,
+      "focusedExistingPhysics": 11
+    },
+    "sources": [
+      "https://www.mathworks.com/help/sdl/ug/how-a-clutch-works.html",
+      "https://api.projectchrono.org/classchrono_1_1_ch_shafts_clutch.html"
+    ],
+    "limitations": [
+      "Engine/flywheel inertias .45porter/.30M2/.22GR86 kg m2 and clutch torque capacity1.35 times peak engine torque are model estimates, not manufacturer verification.",
+      "Quasi-static loads; no dynamic roll, clutch temperature, wear or engine damage. Cumulative friction work is telemetry, not a thermal model.",
+      "Automatic launch anti-stall pressure and manual shift opening/ramp are driver aids; MT shift duration uses EV2 .45s model estimate. AT/DCT/EV physical drive behavior is unchanged.",
+      "Clutch friction is solved against implicit rear wheel forces. Engine output remains bounded by stock peak torque/power/rev-limit; transient clutch torque can exceed engine torque by transferring stored rotational energy."
+    ],
+    "rows": [
+      {
+        "vehicle": "porter-lpg-mt",
+        "gear": 4,
+        "initialRPM": 3482.5759792753643,
+        "parameters": {
+          "engineInertiaKgM2": 0.45,
+          "clutchCapacityNm": 344.21355000000005,
+          "status": "model-estimate"
+        },
+        "peakKickSlip": 0.16231512346777419,
+        "peakHeldSlip": 0.07393182057251398,
+        "peakClutchTorque": 344.21355000000005,
+        "stockPeakEngineTorque": 254.973,
+        "peakEngineRPM": 4263.886420647932,
+        "peakEnginePowerRatio": 0.9706794985491514,
+        "clutchSlipEnergyJ": 1107.1246068523837,
+        "kickSpeedMps": 18.861891105548217,
+        "heldSpeedMps": 18.927760286163938,
+        "kickStatus": "running",
+        "heldStatus": "running"
+      },
+      {
+        "vehicle": "porter-diesel-mt",
+        "gear": 5,
+        "initialRPM": 2611.931984456523,
+        "parameters": {
+          "engineInertiaKgM2": 0.45,
+          "clutchCapacityNm": 350.8326,
+          "status": "model-estimate"
+        },
+        "peakKickSlip": 0.08439509306772434,
+        "peakHeldSlip": 0.0493386659026693,
+        "peakClutchTorque": 350.8326,
+        "stockPeakEngineTorque": 259.876,
+        "peakEngineRPM": 3421.9205872006223,
+        "peakEnginePowerRatio": 0.8175857835928633,
+        "clutchSlipEnergyJ": 3063.5261685252913,
+        "kickSpeedMps": 18.6874349075452,
+        "heldSpeedMps": 18.688942463251138,
+        "kickStatus": "running",
+        "heldStatus": "running"
+      },
+      {
+        "vehicle": "bmw-m2-3.0t-mt",
+        "gear": 2,
+        "initialRPM": 4123.922261167343,
+        "parameters": {
+          "engineInertiaKgM2": 0.3,
+          "clutchCapacityNm": 627.75,
+          "status": "model-estimate"
+        },
+        "peakKickSlip": 0.4192961868657173,
+        "peakHeldSlip": 0.15235761941096498,
+        "peakClutchTorque": 627.75,
+        "stockPeakEngineTorque": 465,
+        "peakEngineRPM": 6286.438484459098,
+        "peakEnginePowerRatio": 0.9826755569951178,
+        "clutchSlipEnergyJ": 4831.247515199346,
+        "kickSpeedMps": 20.239271624023356,
+        "heldSpeedMps": 20.536659063199856,
+        "kickStatus": "running",
+        "heldStatus": "running"
+      },
+      {
+        "vehicle": "gr86-2.4-rz-mt",
+        "gear": 2,
+        "initialRPM": 4901.357077456697,
+        "parameters": {
+          "engineInertiaKgM2": 0.22,
+          "clutchCapacityNm": 337.5,
+          "status": "model-estimate"
+        },
+        "peakKickSlip": 0.2217602383557122,
+        "peakHeldSlip": 0.09134998867079588,
+        "peakClutchTorque": 337.5,
+        "stockPeakEngineTorque": 250,
+        "peakEngineRPM": 6446.925703379047,
+        "peakEnginePowerRatio": 0.8476470199127522,
+        "clutchSlipEnergyJ": 2080.2827468582386,
+        "kickSpeedMps": 19.756632936554183,
+        "heldSpeedMps": 19.783242397419638,
+        "kickStatus": "running",
+        "heldStatus": "running"
+      }
+    ],
+    "hashNormalization": "CRLF to LF"
+  },
+  "mobileValidation": {
+    "viewportWidth": 390,
+    "initial": {
+      "release": "line-clutch-20261030-1",
+      "variant": "porter-lpg-mt",
+      "course": "kr-kic-t21-kdl-2016-r2",
+      "preparedBaseline": true,
+      "genes": 1408,
+      "evolving": true,
+      "autoFollow": true
+    },
+    "kick": {
+      "id": "g1-2",
+      "time": 27.23333333333243,
+      "end": 49.916666666664476,
+      "valid": true,
+      "kind": "clutch-kick"
+    },
+    "replay": {
+      "id": "g1-2",
+      "rpm": 2886.249977736277,
+      "clutch": {
+        "pedal": 1,
+        "engagement": 0,
+        "torque": 0,
+        "slipRPM": 213.43714967586968,
+        "active": 1,
+        "count": 1
+      }
+    },
+    "errors": [],
+    "evidenceSha256": "7865d8807e9a55bb6cead1bef93f583a8be94e1b44b378ebdfc35bdb927b2531",
+    "limitation": "A real evolved clutch event and visible replay HUD were checked. This does not prove a fully connected drift."
+  },
+  "implementationVersion": "initial-v1",
+  "implementationCommit": "a2fd3d45db4528e7ec207842de684a2c67f3a953",
+  "reportPurpose": "Initial implementation comparison; measured source identities below determine its scope, not later deployment state.",
+  "generatedAt": "2026-10-30T01:39:45.516Z",
+  "studyStartedAt": "2026-10-30T01:12:33.331Z",
+  "studyCompletedAt": "2026-10-30T01:38:24.412Z",
+  "settings": {
+    "seed": 37,
+    "track": "kr-kic-t21-kdl-2016-r2",
+    "populationSize": 20,
+    "smokeBudget": 40,
+    "pairBudget": 200,
+    "workersPerEngine": 2,
+    "parallelEngines": 2
+  }
+}

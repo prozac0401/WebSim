@@ -1,0 +1,15 @@
+{
+  "method": "Original recorded vehicle center XY frames, plotted without smoothing. Gray physical surface polygons minus exclusions. No trajectory heading, slip angle or connection success inferred from the plot.",
+  "sourceSummarySha256": "c029a3786beafa5403fd44044401fe881fdca5c5453eadc0410a94fc9c6e066f",
+  "bestReplaySha256": {
+    "output/drift-qa/line-clutch-corrected-s37-paired-porter-lpg-mt-off-n200-best.json": "dd98bddb0eb574e258441a9319f86e4a1fbf8c01fe2decb08ec282841fc67553",
+    "output/drift-qa/line-clutch-corrected-s37-paired-porter-lpg-mt-on-n200-best.json": "0505b20db6726e4fdb40083755f88033ae87507d3a7ce9071849cbe94d4578ee",
+    "output/drift-qa/line-clutch-corrected-s37-paired-gr86-2.4-rz-mt-off-n200-best.json": "55152ee67263a07a97cfbd8f801f58a21fb7a843adb291c347395cbdfbafac99",
+    "output/drift-qa/line-clutch-corrected-s37-paired-gr86-2.4-rz-mt-on-n200-best.json": "82c84a3beb0a4831a3067dbb8a0e3a3507ec6358a0202e2c0b1bbd258d1c2717",
+    "output/drift-qa/line-clutch-corrected-s37-paired-supra-3.0t-rz-off-n200-best.json": "d71aa0f7fb7e8c87e35b7d7cc17fe62c638d3665baccf7183da00aef30dc3524",
+    "output/drift-qa/line-clutch-corrected-s37-paired-supra-3.0t-rz-on-n200-best.json": "85cc81bcec4f3ad5d26ed5243f0877a93cc1da1f02d650c79926d368a90e67e8",
+    "output/drift-qa/line-clutch-corrected-s37-paired-ioniq5-standard-off-n200-best.json": "6ff812b407db9882128d0d0a2ccbbd48c3cfa33e9688094cfd9747253b10886a",
+    "output/drift-qa/line-clutch-corrected-s37-paired-ioniq5-standard-on-n200-best.json": "63f6b9a70608683c7703d6cd140d87a10a796e56c79ef2d02c88d19c3be62ba1"
+  },
+  "outputSha256": "939b58d8f98d0c68319fa5dd4915b11da5f29844e04de7e9d2d68f034c49211e"
+}

@@ -1,0 +1,15 @@
+{
+  "method": "Original recorded vehicle center XY frames, plotted without smoothing. Gray physical surface polygons minus exclusions. No trajectory heading, slip angle or connection success inferred from the plot.",
+  "sourceSummarySha256": "a4d79216028f56b4de280e0826faeacc352f975b601490b6ab280ce628302b9a",
+  "bestReplaySha256": {
+    "output/drift-qa/line-clutch-heldout-s91-paired-porter-lpg-mt-off-n200-best.json": "205beca2f8604ea912178e0bb700a7494981881ee6ec0fb9430f6a2336164041",
+    "output/drift-qa/line-clutch-heldout-s91-paired-porter-lpg-mt-on-n200-best.json": "fea7b1da99ebc542cc8d5bc15fafc59eb890e039fdd94dc0259269e39d63ceee",
+    "output/drift-qa/line-clutch-heldout-s91-paired-gr86-2.4-rz-mt-off-n200-best.json": "dbebc73487cd8b32c5fa6e3a59465d462e9b3634fcb04d1bc69d0f6959f2c81a",
+    "output/drift-qa/line-clutch-heldout-s91-paired-gr86-2.4-rz-mt-on-n200-best.json": "e6dce1d7f11187bafd166e65de3c50bd0fa2f55304b35b352d07ff01833e3c73",
+    "output/drift-qa/line-clutch-heldout-s91-paired-supra-3.0t-rz-off-n200-best.json": "8fa2fe87d1099d9edb03d0a24c99980c40ba70c72baa117627ff62cdaeda068d",
+    "output/drift-qa/line-clutch-heldout-s91-paired-supra-3.0t-rz-on-n200-best.json": "0cfeaf1bbad017981e39166a606520d5aaa8a992dc5715b88d43850a9d8dada5",
+    "output/drift-qa/line-clutch-heldout-s91-paired-ioniq5-standard-off-n200-best.json": "ea8db5804146daf1a35002e4f3d6adbd639f2fe29a0d8b4b77ebf1d541ade04f",
+    "output/drift-qa/line-clutch-heldout-s91-paired-ioniq5-standard-on-n200-best.json": "8b29b2ae5757bed8cb63b22796e929607e833437210200a96e9285eadd3f13fc"
+  },
+  "outputSha256": "6da2e1c35abca45034c794951733d8d6b65c1ca604ca2def8b1ab8cce0376813"
+}
