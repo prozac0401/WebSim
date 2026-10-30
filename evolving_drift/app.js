@@ -9,7 +9,8 @@
   let autoFollow=true,finishHoldMs=0,autoStartPending=true;
   const labels={finished:'유효 완주',offtrack:'앞바퀴 이탈 · 실패',collision:'차체 충돌 · 실패',timeout:'시간 초과',invalid:'계산 오류',spin:'스핀 · 자세 회복'};
   const resultLabel=r=>r.status==='timeout'?(r.reason==='주행 정지'?'주행 정지 · 실패':'제한 시간 초과 · 실패'):(labels[r.status]||r.status);
-  DriftCatalog.list().forEach(v=>{const option=document.createElement('option');option.value=v.id;option.textContent=v.label;$('vehicle').append(option);});$('vehicle').value=vehicle.id;
+  // Keep the verified market/specification in the catalog; shorten only the selector label.
+  DriftCatalog.list().forEach(v=>{const option=document.createElement('option');option.value=v.id;option.textContent=v.label.replace(/(^|\s)(국내|독일|일본)(?=\s|$)/g,'$1').replace(/\s{2,}/g,' ').trim();$('vehicle').append(option);});$('vehicle').value=vehicle.id;
   availableTracks.forEach(t=>{const option=document.createElement('option');option.value=t.id;option.textContent=t.name;$('track').append(option);});
   if(track)$('track').value=track.id;else{const option=document.createElement('option');option.value='';option.textContent='불러올 수 있는 코스 없음';$('track').append(option);}
   $('track').disabled=!availableTracks.length;
@@ -187,12 +188,34 @@
     function tick(){evolutionTimer=null;if(!evolving||current!==token)return;try{engine.step(1);receive({type:'candidate',state:engine.snapshot(),candidate:engine.lastCandidate,best:engine.best,runtimeIdentity});if(engine.generation>=stop)receive({type:'paused'});else evolutionTimer=setTimeout(tick,10);}catch(e){receive({type:'error',message:e.message});}}
     evolutionTimer=setTimeout(tick,10);
   }
+  function drawDashboard(car){
+    const p=vehicle.physics,manualClutch=p.transmissionType==='MT',electric=!!p.electric;
+    const fraction=value=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):0;
+    // Match EV2's eight shift lamps, using this replay's physical engine RPM.
+    const rpm=Number.isFinite(car.rpm)?Math.round(car.rpm):0;
+    const normalized=electric?0:fraction((rpm-p.idleRPM)/Math.max(1,p.shiftRPM-p.idleRPM));
+    const lamps=Math.min(8,Math.ceil(normalized*8)),cue=!electric&&!(car.shiftTimer>0)&&car.gear<p.gearRatios.length&&normalized>=.94;
+    $('speed-value').textContent=(car.speed*3.6).toFixed(0);
+    $('gear-value').textContent=electric?'D':car.gear;
+    $('rpm-value').textContent=electric?'전기':rpm.toLocaleString('en-US')+' rpm';
+    $('shift-readout').hidden=electric;
+    [...$('shift-lights').children].forEach((lamp,i)=>lamp.classList.toggle('lit',i<lamps));
+    $('shift-lights').setAttribute('aria-valuenow',Math.round(normalized*100));
+    $('shift-lights').setAttribute('aria-valuetext',rpm+' rpm'+(cue?' · 변속 시점':''));
+    $('shift-cue').textContent=cue?'변속':'변속 신호';$('shift-cue').classList.toggle('shift-ready',cue);
+    for(const [id,label,value,available] of [['clutch','클러치',car.clutchPedal,manualClutch],['brake','브레이크',car.brake,true],['throttle','악셀',car.throttle,true]]){
+      const percent=available?Math.round(fraction(value)*100):0,meter=$(id+'-input');
+      $(id+'-value').textContent=available?percent+'%':'—';$(id+'-fill').style.width=percent+'%';
+      meter.setAttribute('aria-valuenow',percent);meter.setAttribute('aria-valuetext',available?label+' '+percent+'%':label+' 페달 없음');
+      meter.setAttribute('aria-disabled',String(!available));
+    }
+  }
   function draw(){
     if(!track){const canvas=$('canvas'),ctx=canvas.getContext('2d');ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.restore();return;}
     const frames=selected?.record||selected?.result.frames||[],car=DriftRenderer.sampleFrames(frames,time)||DriftPhysics.initialState(vehicle,track);
     scoreReplay();drawScore();
     renderer.render({track,car,record:frames,time,mode:camera,fov:Number($('fov').value),smoke:$('smoke').checked,marks:$('marks').checked,vehicle});
-    $('speed-value').textContent=(car.speed*3.6).toFixed(0);$('angle-value').textContent=(Math.abs(car.beta)*180/Math.PI).toFixed(1)+'°';$('gear-value').textContent=vehicle.electric?'D':car.gear;$('rpm-value').textContent=Math.round(car.rpm)+' rpm'+(car.clutchKickActive?' · 킥':'');
+    drawDashboard(car);
     const end=selected?.result.time||0;$('replay-time').textContent=selected?time.toFixed(1)+' / '+end.toFixed(1)+' s':'—';$('timeline').value=end?time/end*1000:0;if(selected){$('run-label').textContent=selected.id==='baseline'?'그립 기준 주행':selected.id+(selected.id===best?.id?' · 대표 주행':'');$('run-state').textContent=time>=end?resultLabel(selected.result)+(selected.result.reason&&selected.result.status!=='timeout'?' · '+selected.result.reason:''):'진행 '+Math.min(track.length,car.s).toFixed(0)+' / '+Math.round(track.length)+'m';}$('model-source').textContent=renderer.getState().modelSource?.label||'EV2 외형 자산';
   }
   function advance(ms){
@@ -230,7 +253,7 @@
     return JSON.stringify({mode:appMode,development,availableCourses:DriftTrack.list().length,verifiedCourses:DriftTrack.list().length,coordinates:'metres; x east, y north, yaw CCW; z reconstructed relative height',variant:vehicle.id,stock:true,rwd:vehicle.spec.factoryDrive,course:track?.id||null,courseKind:track?.kind||null,courseMetadata:track?{name:track.name,length:track.length,judgedStart:track.judgedStart,judgedEnd:track.judgedEnd,elevation:track.elevation,provenance:track.provenance,reconstruction:track.reconstruction}:null,
       release:DriftRuntime.RELEASE,runtimeIdentity,generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
       replayScoring,failureAnalysis:failureAnalysis(),evaluationStats:state?.evaluationStats||null,evaluationReuseRatio:reuseRatio(state?.evaluationStats),learningStats:state?.learningStats||null,selectionStats:state?.selectionStats||null,trajectorySearch:state?.trajectorySearch||null,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
-      objective:{type:'whole-course-continuous-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.scoring?.parts||null,scoring:best?.result.drift?.scoring||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason,autoFollow,finishHoldMs},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,rpm:car.rpm,clutch:{pedal:car.clutchPedal,engagement:car.clutchEngagement,torque:car.clutchTorque,slipRPM:car.clutchSlipRPM,active:car.clutchKickActive,count:car.clutchKickCount},wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
+      objective:{type:'whole-course-continuous-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.scoring?.parts||null,scoring:best?.result.drift?.scoring||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason,autoFollow,finishHoldMs},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,rpm:car.rpm,inputs:{clutch:vehicle.physics.transmissionType==='MT'?car.clutchPedal:null,brake:car.brake,throttle:car.throttle},clutch:{pedal:car.clutchPedal,engagement:car.clutchEngagement,torque:car.clutchTorque,slipRPM:car.clutchSlipRPM,active:car.clutchKickActive,count:car.clutchKickCount},wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
   };
   let lastPaint=0;
   function raf(now){const dt=last?Math.min(100,now-last):0;last=now;if(!manual&&(playing||now-lastPaint>300)){advance(dt);lastPaint=now;}requestAnimationFrame(raf);}specification();initialize();requestAnimationFrame(raf);
