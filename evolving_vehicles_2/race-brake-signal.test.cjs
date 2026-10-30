@@ -94,7 +94,7 @@ test('real dry and wet laps expose both corner-entry braking and partial braking
     const car = race.cars[0]; let entry = 0, trail = 0;
     for (let tick = 0; tick < 60000 && !race.finished; tick++) {
       const speed = car.speed, p = race.sampleForCar(car, car.distance);
-      const resist = resistance(car, speed, p.grade), capacity = race._brakingCapacity(car, speed, p.grade) * car.massKg;
+      const resist = resistance(car, speed, p.grade), capacity = race._brakingCapacity(car, speed, p.grade, p.curvature) * car.massKg;
       race.step(DT);
       if (car.finished || car.dnf) continue;
       near(car.serviceBrakeForceN, Math.max(0, -(car.massKg * car.acceleration + resist)));
