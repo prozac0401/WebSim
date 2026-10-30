@@ -551,7 +551,14 @@ function connect(vehicle,track,parent,rng,options={}){
    }
   }
  }else if(mode==='speed'){
-  const speedWindow=record.filter(f=>f.s>=target.start&&f.s<=target.end),slow=speedWindow.reduce((a,b)=>a.speed<b.speed?a:b,frame);
+  const link=target.kind==='link'?links(track).find(l=>l.id===target.id):null;
+  const speedStart=link?link.straightStart:target.start,speedEnd=link?link.straightEnd:target.end;
+  const speedWindow=record.filter(f=>f.s>=speedStart&&f.s<=speedEnd&&Number.isFinite(f.speed));
+  const observedMinimum=target.evidenceSource==='metric-minimum'&&Number.isFinite(target.evidence?.time)&&Number.isFinite(target.minimumSpeed)
+   ?record.find(f=>Math.abs(f.time-target.evidence.time)<=1e-8&&Math.abs(f.s-target.evidence.s)<=1e-8&&Math.abs(f.speed-target.minimumSpeed)<=Math.max(1e-8,Math.abs(target.minimumSpeed)*1e-9)):null;
+  // A fallback stays inside the metric's core (the straight for links), not
+  // the whole apex-to-apex span or an unrelated slower later grip sample.
+  const slow=observedMinimum||speedWindow.reduce((a,b)=>!a||b.speed<a.speed?b:a,null)||frame;
   // Correct the inherited braking/release episode before its speed trough,
   // not a torque impulse at the trough itself. Angles/line remain inherited.
   let brakeStart=slow.s,foundBrake=false;
@@ -560,7 +567,7 @@ function connect(vehicle,track,parent,rng,options={}){
    if((f.brake||0)>.03){brakeStart=f.s;foundBrake=true;}
   }
   const a=Math.max(lower,brakeStart-2*ds),b=Math.min(upper,slow.s+3*ds),ramp=Math.min((b-a)*.3,2*ds);
-  Object.assign(change,{start:a,end:b,slowS:slow.s});const release=rnd(.35,.8);
+  Object.assign(change,{start:a,end:b,slowS:slow.s,speedEvidenceSource:observedMinimum?'metric-minimum':'required-window-minimum'});const release=rnd(.35,.8);
   for(let i=0;i<G.KNOTS;i++){
    const s=i*ds,w=smoother((s-a)/ramp)*smoother((b-s)/ramp)*strength;if(!(s>a&&s<b&&w>0))continue;const j=i*G.STRIDE;
    gene[j+C.brake]*=1-release*w;gene[j+C.throttle]+=(Math.max(gene[j+C.throttle],.6)-gene[j+C.throttle])*w;
@@ -578,6 +585,6 @@ function niche(vehicle,track,result,record,zone){
  return F.measure({...result,frames:record},track,vehicle,{zoneId:zone.id,referenceSpeeds:result.drift?.referenceSpeeds,diagnostics:false});
 }
 function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,connect,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:7,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+const api=Object.freeze({VERSION:8,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

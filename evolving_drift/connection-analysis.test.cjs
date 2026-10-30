@@ -48,6 +48,20 @@ test('an angle interruption prioritizes missing connection while retaining indep
  assert.ok(record.some(f=>f.s===link.breakS));assert.equal(link.evidence.angle,0);assert.ok(link.sourceS===null||record.some(f=>f.s===link.sourceS&&Math.abs(f.beta)>=10*DEG));
 });
 
+test('speed evidence identifies the scorer minimum rather than a slower later grip sample',()=>{
+ const {track,metric,record}=fixture({slow:true}),zone=Fitness.apexZones(track)[1];
+ const run={...metric.arcs[1].bestArc,start:zone.cornerStart,end:zone.exit,connectionCoverage:1,turnRatio:1,minSpeed:16,speedRetention:.8};
+ const grip=record.find(f=>f.s>zone.exit+5&&f.s<zone.end);assert.ok(grip);
+ grip.speed=12;grip.beta=0;
+ const analysis=Analysis.measure(track,{arcs:[{zoneId:zone.id,connectionCoverage:1,complete:false,bestArc:run}]},record).corners[0];
+ assert.equal(analysis.reason,'speed');assert.equal(analysis.minimumSpeed,16);
+ assert.equal(analysis.evidence.speed,16);assert.equal(analysis.evidenceSource,'metric-minimum');
+ assert.notEqual(analysis.breakS,grip.s);
+ const missing=Analysis.measure(track,{arcs:[{zoneId:zone.id,connectionCoverage:1,complete:false,bestArc:{...run,minSpeed:15}}]},record).corners[0];
+ assert.equal(missing.evidence,null);assert.equal(missing.evidenceSource,'metric-minimum-unobserved');
+ assert.ok(missing.unknown.includes('minimum-speed-evidence'));
+});
+
 test('the 90 percent retention boundary is unchanged and missing turn remains distinct',()=>{
  const {track,metric,record}=fixture(),link=metric.links[0];
  const diagnose=retention=>Analysis.measure(track,{links:[{...link,complete:false,speedRetention:retention,turnRatio:.8}]},record).links[0];

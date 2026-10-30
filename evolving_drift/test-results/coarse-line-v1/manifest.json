@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "status": "completed-after-io-only-recovery",
+  "study": "Four fixed best-of-80 parents; two arms of 64 physical trials each; production physics/scoring unchanged.",
+  "frozenToolSha256": "5adc402a7057eb395aa85e2d28731fd9b1a055a85cce0ecac81f0f249bfc322b",
+  "method": {
+    "parentSeed": 37,
+    "parentBudget": 80,
+    "seed": 137,
+    "trialsPerArm": 64,
+    "coarseVectors": 16,
+    "coarseTrials": 32,
+    "lineParents": 4,
+    "finePerLine": 8,
+    "fineScale": 0.5,
+    "lineAmplitudeM": 2.5,
+    "weights": {
+      "connection": 0.35,
+      "speed": 0.15,
+      "angle": 0.1,
+      "targetTracking": 0.05,
+      "trackOutward": 0.1,
+      "curvature": 0.15,
+      "apexPass": 0.1
+    },
+    "normalizers": {
+      "trackingM": 2,
+      "outwardVelocityMps": 2,
+      "scoredAngleDegrees": 45,
+      "curvatureBinM": 5,
+      "curvatureChangePerBin": 0.02
+    },
+    "selection": "Physical valid/finished only; highest fixed search merit, then unchanged raw drift score, then creation order. Displayed representative is separately highest unchanged valid score.",
+    "phases": "Hierarchical: 16 anchor vectors, each line-only and line+existing speed plan (32 trials); 4 valid line specialists, 8 sequential line-locked fine trials each (32). Control: 64 existing adaptive/connection trials with a 4-member merit beam. Every failed, unchanged or duplicate proposal consumes one physical trial.",
+    "limitations": [
+      "Fixed best-of-80 evolved parents; not evolution from prepared genesis.",
+      "One seed, four vehicles and 64 trials per arm do not establish a global optimum or vehicle capability.",
+      "Proxy search merit is predeclared, separate from unchanged production scoring; target agreement contributes only 5%.",
+      "State and forces are never assigned from a target. All physical evaluations start at Physics.initialState.",
+      "Sampled line perturbation has smooth zero endpoint derivatives before 128-knot discretization; runtime remains the unchanged linear genome sampler.",
+      "Endpoint genes do not guarantee endpoint physical states. Measured entry/exit differences are reported without teleporting or resetting the vehicle.",
+      "The existing stock model, including its current clutch/shift limitations, is held fixed.",
+      "This is not a timing benchmark; concurrent independent runs may change throughput, never budget or ordered selection."
+    ]
+  },
+  "costs": {
+    "plannedCandidates": 512,
+    "plannedParentReplays": 4,
+    "plannedPhysicalEvaluations": 516,
+    "originalAttemptPhysicalEvaluations": 508,
+    "recoveryPhysicalEvaluations": 129,
+    "actualPhysicalEvaluations": 637,
+    "duplicatePhysicalCostFromInterruptedSupra": 121,
+    "smokePhysicalEvaluations": 5,
+    "totalIncludingSmoke": 642,
+    "dryRunPhysicalEvaluations": 0
+  },
+  "sourceHashes": {
+    "evolving_drift/catalog.js": "a1203a541b4fea37f4a57142578fa5b0a7267c6ba537438e87fbb8450d6a2ebb",
+    "evolving_drift/connection-analysis.js": "e617a15168e1ac80a2dcb729e27e870ee5d52650dad755aab0ea56c56dc4de64",
+    "evolving_drift/course-model.js": "5f6529cf5cbe89a9796c187afb7d1be8ef83a7a9e0746bf410ebb3cd7d499eac",
+    "evolving_drift/course-scoring.js": "ac933860213728e784d8ef88f8622c0f34ad8e16ab2759fb94e845e42f8eded1",
+    "evolving_drift/driver.js": "598621d63787108ba218761887c3a5f00f54bed32810e2fa04bf14e9b4cdd4e4",
+    "evolving_drift/ebisu-west.js": "139a23166573836e122a0862dad57a57628fdd64ff28bbd7beabde15456dcec3",
+    "evolving_drift/entry-speed-planner.js": "b0fd4a2597090dc36cf88ccfcf2414a770af5ecb2885bac78a6ef1e151bc6123",
+    "evolving_drift/evaluation-cache.js": "faffc4c805380aad4ebe642b6ddf98df60566ae9c2186cf359ff0343811d8d47",
+    "evolving_drift/evolution-learning.js": "3a2a15c27dfdf5e067ec4c75804da50ee00962d2469618ce4564031f8ae5691c",
+    "evolving_drift/evolution-strategies.js": "ac8841fd2fdd4fc1ccdbef18d2cffd5f8de17cbe88aad9a346814d17aab2c7b8",
+    "evolving_drift/evolution.js": "832d8087fe3752fd06fe056023eb94c32cf35c12d8fa9068f4f3a9cf4cbfaf76",
+    "evolving_drift/failure-analysis.js": "60ea26631d2918a297e209254f4791d9ad5a219df0174d2114f13d313f8c0aa9",
+    "evolving_drift/fitness.js": "b9cb8a75a1fd52b0abc800129b2a3c40be7b98cb2e434947e37761bb5d561fb1",
+    "evolving_drift/genome.js": "c512104b70c7d0eacefbaeabd0877c84a66fe68d33a287949a06e5249165a3c3",
+    "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--g80-3.5t-rwd.js": "e1fb6a264d4ae6c4a9b1cdc4c6719f128777e2bb0174d45cdf039d2e761e8fd3",
+    "evolving_drift/inje-sdc.js": "fbba3b380c3c309b594fc112f4faa95869bc0b2851978d57e5bfe8d5ef753eeb",
+    "evolving_drift/kic-sdc.js": "67282fa54bf85880511ebe9ae58c85aedeb4866e7a0db115b598290687149732",
+    "evolving_drift/kic-t21.js": "abb15bc5b96ac2d48901c2202076603178a00d7b5a1b150857eb81d54d773a2d",
+    "evolving_drift/mutation-shape.js": "e370531162cc4bdafd93414577575d8cce12f6058a832a622b1d325a89dbc270",
+    "evolving_drift/physics.js": "fc9476a70494da44f055ca43784fbccb67b63c3f7351efd77117abf1568f2583",
+    "evolving_drift/prepared-grips-manifest.js": "d349979f1490414dbdb174ea012ba4efc361c7191e926c754022b430ef04875c",
+    "evolving_drift/prepared-grips.js": "61f4c0a40581bf649cef6eb7018c5b759e6b8569f30986856da11cee21e790c9",
+    "evolving_drift/runtime.js": "ade56355308c7bc915551b44fbd795919f20160a390795b2aecae411f9c002dd",
+    "evolving_drift/tools/benchmark-evolution.cjs": "4fdb59f857a69ee344793d79269406ca6dcb38f8fcc2c8dc982ea1bfd2876165",
+    "evolving_drift/track.js": "95be15fa538c432d31349a24039168653ca83e2574bef04dc69b69c716dbf1c9",
+    "evolving_drift/tsukuba-d1.js": "4de084cdb2bd83164543d2fccdc1e96a2024e7ebecd132051df14aa16bf2576d",
+    "evolving_vehicles/vehicle-specs.js": "2370fb5206b5fe53ecfa6c36eeaedc72d946c8bf138e271f98b6ddb98eef2c75",
+    "evolving_vehicles_2/circuit-vehicle-specs.js": "544dd9fc1030ba161fbfaa1820540a58d301094042d23e2f7b3ce36dabadb3e7",
+    "evolving_vehicles_2/powertrain-profiles.js": "22ed0f741b7ab8db2327b371b680f7579fedf2f2149f1046f119aff7dbc767a2",
+    "evolving_vehicles_2/tuning-evolution.js": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686",
+    "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--porter-lpg-mt.js": "6c8242894ed81a06542410877b58caae24e020264b8bc8e869e149441a2dd8d6",
+    "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--supra-3.0t-rz.js": "b4b8cb8b4576768b137722ae6d164d6377e4533ea6dc88b82f3d771e4336dc80",
+    "evolving_drift/grip-records/kr-kic-t21-kdl-2016-r2--gr86-2.4-rz-mt.js": "c5ecb4a01f5db87d81697acc5d101994188123de6fc0f129980f3b7f6264f4a1"
+  },
+  "reproduction": {
+    "bundle": "evolving_drift/test-results/coarse-line-v1/reproduction-inputs-v1.json.gz",
+    "format": "gunzip + JSON parse; write each files entry as UTF-8 into a new empty directory using its relative key; verify SHA-256 against hashes before running.",
+    "command": "node tools/run-coarse-line-study.cjs --source-root source --input-dir parents --out results.json",
+    "partial": "Add --vehicle <id> for one of the four fixed cars; --dry-run costs zero physical evaluations; --smoke performs five and is not the full study."
+  },
+  "artifacts": [
+    {
+      "file": "evolving_drift/tools/compare-coarse-line-search.cjs",
+      "bytes": 31769,
+      "sha256": "5adc402a7057eb395aa85e2d28731fd9b1a055a85cce0ecac81f0f249bfc322b"
+    },
+    {
+      "file": "evolving_drift/tools/run-coarse-line-study.cjs",
+      "bytes": 2345,
+      "sha256": "8ae4921850ebbd8bd73e6a5c5ea08a8994cdfb04b75eb3b1eafc8848ed0d30b2"
+    },
+    {
+      "file": "evolving_drift/test-results/coarse-line-v1/summary.json",
+      "bytes": 359135,
+      "sha256": "a18a2c30081642365d9fb949e7a2728f7edb7c99a6d4262eade6df717e51b46d"
+    },
+    {
+      "file": "evolving_drift/test-results/coarse-line-v1/lineage-v1.json.gz",
+      "bytes": 915198,
+      "sha256": "d03eb082485c97022c0ec8b6ca85097bf930eba00d498ce92d314473aca1f6bd"
+    },
+    {
+      "file": "evolving_drift/test-results/coarse-line-v1/reproduction-inputs-v1.json.gz",
+      "bytes": 9197437,
+      "sha256": "3ef23de11c9534e80e62a58cb11e335a4296524a660303b5f4b60de62bda92f9"
+    }
+  ],
+  "localOnly": {
+    "combined": "output/drift-qa/coarse-line-study/results-combined-v1.json",
+    "originalErrorReport": "output/drift-qa/coarse-line-study/results-all-full.json",
+    "recovery": "output/drift-qa/coarse-line-study/results-supra-full-recovery.json",
+    "representativeReplays": {
+      "file": "./output/drift-qa/coarse-line-study/representative-replays-v1.json.gz",
+      "bytes": 19432846,
+      "sha256": "c18edc46bb94849ae817a35406092840ffde559234e6904736d104836031394b"
+    }
+  },
+  "interpretation": "Neither arm completed a corner or straight link. Point improvements do not validate whole-path preservation or production promotion. Full raw replay remains local output; compact lineage and exact source/parent inputs are durable."
+}

@@ -54,10 +54,20 @@
   // recorded sample; speed loss elsewhere in the window stays independently
   // visible even when a missing entry/exit is the primary search target.
   let target=reason==='entry'?actualStart??start:reason==='exit'?actualEnd??end:reason==='gap'?(preferredBoundary==='entry'?actualStart:actualEnd)??start:start;
-  let evidence=null;
+  let evidence=null,evidenceSource=null;
+  const minimumSpeed=number(run.minSpeed);
   if(reason==='speed'){
    const window=record.filter(f=>f.s>=(kind==='corner'?zone.start:zone.straightStart)&&f.s<=(kind==='corner'?zone.end:zone.straightEnd)&&Number.isFinite(f.speed));
-   evidence=window.reduce((best,f)=>!best||f.speed<best.speed?f:best,null);
+   // A slower later grip sample did not necessarily contribute to the
+   // scorer's regional minimum. Match the measured minimum before tracing
+   // its earlier braking episode; never silently substitute that grip dip.
+   if(minimumSpeed!==null){
+    evidence=window.find(f=>Math.abs(f.speed-minimumSpeed)<=Math.max(1e-8,Math.abs(minimumSpeed)*1e-9))||null;
+    evidenceSource=evidence?'metric-minimum':'metric-minimum-unobserved';
+   }else{
+    evidence=window.reduce((best,f)=>!best||f.speed<best.speed?f:best,null);
+    evidenceSource=evidence?'window-minimum':null;
+   }
   }else if(reason!=='complete'){
    const before=reason==='entry'||reason==='gap'&&preferredBoundary==='entry';
    const boundary=relevant.filter(f=>before?f.s<target-EPS:f.s>target+EPS);
@@ -74,10 +84,12 @@
   const unknown=[];
   if(measuredCoverage===null)unknown.push('coverage');if(actualStart===null||actualEnd===null)unknown.push('actual-range');
   if(speedRetention===null)unknown.push('speed-retention');if(turnRatio===null)unknown.push('turn');if(!record.length)unknown.push('record');
+  if(reason==='speed'&&minimumSpeed!==null&&!evidence)unknown.push('minimum-speed-evidence');
   const speedProgress=speedRetention===null?0:clamp(speedRetention/.9,0,1);
   const progress=complete?1:Math.min(1-1e-6,coverage*(.5+.25*(turnRatio??0)+.25*speedProgress));
   return {id:zone.id,kind,zoneId:kind==='corner'?zone.id:null,fromZoneId:kind==='link'?zone.fromZoneId:null,toZoneId:kind==='link'?zone.toZoneId:null,
    start,end,actualStart,actualEnd,coverage,entryCoverage,exitCoverage,preferredBoundary,speedRetention,turnRatio,complete,progress,reason,speedLimited,missingBefore,missingAfter,breakS,sourceS:source?.s??null,
+   minimumSpeed,evidenceSource,
    transitionDuration:kind==='link'?number(item.transitionDuration):null,transitionDistance:kind==='link'?number(item.transitionDistance):null,
    transitionLimitSeconds:kind==='link'&&zone.fromSign!==zone.toSign ? .35 : null,
    transitionLimitDistance:kind==='link'&&zone.fromSign!==zone.toSign?Math.min(8,(zone.straightEnd-zone.straightStart)*.25):null,

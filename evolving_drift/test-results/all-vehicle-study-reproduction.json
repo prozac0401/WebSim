@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "sourceCommit": "007ee68a05c61a520db4a3a30e0f41c1dc810a5a",
+  "equivalentFrozenSourceCommit": "d2c8c480ac707b9309ebaebdefd3e41e37176dca",
+  "observer": {
+    "archive": "evolving_drift/test-results/all-vehicle-study-observer.cjs.gz",
+    "archiveSha256": "23a8a0ea9ce44c1a377666327e80601aeb38b00d642c6c9e5499ea1818c0835e",
+    "decompressedSha256": "b8d242951b9a8e97592ffe51c941de7675090e5df7f8b9223afca2a68a026481",
+    "normalizedTool": "evolving_drift/tools/benchmark-observed.cjs",
+    "normalizedToolSha256": "2dd22ac531655d22f86cc836dccbc465d0f3fc9e3bf4bf0ed641eac0596ea1d6",
+    "note": "The archived observer preserves the exact mixed line endings used during the frozen study. The tracked executable differs only by LF normalization required by repository attributes."
+  },
+  "method": "Check out the source commit in a separate directory. Gunzip the archived observer into evolving_drift/tools/benchmark-observed.cjs. First run that checkout's benchmark-evolution.cjs for 80 evaluations per variant with --out all-vehicle-s37-<vehicleId>; these prerequisite reports are required by the observer's exact first-80 parity check. Then run the observer with seed 37, track kr-kic-t21-kdl-2016-r2, workers 2, budget 400 for ten variants or 1000 for the six selected variants. The first 400 prefixes form the all-16 matched comparison; do not add overlapping checkpoints. The prerequisite 16 x 80 runs are separate from the extended 10000-candidate budget.",
+  "selected1000": [
+    "g80-3.5t-rwd",
+    "ioniq5-standard",
+    "porter-lpg-mt",
+    "supra-3.0t-rz",
+    "bmw-m2-3.0t-mt",
+    "gr86-2.4-rz-mt"
+  ],
+  "examplePrerequisiteCommand": "node evolving_drift/tools/benchmark-evolution.cjs --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 80 --workers 2 --out all-vehicle-s37-supra-3.0t-rz",
+  "exampleCommand": "node evolving_drift/tools/benchmark-observed.cjs --seed 37 --vehicle supra-3.0t-rz --track kr-kic-t21-kdl-2016-r2 --budget 1000 --workers 2 --out replay-supra",
+  "prepared": "Only checked-in Prepared.load genesis; no discovered gene is supplied to search.",
+  "sourceHashCaveat": "Historical raw source byte hashes reflect the frozen Windows checkout; use the reported physics/fitness/genome signatures and exact gene/result parity when checkout line endings differ."
+}
