@@ -188,8 +188,15 @@
     function tick(){evolutionTimer=null;if(!evolving||current!==token)return;try{engine.step(1);receive({type:'candidate',state:engine.snapshot(),candidate:engine.lastCandidate,best:engine.best,runtimeIdentity});if(engine.generation>=stop)receive({type:'paused'});else evolutionTimer=setTimeout(tick,10);}catch(e){receive({type:'error',message:e.message});}}
     evolutionTimer=setTimeout(tick,10);
   }
+  function pedalInputs(car){
+    // Recorded engagement includes both the MT shift mechanism and clutch kicks.
+    // clutchPedal alone contains only the kick command, not the shift operation.
+    const clutch=Number.isFinite(car.clutchEngagement)?1-car.clutchEngagement:car.clutchPedal;
+    return {clutch:vehicle.physics.transmissionType==='MT'?clutch:null,brake:car.brake,throttle:car.throttle};
+  }
   function drawDashboard(car){
     const p=vehicle.physics,manualClutch=p.transmissionType==='MT',electric=!!p.electric;
+    const inputs=pedalInputs(car);$('clutch-input').hidden=!manualClutch;
     const fraction=value=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):0;
     // Match EV2's eight shift lamps, using this replay's physical engine RPM.
     const rpm=Number.isFinite(car.rpm)?Math.round(car.rpm):0;
@@ -203,7 +210,7 @@
     $('shift-lights').setAttribute('aria-valuenow',Math.round(normalized*100));
     $('shift-lights').setAttribute('aria-valuetext',rpm+' rpm'+(cue?' · 변속 시점':''));
     $('shift-cue').textContent=cue?'변속':'변속 신호';$('shift-cue').classList.toggle('shift-ready',cue);
-    for(const [id,label,value,available] of [['clutch','클러치',car.clutchPedal,manualClutch],['brake','브레이크',car.brake,true],['throttle','악셀',car.throttle,true]]){
+    for(const [id,label,value,available] of [['clutch','클러치',inputs.clutch,manualClutch],['brake','브레이크',inputs.brake,true],['throttle','악셀',inputs.throttle,true]]){
       const percent=available?Math.round(fraction(value)*100):0,meter=$(id+'-input');
       $(id+'-value').textContent=available?percent+'%':'—';$(id+'-fill').style.width=percent+'%';
       meter.setAttribute('aria-valuenow',percent);meter.setAttribute('aria-valuetext',available?label+' '+percent+'%':label+' 페달 없음');
@@ -253,7 +260,7 @@
     return JSON.stringify({mode:appMode,development,availableCourses:DriftTrack.list().length,verifiedCourses:DriftTrack.list().length,coordinates:'metres; x east, y north, yaw CCW; z reconstructed relative height',variant:vehicle.id,stock:true,rwd:vehicle.spec.factoryDrive,course:track?.id||null,courseKind:track?.kind||null,courseMetadata:track?{name:track.name,length:track.length,judgedStart:track.judgedStart,judgedEnd:track.judgedEnd,elevation:track.elevation,provenance:track.provenance,reconstruction:track.reconstruction}:null,
       release:DriftRuntime.RELEASE,runtimeIdentity,generation:state?.generation||0,evaluated:state?.totalEvaluated||0,workerCount:state?.workerCount||1,score:best?.result.score,baselineTime:baseline?.result.time,preparedBaseline:baseline?.prepared===true,baselineError,genes:selected?.gene.length,
       replayScoring,failureAnalysis:failureAnalysis(),evaluationStats:state?.evaluationStats||null,evaluationReuseRatio:reuseRatio(state?.evaluationStats),learningStats:state?.learningStats||null,selectionStats:state?.selectionStats||null,trajectorySearch:state?.trajectorySearch||null,genome:{version:DriftGenome.VERSION,knots:DriftGenome.KNOTS,stride:DriftGenome.STRIDE,targets:selected&&car?DriftGenome.sample(selected.gene,car.s,track.length):null},
-      objective:{type:'whole-course-continuous-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.scoring?.parts||null,scoring:best?.result.drift?.scoring||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason,autoFollow,finishHoldMs},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,rpm:car.rpm,inputs:{clutch:vehicle.physics.transmissionType==='MT'?car.clutchPedal:null,brake:car.brake,throttle:car.throttle},clutch:{pedal:car.clutchPedal,engagement:car.clutchEngagement,torque:car.clutchTorque,slipRPM:car.clutchSlipRPM,active:car.clutchKickActive,count:car.clutchKickCount},wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
+      objective:{type:'whole-course-continuous-drift',fullConnectionCount:best?.result.drift?.fullConnectionCount||0,totalArcCount:best?.result.drift?.totalArcCount||0,straightLinkCount:best?.result.drift?.straightLinkCount||0,totalLinkCount:best?.result.drift?.totalLinkCount||0,parts:best?.result.drift?.scoring?.parts||null,scoring:best?.result.drift?.scoring||null,bestArc:best?.result.drift?.bestArc||null,bestLink:best?.result.drift?.bestLink||null},evolving,pauseRequested,playing,replay:{id:selected?.id,time,end:selected?.result.time,status:selected?.result.status,reason:selected?.result.reason,autoFollow,finishHoldMs},car:car?{x:car.x,y:car.y,z:car.z,grade:car.grade,bank:car.bank,s:car.s,speed:car.speed,beta:car.beta,steer:car.steer,gear:car.gear,rpm:car.rpm,inputs:pedalInputs(car),clutch:{pedal:car.clutchPedal,engagement:car.clutchEngagement,torque:car.clutchTorque,slipRPM:car.clutchSlipRPM,active:car.clutchKickActive,count:car.clutchKickCount},wheelSlip:car.wheelSlip,driver:Object.fromEntries(DriftDriver.TELEMETRY.map(key=>[key,car[key]]))}:null,camera:renderer.getState(),lastCandidate:archive.at(-1)?{id:archive.at(-1).id,status:archive.at(-1).result.status,valid:archive.at(-1).result.valid}:null});
   };
   let lastPaint=0;
   function raf(now){const dt=last?Math.min(100,now-last):0;last=now;if(!manual&&(playing||now-lastPaint>300)){advance(dt);lastPaint=now;}requestAnimationFrame(raf);}specification();initialize();requestAnimationFrame(raf);
