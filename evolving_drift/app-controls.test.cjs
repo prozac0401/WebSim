@@ -453,7 +453,7 @@ test('simplified page removes ghost and graphs while retaining replay, details a
 
 test('dashboard pedals follow recorded replay inputs through seeks and restart',()=>{
   const env=environment({replayFrames:[{time:0,throttle:.4,brake:0,clutchPedal:0},{time:15,speed:20,gear:3,rpm:3400,throttle:.72,brake:.25,clutchPedal:1},{time:30,throttle:0,brake:1,clutchPedal:.2}]});env.ready();
-  assert.equal(env.get('throttle-value').textContent,'40%');assert.equal(env.get('clutch-value').textContent,'0%');
+  assert.equal(env.get('clutch-input').hidden,false);assert.equal(env.get('throttle-value').textContent,'40%');assert.equal(env.get('clutch-value').textContent,'0%');
   env.get('timeline').value='500';env.get('timeline').oninput();
   for(const [name,value] of [['throttle',72],['brake',25],['clutch',100]]){
     assert.equal(env.get(name+'-value').textContent,value+'%');assert.equal(env.get(name+'-fill').style.width,value+'%');
@@ -467,10 +467,10 @@ test('dashboard pedals follow recorded replay inputs through seeks and restart',
   env.get('restart').onclick();assert.equal(env.get('throttle-value').textContent,'40%');assert.equal(env.get('brake-value').textContent,'0%');assert.equal(env.get('clutch-value').textContent,'0%');
 });
 
-test('AT, DCT and electric dashboards do not claim a clutch pedal input',()=>{
+test('AT, DCT and electric dashboards hide the clutch pedal gauge',()=>{
   for(const transmissionType of ['AT','DCT','EV']){
     const electric=transmissionType==='EV',env=environment({physics:{transmissionType,electric},replayFrames:[{time:0,clutchPedal:1,throttle:.6,brake:.1,rpm:5800}]});env.ready();
-    assert.equal(env.get('clutch-value').textContent,'—');assert.equal(env.get('clutch-fill').style.width,'0%');
+    assert.equal(env.get('clutch-input').hidden,true);assert.equal(env.get('clutch-value').textContent,'—');assert.equal(env.get('clutch-fill').style.width,'0%');
     assert.equal(env.get('clutch-input').getAttribute('aria-disabled'),'true');assert.equal(env.get('clutch-input').getAttribute('aria-valuetext'),'클러치 페달 없음');
     assert.equal(env.get('throttle-value').textContent,'60%');assert.equal(env.get('brake-value').textContent,'10%');
     assert.equal(env.get('shift-readout').hidden,electric);
@@ -486,4 +486,47 @@ test('vehicle options omit market countries while preserving model years, grades
   ]){
     const env=environment({vehicleLabel:original});env.ready();assert.equal(env.get('vehicle').children[0].textContent,expected);assert.equal(env.render().vehicle.label,original,'verified source label stays intact');
   }
+});
+
+
+test('all four MT upshifts and downshifts replay actual clutch separation, release and engagement',()=>{
+  const Physics=require('./physics.js'),Catalog=require('./catalog.js');
+  const track={length:5000,width:200,judgedStart:100,judgedEnd:4900,obstacles:[],sample:s=>({x:s,y:0,s,heading:0,curvature:0}),project:(x,y)=>({x,y:0,s:x,error:y,distance:Math.abs(y),heading:0}),surface:()=>({z:0,gradientX:0,gradientY:0,normalZ:1,muScale:1})};
+  const vehicles=Catalog.list().filter(v=>v.physics.transmissionType==='MT');assert.equal(vehicles.length,4);
+  for(const vehicle of vehicles)for(const [from,to] of [[2,3],[3,2]]){
+    const p=vehicle.physics,a=Physics.initialState(vehicle,track),speed=10,ratio=p.gearRatios[from-1]*(p.finalDriveRatios?.[from-1]??p.finalDrive);
+    a.vx=a.speed=speed;a.wheelOmega.fill(speed/p.tireRadius);a.gear=from;a.engineOmega=speed/p.tireRadius*ratio;a.rpm=a.engineOmega*30/Math.PI;
+    const frames=[Physics.frame(a)];
+    for(let i=0;i<72;i++){Physics.step(vehicle,track,a,{steer:0,throttle:.6,brake:0,clutch:0,gearHold:to});frames.push(Physics.frame(a));}
+    const open=frames.find(f=>f.gear===to&&f.clutchEngagement===0),release=frames.find(f=>f.clutchEngagement>.2&&f.clutchEngagement<.8),closed=frames.at(-1);
+    assert.ok(open,vehicle.id+' '+from+'→'+to+' opens clutch');assert.ok(release,vehicle.id+' gradually releases clutch');assert.equal(closed.clutchEngagement,1);
+    assert.equal(open.clutchPedal,0,'there is no separate kick request during an ordinary shift');assert.equal(open.clutchTorque,0);assert.equal(open.rearTorque,0);
+    const env=environment({physics:p,duration:closed.time,replayFrames:frames});env.ready();assert.equal(env.get('clutch-input').hidden,false);
+    for(const [frame,expected] of [[open,100],[release,Math.round((1-release.clutchEngagement)*100)],[closed,0]]){
+      env.get('timeline').value=String(Math.min(closed.time,frame.time+Physics.DT/4)/closed.time*1000);env.get('timeline').oninput();
+      assert.equal(env.get('clutch-value').textContent,expected+'%',vehicle.id+' '+from+'→'+to+' at '+frame.time);
+      assert.equal(env.get('clutch-fill').style.width,expected+'%');assert.equal(env.get('clutch-input').getAttribute('aria-valuenow'),String(expected));
+      assert.equal(Math.round(env.state().car.inputs.clutch*100),expected,'visible and diagnostic effective pedal agree');
+      assert.equal(env.render().car.gear,to);assert.equal(env.render().car.clutchPedal,0,'raw kick command remains untouched');
+    }
+  }
+});
+
+test('existing schema-4 prepared MT replays show shift clutch input without a shift timer or resimulation',async()=>{
+  const Prepared=require('./prepared-grips.js'),Catalog=require('./catalog.js'),Tracks=require('./track.js'),Physics=require('./physics.js');
+  const track=Tracks.get('kr-kic-t21-kdl-2016-r2'),evaluate=Physics.evaluateGene;
+  Physics.evaluateGene=()=>{throw Error('prepared replay display must not simulate');};
+  try{
+    assert.equal(Prepared.SCHEMA,4);
+    for(const vehicle of Catalog.list().filter(v=>v.physics.transmissionType==='MT')){
+      const baseline=await Prepared.load(vehicle,track),frames=baseline.record;
+      const index=frames.findIndex((f,i)=>i>0&&f.gear!==frames[i-1].gear),shift=frames[index];assert.ok(index>0);
+      assert.equal('shiftTimer' in shift,false,'stored schema-4 replay deliberately has no shift timer');
+      assert.equal(shift.clutchPedal,0);assert.equal(shift.clutchEngagement,0);assert.equal(shift.clutchTorque,0);assert.equal(shift.rearTorque,0);
+      const env=environment({physics:vehicle.physics,duration:baseline.result.time,replayFrames:frames});env.ready();
+      env.get('timeline').value=String((shift.time+.001)/baseline.result.time*1000);env.get('timeline').oninput();
+      assert.equal(env.get('clutch-input').hidden,false);assert.equal(env.get('clutch-value').textContent,'100%',vehicle.id);
+      assert.equal(env.state().car.inputs.clutch,1);assert.equal(env.render().car.clutchPedal,0);
+    }
+  }finally{Physics.evaluateGene=evaluate;}
 });
