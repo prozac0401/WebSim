@@ -22,6 +22,36 @@ test('self-authored target-line changes cannot improve measured actual-trajector
  const f=fixture(),a=T.measure(f.vehicle,f.track,f.parent),gene=G.clone(f.gene);for(let i=0;i<G.KNOTS;i++)gene[i*G.STRIDE+C.lineOffset]=5*Math.sin(i/127*Math.PI);
  const b=T.measure(f.vehicle,f.track,{...f.parent,gene});assert.deepEqual(a,b);
 });
+test('clean grip geometry earns no search merit without observed moving drift',()=>{
+ const grip=fixture({beta:0,coverage:0,score:0}),drift=fixture({coverage:0,score:0});
+ const a=T.measure(grip.vehicle,grip.track,grip.parent),b=T.measure(drift.vehicle,drift.track,drift.parent);
+ assert(a.geometry>.9);assert.equal(a.eligibleDistance,0);assert.equal(a.driftCoverage,0);assert.equal(a.geometryCredit,0);assert.equal(a.merit,0);assert.equal(a.feasible,false);
+ assert(b.eligibleDistance>10);assert(b.geometryCredit>0);assert(b.merit>a.merit);
+});
+test('equal drift distance receives equal coverage and angle credit at different valid speeds',()=>{
+ const fast=fixture(),slow=fixture();for(const f of slow.record){f.speed=8;f.vx=8;f.time=f.s/8;}
+ const a=T.measure(fast.vehicle,fast.track,fast.parent),b=T.measure(slow.vehicle,slow.track,slow.parent);
+ assert.equal(a.eligibleDistance,a.windowDistance);assert.equal(b.eligibleDistance,a.eligibleDistance);assert.equal(b.driftCoverage,a.driftCoverage);assert.equal(b.angle,a.angle);
+});
+test('backtracking and repeated road segments cannot backfill grip distance with drift credit',()=>{
+ const once=fixture({coverage:0}),repeat=fixture({coverage:0});
+ for(const f of once.record)if(f.s>=90&&f.s<=120)f.beta=0;
+ const end=once.record.findIndex(f=>f.s===120),before=once.record.slice(0,end+1).map(f=>({...f})),after=once.record.slice(end+1).map(f=>({...f}));
+ const backward=Array.from({length:60},(_,i)=>({...repeat.record[0],s:119.5-i*.5,x:119.5-i*.5,vx:-20}));
+ const forward=Array.from({length:60},(_,i)=>({...repeat.record[0],s:90.5+i*.5,x:90.5+i*.5}));
+ repeat.parent.record=[...before,...backward,...forward,...after];repeat.parent.record.forEach((f,i)=>{f.time=i*.025;});
+ const a=T.measure(once.vehicle,once.track,once.parent),b=T.measure(repeat.vehicle,repeat.track,repeat.parent);
+ assert(b.pathProfile.backtrackingM>=30);assert.equal(b.eligibleDistance,a.eligibleDistance);assert.equal(b.angle,a.angle);assert.equal(b.driftCoverage,a.driftCoverage);
+});
+test('fine eligibility requires a partial corner anchor and meaningful moving drift distance',()=>{
+ const linkOnly=fixture({coverage:.4}),partial=fixture({coverage:.15}),brief=fixture({coverage:.4});
+ for(const arc of linkOnly.parent.result.drift.arcs){arc.bestArc.connectionCoverage=0;arc.bestArc.end=arc.bestArc.start;}
+ for(const f of brief.record)if(f.s<90||f.s>95)f.beta=0;
+ const a=T.measure(linkOnly.vehicle,linkOnly.track,linkOnly.parent),b=T.measure(partial.vehicle,partial.track,partial.parent),c=T.measure(brief.vehicle,brief.track,brief.parent);
+ assert(a.progress>.015);assert(a.eligibleDistance>10);assert.equal(a.maxCornerProgress,0);assert.equal(a.feasible,false,'an isolated link is not a corner anchor');
+ assert(b.maxCornerProgress>=.10&&b.maxCornerProgress<1);assert.equal(b.completed,0);assert.equal(b.feasible,true,'partial corner evidence can be refined before completion');
+ assert(c.maxCornerProgress>=.10);assert(c.eligibleDistance<10);assert.equal(c.feasible,false,'a brief angle impulse is not a viable global drift line');
+});
 test('slow slides, reverse motion and recovered-spin frames earn no angle or velocity-stability search bonus',()=>{
  const healthy=fixture({beta:-40*Math.PI/180}),wide=fixture({beta:-70*Math.PI/180}),spin=fixture({beta:-80*Math.PI/180}),slow=fixture({beta:-40*Math.PI/180}),tagged=fixture({beta:-40*Math.PI/180}),reverse=fixture({beta:-40*Math.PI/180});
  for(const f of slow.record){f.speed=5;f.vx=5;}
@@ -63,6 +93,20 @@ test('archive retains actual path families and completed regional parents indepe
 test('many distinct completed specialists cannot exceed the global archive memory bound',()=>{
  const f=fixture(),entries=Array.from({length:20},(_,i)=>({...f.parent,id:'p'+i,sequence:i,profile:{observed:true,merit:1-i*.01,family:'line-'+i,vector:[i,0],regions:[{id:'corner-'+i,complete:true}]}}));
  const saved=T.retain(entries,e=>e.profile,8);assert.equal(saved.length,8);assert.equal(saved[0].id,'p0');assert(saved.every(e=>e.profile.regions[0].complete));assert.throws(()=>T.retain(entries,e=>e.profile,0),/positive integer/);
+});
+test('moving drift families reserve the archive before at most two grip-only seeds',()=>{
+ const f=fixture(),grip=Array.from({length:10},(_,i)=>({...f.parent,id:'g'+i,sequence:i,profile:{observed:true,merit:1-i*.01,eligibleDistance:0,family:'grip-'+i,vector:[i,0],regions:[]}}));
+ const drift=Array.from({length:3},(_,i)=>({...f.parent,id:'d'+i,sequence:10+i,profile:{observed:true,merit:.2-i*.01,eligibleDistance:20,family:'drift-'+i,vector:[i,1],regions:[{id:'corner',complete:i===2}]}}));
+ assert.equal(T.retain(grip,e=>e.profile).length,8,'broad grip families remain available before any drift exists');
+ const saved=T.retain([...grip,...drift],e=>e.profile);
+ assert.equal(saved.filter(e=>e.profile.eligibleDistance===0).length,2);assert.equal(saved.length,5);assert.equal(new Set(saved.filter(e=>e.id.startsWith('d')).map(e=>e.profile.family)).size,3);assert.equal(saved[0].id,'d2','completed specialist has first reservation');
+});
+test('unanchored search keeps a bounded coarse share even after stagnation',()=>{
+ for(const stale of [0,3,4,100])assert.deepEqual(T.allocation(0,stale),{phase:'coarse',coarseShare:.20,fineShare:0});
+ assert.deepEqual(T.allocation(1,0),{phase:'refine',coarseShare:.25,fineShare:.35});
+ assert.deepEqual(T.allocation(3,4),{phase:'reopen',coarseShare:.40,fineShare:.10});
+ const f=engineFixture();f.engine._trajectoryStale=100;f.engine._rng=()=>.21;assert.equal(f.engine._trajectoryCandidate(),null);
+ f.engine._rng=()=>.19;assert.equal(f.engine._trajectoryCandidate().kind,'coarse-line-speed');
 });
 test('browser script loading fails explicitly when a required search dependency is absent',()=>{
  const vm=require('node:vm'),fs=require('node:fs'),source=fs.readFileSync(require.resolve('./trajectory-search.js'),'utf8');
@@ -122,9 +166,9 @@ test('generation barriers keep sequential and batched reservations identical wit
  }
  assert.deepEqual(a.engine.snapshot().trajectorySearch,b.engine.snapshot().trajectorySearch);
 });
-test('score-only improvement cannot permanently lock the search into fine detail',()=>{
+test('score-only improvement without a drift anchor keeps broad search available',()=>{
  const f=engineFixture();for(let generation=0;generation<5;generation++){
   const jobs=Array.from({length:20},()=>f.engine.planCandidate());for(const [i,job]of jobs.entries())f.engine.acceptCandidate(job,{...f.parent.result,score:generation*20+i+1,frames:f.record});
  }
- const state=f.engine.snapshot();assert.equal(state.bestScore,100);assert.equal(state.trajectorySearch.phase,'reopen');assert(state.trajectorySearch.staleGenerations>=4);assert(state.trajectorySearch.coarseProposals>0);
+ const state=f.engine.snapshot();assert.equal(state.bestScore,100);assert.equal(state.trajectorySearch.phase,'coarse');assert(state.trajectorySearch.staleGenerations>=4);assert(state.trajectorySearch.coarseProposals>0);assert.equal(state.trajectorySearch.fineProposals,0);
 });

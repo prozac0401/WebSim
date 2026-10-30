@@ -41,6 +41,8 @@
   const record=entry.record||entry.result?.frames||[],gates=stations(track,zones),valid=entry.accepted!==false&&entry.result?.valid===true&&entry.result?.status==='finished';
   if(!valid||record.length<2||gates.length<2)return {observed:false,valid,merit:0,feasible:false,family:'unknown',states:[],vector:[],progress:0,completed:0};
   const states=[],samples=[],stride=Math.max(1,Math.floor(record.length/240));let next=0,previous=null,pathNext=0,backtrackingM=0;
+  const windowStart=gates[0],windowEnd=gates.at(-1),windowDistance=windowEnd-windowStart;
+  let distanceHighWater=windowStart,eligibleDistance=0,angleIntegral=0;
   const pathStations=Array.from({length:96},(_,i)=>2.5+(track.length-2.5)*i/95),pathPoints=[];
   const interpolateState=(a,b,at,u)=>{
    const point={s:at};for(const key of ['x','y','vx','vy','speed','r','beta'])point[key]=(a[key]||0)+((b[key]||0)-(a[key]||0))*u;
@@ -51,6 +53,19 @@
    const f=record[i];if(![f.s,f.x,f.y,f.vx,f.vy,f.yaw,f.speed].every(Number.isFinite))continue;
    const road=roadPoint(track,f);
    if(previous)backtrackingM+=Math.max(0,previous.road.s-road.s);
+   if(previous){
+    const a=previous.f,dt=f.time-a.time,progress=road.s-previous.road.s,distance=Math.hypot(f.x-a.x,f.y-a.y),speed=Math.max(a.speed,f.speed);
+    const moving=dt>0&&dt<.1&&progress>0&&distance>0&&distance<=speed*dt*1.2+.02&&progress<=speed*dt*4+.05;
+    const lo=Math.max(windowStart,previous.road.s,distanceHighWater),hi=Math.min(windowEnd,road.s),beta=Math.abs(f.beta||0);
+    const forwardSpeed=Math.cos(road.q.heading)*f.vx+Math.sin(road.q.heading)*f.vy;
+    if(moving&&hi>lo&&f.speed>=8&&forwardSpeed>0&&f.status!=='spin'&&beta>=10*Math.PI/180&&beta<=70*Math.PI/180){
+     // Fresh road distance only: lingering near the speed floor or driving
+     // back over an already visited segment cannot improve search merit.
+     const fresh=Math.min(distance,progress)*(hi-lo)/progress;
+     eligibleDistance+=fresh;angleIntegral+=fresh*clamp((Math.sin(beta)-Math.sin(2*Math.PI/180))/(Math.sin(70*Math.PI/180)-Math.sin(2*Math.PI/180)),0,1);
+    }
+   }
+   distanceHighWater=Math.max(distanceHighWater,Math.min(windowEnd,road.s));
    if(previous&&road.s>previous.road.s){
     while(next<gates.length&&gates[next]<previous.road.s)next++;
     while(next<gates.length&&gates[next]<=road.s){
@@ -73,12 +88,11 @@
   const regions=A.measure(track,entry.result.drift,record).regions,progresses=regions.map(r=>clamp(r.progress||0,0,1));
   const progress=progresses.length?.65*mean(progresses)+.35*Math.min(...progresses):0,completed=regions.filter(r=>r.complete).length;
   const moving=samples.filter(f=>f.speed>=8&&f.forwardSpeed>0&&f.status!=='spin'&&Math.abs(f.beta)<75*Math.PI/180);
-  // Same basic scoring eligibility: 10–70 degrees and at least 8 m/s.
-  // A recovered spin remains a valid finish, but earns no search-angle bonus.
-  const angle=mean(samples.map(f=>{
-   const beta=Math.abs(f.beta);return f.speed>=8&&f.forwardSpeed>0&&f.status!=='spin'&&beta>=10*Math.PI/180&&beta<=70*Math.PI/180
-    ?clamp((Math.sin(beta)-Math.sin(2*Math.PI/180))/(Math.sin(70*Math.PI/180)-Math.sin(2*Math.PI/180)),0,1):0;
-  })),headingError=moving.length?mean(moving.map(f=>f.headingError)):Math.PI,outward=mean(moving.map(f=>f.outward));
+  // These are distance fractions of the observed window, not time averages.
+  // Geometry remains a diagnostic for grip seeds but earns merit only while
+  // there is actual moving drift evidence to give that geometry a purpose.
+  const driftCoverage=clamp(eligibleDistance/windowDistance,0,1),angle=clamp(angleIntegral/windowDistance,0,1);
+  const headingError=moving.length?mean(moving.map(f=>f.headingError)):Math.PI,outward=mean(moving.map(f=>f.outward));
   const margins=samples.map(f=>f.margin),minimumMargin=margins.length?Math.min(...margins):0;
   const curvatureChange=[],yawDivergence=[];let oldCurvature=null;
   for(let i=1;i<moving.length;i++){
@@ -90,13 +104,14 @@
   const geometry=.35*direction+(moving.length?.25/(1+outward/3):0)+.15*recovery+.15*curvature+.10*clearance;
   // Grip-only candidates may seed another broad line, but gain no drift
   // progress merely by being centered. Body angle is never heading error.
-  const merit=.60*progress+.10*angle+.30*geometry,coverage=states.length/gates.length;
+  const geometryCredit=geometry*driftCoverage,merit=.60*progress+.10*angle+.30*geometryCredit,coverage=states.length/gates.length;
   const vector=states.flatMap(f=>[f.lateral/4,f.velocityError/.5,f.speed/25,f.beta/.6,f.yawRate]);
   const family=states.filter((_,i)=>i%2===0).map(f=>Math.round(f.lateral/2)+':'+Math.round(f.velocityError/.3)).join('|');
   const exits=zones.map(z=>states.find(f=>Math.abs(f.s-z.exit)<1e-6)).filter(Boolean),maxExitError=exits.length?Math.max(...exits.map(f=>Math.abs(f.velocityError))):Math.PI;
-  return {observed:coverage>=.8,valid,merit,geometry,progress,completed,angle,direction,recovery,curvature,clearance,outward,headingError,velocitySamples:moving.length,minimumMargin,sampledMinimumMargin:minimumMargin,marginSampling:{samples:margins.length,frameStride:stride,fullPhysicsBoundaryCheck:false},coverage,states,vector,family,
+  const maxCornerProgress=Math.max(0,...regions.filter(r=>r.kind==='corner').map(r=>r.progress||0));
+  return {observed:coverage>=.8,valid,merit,geometry,geometryCredit,progress,completed,angle,eligibleDistance,windowDistance,driftCoverage,maxCornerProgress,direction,recovery,curvature,clearance,outward,headingError,velocitySamples:moving.length,minimumMargin,sampledMinimumMargin:minimumMargin,marginSampling:{samples:margins.length,frameStride:stride,fullPhysicsBoundaryCheck:false},coverage,states,vector,family,
    pathProfile:{start:2.5,end:track.length,spacingM:(track.length-2.5)/95,expectedSamples:96,points:pathPoints,coverage:pathPoints.length/96,backtrackingM,sampled:true,continuousProof:false},
-   feasible:coverage>=.8&&progress>.015&&geometry>.52&&maxExitError<.7,regions:regions.map(r=>({id:r.id,progress:r.progress||0,complete:!!r.complete}))};
+   feasible:coverage>=.8&&maxCornerProgress>=.10&&eligibleDistance>=10&&geometry>.52&&maxExitError<.7,regions:regions.map(r=>({id:r.id,kind:r.kind,progress:r.progress||0,complete:!!r.complete}))};
  }
  function distance(a,b){if(!a.vector.length||a.vector.length!==b.vector.length)return 0;return Math.sqrt(mean(a.vector.map((x,i)=>(x-b.vector[i])**2)));}
  function comparePath(parent,child){
@@ -115,15 +130,26 @@
  function retain(entries,profile,limit=8){
   if(!Number.isInteger(limit)||limit<1)throw new RangeError('Trajectory archive limit must be a positive integer.');
   const unique=[...new Map(entries.filter(e=>e?.accepted!==false&&e?.result?.valid&&e.result.status==='finished').map(e=>[e.id,e])).values()],ranked=unique.filter(e=>profile(e).observed).sort((a,b)=>profile(b).merit-profile(a).merit||a.sequence-b.sequence);
-  const chosen=[],add=e=>{if(e&&chosen.length<limit&&!chosen.includes(e))chosen.push(e);};
+  const moving=e=>(profile(e).eligibleDistance||0)>1e-9||profile(e).regions.some(r=>r.complete),hasMoving=ranked.some(moving);
+  const ordered=hasMoving?[...ranked.filter(moving),...ranked.filter(e=>!moving(e))]:ranked;
+  const chosen=[],allowed=e=>!hasMoving||moving(e)||chosen.filter(p=>!moving(p)).length<2;
+  const add=e=>{if(e&&chosen.length<limit&&!chosen.includes(e)&&allowed(e)){chosen.push(e);return true;}return false;};
   // Reserve completed specialists within this bounded global archive. Any
   // additional completed parents remain in the engine's regional archives.
   const complete=new Map();for(const e of ranked)for(const r of profile(e).regions)if(r.complete&&!complete.has(r.id))complete.set(r.id,e);
-  add(ranked[0]);for(const e of complete.values())add(e);
+  for(const e of complete.values())add(e);add(ordered[0]);
   const families=new Set(chosen.map(e=>profile(e).family));
-  for(const e of ranked){if(chosen.length>=limit)break;if(!families.has(profile(e).family)){add(e);families.add(profile(e).family);}}
-  while(chosen.length<limit){let best=null,value=-Infinity;for(const e of ranked){if(chosen.includes(e))continue;const novelty=Math.min(...chosen.map(p=>distance(profile(p),profile(e))));if(novelty<1e-5)continue;const score=.7*profile(e).merit+.3*Math.min(1,novelty);if(score>value){value=score;best=e;}}if(!best)break;add(best);}
+  // Keep broad grip seeds available, but give moving drift families the
+  // archive first once they exist. Two grip-only seeds are sufficient to
+  // reopen a different broad line without filling most parent slots.
+  for(const e of ordered){if(chosen.length>=limit)break;if(!families.has(profile(e).family)&&add(e))families.add(profile(e).family);}
+  while(chosen.length<limit){let best=null,value=-Infinity;for(const e of ordered){if(chosen.includes(e)||!allowed(e))continue;const novelty=Math.min(...chosen.map(p=>distance(profile(p),profile(e))));if(novelty<1e-5)continue;const score=.7*profile(e).merit+.3*Math.min(1,novelty);if(score>value){value=score;best=e;}}if(!best)break;add(best);}
   return chosen;
+ }
+ function allocation(feasibleParents,staleGenerations){
+  if(!feasibleParents)return {phase:'coarse',coarseShare:.20,fineShare:0};
+  if(staleGenerations>=4)return {phase:'reopen',coarseShare:.40,fineShare:.10};
+  return {phase:'refine',coarseShare:.25,fineShare:.35};
  }
  function interpolate(anchors,s){if(s<=anchors[0].s)return anchors[0].value;if(s>=anchors.at(-1).s)return anchors.at(-1).value;let i=0;while(i<anchors.length-2&&s>anchors[i+1].s)i++;const a=anchors[i],b=anchors[i+1];return a.value+(b.value-a.value)*smooth((s-a.s)/(b.s-a.s));}
  function coarse(vehicle,track,parent,rng,options={}){
@@ -177,5 +203,5 @@
   }
   snapshot(generation){return {blocked:[...this.records.values()].filter(r=>r.until>generation).length,skipped:this.skipped};}
  }
- const api=Object.freeze({VERSION:1,measure,retain,distance,comparePath,stations,frontMargin,coarse,fine,RetryPolicy});root.DriftTrajectorySearch=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+ const api=Object.freeze({VERSION:2,measure,retain,distance,comparePath,stations,frontMargin,allocation,coarse,fine,RetryPolicy});root.DriftTrajectorySearch=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
