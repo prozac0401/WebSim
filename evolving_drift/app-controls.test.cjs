@@ -1,24 +1,24 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const Genome=require('./genome.js'),Runtime=require('./runtime.js');
+const Genome=require('./genome.js'),Runtime=require('./runtime.js'),ReplayRenderer=require('./renderer.js');
 const source=fs.readFileSync(require.resolve('./app.js'),'utf8');
 const html=fs.readFileSync(require.resolve('./evolving_drift.html'),'utf8'),pageIds=new Set([...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]));
 
 // Execute the real app and its handlers with a deliberately queued worker
 // response. This tests the UI/worker boundary, not a copy of the control logic.
-function environment({fallback=false,apex=false,broken=false,complete=false,early=false,straight=false,linked=false,linkUnmeasured=false,transitioning=false,score=1,duration=30,timeline=null,evaluationStats=null,learningStats=null}={}){
+function environment({fallback=false,apex=false,broken=false,complete=false,early=false,straight=false,linked=false,linkUnmeasured=false,transitioning=false,score=1,duration=30,timeline=null,evaluationStats=null,learningStats=null,vehicleLabel='Test',physics={},replayFrames=null}={}){
   const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0,scoreCalls=0,lastRender=null;
-  function element(){return{children:[],value:'1',disabled:false,hidden:false,checked:false,textContent:'',classList:{toggle(){},remove(){}},
-    setAttribute(){},append(...items){this.children.push(...items);},before(){},replaceChildren(...items){this.children=items;},addEventListener(type,handler){this['on'+type]=handler;},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
-  const get=id=>{assert.ok(pageIds.has(id),'UI must not access a removed DOM target: '+id);if(!elements.has(id))elements.set(id,element());return elements.get(id);};
-  const vehicle={id:'test-car',vehicleId:'test-car',label:'Test',physics:{peakPowerW:100000,peakTorque:200,massKg:1200},limitations:[],sourceUrl:'',spec:{factoryDrive:'RWD'}};
+  function element(){const classes=new Set(),attributes=new Map();return{children:[],value:'1',disabled:false,hidden:false,checked:false,textContent:'',style:{},dataset:{},classList:{toggle(name,on){if(on)classes.add(name);else classes.delete(name);},remove(name){classes.delete(name);},contains(name){return classes.has(name);}},
+    setAttribute(name,value){attributes.set(name,String(value));},getAttribute(name){return attributes.get(name)??null;},append(...items){this.children.push(...items);},before(){},replaceChildren(...items){this.children=items;},addEventListener(type,handler){this['on'+type]=handler;},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
+  const get=id=>{assert.ok(pageIds.has(id),'UI must not access a removed DOM target: '+id);if(!elements.has(id)){const node=element();if(id==='shift-lights')node.children=Array.from({length:8},element);elements.set(id,node);}return elements.get(id);};
+  const vehicle={id:'test-car',vehicleId:'test-car',label:vehicleLabel,physics:{peakPowerW:100000,peakTorque:200,massKg:1200,idleRPM:800,shiftRPM:6000,gearRatios:[4,2.4,1.6,1.2,1,.8],transmissionType:'MT',electric:false,...physics},limitations:[],sourceUrl:'',spec:{factoryDrive:'RWD'}};
   const track={id:'test-track',name:'Test track',length:500,judgedStart:50,judgedEnd:450};
-  const frame={time:0,s:0,x:0,y:0,yaw:0,speed:0,beta:0,steer:0,throttle:0,brake:0,gear:1,rpm:800,rearTorque:0,wheelSlip:[0,0,0,0]};
+  const frame={time:0,s:0,x:0,y:0,yaw:0,speed:0,beta:0,steer:0,throttle:0,brake:0,clutchPedal:0,gear:1,rpm:800,rearTorque:0,wheelSlip:[0,0,0,0]};
   const result={valid:true,status:'finished',score,time:duration,maxAngle:apex?42:2,driftDistance:0};
   if(apex)result.drift={fullConnectionCount:complete?1:0,totalArcCount:2,parts:{sideways:20,connection:10,curve:8,propulsion:1},bestArc:{distance:40,duration:2.1,startTime:12,endTime:14.1,entrySpeed:20,minSpeed:18,exitSpeed:19,distanceWeightedAngle:31.6,speedRetention:.9,speedScope:'apex-window',curveQuality:.85,anchored:true,connectionCoverage:complete?1:.65,complete,initiationS:early?30:60,initiationTime:early?7:12,startedBeforeStart:early}};
   if(result.drift)Object.assign(result.drift,{straightLinkCount:linked?1:0,totalLinkCount:straight?2:0,bestLink:straight?{id:'link-1',fromZoneId:'apex-1',toZoneId:'apex-2',start:100,end:200,straightStart:130,straightEnd:170,coverage:linked?1:.6,complete:linked,distance:100,duration:13,startTime:12,endTime:25,entrySpeed:20,minSpeed:linkUnmeasured?0:18.4,exitSpeed:19,speedRetention:linkUnmeasured?0:.92,transitionDuration:.2,transitionDistance:4,score:3}:null});
   if(result.drift)result.drift.scoring={score:1,parts:{base:.5,continuity:.3,zone:.2},maxChainDistance:65,maxMultiplier:1.8,meanAngle:31.6,scoredDistance:100};
-  const baseline={gene:Genome.create(),record:[frame],result,prepared:true};
+  const baseline={gene:Genome.create(),record:replayFrames?replayFrames.map(row=>({...frame,...row})):[frame],result,prepared:true};
   const best={...baseline,id:'baseline'};
   const state=()=>({generation:Math.floor(steps/20),totalEvaluated:steps,evaluated:steps%20,mutationScale:1,history:[],stats:{validCount:steps,failureCount:0},evaluationStats,learningStats});
   class Worker{
@@ -27,7 +27,7 @@ function environment({fallback=false,apex=false,broken=false,complete=false,earl
     terminate(){this.alive=false;}
     emit(message){this.onmessage?.({data:{runtimeIdentity:'test-runtime',...message}});}
   }
-  class Renderer{resize(){}render(options){lastRender=options;}retryVehicle(){}getState(){return{};}static sampleFrames(frames){return frames?.[0];}}
+  class Renderer{resize(){}render(options){lastRender=options;}retryVehicle(){}getState(){return{};}static sampleFrames(frames,time){return ReplayRenderer.sampleFrames(frames,time);}}
   class Engine{
     constructor(){this.ready=true;this.best=best;this.generation=0;this.lastCandidate=null;}
     initialize(){}snapshot(){return state();}
@@ -448,5 +448,42 @@ test('simplified page removes ghost and graphs while retaining replay, details a
   for(const id of ['vehicle','track','evolve','one-generation'])assert.ok(html.indexOf('id="'+id+'"')<html.indexOf('id="stage"'),id+' stays above the replay');
   assert.ok(html.indexOf('id="replay-failure-origin"')<html.indexOf('id="failure-details"'),'failure replay remains available outside collapsed evidence');
   const env=environment();env.ready();assert.ok(env.render().car);assert.equal('ghost' in env.render(),false);assert.equal('reference' in env.render(),false);
-  assert.equal(env.get('speed-value').textContent,'0');assert.equal(env.get('angle-value').textContent,'0.0°');assert.equal(env.get('rpm-value').textContent,'800 rpm');
+  assert.equal(env.get('speed-value').textContent,'0');assert.equal(pageIds.has('angle-value'),false);assert.equal(env.get('rpm-value').textContent,'800 rpm');
+});
+
+test('dashboard pedals follow recorded replay inputs through seeks and restart',()=>{
+  const env=environment({replayFrames:[{time:0,throttle:.4,brake:0,clutchPedal:0},{time:15,speed:20,gear:3,rpm:3400,throttle:.72,brake:.25,clutchPedal:1},{time:30,throttle:0,brake:1,clutchPedal:.2}]});env.ready();
+  assert.equal(env.get('throttle-value').textContent,'40%');assert.equal(env.get('clutch-value').textContent,'0%');
+  env.get('timeline').value='500';env.get('timeline').oninput();
+  for(const [name,value] of [['throttle',72],['brake',25],['clutch',100]]){
+    assert.equal(env.get(name+'-value').textContent,value+'%');assert.equal(env.get(name+'-fill').style.width,value+'%');
+    assert.equal(env.get(name+'-input').getAttribute('aria-valuenow'),String(value));assert.equal(env.get(name+'-input').getAttribute('aria-disabled'),'false');
+  }
+  assert.equal(env.get('speed-value').textContent,'72');assert.equal(env.get('rpm-value').textContent,'3,400 rpm');
+  assert.equal(env.get('gear-value').textContent,3,'clutch depression during a kick does not invent neutral');
+  assert.equal(env.get('shift-lights').children.filter(lamp=>lamp.classList.contains('lit')).length,4);
+  assert.equal(env.state().car.clutch.pedal,1);assert.equal(env.render().car.throttle,.72);assert.equal(env.render().car.brake,.25);
+  env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('throttle-value').textContent,'0%');assert.equal(env.get('brake-value').textContent,'100%');
+  env.get('restart').onclick();assert.equal(env.get('throttle-value').textContent,'40%');assert.equal(env.get('brake-value').textContent,'0%');assert.equal(env.get('clutch-value').textContent,'0%');
+});
+
+test('AT, DCT and electric dashboards do not claim a clutch pedal input',()=>{
+  for(const transmissionType of ['AT','DCT','EV']){
+    const electric=transmissionType==='EV',env=environment({physics:{transmissionType,electric},replayFrames:[{time:0,clutchPedal:1,throttle:.6,brake:.1,rpm:5800}]});env.ready();
+    assert.equal(env.get('clutch-value').textContent,'—');assert.equal(env.get('clutch-fill').style.width,'0%');
+    assert.equal(env.get('clutch-input').getAttribute('aria-disabled'),'true');assert.equal(env.get('clutch-input').getAttribute('aria-valuetext'),'클러치 페달 없음');
+    assert.equal(env.get('throttle-value').textContent,'60%');assert.equal(env.get('brake-value').textContent,'10%');
+    assert.equal(env.get('shift-readout').hidden,electric);
+    if(electric){assert.equal(env.get('gear-value').textContent,'D');assert.equal(env.get('rpm-value').textContent,'전기');assert.equal(env.get('shift-lights').children.some(lamp=>lamp.classList.contains('lit')),false);}
+  }
+});
+
+test('vehicle options omit market countries while preserving model years, grades and transmissions',()=>{
+  for(const [original,expected] of [
+    ['제네시스 G70 (전기형) · 2019 국내 2.0T RWD · 8AT · 18인치','제네시스 G70 (전기형) · 2019 2.0T RWD · 8AT · 18인치'],
+    ['BMW M2 F87 · 2016 독일 3.0T RWD · 6MT · 19인치','BMW M2 F87 · 2016 3.0T RWD · 6MT · 19인치'],
+    ['토요타 GR86 ZN8 · 2022 일본 RZ 2.4 RWD · 6MT · 18인치','토요타 GR86 ZN8 · 2022 RZ 2.4 RWD · 6MT · 18인치']
+  ]){
+    const env=environment({vehicleLabel:original});env.ready();assert.equal(env.get('vehicle').children[0].textContent,expected);assert.equal(env.render().vehicle.label,original,'verified source label stays intact');
+  }
 });
