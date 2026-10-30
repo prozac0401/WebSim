@@ -5,6 +5,7 @@
   'use strict';
   const G = 9.81, PS_WATTS = 735.49875;
   const DYNAMICS = root.PowertrainDynamics || (typeof require === 'function' ? require('./powertrain-dynamics.js') : null);
+  const CONDITION = root.VehicleCondition || (typeof require === 'function' ? require('./vehicle-condition.js') : null);
   const cache = new WeakMap();
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const mod = (v, n) => ((v % n) + n) % n;
@@ -23,23 +24,32 @@
   // the line must never advance the watched car's transmission timer.
   // Using wheel force (not just negative acceleration) avoids calling uphill
   // full-throttle deceleration braking, or downhill coasting acceleration gas.
-  function forces(race, car, speed, grade) {
+  function forces(race, car, speed, grade, curvature = 0, acceleration = 0) {
     const normal = 1 / Math.hypot(1, grade), mass = car.massKg;
     const resistance = .5 * 1.225 * car.dragArea * speed * speed / mass + G * (car.rollingCoefficient * normal + grade * normal);
     const gearing = DYNAMICS?.preview(car, speed);
     const radius = gearing?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
     const retained = gearing?.torqueFactor ?? 1;
-    const torque = car.torqueNm * (gearing?.totalRatio ?? car.driveReduction) * car.efficiency * retained / radius / mass;
-    const power = car.powerPs * PS_WATTS * car.efficiency * retained / Math.max(4, speed) / mass;
-    const drive = Math.max(0, Math.min(torque, power, race._tractionAcceleration(car, speed, grade, resistance)));
-    return { resistance, drive, brake: race._brakingCapacity(car, speed, grade), acceleration: drive - resistance };
+    const condition = car.condition && CONDITION ? CONDITION.limits(car, car.condition) : null;
+    const powerFactor = condition?.powerFactor ?? 1;
+    const torque = car.torqueNm * powerFactor * (gearing?.totalRatio ?? car.driveReduction) * car.efficiency * retained / radius / mass;
+    const power = car.powerPs * powerFactor * PS_WATTS * car.efficiency * retained / Math.max(4, speed) / mass;
+    const axle = condition && race._axleEnvelope ? race._axleEnvelope(car, speed, grade, curvature, acceleration) : null;
+    const driven = !axle ? Infinity : car.spec.factoryDrive === 'fwd' ? axle.front : car.spec.factoryDrive === 'rwd' ? axle.rear : axle.front + axle.rear;
+    const drive = Math.max(0, Math.min(torque, power, driven / mass, race._tractionAcceleration(car, speed, grade, resistance)));
+    return { resistance, drive, brake: race._brakingCapacity(car, speed, grade, curvature), acceleration: drive - resistance };
   }
 
   function signature(race, car) {
+    const condition = car.condition && CONDITION ? CONDITION.limits(car,car.condition) : null;
+    // Profile rebuilds follow physical profile epochs or material condition
+    // changes; sub-watt display noise must not rebuild a full lap every frame.
+    const conditionKey = condition ? [condition.gripFrontFactor,condition.gripRearFactor,condition.brakeFactor,condition.powerFactor].map(v=>v.toFixed(2)).concat(Math.round(condition.regenPowerW/1000),Math.round(condition.batteryAssistPowerW/1000)) : [];
     return [car.trackLength || race.track.length, race.surface, car.massKg, car.powerPs, car.torqueNm, car.driveReduction, car.efficiency,
       car.grip, car.traction, car.braking, car.brakingHardware, car.longitudinalGrip, car.dragArea, car.rollingCoefficient,
       car.downforceArea, car.frontWeightFraction, car.cgHeightM, car.wheelbaseM, car.trackWidthM, car.advancedDynamics,
-      car.spec.factoryDrive, car.spec.frontTireRadiusMm, car.spec.rearTireRadiusMm].join('|');
+      car.spec.factoryDrive, car.spec.frontTireRadiusMm, car.spec.rearTireRadiusMm,
+      ...conditionKey].join('|');
   }
 
   function build(race, car) {
@@ -72,7 +82,7 @@
         // v(next)^2 = v(entry)^2 - 2 * road/air resistance * ds.
         // On a descent this can require a lower entry speed; the subsequent
         // braking pass checks that entry is reachable before showing release.
-        const resistance = forces(race, car, next, grades[i]).resistance;
+        const resistance = forces(race, car, next, grades[i], points[i].curvature).resistance;
         const coastLimit = Math.sqrt(Math.max(0, next * next + 2 * resistance * spacing));
         speeds[i] = Math.min(speeds[i], coastLimit);
         release[i] = true;
@@ -89,20 +99,20 @@
       let change = 0;
       for (let k = count - 1; k >= 0; k--) {
         const i = mod(start + k, count), j = (i + 1) % count;
-        const f = forces(race, car, speeds[i], grades[i]);
+        const f = forces(race, car, speeds[i], grades[i], points[i].curvature);
         const cap = Math.sqrt(Math.max(0, speeds[j] * speeds[j] + 2 * (f.brake + f.resistance) * spacing));
         const next = Math.min(speeds[i], cap); change = Math.max(change, speeds[i] - next); speeds[i] = next;
       }
       for (let k = 0; k < count; k++) {
         const i = mod(start + k, count), j = (i + 1) % count;
-        const f = forces(race, car, speeds[i], grades[i]);
+        const f = forces(race, car, speeds[i], grades[i], points[i].curvature);
         const cap = Math.sqrt(Math.max(0, speeds[i] * speeds[i] + 2 * f.acceleration * spacing));
         const next = Math.min(speeds[j], cap); change = Math.max(change, speeds[j] - next); speeds[j] = next;
       }
       if (change < .001) break;
     }
     const samples = speeds.map((speed, i) => {
-      const f = forces(race, car, speed, grades[i]);
+      const f = forces(race, car, speed, grades[i], points[i].curvature);
       const acceleration = (speeds[(i + 1) % count] ** 2 - speed ** 2) / (2 * spacing);
       const wheel = acceleration + f.resistance;
       const brake = clamp(-wheel / Math.max(.01, f.brake), 0, 1);
@@ -192,20 +202,21 @@
     const physical = distance => {
       if (race.sampleForCar) {
         const p = race.sampleForCar(car, distance);
-        return { grade: p.grade || 0, target: race._target(car, distance) };
+        return { grade: p.grade || 0, curvature:p.curvature || 0, target: race._target(car, distance) };
       }
       const u = mod(distance, length) / spacing, i = Math.floor(u) % points.length, t = u - Math.floor(u), j = (i + 1) % points.length;
       return { grade: (points[i].grade || 0) + ((points[j].grade || 0) - (points[i].grade || 0)) * t,
+        curvature:(points[i].curvature || 0) + ((points[j].curvature || 0) - (points[i].curvature || 0)) * t,
         target: Math.sqrt(car.speedProfile[i] ** 2 + (car.speedProfile[j] ** 2 - car.speedProfile[i] ** 2) * t) };
     };
     const targetAt = distance => typeof race._target === 'function' ? race._target(car, distance) : physical(distance).target;
     let position = origin, speed = car.speed, acceleration = Number.isFinite(car.acceleration) ? car.acceleration : 0;
-    let state = forces(race, car, speed, physical(position).grade), wheel = acceleration + state.resistance;
+    let state = forces(race, car, speed, physical(position).grade, physical(position).curvature, acceleration), wheel = acceleration + state.resistance;
     const requests = distances.map((distance, index) => ({distance:Math.max(origin, distance),index})).sort((a,b) => a.distance - b.distance), result = new Array(distances.length);
     for (const request of requests) {
       while (position < request.distance - 1e-8) {
         const ds = Math.min(1, request.distance - position), nextPosition = position + ds;
-        state = forces(race, car, speed, physical(position).grade);
+        state = forces(race, car, speed, physical(position).grade, physical(position).curvature, acceleration);
         const target = targetAt(nextPosition);
         const lower = Math.max(0, speed * speed + 2 * (-state.brake - state.resistance) * ds);
         const upper = Math.max(0, speed * speed + 2 * state.acceleration * ds);
@@ -218,12 +229,16 @@
         // after a corner starts opening. Evaluate the engine's instantaneous
         // 120 Hz control at the arrow itself, using its predicted endpoint
         // speed and the same continuous target lookahead as _advance.
-        state = forces(race, car, speed, physical(position).grade);
+        state = forces(race, car, speed, physical(position).grade, physical(position).curvature, acceleration);
         const dt = 1 / 120, target = targetAt(position + Math.max(.1, speed * dt));
         acceleration = clamp((target - speed) / dt, -state.brake - state.resistance, state.acceleration);
         wheel = acceleration + state.resistance;
       }
-      const base = sampleProfile(data, flyingDistance(race, car, request.distance)), brake = clamp(-wheel / Math.max(.01, state.brake), 0, 1), throttle = clamp(wheel / Math.max(.01, state.drive), 0, 1);
+      const atCurrent = request.distance <= origin + 1e-8;
+      if (atCurrent && car.condition && car.serviceBrakeForceN > 0) wheel = -car.serviceBrakeForceN / car.massKg;
+      const base = sampleProfile(data, flyingDistance(race, car, request.distance));
+      const brake = atCurrent && car.condition && Number.isFinite(car.brakeDemand) ? car.brakeDemand : clamp(-wheel / Math.max(.01, state.brake), 0, 1);
+      const throttle = clamp(wheel / Math.max(.01, state.drive), 0, 1);
       const gate = yellowGate(acceleration), coastDemand = throttle < .4 && brake < .4 ? base.coastDemand : 0;
       const anticipationDemand = brake < .65 ? base.anticipationDemand : 0, coast = coastDemand * gate, anticipation = anticipationDemand * gate;
       const red = smooth(.06, .9, brake), green = (1-red) * smooth(.15,.9,throttle) * (1-coastDemand) * (1-anticipationDemand);

@@ -1,0 +1,4996 @@
+{
+  "model": "estimated-v1",
+  "sourceSha256": {
+    "race-engine.js": "8fd5f3a5ff08c87e4d0650f51c417d1deb3bc6881bff3d6a364207724d700481",
+    "vehicle-condition.js": "ab041d7799c3b8e1f46e453cdc7001b7c518e3738ca5e5b68126fa0ee36c23a8",
+    "tuning-evolution.js": "5ada373c6c756e775b62487aecffcd14bb4e7059a43527021b17b7dc39bca084",
+    "circuits.js": "12726d01bd02e765fec186489b4830954961022b0caec320fa8cb8be0df9d818",
+    "circuit-vehicle-specs.js": "8687ceaedc51de8d8304a10255770bf755c5e3b6474e3db827aadd7df899be7d",
+    "powertrain-profiles.js": "be00693215934df0196ec5091627176099b898c657234c896e7a4c35b2b1dd96",
+    "powertrain-dynamics.js": "520b73b8d27b57a11abebc99fb3baf526719afee838e58f4c9ac76cd9d06c68a",
+    "powertrain-telemetry.js": "24048fb5f27846a448bf03d3bfd9811902b08fd1e9669dac560ecb29ab14a5c1",
+    "vehicle-racing-line.js": "1fcaf443df1fb3a6641e15cbf4674dbcc0b7f39aceea1f96b06d527c5771cee2",
+    "driving-pose.js": "567230ff320d71959228ecc7ccabb7685cf3cba9215b67b9a4c2629b8235760b",
+    "spa-elevation-profile.js": "c3ed755719d8381ddfde4819e9615d6b9412c1006121da462ae9fa69b529921c",
+    "taebaek-elevation-profile.js": "f20c27ecf293574bfd06da2152867e1d9465b4e85df325ee5ddc9b7d22b442f5",
+    "n-grin-shift.js": "a2bf3a26edfaf15c85e517b90df5d9e153fe6162b3e258adb0cf00b598031c4a",
+    "brake-light-state.js": "e0ed0fcf55d2c132ca98dd879c83b1055dda0867be0e125c8cfb59a0d2682455"
+  },
+  "nodeVersion": "v24.22.1",
+  "conditions": 24,
+  "records": 72,
+  "allFinished": true,
+  "allFinite": true,
+  "methods": "Actual 120 Hz TrackRace with condition-dependent axle friction envelopes, braking profiles and power. Three entrants evaluated together as independent ghosts; deterministic, no GA search. Dry, warm baseline, default modeled SOC/ambient. Existing costs/specs unchanged.",
+  "limitations": "Thermal thresholds, cooling, wear, HEV battery capacity and engine charging policy are gameplay estimates. This matrix validates bounded coherent behavior and scenario differences; it is not measured vehicle calibration, human enjoyment validation, or proof that these three setups are globally optimal. Four variants, two circuits only.",
+  "rows": [
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 158.89754948230396,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.89754948230396
+      ],
+      "brakeTemperatureC": [
+        464.21198159423113,
+        211.4938793382371
+      ],
+      "brakeFactor": 0.9995728351511836,
+      "tireTemperatureC": [
+        54.97615952299667,
+        38.15510575621121
+      ],
+      "tireWear": [
+        0.0015902062444820726,
+        0.00040852663522689765
+      ],
+      "tireGripFactors": [
+        0.9995229381266554,
+        0.996188105734917
+      ],
+      "powertrain": {
+        "engineTemperatureC": 87.63156817133795,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 9992298.404631224,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 7665893.5021176115,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 9992298.404631224,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995728351511836
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 161.77090252738193,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        161.77090252738193
+      ],
+      "brakeTemperatureC": [
+        421.1500984454893,
+        187.24412660850598
+      ],
+      "brakeFactor": 0.9996298689573151,
+      "tireTemperatureC": [
+        54.376308570019276,
+        37.96933272322619
+      ],
+      "tireWear": [
+        0.0015656371032860116,
+        0.00039487924523401457
+      ],
+      "tireGripFactors": [
+        0.9995303088690142,
+        0.9958206827938991
+      ],
+      "powertrain": {
+        "engineTemperatureC": 87.0238741860626,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 9800646.006093165,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 7547777.435114918,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 9800646.006093165,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996298689573151
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 176.96517015107037,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        176.96517015107037
+      ],
+      "brakeTemperatureC": [
+        397.9106534968675,
+        187.37280889589556
+      ],
+      "brakeFactor": 0.999638633267502,
+      "tireTemperatureC": [
+        51.44521291831681,
+        36.808366602441964
+      ],
+      "tireWear": [
+        0.002470834124679436,
+        0.0006106187633748183
+      ],
+      "tireGripFactors": [
+        0.9992587497625962,
+        0.9934347168986144
+      ],
+      "powertrain": {
+        "engineTemperatureC": 82.80202538010474,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 8387642.845778686,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 6529996.155637614,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 8387642.845778686,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999638633267502
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 461.99637302034205,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.89754948230396,
+        153.63647659235235,
+        149.46234694568574
+      ],
+      "brakeTemperatureC": [
+        713.7961522344913,
+        308.8222635151565
+      ],
+      "brakeFactor": 0.6449206575669679,
+      "tireTemperatureC": [
+        58.844226044679175,
+        34.97287757272811
+      ],
+      "tireWear": [
+        0.004446968349905068,
+        0.0012678164292220927
+      ],
+      "tireGripFactors": [
+        0.9986659094950284,
+        0.9895692342977326
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.99920335720431,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 29125494.01767539,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 22326228.37085578,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 29125494.01767539,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995728351511836,
+        0.7506456153621752,
+        0.6449206575669679
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 474.13053352121204,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        161.77090252738193,
+        158.59468307107372,
+        153.7649479227564
+      ],
+      "brakeTemperatureC": [
+        674.2188755505293,
+        268.08873133969036
+      ],
+      "brakeFactor": 0.730383262350968,
+      "tireTemperatureC": [
+        58.23237458765186,
+        34.6969263450055
+      ],
+      "tireWear": [
+        0.004448983827917489,
+        0.0012125316498282329
+      ],
+      "tireGripFactors": [
+        0.9986653048516247,
+        0.9890339512818512
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.61069648340778,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 28963723.69350875,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 22420019.0734026,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 28963723.69350875,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996298689573151,
+        0.8528537851630535,
+        0.730383262350968
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 519.982931635162,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        176.96517015107037,
+        174.0343718022055,
+        168.98338968188614
+      ],
+      "brakeTemperatureC": [
+        640.7939414218299,
+        256.92939869807765
+      ],
+      "brakeFactor": 0.7658529634198316,
+      "tireTemperatureC": [
+        55.25295107420079,
+        33.21950927073187
+      ],
+      "tireWear": [
+        0.007181439999874466,
+        0.001870744554185906
+      ],
+      "tireGripFactors": [
+        0.9978455680000377,
+        0.9858854059148718
+      ],
+      "powertrain": {
+        "engineTemperatureC": 75.88490008981108,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 24964036.96277438,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 19584309.276352715,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 24964036.96277438,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999638633267502,
+        0.896096855343236,
+        0.7658529634198316
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 758.9182192067162,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.89754948230396,
+        153.63647659235235,
+        149.46234694568574,
+        148.57063282425474,
+        148.35121336211944
+      ],
+      "brakeTemperatureC": [
+        738.3828525732185,
+        330.1331911988065
+      ],
+      "brakeFactor": 0.6037886488405935,
+      "tireTemperatureC": [
+        58.633216032540474,
+        34.432935459559644
+      ],
+      "tireWear": [
+        0.007142651276798919,
+        0.002145180963947603
+      ],
+      "tireGripFactors": [
+        0.9978572046169604,
+        0.9882294820464613
+      ],
+      "powertrain": {
+        "engineTemperatureC": 81.29638778159182,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 47423264.6044067,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 36130443.7373735,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 47423264.6044067,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995728351511836,
+        0.7506456153621752,
+        0.6449349671538863,
+        0.6131964234508536,
+        0.6037886488405935
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 777.0698851409583,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        161.77090252738193,
+        158.59468307107372,
+        153.7649479227564,
+        151.7717938949324,
+        151.16755772481383
+      ],
+      "brakeTemperatureC": [
+        710.3096122771856,
+        291.2666085967789
+      ],
+      "brakeFactor": 0.6701918204998407,
+      "tireTemperatureC": [
+        57.89708962156318,
+        34.3329009300547
+      ],
+      "tireWear": [
+        0.007166358903941267,
+        0.0020707542796768274
+      ],
+      "tireGripFactors": [
+        0.9978500923288176,
+        0.9880516166779978
+      ],
+      "powertrain": {
+        "engineTemperatureC": 81.54921678510757,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 47567982.8859284,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 36663974.573770374,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 47567982.8859284,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996298689573151,
+        0.8528537851630535,
+        0.7303931510697783,
+        0.685654392565718,
+        0.6701918204998407
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 851.6452657721557,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        176.96517015107037,
+        174.0343718022055,
+        168.98338968188614,
+        166.25539961484833,
+        165.40693452214532
+      ],
+      "brakeTemperatureC": [
+        682.1626903404476,
+        274.6819652408534
+      ],
+      "brakeFactor": 0.696890055010407,
+      "tireTemperatureC": [
+        55.29803868881249,
+        32.97508599224622
+      ],
+      "tireWear": [
+        0.011732174169013263,
+        0.0032141554283555535
+      ],
+      "tireGripFactors": [
+        0.9964803477492961,
+        0.9849994728552808
+      ],
+      "powertrain": {
+        "engineTemperatureC": 73.0727555334574,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 41260470.89179233,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 32293314.310048766,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 41260470.89179233,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999638633267502,
+        0.896096855343236,
+        0.765854258139931,
+        0.7150785287323406,
+        0.696890055010407
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 171.87402871576828,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        171.87402871576828
+      ],
+      "brakeTemperatureC": [
+        389.88053192229535,
+        174.31013963061912
+      ],
+      "brakeFactor": 0.9995716354202148,
+      "tireTemperatureC": [
+        47.07981874355485,
+        34.435561231295345
+      ],
+      "tireWear": [
+        0.0012414698686766307,
+        0.0002925741723641097
+      ],
+      "tireGripFactors": [
+        0.999627559039397,
+        0.988784327017522
+      ],
+      "powertrain": {
+        "engineTemperatureC": 88.88886327485827,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 14611722.855828557,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 7737417.524483598,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 14611722.855828557,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995716354202148
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 174.77978984568338,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.77978984568338
+      ],
+      "brakeTemperatureC": [
+        360.4057290443005,
+        157.05838788675493
+      ],
+      "brakeFactor": 0.9996235750624357,
+      "tireTemperatureC": [
+        46.742763681144936,
+        34.3678882425904
+      ],
+      "tireWear": [
+        0.001236141249630127,
+        0.00028863487116999667
+      ],
+      "tireGripFactors": [
+        0.999629157625111,
+        0.9886501613981407
+      ],
+      "powertrain": {
+        "engineTemperatureC": 88.14761959649526,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 14338937.454183321,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 7715540.018012975,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 14338937.454183321,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996235750624357
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 190.09672601616666,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        190.09672601616666
+      ],
+      "brakeTemperatureC": [
+        348.06743476956007,
+        157.4514356486579
+      ],
+      "brakeFactor": 0.999620045745517,
+      "tireTemperatureC": [
+        44.871979360997685,
+        33.52333848588348
+      ],
+      "tireWear": [
+        0.0019930870844340758,
+        0.00045688544989112335
+      ],
+      "tireGripFactors": [
+        0.9994020738746697,
+        0.9869113867922454
+      ],
+      "powertrain": {
+        "engineTemperatureC": 82.82556810553498,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 12293285.729834301,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 6865765.071300999,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 12293285.729834301,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999620045745517
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 496.78285981584867,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        171.87402871576828,
+        163.2630189198848,
+        161.6458121801956
+      ],
+      "brakeTemperatureC": [
+        560.9433518953286,
+        221.34278029847457
+      ],
+      "brakeFactor": 0.8978379946649688,
+      "tireTemperatureC": [
+        47.66523413245534,
+        31.362140680693273
+      ],
+      "tireWear": [
+        0.0034191411889301936,
+        0.0008954417499042388
+      ],
+      "tireGripFactors": [
+        0.9989742576433209,
+        0.9824602896563338
+      ],
+      "powertrain": {
+        "engineTemperatureC": 85.21518953630942,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 41349559.49366624,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 23602446.301237874,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 41349559.49366624,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995716354202148,
+        0.9646573728137594,
+        0.8978379946649688
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 507.01724558828494,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.77978984568338,
+        167.01409635801056,
+        165.223359384591
+      ],
+      "brakeTemperatureC": [
+        539.255480769875,
+        201.13286436343807
+      ],
+      "brakeFactor": 0.9537083192796318,
+      "tireTemperatureC": [
+        47.278146173110756,
+        31.268052376878103
+      ],
+      "tireWear": [
+        0.0034565317737220505,
+        0.0008784923639838367
+      ],
+      "tireGripFactors": [
+        0.9989630404678834,
+        0.9822771596141469
+      ],
+      "powertrain": {
+        "engineTemperatureC": 84.99673645931134,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 41296977.45996859,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 24191790.099281583,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 41296977.45996859,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996235750624357,
+        0.999218662326325,
+        0.9537083192796318
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 551.5770598785914,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        190.09672601616666,
+        181.73296081509864,
+        179.7473730473261
+      ],
+      "brakeTemperatureC": [
+        517.5107917457701,
+        197.323656939582
+      ],
+      "brakeFactor": 0.9698169283838389,
+      "tireTemperatureC": [
+        45.27431292571748,
+        30.314894219909167
+      ],
+      "tireWear": [
+        0.005643614269916562,
+        0.0013951216189765168
+      ],
+      "tireGripFactors": [
+        0.9983069157190251,
+        0.980219359094399
+      ],
+      "powertrain": {
+        "engineTemperatureC": 76.11608911374402,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 35424412.95406376,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 21641532.183860157,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 35424412.95406376,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999620045745517,
+        0.9992091414952406,
+        0.9698169283838389
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 819.3757377338317,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        171.87402871576828,
+        163.2630189198848,
+        161.6458121801956,
+        161.32377183077693,
+        161.26910608720607
+      ],
+      "brakeTemperatureC": [
+        573.785589166998,
+        228.32163285022057
+      ],
+      "brakeFactor": 0.8758440589783377,
+      "tireTemperatureC": [
+        47.30559439725275,
+        31.06437966611782
+      ],
+      "tireWear": [
+        0.005512905152821758,
+        0.001498013689229328
+      ],
+      "tireGripFactors": [
+        0.9983461284541535,
+        0.9816873866344159
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.86708720931021,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 67786836.3603433,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 39129946.670643404,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 67786836.3603433,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995716354202148,
+        0.9646573728137594,
+        0.897841351858348,
+        0.8802203183633681,
+        0.8758440589783377
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 835.2836341639377,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.77978984568338,
+        167.01409635801056,
+        165.223359384591,
+        164.26712700914368,
+        163.99926156650906
+      ],
+      "brakeTemperatureC": [
+        558.6129666197206,
+        207.0143582761078
+      ],
+      "brakeFactor": 0.9209453397252085,
+      "tireTemperatureC": [
+        47.19156168586423,
+        31.140407647767802
+      ],
+      "tireWear": [
+        0.005608747041025421,
+        0.0014794049522010217
+      ],
+      "tireGripFactors": [
+        0.9983173758876924,
+        0.9818448579647554
+      ],
+      "powertrain": {
+        "engineTemperatureC": 84.02987393557532,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 68087234.01664132,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 40405066.79191711,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 68087234.01664132,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996235750624357,
+        0.999218662326325,
+        0.9537589835830661,
+        0.928902869916475,
+        0.9209453397252085
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "avante",
+      "variantId": "avante-2.0-16",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 908.1090803572789,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        190.09672601616666,
+        181.73296081509864,
+        179.7473730473261,
+        178.45918827427852,
+        178.072832204409
+      ],
+      "brakeTemperatureC": [
+        538.505513407731,
+        201.02220878644766
+      ],
+      "brakeFactor": 0.9343076750725773,
+      "tireTemperatureC": [
+        45.456275168981804,
+        30.264746777322983
+      ],
+      "tireWear": [
+        0.009258369965988535,
+        0.0023614797603420416
+      ],
+      "tireGripFactors": [
+        0.9972224890102035,
+        0.9798348433886116
+      ],
+      "powertrain": {
+        "engineTemperatureC": 74.43618935794566,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 58501176.425928116,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 36280892.30394729,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 58501176.425928116,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999620045745517,
+        0.9992091414952406,
+        0.9698552004574337,
+        0.9430440500763774,
+        0.9343076750725773
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 138.7045302680888,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        138.7045302680888
+      ],
+      "brakeTemperatureC": [
+        520.4810555843653,
+        343.7483853612833
+      ],
+      "brakeFactor": 0.9655857021946516,
+      "tireTemperatureC": [
+        67.67913918027313,
+        64.40567089070667
+      ],
+      "tireWear": [
+        0.001880444435194254,
+        0.001716887501733376
+      ],
+      "tireGripFactors": [
+        0.9994358666694417,
+        0.99948493374948
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 70.53678445919113,
+        "batteryTemperatureC": 26.652822503981128,
+        "soc": 0.7461624034115879,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 310748.221875
+      },
+      "energy": {
+        "driveJ": 18256059.28692862,
+        "regenMechanicalJ": 4568017.301086291,
+        "frictionBrakeJ": 10128246.987891298,
+        "batteryDischargeJ": 19843542.703183237,
+        "batteryChargeJ": 3563053.4948473126,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9655857021946516
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 139.08856166950326,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        139.08856166950326
+      ],
+      "brakeTemperatureC": [
+        474.8881063158047,
+        315.6826951117362
+      ],
+      "brakeFactor": 0.9995752952278367,
+      "tireTemperatureC": [
+        67.17366795232685,
+        63.68375813892722
+      ],
+      "tireWear": [
+        0.0018490222038262077,
+        0.001665487824577637
+      ],
+      "tireGripFactors": [
+        0.9994452933388521,
+        0.9995003536526267
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 70.40036038408837,
+        "batteryTemperatureC": 26.64088484616103,
+        "soc": 0.7464537387151745,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 294015.6253125
+      },
+      "energy": {
+        "driveJ": 18148527.48377394,
+        "regenMechanicalJ": 4531116.533232055,
+        "frictionBrakeJ": 10071183.67538486,
+        "batteryDischargeJ": 19726660.308449887,
+        "batteryChargeJ": 3534270.895920989,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995752952278367
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 152.04359195664364,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        152.04359195664364
+      ],
+      "brakeTemperatureC": [
+        410.2031985942939,
+        289.73296605487735
+      ],
+      "brakeFactor": 0.9996279707021485,
+      "tireTemperatureC": [
+        61.94352478042929,
+        59.35515889497402
+      ],
+      "tireWear": [
+        0.0028322170206788256,
+        0.0025934617442135276
+      ],
+      "tireGripFactors": [
+        0.9991503348937963,
+        0.9992219614767359
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 68.35655903341812,
+        "batteryTemperatureC": 26.552873549566513,
+        "soc": 0.7559983831097471,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 239037.09375
+      },
+      "energy": {
+        "driveJ": 15793279.216060173,
+        "regenMechanicalJ": 4949383.199909734,
+        "frictionBrakeJ": 7852597.207191301,
+        "batteryDischargeJ": 17166607.843543626,
+        "batteryChargeJ": 3860518.895929597,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996279707021485
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 410.8236582636384,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        138.7045302680888,
+        136.53756317214865,
+        135.58156482340092
+      ],
+      "brakeTemperatureC": [
+        756.7540624895486,
+        491.176250932742
+      ],
+      "brakeFactor": 0.5737543539419354,
+      "tireTemperatureC": [
+        76.38728515302466,
+        74.26707017755382
+      ],
+      "tireWear": [
+        0.005306701493634946,
+        0.004948180709807163
+      ],
+      "tireGripFactors": [
+        0.9984079895519096,
+        0.9985155457870578
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 99.57938435022865,
+        "batteryTemperatureC": 29.873330160352097,
+        "soc": 0.6475447546285855,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 310748.221875
+      },
+      "energy": {
+        "driveJ": 52917983.87704046,
+        "regenMechanicalJ": 14637283.964251008,
+        "frictionBrakeJ": 28222968.6370021,
+        "batteryDischargeJ": 57519547.69243504,
+        "batteryChargeJ": 11417081.49211581,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9655969578250473,
+        0.642043215105579,
+        0.5737543539419354
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 413.13389755922645,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        139.08856166950326,
+        137.4385289749151,
+        136.6068069148081
+      ],
+      "brakeTemperatureC": [
+        754.3723501823827,
+        470.4383461494044
+      ],
+      "brakeFactor": 0.5976183415643406,
+      "tireTemperatureC": [
+        77.36422892936795,
+        73.55923037295904
+      ],
+      "tireWear": [
+        0.005363354816353896,
+        0.004844858095459042
+      ],
+      "tireGripFactors": [
+        0.9983909935550939,
+        0.9985465425713623
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 98.69129243700873,
+        "batteryTemperatureC": 29.809909651737925,
+        "soc": 0.643886304506879,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 294015.6253125
+      },
+      "energy": {
+        "driveJ": 53478125.773469366,
+        "regenMechanicalJ": 13999507.77274483,
+        "frictionBrakeJ": 29496074.539429083,
+        "batteryDischargeJ": 58128397.579858035,
+        "batteryChargeJ": 10919616.062740983,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995752952278367,
+        0.7128096685555052,
+        0.5976183415643406
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 452.3883068321006,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        152.04359195664364,
+        150.18480454997143,
+        150.15991032548555
+      ],
+      "brakeTemperatureC": [
+        672.5243496985477,
+        426.4765164041461
+      ],
+      "brakeFactor": 0.7133035165442139,
+      "tireTemperatureC": [
+        71.18902785109726,
+        67.17273741234314
+      ],
+      "tireWear": [
+        0.00839053052846472,
+        0.007604251508345549
+      ],
+      "tireGripFactors": [
+        0.9974828408414605,
+        0.9977187245474963
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 93.21244375593254,
+        "batteryTemperatureC": 29.52388771709026,
+        "soc": 0.6696986960398018,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 239037.09375
+      },
+      "energy": {
+        "driveJ": 46952981.60400891,
+        "regenMechanicalJ": 14913763.14360258,
+        "frictionBrakeJ": 23629954.226208374,
+        "batteryDischargeJ": 51035849.569575384,
+        "batteryChargeJ": 11632735.25201009,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996279707021485,
+        0.8591646271355042,
+        0.7133035165442139
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 682.918717076324,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        138.7045302680888,
+        136.53756317214865,
+        135.58156482340092,
+        135.79141534594527,
+        136.30364346674037
+      ],
+      "brakeTemperatureC": [
+        762.7742224492735,
+        504.499179426645
+      ],
+      "brakeFactor": 0.5633737948552185,
+      "tireTemperatureC": [
+        74.22619696454106,
+        72.9287333141612
+      ],
+      "tireWear": [
+        0.008454465161985789,
+        0.007997990107346104
+      ],
+      "tireGripFactors": [
+        0.9974636604514042,
+        0.9976006029677962
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 108.84626655475614,
+        "batteryTemperatureC": 32.74782649077417,
+        "soc": 0.5559902716341406,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 0.8820497792699181,
+        "regenLimitW": 103729.05404214236,
+        "batteryAssistLimitW": 274095.4005133633
+      },
+      "energy": {
+        "driveJ": 85341693.68361692,
+        "regenMechanicalJ": 24325857.266448516,
+        "frictionBrakeJ": 44545719.46967485,
+        "batteryDischargeJ": 92762710.52567014,
+        "batteryChargeJ": 18974168.667830013,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9655969578250473,
+        0.642043215105579,
+        0.5737603207483271,
+        0.5628512211309052,
+        0.5633737948552185
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        0.9190267673611576,
+        0.8820497792699181
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 686.5963314405501,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        139.08856166950326,
+        137.4385289749151,
+        136.6068069148081,
+        136.47533651729708,
+        136.98709736402657
+      ],
+      "brakeTemperatureC": [
+        768.5438637880366,
+        488.4601933707934
+      ],
+      "brakeFactor": 0.5737562981318365,
+      "tireTemperatureC": [
+        74.99182583032808,
+        72.54656781785691
+      ],
+      "tireWear": [
+        0.00857744416246988,
+        0.007872544545180528
+      ],
+      "tireGripFactors": [
+        0.9974267667512591,
+        0.9976382366364458
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 108.3545367926121,
+        "batteryTemperatureC": 32.677816823106994,
+        "soc": 0.54815177167656,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 0.8886061760985055,
+        "regenLimitW": 104500.08630918423,
+        "batteryAssistLimitW": 261264.10052215157
+      },
+      "energy": {
+        "driveJ": 86777750.54662162,
+        "regenMechanicalJ": 23288125.196791932,
+        "frictionBrakeJ": 47123565.24124782,
+        "batteryDischargeJ": 94323641.89850299,
+        "batteryChargeJ": 18164737.65349775,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995752952278367,
+        0.7128096685555052,
+        0.5976514972226957,
+        0.5747745621563078,
+        0.5737562981318365
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        0.9276261067116935,
+        0.8886061760985055
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 751.6303921639038,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        152.04359195664364,
+        150.18480454997143,
+        150.15991032548555,
+        149.67127148787847,
+        149.57081384392473
+      ],
+      "brakeTemperatureC": [
+        727.5211305278791,
+        449.48022861734984
+      ],
+      "brakeFactor": 0.6218128900803559,
+      "tireTemperatureC": [
+        72.3324634523034,
+        68.51377495858137
+      ],
+      "tireWear": [
+        0.013901437653328816,
+        0.012612261143663973
+      ],
+      "tireGripFactors": [
+        0.9958295687040013,
+        0.9962163216569008
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 103.43635486543474,
+        "batteryTemperatureC": 32.328659904529545,
+        "soc": 0.5842526954739348,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 0.9541819351275368,
+        "regenLimitW": 112211.7955709983,
+        "batteryAssistLimitW": 228084.87668163743
+      },
+      "energy": {
+        "driveJ": 77882113.9226793,
+        "regenMechanicalJ": 24887803.54667045,
+        "frictionBrakeJ": 39150491.54113418,
+        "batteryDischargeJ": 84654471.65508613,
+        "batteryChargeJ": 19412486.766403034,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9996279707021485,
+        0.8591646271355042,
+        0.71331567266244,
+        0.6473808518152929,
+        0.6218128900803559
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        0.9541819351275368
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 156.03212624758285,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        156.03212624758285
+      ],
+      "brakeTemperatureC": [
+        393.2225916952196,
+        257.99916858590467
+      ],
+      "brakeFactor": 0.9995642417559913,
+      "tireTemperatureC": [
+        54.530726060818886,
+        52.13023083653195
+      ],
+      "tireWear": [
+        0.001301126254295707,
+        0.0011818220622114598
+      ],
+      "tireGripFactors": [
+        0.9996096621237113,
+        0.9996454533813366
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 65.01811680870135,
+        "batteryTemperatureC": 26.56179299991748,
+        "soc": 0.7311574315290608,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 310748.221875
+      },
+      "energy": {
+        "driveJ": 21280860.578136496,
+        "regenMechanicalJ": 2965868.5743782613,
+        "frictionBrakeJ": 9099789.250754192,
+        "batteryDischargeJ": 23131370.193626735,
+        "batteryChargeJ": 2313377.4880150375,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995642417559913
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 154.49814777167066,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        154.49814777167066
+      ],
+      "brakeTemperatureC": [
+        388.08847534110924,
+        253.83729082806158
+      ],
+      "brakeFactor": 0.999588651570548,
+      "tireTemperatureC": [
+        55.49901851446462,
+        52.65748125919659
+      ],
+      "tireWear": [
+        0.0013332639097608655,
+        0.0011786528294987718
+      ],
+      "tireGripFactors": [
+        0.9996000208270718,
+        0.9996464041511504
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 66.59348564189959,
+        "batteryTemperatureC": 26.641694280776925,
+        "soc": 0.7269408449582355,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 294015.6253125
+      },
+      "energy": {
+        "driveJ": 22485693.91280524,
+        "regenMechanicalJ": 3010106.6150310664,
+        "frictionBrakeJ": 9844871.73129481,
+        "batteryDischargeJ": 24440971.644353565,
+        "batteryChargeJ": 2347883.159724229,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999588651570548
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 165.58748583659255,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        165.58748583659255
+      ],
+      "brakeTemperatureC": [
+        371.8585274246993,
+        254.3042690067933
+      ],
+      "brakeFactor": 0.9995877198192963,
+      "tireTemperatureC": [
+        53.21791323648519,
+        50.95150620864599
+      ],
+      "tireWear": [
+        0.002137385092408522,
+        0.001911890698718833
+      ],
+      "tireGripFactors": [
+        0.9993587844722774,
+        0.9994264327903843
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 66.24989712541017,
+        "batteryTemperatureC": 26.644057844228563,
+        "soc": 0.7343666256187916,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 239037.09375
+      },
+      "energy": {
+        "driveJ": 20920681.837227654,
+        "regenMechanicalJ": 3708127.1145213293,
+        "frictionBrakeJ": 8756846.262984952,
+        "batteryDischargeJ": 22739871.56220385,
+        "batteryChargeJ": 2892339.149326639,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995877198192963
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 460.58928814080355,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        156.03212624758285,
+        152.39386698918563,
+        152.16329490403507
+      ],
+      "brakeTemperatureC": [
+        559.9494795821793,
+        334.37841834706194
+      ],
+      "brakeFactor": 0.8994887084637704,
+      "tireTemperatureC": [
+        57.44030501493832,
+        54.32182157661909
+      ],
+      "tireWear": [
+        0.003753490228226943,
+        0.003325034495515963
+      ],
+      "tireGripFactors": [
+        0.9988739529315319,
+        0.9990024896513452
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 80.99634569818585,
+        "batteryTemperatureC": 29.310059413350817,
+        "soc": 0.6099200203492479,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 310748.221875
+      },
+      "energy": {
+        "driveJ": 59337230.201515794,
+        "regenMechanicalJ": 8995901.92703452,
+        "frictionBrakeJ": 27132233.102431238,
+        "batteryDischargeJ": 64496989.34947355,
+        "batteryChargeJ": 7016803.503086922,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995642417559913,
+        0.9679905105434555,
+        0.8994887084637704
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 454.9184884124034,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        154.49814777167066,
+        150.19774071576737,
+        150.22259992496538
+      ],
+      "brakeTemperatureC": [
+        565.1739256593853,
+        333.1708807242442
+      ],
+      "brakeFactor": 0.9107613201000755,
+      "tireTemperatureC": [
+        58.64730734459157,
+        54.857164551285734
+      ],
+      "tireWear": [
+        0.0038630955905724624,
+        0.0033377564315241817
+      ],
+      "tireGripFactors": [
+        0.9988410713228283,
+        0.9989986730705428
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 83.77646428546092,
+        "batteryTemperatureC": 29.51730853485283,
+        "soc": 0.5983710707411369,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 294015.6253125
+      },
+      "energy": {
+        "driveJ": 62608287.31822586,
+        "regenMechanicalJ": 9076792.317416351,
+        "frictionBrakeJ": 29491907.9047075,
+        "batteryDischargeJ": 68052486.21546386,
+        "batteryChargeJ": 7079898.007584739,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999588651570548,
+        0.9908434482988913,
+        0.9107613201000755
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 486.2527362166276,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        165.58748583659255,
+        160.3164146171982,
+        160.34883576283687
+      ],
+      "brakeTemperatureC": [
+        536.0892331947342,
+        329.2100171255185
+      ],
+      "brakeFactor": 0.9390312754109243,
+      "tireTemperatureC": [
+        55.86709394101395,
+        52.698412469573995
+      ],
+      "tireWear": [
+        0.006212219005570409,
+        0.005445912555403545
+      ],
+      "tireGripFactors": [
+        0.9981363342983289,
+        0.9983662262333789
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 82.8617851535655,
+        "batteryTemperatureC": 29.529996048446407,
+        "soc": 0.6197199631860401,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 239037.09375
+      },
+      "energy": {
+        "driveJ": 58156704.22996774,
+        "regenMechanicalJ": 11150161.298813308,
+        "frictionBrakeJ": 26296481.443335503,
+        "batteryDischargeJ": 63213808.945617095,
+        "batteryChargeJ": 8697125.813074384,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995877198192963,
+        0.9991747235096948,
+        0.9390312754109243
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 764.6803587343105,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        156.03212624758285,
+        152.39386698918563,
+        152.16329490403507,
+        152.0461506267427,
+        152.04491996676427
+      ],
+      "brakeTemperatureC": [
+        571.2889484276097,
+        339.76792430479395
+      ],
+      "brakeFactor": 0.879989611876211,
+      "tireTemperatureC": [
+        57.208951111572134,
+        54.37852157687631
+      ],
+      "tireWear": [
+        0.006157231669968168,
+        0.005458624614834405
+      ],
+      "tireGripFactors": [
+        0.9981528304990096,
+        0.9983624126155497
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 86.49734257578262,
+        "batteryTemperatureC": 31.901154571310038,
+        "soc": 0.4901057541734906,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 310748.221875
+      },
+      "energy": {
+        "driveJ": 97083688.14267999,
+        "regenMechanicalJ": 15145805.183639014,
+        "frictionBrakeJ": 44724744.718387164,
+        "batteryDischargeJ": 105525747.98117286,
+        "batteryChargeJ": 11813728.043238454,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995642417559913,
+        0.9679905105434555,
+        0.8995042542481468,
+        0.8832271230277057,
+        0.879989611876211
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 755.2622840611692,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        154.49814777167066,
+        150.19774071576737,
+        150.22259992496538,
+        150.1742216521247,
+        150.16957399664113
+      ],
+      "brakeTemperatureC": [
+        585.4797250028273,
+        340.7005410415663
+      ],
+      "brakeFactor": 0.876446877496539,
+      "tireTemperatureC": [
+        58.554285153505774,
+        54.92995476895566
+      ],
+      "tireWear": [
+        0.0063594183453099876,
+        0.005485859157592053
+      ],
+      "tireGripFactors": [
+        0.998092174496407,
+        0.9983542422527224
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 89.89912348390443,
+        "batteryTemperatureC": 32.24202889286764,
+        "soc": 0.4705598501538279,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 294015.6253125
+      },
+      "energy": {
+        "driveJ": 102611936.98139139,
+        "regenMechanicalJ": 15271811.277858244,
+        "frictionBrakeJ": 48893865.98615349,
+        "batteryDischargeJ": 111534714.11020897,
+        "batteryChargeJ": 11912012.796729397,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.999588651570548,
+        0.9908434482988913,
+        0.9108049658609625,
+        0.8841916111182674,
+        0.876446877496539
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "ioniq5",
+      "variantId": "ioniq5-long-awd",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 807.0258088047912,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        165.58748583659255,
+        160.3164146171982,
+        160.34883576283687,
+        160.37872137065727,
+        160.39435121750626
+      ],
+      "brakeTemperatureC": [
+        560.1411906004605,
+        336.1189855869142
+      ],
+      "brakeFactor": 0.8984814403432558,
+      "tireTemperatureC": [
+        56.010549519329516,
+        52.803326484447304
+      ],
+      "tireWear": [
+        0.010279146676098165,
+        0.008976238545176545
+      ],
+      "tireGripFactors": [
+        0.9969162559971706,
+        0.9973071284364471
+      ],
+      "powertrain": {
+        "engineTemperatureC": null,
+        "motorTemperatureC": 88.40721414243166,
+        "batteryTemperatureC": 32.24383151387813,
+        "soc": 0.5051904734819476,
+        "batteryCapacityKwh": 84,
+        "powerFactor": 1,
+        "regenLimitW": 117599.99999999999,
+        "batteryAssistLimitW": 239037.09375
+      },
+      "energy": {
+        "driveJ": 95367106.51924668,
+        "regenMechanicalJ": 18601919.963372584,
+        "frictionBrakeJ": 43807300.492901534,
+        "batteryDischargeJ": 103659898.39048591,
+        "batteryChargeJ": 14509497.571430588,
+        "engineMechanicalJ": 0,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9995877198192963,
+        0.9991747235096948,
+        0.9390672836755624,
+        0.9094667293842404,
+        0.8984814403432558
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 158.16137249067597,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.16137249067597
+      ],
+      "brakeTemperatureC": [
+        509.61516022697,
+        232.89958841519103
+      ],
+      "brakeFactor": 0.9836014594869315,
+      "tireTemperatureC": [
+        61.12242876403316,
+        39.23166604368411
+      ],
+      "tireWear": [
+        0.001901919851883388,
+        0.0004384985965869025
+      ],
+      "tireGripFactors": [
+        0.999429424044435,
+        0.9983319846564089
+      ],
+      "powertrain": {
+        "engineTemperatureC": 86.89720573379978,
+        "motorTemperatureC": 41.688211701492214,
+        "batteryTemperatureC": 32.65064944571292,
+        "soc": 0.26800655396355727,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 1,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 50179.99999999999
+      },
+      "energy": {
+        "driveJ": 11902295.224672355,
+        "regenMechanicalJ": 858559.5611074142,
+        "frictionBrakeJ": 8512118.220317135,
+        "batteryDischargeJ": 2606546.2439985946,
+        "batteryChargeJ": 813781.6354017323,
+        "engineMechanicalJ": 9684404.152366057,
+        "engineGeneratorJ": 180131.4721723939,
+        "engineChargeJ": 144105.1777379151
+      },
+      "lapBrakeFactors": [
+        0.9836014594869315
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 158.712615716518,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.712615716518
+      ],
+      "brakeTemperatureC": [
+        458.75913751582715,
+        206.59965797712124
+      ],
+      "brakeFactor": 0.9995944118775445,
+      "tireTemperatureC": [
+        60.60196697008453,
+        39.31053532755328
+      ],
+      "tireWear": [
+        0.0018677303055225007,
+        0.0004392555356942476
+      ],
+      "tireGripFactors": [
+        0.9994396809083432,
+        0.9984894757051026
+      ],
+      "powertrain": {
+        "engineTemperatureC": 86.33699290073244,
+        "motorTemperatureC": 41.539405159994146,
+        "batteryTemperatureC": 32.44010007756437,
+        "soc": 0.2714545308482707,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 1,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 47478
+      },
+      "energy": {
+        "driveJ": 11654881.304759687,
+        "regenMechanicalJ": 835709.0302847939,
+        "frictionBrakeJ": 8333646.994994292,
+        "batteryDischargeJ": 2563805.8680363395,
+        "batteryChargeJ": 789660.3346168926,
+        "engineMechanicalJ": 9468439.019909656,
+        "engineGeneratorJ": 172259.11374340736,
+        "engineChargeJ": 137807.29099472746
+      },
+      "lapBrakeFactors": [
+        0.9995944118775445
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 174.2248031453493,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.2248031453493
+      ],
+      "brakeTemperatureC": [
+        418.13360107161674,
+        204.91853862771728
+      ],
+      "brakeFactor": 0.9996197066178749,
+      "tireTemperatureC": [
+        56.71231576115229,
+        37.858101212813054
+      ],
+      "tireWear": [
+        0.002934857667682523,
+        0.0006660897630280452
+      ],
+      "tireGripFactors": [
+        0.9991195426996953,
+        0.9955172315148311
+      ],
+      "powertrain": {
+        "engineTemperatureC": 82.25866587226894,
+        "motorTemperatureC": 40.91522386570941,
+        "batteryTemperatureC": 32.03222023888536,
+        "soc": 0.35407163404680136,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 1,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 38600
+      },
+      "energy": {
+        "driveJ": 9966450.524546068,
+        "regenMechanicalJ": 932896.4764491175,
+        "frictionBrakeJ": 6981181.79114005,
+        "batteryDischargeJ": 2176824.0422192407,
+        "batteryChargeJ": 848810.8660717544,
+        "engineMechanicalJ": 8115211.923756261,
+        "engineGeneratorJ": 151439.5180518632,
+        "engineChargeJ": 121151.61444148663
+      },
+      "lapBrakeFactors": [
+        0.9996197066178749
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 460.72036607932176,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.16137249067597,
+        152.364407211013,
+        150.1945863776328
+      ],
+      "brakeTemperatureC": [
+        722.6599761372502,
+        323.65724255985987
+      ],
+      "brakeFactor": 0.6302189530153091,
+      "tireTemperatureC": [
+        62.85728228429086,
+        36.13383270501895
+      ],
+      "tireWear": [
+        0.005026769037197731,
+        0.0013476159636718577
+      ],
+      "tireGripFactors": [
+        0.9984919692888407,
+        0.9918665066861952
+      ],
+      "powertrain": {
+        "engineTemperatureC": 84.25095407975688,
+        "motorTemperatureC": 36.30294657725699,
+        "batteryTemperatureC": 39.5821301149102,
+        "soc": 0.06114746644996833,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8367239768097708,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 13024.83222049509
+      },
+      "energy": {
+        "driveJ": 33302249.248540357,
+        "regenMechanicalJ": 2568957.634372828,
+        "frictionBrakeJ": 23469611.428063508,
+        "batteryDischargeJ": 5423082.480385626,
+        "batteryChargeJ": 2513278.7992153564,
+        "engineMechanicalJ": 28949878.17209129,
+        "engineGeneratorJ": 636864.805505726,
+        "engineChargeJ": 509491.84440451325
+      },
+      "lapBrakeFactors": [
+        0.9836153306696598,
+        0.6966524712699149,
+        0.6302189530153091
+      ],
+      "lapPowerFactors": [
+        1,
+        0.8389278623574802,
+        0.8367239768097708
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 470.14873040143976,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.712615716518,
+        156.69304982894616,
+        154.7430648559756
+      ],
+      "brakeTemperatureC": [
+        685.2337086293827,
+        281.16110705194296
+      ],
+      "brakeFactor": 0.7121181116693901,
+      "tireTemperatureC": [
+        62.237176719352846,
+        35.93091753248652
+      ],
+      "tireWear": [
+        0.005024548453515228,
+        0.0013108431120275226
+      ],
+      "tireGripFactors": [
+        0.9984926354639454,
+        0.9914717824885996
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.91198498357934,
+        "motorTemperatureC": 35.92929827720174,
+        "batteryTemperatureC": 39.10426848708929,
+        "soc": 0.05915066106855858,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8330546335875222,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 11533.459051775204
+      },
+      "energy": {
+        "driveJ": 33066342.269113015,
+        "regenMechanicalJ": 2465384.8584025824,
+        "frictionBrakeJ": 23576858.378375754,
+        "batteryDischargeJ": 5375139.636197191,
+        "batteryChargeJ": 2454553.20596699,
+        "engineMechanicalJ": 28785655.074328087,
+        "engineGeneratorJ": 664441.2705165866,
+        "engineChargeJ": 531553.016413277
+      },
+      "lapBrakeFactors": [
+        0.9995944118775445,
+        0.7978135230048454,
+        0.7121181116693901
+      ],
+      "lapPowerFactors": [
+        1,
+        0.8370170645112204,
+        0.8330546335875222
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 516.068482384094,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.2248031453493,
+        171.60444811666946,
+        170.23923112207518
+      ],
+      "brakeTemperatureC": [
+        646.0567918298585,
+        270.77249095591674
+      ],
+      "brakeFactor": 0.757120156618629,
+      "tireTemperatureC": [
+        59.95235422985655,
+        34.352832569985196
+      ],
+      "tireWear": [
+        0.008274239750130565,
+        0.0020044098337777395
+      ],
+      "tireGripFactors": [
+        0.9975177280749609,
+        0.9881111337325948
+      ],
+      "powertrain": {
+        "engineTemperatureC": 75.53450370960307,
+        "motorTemperatureC": 35.89920567832837,
+        "batteryTemperatureC": 39.73665541941855,
+        "soc": 0.06479134749926897,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8434199975413917,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 11191.216778931519
+      },
+      "energy": {
+        "driveJ": 28998522.036678165,
+        "regenMechanicalJ": 2750769.735916938,
+        "frictionBrakeJ": 20398843.60863721,
+        "batteryDischargeJ": 5508621.81541409,
+        "batteryChargeJ": 2618495.091910163,
+        "engineMechanicalJ": 24521708.338865682,
+        "engineGeneratorJ": 591118.3723681284,
+        "engineChargeJ": 472894.69789464434
+      },
+      "lapBrakeFactors": [
+        0.9996197066178749,
+        0.8475440504350541,
+        0.757120156618629
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9446696092496931,
+        0.8434199975413917
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 759.6594012901089,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.16137249067597,
+        152.364407211013,
+        150.1945863776328,
+        149.54465006043705,
+        149.3943851503501
+      ],
+      "brakeTemperatureC": [
+        737.3172969210545,
+        338.176032193445
+      ],
+      "brakeFactor": 0.605524328388399,
+      "tireTemperatureC": [
+        61.777087325261775,
+        35.537399640809326
+      ],
+      "tireWear": [
+        0.007896019118186765,
+        0.002259936193652139
+      ],
+      "tireGripFactors": [
+        0.9976311942645439,
+        0.9904028695387647
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.0138175514078,
+        "motorTemperatureC": 33.51729971812671,
+        "batteryTemperatureC": 42.557214083788416,
+        "soc": 0.0620083474681628,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8383059376551709,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 13384.823966270076
+      },
+      "energy": {
+        "driveJ": 53595894.747769065,
+        "regenMechanicalJ": 4332288.4393883115,
+        "frictionBrakeJ": 37291184.13462906,
+        "batteryDischargeJ": 7152818.417465982,
+        "batteryChargeJ": 4247663.493795058,
+        "engineMechanicalJ": 48100899.94253973,
+        "engineGeneratorJ": 1085598.1388388628,
+        "engineChargeJ": 868478.5110714249
+      },
+      "lapBrakeFactors": [
+        0.9836153306696598,
+        0.6966524712699149,
+        0.6302373888513787,
+        0.6105070766727849,
+        0.605524328388399
+      ],
+      "lapPowerFactors": [
+        1,
+        0.8389278623574802,
+        0.8367016448416706,
+        0.8375590311211799,
+        0.8383059376551709
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 776.1536206371253,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        158.712615716518,
+        156.69304982894616,
+        154.7430648559756,
+        153.25800729548945,
+        152.7468829401961
+      ],
+      "brakeTemperatureC": [
+        709.9211536313404,
+        297.72183955946565
+      ],
+      "brakeFactor": 0.6708075669267562,
+      "tireTemperatureC": [
+        60.94075730429627,
+        35.406101851361775
+      ],
+      "tireWear": [
+        0.007896462151000407,
+        0.002197391290162399
+      ],
+      "tireGripFactors": [
+        0.9976310613546999,
+        0.9901590430707425
+      ],
+      "powertrain": {
+        "engineTemperatureC": 83.132110168155,
+        "motorTemperatureC": 32.97726095089756,
+        "batteryTemperatureC": 41.687677830451875,
+        "soc": 0.0595808386063281,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8338451307723124,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 11703.658794593715
+      },
+      "energy": {
+        "driveJ": 53509211.42557583,
+        "regenMechanicalJ": 4099199.086556418,
+        "frictionBrakeJ": 37823842.87159378,
+        "batteryDischargeJ": 7040831.655246484,
+        "batteryChargeJ": 4122568.183721363,
+        "engineMechanicalJ": 48188137.42300699,
+        "engineGeneratorJ": 1156491.1202586847,
+        "engineChargeJ": 925192.8962067824
+      },
+      "lapBrakeFactors": [
+        0.9995944118775445,
+        0.7978135230048454,
+        0.7121226456688523,
+        0.6815420224494996,
+        0.6708075669267562
+      ],
+      "lapPowerFactors": [
+        1,
+        0.8370170645112204,
+        0.8330492143099861,
+        0.8334365953922477,
+        0.8338451307723124
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 852.4954543612433,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        174.2248031453493,
+        171.60444811666946,
+        170.23923112207518,
+        168.56469741151318,
+        167.8622745656362
+      ],
+      "brakeTemperatureC": [
+        672.9676383688508,
+        278.5835628310061
+      ],
+      "brakeFactor": 0.7120906469053037,
+      "tireTemperatureC": [
+        58.802537462343494,
+        33.955446773776806
+      ],
+      "tireWear": [
+        0.013185302864253779,
+        0.0033811415766459873
+      ],
+      "tireGripFactors": [
+        0.9960444091407239,
+        0.986908813568695
+      ],
+      "powertrain": {
+        "engineTemperatureC": 74.08297707119705,
+        "motorTemperatureC": 32.78214924798569,
+        "batteryTemperatureC": 41.90303012186458,
+        "soc": 0.06473249716248039,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8433118537601135,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 11172.286587264527
+      },
+      "energy": {
+        "driveJ": 47092344.70250352,
+        "regenMechanicalJ": 4503924.11722134,
+        "frictionBrakeJ": 32956527.32211348,
+        "batteryDischargeJ": 7236576.336770879,
+        "batteryChargeJ": 4346131.8214486595,
+        "engineMechanicalJ": 41476033.23519398,
+        "engineGeneratorJ": 1041338.7625187038,
+        "engineChargeJ": 833071.0100149793
+      },
+      "lapBrakeFactors": [
+        0.9996197066178749,
+        0.8475440504350541,
+        0.7571411521240419,
+        0.7243796925648247,
+        0.7120906469053037
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9446696092496931,
+        0.8433930146712864,
+        0.8430518411293652,
+        0.8433118537601135
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 169.24752517239742,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        169.24752517239742
+      ],
+      "brakeTemperatureC": [
+        441.7886085320513,
+        198.60871411038596
+      ],
+      "brakeFactor": 0.9995061227837124,
+      "tireTemperatureC": [
+        51.4510276427552,
+        35.49731788409372
+      ],
+      "tireWear": [
+        0.0014915220607303729,
+        0.0003210247914407424
+      ],
+      "tireGripFactors": [
+        0.9995525433817809,
+        0.9908991956143074
+      ],
+      "powertrain": {
+        "engineTemperatureC": 87.57017173433103,
+        "motorTemperatureC": 39.712619139826174,
+        "batteryTemperatureC": 32.388715908637934,
+        "soc": 0.046929330535521105,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8105966330353593,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 7079.281718937075
+      },
+      "energy": {
+        "driveJ": 17097071.86066627,
+        "regenMechanicalJ": 594568.0460411011,
+        "frictionBrakeJ": 8974091.329159472,
+        "batteryDischargeJ": 3586251.8838899187,
+        "batteryChargeJ": 599670.2687816808,
+        "engineMechanicalJ": 13967604.118574597,
+        "engineGeneratorJ": 169883.99108702035,
+        "engineChargeJ": 135907.19286961376
+      },
+      "lapBrakeFactors": [
+        0.9995061227837124
+      ],
+      "lapPowerFactors": [
+        0.8105966330353593
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 170.62997757414666,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        170.62997757414666
+      ],
+      "brakeTemperatureC": [
+        411.94867303442396,
+        180.3386361832361
+      ],
+      "brakeFactor": 0.9995627614763838,
+      "tireTemperatureC": [
+        51.37653379365541,
+        35.66896629810886
+      ],
+      "tireWear": [
+        0.0014832527769096545,
+        0.0003268192461450057
+      ],
+      "tireGripFactors": [
+        0.9995550241669271,
+        0.9912407361014759
+      ],
+      "powertrain": {
+        "engineTemperatureC": 87.03869587671723,
+        "motorTemperatureC": 39.45974570490223,
+        "batteryTemperatureC": 32.04131300467614,
+        "soc": 0.04414382442162568,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8054779679542694,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 5596.004132416199
+      },
+      "energy": {
+        "driveJ": 16883329.23894522,
+        "regenMechanicalJ": 570007.3341340955,
+        "frictionBrakeJ": 9024540.848252622,
+        "batteryDischargeJ": 3550353.0938586383,
+        "batteryChargeJ": 548729.7457354065,
+        "engineMechanicalJ": 13747159.423983797,
+        "engineGeneratorJ": 130155.03138849887,
+        "engineChargeJ": 104124.02511079758
+      },
+      "lapBrakeFactors": [
+        0.9995627614763838
+      ],
+      "lapPowerFactors": [
+        0.8054779679542694
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 185.2436367903114,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        185.2436367903114
+      ],
+      "brakeTemperatureC": [
+        392.52327355155836,
+        183.31533474819815
+      ],
+      "brakeFactor": 0.9995674045708393,
+      "tireTemperatureC": [
+        49.40041854749373,
+        34.661659694931345
+      ],
+      "tireWear": [
+        0.0024059694086217844,
+        0.0005096265293487993
+      ],
+      "tireGripFactors": [
+        0.9992782091774135,
+        0.9891720637669633
+      ],
+      "powertrain": {
+        "engineTemperatureC": 81.87749257908729,
+        "motorTemperatureC": 39.22013490071956,
+        "batteryTemperatureC": 32.08717971843684,
+        "soc": 0.08598808854756927,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.8823712738267299,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 18009.501816134783
+      },
+      "energy": {
+        "driveJ": 14775268.900317399,
+        "regenMechanicalJ": 659493.7463453796,
+        "frictionBrakeJ": 7937836.152292694,
+        "batteryDischargeJ": 3385900.8691477426,
+        "batteryChargeJ": 610236.5473045214,
+        "engineMechanicalJ": 11780029.382145489,
+        "engineGeneratorJ": 119789.28144394726,
+        "engineChargeJ": 95831.42515515664
+      },
+      "lapBrakeFactors": [
+        0.9995674045708393
+      ],
+      "lapPowerFactors": [
+        0.8823712738267299
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 496.23465831705005,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        169.24752517239742,
+        164.16840617833932,
+        162.8187269663133
+      ],
+      "brakeTemperatureC": [
+        585.0527890899987,
+        238.6896157422602
+      ],
+      "brakeFactor": 0.8578530033906504,
+      "tireTemperatureC": [
+        49.53753269477269,
+        32.39659776533181
+      ],
+      "tireWear": [
+        0.0037418424487498133,
+        0.0009597010963606557
+      ],
+      "tireGripFactors": [
+        0.9988774472653751,
+        0.9845096633978319
+      ],
+      "powertrain": {
+        "engineTemperatureC": 87.36175446391003,
+        "motorTemperatureC": 30.54141631623909,
+        "batteryTemperatureC": 33.48375242701411,
+        "soc": 0.034938205117934794,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7885616589774016,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2064.9927734830667
+      },
+      "energy": {
+        "driveJ": 46114167.434130184,
+        "regenMechanicalJ": 1750319.864590612,
+        "frictionBrakeJ": 25621051.124837518,
+        "batteryDischargeJ": 4830570.37961359,
+        "batteryChargeJ": 1779236.6872501138,
+        "engineMechanicalJ": 42187526.67597238,
+        "engineGeneratorJ": 517483.99108708126,
+        "engineChargeJ": 413987.19286958146
+      },
+      "lapBrakeFactors": [
+        0.9995061227837124,
+        0.9097515760231646,
+        0.8578530033906504
+      ],
+      "lapPowerFactors": [
+        0.8105901493882265,
+        0.7885264141022822,
+        0.7885616589774016
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 505.4887229702008,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        170.62997757414666,
+        167.88327915511167,
+        166.97546624094247
+      ],
+      "brakeTemperatureC": [
+        552.7042323121213,
+        210.2713575740062
+      ],
+      "brakeFactor": 0.9313802650950783,
+      "tireTemperatureC": [
+        49.19592351365732,
+        32.27923262743151
+      ],
+      "tireWear": [
+        0.0037832339160166037,
+        0.0009512563388534304
+      ],
+      "tireGripFactors": [
+        0.998865029825195,
+        0.9842774950105494
+      ],
+      "powertrain": {
+        "engineTemperatureC": 86.34878220795498,
+        "motorTemperatureC": 30.164943135445213,
+        "batteryTemperatureC": 32.85855488372668,
+        "soc": 0.03531714226931188,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7892579964777954,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2103.7273388532462
+      },
+      "energy": {
+        "driveJ": 45576471.3187442,
+        "regenMechanicalJ": 1669175.2530472216,
+        "frictionBrakeJ": 25859275.893341597,
+        "batteryDischargeJ": 4714742.858571477,
+        "batteryChargeJ": 1665455.4268255443,
+        "engineMechanicalJ": 41693281.30066995,
+        "engineGeneratorJ": 454373.4118111801,
+        "engineChargeJ": 363498.72944897704
+      },
+      "lapBrakeFactors": [
+        0.9995627614763838,
+        0.9887318463408166,
+        0.9313802650950783
+      ],
+      "lapPowerFactors": [
+        0.8054710191189541,
+        0.7899133906188901,
+        0.7892579964777954
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 549.6950717565819,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        185.2436367903114,
+        182.40254614355783,
+        182.04888882271268
+      ],
+      "brakeTemperatureC": [
+        522.1142571304346,
+        208.27180813282885
+      ],
+      "brakeFactor": 0.9621450210698628,
+      "tireTemperatureC": [
+        47.035367576631316,
+        31.17498256095383
+      ],
+      "tireWear": [
+        0.006194292589251886,
+        0.0014884898301798066
+      ],
+      "tireGripFactors": [
+        0.9981417122232245,
+        0.9819112997420791
+      ],
+      "powertrain": {
+        "engineTemperatureC": 77.06247932796317,
+        "motorTemperatureC": 30.17852841048309,
+        "batteryTemperatureC": 33.43699518631111,
+        "soc": 0.03727361146481735,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7928532176490234,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2339.678354516248
+      },
+      "energy": {
+        "driveJ": 39616580.7128175,
+        "regenMechanicalJ": 1928970.2216807073,
+        "frictionBrakeJ": 22974417.56006041,
+        "batteryDischargeJ": 4881993.260438748,
+        "batteryChargeJ": 1843270.7623487923,
+        "engineMechanicalJ": 35548489.40001115,
+        "engineGeneratorJ": 423342.4867970105,
+        "engineChargeJ": 338673.98943764216
+      },
+      "lapBrakeFactors": [
+        0.9995674045708393,
+        0.9991521164904071,
+        0.9621450210698628
+      ],
+      "lapPowerFactors": [
+        0.8823288798313755,
+        0.7935605658978165,
+        0.7928532176490234
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 821.3599890645612,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        169.24752517239742,
+        164.16840617833932,
+        162.8187269663133,
+        162.57976188004818,
+        162.54556886746298
+      ],
+      "brakeTemperatureC": [
+        593.8934576439765,
+        244.5971739261371
+      ],
+      "brakeFactor": 0.8424850471648252,
+      "tireTemperatureC": [
+        49.00452041464442,
+        32.08352511073004
+      ],
+      "tireWear": [
+        0.005905867057604571,
+        0.0015943376017956436
+      ],
+      "tireGripFactors": [
+        0.9982282398827186,
+        0.983696321861075
+      ],
+      "powertrain": {
+        "engineTemperatureC": 86.99226770528774,
+        "motorTemperatureC": 27.527041913279902,
+        "batteryTemperatureC": 34.06342532283236,
+        "soc": 0.03498115029582821,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7886405753299407,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2082.951015372164
+      },
+      "energy": {
+        "driveJ": 74869223.66814879,
+        "regenMechanicalJ": 2935379.883944891,
+        "frictionBrakeJ": 41907062.744362414,
+        "batteryDischargeJ": 6017085.290749335,
+        "batteryChargeJ": 2965983.5023468793,
+        "engineMechanicalJ": 70178989.19174519,
+        "engineGeneratorJ": 845483.9910868963,
+        "engineChargeJ": 676387.192869652
+      },
+      "lapBrakeFactors": [
+        0.9995061227837124,
+        0.9097515760231646,
+        0.8579044827297994,
+        0.845831694800809,
+        0.8424850471648252
+      ],
+      "lapPowerFactors": [
+        0.8105901493882265,
+        0.7885264141022822,
+        0.7885563052809439,
+        0.7886242556069699,
+        0.7886405753299407
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 837.9854306566995,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        170.62997757414666,
+        167.88327915511167,
+        166.97546624094247,
+        166.34495883035459,
+        166.15174885614408
+      ],
+      "brakeTemperatureC": [
+        566.1235275530362,
+        215.04935745490081
+      ],
+      "brakeFactor": 0.9084467369284511,
+      "tireTemperatureC": [
+        48.78222848288321,
+        32.068885674820905
+      ],
+      "tireWear": [
+        0.006012398846132202,
+        0.0015773908592931522
+      ],
+      "tireGripFactors": [
+        0.9981962803461604,
+        0.9836720603721981
+      ],
+      "powertrain": {
+        "engineTemperatureC": 86.02433558791489,
+        "motorTemperatureC": 27.113047221174128,
+        "batteryTemperatureC": 33.23199332017075,
+        "soc": 0.03536555910660564,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7893469675890616,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2122.8834605285215
+      },
+      "energy": {
+        "driveJ": 74113774.47809246,
+        "regenMechanicalJ": 2782522.511234967,
+        "frictionBrakeJ": 42439852.75365063,
+        "batteryDischargeJ": 5825490.441794326,
+        "batteryChargeJ": 2776464.4609700744,
+        "engineMechanicalJ": 69511944.39940204,
+        "engineGeneratorJ": 757621.1277586553,
+        "engineChargeJ": 606096.9022068997
+      },
+      "lapBrakeFactors": [
+        0.9995627614763838,
+        0.9887318463408166,
+        0.9313997507446664,
+        0.9136408200080474,
+        0.9084467369284511
+      ],
+      "lapPowerFactors": [
+        0.8054710191189541,
+        0.7899133906188901,
+        0.789255704871851,
+        0.7893234868955219,
+        0.7893469675890616
+      ]
+    },
+    {
+      "vehicleId": "k5",
+      "variantId": "k5-2.0hev",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 911.813673932466,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        185.2436367903114,
+        182.40254614355783,
+        182.04888882271268,
+        181.2252871824346,
+        180.8933149934495
+      ],
+      "brakeTemperatureC": [
+        537.674361795808,
+        209.36205515386334
+      ],
+      "brakeFactor": 0.9356322917960184,
+      "tireTemperatureC": [
+        47.08201830076385,
+        31.092084497452767
+      ],
+      "tireWear": [
+        0.009971578179025702,
+        0.0024856125060881964
+      ],
+      "tireGripFactors": [
+        0.9970085265462922,
+        0.9814517702187847
+      ],
+      "powertrain": {
+        "engineTemperatureC": 76.05419669193671,
+        "motorTemperatureC": 27.192594237468874,
+        "batteryTemperatureC": 33.73626465077763,
+        "soc": 0.037241227118187704,
+        "batteryCapacityKwh": 1.5,
+        "powerFactor": 0.7927937079522253,
+        "regenLimitW": 18000,
+        "batteryAssistLimitW": 2329.261389683712
+      },
+      "energy": {
+        "driveJ": 64386987.39481806,
+        "regenMechanicalJ": 3173270.9709146777,
+        "frictionBrakeJ": 37785507.62001428,
+        "batteryDischargeJ": 6088465.882911181,
+        "batteryChargeJ": 3049568.509349835,
+        "engineMechanicalJ": 59503620.22258481,
+        "engineGeneratorJ": 718021.4400445321,
+        "engineChargeJ": 574417.1520357829
+      },
+      "lapBrakeFactors": [
+        0.9995674045708393,
+        0.9991521164904071,
+        0.9621749970594938,
+        0.9426798982157829,
+        0.9356322917960184
+      ],
+      "lapPowerFactors": [
+        0.8823288798313755,
+        0.7935605658978165,
+        0.7928489517057212,
+        0.7928248282664102,
+        0.7927937079522253
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 131.69289174000772,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        131.69289174000772
+      ],
+      "brakeTemperatureC": [
+        684.239818154244,
+        426.9381680515261
+      ],
+      "brakeFactor": 0.6942383186704284,
+      "tireTemperatureC": [
+        53.31985872922794,
+        68.98271703632267
+      ],
+      "tireWear": [
+        0.0008737410473629541,
+        0.0014879725654643621
+      ],
+      "tireGripFactors": [
+        0.9997378776857911,
+        0.9995536082303607
+      ],
+      "powertrain": {
+        "engineTemperatureC": 104.5677117451558,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 16220266.839943798,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 13026045.579476269,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 16220266.839943798,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.6942383186704284
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 132.388755815544,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        132.388755815544
+      ],
+      "brakeTemperatureC": [
+        627.4928443463184,
+        375.9729987599211
+      ],
+      "brakeFactor": 0.8081533084006068,
+      "tireTemperatureC": [
+        54.25219133755818,
+        67.94117678151433
+      ],
+      "tireWear": [
+        0.0008987261015835242,
+        0.001451245292103025
+      ],
+      "tireGripFactors": [
+        0.9997303821695249,
+        0.9995646264123691
+      ],
+      "powertrain": {
+        "engineTemperatureC": 104.11964680161418,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 16037108.539590849,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 12926313.618550574,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 16037108.539590849,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8081533084006068
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 147.63488103553638,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        147.63488103553638
+      ],
+      "brakeTemperatureC": [
+        584.1437315338677,
+        371.98040439048407
+      ],
+      "brakeFactor": 0.8600919892180213,
+      "tireTemperatureC": [
+        49.91357933672866,
+        63.120265492169025
+      ],
+      "tireWear": [
+        0.001299806145880106,
+        0.0022890901558918503
+      ],
+      "tireGripFactors": [
+        0.9996100581562359,
+        0.9993132729532325
+      ],
+      "powertrain": {
+        "engineTemperatureC": 97.08330036915366,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 13555092.145311873,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 11085757.261230662,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 13555092.145311873,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8600919892180213
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 387.74598467997373,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        131.69289174000772,
+        127.18739243601266,
+        128.86570050395335
+      ],
+      "brakeTemperatureC": [
+        873.2535743190077,
+        633.581389826811
+      ],
+      "brakeFactor": 0.41934582968751755,
+      "tireTemperatureC": [
+        51.65681208601864,
+        80.15485701303388
+      ],
+      "tireWear": [
+        0.002256765248736055,
+        0.003988499701818784
+      ],
+      "tireGripFactors": [
+        0.9993229704253792,
+        0.9988034500894544
+      ],
+      "powertrain": {
+        "engineTemperatureC": 106.97327333925378,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 42620167.05531311,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 33699901.89642882,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 42620167.05531311,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.6942678120894249,
+        0.42246337886752805,
+        0.41934582968751755
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 387.78072943977423,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        132.388755815544,
+        127.9569669980319,
+        127.43500662619834
+      ],
+      "brakeTemperatureC": [
+        861.4288356485022,
+        586.9939518686612
+      ],
+      "brakeFactor": 0.4203395118124277,
+      "tireTemperatureC": [
+        53.57356957805703,
+        80.8915440856203
+      ],
+      "tireWear": [
+        0.0023695938701004437,
+        0.00400432569804939
+      ],
+      "tireGripFactors": [
+        0.9992891218389699,
+        0.9987987022905852
+      ],
+      "powertrain": {
+        "engineTemperatureC": 109.6988148401123,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 43858990.20882695,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 35012640.09790259,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 43858990.20882695,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8081637456830956,
+        0.48316250094634505,
+        0.4203395118124277
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 427.0981701646877,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        147.63488103553638,
+        140.3189133799684,
+        139.14437574918293
+      ],
+      "brakeTemperatureC": [
+        841.5142876079078,
+        566.2298022399542
+      ],
+      "brakeFactor": 0.4334250752762138,
+      "tireTemperatureC": [
+        49.87259367018597,
+        75.57136548972554
+      ],
+      "tireWear": [
+        0.0036497883057056146,
+        0.006496728008084273
+      ],
+      "tireGripFactors": [
+        0.9989050635082883,
+        0.9980509815975748
+      ],
+      "powertrain": {
+        "engineTemperatureC": 99.30772823719172,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 38165453.76687307,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 31052262.39207655,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 38165453.76687307,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8601135481003191,
+        0.5082598525320328,
+        0.4334250752762138
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 646.0373657508329,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        131.69289174000772,
+        127.18739243601266,
+        128.86570050395335,
+        129.12347106740708,
+        129.1679100034521
+      ],
+      "brakeTemperatureC": [
+        880.4692792372042,
+        660.2377431558275
+      ],
+      "brakeFactor": 0.41899928340053244,
+      "tireTemperatureC": [
+        50.43371062018206,
+        81.41793606155099
+      ],
+      "tireWear": [
+        0.0035711428041967706,
+        0.006384387403049143
+      ],
+      "tireGripFactors": [
+        0.998928657158741,
+        0.9980846837790852
+      ],
+      "powertrain": {
+        "engineTemperatureC": 105.3274482523451,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 67446977.02427262,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 52916043.660473354,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 67446977.02427262,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.6942678120894249,
+        0.42246337886752805,
+        0.41934582968751755,
+        0.41917227821618136,
+        0.41899928340053244
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 643.9429245047004,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        132.388755815544,
+        127.9569669980319,
+        127.43500662619834,
+        128.03173218505884,
+        128.1304628798673
+      ],
+      "brakeTemperatureC": [
+        867.9633302148761,
+        618.2616409484139
+      ],
+      "brakeFactor": 0.41907064492117335,
+      "tireTemperatureC": [
+        52.128678366321296,
+        82.24602269767158
+      ],
+      "tireWear": [
+        0.0037458420592633556,
+        0.006429882283474638
+      ],
+      "tireGripFactors": [
+        0.998876247382221,
+        0.9980710353149576
+      ],
+      "powertrain": {
+        "engineTemperatureC": 108.56864614469845,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 69700455.67169058,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 55231288.67847571,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 69700455.67169058,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8081637456830956,
+        0.48316250094634505,
+        0.4203531566978858,
+        0.4192320338763407,
+        0.41907064492117335
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "inje",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 707.0978691844867,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        147.63488103553638,
+        140.3189133799684,
+        139.14437574918293,
+        139.92546306985145,
+        140.0742359499476
+      ],
+      "brakeTemperatureC": [
+        849.3945434796561,
+        594.4290003439465
+      ],
+      "brakeFactor": 0.4200441588275292,
+      "tireTemperatureC": [
+        48.15973235472143,
+        76.62955513455937
+      ],
+      "tireWear": [
+        0.005778953945536251,
+        0.010472197538884143
+      ],
+      "tireGripFactors": [
+        0.9982663138163391,
+        0.9968583407383348
+      ],
+      "powertrain": {
+        "engineTemperatureC": 97.26132794663532,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 61050863.31920091,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 49379775.30191155,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 61050863.31920091,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8601135481003191,
+        0.5082598525320328,
+        0.43343400765752566,
+        0.42207773778848234,
+        0.4200441588275292
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 140.01084649433307,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        140.01084649433307
+      ],
+      "brakeTemperatureC": [
+        587.2125298435102,
+        359.290120106075
+      ],
+      "brakeFactor": 0.8549075001614769,
+      "tireTemperatureC": [
+        47.45674323359893,
+        60.860828198967496
+      ],
+      "tireWear": [
+        0.0006529202020506037,
+        0.0012109102701843425
+      ],
+      "tireGripFactors": [
+        0.9998041239393848,
+        0.9996367269189447
+      ],
+      "powertrain": {
+        "engineTemperatureC": 111.32676113659006,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 23794813.027221076,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 13520606.562432291,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 23794813.027221076,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8549075001614769
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 141.1294743145553,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        141.1294743145553
+      ],
+      "brakeTemperatureC": [
+        568.7626210590463,
+        331.82615607380177
+      ],
+      "brakeFactor": 0.9053840363242128,
+      "tireTemperatureC": [
+        48.59239354607623,
+        60.26627117818792
+      ],
+      "tireWear": [
+        0.0006891187143182049,
+        0.0011901906601399007
+      ],
+      "tireGripFactors": [
+        0.9997932643857045,
+        0.999642942801958
+      ],
+      "powertrain": {
+        "engineTemperatureC": 112.8509658087287,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 24295477.644823067,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 13986255.563215878,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 24295477.644823067,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9053840363242128
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 1,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 155.41309619795933,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        155.41309619795933
+      ],
+      "brakeTemperatureC": [
+        543.1501047104451,
+        332.83956905202666
+      ],
+      "brakeFactor": 0.9279297467871404,
+      "tireTemperatureC": [
+        45.48197822941654,
+        57.19792653594476
+      ],
+      "tireWear": [
+        0.0010338499798497386,
+        0.0019411450777503047
+      ],
+      "tireGripFactors": [
+        0.9996898450060451,
+        0.9994176564766749
+      ],
+      "powertrain": {
+        "engineTemperatureC": 103.7901474532146,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 20687695.11628049,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 12378430.50973955,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 20687695.11628049,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9279297467871404
+      ],
+      "lapPowerFactors": [
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 410.33522100524107,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        140.01084649433307,
+        134.3277147420976,
+        135.9966597688104
+      ],
+      "brakeTemperatureC": [
+        737.1016804706335,
+        509.37196530423154
+      ],
+      "brakeFactor": 0.606002303426007,
+      "tireTemperatureC": [
+        44.132566491082486,
+        64.78517030416452
+      ],
+      "tireWear": [
+        0.0016896501973546515,
+        0.0031391656273573195
+      ],
+      "tireGripFactors": [
+        0.9994931049407936,
+        0.9990582503117929
+      ],
+      "powertrain": {
+        "engineTemperatureC": 116.83387903081356,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 0.970657935506983,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 63735344.08703543,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 38634430.00352022,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 63735344.08703543,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8549592464671982,
+        0.6379045599044193,
+        0.606002303426007
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9845844481162929,
+        0.970657935506983
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 410.9856460967662,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        141.1294743145553,
+        134.39471436918438,
+        135.4614574130265
+      ],
+      "brakeTemperatureC": [
+        727.1475466095515,
+        471.4066186734765
+      ],
+      "brakeFactor": 0.6423955656278543,
+      "tireTemperatureC": [
+        45.08499413727476,
+        63.678339230849616
+      ],
+      "tireWear": [
+        0.0017954052585095076,
+        0.003105918992011597
+      ],
+      "tireGripFactors": [
+        0.9994613784224472,
+        0.9990682243023965
+      ],
+      "powertrain": {
+        "engineTemperatureC": 119.34851660617643,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 0.9304237343011771,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 65423578.04154996,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 40442443.50401763,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 65423578.04154996,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9054171896876525,
+        0.6691342470111507,
+        0.6423955656278543
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9435830745330538,
+        0.9304237343011771
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 3,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 447.4213706991246,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        155.41309619795933,
+        145.4638595205586,
+        146.5444149806067
+      ],
+      "brakeTemperatureC": [
+        726.4442457391651,
+        469.50895847759807
+      ],
+      "brakeFactor": 0.6236562613343368,
+      "tireTemperatureC": [
+        42.73144891414767,
+        61.48841064310196
+      ],
+      "tireWear": [
+        0.0028411304925635783,
+        0.005204490330171588
+      ],
+      "tireGripFactors": [
+        0.999147660852231,
+        0.9984386529009486
+      ],
+      "powertrain": {
+        "engineTemperatureC": 107.46093049057919,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 57122016.00470227,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 37054534.0180153,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 57122016.00470227,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9279581639401735,
+        0.6615855380688995,
+        0.6236562613343368
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "acceleration",
+      "levels": {
+        "acceleration": 3,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 683.173817622275,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        140.01084649433307,
+        134.3277147420976,
+        135.9966597688104,
+        136.39528610412293,
+        136.443310512911
+      ],
+      "brakeTemperatureC": [
+        738.7659259289177,
+        522.6971370803387
+      ],
+      "brakeFactor": 0.6026057814013802,
+      "tireTemperatureC": [
+        43.2818234799668,
+        64.7854149500784
+      ],
+      "tireWear": [
+        0.0026698918031800955,
+        0.005014489810456042
+      ],
+      "tireGripFactors": [
+        0.999199032459046,
+        0.9984956530568632
+      ],
+      "powertrain": {
+        "engineTemperatureC": 116.99194802640875,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 0.96812883157746,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 102666358.92954516,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 62946177.21515002,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 102666358.92954516,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.8549592464671982,
+        0.6379045599044193,
+        0.606074654660974,
+        0.6032495362960869,
+        0.6026057814013802
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9845844481162929,
+        0.970680418501898,
+        0.9687051783820978,
+        0.96812883157746
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "balanced",
+      "levels": {
+        "acceleration": 2,
+        "topSpeed": 1,
+        "brakes": 1,
+        "grip": 3
+      },
+      "budget": 30,
+      "time": 682.5147322836743,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        141.1294743145553,
+        134.39471436918438,
+        135.4614574130265,
+        135.74125863619184,
+        135.78782755071632
+      ],
+      "brakeTemperatureC": [
+        728.8138515985236,
+        483.6675225661544
+      ],
+      "brakeFactor": 0.639002189067122,
+      "tireTemperatureC": [
+        44.08487793228017,
+        63.367426794678416
+      ],
+      "tireWear": [
+        0.0028316879354261604,
+        0.004949315691115839
+      ],
+      "tireGripFactors": [
+        0.9991504936193721,
+        0.9985152052926652
+      ],
+      "powertrain": {
+        "engineTemperatureC": 119.5327062301594,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 0.9274767003174496,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 105329192.5026862,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 65840530.42997517,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 105329192.5026862,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9054171896876525,
+        0.6691342470111507,
+        0.6424617785929966,
+        0.6397913945902641,
+        0.639002189067122
+      ],
+      "lapPowerFactors": [
+        1,
+        0.9435830745330538,
+        0.9304162402506024,
+        0.928195832981318,
+        0.9274767003174496
+      ]
+    },
+    {
+      "vehicleId": "supra",
+      "variantId": "supra-3.0t-rz",
+      "circuit": "monza",
+      "laps": 5,
+      "setup": "stock",
+      "levels": {
+        "acceleration": 0,
+        "topSpeed": 0,
+        "brakes": 0,
+        "grip": 0
+      },
+      "budget": 0,
+      "time": 741.3941265321406,
+      "dnf": false,
+      "finished": true,
+      "lapTimes": [
+        155.41309619795933,
+        145.4638595205586,
+        146.5444149806067,
+        146.95099863227063,
+        147.02175720074536
+      ],
+      "brakeTemperatureC": [
+        729.5304913884818,
+        482.9223611087066
+      ],
+      "brakeFactor": 0.617886881913869,
+      "tireTemperatureC": [
+        41.57150901478088,
+        61.43242093849637
+      ],
+      "tireWear": [
+        0.004486867679740455,
+        0.008357345052060835
+      ],
+      "tireGripFactors": [
+        0.9986539396960779,
+        0.9974927964843817
+      ],
+      "powertrain": {
+        "engineTemperatureC": 107.08181966721104,
+        "motorTemperatureC": null,
+        "batteryTemperatureC": null,
+        "soc": null,
+        "batteryCapacityKwh": null,
+        "powerFactor": 1,
+        "regenLimitW": 0,
+        "batteryAssistLimitW": 0
+      },
+      "energy": {
+        "driveJ": 92477666.25336882,
+        "regenMechanicalJ": 0,
+        "frictionBrakeJ": 60850551.37540389,
+        "batteryDischargeJ": 0,
+        "batteryChargeJ": 0,
+        "engineMechanicalJ": 92477666.25336882,
+        "engineGeneratorJ": 0,
+        "engineChargeJ": 0
+      },
+      "lapBrakeFactors": [
+        0.9279581639401735,
+        0.6615855380688995,
+        0.623695637632259,
+        0.6186711946955605,
+        0.617886881913869
+      ],
+      "lapPowerFactors": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ]
+}

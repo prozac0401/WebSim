@@ -364,3 +364,24 @@ test('near-plane clipping keeps a partially visible guidance arrow and finite pr
   assert.equal(queue.length,1);assert.equal(queue[0].points.length,4);
   for (const p of queue[0].points) assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.depth>=.3009);
 });
+
+test('condition-aware forecasts reflect EV thermal derating and hot brakes without changing any vehicle state',()=>{
+  const T=require('./tuning-evolution.js');
+  const entrant=T.createEntrant({vehicleId:'ioniq5',variantId:'ioniq5-long-awd',budget:0});
+  const race=new Race({circuit:circuits.find(c=>c.id==='monza'),entrants:[entrant],laps:3}),car=race.cars[0];
+  car.distance=100;car.speed=20;car.acceleration=0;
+  const distances=[100,110,130,160],healthy=Guidance.preview(race,car,distances),healthyProfile=Guidance.profile(race,car);
+  const healthyBefore=JSON.stringify(car);
+  assert.deepEqual(Guidance.preview(race,car,distances),healthy);
+  assert.equal(JSON.stringify(car),healthyBefore,'healthy forecast is observational');
+  car.condition.motorTemperatureC=140;car.condition.batteryTemperatureC=58;
+  car.condition.brakes.front.temperatureC=900;car.condition.brakes.rear.temperatureC=900;
+  const hotBefore=JSON.stringify(car),hot=Guidance.preview(race,car,distances),hotProfile=Guidance.profile(race,car);
+  assert.notEqual(hotProfile,healthyProfile,'changed condition limits invalidate advisory cache');
+  assert.ok(hot.at(-1).forecastSpeed<healthy.at(-1).forecastSpeed,'high temperature reduces actual available acceleration');
+  assert.ok(hotProfile.samples.some((p,i)=>p.targetSpeed<healthyProfile.samples[i].targetSpeed-.1),'reduced brake capacity lowers pre-corner advisory targets');
+  assert.equal(JSON.stringify(car),hotBefore,'heat/regen forecast does not cool, charge, wear, shift or move the real vehicle');
+  hot.forEach(noYellowWhileAccelerating);
+  car.brakeDemand=.73;
+  assert.equal(Guidance.preview(race,car,[car.distance])[0].brake,.73,'current-point brake ratio is the solver observation, not a stale healthy estimate');
+});

@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "checks": 12,
+  "results": [
+    {
+      "name": "desktop initial condition and out-of-canvas layout",
+      "status": "PASS"
+    },
+    {
+      "name": "visible start pause step and paused condition persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "visible 64x playback and condition updates",
+      "status": "PASS"
+    },
+    {
+      "name": "watch control selects independent vehicle state",
+      "status": "PASS"
+    },
+    {
+      "name": "visible fast evaluation finishes with condition accumulation",
+      "status": "PASS"
+    },
+    {
+      "name": "completed single-lap table and same-configuration reset",
+      "status": "PASS"
+    },
+    {
+      "name": "stock electric 3-lap selection shows SOC and hides engine HUD",
+      "status": "PASS"
+    },
+    {
+      "name": "visible electric 3-lap fast evaluation retains three lap snapshots and rows",
+      "status": "PASS"
+    },
+    {
+      "name": "stock HEV watch selection shows physical power and engine charging fields",
+      "status": "PASS"
+    },
+    {
+      "name": "return to tuned 1-lap conditions starts a fresh measurement",
+      "status": "PASS"
+    },
+    {
+      "name": "mobile 320 touch controls and readable non-overlaid panel",
+      "status": "PASS"
+    },
+    {
+      "name": "mobile 390 touch controls and readable non-overlaid panel",
+      "status": "PASS"
+    }
+  ],
+  "pageErrors": [],
+  "httpErrors": [],
+  "classification": "Source-informed automated UI regression using visible controls. No state mutation or advanceTime fixture. Not blind gameplay or human enjoyment evidence.",
+  "browser": "151.0.7922.34",
+  "runtimeSha256": {
+    "evolving_vehicles_2.html": "971d4e806dda99ef646d1f623eba2b9f768772d0d693374bc6266a762ee0eac6",
+    "evolving_vehicles_2.css": "a1059b2a50b6dd39e400b4f9286031364c2cc1485586685a9c4dda8bd26ec31b",
+    "vehicle-condition.js": "ab041d7799c3b8e1f46e453cdc7001b7c518e3738ca5e5b68126fa0ee36c23a8",
+    "race-engine.js": "8fd5f3a5ff08c87e4d0650f51c417d1deb3bc6881bff3d6a364207724d700481",
+    "racing-guidance.js": "d777d54fe38c3c114a206a080ee8c02910989f1391c74af9f166ae47689f99b9",
+    "evolving_vehicles_2.js": "fd1d71466d3d25465e75d91cee2f8de6a763a9a4874d17a137c6c0172cacf2e1"
+  },
+  "viewports": [
+    "1440x1000 desktop",
+    "320x740 touch emulation",
+    "390x844 touch emulation"
+  ],
+  "realAndroid": "NOT RUN",
+  "realIOS": "NOT RUN"
+}

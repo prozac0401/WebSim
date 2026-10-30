@@ -22,6 +22,7 @@
   const NGS = root.NGrinShift || (typeof require === 'function' ? require('./n-grin-shift.js') : null);
   const DRIVING = root.DrivingPose || (typeof require === 'function' ? require('./driving-pose.js') : null);
   const BRAKE_LIGHTS = root.BrakeLightState || (typeof require === 'function' ? require('./brake-light-state.js') : null);
+  const CONDITION = root.VehicleCondition || (typeof require === 'function' ? require('./vehicle-condition.js') : null);
   const VEHICLE_LINE = root.VehicleRacingLine || (typeof require === 'function' ? require('./vehicle-racing-line.js') : null);
   if (!SPECS) throw new Error('Load vehicle-specs.js before race-engine.js.');
   const G = 9.81, FIXED_DT = 1 / 120, PS_WATTS = 735.49875;
@@ -252,6 +253,8 @@
       if (!Number.isInteger(this.laps) || this.laps < 1 || this.laps > 100) throw new RangeError('laps must be an integer from 1 to 100.');
       this.surface = options.surface === undefined ? 'dry' : options.surface;
       if (!['dry', 'wet'].includes(this.surface)) throw new RangeError('surface must be dry or wet.');
+      this.conditionsEnabled = options.conditions !== false;
+      this.conditionOptions = options.conditionOptions || {};
       this.tuning = options.tuning === undefined ? 1 : options.tuning;
       if (![1, 1.3, 1.6].includes(this.tuning)) throw new RangeError('tuning must be 1, 1.3 or 1.6.');
       const entries = options.entrants;
@@ -344,6 +347,9 @@
         }
         car.firstLapLength = motion && car.standingStartDistance !== null ? motion.firstLapLength : car.trackLength;
         car.totalDistance = car.firstLapLength + (this.laps - 1) * car.trackLength;
+        car.regenBrakeForceN = car.frictionBrakeForceN = 0;
+        car.lapConditions = [];
+        if (entrant && this.conditionsEnabled && CONDITION) car.condition = CONDITION.create(car, this.conditionOptions);
         if (NGS) car.ngs = NGS.create(car, this.track);
         // The controller permits the boosted terminal envelope so it does not
         // brake merely because NGS ends. Actual propulsion is still bounded by
@@ -414,13 +420,14 @@
       return .5 * 1.225 * car.downforceArea * speed * speed / car.massKg;
     }
 
-    _lateralCapacity(car, speed, grade = 0) {
+    _lateralCapacity(car, speed, grade = 0, healthy = false) {
       const normal = 1 / Math.hypot(1, grade), aero = this._aeroLoadAcceleration(car, speed);
       const tyreLimit = car.grip * (normal + aero / G);
       // Tall, narrow vehicles cannot acquire unlimited cornering by adding
       // tyre grip; lateral load transfer can unload an inside wheel pair.
       const rolloverLimit = car.advancedDynamics ? (G * normal + aero) * car.trackWidthM / (2 * car.cgHeightM) * .92 : Infinity;
-      return Math.min(tyreLimit, rolloverLimit);
+      const conditionGrip = car.condition && !healthy ? Math.min(...[CONDITION.limits(car, car.condition).gripFrontFactor, CONDITION.limits(car, car.condition).gripRearFactor]) : 1;
+      return Math.min(tyreLimit * conditionGrip, rolloverLimit);
     }
 
     _tractionAcceleration(car, speed, grade, resistanceAcceleration) {
@@ -453,12 +460,19 @@
       return this._brakingCapacity(car, speed, grade) + G * grade * normal;
     }
 
-    _brakingCapacity(car, speed, grade) {
+    _brakingCapacity(car, speed, grade, curvature = 0, acceleration = -car.braking * .75) {
       const normal = 1 / Math.hypot(1, grade);
       if (!car.advancedDynamics) return car.braking * normal;
       // Brake torque cannot buy more deceleration than the tyre contact patch
       // can transmit. Better brakes become useful with better tyres/aero; the
-      // model does not simulate brake fade or a transient friction ellipse.
+      // entrant condition models below additionally share axle contact with
+      // cornering and blend regenerative/friction capacity with thermal fade.
+      if (car.condition) {
+        const env = this._axleEnvelope(car, speed, grade, curvature, acceleration);
+        const limits = CONDITION.limits(car, car.condition);
+        const regen = this._regenForce(car, speed, env);
+        return Math.min(env.front + env.rear, car.brakingHardware * limits.brakeFactor * car.massKg + regen) / car.massKg;
+      }
       return Math.min(car.brakingHardware, car.longitudinalGrip * (normal + this._aeroLoadAcceleration(car, speed) / G));
     }
 
@@ -471,17 +485,22 @@
         const normal = 1 / Math.hypot(1, p.grade);
         const terminal = p.grade === 0 ? permittedTerminal : this._equilibriumSpeed(car, p.grade, powerMultiplier);
         const curvature = Math.max(Math.abs(p.curvature), .000001);
-        if (!car.advancedDynamics || car.downforceArea === 0) return Math.min(terminal, Math.sqrt(this._lateralCapacity(car, 0, p.grade) / curvature));
+        if (!car.advancedDynamics || car.downforceArea === 0) return Math.min(terminal, Math.sqrt(this._lateralCapacity(car, 0, p.grade, true) / curvature));
         // Solve v²*k <= lateral capacity(v), including speed-dependent
         // downforce and the inside-wheel lift bound. Bisection stays stable
         // when aero load makes the tyre-only closed form unbounded.
         let low = 0, high = terminal;
         for (let i = 0; i < 24; i++) {
           const v = (low + high) / 2;
-          if (v * v * curvature <= this._lateralCapacity(car, v, p.grade)) low = v; else high = v;
+          if (v * v * curvature <= this._lateralCapacity(car, v, p.grade, true)) low = v; else high = v;
         }
         return (low + high) / 2;
       });
+      if (car.condition) {
+        const baseKey = launch ? 'healthyLaunchLimits' : 'healthySpeedLimits';
+        car[baseKey] = limits.slice();
+        return this._conditionProfile(car, points, spacing, launch);
+      }
       const brakingProfile = points.map((p, i) => Math.min(this._brakingDeceleration(car, p.grade), this._brakingDeceleration(car,
         points[launch ? Math.min(i + 1, points.length - 1) : (i + 1) % points.length].grade)));
       if (launch) {
@@ -499,6 +518,84 @@
         }
       }
       return limits;
+    }
+
+    // Axle friction ellipses share one contact budget between lateral and
+    // longitudinal force. Static lateral demand + dynamic normal loads retain
+    // acceleration/braking weight-transfer effects (not a yaw/slip solver).
+    _axleEnvelope(car, speed, grade = 0, curvature = 0, acceleration = car.acceleration || 0) {
+      const normal = 1 / Math.hypot(1, grade), sine = grade * normal;
+      const total = car.massKg * (G * normal + this._aeroLoadAcceleration(car, speed));
+      const drag = .5 * 1.225 * car.dragArea * speed * speed;
+      const transfer = (car.massKg * (acceleration + G * sine) + drag) * car.cgHeightM / car.wheelbaseM;
+      const frontLoad = clamp(total * car.frontWeightFraction - transfer, 0, total), rearLoad = total - frontLoad;
+      const limits = CONDITION.limits(car, car.condition);
+      const lateral = car.massKg * speed * speed * Math.abs(curvature);
+      const lateralMu = car.grip / G, longitudinalMu = car.longitudinalGrip / G;
+      const axle = (load, share, factor) => {
+        const capY = load * lateralMu * factor, fy = lateral * share;
+        return { force: load * longitudinalMu * factor * Math.sqrt(Math.max(0, 1 - (fy / Math.max(1e-9, capY)) ** 2)), fy, capY };
+      };
+      const front = axle(frontLoad, car.frontWeightFraction, limits.gripFrontFactor);
+      const rear = axle(rearLoad, 1 - car.frontWeightFraction, limits.gripRearFactor);
+      return { front: front.force, rear: rear.force, frontLoad, rearLoad, frontLateral: front.fy, rearLateral: rear.fy };
+    }
+
+    _regenForce(car, speed, envelope) {
+      const limits = CONDITION.limits(car, car.condition);
+      const axle = car.spec.factoryDrive === 'fwd' ? envelope.front : car.spec.factoryDrive === 'rwd' ? envelope.rear : envelope.front + envelope.rear;
+      // Blend out below walking speed; never generate finite energy at rest.
+      return Math.min(axle, limits.regenPowerW / Math.max(3, speed)) * clamp(speed / 3, 0, 1);
+    }
+
+    _conditionProfile(car, points, spacing, launch = null) {
+      const base = launch ? car.healthyLaunchLimits : car.healthySpeedLimits;
+      const f = CONDITION.limits(car, car.condition);
+      const grip = Math.min(f.gripFrontFactor, f.gripRearFactor);
+      // Reserve lateral grip for braking/drive instead of running continuously
+      // on the exact zero-longitudinal-force corner limit.
+      const limits = base.map((v,i) => {
+        const p=points[i], k=Math.max(Math.abs(p.curvature), Math.abs(points[(i+1)%points.length].curvature), Math.abs(points[(i+points.length-1)%points.length].curvature));
+        if(k<1e-7)return v;
+        // Reserve capacity on the axle unloaded by expected corner braking or
+        // acceleration, rather than only applying one whole-car grip scalar.
+        let candidate=v*Math.sqrt(.90*grip);
+        for(let solve=0;solve<3;solve++){
+          const normal=1/Math.hypot(1,p.grade), sine=p.grade*normal;
+          const powerAcceleration=car.powerPs*PS_WATTS*car.efficiency/Math.max(4,candidate)/car.massKg;
+          const demand=[0,-Math.min(car.brakingHardware*f.brakeFactor+f.regenPowerW/Math.max(3,candidate)/car.massKg,car.longitudinalGrip,1.0*G)-G*sine,Math.min(powerAcceleration,.55*G)-G*sine];
+          let lateral=Infinity;
+          for(const a of demand){
+            const env=this._axleEnvelope(car,candidate,p.grade,0,a);
+            lateral=Math.min(lateral,env.frontLoad*car.grip/G*f.gripFrontFactor/(car.massKg*car.frontWeightFraction),env.rearLoad*car.grip/G*f.gripRearFactor/(car.massKg*(1-car.frontWeightFraction)));
+          }
+          candidate=Math.min(candidate,Math.sqrt(Math.max(.25,lateral*.85/k)));
+        }
+        return candidate;
+      });
+      if (launch) limits[limits.length - 1] = Math.min(limits.at(-1), this._targetProfile(car.speedProfile, car.pathSpacing, launch.joinDistance));
+      const passes = launch ? 1 : 2, end = launch ? limits.length - 2 : limits.length - 1;
+      for (let pass = 0; pass < passes; pass++) for (let i = end; i >= 0; i--) {
+        const next = limits[(i + 1) % limits.length], p = points[i];
+        let candidate = limits[i];
+        for (let solve = 0; solve < 3; solve++) {
+          const v = (candidate + next) * .5;
+          const decel = this._brakingCapacity(car, v, p.grade, p.curvature) * .85 + G * p.grade / Math.hypot(1, p.grade);
+          candidate = Math.min(candidate, Math.sqrt(Math.max(.25, next * next + 2 * Math.max(.05, decel) * spacing)));
+        }
+        limits[i] = candidate;
+      }
+      return limits;
+    }
+
+    _refreshConditionProfiles(car, now) {
+      if (!car.condition || now < (car.conditionProfileAt ?? 0)) return;
+      car.speedProfile = this._conditionProfile(car, car.pathPoints, car.pathSpacing);
+      if (car.motionTrajectory && car.standingStartDistance !== null) {
+        const launch = car.motionTrajectory.launch;
+        car.launchSpeedProfile = this._conditionProfile(car, launch.points, launch.spacing, launch);
+      }
+      car.conditionProfileAt = now + 1;
     }
 
     _target(car, distance) {
@@ -519,6 +616,7 @@
 
     _advance(car, dt, now) {
       if (car.finished || car.dnf) return;
+      this._refreshConditionProfiles(car, now);
       const oldDistance = car.distance, oldSpeed = car.speed;
       const oldPosition = this.sampleForCar(car, oldDistance), grade = oldPosition.grade, normal = 1 / Math.hypot(1, grade), sine = grade * normal;
       const target = this._target(car, oldDistance + Math.max(.1, oldSpeed * dt));
@@ -533,34 +631,66 @@
         throttle: clamp(requestedForce * Math.max(4, oldSpeed) / (car.powerPs * PS_WATTS * car.efficiency), 0, 1),
         accelerating: requestedForce > 100 && target >= oldSpeed - .02
       });
-      const availablePowerPs = car.powerPs * (car.ngs?.appliedPowerMultiplier || 1);
+      const powerFactor = car.condition ? CONDITION.limits(car, car.condition).powerFactor : 1;
+      const availablePowerPs = car.powerPs * (car.ngs?.appliedPowerMultiplier || 1) * powerFactor;
       car.activePowerPs = availablePowerPs;
       const transmission = TRANSMISSION && car.transmission ? TRANSMISSION.advance(car, car.transmission, dt, {
         braking: requestedForce < -100,
         accelerating: target > oldSpeed + .18 * dt && requestedForce * oldSpeed > car.powerPs * PS_WATTS * .35
       }) : null;
       const wheelRadius = transmission?.effectiveRadiusM || (car.spec.factoryDrive === 'rwd' ? car.spec.rearTireRadiusMm : car.spec.frontTireRadiusMm) / 1000;
-      const torqueForce = car.torqueNm * (transmission?.forceRatio ?? car.driveReduction) * car.efficiency / wheelRadius;
+      const torqueForce = car.torqueNm * powerFactor * (transmission?.forceRatio ?? car.driveReduction) * car.efficiency / wheelRadius;
       const powerForce = availablePowerPs * PS_WATTS * car.efficiency * (transmission?.torqueFactor ?? 1) / Math.max(4, oldSpeed);
-      const tractionForce = this._tractionAcceleration(car, oldSpeed, grade, resistance / car.massKg) * car.massKg;
+      const axle = car.condition ? this._axleEnvelope(car, oldSpeed, grade, oldPosition.curvature) : null;
+      const axleDrive = !axle ? Infinity : car.spec.factoryDrive === 'fwd' ? axle.front : car.spec.factoryDrive === 'rwd' ? axle.rear : axle.front + axle.rear;
+      const tractionForce = Math.min(axleDrive, this._tractionAcceleration(car, oldSpeed, grade, resistance / car.massKg) * car.massKg);
       const driveForce = transmission?.phases ? transmission.phases.reduce((sum, part) => sum + part.fraction * Math.min(
-        car.torqueNm * part.forceRatio * car.efficiency / wheelRadius,
+        car.torqueNm * powerFactor * part.forceRatio * car.efficiency / wheelRadius,
         availablePowerPs * PS_WATTS * car.efficiency * part.torqueFactor / Math.max(4, oldSpeed), tractionForce), 0)
         : Math.min(torqueForce, powerForce, tractionForce);
       const availableAcceleration = (driveForce - resistance) / car.massKg;
-      const brakingCapacity = this._brakingCapacity(car, oldSpeed, grade);
+      const brakingCapacity = this._brakingCapacity(car, oldSpeed, grade, oldPosition.curvature);
       const minimumAcceleration = -brakingCapacity - resistance / car.massKg;
-      const acceleration = Math.max(minimumAcceleration, Math.min(availableAcceleration, (target - oldSpeed) / dt));
+      let acceleration = Math.max(minimumAcceleration, Math.min(availableAcceleration, (target - oldSpeed) / dt));
+      if (car.condition) {
+        // Resolve load transfer against actual acceleration, retaining the most
+        // conservative available bound so a force iteration cannot oscillate.
+        let lower = minimumAcceleration, upper = availableAcceleration;
+        for (let solve = 0; solve < 4; solve++) {
+          const env = this._axleEnvelope(car, oldSpeed, grade, oldPosition.curvature, acceleration);
+          const driven = car.spec.factoryDrive === 'fwd' ? env.front : car.spec.factoryDrive === 'rwd' ? env.rear : env.front + env.rear;
+          upper = Math.min(upper, (Math.min(driveForce, driven) - resistance) / car.massKg);
+          lower = Math.max(lower, -this._brakingCapacity(car, oldSpeed, grade, oldPosition.curvature, acceleration) - resistance / car.massKg);
+          acceleration = clamp((target - oldSpeed) / dt, Math.min(lower, upper), upper);
+        }
+      }
       // Applied wheel braking excludes gravity, rolling resistance and drag.
-      // This observation does not feed back into handling or gear selection;
-      // the model does not split regenerative and friction brake commands.
+      // Regeneration and friction share wheel demand; natural grade/drag
+      // deceleration does not generate brake heat or recovered energy.
       const wheelForce = car.massKg * acceleration + resistance;
       car.serviceBrakeForceN = Math.max(0, -wheelForce);
+      const brakeAxle = car.condition ? this._axleEnvelope(car, oldSpeed, grade, oldPosition.curvature, acceleration) : null;
+      car.regenBrakeForceN = brakeAxle ? Math.min(car.serviceBrakeForceN, this._regenForce(car, oldSpeed, brakeAxle)) : 0;
+      car.frictionBrakeForceN = car.serviceBrakeForceN - car.regenBrakeForceN;
       car.brakeDemand = brakingCapacity > 0 ? clamp(car.serviceBrakeForceN / (car.massKg * brakingCapacity), 0, 1) : 0;
       if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, dt, { brakeForceN: car.serviceBrakeForceN, massKg: car.massKg });
       car.speed = Math.max(0, oldSpeed + acceleration * dt);
       const travel = (oldSpeed + car.speed) * .5 * dt;
       car.distance = Math.min(car.totalDistance, oldDistance + travel);
+      const remainingDistance = car.totalDistance - oldDistance;
+      const usedDt = travel > remainingDistance ? clamp(2 * remainingDistance / Math.max(1e-12, oldSpeed + Math.sqrt(Math.max(0, oldSpeed * oldSpeed + 2 * acceleration * remainingDistance))), 0, dt) : dt;
+      const meanConditionSpeed = (oldSpeed + Math.max(0, oldSpeed + acceleration * usedDt)) * .5;
+      if (car.condition) {
+        const env = brakeAxle || axle;
+        const drivenFront = car.spec.factoryDrive === 'fwd' ? 1 : car.spec.factoryDrive === 'rwd' ? 0 : env.front / Math.max(1e-9, env.front + env.rear);
+        const frontRegen = car.regenBrakeForceN * drivenFront;
+        const rearRegen = car.regenBrakeForceN - frontRegen;
+        const frontFree = Math.max(0,env.front-frontRegen), rearFree = Math.max(0,env.rear-rearRegen);
+        const frictionFront = car.frictionBrakeForceN * frontFree / Math.max(1e-9,frontFree+rearFree);
+        const frontForce = wheelForce > 0 ? wheelForce*drivenFront : -frontRegen-frictionFront;
+        const frontShare = wheelForce === 0 ? car.frontWeightFraction : frontForce/wheelForce;
+        CONDITION.update(car, car.condition, usedDt, {speedMps:meanConditionSpeed, drivePowerW:Math.max(0,wheelForce)*meanConditionSpeed, frictionBrakePowerW:car.frictionBrakeForceN*meanConditionSpeed, regenPowerW:car.regenBrakeForceN*meanConditionSpeed, lateralAcceleration:oldSpeed*oldSpeed*Math.abs(oldPosition.curvature), frontNormalLoad:env.frontLoad,rearNormalLoad:env.rearLoad,frontLongitudinalForceN:wheelForce*frontShare,rearLongitudinalForceN:wheelForce*(1-frontShare),brakeFrontFraction:car.frictionBrakeForceN>0?frictionFront/car.frictionBrakeForceN:.65});
+      }
       car.lapProgress = this.progressForCar(car);
       car.acceleration = acceleration; car.targetSpeed = target; car.maxSpeed = Math.max(car.maxSpeed, car.speed);
       if (TRANSMISSION && car.transmission) TRANSMISSION.updateRPM(car, car.transmission);
@@ -590,7 +720,8 @@
       if (car.stalledFor + 1e-9 >= 30) {
         car.dnf = true; car.retiredAt = now + dt; car.phase = 'dnf';
         car.dnfReason = grade > .01 && availableAcceleration < .1 ? '오르막 구동력 부족' : '30초간 주행 지속 불가';
-        car.serviceBrakeForceN = car.brakeDemand = 0;
+        car.serviceBrakeForceN = car.brakeDemand = car.regenBrakeForceN = car.frictionBrakeForceN = 0;
+        if (car.condition) CONDITION.stop(car.condition);
         if (NGS && car.ngs) NGS.update(car, car.ngs, 0, { dnf: true });
         car.activePowerPs = car.powerPs;
         if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, dnf: true });
@@ -603,11 +734,13 @@
         const endSpeedAtLine = Math.sqrt(Math.max(0, oldSpeed * oldSpeed + 2 * acceleration * remaining));
         const crossingDt = clamp(2 * remaining / Math.max(1e-12, oldSpeed + endSpeedAtLine), 0, dt);
         const crossingTime = now + crossingDt, lapTime = crossingTime - car.lastLapAt;
+        if (car.condition) car.lapConditions.push({lap:car.lap+1,time:crossingTime,...CONDITION.snapshot(car.condition)});
         car.lapTimes.push(lapTime); car.bestLap = car.bestLap === null ? lapTime : Math.min(car.bestLap, lapTime);
         car.lastLapAt = crossingTime; car.lap++; car.currentLap = Math.min(this.laps, car.lap + 1);
         if (car.lap === this.laps) {
           car.finished = true; car.finishTime = crossingTime; car.finishSpeed = endSpeedAtLine; car.finishRemainderSeconds = dt - crossingDt; car.distance = car.totalDistance;
-          car.serviceBrakeForceN = car.brakeDemand = 0;
+          car.serviceBrakeForceN = car.brakeDemand = car.regenBrakeForceN = car.frictionBrakeForceN = 0;
+          if (car.condition) CONDITION.stop(car.condition);
           if (NGS && car.ngs) NGS.update(car, car.ngs, 0, { finished: true });
           car.activePowerPs = car.powerPs;
           if (BRAKE_LIGHTS) BRAKE_LIGHTS.update(car.brakeLightState, 0, { brakeForceN: 0, massKg: car.massKg, finished: true });
