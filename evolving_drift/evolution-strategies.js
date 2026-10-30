@@ -6,6 +6,7 @@ const G=root.DriftGenome||(typeof require==='function'?require('./genome.js'):nu
 const Shape=root.DriftMutationShape||(typeof require==='function'?require('./mutation-shape.js'):null);
 const F=root.DriftFitness||(typeof require==='function'?require('./fitness.js'):null);
 const SpeedPlanner=root.DriftEntrySpeedPlanner||(typeof require==='function'?require('./entry-speed-planner.js'):null);
+const CourseScoring=root.DriftCourseScoring||(typeof require==='function'?require('./course-scoring.js'):null);
 if(!G||!F)throw new Error('Load Genome and Fitness before EvolutionStrategies.');
 const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
@@ -13,6 +14,7 @@ const smoother=t=>{t=clamp(t,0,1);return t*t*t*(10+t*(-15+6*t));};
 const pulse=(s,c,w)=>Math.abs(s-c)>=w?0:.5+.5*Math.cos(Math.PI*(s-c)/w);
 const FAMILIES=Object.freeze(['link','link','link','bridge','bridge','bridge','apex-arc','apex-arc','apex-arc','sustained-angle','sustained-angle','sustained-angle','speed-hold','speed-hold','recovery','trajectory','steer','angle','combined','line','lead','power','gear','gearPower','approach','entry-speed','entry-speed','brake-release']);
 const straightCache=new WeakMap();
+const pedalEvidenceCache=new WeakMap(),emptyPedalEvidence=Object.freeze({episodes:Object.freeze([]),overlapEpisodes:Object.freeze([])});
 function zones(track){return F.apexZones(track);}
 function links(track){return F.straightLinks(track);}
 function trailingStraightStart(track){
@@ -38,6 +40,138 @@ function feedforward(vehicle,track,gene,s,speed){
  return Math.atan(L*2*Math.sin(Math.atan2(b.y-a.y,b.x-a.x)-heading)/dist);
 }
 function speedAt(record,s){let i=0;while(i<record.length-2&&record[i+1].s<s)i++;const a=record[i],b=record[Math.min(record.length-1,i+1)],t=clamp((s-a.s)/Math.max(1e-9,b.s-a.s),0,1);return a.speed+(b.speed-a.speed)*t;}
+function pedalEvidence(track,parent){
+ if(!track||parent?.accepted!==true||parent.result?.valid!==true||parent.result.status!=='finished')return emptyPedalEvidence;
+ const record=parent.record||parent.result.frames,pace=parent.result.drift?.referencePace||null;
+ if(!Array.isArray(record)||record.length<2)return emptyPedalEvidence;
+ let tracks=pedalEvidenceCache.get(record);if(!tracks){tracks=new WeakMap();pedalEvidenceCache.set(record,tracks);}
+ const cached=tracks.get(track);if(cached&&cached.pace===pace)return cached.evidence;
+ // Reuse the live scoring definition of angle, speed, forward distance,
+ // reference pace and spin. Cache compact intervals, never a full timeline.
+ const scorer=new CourseScoring.Accumulator(track,{referencePace:pace,links:F.straightLinks(track,true),corners:F.apexZones(track,true)});
+ const episodes=[],overlapEpisodes=[];let episode=null,overlap=null;
+ const closeOverlap=()=>{if(overlap){episode.overlaps.push(overlap);overlap=null;}};
+ const close=()=>{if(!episode)return;closeOverlap();if(episode.distance>=4-1e-9&&episode.duration>=.15-1e-9){const {overlaps,...facts}=episode;episodes.push(Object.freeze(facts));for(const span of overlaps)overlapEpisodes.push(Object.freeze(span));}episode=null;};
+ for(let i=1;i<record.length;i++){
+  const f=record[i],a=record[i-1],before=scorer.scoredDistance,facts=scorer.step(f,a);
+  if(!(facts.delta>0)){close();continue;}
+  if(!episode)episode={start:a.s,end:f.s,startTime:a.time,endTime:f.time,distance:0,duration:0,overlaps:[]};
+  episode.end=f.s;episode.endTime=f.time;episode.distance+=scorer.scoredDistance-before;episode.duration+=f.time-a.time;
+  if(f.throttle>.15&&f.brake>.03){if(!overlap)overlap={start:a.s,end:f.s};else overlap.end=f.s;}else closeOverlap();
+ }
+ close();const evidence=Object.freeze({episodes:Object.freeze(episodes),overlapEpisodes:Object.freeze(overlapEpisodes)});
+ tracks.set(track,{pace,evidence});return evidence;
+}
+function hasPedalEvidence(track,parent,zone=null){
+ const evidence=pedalEvidence(track,parent);if(!zone)return evidence.episodes.length>0;
+ const ranges=[{start:zone.start??zone.cornerStart,end:zone.end??zone.exit},...links(track).filter(l=>l.fromZoneId===zone.id||l.toZoneId===zone.id).map(l=>({start:l.straightStart,end:l.straightEnd}))];
+ return evidence.episodes.some(e=>ranges.some(r=>e.end>=r.start&&e.start<=r.end));
+}
+// Preserve only actual simultaneous inputs inside a sustained, scoring drift.
+// Ordinary grip braking, target angles and genome overlap are not evidence.
+// Empty evidence returns before touching RNG, retaining baseline exploration.
+function preservePedalOverlap(parent,gene,rng,probability=.45,context=null){
+ const evidence=context?.track?pedalEvidence(context.track,context.parent||context):emptyPedalEvidence;
+ if(!evidence.overlapEpisodes.length)return 0;
+ const indices=[];
+ for(let k=0;k<G.KNOTS;k++){const j=k*G.STRIDE,s=k/(G.KNOTS-1)*context.track.length;if(evidence.overlapEpisodes.some(e=>s>=e.start&&s<=e.end)&&parent[j+C.throttle]>.12&&parent[j+C.brake]>.015&&gene[j+C.throttle]>.12&&gene[j+C.brake]<parent[j+C.brake])indices.push(j+C.brake);}
+ if(!indices.length||rng()>=probability)return 0;
+ for(const i of indices)gene[i]=parent[i];
+ return indices.length;
+}
+function pedalEnvelope(s,profile){return smoother((s-profile.start)/profile.rampIn)*smoother((profile.end-s)/profile.rampOut);}
+function pedalOverlap(vehicle,track,parent,rng,options={}){
+ if(parent.accepted!==true||parent.result?.valid!==true||parent.result.status!=='finished')throw new TypeError('Pedal overlap mutations require a completed valid parent.');
+ const record=parent.record||parent.result.frames;
+ if(!record?.length)return null;
+ const evidence=pedalEvidence(track,parent);if(!evidence.episodes.length)return null;
+ const ds=track.length/(G.KNOTS-1),lower=Math.max(2.5,record[0].s),upper=Math.min(track.length,record.at(-1).s);
+ if(upper-lower<8*ds)return null;
+ const rnd=(a,b)=>a+(b-a)*rng(),pick=a=>a[Math.min(a.length-1,Math.floor(rng()*a.length))],gene=G.clone(parent.gene),all=options.zones||zones(track);
+ // Anchor all four phases in the completed replay. There is no synthetic
+ // speed/pose boost and no pedal-overlap fitness reward.
+ const windows=[];
+ for(const z of all){
+  if(options.zone&&options.zone.id!==z.id)continue;
+  windows.push({phase:'entry',zoneId:z.id,start:approachStart(track,z,all),end:z.cornerStart??z.start},
+   {phase:'corner',zoneId:z.id,start:z.cornerStart??z.start,end:z.exit},
+   {phase:'exit',zoneId:z.id,start:z.exit,end:z.end});
+ }
+ for(const l of options.links||links(track)){
+  if(options.zone&&l.fromZoneId!==options.zone.id&&l.toZoneId!==options.zone.id)continue;
+  windows.push({phase:'link',linkId:l.id,start:l.straightStart,end:l.straightEnd});
+ }
+ const eligible=windows.map(w=>({...w,frames:record.filter(f=>f.s>=Math.max(lower,w.start)&&f.s<=Math.min(upper,w.end)&&evidence.episodes.some(e=>f.s>=e.start&&f.s<=e.end)&&G.sample(parent.gene,f.s,track.length).brake<.24)})).filter(w=>w.frames.length&&(!options.phase||w.phase===options.phase));
+ if(!eligible.length)return null;
+ const window=pick(eligible),frames=window.frames;
+ const anchor=Number.isFinite(options.center)?frames.reduce((a,b)=>Math.abs(a.s-options.center)<Math.abs(b.s-options.center)?a:b):pick(frames);
+ // Existing, light simultaneous inputs are reversible inherited episodes.
+ // Heavy braking is excluded from removal and from accelerator insertion.
+ const episodes=[];
+ for(let k=0;k<G.KNOTS;){
+  const active=i=>{const s=i*ds,j=i*G.STRIDE;return s>=lower&&s<=upper&&parent.gene[j+C.throttle]>.12&&parent.gene[j+C.brake]>.015&&parent.gene[j+C.brake]<.24&&evidence.overlapEpisodes.some(e=>s>=e.start&&s<=e.end);};
+  if(!active(k)){k++;continue;}
+  const first=k;while(k+1<G.KNOTS&&active(k+1))k++;
+  const last=k++;if(last-first>=1)episodes.push({first,last,start:Math.max(lower,(first-2)*ds),end:Math.min(upper,(last+2)*ds)});
+ }
+ // A long inherited overlap can span several corners. Mutate only the
+ // selected phase's slice, rather than attributing a remote episode center
+ // to the selected corner's learning policy.
+ const nearby=episodes.map(e=>{
+  const first=Math.max(e.first,Math.ceil(window.start/ds)),last=Math.min(e.last,Math.floor(window.end/ds));
+  return {first,last,start:Math.max(e.start,window.start),end:Math.min(e.end,window.end)};
+ }).filter(e=>e.last-e.first>=1);
+ const inherited=nearby.length?nearby.reduce((a,b)=>Math.abs((a.start+a.end)/2-anchor.s)<Math.abs((b.start+b.end)/2-anchor.s)?a:b):null;
+ const modes=['strengthen','weaken','shift','duration','remove'];
+ let mode=options.mode||(inherited&&rng()<.7?pick(modes):'create');
+ if(!['create',...modes].includes(mode))throw new RangeError('Unknown pedal overlap mutation mode.');
+ if(!inherited&&mode!=='create')mode='create';
+ const existing=mode!=='create'?inherited:null,strength=clamp(options.scale??1,.03,1.5);
+ const sourceS=existing?(existing.first+existing.last)*ds/2:anchor.s;
+ let center=sourceS;
+ const speed=Math.max(6,speedAt(record,center)),oldWidth=existing?existing.end-existing.start:0;
+ if(mode==='shift')center+=rnd(-1,1)*Math.max(3*ds,speed*.9);
+ let width=existing?oldWidth:rnd(1.1,2.6)*speed;
+ if(mode==='duration')width*=rnd(.6,1.6);
+ width=clamp(width,6*ds,Math.min(upper-lower,Math.max(9*ds,speed*3.5)));
+ center=clamp(center,lower+width/2,upper-width/2);
+ const old=existing?{start:existing.start,end:existing.end,rampIn:Math.min(2*ds,(existing.end-existing.start)/3),rampOut:Math.min(2*ds,(existing.end-existing.start)/3)}:null;
+ const peak=c=>existing?Math.max(...Array.from({length:existing.last-existing.first+1},(_,i)=>parent.gene[(existing.first+i)*G.STRIDE+c])):0;
+ const throttlePeak=peak(C.throttle),brakePeak=peak(C.brake),direction=mode==='weaken'?-1:1;
+ const throttleStrength=mode==='create'?rnd(.3,.9):clamp(throttlePeak+(mode==='strengthen'||mode==='weaken'?direction*rnd(.03,.18):rnd(-.04,.04)),.12,1);
+ const brakeStrength=mode==='create'?rnd(.02,.13):clamp(brakePeak+(mode==='strengthen'||mode==='weaken'?direction*rnd(.015,.065):rnd(-.015,.015)),0,.23);
+ // Separate start offsets, widths and both ramps: a common accel-minus-brake
+ // scalar cannot represent this shape. At least six knots carry each pulse.
+ const profile=(channel,target)=>{
+  const span=clamp(width*rnd(.8,1.2),6*ds,upper-lower),c=clamp(center+rnd(-.2,.2)*width,lower+span/2,upper-span/2);
+  return {channel,start:c-span/2,end:c+span/2,rampIn:Math.min(span*.45,Math.max(1.5*ds,span*rnd(.2,.4))),rampOut:Math.min(span*.45,Math.max(1.5*ds,span*rnd(.2,.4))),strength:target,durationSec:span/speed};
+ };
+ const throttle=profile('throttle',throttleStrength),brake=profile('brake',brakeStrength);
+ if(mode==='remove'||mode==='shift'||mode==='duration'){
+  for(let k=0;k<G.KNOTS;k++){
+   const j=k*G.STRIDE,s=k*ds;
+   if(k>=existing.first&&k<=existing.last)gene[j+C.brake]*=1-Math.min(1,strength)*pedalEnvelope(s,old);
+  }
+ }
+ if(mode!=='remove')for(let k=0;k<G.KNOTS;k++){
+  const j=k*G.STRIDE,s=k*ds,baseBrake=parent.gene[j+C.brake],protection=1-smoother((baseBrake-.18)/.06);
+  for(const q of [throttle,brake]){
+   const c=C[q.channel],w=pedalEnvelope(s,q)*Math.min(1,strength)*protection;
+   if(!w)continue;
+   // Strength/weakness never inadvertently reverse direction at a low edge
+   // of an inherited pulse. Shifts/length changes may rebuild its shape.
+   const target=mode==='strengthen'?Math.max(gene[j+c],q.strength):mode==='weaken'?Math.min(gene[j+c],q.strength):q.strength;
+   gene[j+c]=clamp(gene[j+c]+(target-gene[j+c])*w,0,1);
+  }
+ }
+ // Only pedal channels are touched; inherited line, gearing and clutch
+ // events remain byte-for-byte intact. Clamp rather than re-normalize them.
+ if(!gene.some((v,i)=>v!==parent.gene[i]))return null;
+ const changed=Array.from({length:G.KNOTS},(_,k)=>k).filter(k=>gene[k*G.STRIDE+C.throttle]!==parent.gene[k*G.STRIDE+C.throttle]||gene[k*G.STRIDE+C.brake]!==parent.gene[k*G.STRIDE+C.brake]);
+ return {gene,change:{family:'pedal-overlap',mode,phase:window.phase,zoneId:window.zoneId,linkId:window.linkId,basisCandidateId:parent.id,
+  anchorS:anchor.s,sourceS,referenceSpeed:speed,start:changed[0]*ds,end:changed.at(-1)*ds,strength,evidence:evidence.episodes.find(e=>anchor.s>=e.start&&anchor.s<=e.end),
+  inherited:old,throttle:mode==='remove'?null:throttle,brake:mode==='remove'?{...old,strength:0,durationSec:(old.end-old.start)/speed}:brake}};
+}
 function brakingSlowdown(parent,reference,track,zone,regions){
  if(parent.accepted!==true||parent.result?.valid!==true||parent.result?.status!=='finished'||!reference?.length)return null;
  const record=parent.record||parent.result.frames;if(!record?.length)return null;
@@ -119,15 +253,16 @@ function generate(q){
   // A changed arrival speed may require different pedals on the final straight.
   if(z===corners.at(-1)&&s>tailStart){const w=smooth((s-tailStart)/15);gene[j+C.brake]*=1-w;gene[j+C.throttle]+=(q.tailPedal-gene[j+C.throttle])*w;gene[j+C.gearHold]=0;}
  }
+ const preservedPedalOverlap=0; // This proposal starts from the offline grip.
  const normalized=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds});
  const entrySpeed=SpeedPlanner.plan(vehicle,track,normalized,prepared.record,z,q,{lower:preparationStart,arrivalRecord:prepared.record,referenceGene:initial});
  const n=SpeedPlanner.apply(normalized,entrySpeed),coupled=FF.couple(vehicle,track,initial,n,baseline.frames);
  for(let i=0;i<G.KNOTS;i++)n[i*G.STRIDE+C.steer]+=(coupled[i*G.STRIDE+C.steer]-n[i*G.STRIDE+C.steer])*q.compensation;
- return {gene:G.normalize(n,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds}),entrySpeed};
+ return {gene:G.normalize(n,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds}),entrySpeed,preservedPedalOverlap};
 }
 
  let params;if(previousParams&&previousParams.arc===arcIndex)params=mutate(previousParams);else do{params=random();}while(params.arc!==arcIndex);
- const generated=generate(params);return ensureChanged(vehicle,prepared.gene,{...generated,params:Object.freeze({...params}),change:{family:'entry',entrySpeed:generated.entrySpeed}},rng);
+ const generated=generate(params);return ensureChanged(vehicle,prepared.gene,{...generated,params:Object.freeze({...params}),change:{family:'entry',entrySpeed:generated.entrySpeed,preservedPedalOverlap:generated.preservedPedalOverlap}},rng);
 }
 function adaptive(vehicle,track,parent,rng,options={}){
  const p=vehicle.physics||vehicle,ds=track.length/(G.KNOTS-1),bounds=options.lineBounds||G.corridorBounds(vehicle,track);
@@ -377,6 +512,7 @@ function mutate(parent){
  }
  // Blend targets before recoupling steering to the normalized line. A blend
  // of already-coupled steering would use the wrong nonlinear path curvature.
+ if(['link','bridge','apex-arc','sustained-angle','trajectory','power','gearPower'].includes(proposal.change.family))proposal.change.preservedPedalOverlap=preservePedalOverlap(parent.gene,mixed,rng,.45,{track,parent});
  let gene=norm(FF.couple(vehicle,track,parent.gene,norm(mixed),parent.result.frames));
  // Some curve/link proposals co-evolve a local approach-speed plan. The
  // unchanged driver still executes only the resulting ordinary pedal genes.
@@ -573,6 +709,7 @@ function connect(vehicle,track,parent,rng,options={}){
    gene[j+C.brake]*=1-release*w;gene[j+C.throttle]+=(Math.max(gene[j+C.throttle],.6)-gene[j+C.throttle])*w;
   }
  }
+ if(mode==='angle')change.preservedPedalOverlap=preservePedalOverlap(parent.gene,gene,rng,.45,{track,parent});
  const normalized=G.normalize(gene,limits),coupled=G.normalize(couple(vehicle,track,parent.gene,normalized,record),limits);
  if(!coupled.some((value,i)=>value!==parent.gene[i])){
   const window=Shape.window((change.start+change.end)/(2*ds),3,{lower:Math.ceil(change.start/ds),upper:Math.floor(change.end/ds)});
@@ -612,7 +749,7 @@ function clutchKick(vehicle,track,parent,rng,options={}){
  const bounds=options.lineBounds||G.corridorBounds(vehicle,track),normalized=G.normalize(gene,{maxSteerRad:p.maxSteer,gearCount:p.gearRatios.length,lineBounds:bounds,manualClutch:true});
  return {gene:normalized,change:{family:'clutch-kick',eventKnot:index,eventS:index*ds,removed:remove,previousEventKnot:old,disengageSec:normalized[j+C.disengageSec],reengageSec:normalized[j+C.reengageSec]}};
 }
-function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+[entry,adaptive,repair,connect,clutchKick,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
-const api=Object.freeze({VERSION:9,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,clutchKick,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
+function signature(){return FAMILIES.join(',')+'\n'+Shape.signature()+'\n'+SpeedPlanner.signature()+'\n'+CourseScoring.signature()+'\n'+[entry,adaptive,repair,connect,clutchKick,pedalEvidence,hasPedalEvidence,pedalOverlap,pedalEnvelope,preservePedalOverlap,couple,feedforward,point,speedAt,brakingSlowdown,lineShape,joinLine,smoother,niche,zones,links,approachStart,supports,ensureChanged,ensurePedalChanged,repairNudge,trailingStraightStart].map(String).join('\n');}
+const api=Object.freeze({VERSION:11,FAMILIES,zones,links,approachStart,supports,entry,adaptive,repair,connect,clutchKick,pedalEvidence,hasPedalEvidence,pedalOverlap,preservePedalOverlap,niche,couple,feedforward,speedAt,trailingStraightStart,signature});
 root.DriftEvolutionStrategies=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

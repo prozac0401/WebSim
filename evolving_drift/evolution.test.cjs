@@ -426,7 +426,7 @@ test('apex strategies initialize without simulation and keep generation reservat
   calls=0;const planned=make();planned.initialize();const plannedGenes=[],accepted=new Set(['baseline']);
   for(let generation=0;generation<2;generation++){
     const jobs=Array.from({length:6},()=>planned.planCandidate());assert.equal(calls,generation*6,'planning never simulates');
-    for(const job of jobs){assert.ok(['immigrant','clutch-kick','coarse-line-speed','duplicate-diversify'].includes(job.kind)||/^(global-|line-fine-|connection-|arc-|repair-)/.test(job.kind));if(job.kind==='immigrant')assert.equal(job.parentId,'baseline');else assert.ok(accepted.has(job.parentId));if(job.parameterParentId)assert.ok(accepted.has(job.parameterParentId));plannedGenes.push(Array.from(job.gene));const result=evaluate(vehicle,track,job.gene);planned.acceptCandidate(job,result);if(result.valid)accepted.add(job.id);}
+    for(const job of jobs){assert.ok(['immigrant','clutch-kick','pedal-overlap','coarse-line-speed','duplicate-diversify'].includes(job.kind)||/^(global-|line-fine-|connection-|arc-|repair-)/.test(job.kind));if(job.kind==='immigrant')assert.equal(job.parentId,'baseline');else assert.ok(accepted.has(job.parentId));if(job.parameterParentId)assert.ok(accepted.has(job.parameterParentId));plannedGenes.push(Array.from(job.gene));const result=evaluate(vehicle,track,job.gene);planned.acceptCandidate(job,result);if(result.valid)accepted.add(job.id);}
     assert.ok(planned._nicheArchives.flat().every(parent=>accepted.has(parent.id)),'failed candidates never enter a corner archive');
   }
   assert.deepEqual(plannedGenes,seen);assert.deepEqual(baseline.gene,before);
