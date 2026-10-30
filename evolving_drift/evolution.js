@@ -15,7 +15,7 @@
   const C=G.CHANNELS,DEG=Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const DEFAULTS=Object.freeze({knots:G.KNOTS,populationSize:20,maxSteerRad:.52,
     mutationScale:1,minMutationScale:.03,maxMutationScale:1.5,
-    improvementAbsolute:.05,improvementRelative:.0025,parentLimit:5});
+    improvementAbsolute:.05,improvementRelative:.0025,parentLimit:5,pedalOverlapShare:.18});
   function createRng(seed=1){let state=Number(seed)>>>0;return()=>{state=(state+0x6D2B79F5)>>>0;let v=state;v=Math.imul(v^v>>>15,v|1);v^=v+Math.imul(v^v>>>7,v|61);return((v^v>>>14)>>>0)/4294967296;};}
   const cloneGene=G.clone;
   function normalizeGene(gene,options={}){return G.normalize(gene,typeof options==='number'?{maxSteerRad:options}:options);}
@@ -132,6 +132,7 @@
     if(strategy==='extend'&&drifts.length)extendDrift(child,drifts,options.track,rng,scale,gearCount);
     else if(strategy==='coordinated'&&regions.length)coordinated(child,regions,rng,scale,gearCount,options.track,lineBounds,limits);
     else localMutation(child,rng,scale,maxSteerRad,gearCount,strategy==='fine',limits);
+    if(strategy==='coordinated'||strategy==='extend')Strategies?.preservePedalOverlap?.(gene,child,rng);
     let normalized=normalizeGene(child,limits);
     // A clipped pedal change or an unchanged gear is not another experiment.
     if(normalized.every((v,i)=>v===gene[i])){
@@ -223,6 +224,7 @@
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
       this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
       this._connectionCache=new WeakMap();this._connectionSearch=options.connectionSearch!==false;
+      this._pedalOverlapEnabled=options.pedalOverlap!==false;this._pedalOverlapStats={proposals:0,evaluated:0,valid:0,improved:0};
       this._trajectoryEnabled=options.trajectorySearch!==false;this._trajectoryCache=new WeakMap();this._trajectoryArchive=[];this._trajectoryStale=0;this._trajectoryBest=0;
       this._trajectoryStats={coarseProposals:0,fineProposals:0,duplicateAvoided:0};this._retry=Trajectory?new Trajectory.RetryPolicy():null;
       this._learningEnabled=options.learning!==false;this._learning=null;
@@ -318,6 +320,13 @@
     _intentCandidate(){
       const learned=this._learning?.choose(this._rng,Strategies.FAMILIES,{weakestArcs:this._weakestArcIndices});
       const arc=learned?.arc??Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
+      // Keep an exploratory share for independently timed throttle and brake.
+      // A proposal still needs the same full physical run and valid finish;
+      // simultaneous pedals earn no special score or guaranteed parent slot.
+      if(this._pedalOverlapEnabled&&this._rng()<DEFAULTS.pedalOverlapShare){
+        const parent=pool[Math.floor(this._rng()*pool.length)],proposal=Strategies.pedalOverlap(this.vehicle,this.track,parent,this._rng,{lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)});
+        if(proposal)return {parentId:parent.id,gene:proposal.gene,kind:'pedal-overlap',arcIndex:arc,mutation:Object.freeze({...proposal.change})};
+      }
       if((this.vehicle.physics||this.vehicle).transmissionType==='MT'&&this._rng()<.15){
         const parent=pool[Math.floor(this._rng()*pool.length)],proposal=Strategies.clutchKick(this.vehicle,this.track,parent,this._rng,{lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:this.mutationScale});
         if(proposal)return {parentId:parent.id,gene:proposal.gene,kind:'clutch-kick',arcIndex:arc,mutation:Object.freeze({...proposal.change})};
@@ -405,6 +414,7 @@
           proposal={...proposal,gene,kind:'duplicate-diversify',mutation:{family:'duplicate-diversify',phase:'explore'}};
         }
         const job={...proposal,id:'g'+(this.generation+1)+'-'+(this._candidates.length+this._planned.length+1),sequence:this._sequence++,generation:this.generation+1,genomeVersion:G.VERSION};
+        if(job.mutation?.family==='pedal-overlap')this._pedalOverlapStats.proposals++;
         this._planned.push(job);return {...job,gene:cloneGene(job.gene)};
       }
       const choose=()=>Math.floor(this._rng()*this._parents.length),parent=this._parents[this._rng()<.35?choose():Math.min(choose(),choose())];
@@ -425,6 +435,10 @@
       const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
         result&&(referenceSpeeds||referencePace)?{...result,drift:{...result.drift,referenceSpeeds:referenceSpeeds?{...referenceSpeeds}:undefined,referencePace}}:result;
       const accepted=complete&&isValidResult(ranked),entry={...planned,result:ranked,record,accepted};
+      if(entry.mutation?.family==='pedal-overlap'){
+        this._pedalOverlapStats.evaluated++;
+        if(accepted){this._pedalOverlapStats.valid++;if(ranked.score>this._parentEntry(entry.parentId).result.score)this._pedalOverlapStats.improved++;}
+      }
       if(result?.evaluation){for(const key of ['simulatedTicks','reusedTicks','totalTicks'])this._evaluationStats[key]+=result.evaluation[key]||0;if(result.evaluation.cacheHit)this._evaluationStats.cacheHits++;this._evaluationStats.evaluations++;}
       this._candidates.push(entry);this._lastCandidate=entry;this.totalEvaluated++;this.stats.evaluated++;
       if(accepted){this.stats.validCount++;if(ranked.score>this._best.result.score){
@@ -479,7 +493,7 @@
     }
     step(count=1){if(!Number.isInteger(count)||count<1||count>10000)throw new RangeError('step count must be between 1 and 10000.');if(!this.initialized)this.initialize();if(this.ready)for(let i=0;i<count;i++)this._evaluateCandidate();return this.snapshot();}
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
-    snapshot(){const feasible=this._trajectoryArchive.filter(e=>this._trajectory(e).feasible).length;return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},trajectorySearch:{enabled:this._trajectoryEnabled,phase:Trajectory?Trajectory.allocation(feasible,this._trajectoryStale).phase:'coarse',parents:this._trajectoryArchive.length,families:new Set(this._trajectoryArchive.map(e=>this._trajectory(e).family)).size,feasibleParents:feasible,staleGenerations:this._trajectoryStale,bestMerit:this._trajectoryBest,...this._trajectoryStats,retry:this._retry?.snapshot(this.generation)||null,representative:this._trajectoryEnabled&&this._best&&this._strategyZones.length?this._trajectory(this._best):null},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
+    snapshot(){const feasible=this._trajectoryArchive.filter(e=>this._trajectory(e).feasible).length;return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,pedalOverlapSearch:{enabled:this._pedalOverlapEnabled&&this._strategyZones.length>0,...this._pedalOverlapStats},selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},trajectorySearch:{enabled:this._trajectoryEnabled,phase:Trajectory?Trajectory.allocation(feasible,this._trajectoryStale).phase:'coarse',parents:this._trajectoryArchive.length,families:new Set(this._trajectoryArchive.map(e=>this._trajectory(e).family)).size,feasibleParents:feasible,staleGenerations:this._trajectoryStale,bestMerit:this._trajectoryBest,...this._trajectoryStats,retry:this._retry?.snapshot(this.generation)||null,representative:this._trajectoryEnabled&&this._best&&this._strategyZones.length?this._trajectory(this._best):null},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
   const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,selectionProfile,paretoEntries,localGeneDistance,weakestArcs,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
