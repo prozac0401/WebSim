@@ -132,7 +132,7 @@
     if(strategy==='extend'&&drifts.length)extendDrift(child,drifts,options.track,rng,scale,gearCount);
     else if(strategy==='coordinated'&&regions.length)coordinated(child,regions,rng,scale,gearCount,options.track,lineBounds,limits);
     else localMutation(child,rng,scale,maxSteerRad,gearCount,strategy==='fine',limits);
-    if(strategy==='coordinated'||strategy==='extend')Strategies?.preservePedalOverlap?.(gene,child,rng);
+    if(strategy==='coordinated'||strategy==='extend')Strategies?.preservePedalOverlap?.(gene,child,rng,.45,{track:options.track,accepted:options.parentResult?.valid===true&&options.parentResult?.status==='finished',record:options.parentRecord,result:options.parentResult});
     let normalized=normalizeGene(child,limits);
     // A clipped pedal change or an unchanged gear is not another experiment.
     if(normalized.every((v,i)=>v===gene[i])){
@@ -320,11 +320,12 @@
     _intentCandidate(){
       const learned=this._learning?.choose(this._rng,Strategies.FAMILIES,{weakestArcs:this._weakestArcIndices});
       const arc=learned?.arc??Math.floor(this._rng()*this._strategyZones.length),pool=this._nicheArchives[arc];
-      // Keep an exploratory share for independently timed throttle and brake.
-      // A proposal still needs the same full physical run and valid finish;
-      // simultaneous pedals earn no special score or guaranteed parent slot.
-      if(this._pedalOverlapEnabled&&this._rng()<DEFAULTS.pedalOverlapShare){
-        const parent=pool[Math.floor(this._rng()*pool.length)],proposal=Strategies.pedalOverlap(this.vehicle,this.track,parent,this._rng,{lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)});
+      // Refine pedal timing after a real scored drift exists in this region.
+      // Empty evidence consumes no RNG or proposal slots, preserving coarse
+      // line/initiation search while the parents are still grip-only runs.
+      const pedalParents=this._pedalOverlapEnabled?pool.filter(parent=>Strategies.hasPedalEvidence(this.track,parent,this._strategyZones[arc])):[];
+      if(pedalParents.length&&this._rng()<DEFAULTS.pedalOverlapShare){
+        const parent=pedalParents[Math.floor(this._rng()*pedalParents.length)],proposal=Strategies.pedalOverlap(this.vehicle,this.track,parent,this._rng,{lineBounds:this.lineBounds,zones:this._strategyZones,zone:this._strategyZones[arc],scale:clamp(learned?.scale??this.mutationScale,this.minMutationScale,this.maxMutationScale)});
         if(proposal)return {parentId:parent.id,gene:proposal.gene,kind:'pedal-overlap',arcIndex:arc,mutation:Object.freeze({...proposal.change})};
       }
       if((this.vehicle.physics||this.vehicle).transmissionType==='MT'&&this._rng()<.15){

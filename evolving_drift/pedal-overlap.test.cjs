@@ -15,7 +15,7 @@ function fixture({overlap=false,vehicle=Catalog.get()}={}){
   if(overlap&&s>75&&s<115)gene[j+C.brake]=.1*Math.sin(Math.PI*(s-75)/40)**2;
  }
  if(vehicle.physics.transmissionType==='MT'){gene[38*G.STRIDE+C.clutchKick]=1;gene[38*G.STRIDE+C.disengageSec]=.2;}
- const record=Array.from({length:301},(_,s)=>({s,time:s/20,speed:20,x:s,y:0,vx:20,vy:0,yaw:.15,throttle:G.sample(gene,s,track.length).throttle,brake:G.sample(gene,s,track.length).brake}));
+ const record=Array.from({length:301},(_,s)=>({s,time:s/20,speed:20,x:s,y:0,vx:20,vy:0,yaw:.3,beta:-.3,throttle:G.sample(gene,s,track.length).throttle,brake:G.sample(gene,s,track.length).brake}));
  const parent={id:'completed-parent',accepted:true,gene,record,result:{valid:true,status:'finished',frames:record,score:10},metric:{bestArc:{zoneId:'a',end:110,start:65},links:[]}};
  return {track,vehicle,zones,links,parent};
 }
@@ -81,7 +81,7 @@ test('a selected corner only mutates its adjacent links on a multi-corner course
  const f=fixture();f.track.length=500;
  f.zones.push({id:'c',start:330,cornerStart:350,apex:380,exit:410,end:450,sign:1});
  f.links.push({id:'b-c',fromZoneId:'b',toZoneId:'c',straightStart:250,straightEnd:350});
- f.parent.record=Array.from({length:501},(_,s)=>({s,time:s/20,speed:20,x:s,y:0,vx:20,vy:0,yaw:.15,throttle:.55,brake:0}));
+ f.parent.record=Array.from({length:501},(_,s)=>({s,time:s/20,speed:20,x:s,y:0,vx:20,vy:0,yaw:.3,beta:-.3,throttle:.55,brake:0}));
  f.parent.result.frames=f.parent.record;
  for(let seed=1;seed<=24;seed++)for(const [zone,link] of [[f.zones[0],f.links[0]],[f.zones[2],f.links[1]]]){
   const child=propose(f,{seed,zone,phase:'link',mode:'create'});
@@ -93,6 +93,7 @@ test('a selected corner only mutates its adjacent links on a multi-corner course
 test('an inherited course-wide overlap uses only the selected phase as its source',()=>{
  const f=fixture();
  for(let k=0;k<G.KNOTS;k++)f.parent.gene[k*G.STRIDE+C.brake]=.08;
+ f.parent.record=f.parent.record.map(frame=>({...frame,brake:.08}));f.parent.result.frames=f.parent.record;
  for(const zone of f.zones)for(const mode of ['strengthen','weaken','shift','duration','remove']){
   const child=propose(f,{zone,phase:'corner',mode});assert.ok(child);
   assert.ok(child.change.sourceS>=zone.cornerStart&&child.change.sourceS<=zone.exit);
@@ -110,7 +111,8 @@ test('inherited overlap can grow, weaken, move, change length and disappear',()=
   if(mode==='weaken'||mode==='remove')for(const k of edits)assert.ok(child.gene[k*G.STRIDE+C.brake]<f.parent.gene[k*G.STRIDE+C.brake]);
   if(mode==='shift'||mode==='duration')assert.notEqual(child.change.brake.end-child.change.brake.start,child.change.inherited.end-child.change.inherited.start);
   if(mode==='remove'){
-   assert.equal(child.change.throttle,null);assert.ok(edits.every(k=>child.gene[k*G.STRIDE+C.brake]===0),'full-strength removal clears the inherited episode');
+   assert.equal(child.change.throttle,null);assert.ok(edits.every(k=>child.gene[k*G.STRIDE+C.brake]<.03),'full-strength removal clears the observed overlap, with tapered edges');
+   assert.ok(edits.some(k=>child.gene[k*G.STRIDE+C.brake]===0));
    assert.deepEqual(changed(child.gene,f.parent.gene,C.throttle),[]);
   }
  }
@@ -131,8 +133,9 @@ test('ordinary power candidates may retain an inherited overlap or explore its r
   if(child.change.preservedPedalOverlap>0)kept.push(child);else released.push(child);
  }
  assert.ok(kept.length>0);assert.ok(released.length>0);
+ const evidence=Strategies.pedalEvidence(f.track,f.parent);
  for(const child of kept)for(let k=0;k<G.KNOTS;k++){
-  const j=k*G.STRIDE;if(f.parent.gene[j+C.throttle]>.12&&f.parent.gene[j+C.brake]>.015&&child.gene[j+C.throttle]>.12)assert.ok(child.gene[j+C.brake]>=f.parent.gene[j+C.brake]);
+  const j=k*G.STRIDE,s=k/127*f.track.length;if(evidence.overlapEpisodes.some(e=>s>=e.start&&s<=e.end)&&f.parent.gene[j+C.throttle]>.12&&f.parent.gene[j+C.brake]>.015&&child.gene[j+C.throttle]>.12)assert.ok(child.gene[j+C.brake]>=f.parent.gene[j+C.brake]);
  }
  assert.ok(released.some(child=>changed(child.gene,f.parent.gene,C.brake).length>0));
 });
@@ -140,8 +143,45 @@ test('ordinary power candidates may retain an inherited overlap or explore its r
 test('overlap retention only restores reductions of actual inherited two-pedal inputs',()=>{
  const f=fixture({overlap:true}),child=G.clone(f.parent.gene);
  for(let k=0;k<G.KNOTS;k++)child[k*G.STRIDE+C.brake]=0;
- const count=Strategies.preservePedalOverlap(f.parent.gene,child,()=>0);assert.ok(count>0);
+ const count=Strategies.preservePedalOverlap(f.parent.gene,child,()=>0,.45,{track:f.track,parent:f.parent});assert.ok(count>0);
  for(let k=0;k<G.KNOTS;k++)if(f.parent.gene[k*G.STRIDE+C.brake]===0)assert.equal(child[k*G.STRIDE+C.brake],0);
  const plain=fixture(),noOverlap=G.clone(plain.parent.gene);
  assert.equal(Strategies.preservePedalOverlap(plain.parent.gene,noOverlap,()=>0),0);assert.deepEqual(noOverlap,plain.parent.gene);
+});
+
+test('pure grip overlap does not qualify or consume RNG for a dedicated or preservation proposal',()=>{
+ const f=fixture({overlap:true});
+ f.parent.record=f.parent.record.map(frame=>({...frame,beta:0,yaw:0}));f.parent.result.frames=f.parent.record;
+ let draws=0;const random=()=>{draws++;return .1;},child=G.clone(f.parent.gene);
+ for(let k=0;k<G.KNOTS;k++)child[k*G.STRIDE+C.brake]=0;
+ assert.equal(Strategies.hasPedalEvidence(f.track,f.parent),false);
+ assert.equal(Strategies.pedalOverlap(f.vehicle,f.track,f.parent,random,{zones:f.zones,links:f.links}),null);
+ assert.equal(Strategies.preservePedalOverlap(f.parent.gene,child,random,.45,{track:f.track,parent:f.parent}),0);
+ assert.equal(draws,0);assert.equal(Strategies.pedalEvidence(f.track,f.parent).overlapEpisodes.length,0);
+});
+
+test('evidence requires sustained actual earning and uses the prepared reference pace',()=>{
+ const run=map=>{const f=fixture({overlap:true});f.parent.record=f.parent.record.map(map);f.parent.result.frames=f.parent.record;return f;};
+ for(const f of [run(frame=>({...frame,beta:frame.s>=90&&frame.s<92?-.3:0})),run(frame=>({...frame,speed:7})),run(frame=>({...frame,beta:1.4}))])assert.equal(Strategies.hasPedalEvidence(f.track,f.parent),false);
+ const f=fixture({overlap:true}),evidence=Strategies.pedalEvidence(f.track,f.parent);
+ assert.ok(evidence.episodes.length);assert.ok(evidence.overlapEpisodes.length);
+ assert.ok(evidence.episodes.every(e=>e.distance>=4&&e.duration>=.15));
+ assert.equal(Strategies.pedalEvidence(f.track,f.parent),evidence,'immutable replay evidence is cached');
+ f.parent.result.drift={};
+ // Use the scorer's public pace shape rather than a hand-authored cache key.
+ f.parent.result.drift.referencePace=require('./course-scoring.js').paceProfile(f.track,f.parent.record.map(frame=>({...frame,speed:100})));
+ assert.equal(Strategies.hasPedalEvidence(f.track,f.parent),false,'20m/s is below the unchanged reference speed floor');
+ assert.notEqual(Strategies.pedalEvidence(f.track,f.parent),evidence,'a different reference pace invalidates the cached evidence');
+});
+
+test('observed earning bounds regional mutation and preservation instead of genome targets',()=>{
+ const f=fixture({overlap:true});
+ f.parent.record=f.parent.record.map(frame=>({...frame,beta:frame.s>=75&&frame.s<=110?-.3:0,brake:frame.s>=88&&frame.s<=100?.08:0}));f.parent.result.frames=f.parent.record;
+ assert.equal(Strategies.hasPedalEvidence(f.track,f.parent,f.zones[0]),true);
+ assert.equal(Strategies.hasPedalEvidence(f.track,f.parent,f.zones[1]),false);
+ let draws=0;
+ assert.equal(Strategies.pedalOverlap(f.vehicle,f.track,f.parent,()=>{draws++;return .1;},{zones:f.zones,links:f.links,zone:f.zones[1],phase:'corner'}),null);assert.equal(draws,0);
+ const child=G.clone(f.parent.gene);for(let k=0;k<G.KNOTS;k++)child[k*G.STRIDE+C.brake]=0;
+ assert.ok(Strategies.preservePedalOverlap(f.parent.gene,child,()=>0,.45,{track:f.track,parent:f.parent})>0);
+ for(let k=0;k<G.KNOTS;k++)if(k/127*f.track.length<87||k/127*f.track.length>100)assert.equal(child[k*G.STRIDE+C.brake],0);
 });
