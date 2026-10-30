@@ -76,8 +76,8 @@ test('invalid grip-exploration candidates cannot become parents or open pedal re
 });
 
 test('real drift opens refinement only after physical evidence, while reversed completion order and failed-refinement rejection stay deterministic',async()=>{
- const options={populationSize:12,reuse:false},a=await preparedEngine('porter-lpg-mt',options),b=await preparedEngine('porter-lpg-mt',options);
- let overlapCount=0;
+ const options={populationSize:20,reuse:false},a=await preparedEngine('porter-lpg-mt',options),b=await preparedEngine('porter-lpg-mt',options);
+ let overlapCount=0,physicalCount=0;const injectedFailures=[];
  const inspect=(engine,job)=>{
   if(job.kind!=='pedal-overlap')return;
   overlapCount++;const parent=engine._parentEntry(job.parentId),evidence=Strategies.pedalEvidence(track,parent);
@@ -87,12 +87,19 @@ test('real drift opens refinement only after physical evidence, while reversed c
  };
  for(let generation=0;generation<2;generation++){
   const batch=reserve(b.engine),results=new Map();
-  // Evaluate real physics in the opposite completion order, then commit in reservation order.
-  for(const job of [...batch].reverse())results.set(job.id,P.evaluateGene(b.vehicle,track,job.gene,{record:true}));
+  // Match the production population: all 20 first-generation jobs plus four
+  // from generation two use real physics. The remaining 16 deliberately
+  // exercise failure admission only; they are not empirical driving results.
+  const physicalJobs=generation===0?batch:batch.slice(0,4);
+  for(const job of [...physicalJobs].reverse()){results.set(job.id,P.evaluateGene(b.vehicle,track,job.gene,{record:true}));physicalCount++;}
   for(const job of batch){
    const serial=a.engine.planCandidate();assert.deepEqual(serial,job);
    inspect(a.engine,serial);
-   const result=results.get(job.id);a.engine.acceptCandidate(serial,result);b.engine.acceptCandidate(job,result);
+   const simulated=results.has(job.id),parent=a.engine._parentEntry(job.parentId),before=a.engine.best;
+   const frames=simulated?null:[...parent.record.slice(0,-1),{...parent.record.at(-1),status:'offtrack'}];
+   const result=simulated?results.get(job.id):{...parent.result,valid:false,status:'offtrack',score:1e12,frames};
+   a.engine.acceptCandidate(serial,result);b.engine.acceptCandidate(job,result);
+   if(!simulated){injectedFailures.push(job.id);assert.equal(a.engine.best.id,before.id);assert.equal(a.engine.best.result.score,before.result.score);}
    assert.deepEqual(a.engine.lastCandidate,b.engine.lastCandidate);
    results.delete(job.id);
   }
@@ -100,13 +107,9 @@ test('real drift opens refinement only after physical evidence, while reversed c
   assert.deepEqual(a.engine.best,b.engine.best);
  }
  assert.deepEqual(a.engine.snapshot().pedalOverlapSearch,b.engine.snapshot().pedalOverlapSearch);
- // Reuse those same two real generations as parents; no extra physics budget.
- // Inject terminal failure only to check rejection of the newly eligible branch.
- const before=a.engine.best,jobs=reserve(a.engine);for(const job of jobs)inspect(a.engine,job);
- assert.ok(overlapCount>0,'real evidence from the physical generations must make the refinement branch reachable');
- for(const job of jobs){const parent=a.engine._parentEntry(job.parentId),last={...parent.record.at(-1),status:'offtrack'},frames=[...parent.record.slice(0,-1),last];a.engine.acceptCandidate(job,{...parent.result,valid:false,status:'offtrack',score:1e12,frames});}
- assert.equal(a.engine.best.id,before.id);assert.equal(a.engine.best.result.score,before.result.score);
- assert.ok(a.engine.parents.every(parent=>!jobs.some(job=>job.id===parent.id)),'failed refinements never become parents');
+ assert.equal(physicalCount,24);assert.equal(injectedFailures.length,16);
+ assert.ok(overlapCount>0,'the original 20-candidate grip exploration must produce evidence that opens refinement in the next reservations');
+ assert.ok(a.engine.parents.every(parent=>!injectedFailures.includes(parent.id)),'injected failures never become parents');
  assert.ok(a.engine.snapshot().pedalOverlapSearch.evaluated>0);
 });
 
