@@ -1,0 +1,291 @@
+{
+  "model": "estimated-v1",
+  "sources": {
+    "vehicle-condition.js": "e1bf7ba80f5e48720054cc5f2b7f96ac28fac878544cc54dfec176785702db68",
+    "race-engine.js": "1c35684cd5a5e2f5d05b4f8c8fbc063c08434fdf2ea6f042459e407eca048514",
+    "tuning-evolution.js": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686"
+  },
+  "circuit": "inje",
+  "sampleSeconds": 0.25,
+  "scope": "Model diagnostic, not real-vehicle calibration. Race temperatures sampled every 0.25 s; cooling traces hold stated speed without braking.",
+  "races": [
+    {
+      "configuration": {
+        "name": "stock",
+        "budget": 0,
+        "levels": {
+          "acceleration": 0,
+          "topSpeed": 0,
+          "brakes": 0,
+          "grip": 0
+        }
+      },
+      "distanceM": 15228.131,
+      "finishSeconds": 567.024,
+      "frictionBrakeMJ": 40.238,
+      "laps": [
+        {
+          "lap": 1,
+          "lapSeconds": 147.635,
+          "frontC": 584.131,
+          "rearC": 371.97,
+          "brakeFactor": 0.86
+        },
+        {
+          "lap": 2,
+          "lapSeconds": 140.319,
+          "frontC": 796.42,
+          "rearC": 510.186,
+          "brakeFactor": 0.508
+        },
+        {
+          "lap": 3,
+          "lapSeconds": 139.144,
+          "frontC": 841.509,
+          "rearC": 566.225,
+          "brakeFactor": 0.433
+        },
+        {
+          "lap": 4,
+          "lapSeconds": 139.925,
+          "frontC": 848.272,
+          "rearC": 586.408,
+          "brakeFactor": 0.422
+        }
+      ],
+      "finalLapSampledExtrema": {
+        "frontMinC": 774.361,
+        "frontMaxC": 855.164,
+        "rearMinC": 523.362,
+        "rearMaxC": 588.938
+      },
+      "longestNoFrictionBrakeInterval": {
+        "startSeconds": 121,
+        "start": {
+          "frontC": 486.906,
+          "rearC": 315.244,
+          "brakeFactor": 1
+        },
+        "durationSeconds": 13,
+        "endSeconds": 134,
+        "end": {
+          "frontC": 447.529,
+          "rearC": 284.455,
+          "brakeFactor": 1
+        }
+      }
+    },
+    {
+      "configuration": {
+        "name": "acceleration3-grip3-brakes0",
+        "budget": 30,
+        "levels": {
+          "acceleration": 3,
+          "topSpeed": 0,
+          "brakes": 0,
+          "grip": 3
+        }
+      },
+      "distanceM": 15228.131,
+      "finishSeconds": 516.869,
+      "frictionBrakeMJ": 43.321,
+      "laps": [
+        {
+          "lap": 1,
+          "lapSeconds": 131.693,
+          "frontC": 684.222,
+          "rearC": 426.925,
+          "brakeFactor": 0.694
+        },
+        {
+          "lap": 2,
+          "lapSeconds": 127.187,
+          "frontC": 848.223,
+          "rearC": 583.134,
+          "brakeFactor": 0.422
+        },
+        {
+          "lap": 3,
+          "lapSeconds": 128.866,
+          "frontC": 873.24,
+          "rearC": 633.569,
+          "brakeFactor": 0.419
+        },
+        {
+          "lap": 4,
+          "lapSeconds": 129.123,
+          "frontC": 878.795,
+          "rearC": 652.54,
+          "brakeFactor": 0.419
+        }
+      ],
+      "finalLapSampledExtrema": {
+        "frontMinC": 807.94,
+        "frontMaxC": 886.388,
+        "rearMinC": 587.004,
+        "rearMaxC": 655.858
+      },
+      "longestNoFrictionBrakeInterval": {
+        "startSeconds": 108,
+        "start": {
+          "frontC": 586.09,
+          "rearC": 360.911,
+          "brakeFactor": 0.857
+        },
+        "durationSeconds": 11.75,
+        "endSeconds": 119.75,
+        "end": {
+          "frontC": 539.183,
+          "rearC": 325.974,
+          "brakeFactor": 0.935
+        }
+      }
+    }
+  ],
+  "cooling": [
+    {
+      "speedKmh": 0,
+      "trace": [
+        {
+          "seconds": 0,
+          "frontC": 851,
+          "rearC": 521,
+          "brakeFactor": 0.42
+        },
+        {
+          "seconds": 10,
+          "frontC": 841.088,
+          "rearC": 513.541,
+          "brakeFactor": 0.435
+        },
+        {
+          "seconds": 20,
+          "frontC": 831.293,
+          "rearC": 506.193,
+          "brakeFactor": 0.451
+        },
+        {
+          "seconds": 30,
+          "frontC": 821.616,
+          "rearC": 498.955,
+          "brakeFactor": 0.467
+        },
+        {
+          "seconds": 40,
+          "frontC": 812.054,
+          "rearC": 491.824,
+          "brakeFactor": 0.483
+        },
+        {
+          "seconds": 50,
+          "frontC": 802.606,
+          "rearC": 484.799,
+          "brakeFactor": 0.499
+        },
+        {
+          "seconds": 60,
+          "frontC": 793.271,
+          "rearC": 477.88,
+          "brakeFactor": 0.514
+        }
+      ],
+      "frictionBrakeJ": 0
+    },
+    {
+      "speedKmh": 78,
+      "trace": [
+        {
+          "seconds": 0,
+          "frontC": 851,
+          "rearC": 521,
+          "brakeFactor": 0.42
+        },
+        {
+          "seconds": 10,
+          "frontC": 818.283,
+          "rearC": 496.467,
+          "brakeFactor": 0.473
+        },
+        {
+          "seconds": 20,
+          "frontC": 786.854,
+          "rearC": 473.135,
+          "brakeFactor": 0.525
+        },
+        {
+          "seconds": 30,
+          "frontC": 756.662,
+          "rearC": 450.945,
+          "brakeFactor": 0.575
+        },
+        {
+          "seconds": 40,
+          "frontC": 727.66,
+          "rearC": 429.842,
+          "brakeFactor": 0.623
+        },
+        {
+          "seconds": 50,
+          "frontC": 699.799,
+          "rearC": 409.773,
+          "brakeFactor": 0.669
+        },
+        {
+          "seconds": 60,
+          "frontC": 673.034,
+          "rearC": 390.686,
+          "brakeFactor": 0.713
+        }
+      ],
+      "frictionBrakeJ": 0
+    },
+    {
+      "speedKmh": 120,
+      "trace": [
+        {
+          "seconds": 0,
+          "frontC": 851,
+          "rearC": 521,
+          "brakeFactor": 0.42
+        },
+        {
+          "seconds": 10,
+          "frontC": 806.267,
+          "rearC": 487.519,
+          "brakeFactor": 0.492
+        },
+        {
+          "seconds": 20,
+          "frontC": 763.942,
+          "rearC": 456.275,
+          "brakeFactor": 0.563
+        },
+        {
+          "seconds": 30,
+          "frontC": 723.895,
+          "rearC": 427.119,
+          "brakeFactor": 0.629
+        },
+        {
+          "seconds": 40,
+          "frontC": 686.005,
+          "rearC": 399.912,
+          "brakeFactor": 0.692
+        },
+        {
+          "seconds": 50,
+          "frontC": 650.153,
+          "rearC": 374.523,
+          "brakeFactor": 0.751
+        },
+        {
+          "seconds": 60,
+          "frontC": 616.232,
+          "rearC": 350.83,
+          "brakeFactor": 0.807
+        }
+      ],
+      "frictionBrakeJ": 0
+    }
+  ]
+}

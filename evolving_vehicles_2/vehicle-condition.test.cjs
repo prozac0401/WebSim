@@ -73,15 +73,51 @@ test('ICE heat tracks actual work rather than installed acceleration level',()=>
  const hot=V.create(c,{initialEngineC:140});assert(V.limits(c,hot).powerFactor<1);advance(c,hot,500,{speedMps:25});assert(V.limits(c,hot).powerFactor>.95);
 });
 
-test('linear cooling is deterministic under different time batching; invalid dt is rejected',()=>{
+test('cooling stays consistent under different time batching; invalid dt is rejected',()=>{
  const c=car(),a=V.create(c),b=V.create(c);V.update(c,a,10,{speedMps:25});advance(c,b,10,{speedMps:25});
- for(const ax of ['front','rear'])assert(Math.abs(a.brakes[ax].temperatureC-b.brakes[ax].temperatureC)<1e-9);
+ for(const ax of ['front','rear'])assert(Math.abs(a.brakes[ax].temperatureC-b.brakes[ax].temperatureC)<1e-5);
  assert(Math.abs(a.engineTemperatureC-b.engineTemperatureC)<1e-9);assert.throws(()=>V.update(c,a,-1),RangeError);assert.throws(()=>V.update(c,a,NaN),RangeError);
+});
+
+test('very hot brakes shed a greater fraction of excess heat even without airflow',()=>{
+ const c=car(),warm=V.create(c,{initialBrakeC:450}),hot=V.create(c,{initialBrakeC:850});
+ advance(c,warm,30,{speedMps:0});advance(c,hot,30,{speedMps:0});
+ for(const axle of ['front','rear']){
+  const warmLoss=(450-warm.brakes[axle].temperatureC)/(450-warm.ambientC);
+  const hotLoss=(850-hot.brakes[axle].temperatureC)/(850-hot.ambientC);
+  assert(hotLoss>warmLoss*1.25,'high-temperature heat loss must grow faster than a fixed linear cooling coefficient');
+ }
+ assert.equal(hot.energy.frictionBrakeJ,0);assert.equal(hot.brakes.front.wear,0);
+});
+
+test('hot brake cooling is stable for long updates and preserves energy and wear',()=>{
+ const c=car(),large=V.create(c,{initialBrakeC:900}),small=V.create(c,{initialBrakeC:900});
+ V.update(c,large,60,{speedMps:30});advance(c,small,60,{speedMps:30},1/120);
+ for(const axle of ['front','rear'])assert(Math.abs(large.brakes[axle].temperatureC-small.brakes[axle].temperatureC)<.01);
+ const wear=large.brakes.front.wear;V.update(c,large,3600,{speedMps:30});
+ for(const axle of ['front','rear']){
+  assert(Number.isFinite(large.brakes[axle].temperatureC));
+  assert(large.brakes[axle].temperatureC>=large.ambientC);
+  assert(large.brakes[axle].temperatureC<large.ambientC+.01);
+ }
+ assert.equal(large.energy.frictionBrakeJ,0);assert.equal(large.brakes.front.wear,wear);
+});
+
+test('brake heating and radiation agree across thermal step sizes without hiding input work',()=>{
+ const c=car();
+ for(const frictionBrakePowerW of [150000,500000]){
+  const large=V.create(c,{initialBrakeC:850}),small=V.create(c,{initialBrakeC:850});
+  const input={speedMps:30,frictionBrakePowerW};
+  V.update(c,large,60,input);advance(c,small,60,input,1/120);
+  for(const axle of ['front','rear'])assert(Math.abs(large.brakes[axle].temperatureC-small.brakes[axle].temperatureC)<.01);
+  assert.equal(large.energy.frictionBrakeJ,frictionBrakePowerW*60);
+  assert(large.brakes.front.temperatureC>850,'sufficient ongoing braking must still heat the rotor');
+ }
 });
 
 test('snapshot is isolated and contains explanatory limits and conserved work totals',()=>{
  const c=car('electric'),s=V.create(c,{initialSoc:.05,initialBrakeC:800});const snap=V.snapshot(s);
- assert.equal(snap.model,'estimated-v1');assert(snap.limitations.length>=2);assert(snap.brakes.factor<1);snap.tires.front.wear=1;assert.equal(s.tires.front.wear,0);assert.equal(V.snapshot(null),null);
+ assert.equal(snap.model,'estimated-v2');assert(snap.limitations.length>=2);assert(snap.brakes.factor<1);snap.tires.front.wear=1;assert.equal(s.tires.front.wear,0);assert.equal(V.snapshot(null),null);
 });
 
 test('an unloaded axle does not silently recover static load or accumulate contact wear',()=>{

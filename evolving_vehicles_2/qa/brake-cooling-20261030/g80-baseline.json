@@ -1,0 +1,102 @@
+{
+  "model": "estimated-v1",
+  "sources": {
+    "vehicle-condition.js": "ab041d7799c3b8e1f46e453cdc7001b7c518e3738ca5e5b68126fa0ee36c23a8",
+    "race-engine.js": "1c35684cd5a5e2f5d05b4f8c8fbc063c08434fdf2ea6f042459e407eca048514",
+    "tuning-evolution.js": "15f8be98786b8c73bd43f25339997d09e1f5878699524fe461fb7ead471b4686"
+  },
+  "conditionSourceCommit": "a3eaf37e247e3b5b6145200ffa0dee18d6eb4a1e",
+  "vehicleId": "g80",
+  "variantId": "g80-2.5t-awd",
+  "availableVariants": [
+    {
+      "id": "g80-2.5t-rwd",
+      "label": "2.5T RWD · 20인치"
+    },
+    {
+      "id": "g80-2.5t-awd",
+      "label": "2.5T AWD · 20인치"
+    },
+    {
+      "id": "g80-3.5t-rwd",
+      "label": "3.5T RWD · 20인치"
+    },
+    {
+      "id": "g80-3.5t-awd",
+      "label": "3.5T AWD · 20인치"
+    }
+  ],
+  "circuit": "inje",
+  "sampleSeconds": 0.25,
+  "scope": "Model diagnostic, not real-vehicle calibration. Race temperatures sampled every 0.25 s; cooling traces hold stated speed without braking.",
+  "screenshotComparison": "Vehicle/variant matched where stated; screenshot tuning levels are unknown. Stock and named tuning cases are controlled comparisons, not exact screenshot reproductions.",
+  "races": [
+    {
+      "configuration": {
+        "name": "stock",
+        "budget": 0,
+        "levels": {
+          "acceleration": 0,
+          "topSpeed": 0,
+          "brakes": 0,
+          "grip": 0
+        }
+      },
+      "distanceM": 15228.131,
+      "finishSeconds": 597.365,
+      "frictionBrakeMJ": 40.907,
+      "laps": [
+        {
+          "lap": 1,
+          "lapSeconds": 155.472,
+          "frontC": 583.308,
+          "rearC": 383.717,
+          "brakeFactor": 0.861
+        },
+        {
+          "lap": 2,
+          "lapSeconds": 147.672,
+          "frontC": 794.024,
+          "rearC": 524.225,
+          "brakeFactor": 0.512
+        },
+        {
+          "lap": 3,
+          "lapSeconds": 146.839,
+          "frontC": 841.186,
+          "rearC": 580.72,
+          "brakeFactor": 0.434
+        },
+        {
+          "lap": 4,
+          "lapSeconds": 147.382,
+          "frontC": 849.77,
+          "rearC": 600.955,
+          "brakeFactor": 0.42
+        }
+      ],
+      "finalLapSampledExtrema": {
+        "frontMinC": 766.633,
+        "frontMaxC": 859.842,
+        "rearMinC": 529.451,
+        "rearMaxC": 607.585
+      },
+      "longestNoFrictionBrakeInterval": {
+        "startSeconds": 127.25,
+        "start": {
+          "frontC": 483.774,
+          "rearC": 323.898,
+          "brakeFactor": 1
+        },
+        "durationSeconds": 14.75,
+        "endSeconds": 142,
+        "end": {
+          "frontC": 442.461,
+          "rearC": 290.445,
+          "brakeFactor": 1
+        }
+      }
+    }
+  ],
+  "cooling": []
+}
