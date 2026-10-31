@@ -10,7 +10,7 @@ class Evaluator{
   evaluate(gene,{id,parentId}={}){const hit=this.ids.includes(parentId),reusedTicks=hit?80:0;this.ids.push(id);this.ids=this.ids.slice(-4);return{...evaluateGene(this.vehicle,this.track,gene),evaluation:{simulatedTicks:100-reusedTicks,reusedTicks,totalTicks:100,cacheHit:hit}};}
   cachedIds(){return this.ids.slice();}
 }
-function environment({broken=false,staleReady=false,staleResult=false}={}){
+function environment({broken=false,staleReady=false,staleResult=false,loadedFailure=false}={}){
   const messages=[],finished=[];
   class Worker{
     constructor(){if(broken)throw Error('No nested workers');this.alive=true;}
@@ -21,7 +21,7 @@ function environment({broken=false,staleReady=false,staleResult=false}={}){
     terminate(){this.alive=false;}
   }
   const context=vm.createContext({onmessage:null,URLSearchParams,DriftRuntime:{...Runtime,identity:()=>'test-runtime'},importScripts(){},postMessage:m=>messages.push(m),setTimeout,clearTimeout,Worker,
-    DriftCatalog:{get:()=>vehicle},DriftTrack:{get:()=>track,DEFAULT_ID:track.id},DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:Evolution,DriftPhysics:{evaluateGene},DriftEvaluationCache:{Evaluator}});
+    DriftCatalog:{get:()=>vehicle},DriftTrack:{get:()=>track,DEFAULT_ID:track.id},DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:Evolution,DriftPhysics:{evaluateGene},DriftEvaluationCache:{Evaluator:class extends Evaluator{evaluate(gene,options){const result=super.evaluate(gene,options);return loadedFailure&&options?.id==='loaded'?{...result,valid:false,status:'offtrack',score:1e12}:result;}}}});
   vm.runInContext(source,context);
   return {context,messages,finished,send:m=>context.onmessage({data:{runtimeIdentity:'test-runtime',...m}}),snapshot:()=>vm.runInContext('engine.snapshot()',context),close:()=>vm.runInContext('running=false;clearTimeout(timer);cancelPool()',context)};
 }
@@ -104,5 +104,44 @@ test('idle workers receive their cached parent jobs before general dispatch',()=
   `,env.context);
   const dispatched=JSON.parse(vm.runInContext('JSON.stringify(dispatches)',env.context));
   assert.deepEqual(dispatched,[{slot:0,sequence:2,id:'child-b',parentId:'parent-b'},{slot:1,sequence:1,id:'child-a',parentId:'parent-a'}]);
+ }finally{env.close();}
+});
+
+test('loading re-evaluates the gene and ignores supplied score/frames before using it as the evolution origin',async()=>{
+ const env=environment();try{
+  const gene=Genome.create();gene[Genome.CHANNELS.throttle]=.7;
+  await env.send({type:'init',workers:1,seed:37,initialRun:{gene,genomeVersion:Genome.VERSION,result:{valid:true,status:'finished',score:1e12},record:[{x:999999}]}});
+  const ready=env.messages.find(m=>m.type==='ready');assert.ok(ready);assert.equal(ready.state.initialRunAccepted,true);
+  assert.equal(ready.best.id,'loaded');assert.equal(ready.loaded.id,'loaded');assert.notEqual(ready.loaded.result.score,1e12);
+  assert.equal(ready.loaded.record[0].x,0);assert.equal(ready.baseline.record,baseline.record);assert.equal(ready.baseline.result,vm.runInContext('engine.baselineRun.result',env.context));assert.deepEqual(Array.from(ready.loaded.gene),Array.from(gene));
+  await env.send({type:'run',once:true});await until(()=>env.messages.some(m=>m.type==='paused'));
+  const candidates=env.messages.filter(m=>m.type==='candidate');assert.equal(candidates.length,20);assert.ok(candidates.every(m=>m.candidate.parentId==='loaded'));
+ }finally{env.close();}
+});
+
+test('a failed loaded physical replay is published without ever becoming a parent or starting evaluation',async()=>{
+ const env=environment({loadedFailure:true});try{
+  await env.send({type:'init',workers:4,initialRun:{gene:Genome.create(),genomeVersion:Genome.VERSION}});
+  const ready=env.messages.find(m=>m.type==='ready');assert.ok(ready);assert.equal(ready.state.initialRunAccepted,false);assert.equal(ready.state.ready,false);
+  assert.equal(ready.loaded.accepted,false);assert.equal(ready.loaded.result.score,0);assert.equal(ready.best.id,'baseline');
+  await env.send({type:'run'});await new Promise(r=>setTimeout(r,25));assert.equal(env.snapshot().totalEvaluated,0);
+  assert.ok(env.messages.some(m=>m.type==='paused'&&m.reason.includes('재생만')));assert.ok(!env.messages.some(m=>m.type==='candidate'));
+ }finally{env.close();}
+});
+
+test('a load discards old evaluator replies and admits only the new loaded origin',async()=>{
+ const env=environment();try{
+  await env.send({type:'init',workers:4,seed:37});await env.send({type:'run'});
+  const gene=Genome.create();gene[Genome.CHANNELS.throttle]=.8;
+  await env.send({type:'init',workers:4,seed:99,initialRun:{gene,genomeVersion:Genome.VERSION}});
+  await new Promise(r=>setTimeout(r,70));assert.equal(env.snapshot().totalEvaluated,0);assert.equal(env.snapshot().best.id,'loaded');
+  assert.deepEqual(Array.from(env.snapshot().best.gene),Array.from(gene));
+ }finally{env.close();}
+});
+
+test('incompatible imported genome versions fail before publishing a loaded experiment',async()=>{
+ const env=environment();try{
+  await env.send({type:'init',workers:1,initialRun:{gene:Genome.create(),genomeVersion:Genome.VERSION-1}});
+  assert.ok(env.messages.some(m=>m.type==='error'&&m.message.includes('유전자 버전')));assert.ok(!env.messages.some(m=>m.type==='ready'));
  }finally{env.close();}
 });

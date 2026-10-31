@@ -7,9 +7,9 @@ const html=fs.readFileSync(require.resolve('./evolving_drift.html'),'utf8'),page
 // Execute the real app and its handlers with a deliberately queued worker
 // response. This tests the UI/worker boundary, not a copy of the control logic.
 function environment({fallback=false,apex=false,broken=false,complete=false,early=false,straight=false,linked=false,linkUnmeasured=false,transitioning=false,score=1,duration=30,timeline=null,evaluationStats=null,learningStats=null,vehicleLabel='Test',physics={},replayFrames=null}={}){
-  const elements=new Map(),workers=[],timers=new Map();let nextTimer=1,steps=0,scoreCalls=0,lastRender=null;
+  const elements=new Map(),workers=[],timers=new Map(),downloads=[],blobs=new Map(),exported=[];let nextTimer=1,steps=0,scoreCalls=0,lastRender=null,fileParser=null,physicsCalls=0,preflightCalls=0;
   function element(){const classes=new Set(),attributes=new Map();return{children:[],value:'1',disabled:false,hidden:false,checked:false,textContent:'',style:{},dataset:{},classList:{toggle(name,on){if(on)classes.add(name);else classes.delete(name);},remove(name){classes.delete(name);},contains(name){return classes.has(name);}},
-    setAttribute(name,value){attributes.set(name,String(value));},getAttribute(name){return attributes.get(name)??null;},append(...items){this.children.push(...items);},before(){},replaceChildren(...items){this.children=items;},addEventListener(type,handler){this['on'+type]=handler;},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
+    setAttribute(name,value){attributes.set(name,String(value));},getAttribute(name){return attributes.get(name)??null;},append(...items){this.children.push(...items);},before(){},remove(){},click(){if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});this.onclick?.();},replaceChildren(...items){this.children=items;},addEventListener(type,handler){this['on'+type]=handler;},getContext(){return{save(){},restore(){},setTransform(){},clearRect(){}};}};}
   const get=id=>{assert.ok(pageIds.has(id),'UI must not access a removed DOM target: '+id);if(!elements.has(id)){const node=element();if(id==='shift-lights')node.children=Array.from({length:8},element);elements.set(id,node);}return elements.get(id);};
   const vehicle={id:'test-car',vehicleId:'test-car',label:vehicleLabel,physics:{peakPowerW:100000,peakTorque:200,massKg:1200,idleRPM:800,shiftRPM:6000,gearRatios:[4,2.4,1.6,1.2,1,.8],transmissionType:'MT',electric:false,...physics},limitations:[],sourceUrl:'',spec:{factoryDrive:'RWD'}};
   const track={id:'test-track',name:'Test track',length:500,judgedStart:50,judgedEnd:450};
@@ -29,15 +29,18 @@ function environment({fallback=false,apex=false,broken=false,complete=false,earl
   }
   class Renderer{resize(){}render(options){lastRender=options;}retryVehicle(){}getState(){return{};}static sampleFrames(frames,time){return ReplayRenderer.sampleFrames(frames,time);}}
   class Engine{
-    constructor(){this.ready=true;this.best=best;this.generation=0;this.lastCandidate=null;}
-    initialize(){}snapshot(){return state();}
+    constructor(){this.ready=true;this.best=best;this.baselineRun=best;this.generation=0;this.lastCandidate=null;this.loadedRun=null;}
+    initialize(){}snapshot(){return {...state(),initialRunAccepted:this.loadedRun?true:null};}
+    validateImportedGene(gene){preflightCalls++;if(gene.some(value=>!Number.isFinite(value)))throw Error('유전자 검증 실패');return gene;}
+    initializeImported(gene){this.loadedRun={...baseline,id:'loaded',gene,accepted:true};this.best=this.loadedRun;}
     step(){steps++;this.generation=Math.floor(steps/20);this.lastCandidate={...best,id:'candidate-'+steps};}
   }
   const window={addEventListener(){}};
   const context=vm.createContext({window,document:{getElementById:get,createElement:element,querySelector:element,querySelectorAll:()=>[],body:element(),addEventListener(){}},
-    location:{protocol:fallback?'file:':'http:',search:''},URLSearchParams,requestAnimationFrame(){},
+    location:{protocol:fallback?'file:':'http:',search:''},URLSearchParams,Blob,URL:{createObjectURL(blob){const id='blob:test-'+blobs.size;blobs.set(id,blob);return id;},revokeObjectURL(id){blobs.delete(id);}},requestAnimationFrame(){},
     setTimeout:fn=>{const id=nextTimer++;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),Worker:fallback?undefined:Worker,
-    DriftRuntime:{...Runtime,identity:()=>'test-runtime'},DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame})},
+    DriftRuntime:{...Runtime,identity:()=>'test-runtime'},DriftRenderer:Renderer,DriftGenome:Genome,DriftDriver:{TELEMETRY:[]},DriftPhysics:{initialState:()=>({...frame}),evaluateGene(){physicsCalls++;return {...result,frames:baseline.record};}},
+    DriftRunFile:{MAX_BYTES:1024*1024,create(options){exported.push(options);return {source:{id:options.entry.id},genome:{values:Array.from(options.entry.gene)}};},filename:payload=>'drift-'+payload.source.id+'.json',parse(text){if(fileParser)return fileParser(text);throw Error('잘못된 주행 파일');}},
     DriftCatalog:{DEFAULT_ID:vehicle.id,get:()=>vehicle,list:()=>[vehicle]},DriftTrack:{list:()=>[track]},
     DriftPreparedGrips:{load:async()=>baseline},DriftEvolution:{Engine},DriftFitness:{replayTimeline(result){scoreCalls++;if(timeline)return timeline;return [
       {time:0,score:0,delta:0,earning:false,provisional:true,fullConnectionCount:0,totalArcCount:2,straightLinkCount:0,totalLinkCount:straight?2:0,phase:'course',reason:'속도 조건 필요',conditions:{},parts:{base:0,continuity:0,zone:0}},
@@ -49,7 +52,10 @@ function environment({fallback=false,apex=false,broken=false,complete=false,earl
     ].map(row=>({chainMultiplier:1,zoneMultiplier:1,combinedMultiplier:1,chainDistance:0,...row}));}}});
   vm.runInContext(source,context);
   return{get,workers,timers,state:()=>JSON.parse(window.render_game_to_text()),render:()=>lastRender,advance:ms=>window.advanceTime(ms),
-    ready(worker=workers.at(-1)){worker.emit({type:'ready',baseline,best,state:state()});},
+    ready(worker=workers.at(-1)){worker.emit({type:'ready',baseline,best,state:state()});},downloads,exported,physicsCalls:()=>physicsCalls,preflightCalls:()=>preflightCalls,
+    loadFile(file={size:20,text:async()=>'saved-run'}){get('run-file').files=[file];return get('run-file').onchange();},
+    parseFile(fn){fileParser=fn||(()=>({vehicle,track,gene:Genome.create(),genomeVersion:Genome.VERSION,seed:91,sourceId:'saved-source',sourceGeneration:12}));},
+    imported(worker=workers.at(-1),{accepted=true,score:loadedScore=7,runtimeIdentity='test-runtime'}={}){const loaded={...best,id:'loaded',generation:0,kind:'loaded',accepted,gene:Genome.create(),result:{...result,score:accepted?loadedScore:0,valid:accepted,status:accepted?'finished':'offtrack'}};worker.emit({type:'ready',runtimeIdentity,baseline,best:accepted?loaded:best,loaded,state:{...state(),initialRunAccepted:accepted}});return loaded;},
     tick(){const entry=timers.entries().next().value;if(entry){timers.delete(entry[0]);entry[1]();}},steps:()=>steps,scoreCalls:()=>scoreCalls,
     updateStats(evaluation,learning){evaluationStats=evaluation;learningStats=learning;workers.at(-1).emit({type:'candidate',candidate:{...best,id:'stats-candidate'},best,state:state()});},
     publishBest(id='new-best',score=2){const entry={...best,id,record:[{...frame}],result:{...result,score}};workers.at(-1).emit({type:'candidate',candidate:entry,best:entry,state:state()});},
@@ -529,4 +535,91 @@ test('existing schema-4 prepared MT replays show shift clutch input without a sh
       assert.equal(env.state().car.inputs.clutch,1);assert.equal(env.render().car.clutchPedal,0);
     }
   }finally{Physics.evaluateGene=evaluate;}
+});
+
+test('save downloads the displayed replay while a newer representative waits for the finish',async()=>{
+  const env=environment();assert.equal(env.get('save-run').disabled,true);env.ready();env.advance(1000);env.publishBest('new-best',9);
+  assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().score,9);assert.equal(env.get('save-run').disabled,false);
+  env.get('save-run').onclick();assert.equal(env.downloads.length,1);assert.equal(env.exported[0].entry.id,'baseline');
+  const file=JSON.parse(await env.downloads[0].blob.text());assert.equal(file.source.id,'baseline');assert.equal(file.genome.values.length,Genome.LENGTH);
+  assert.equal(env.state().replay.time,1);assert.equal(env.state().playing,true);assert.equal(env.state().evolving,true);
+  assert.equal(env.state().runFile.status,'saved');assert.match(env.downloads[0].name,/baseline/);
+});
+
+test('malformed and oversized imports preserve the active experiment and replay',async()=>{
+  const env=environment();env.ready();env.advance(1500);const old=env.workers[0],before=env.state();
+  await env.loadFile();assert.equal(env.state().runFile.status,'error');assert.equal(env.workers.length,1);assert.equal(old.alive,true);
+  assert.equal(env.state().replay.id,before.replay.id);assert.equal(env.state().replay.time,before.replay.time);assert.equal(env.state().evolving,true);
+  await env.loadFile({size:1024*1024+1,text:async()=>{throw Error('oversized file must not be read');}});
+  assert.match(env.state().runFile.message,/1 MB/);assert.equal(env.workers.length,1);assert.equal(old.alive,true);
+  assert.equal(env.get('save-run').disabled,false);assert.equal(env.get('load-run').disabled,false);
+});
+
+test('valid import is staged without stopping the old worker then atomically replays and evolves from loaded',async()=>{
+  const env=environment();env.ready();env.advance(2500);const old=env.workers[0];env.parseFile();
+  const loading=env.loadFile();await new Promise(resolve=>setImmediate(resolve));const staged=env.workers.at(-1);
+  assert.notEqual(staged,old);assert.equal(old.alive,true);assert.equal(env.state().evolving,true);assert.equal(env.state().replay.time,2.5);
+  assert.equal(env.state().runFile.loading,true);assert.equal(env.get('save-run').disabled,true);assert.equal(env.get('load-run').disabled,true);
+  assert.equal(staged.messages[0].type,'init');assert.equal(staged.messages[0].seed,91);assert.equal(staged.messages[0].initialRun.genomeVersion,Genome.VERSION);
+  assert.equal(staged.messages[0].initialRun.gene.length,Genome.LENGTH);assert.equal(staged.messages.length,1,'no candidate evolution before fresh validation');
+  env.imported(staged);await loading;
+  assert.equal(old.alive,false);assert.equal(staged.alive,true);assert.equal(env.state().replay.id,'loaded');assert.equal(env.state().replay.time,0);
+  assert.equal(env.state().playing,true);assert.equal(env.state().evolving,true);assert.equal(env.state().replay.autoFollow,true);
+  assert.equal(env.state().runFile.status,'loaded');assert.equal(env.state().runFile.sourceId,'saved-source');assert.equal(env.state().runFile.sourceGeneration,12);
+  assert.equal(env.state().runFile.initialRunAccepted,true);assert.equal(env.state().score,7);assert.equal(env.get('seed').value,91);
+  assert.equal(staged.messages.filter(m=>m.type==='run').length,1);assert.equal(staged.messages.at(-1).once,false);
+  assert.match(env.get('baseline-score').textContent,/1\.00점/,'offline grip keeps its own result');
+  old.emit({type:'error',message:'obsolete old worker'});old.emit({type:'paused'});env.ready(old);
+  assert.equal(env.state().replay.id,'loaded');assert.equal(env.state().mode,'ready');assert.equal(env.state().evolving,true);
+});
+
+test('failed physical import remains replayable with no evolution even when source metadata is valid',async()=>{
+  const env=environment();env.ready();env.parseFile();const loading=env.loadFile();await new Promise(resolve=>setImmediate(resolve));const staged=env.workers.at(-1);
+  env.imported(staged,{accepted:false});await loading;
+  assert.equal(env.state().replay.id,'loaded');assert.equal(env.state().replay.status,'offtrack');assert.equal(env.state().playing,true);
+  assert.equal(env.state().runFile.initialRunAccepted,false);assert.equal(env.state().evolving,false);assert.equal(env.get('evolve').disabled,true);
+  assert.equal(env.get('one-generation').disabled,true);for(const id of ['play','restart','timeline','save-run'])assert.equal(env.get(id).disabled,false,id);
+  env.get('evolve').onclick();env.get('one-generation').onclick();assert.equal(staged.messages.some(m=>m.type==='run'),false);
+  env.get('timeline').value='1000';env.get('timeline').oninput();assert.equal(env.get('replay-score-label').textContent,'점수 무효');
+  env.get('play').onclick();assert.equal(env.state().replay.time,0);assert.equal(env.state().playing,true);
+});
+
+test('a staging worker failure or mismatched runtime leaves the old selected replay usable',async()=>{
+  for(const runtimeMismatch of [false,true]){
+    const env=environment();env.ready();env.get('evolve').onclick();env.workers[0].emit({type:'paused'});env.advance(500);const before=env.state(),old=env.workers[0];env.parseFile();
+    const loading=env.loadFile();await new Promise(resolve=>setImmediate(resolve));const staged=env.workers.at(-1);
+    if(runtimeMismatch)env.imported(staged,{runtimeIdentity:'stale-runtime'});else staged.emit({type:'error',message:'cannot replay'});
+    await loading;assert.equal(staged.alive,false);assert.equal(old.alive,true);assert.equal(env.state().runFile.status,'error');
+    assert.equal(env.state().replay.id,before.replay.id);assert.equal(env.state().evolving,false);assert.equal(env.state().mode,'ready');assert.equal(env.get('evolve').disabled,false);
+    assert.equal(env.get('save-run').disabled,false);assert.equal(env.get('load-run').disabled,false);
+  }
+});
+
+test('reset cancels a staged import and ignores its delayed ready response',async()=>{
+  const env=environment();env.ready();env.parseFile();const loading=env.loadFile();await new Promise(resolve=>setImmediate(resolve));const staged=env.workers.at(-1);
+  env.get('reset').onclick();const replacement=env.workers.at(-1);await loading;
+  assert.equal(staged.alive,false);assert.notEqual(staged,replacement);assert.equal(env.state().runFile.loading,false);assert.equal(env.state().runFile.status,'idle');
+  env.imported(staged);await Promise.resolve();assert.equal(env.state().mode,'loading-baseline');assert.notEqual(env.state().replay.id,'loaded');
+  env.ready(replacement);assert.equal(env.state().mode,'ready');assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().evolving,false);
+});
+
+test('reset during asynchronous file reading cannot create a late staging worker',async()=>{
+  const env=environment();env.ready();env.parseFile();let finishRead;const loading=env.loadFile({size:10,text:()=>new Promise(resolve=>{finishRead=resolve;})});
+  env.get('reset').onclick();const count=env.workers.length;finishRead('saved-run');await loading;
+  assert.equal(env.workers.length,count);assert.equal(env.state().runFile.loading,false);assert.equal(env.state().runFile.status,'idle');
+  env.ready();assert.equal(env.state().replay.id,'baseline');assert.equal(env.state().evolving,false);
+});
+
+test('file fallback imports replay once and resumes from loaded with exactly one evolution timer',async()=>{
+  const env=environment({fallback:true});await new Promise(resolve=>setImmediate(resolve));env.get('evolve').onclick();env.parseFile();
+  await env.loadFile();assert.equal(env.physicsCalls(),1);assert.equal(env.preflightCalls(),1);assert.equal(env.state().replay.id,'loaded');
+  assert.equal(env.state().runFile.initialRunAccepted,true);assert.equal(env.state().evolving,true);assert.equal(env.state().playing,true);
+  assert.equal(env.timers.size,1);env.tick();assert.equal(env.steps(),1);assert.equal(env.timers.size,1);
+});
+
+test('file fallback preflight rejection occurs before physics and keeps the active session',async()=>{
+  const env=environment({fallback:true});await new Promise(resolve=>setImmediate(resolve));const before=env.state();
+  env.parseFile(()=>({vehicle:env.render().vehicle,track:env.render().track,gene:Float64Array.from([Infinity]),seed:37,sourceId:'invalid',sourceGeneration:0}));
+  await env.loadFile();assert.equal(env.preflightCalls(),1);assert.equal(env.physicsCalls(),0);assert.equal(env.state().runFile.status,'error');
+  assert.equal(env.state().replay.id,before.replay.id);assert.equal(env.state().evolving,true);assert.equal(env.timers.size,1);assert.equal(env.get('save-run').disabled,false);
 });

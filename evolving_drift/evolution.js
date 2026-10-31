@@ -222,18 +222,18 @@
       this._evaluator=null;this._reuse=options.reuse!==false&&!options.physics;this._evaluationStats={simulatedTicks:0,reusedTicks:0,totalTicks:0,cacheHits:0,evaluations:0};
       this._rankResult=options.rankResult||Fitness?.rank;
       if(typeof this._rankResult!=='function')throw new TypeError('Load DriftFitness before creating an evolution engine.');
-      this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;
+      this._strategyRequested=options.strategies!==false;this._strategyZones=[];this._nicheArchives=[];this._nicheCache=new WeakMap();this._entryCounts=[];this._baselineEntry=null;this._originEntry=null;
       this._connectionCache=new WeakMap();this._connectionSearch=options.connectionSearch!==false;
       this._pedalOverlapEnabled=options.pedalOverlap!==false;this._pedalOverlapStats={proposals:0,evaluated:0,valid:0,improved:0};
       this._trajectoryEnabled=options.trajectorySearch!==false;this._trajectoryCache=new WeakMap();this._trajectoryArchive=[];this._trajectoryStale=0;this._trajectoryBest=0;
       this._trajectoryStats={coarseProposals:0,fineProposals:0,duplicateAvoided:0};this._retry=Trajectory?new Trajectory.RetryPolicy():null;
       this._learningEnabled=options.learning!==false;this._learning=null;
       this._weakestArcIndices=[];this._selectionStats={promotions:0,paretoParents:0,connectionProposals:0,connectionImprovements:0};
-      this._parents=[];this._best=null;this._lastCandidate=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
+      this._parents=[];this._best=null;this._lastCandidate=null;this._loadedEntry=null;this._candidates=[];this._planned=[];this._sequence=0;this._generationStartScore=null;
       this.initialized=false;this.ready=false;this.blockedReason=null;this.generation=0;this.totalEvaluated=0;this.history=[];this.plateauGenerations=0;
       this.stats={validCount:0,failureCount:0,improvedCount:0,evaluated:0};
     }
-    get best(){return publicEntry(this._best);}get parents(){return this._parents.map(publicEntry);}get lastCandidate(){return publicEntry(this._lastCandidate);}getBest(){return this.best;}
+    get best(){return publicEntry(this._best);}get parents(){return this._parents.map(publicEntry);}get lastCandidate(){return publicEntry(this._lastCandidate);}get loadedRun(){return publicEntry(this._loadedEntry);}get baselineRun(){return publicEntry(this._baselineEntry);}getBest(){return this.best;}
     _threshold(){return Math.max(DEFAULTS.improvementAbsolute,Math.abs(this._generationStartScore||0)*DEFAULTS.improvementRelative);}
     initialize(){
       if(this.initialized)return this.snapshot();this.initialized=true;
@@ -249,7 +249,7 @@
       if(!isValidResult(ranked)){this.blockedReason=required+' 사전 기록의 평가 결과가 유효하지 않습니다.';return this.snapshot();}
       const entry={id:'baseline',sequence:this._sequence++,generation:0,parentId:null,kind:'baseline',genomeVersion:G.VERSION,gene,result:ranked,record:baseline.record,accepted:true};
       this._best=entry;this._parents=[entry];this.ready=true;this._generationStartScore=entry.result.score;
-      this._baselineEntry=entry;
+      this._baselineEntry=entry;this._originEntry=entry;
       if(this._strategyRequested&&Strategies?.supports(this.vehicle,this.track,entry.record)){
         this._strategyZones=Strategies.zones(this.track);this._nicheArchives=this._strategyZones.map(()=>[entry]);this._entryCounts=this._strategyZones.map(()=>0);
         this._weakestArcIndices=weakestArcs(entry,this._strategyZones);
@@ -257,6 +257,32 @@
         if(Trajectory&&this._trajectoryEnabled&&this._strategyZones.length){this._trajectoryArchive=[entry];this._trajectoryBest=this._trajectory(entry).merit;}
       }
       this.history.push({generation:0,bestScore:entry.result.score,validCount:1,failureCount:0,evaluated:1,mutationScale:this.mutationScale,plateauGenerations:0});return this.snapshot();
+    }
+    validateImportedGene(gene){
+      const copy=cloneGene(gene),normalized=normalizeGene(copy,{maxSteerRad:this.maxSteerRad,gearCount:this.gearCount,lineBounds:this.lineBounds});
+      if(normalized.some((v,i)=>v!==copy[i]))throw new TypeError('불러온 유전자 값이 현재 차량·코스의 허용 범위를 벗어났습니다.');
+      return copy;
+    }
+    initializeImported(gene,result){
+      if(!this.initialized)this.initialize();
+      if(!this.ready)throw new Error(this.blockedReason||'사전 계산 그립 기록을 사용할 수 없습니다.');
+      if(this.totalEvaluated||this._planned.length||this._loadedEntry)throw new Error('불러온 주행은 새 실험의 시작값으로만 사용할 수 있습니다.');
+      const copy=this.validateImportedGene(gene);
+      if(!Array.isArray(result?.frames)||!result.frames.length)throw new TypeError('불러온 주행의 시뮬레이션 재생 기록이 없습니다.');
+      // Only the fresh physical evaluation is accepted. The prepared grip run
+      // remains the pace/scoring reference, never the imported file's score.
+      const record=result.frames,complete=isValidResult(result),reference=this._baselineEntry.result.drift;
+      const ranked=complete?this._rankResult(this.vehicle,this.track,result,record,{reference:this._baselineEntry.record}):
+        {...result,score:0,drift:{...result.drift,referenceSpeeds:reference?.referenceSpeeds,referencePace:reference?.referencePace},failureAnalysis:FailureAnalysis?.analyze(this.vehicle,this.track,result,{zones:this._strategyZones})};
+      const accepted=complete&&isValidResult(ranked);
+      const entry={id:'loaded',sequence:this._sequence++,generation:0,parentId:null,kind:'loaded',genomeVersion:G.VERSION,gene:copy,result:ranked,record,accepted};
+      this._loadedEntry=entry;this._lastCandidate=entry;
+      if(!accepted){this.ready=false;this.blockedReason='실패 주행은 재생만 가능합니다. 새 실험으로 진화를 시작하세요.';return this.snapshot();}
+      this._originEntry=entry;this._best=entry;this._parents=[entry];this._lastCandidate=entry;this._generationStartScore=ranked.score;
+      this._nicheArchives=this._strategyZones.map(()=>[entry]);this._weakestArcIndices=weakestArcs(entry,this._strategyZones);
+      if(this._trajectoryEnabled&&this._strategyZones.length){this._trajectoryArchive=[entry];this._trajectoryBest=this._trajectory(entry).merit;}
+      this.history=[{generation:0,bestScore:ranked.score,validCount:1,failureCount:0,evaluated:1,mutationScale:this.mutationScale,plateauGenerations:0}];
+      return this.snapshot();
     }
     _regional(entry,arc){
       let cached=this._nicheCache.get(entry);if(!cached){cached=[];this._nicheCache.set(entry,cached);}
@@ -278,7 +304,7 @@
       }
       return this._trajectoryCache.get(entry);
     }
-    _parentEntry(id){return this._trajectoryArchive.find(e=>e.id===id)||this._nicheArchives.flat().find(e=>e.id===id)||this._parents.find(e=>e.id===id)||this._baselineEntry;}
+    _parentEntry(id){return this._trajectoryArchive.find(e=>e.id===id)||this._nicheArchives.flat().find(e=>e.id===id)||this._parents.find(e=>e.id===id)||(id===this._baselineEntry?.id?this._baselineEntry:this._originEntry);}
     _trajectoryCandidate(){
       if(!this._trajectoryEnabled||!Trajectory||!this._trajectoryArchive.length)return null;
       const viable=this._trajectoryArchive.filter(e=>this._trajectory(e).feasible),roll=this._rng();
@@ -359,17 +385,17 @@
         return {parentId:parent.id,gene:proposal.gene,kind:'arc-'+proposal.change.family,arcIndex:arc,mutation:Object.freeze({...proposal.change})};
       }
       const previous=parent.params?.arc===arc&&this._rng()<.82?parent.params:null;
-      const proposal=Strategies.entry(this.vehicle,this.track,this._baselineEntry,this._rng,arc,previous,options);
-      // Every entry macro starts with the prepared genome. Parameter ancestry
-      // is separate from the actual input genome, including on a restart.
-      return {parentId:this._baselineEntry.id,parameterParentId:previous?parent.id:null,gene:proposal.gene,params:proposal.params,kind:'immigrant',arcIndex:arc,mutation:proposal.change?Object.freeze({...proposal.change}):undefined};
+      const proposal=Strategies.entry(this.vehicle,this.track,this._originEntry,this._rng,arc,previous,options);
+      // Entry macros restart from this experiment's origin. After loading,
+      // that is the re-evaluated saved genome, while pace stays offline grip.
+      return {parentId:this._originEntry.id,parameterParentId:previous?parent.id:null,gene:proposal.gene,params:proposal.params,kind:'immigrant',arcIndex:arc,mutation:proposal.change?Object.freeze({...proposal.change}):undefined};
     }
     _retainNiche(entries,arc){
       const unique=new Map(entries.filter(e=>e.accepted&&isValidResult(e.result)).map(e=>[e.id,e]));
       const ranked=[...unique.values()].sort((a,b)=>this._regional(b,arc).score-this._regional(a,arc).score||a.sequence-b.sequence);
       const chosen=[],zone=this._strategyZones[arc],distance=(a,b)=>localGeneDistance(a.gene,b.gene,zone,this.track.length,this.lineBounds);
       const add=(entry,force=false)=>{if(entry&&entry.accepted&&isValidResult(entry.result)&&!chosen.some(p=>p.id===entry.id)&&(force||!chosen.length||Math.min(...chosen.map(p=>distance(p,entry)))>1e-7))chosen.push(entry);};
-      add(ranked[0]);add(this._baselineEntry);
+      add(ranked[0]);add(this._originEntry);
       if(this._connectionSearch&&Connections){
         const specialists=new Map();
         for(const entry of ranked)for(const target of this._connections(entry)){
@@ -402,7 +428,7 @@
       // whose global score is lower. Remaining slots preserve locally novel
       // zero-score preparation so the grip baseline cannot win every tie.
       spread(paretoEntries(ranked),6);spread(ranked,16);
-      return chosen.length?chosen:[this._baselineEntry];
+      return chosen.length?chosen:[this._originEntry];
     }
     planCandidate(){
       if(!this.initialized)this.initialize();if(!this.ready||this._candidates.length+this._planned.length>=this.populationSize)return null;
@@ -494,7 +520,7 @@
     }
     step(count=1){if(!Number.isInteger(count)||count<1||count>10000)throw new RangeError('step count must be between 1 and 10000.');if(!this.initialized)this.initialize();if(this.ready)for(let i=0;i<count;i++)this._evaluateCandidate();return this.snapshot();}
     batch(count=1){return this.step(count);}runGeneration(){if(!this.initialized)this.initialize();return this.ready?this.step(this.populationSize-this._candidates.length):this.snapshot();}
-    snapshot(){const feasible=this._trajectoryArchive.filter(e=>this._trajectory(e).feasible).length;return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,pedalOverlapSearch:{enabled:this._pedalOverlapEnabled&&this._strategyZones.length>0,...this._pedalOverlapStats},selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},trajectorySearch:{enabled:this._trajectoryEnabled,phase:Trajectory?Trajectory.allocation(feasible,this._trajectoryStale).phase:'coarse',parents:this._trajectoryArchive.length,families:new Set(this._trajectoryArchive.map(e=>this._trajectory(e).family)).size,feasibleParents:feasible,staleGenerations:this._trajectoryStale,bestMerit:this._trajectoryBest,...this._trajectoryStats,retry:this._retry?.snapshot(this.generation)||null,representative:this._trajectoryEnabled&&this._best&&this._strategyZones.length?this._trajectory(this._best):null},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
+    snapshot(){const feasible=this._trajectoryArchive.filter(e=>this._trajectory(e).feasible).length;return{initialized:this.initialized,ready:this.ready,blockedReason:this.blockedReason,initialRunAccepted:this._loadedEntry?this._loadedEntry.accepted:null,originId:this._originEntry?.id??null,generation:this.generation,knots:this.knots,stride:G.STRIDE,genomeVersion:G.VERSION,lineRange:{...this.lineRange},populationSize:this.populationSize,totalEvaluated:this.totalEvaluated,evaluated:this._candidates.length,reserved:this._planned.length,remaining:this.populationSize-this._candidates.length-this._planned.length,mutationScale:this.mutationScale,plateauGenerations:this.plateauGenerations,bestScore:this._best?.result.score??null,best:this.best,lastCandidate:this.lastCandidate,parentCount:this._parents.length,nicheParentCount:new Set(this._nicheArchives.flat().map(e=>e.id)).size,apexRegions:this._strategyZones.length,poweredExitRegions:this._strategyZones.length,learningStats:this._learning?.snapshot()||null,pedalOverlapSearch:{enabled:this._pedalOverlapEnabled&&this._strategyZones.length>0,...this._pedalOverlapStats},selectionStats:{...this._selectionStats,weakestArcs:[...this._weakestArcIndices]},trajectorySearch:{enabled:this._trajectoryEnabled,phase:Trajectory?Trajectory.allocation(feasible,this._trajectoryStale).phase:'coarse',parents:this._trajectoryArchive.length,families:new Set(this._trajectoryArchive.map(e=>this._trajectory(e).family)).size,feasibleParents:feasible,staleGenerations:this._trajectoryStale,bestMerit:this._trajectoryBest,...this._trajectoryStats,retry:this._retry?.snapshot(this.generation)||null,representative:this._trajectoryEnabled&&this._best&&this._strategyZones.length?this._trajectory(this._best):null},evaluationStats:{...this._evaluationStats},stats:{...this.stats},history:this.history.map(e=>({...e}))};}
   }
   const api=Object.freeze({DEFAULTS,createRng,cloneGene,normalizeGene,mutateGene,cornerRegions,driftRegions,geneDistance,selectDiverseParents,selectionProfile,paretoEntries,localGeneDistance,weakestArcs,isValidResult,Engine});root.DriftEvolution=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

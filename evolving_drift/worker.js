@@ -1,5 +1,5 @@
 'use strict';
-const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'pedal-overlap-20261030-2';
+const requestedRelease=new URLSearchParams(globalThis.location?.search||'').get('v')||'saved-runs-20261031-1';
 importScripts('runtime.js?v='+encodeURIComponent(requestedRelease));
 DriftRuntime.assertRelease(requestedRelease);
 importScripts(...['../evolving_vehicles/vehicle-specs.js','../evolving_vehicles_2/circuit-vehicle-specs.js','../evolving_vehicles_2/tuning-evolution.js','../evolving_vehicles_2/powertrain-profiles.js','catalog.js','course-model.js','kic-t21.js','inje-sdc.js','kic-sdc.js','ebisu-west.js','tsukuba-d1.js','track.js','genome.js','mutation-shape.js','driver.js','manual-clutch.js','physics.js','evaluation-cache.js','prepared-grips-manifest.js','prepared-grips.js','course-scoring.js','fitness.js','entry-speed-planner.js','evolution-strategies.js','failure-analysis.js','evolution-learning.js','connection-analysis.js','trajectory-search.js','evolution.js'].map(DriftRuntime.url));
@@ -88,8 +88,17 @@ onmessage=async event=>{
       workerCount=typeof Worker==='function'?Math.max(1,Math.min(4,Math.floor(requested))):1;
       engine=new DriftEvolution.Engine(vehicle,track,{seed:m.seed,populationSize:20,baseline});engine.initialize();
       if(!engine.ready)throw Error(engine.blockedReason||'준비된 기준 기록을 사용할 수 없습니다.');
-      lastBest=engine.best.id;publish({type:'ready',baseline,best:engine.best,state:state()});
+      if(m.initialRun){
+        if(m.initialRun.genomeVersion!==engine.snapshot().genomeVersion)throw Error('저장된 주행의 유전자 버전이 현재 버전과 다릅니다.');
+        const gene=engine.validateImportedGene(m.initialRun.gene);
+        // Rebuild every replay frame and score locally. No saved result, pose,
+        // fitness or archive is admitted across the file/worker boundary.
+        const result=evaluator.evaluate(gene,{id:'loaded'});
+        engine.initializeImported(gene,result);
+      }
+      lastBest=engine.best.id;publish({type:'ready',baseline:{...baseline,result:engine.baselineRun.result},best:engine.best,loaded:engine.loadedRun,state:state()});
     }else if(m.type==='run'&&engine&&!running){
+      if(!engine.ready){publish({type:'paused',reason:engine.blockedReason});return;}
       clearTimeout(timer);running=true;stopGeneration=m.once?engine.generation+1:Infinity;
       await ensurePool();if(current===initToken&&running)pump();
     }else if(m.type==='pause'){
