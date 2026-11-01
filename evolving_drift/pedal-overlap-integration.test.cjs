@@ -1,32 +1,22 @@
 'use strict';
-const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const test=require('node:test'),assert=require('node:assert/strict');
 const G=require('./genome.js'),P=require('./physics.js'),Cache=require('./evaluation-cache.js');
 const Catalog=require('./catalog.js'),Tracks=require('./track.js'),Prepared=require('./prepared-grips.js');
 const Evolution=require('./evolution.js'),Strategies=require('./evolution-strategies.js'),Fitness=require('./fitness.js');
 const C=G.CHANNELS,track=Tracks.get('kr-kic-t21-kdl-2016-r2');
 const manualIds=['porter-lpg-mt','porter-diesel-mt','bmw-m2-3.0t-mt','gr86-2.4-rz-mt'];
-// Frozen original f7621cd9a93c23f8631026c9a1671c970f44a27e strategies/evolution,
-// with its own trajectory closure, current prepared KIC T21 seeds, seed 37 and
-// 20 reservations. Golden hashes avoid requiring Git history in shallow CI.
-const initialPlanHashes={
- 'g80-2.5t-rwd':'9efa644cf214d4319117bf175c2d6d40411e3817eda7dc2aa5d13ddce9993517',
- 'g80-3.5t-rwd':'309fdb7d9da7513e762cd2a35ca88239973222b3ccde92430e6239ed07465f50',
- 'ioniq5-standard':'01954d8986b97ac542d74a717f2c918dea16b58940c553966270e7c9116afbbb',
- 'ioniq5-long-rwd':'89323de67e86de9a2e17c074401b7c7fdadd943007313f53fead84a5e8b3d579',
- 'porter-lpg-mt':'3d31afb9a01c594c03e5bd2a37f6b60c26d4e903b2f260da69a733d8e35105e5',
- 'porter-lpg-at':'f44e5e699b0aa195aa12b8d9e094dc6dd36a0e09617fbef14ca41b94ce9c1eda',
- 'porter-diesel-mt':'c1f72e8530760a185a9706191bc9efad5d3395fbb428b8b38eb4d352e085f08f',
- 'porter-diesel-at':'ed1c9aed2715a3e27f01fe027ecce6e96d229d5a88cece12175c7eb6e1e5b18a',
- 'g70-2.0t-rwd':'6580c2819ca7b79c67c928d80a39280c375b380e243274bccbb9702c6412979c',
- 'g70-3.3t-rwd':'d3a3a7d406a29a87fa3efd8d7ed0ce184cba66549eb0d60ebcf49887e77890cd',
- 'g70-2.2d-rwd':'a2c6e4705bcdb52cd93dc59f4e601858f25921da8c118c94f608342f483a9539',
- 'supra-3.0t-rz':'04270a081014ffc4f03e5cfb9ac98a12be5bba792543bc922e8b05b5068865d4',
- 'bmw-m2-3.0t-dct':'147b34744b0fb3368eb462ec5c10dcc8f4c22657e80459bb341223b299c90d37',
- 'bmw-m2-3.0t-mt':'63874b10c75724c9156c3368651096b41cf6931bbf397b75e67c0437ced3b8df',
- 'gr86-2.4-rz-mt':'f08481588eb6f880cffab1434326b3332cb0865b27a21b3ddbd2f7d9339e1ef0',
- 'gr86-2.4-rz-at':'fc4a7f3f1c375673b9674d6727f80b831f993059fdb31270bbdde7d0c5ad1318'
-};
-function planHash(jobs){const hash=crypto.createHash('sha256');for(const job of jobs){hash.update(job.id+'\0'+job.kind+'\0'+job.parentId+'\0');const bytes=Buffer.alloc(job.gene.length*8);for(let i=0;i<job.gene.length;i++)bytes.writeDoubleLE(job.gene[i],i*8);hash.update(bytes);}return hash.digest('hex');}
+// Compare exact proposal values in this runtime, not raw-Float64 goldens from
+// another platform. The archived parent also works in shallow/offline CI.
+const Original=require('./test-fixtures/pre-pedal-overlap.cjs').loadOriginalEvolution();
+const proposalValues=jobs=>Array.from(jobs,job=>({
+ id:job.id,kind:job.kind,parentId:job.parentId,gene:Array.from(job.gene)
+}));
+function originalPlan(vehicle,baseline,options={}){
+ const engine=new Original.Engine(vehicle,track,{baseline,seed:37,populationSize:20,
+  physics:{evaluateGene(){throw Error('Reference reservation must not simulate');}},...options});
+ assert.equal(engine.initialize().ready,true,vehicle.id);
+ return {engine,jobs:reserve(engine)};
+}
 const physical=result=>{const {evaluation,...rest}=result;return rest;};
 const reserve=engine=>{const jobs=[];for(let job;(job=engine.planCandidate());)jobs.push(job);return jobs;};
 async function preparedEngine(id,options={}){
@@ -35,26 +25,31 @@ async function preparedEngine(id,options={}){
  assert.equal(engine.initialize().ready,true,id);return {vehicle,baseline,engine};
 }
 
-test('all sixteen prepared grip seeds keep original f7621 proposal genes and RNG order until real drift exists, including all four MT clutch searches',async()=>{
+test('all sixteen prepared grip seeds keep original f7621 proposal genes and RNG order until real drift exists, including all four MT clutch searches',async(t)=>{
  const transmissions=new Set();
- assert.equal(Catalog.list().length,Object.keys(initialPlanHashes).length);
- for(const {id} of Catalog.list()){
+ assert.equal(Catalog.list().length,16);
+ for(const {id} of Catalog.list())await t.test(id,async()=>{
   const {vehicle,baseline,engine}=await preparedEngine(id,{populationSize:20,physics:{evaluateGene(){throw Error('Reservation must not simulate');}}});
   const before=G.clone(baseline.gene),jobs=reserve(engine),overlap=jobs.filter(j=>j.kind==='pedal-overlap');
   transmissions.add(vehicle.physics.transmissionType);
   assert.equal(overlap.length,0,id+' must form drift before reserving pedal refinements');
-  assert.equal(planHash(jobs),initialPlanHashes[id],id+' consumes exactly the original grip-exploration RNG sequence');
+  const original=originalPlan(vehicle,baseline);
+  assert.equal(jobs.length,20,id+' reserves the complete initial population');
+  assert.deepEqual(proposalValues(jobs),proposalValues(original.jobs),id+' preserves original proposal order and every gene value');
+  assert.equal(engine._rng(),original.engine._rng(),id+' preserves RNG state after all reservations');
   assert.equal(Strategies.hasPedalEvidence(track,engine._baselineEntry),false);
   assert.equal(jobs.some(j=>j.kind==='clutch-kick'),manualIds.includes(id),id+' clutch transmission eligibility');
   assert.deepEqual(baseline.gene,before,'reservation cannot edit the prepared seed');
   const stats=engine.snapshot().pedalOverlapSearch;
   assert.equal(stats.enabled,true);assert.equal(stats.proposals,overlap.length);
   assert.equal(stats.evaluated,0);assert.equal(stats.valid,0);assert.equal(engine.totalEvaluated,0);
- }
+ });
  assert.deepEqual([...transmissions].sort(),['AT','DCT','EV','MT']);
- const {engine}=await preparedEngine('porter-lpg-mt',{populationSize:20,pedalOverlap:false});
+ const {vehicle,baseline,engine}=await preparedEngine('porter-lpg-mt',{populationSize:20,pedalOverlap:false});
  const jobs=reserve(engine);assert.equal(jobs.some(j=>j.kind==='pedal-overlap'),false);
- assert.equal(planHash(jobs),initialPlanHashes['porter-lpg-mt']);
+ const original=originalPlan(vehicle,baseline);
+ assert.deepEqual(proposalValues(jobs),proposalValues(original.jobs));
+ assert.equal(engine._rng(),original.engine._rng());
  assert.ok(jobs.some(j=>j.kind==='clutch-kick'),'disabling this slot must not disable clutch search');
  assert.equal(engine.snapshot().pedalOverlapSearch.enabled,false);assert.equal(engine.snapshot().pedalOverlapSearch.proposals,0);
 });
